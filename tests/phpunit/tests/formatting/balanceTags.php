@@ -2,49 +2,22 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::balanceTags
  */
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
-	public function nestable_tags() {
-		return array(
-			array( 'article' ),
-			array( 'aside' ),
-			array( 'blockquote' ),
-			array( 'details' ),
-			array( 'div' ),
-			array( 'figure' ),
-			array( 'object' ),
-			array( 'q' ),
-			array( 'section' ),
-			array( 'span' ),
-		);
+	/**
+	 * @ticket 47014
+	 * @dataProvider data_supported_traditional_tag_names
+	 */
+	public function test_detects_traditional_tag_names( $tag ) {
+		$normalized = strtolower( $tag );
+
+		$this->assertSame( "<$normalized>inside</$normalized>", balanceTags( "<$tag>inside", true ) );
 	}
 
-	// This is a complete(?) listing of valid single/self-closing tags.
-	public function single_tags() {
-		return array(
-			array( 'area' ),
-			array( 'base' ),
-			array( 'basefont' ),
-			array( 'br' ),
-			array( 'col' ),
-			array( 'command' ),
-			array( 'embed' ),
-			array( 'frame' ),
-			array( 'hr' ),
-			array( 'img' ),
-			array( 'input' ),
-			array( 'isindex' ),
-			array( 'link' ),
-			array( 'meta' ),
-			array( 'param' ),
-			array( 'source' ),
-			array( 'track' ),
-			array( 'wbr' ),
-		);
-	}
-
-	public function supported_traditional_tag_names() {
+	public function data_supported_traditional_tag_names() {
 		return array(
 			array( 'a' ),
 			array( 'div' ),
@@ -56,7 +29,15 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 	}
 
-	public function supported_custom_element_tag_names() {
+	/**
+	 * @ticket 47014
+	 * @dataProvider data_supported_custom_element_tag_names
+	 */
+	public function test_detects_supported_custom_element_tag_names( $tag ) {
+		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
+	}
+
+	public function data_supported_custom_element_tag_names() {
 		return array(
 			array( 'custom-element' ),
 			array( 'my-custom-element' ),
@@ -68,7 +49,15 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		);
 	}
 
-	public function invalid_tag_names() {
+	/**
+	 * @ticket 47014
+	 * @dataProvider data_invalid_tag_names
+	 */
+	public function test_ignores_invalid_tag_names( $input, $output ) {
+		$this->assertSame( $output, balanceTags( $input, true ) );
+	}
+
+	public function data_invalid_tag_names() {
 		return array(
 			array( '<0-day>inside', '&lt;0-day>inside' ), // Can't start with a number - handled by the "<3" fix.
 			array( '<UPPERCASE-TAG>inside', '<UPPERCASE-TAG>inside' ), // Custom elements cannot be uppercase.
@@ -76,11 +65,19 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47014
+	 * @dataProvider data_unsupported_valid_tag_names
+	 */
+	public function test_ignores_unsupported_custom_tag_names( $tag ) {
+		$this->assertSame( "<$tag>inside", balanceTags( "<$tag>inside", true ) );
+	}
+
+	/**
 	 * These are valid custom elements but we don't support them yet.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 */
-	public function unsupported_valid_tag_names() {
+	public function data_unsupported_valid_tag_names() {
 		return array(
 			// We don't allow ending in a dash.
 			array( '<what->inside' ),
@@ -136,11 +133,19 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47014
+	 * @dataProvider data_supported_invalid_tag_names
+	 */
+	public function test_detects_supported_invalid_tag_names( $tag ) {
+		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
+	}
+
+	/**
 	 * These are invalid custom elements but we support them right now in order to keep the parser simpler.
 	 *
 	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
 	 */
-	public function supported_invalid_tag_names() {
+	public function data_supported_invalid_tag_names() {
 		return array(
 			// Reserved names for custom elements.
 			array( 'annotation-xml' ),
@@ -155,52 +160,10 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 47014
-	 * @dataProvider supported_traditional_tag_names
-	 */
-	public function test_detects_traditional_tag_names( $tag ) {
-		$normalized = strtolower( $tag );
-
-		$this->assertSame( "<$normalized>inside</$normalized>", balanceTags( "<$tag>inside", true ) );
-	}
-
-	/**
-	 * @ticket 47014
-	 * @dataProvider supported_custom_element_tag_names
-	 */
-	public function test_detects_supported_custom_element_tag_names( $tag ) {
-		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
-	}
-
-	/**
-	 * @ticket 47014
-	 * @dataProvider invalid_tag_names
-	 */
-	public function test_ignores_invalid_tag_names( $input, $output ) {
-		$this->assertSame( $output, balanceTags( $input, true ) );
-	}
-
-	/**
-	 * @ticket 47014
-	 * @dataProvider unsupported_valid_tag_names
-	 */
-	public function test_ignores_unsupported_custom_tag_names( $tag ) {
-		$this->assertSame( "<$tag>inside", balanceTags( "<$tag>inside", true ) );
-	}
-
-	/**
-	 * @ticket 47014
-	 * @dataProvider supported_invalid_tag_names
-	 */
-	public function test_detects_supported_invalid_tag_names( $tag ) {
-		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
-	}
-
-	/**
 	 * If a recognized valid single tag appears unclosed, it should get self-closed
 	 *
 	 * @ticket 1597
-	 * @dataProvider single_tags
+	 * @dataProvider data_single_tags
 	 */
 	public function test_selfcloses_unclosed_known_single_tags( $tag ) {
 		$this->assertSame( "<$tag />", balanceTags( "<$tag>", true ) );
@@ -211,10 +174,34 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *   should get removed and tag should be self-closed.
 	 *
 	 * @ticket 1597
-	 * @dataProvider single_tags
+	 * @dataProvider data_single_tags
 	 */
 	public function test_selfcloses_known_single_tags_having_closing_tag( $tag ) {
 		$this->assertSame( "<$tag />", balanceTags( "<$tag></$tag>", true ) );
+	}
+
+	// This is a complete(?) listing of valid single/self-closing tags.
+	public function data_single_tags() {
+		return array(
+			array( 'area' ),
+			array( 'base' ),
+			array( 'basefont' ),
+			array( 'br' ),
+			array( 'col' ),
+			array( 'command' ),
+			array( 'embed' ),
+			array( 'frame' ),
+			array( 'hr' ),
+			array( 'img' ),
+			array( 'input' ),
+			array( 'isindex' ),
+			array( 'link' ),
+			array( 'meta' ),
+			array( 'param' ),
+			array( 'source' ),
+			array( 'track' ),
+			array( 'wbr' ),
+		);
 	}
 
 	/**
@@ -272,7 +259,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider nestable_tags
+	 * @dataProvider data_nestable_tags
 	 */
 	public function test_balances_nestable_tags( $tag ) {
 		$inputs   = array(
@@ -289,6 +276,21 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		foreach ( $inputs as $key => $input ) {
 			$this->assertSame( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
+	}
+
+	public function data_nestable_tags() {
+		return array(
+			array( 'article' ),
+			array( 'aside' ),
+			array( 'blockquote' ),
+			array( 'details' ),
+			array( 'div' ),
+			array( 'figure' ),
+			array( 'object' ),
+			array( 'q' ),
+			array( 'section' ),
+			array( 'span' ),
+		);
 	}
 
 	public function test_allows_adjacent_nestable_tags() {

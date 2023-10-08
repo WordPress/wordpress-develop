@@ -20,12 +20,12 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$a             = new MockAction();
 		$callback      = array( $a, 'action' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertSame( 1, $a->get_call_count() );
@@ -35,12 +35,12 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$a             = new MockAction();
 		$callback      = array( $a, 'filter' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 		$hook->do_action( array( $arg ) );
 
@@ -53,13 +53,13 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$callback_one  = array( $a, 'filter' );
 		$callback_two  = array( $b, 'filter' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
-		$hook->add_filter( $tag, $callback_two, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_two, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertSame( 1, $a->get_call_count() );
@@ -72,13 +72,13 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$callback_one  = array( $a, 'filter' );
 		$callback_two  = array( $b, 'filter' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 2;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback_one, $priority, $accepted_args );
-		$hook->add_filter( $tag, $callback_two, $priority + 1, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertSame( 1, $a->get_call_count() );
@@ -88,12 +88,12 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	public function test_do_action_with_no_accepted_args() {
 		$callback      = array( $this, '_action_callback' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 0;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertEmpty( $this->events[0]['args'] );
@@ -102,12 +102,12 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	public function test_do_action_with_one_accepted_arg() {
 		$callback      = array( $this, '_action_callback' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 1;
 		$accepted_args = 1;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertCount( 1, $this->events[0]['args'] );
@@ -116,12 +116,12 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	public function test_do_action_with_more_accepted_args() {
 		$callback      = array( $this, '_action_callback' );
 		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
+		$hook_name     = __FUNCTION__;
 		$priority      = 100;
 		$accepted_args = 1000;
 		$arg           = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertCount( 1, $this->events[0]['args'] );

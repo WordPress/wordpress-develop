@@ -256,7 +256,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertNotNull( get_post_type_object( 'foo' ) );
 		$this->assertNull( get_post_type_object( array() ) );
 		$this->assertNull( get_post_type_object( array( 'foo' ) ) );
-		$this->assertNull( get_post_type_object( new stdClass ) );
+		$this->assertNull( get_post_type_object( new stdClass() ) );
 
 		_unregister_post_type( 'foo' );
 

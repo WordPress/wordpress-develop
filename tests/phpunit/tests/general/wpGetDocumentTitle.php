@@ -60,6 +60,18 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 	public function test__wp_render_title_tag() {
 		$this->go_to( '/' );
 
+		$this->expectOutputString( sprintf( "<title>%s</title>\n", $this->blog_name ) );
+		_wp_render_title_tag();
+	}
+
+	/**
+	 * @ticket 6479
+	 */
+	public function test__wp_render_title_tag_with_blog_description() {
+		$this->go_to( '/' );
+
+		update_option( 'blogdescription', 'A blog description' );
+
 		$this->expectOutputString( sprintf( "<title>%s &#8211; %s</title>\n", $this->blog_name, get_option( 'blogdescription' ) ) );
 		_wp_render_title_tag();
 	}
@@ -89,7 +101,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'page' );
 		update_option(
 			'page_on_front',
-			$this->factory->post->create(
+			self::factory()->post->create(
 				array(
 					'post_title' => 'front-page',
 					'post_type'  => 'page',
@@ -99,12 +111,12 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		add_filter( 'document_title_parts', array( $this, 'front_page_title_parts' ) );
 
 		$this->go_to( '/' );
-		$this->assertSame( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s', $this->blog_name ), wp_get_document_title() );
 
 		update_option( 'show_on_front', 'posts' );
 
 		$this->go_to( '/' );
-		$this->assertSame( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	public function front_page_title_parts( $parts ) {
@@ -116,7 +128,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 	}
 
 	public function test_home_title() {
-		$blog_page_id = $this->factory->post->create(
+		$blog_page_id = self::factory()->post->create(
 			array(
 				'post_title' => 'blog-page',
 				'post_type'  => 'page',
@@ -135,7 +147,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'document_title_parts', array( $this, 'paged_title_parts' ) );
 
-		$this->assertSame( sprintf( '%s &#8211; Page 4 &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s &#8211; Page 4', $this->blog_name ), wp_get_document_title() );
 	}
 
 	public function paged_title_parts( $parts ) {
@@ -193,7 +205,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 			)
 		);
 
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type' => 'cpt',
 			)

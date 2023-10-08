@@ -1,9 +1,7 @@
 /**
  * External dependencies
  */
-const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
-const { join } = require( 'path' );
 
 /**
  * WordPress dependencies
@@ -13,111 +11,29 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { stylesTransform, baseConfig, baseDir } = require( './shared' );
+const { baseDir, getBaseConfig, normalizeJoin, stylesTransform } = require( './shared' );
+const {
+	isDynamic,
+	toDirectoryName,
+	getStableBlocksMetadata,
+} = require( '../release/sync-stable-blocks' );
 
 module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
 	const mode = env.environment;
 	const suffix = mode === 'production' ? '.min' : '';
 	let buildTarget = env.buildTarget ? env.buildTarget : ( mode === 'production' ? 'build' : 'src' );
-	buildTarget = buildTarget  + '/wp-includes';
+	buildTarget = buildTarget + '/wp-includes';
 
-	const dynamicBlockFolders = [
-		'archives',
-		'avatar',
-		'block',
-		'calendar',
-		'categories',
-		'comment-author-name',
-		'comment-content',
-		'comment-date',
-		'comment-edit-link',
-		'comment-reply-link',
-		'comment-template',
-		'comments-pagination',
-		'comments-pagination-next',
-		'comments-pagination-numbers',
-		'comments-pagination-previous',
-		'cover',
-		'file',
-		'gallery',
-		'home-link',
-		'image',
-		'latest-comments',
-		'latest-posts',
-		'loginout',
-		'navigation',
-		'navigation-link',
-		'navigation-submenu',
-		'page-list',
-		'pattern',
-		'post-author',
-		'post-author-biography',
-		'post-comments',
-		'post-content',
-		'post-date',
-		'post-excerpt',
-		'post-featured-image',
-		'post-navigation-link',
-		'post-template',
-		'post-terms',
-		'post-title',
-		'query',
-		'query-no-results',
-		'query-pagination',
-		'query-pagination-next',
-		'query-pagination-numbers',
-		'query-pagination-previous',
-		'query-title',
-		'read-more',
-		'rss',
-		'search',
-		'shortcode',
-		'site-logo',
-		'site-tagline',
-		'site-title',
-		'social-link',
-		'tag-cloud',
-		'template-part',
-		'term-description',
-	];
-	const blockFolders = [
-		'audio',
-		'button',
-		'buttons',
-		'code',
-		'column',
-		'columns',
-		'comments-query-loop',
-		'embed',
-		'freeform',
-		'group',
-		'heading',
-		'html',
-		'list',
-		'media-text',
-		'missing',
-		'more',
-		'nextpage',
-		'paragraph',
-		'preformatted',
-		'pullquote',
-		'quote',
-		'separator',
-		'social-links',
-		'spacer',
-		'table',
-		'text-columns',
-		'verse',
-		'video',
-		...dynamicBlockFolders,
-	];
+	const blocks = getStableBlocksMetadata();
+	const dynamicBlockFolders = blocks.filter( isDynamic ).map( toDirectoryName );
+	const blockFolders = blocks.map( toDirectoryName );
 	const blockPHPFiles = {
 		'widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
 		'widgets/src/blocks/widget-group/index.php': 'wp-includes/blocks/widget-group.php',
 		...dynamicBlockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
-		} , {} ),
+		}, {} ),
 	};
 	const blockMetadataFiles = {
 		'widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
@@ -125,47 +41,96 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		...blockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
 			return files;
-		} , {} ),
+		}, {} ),
 	};
 
 	const blockPHPCopies = Object.keys( blockPHPFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ blockPHPFiles[ filename ] }` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: normalizeJoin(baseDir, `src/${ blockPHPFiles[ filename ] }` ),
 	} ) );
 
 	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: normalizeJoin(baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
 	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
-		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${ suffix }.css` ),
+		from: normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
+		to: normalizeJoin(baseDir, `${ buildTarget }/blocks/${ blockName }/[name]${ suffix }.css` ),
 		transform: stylesTransform( mode ),
 		noErrorOnMissing: true,
 	} ) );
 
+	const baseConfig = getBaseConfig( env );
 	const config = {
-		...baseConfig( env ),
+		...baseConfig,
 		entry: {
-			'file/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
-			'navigation/view': join( baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
+			'navigation/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/navigation/view' ),
+			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view' ),
+			'query/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/query/view' ),
+			'file/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view' ),
+			'search/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/search/view' ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
-			filename: `[name]${ suffix }.js`,
-			path: join( baseDir, `${ buildTarget }/blocks` ),
+			filename: `./blocks/[name]${ suffix }.js`,
+			path: normalizeJoin( baseDir, buildTarget ),
+			chunkLoadingGlobal: `__WordPressPrivateInteractivityAPI__`,
+		},
+		resolve: {
+			alias: {
+				'@wordpress/interactivity': normalizeJoin( baseDir, 'node_modules/@wordpress/interactivity/src/index.js' ),
+			},
+		},
+		optimization: {
+			...baseConfig.optimization,
+			runtimeChunk: {
+				name: 'private-interactivity',
+			},
+			splitChunks: {
+				cacheGroups: {
+					interactivity: {
+						name: 'private-interactivity',
+						test: /^(?!.*[\\/]block-library[\\/]).*$/,
+						filename: `./js/dist/interactivity${suffix}.js`,
+						chunks: 'all',
+						minSize: 0,
+						priority: -10,
+					},
+				},
+			},
+		},
+		module: {
+			rules: [
+				{
+					test: /\.(j|t)sx?$/,
+					use: [
+						{
+							loader: require.resolve( 'babel-loader' ),
+							options: {
+								cacheDirectory: process.env.BABEL_CACHE_DIRECTORY || true,
+								babelrc: false,
+								configFile: false,
+								presets: [
+									[
+										'@babel/preset-react',
+										{
+											runtime: 'automatic',
+											importSource: 'preact',
+										},
+									],
+								],
+							},
+						},
+					],
+				},
+			],
 		},
 		plugins: [
-			new DefinePlugin( {
-				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
-				'process.env.GUTENBERG_PHASE': 1,
-				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
-					process.env.FORCE_REDUCED_MOTION
-				),
-			} ),
+			...baseConfig.plugins,
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
+				useDefaults: false,
 			} ),
 			new CopyWebpackPlugin( {
 				patterns: [

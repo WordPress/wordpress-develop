@@ -28,8 +28,10 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
 		$src_file = get_attached_file( $src );
 
 		if ( ! file_exists( $src_file ) ) {
-			// If the file doesn't exist, attempt a URL fopen on the src link.
-			// This can occur with certain file replication plugins.
+			/*
+			 * If the file doesn't exist, attempt a URL fopen on the src link.
+			 * This can occur with certain file replication plugins.
+			 */
 			$src = _load_image_to_edit_path( $src, 'full' );
 		} else {
 			$src = $src_file;
@@ -61,6 +63,10 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
 	$result = $editor->save( $dst_file );
 	if ( is_wp_error( $result ) ) {
 		return $result;
+	}
+
+	if ( ! empty( $result['path'] ) ) {
+		return $result['path'];
 	}
 
 	return $dst_file;
@@ -155,8 +161,10 @@ function wp_update_image_subsizes( $attachment_id ) {
 	$image_file = wp_get_original_image_path( $attachment_id );
 
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
-		// Previously failed upload?
-		// If there is an uploaded file, make all sub-sizes and generate all of the attachment meta.
+		/*
+		 * Previously failed upload?
+		 * If there is an uploaded file, make all sub-sizes and generate all of the attachment meta.
+		 */
 		if ( ! empty( $image_file ) ) {
 			$image_meta = wp_create_image_subsizes( $image_file, $attachment_id );
 		} else {
@@ -186,6 +194,7 @@ function wp_update_image_subsizes( $attachment_id ) {
  * Updates the attached file and image meta data when the original image was edited.
  *
  * @since 5.3.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  * @access private
  *
  * @param array  $saved_data    The data returned from WP_Image_Editor after successfully saving an image.
@@ -207,11 +216,11 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Make the file path relative to the upload dir.
 	$image_meta['file'] = _wp_relative_upload_path( $new_file );
 
-	// Store the original image file name in image_meta.
-	$image_meta['original_image'] = wp_basename( $original_file );
-
 	// Add image file size.
 	$image_meta['filesize'] = wp_filesize( $new_file );
+
+	// Store the original image file name in image_meta.
+	$image_meta['original_image'] = wp_basename( $original_file );
 
 	return $image_meta;
 }
@@ -278,8 +287,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		 */
 		$threshold = (int) apply_filters( 'big_image_size_threshold', 2560, $imagesize, $file, $attachment_id );
 
-		// If the original image's dimensions are over the threshold,
-		// scale the image and use it as the "full" size.
+		/*
+		 * If the original image's dimensions are over the threshold,
+		 * scale the image and use it as the "full" size.
+		 */
 		if ( $threshold && ( $image_meta['width'] > $threshold || $image_meta['height'] > $threshold ) ) {
 			$editor = wp_get_image_editor( $file );
 
@@ -299,8 +310,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			}
 
 			if ( ! is_wp_error( $resized ) ) {
-				// Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
-				// This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
+				/*
+				 * Append "-scaled" to the image file name. It will look like "my_image-scaled.jpg".
+				 * This doesn't affect the sub-sizes names as they are generated from the original image (for best quality).
+				 */
 				$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
 
 				if ( ! is_wp_error( $saved ) ) {
@@ -470,9 +483,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 }
 
 /**
- * Generate attachment meta data and create image sub-sizes for images.
+ * Generates attachment meta data and create image sub-sizes for images.
  *
  * @since 2.1.0
+ * @since 6.0.0 The `$filesize` value was added to the returned array.
  *
  * @param int    $attachment_id Attachment ID to process.
  * @param string $file          Filepath of the attached image.
@@ -653,7 +667,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 }
 
 /**
- * Convert a fraction string to a decimal.
+ * Converts a fraction string to a decimal.
  *
  * @since 2.5.0
  *
@@ -686,7 +700,7 @@ function wp_exif_frac2dec( $str ) {
 	}
 
 	// The denominator must not be zero.
-	if ( 0 == $denominator ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- Deliberate loose comparison.
+	if ( 0 == $denominator ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- Deliberate loose comparison.
 		return 0;
 	}
 
@@ -694,7 +708,7 @@ function wp_exif_frac2dec( $str ) {
 }
 
 /**
- * Convert the exif date format to a unix timestamp.
+ * Converts the exif date format to a unix timestamp.
  *
  * @since 2.5.0
  *
@@ -709,7 +723,7 @@ function wp_exif_date2ts( $str ) {
 }
 
 /**
- * Get extended image metadata, exif or iptc as available.
+ * Gets extended image metadata, exif or iptc as available.
  *
  * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso
  * created_timestamp, focal_length, shutter_speed, and title.
@@ -768,8 +782,12 @@ function wp_read_image_metadata( $file ) {
 			) {
 				$iptc = iptcparse( $info['APP13'] );
 			} else {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+				// Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
 				$iptc = @iptcparse( $info['APP13'] );
+			}
+
+			if ( ! is_array( $iptc ) ) {
+				$iptc = array();
 			}
 
 			// Headline, "A brief synopsis of the caption".
@@ -837,8 +855,12 @@ function wp_read_image_metadata( $file ) {
 		) {
 			$exif = exif_read_data( $file );
 		} else {
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+			// Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
 			$exif = @exif_read_data( $file );
+		}
+
+		if ( ! is_array( $exif ) ) {
+			$exif = array();
 		}
 
 		if ( ! empty( $exif['ImageDescription'] ) ) {
@@ -931,11 +953,10 @@ function wp_read_image_metadata( $file ) {
 	 * @param array  $exif       EXIF data.
 	 */
 	return apply_filters( 'wp_read_image_metadata', $meta, $file, $image_type, $iptc, $exif );
-
 }
 
 /**
- * Validate that file is an image.
+ * Validates that file is an image.
  *
  * @since 2.5.0
  *
@@ -948,7 +969,7 @@ function file_is_valid_image( $path ) {
 }
 
 /**
- * Validate that file is suitable for displaying within a web page.
+ * Validates that file is suitable for displaying within a web page.
  *
  * @since 2.5.0
  *
@@ -979,7 +1000,7 @@ function file_is_displayable_image( $path ) {
 }
 
 /**
- * Load an image resource for editing.
+ * Loads an image resource for editing.
  *
  * @since 2.9.0
  *
@@ -1040,7 +1061,7 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 }
 
 /**
- * Retrieve the path or URL of an attachment's attached file.
+ * Retrieves the path or URL of an attachment's attached file.
  *
  * If the attached file is not present on the local filesystem (usually due to replication plugins),
  * then the URL of the file is returned if `allow_url_fopen` is supported.
@@ -1108,7 +1129,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 }
 
 /**
- * Copy an existing image file.
+ * Copies an existing image file.
  *
  * @since 3.4.0
  * @access private

@@ -10,7 +10,7 @@
  * This functionality was found in a plugin before the WordPress 2.2 release, which
  * included it in the core from that point on.
  *
- * @link https://wordpress.org/support/article/wordpress-widgets/
+ * @link https://wordpress.org/documentation/article/manage-wordpress-widgets/
  * @link https://developer.wordpress.org/themes/functionality/widgets/
  *
  * @package WordPress
@@ -185,8 +185,10 @@ function register_sidebars( $number = 1, $args = array() ) {
 			$_args['name'] = isset( $args['name'] ) ? $args['name'] : __( 'Sidebar' );
 		}
 
-		// Custom specified ID's are suffixed if they exist already.
-		// Automatically generated sidebar names need to be suffixed regardless starting at -0.
+		/*
+		 * Custom specified ID's are suffixed if they exist already.
+		 * Automatically generated sidebar names need to be suffixed regardless starting at -0.
+		 */
 		if ( isset( $args['id'] ) ) {
 			$_args['id'] = $args['id'];
 			$n           = 2; // Start at -2 for conflicting custom IDs.
@@ -908,7 +910,7 @@ function is_active_widget( $callback = false, $widget_id = false, $id_base = fal
 
 	if ( is_array( $sidebars_widgets ) ) {
 		foreach ( $sidebars_widgets as $sidebar => $widgets ) {
-			if ( $skip_inactive && ( 'wp_inactive_widgets' === $sidebar || 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) ) {
+			if ( $skip_inactive && ( 'wp_inactive_widgets' === $sidebar || str_starts_with( $sidebar, 'orphaned_widgets' ) ) ) {
 				continue;
 			}
 
@@ -1013,8 +1015,10 @@ function wp_get_sidebars_widgets( $deprecated = true ) {
 
 	global $_wp_sidebars_widgets, $sidebars_widgets;
 
-	// If loading from front page, consult $_wp_sidebars_widgets rather than options
-	// to see if wp_convert_widget_settings() has made manipulations in memory.
+	/*
+	 * If loading from front page, consult $_wp_sidebars_widgets rather than options
+	 * to see if wp_convert_widget_settings() has made manipulations in memory.
+	 */
 	if ( ! is_admin() ) {
 		if ( empty( $_wp_sidebars_widgets ) ) {
 			$_wp_sidebars_widgets = get_option( 'sidebars_widgets', array() );
@@ -1382,7 +1386,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 	}
 
 	foreach ( $existing_sidebars_widgets as $sidebar => $widgets ) {
-		if ( 'wp_inactive_widgets' === $sidebar || 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) {
+		if ( 'wp_inactive_widgets' === $sidebar || str_starts_with( $sidebar, 'orphaned_widgets' ) ) {
 			$new_sidebars_widgets['wp_inactive_widgets'] = array_merge( $new_sidebars_widgets['wp_inactive_widgets'], (array) $widgets );
 			unset( $existing_sidebars_widgets[ $sidebar ] );
 		}
@@ -1490,7 +1494,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 		// Remove orphaned widgets, we're only interested in previously active sidebars.
 		foreach ( $old_sidebars_widgets as $sidebar => $widgets ) {
-			if ( 'orphaned_widgets' === substr( $sidebar, 0, 16 ) ) {
+			if ( str_starts_with( $sidebar, 'orphaned_widgets' ) ) {
 				unset( $old_sidebars_widgets[ $sidebar ] );
 			}
 		}
@@ -1578,7 +1582,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 
 	if ( is_wp_error( $rss ) ) {
 		if ( is_admin() || current_user_can( 'manage_options' ) ) {
-			echo '<p><strong>' . __( 'RSS Error:' ) . '</strong> ' . $rss->get_error_message() . '</p>';
+			echo '<p><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $rss->get_error_message() ) . '</p>';
 		}
 		return;
 	}
@@ -1627,7 +1631,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$summary = $desc;
 
 			// Change existing [...] to [&hellip;].
-			if ( '[...]' === substr( $summary, -5 ) ) {
+			if ( str_ends_with( $summary, '[...]' ) ) {
 				$summary = substr( $summary, 0, -5 ) . '[&hellip;]';
 			}
 
@@ -1701,7 +1705,7 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	$args['show_date']    = isset( $args['show_date'] ) ? (int) $args['show_date'] : (int) $inputs['show_date'];
 
 	if ( ! empty( $args['error'] ) ) {
-		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . $args['error'] . '</p>';
+		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $args['error'] ) . '</p>';
 	}
 
 	$esc_number = esc_attr( $args['number'] );
@@ -1767,7 +1771,7 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	if ( $items < 1 || 20 < $items ) {
 		$items = 10;
 	}
-	$url          = esc_url_raw( strip_tags( $widget_rss['url'] ) );
+	$url          = sanitize_url( strip_tags( $widget_rss['url'] ) );
 	$title        = isset( $widget_rss['title'] ) ? trim( strip_tags( $widget_rss['title'] ) ) : '';
 	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
 	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
@@ -2103,5 +2107,31 @@ function wp_check_widget_editor_deps() {
 				'5.8.0'
 			);
 		}
+	}
+}
+
+/**
+ * Registers the previous theme's sidebars for the block themes.
+ *
+ * @since 6.2.0
+ * @access private
+ *
+ * @global array $wp_registered_sidebars Registered sidebars.
+ */
+function _wp_block_theme_register_classic_sidebars() {
+	global $wp_registered_sidebars;
+
+	if ( ! wp_is_block_theme() ) {
+		return;
+	}
+
+	$classic_sidebars = get_theme_mod( 'wp_classic_sidebars' );
+	if ( empty( $classic_sidebars ) ) {
+		return;
+	}
+
+	// Don't use `register_sidebar` since it will enable the `widgets` support for a theme.
+	foreach ( $classic_sidebars as $sidebar ) {
+		$wp_registered_sidebars[ $sidebar['id'] ] = $sidebar;
 	}
 }

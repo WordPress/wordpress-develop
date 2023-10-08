@@ -179,6 +179,8 @@ function validate_email( $email, $check_domain = true) {
  * @deprecated 3.0.0 Use wp_get_sites()
  * @see wp_get_sites()
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int    $start      Optional. Offset for retrieving the blog list. Default 0.
  * @param int    $num        Optional. Number of blogs to list. Default 10.
  * @param string $deprecated Unused.
@@ -293,7 +295,7 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	if ( isset( $_GET['redirect'] ) && isset( $_POST['redirect'] ) && $_GET['redirect'] !== $_POST['redirect'] ) {
 		wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
 	} elseif ( isset( $_GET['redirect'] ) ) {
-		if ( 's_' === substr( $_GET['redirect'], 0, 2 ) )
+		if ( str_starts_with( $_GET['redirect'], 's_' ) )
 			$url .= '&action=blogs&s='. esc_html( substr( $_GET['redirect'], 2 ) );
 	} elseif ( isset( $_POST['redirect'] ) ) {
 		$url = wpmu_admin_redirect_add_updated_param( $_POST['redirect'] );
@@ -315,8 +317,8 @@ function wpmu_admin_do_redirect( $url = '' ) {
 function wpmu_admin_redirect_add_updated_param( $url = '' ) {
 	_deprecated_function( __FUNCTION__, '3.3.0', 'add_query_arg()' );
 
-	if ( strpos( $url, 'updated=true' ) === false ) {
-		if ( strpos( $url, '?' ) === false )
+	if ( ! str_contains( $url, 'updated=true' ) ) {
+		if ( ! str_contains( $url, '?' ) )
 			return $url . '?updated=true';
 		else
 			return $url . '&updated=true';
@@ -334,18 +336,18 @@ function wpmu_admin_redirect_add_updated_param( $url = '' ) {
  * @deprecated 3.6.0 Use get_user_by()
  * @see get_user_by()
  *
- * @param string $string Either an email address or a login.
+ * @param string $email_or_login Either an email address or a login.
  * @return int
  */
-function get_user_id_from_string( $string ) {
+function get_user_id_from_string( $email_or_login ) {
 	_deprecated_function( __FUNCTION__, '3.6.0', 'get_user_by()' );
 
-	if ( is_email( $string ) )
-		$user = get_user_by( 'email', $string );
-	elseif ( is_numeric( $string ) )
-		return $string;
+	if ( is_email( $email_or_login ) )
+		$user = get_user_by( 'email', $email_or_login );
+	elseif ( is_numeric( $email_or_login ) )
+		return $email_or_login;
 	else
-		$user = get_user_by( 'login', $string );
+		$user = get_user_by( 'login', $email_or_login );
 
 	if ( $user )
 		return $user->ID;
@@ -353,7 +355,7 @@ function get_user_id_from_string( $string ) {
 }
 
 /**
- * Get a full blog URL, given a domain and a path.
+ * Get a full site URL, given a domain and a path.
  *
  * @since MU (3.0.0)
  * @deprecated 3.7.0
@@ -378,7 +380,7 @@ function get_blogaddress_by_domain( $domain, $path ) {
 			$url = 'http://' . $domain . $path;
 		}
 	}
-	return esc_url_raw( $url );
+	return sanitize_url( $url );
 }
 
 /**
@@ -401,7 +403,7 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 
 	// Check if the domain has been used already. We should return an error message.
 	if ( domain_exists($domain, $path, $site_id) )
-		return __( '<strong>Error</strong>: Site URL you&#8217;ve entered is already taken.' );
+		return __( '<strong>Error:</strong> Site URL you&#8217;ve entered is already taken.' );
 
 	/*
 	 * Need to back up wpdb table names, and create a new wp_blogs entry for new blog.
@@ -410,7 +412,7 @@ function create_empty_blog( $domain, $path, $weblog_title, $site_id = 1 ) {
 	 */
 
 	if ( ! $blog_id = insert_blog($domain, $path, $site_id) )
-		return __( '<strong>Error</strong>: There was a problem creating site entry.' );
+		return __( '<strong>Error:</strong> There was a problem creating site entry.' );
 
 	switch_to_blog($blog_id);
 	install_blog($blog_id);
@@ -729,4 +731,21 @@ function update_user_status( $id, $pref, $value, $deprecated = null ) {
 	}
 
 	return $value;
+}
+
+/**
+ * Maintains a canonical list of terms by syncing terms created for each blog with the global terms table.
+ *
+ * @since 3.0.0
+ * @since 6.1.0 This function no longer does anything.
+ * @deprecated 6.1.0
+ *
+ * @param int    $term_id    An ID for a term on the current blog.
+ * @param string $deprecated Not used.
+ * @return int An ID from the global terms table mapped from $term_id.
+ */
+function global_terms( $term_id, $deprecated = '' ) {
+	_deprecated_function( __FUNCTION__, '6.1.0' );
+
+	return $term_id;
 }

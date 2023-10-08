@@ -244,6 +244,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_args['no_found_rows'] = false;
 
+		$prepared_args['update_comment_post_cache'] = true;
+
 		$prepared_args['date_query'] = array();
 
 		// Set before into date query. Date query must be specified as an array of an array.
@@ -272,7 +274,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 */
 		$prepared_args = apply_filters( 'rest_comment_query', $prepared_args, $request );
 
-		$query        = new WP_Comment_Query;
+		$query        = new WP_Comment_Query();
 		$query_result = $query->query( $prepared_args );
 
 		$comments = array();
@@ -293,8 +295,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			// Out-of-bounds, run the query again without LIMIT for total count.
 			unset( $prepared_args['number'], $prepared_args['offset'] );
 
-			$query                  = new WP_Comment_Query;
-			$prepared_args['count'] = true;
+			$query                    = new WP_Comment_Query();
+			$prepared_args['count']   = true;
+			$prepared_args['orderby'] = 'none';
 
 			$total_comments = $query->query( $prepared_args );
 			$max_pages      = ceil( $total_comments / $request['per_page'] );
@@ -1037,8 +1040,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $item;
-		$fields  = $this->get_fields_for_response( $request );
-		$data    = array();
+
+		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = (int) $comment->comment_ID;
@@ -1119,7 +1123,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $comment ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $comment ) );
+		}
 
 		/**
 		 * Filters a comment returned from the REST API.
@@ -1183,8 +1189,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Only grab one comment to verify the comment has children.
 		$comment_children = $comment->get_children(
 			array(
-				'number' => 1,
-				'count'  => true,
+				'count'   => true,
+				'orderby' => 'none',
 			)
 		);
 
@@ -1757,8 +1763,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$posts_controller = $post_type->get_rest_controller();
 
-		// Ensure the posts controller is specifically a WP_REST_Posts_Controller instance
-		// before using methods specific to that controller.
+		/*
+		 * Ensure the posts controller is specifically a WP_REST_Posts_Controller instance
+		 * before using methods specific to that controller.
+		 */
 		if ( ! $posts_controller instanceof WP_REST_Posts_Controller ) {
 			$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
 		}
@@ -1883,11 +1891,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment,
 			array(
 				'comment_post_ID'      => 0,
-				'comment_parent'       => 0,
-				'user_ID'              => 0,
 				'comment_author'       => null,
 				'comment_author_email' => null,
 				'comment_author_url'   => null,
+				'comment_parent'       => 0,
+				'user_id'              => 0,
 			)
 		);
 

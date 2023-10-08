@@ -11,7 +11,6 @@
  * Core class used to implement displaying users in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -59,7 +58,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Check the current user's permissions.
+	 * Checks the current user's permissions.
 	 *
 	 * @since 3.1.0
 	 *
@@ -74,7 +73,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Prepare the users list for display.
+	 * Prepares the users list for display.
 	 *
 	 * @since 3.1.0
 	 *
@@ -151,7 +150,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Output 'no users' message.
+	 * Outputs 'no users' message.
 	 *
 	 * @since 3.1.0
 	 */
@@ -160,7 +159,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Return an associative array listing all the views that can be used
+	 * Returns an associative array listing all the views that can be used
 	 * with this table.
 	 *
 	 * Provides a list of roles and user count for that role for easy
@@ -185,10 +184,9 @@ class WP_Users_List_Table extends WP_List_Table {
 			$url = 'users.php';
 		}
 
-		$role_links              = array();
-		$avail_roles             = array();
-		$all_text                = __( 'All' );
-		$current_link_attributes = empty( $role ) ? ' class="current" aria-current="page"' : '';
+		$role_links  = array();
+		$avail_roles = array();
+		$all_text    = __( 'All' );
 
 		if ( $count_users ) {
 			if ( $this->is_site_users ) {
@@ -215,17 +213,15 @@ class WP_Users_List_Table extends WP_List_Table {
 			);
 		}
 
-		$role_links['all'] = sprintf( '<a href="%s"%s>%s</a>', $url, $current_link_attributes, $all_text );
+		$role_links['all'] = array(
+			'url'     => $url,
+			'label'   => $all_text,
+			'current' => empty( $role ),
+		);
 
 		foreach ( $wp_roles->get_names() as $this_role => $name ) {
 			if ( $count_users && ! isset( $avail_roles[ $this_role ] ) ) {
 				continue;
-			}
-
-			$current_link_attributes = '';
-
-			if ( $this_role === $role ) {
-				$current_link_attributes = ' class="current" aria-current="page"';
 			}
 
 			$name = translate_user_role( $name );
@@ -238,16 +234,14 @@ class WP_Users_List_Table extends WP_List_Table {
 				);
 			}
 
-			$role_links[ $this_role ] = "<a href='" . esc_url( add_query_arg( 'role', $this_role, $url ) ) . "'$current_link_attributes>$name</a>";
+			$role_links[ $this_role ] = array(
+				'url'     => esc_url( add_query_arg( 'role', $this_role, $url ) ),
+				'label'   => $name,
+				'current' => $this_role === $role,
+			);
 		}
 
 		if ( ! empty( $avail_roles['none'] ) ) {
-
-			$current_link_attributes = '';
-
-			if ( 'none' === $role ) {
-				$current_link_attributes = ' class="current" aria-current="page"';
-			}
 
 			$name = __( 'No role' );
 			$name = sprintf(
@@ -257,14 +251,18 @@ class WP_Users_List_Table extends WP_List_Table {
 				number_format_i18n( $avail_roles['none'] )
 			);
 
-			$role_links['none'] = "<a href='" . esc_url( add_query_arg( 'role', 'none', $url ) ) . "'$current_link_attributes>$name</a>";
+			$role_links['none'] = array(
+				'url'     => esc_url( add_query_arg( 'role', 'none', $url ) ),
+				'label'   => $name,
+				'current' => 'none' === $role,
+			);
 		}
 
-		return $role_links;
+		return $this->get_views_links( $role_links );
 	}
 
 	/**
-	 * Retrieve an associative array of bulk actions available on this table.
+	 * Retrieves an associative array of bulk actions available on this table.
 	 *
 	 * @since 3.1.0
 	 *
@@ -292,7 +290,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Output the controls to allow user roles to be changed in bulk.
+	 * Outputs the controls to allow user roles to be changed in bulk.
 	 *
 	 * @since 3.1.0
 	 *
@@ -305,7 +303,12 @@ class WP_Users_List_Table extends WP_List_Table {
 		?>
 	<div class="alignleft actions">
 		<?php if ( current_user_can( 'promote_users' ) && $this->has_items() ) : ?>
-		<label class="screen-reader-text" for="<?php echo $id; ?>"><?php _e( 'Change role to&hellip;' ); ?></label>
+		<label class="screen-reader-text" for="<?php echo $id; ?>">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Change role to&hellip;' );
+			?>
+		</label>
 		<select name="<?php echo $id; ?>" id="<?php echo $id; ?>">
 			<option value=""><?php _e( 'Change role to&hellip;' ); ?></option>
 			<?php wp_dropdown_roles(); ?>
@@ -340,7 +343,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Capture the bulk action required, and return it.
+	 * Captures the bulk action required, and return it.
 	 *
 	 * Overridden from the base class implementation to capture
 	 * the role change drop-down.
@@ -350,7 +353,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @return string The bulk action required.
 	 */
 	public function current_action() {
-		if ( isset( $_REQUEST['changeit'] ) && ! empty( $_REQUEST['new_role'] ) ) {
+		if ( isset( $_REQUEST['changeit'] ) ) {
 			return 'promote';
 		}
 
@@ -358,14 +361,14 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Get a list of columns for the list table.
+	 * Gets a list of columns for the list table.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
-		$c = array(
+		$columns = array(
 			'cb'       => '<input type="checkbox" />',
 			'username' => __( 'Username' ),
 			'name'     => __( 'Name' ),
@@ -375,30 +378,30 @@ class WP_Users_List_Table extends WP_List_Table {
 		);
 
 		if ( $this->is_site_users ) {
-			unset( $c['posts'] );
+			unset( $columns['posts'] );
 		}
 
-		return $c;
+		return $columns;
 	}
 
 	/**
-	 * Get a list of sortable columns for the list table.
+	 * Gets a list of sortable columns for the list table.
 	 *
 	 * @since 3.1.0
 	 *
 	 * @return array Array of sortable columns.
 	 */
 	protected function get_sortable_columns() {
-		$c = array(
-			'username' => 'login',
-			'email'    => 'email',
+		$columns = array(
+			'username' => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
+			'email'    => array( 'email', false, __( 'E-mail' ), __( 'Table ordered by E-mail.' ) ),
 		);
 
-		return $c;
+		return $columns;
 	}
 
 	/**
-	 * Generate the list table rows.
+	 * Generates the list table rows.
 	 *
 	 * @since 3.1.0
 	 */
@@ -414,7 +417,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Generate HTML for a single row on the users.php admin panel.
+	 * Generates HTML for a single row on the users.php admin panel.
 	 *
 	 * @since 3.1.0
 	 * @since 4.2.0 The `$style` parameter was deprecated.
@@ -499,6 +502,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			// Add a link to send the user a reset password link by email.
 			if ( get_current_user_id() !== $user_object->ID
 				&& current_user_can( 'edit_user', $user_object->ID )
+				&& true === wp_is_password_reset_allowed_for_user( $user_object )
 			) {
 				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
 			}
@@ -520,12 +524,12 @@ class WP_Users_List_Table extends WP_List_Table {
 
 			// Set up the checkbox (because the user is editable, otherwise it's empty).
 			$checkbox = sprintf(
-				'<label class="screen-reader-text" for="user_%1$s">%2$s</label>' .
-				'<input type="checkbox" name="users[]" id="user_%1$s" class="%3$s" value="%1$s" />',
+				'<input type="checkbox" name="users[]" id="user_%1$s" class="%2$s" value="%1$s" />' .
+				'<label for="user_%1$s"><span class="screen-reader-text">%3$s</span></label>',
 				$user_object->ID,
-				/* translators: %s: User login. */
-				sprintf( __( 'Select %s' ), $user_object->user_login ),
-				$role_classes
+				$role_classes,
+				/* translators: Hidden accessibility text. %s: User login. */
+				sprintf( __( 'Select %s' ), $user_object->user_login )
 			);
 
 		} else {
@@ -537,7 +541,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		// Comma-separated list of user roles.
 		$roles_list = implode( ', ', $user_roles );
 
-		$r = "<tr id='user-$user_object->ID'>";
+		$row = "<tr id='user-$user_object->ID'>";
 
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
 
@@ -559,47 +563,53 @@ class WP_Users_List_Table extends WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				$r .= "<th scope='row' class='check-column'>$checkbox</th>";
+				$row .= "<th scope='row' class='check-column'>$checkbox</th>";
 			} else {
-				$r .= "<td $attributes>";
+				$row .= "<td $attributes>";
 				switch ( $column_name ) {
 					case 'username':
-						$r .= "$avatar $edit";
+						$row .= "$avatar $edit";
 						break;
 					case 'name':
 						if ( $user_object->first_name && $user_object->last_name ) {
-							$r .= "$user_object->first_name $user_object->last_name";
+							$row .= sprintf(
+								/* translators: 1: User's first name, 2: Last name. */
+								_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+								$user_object->first_name,
+								$user_object->last_name
+							);
 						} elseif ( $user_object->first_name ) {
-							$r .= $user_object->first_name;
+							$row .= $user_object->first_name;
 						} elseif ( $user_object->last_name ) {
-							$r .= $user_object->last_name;
+							$row .= $user_object->last_name;
 						} else {
-							$r .= sprintf(
+							$row .= sprintf(
 								'<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">%s</span>',
+								/* translators: Hidden accessibility text. */
 								_x( 'Unknown', 'name' )
 							);
 						}
 						break;
 					case 'email':
-						$r .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
+						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
 						break;
 					case 'role':
-						$r .= esc_html( $roles_list );
+						$row .= esc_html( $roles_list );
 						break;
 					case 'posts':
 						if ( $numposts > 0 ) {
-							$r .= sprintf(
+							$row .= sprintf(
 								'<a href="%s" class="edit"><span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 								"edit.php?author={$user_object->ID}",
 								$numposts,
 								sprintf(
-									/* translators: %s: Number of posts. */
+									/* translators: Hidden accessibility text. %s: Number of posts. */
 									_n( '%s post by this author', '%s posts by this author', $numposts ),
 									number_format_i18n( $numposts )
 								)
 							);
 						} else {
-							$r .= 0;
+							$row .= 0;
 						}
 						break;
 					default:
@@ -612,18 +622,18 @@ class WP_Users_List_Table extends WP_List_Table {
 						 * @param string $column_name Column name.
 						 * @param int    $user_id     ID of the currently-listed user.
 						 */
-						$r .= apply_filters( 'manage_users_custom_column', '', $column_name, $user_object->ID );
+						$row .= apply_filters( 'manage_users_custom_column', '', $column_name, $user_object->ID );
 				}
 
 				if ( $primary === $column_name ) {
-					$r .= $this->row_actions( $actions );
+					$row .= $this->row_actions( $actions );
 				}
-				$r .= '</td>';
+				$row .= '</td>';
 			}
 		}
-		$r .= '</tr>';
+		$row .= '</tr>';
 
-		return $r;
+		return $row;
 	}
 
 	/**
@@ -670,5 +680,4 @@ class WP_Users_List_Table extends WP_List_Table {
 		 */
 		return apply_filters( 'get_role_list', $role_list, $user_object );
 	}
-
 }

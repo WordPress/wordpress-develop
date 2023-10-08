@@ -81,6 +81,8 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 	 */
 	do_action( 'delete_theme', $stylesheet );
 
+	$theme = wp_get_theme( $stylesheet );
+
 	$themes_dir = trailingslashit( $themes_dir );
 	$theme_dir  = trailingslashit( $themes_dir . $stylesheet );
 	$deleted    = $wp_filesystem->delete( $theme_dir, true );
@@ -125,6 +127,9 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		WP_Theme::network_disable_theme( $stylesheet );
 	}
 
+	// Clear theme caches.
+	$theme->cache_delete();
+
 	// Force refresh of theme update information.
 	delete_site_transient( 'update_themes' );
 
@@ -156,7 +161,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @return string
  */
 function _get_template_edit_filename( $fullpath, $containingfolder ) {
-	return str_replace( dirname( dirname( $containingfolder ) ), '', $fullpath );
+	return str_replace( dirname( $containingfolder, 2 ), '', $fullpath );
 }
 
 /**
@@ -299,6 +304,8 @@ function get_theme_update_available( $theme ) {
  *              and 'Full Site Editing' features.
  * @since 5.5.0 Added 'Wide Blocks' layout option.
  * @since 5.8.1 Added 'Template Editing' feature.
+ * @since 6.1.1 Replaced 'Full Site Editing' feature name with 'Site Editor'.
+ * @since 6.2.0 Added 'Style Variations' feature.
  *
  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
@@ -331,10 +338,11 @@ function get_theme_feature_list( $api = true ) {
 			'featured-image-header' => __( 'Featured Image Header' ),
 			'featured-images'       => __( 'Featured Images' ),
 			'footer-widgets'        => __( 'Footer Widgets' ),
-			'full-site-editing'     => __( 'Full Site Editing' ),
+			'full-site-editing'     => __( 'Site Editor' ),
 			'full-width-template'   => __( 'Full Width Template' ),
 			'post-formats'          => __( 'Post Formats' ),
 			'sticky-post'           => __( 'Sticky Post' ),
+			'style-variations'      => __( 'Style Variations' ),
 			'template-editing'      => __( 'Template Editing' ),
 			'theme-options'         => __( 'Theme Options' ),
 		),
@@ -442,7 +450,7 @@ function get_theme_feature_list( $api = true ) {
  * @param string       $action API action to perform: 'query_themes', 'theme_information',
  *                             'hot_tags' or 'feature_list'.
  * @param array|object $args   {
- *     Optional. Array or object of arguments to serialize for the Themes API.
+ *     Optional. Array or object of arguments to serialize for the Themes API. Default empty array.
  *
  *     @type string  $slug     The theme slug. Default empty.
  *     @type int     $per_page Number of themes per page. Default 24.
@@ -552,6 +560,7 @@ function themes_api( $action, $args = array() ) {
 		}
 
 		$http_args = array(
+			'timeout'    => 15,
 			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 		);
 		$request   = wp_remote_get( $url, $http_args );
@@ -707,16 +716,21 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$is_block_theme         = $theme->is_block_theme();
 
 		if ( $is_block_theme && $can_edit_theme_options ) {
-			$customize_action = esc_url( admin_url( 'site-editor.php' ) );
+			$customize_action = admin_url( 'site-editor.php' );
+			if ( $current_theme !== $slug ) {
+				$customize_action = add_query_arg( 'wp_theme_preview', $slug, $customize_action );
+			}
 		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
-			$customize_action = esc_url(
-				add_query_arg(
-					array(
-						'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
-					),
-					wp_customize_url( $slug )
-				)
+			$customize_action = wp_customize_url( $slug );
+		}
+		if ( null !== $customize_action ) {
+			$customize_action = add_query_arg(
+				array(
+					'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+				),
+				$customize_action
 			);
+			$customize_action = esc_url( $customize_action );
 		}
 
 		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
@@ -816,9 +830,24 @@ function customize_themes_print_templates() {
 		<div class="theme-backdrop"></div>
 		<div class="theme-wrap wp-clearfix" role="document">
 			<div class="theme-header">
-				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show previous theme' ); ?></span></button>
-				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show next theme' ); ?></span></button>
-				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Close details dialog' ); ?></span></button>
+				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Show previous theme' );
+					?>
+				</span></button>
+				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Show next theme' );
+					?>
+				</span></button>
+				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close details dialog' );
+					?>
+				</span></button>
 			</div>
 			<div class="theme-about wp-clearfix">
 				<div class="theme-screenshots">
@@ -855,7 +884,7 @@ function customize_themes_print_templates() {
 									'%1$s <span class="screen-reader-text">%2$s</span>',
 									/* translators: %s: Number of ratings. */
 									sprintf( __( '(%s ratings)' ), '{{ data.num_ratings }}' ),
-									/* translators: Accessibility text. */
+									/* translators: Hidden accessibility text. */
 									__( '(opens in a new tab)' )
 								);
 								?>
@@ -1034,12 +1063,7 @@ function customize_themes_print_templates() {
 				<# if ( data.active ) { #>
 					<button type="button" class="button button-primary customize-theme"><?php _e( 'Customize' ); ?></button>
 				<# } else if ( 'installed' === data.type ) { #>
-					<?php if ( current_user_can( 'delete_themes' ) ) { ?>
-						<# if ( data.actions && data.actions['delete'] ) { #>
-							<a href="{{{ data.actions['delete'] }}}" data-slug="{{ data.id }}" class="button button-secondary delete-theme"><?php _e( 'Delete' ); ?></a>
-						<# } #>
-					<?php } ?>
-
+					<div class="theme-inactive-actions">
 					<# if ( data.blockTheme ) { #>
 						<?php
 							/* translators: %s: Theme name. */
@@ -1055,6 +1079,12 @@ function customize_themes_print_templates() {
 							<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
 						<# } #>
 					<# } #>
+					</div>
+					<?php if ( current_user_can( 'delete_themes' ) ) { ?>
+						<# if ( data.actions && data.actions['delete'] ) { #>
+							<a href="{{{ data.actions['delete'] }}}" data-slug="{{ data.id }}" class="button button-secondary delete-theme"><?php _e( 'Delete' ); ?></a>
+						<# } #>
+					<?php } ?>
 				<# } else { #>
 					<# if ( data.compatibleWP && data.compatiblePHP ) { #>
 						<button type="button" class="button theme-install" data-slug="{{ data.id }}"><?php _e( 'Install' ); ?></button>
@@ -1142,11 +1172,14 @@ function resume_theme( $theme, $redirect = '' ) {
 	 * creating a fatal error.
 	 */
 	if ( ! empty( $redirect ) ) {
+		$stylesheet_path = get_stylesheet_directory();
+		$template_path   = get_template_directory();
+
 		$functions_path = '';
-		if ( strpos( STYLESHEETPATH, $extension ) ) {
-			$functions_path = STYLESHEETPATH . '/functions.php';
-		} elseif ( strpos( TEMPLATEPATH, $extension ) ) {
-			$functions_path = TEMPLATEPATH . '/functions.php';
+		if ( str_contains( $stylesheet_path, $extension ) ) {
+			$functions_path = $stylesheet_path . '/functions.php';
+		} elseif ( str_contains( $template_path, $extension ) ) {
+			$functions_path = $template_path . '/functions.php';
 		}
 
 		if ( ! empty( $functions_path ) ) {
@@ -1200,11 +1233,18 @@ function paused_themes_notice() {
 		return;
 	}
 
-	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+	$message = sprintf(
+		'<p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p>',
 		__( 'One or more themes failed to load properly.' ),
 		__( 'You can find more details and make changes on the Themes screen.' ),
 		esc_url( admin_url( 'themes.php' ) ),
 		__( 'Go to the Themes screen' )
+	);
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => 'error',
+			'paragraph_wrap' => false,
+		)
 	);
 }

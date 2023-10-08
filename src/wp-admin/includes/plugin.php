@@ -102,7 +102,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 	// If no text domain is defined fall back to the plugin slug.
 	if ( ! $plugin_data['TextDomain'] ) {
 		$plugin_slug = dirname( plugin_basename( $plugin_file ) );
-		if ( '.' !== $plugin_slug && false === strpos( $plugin_slug, '/' ) ) {
+		if ( '.' !== $plugin_slug && ! str_contains( $plugin_slug, '/' ) ) {
 			$plugin_data['TextDomain'] = $plugin_slug;
 		}
 	}
@@ -127,7 +127,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
  * @access private
  *
  * @param string $plugin_file Path to the main plugin file.
- * @param array  $plugin_data An array of plugin data. See `get_plugin_data()`.
+ * @param array  $plugin_data An array of plugin data. See get_plugin_data().
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
  *                            Default true.
  * @param bool   $translate   Optional. If the returned data should be translated. Default true.
@@ -178,8 +178,10 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		'title' => true,
 	);
 
-	// Name is marked up inside <a> tags. Don't allow these.
-	// Author is too, but some plugins have used <a> here (omitting Author URI).
+	/*
+	 * Name is marked up inside <a> tags. Don't allow these.
+	 * Author is too, but some plugins have used <a> here (omitting Author URI).
+	 */
 	$plugin_data['Name']   = wp_kses( $plugin_data['Name'], $allowed_tags_in_links );
 	$plugin_data['Author'] = wp_kses( $plugin_data['Author'], $allowed_tags );
 
@@ -269,7 +271,7 @@ function get_plugin_files( $plugin ) {
  * @since 1.5.0
  *
  * @param string $plugin_folder Optional. Relative path to single plugin folder.
- * @return array[] Array of arrays of plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_plugins( $plugin_folder = '' ) {
 
@@ -294,7 +296,7 @@ function get_plugins( $plugin_folder = '' ) {
 
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.' === substr( $file, 0, 1 ) ) {
+			if ( str_starts_with( $file, '.' ) ) {
 				continue;
 			}
 
@@ -303,11 +305,11 @@ function get_plugins( $plugin_folder = '' ) {
 
 				if ( $plugins_subdir ) {
 					while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
-						if ( '.' === substr( $subfile, 0, 1 ) ) {
+						if ( str_starts_with( $subfile, '.' ) ) {
 							continue;
 						}
 
-						if ( '.php' === substr( $subfile, -4 ) ) {
+						if ( str_ends_with( $subfile, '.php' ) ) {
 							$plugin_files[] = "$file/$subfile";
 						}
 					}
@@ -315,7 +317,7 @@ function get_plugins( $plugin_folder = '' ) {
 					closedir( $plugins_subdir );
 				}
 			} else {
-				if ( '.php' === substr( $file, -4 ) ) {
+				if ( str_ends_with( $file, '.php' ) ) {
 					$plugin_files[] = $file;
 				}
 			}
@@ -357,7 +359,7 @@ function get_plugins( $plugin_folder = '' ) {
  * WordPress only includes mu-plugin files in the base mu-plugins directory (wp-content/mu-plugins).
  *
  * @since 3.0.0
- * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of mu-plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_mu_plugins() {
 	$wp_plugins   = array();
@@ -371,7 +373,7 @@ function get_mu_plugins() {
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.php' === substr( $file, -4 ) ) {
+			if ( str_ends_with( $file, '.php' ) ) {
 				$plugin_files[] = $file;
 			}
 		}
@@ -429,7 +431,7 @@ function _sort_uname_callback( $a, $b ) {
  * Checks the wp-content directory and retrieve all drop-ins with any plugin data.
  *
  * @since 3.0.0
- * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See `get_plugin_data()`.
+ * @return array[] Array of arrays of dropin plugin data, keyed by plugin file name. See get_plugin_data().
  */
 function get_dropins() {
 	$dropins      = array();
@@ -852,7 +854,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
  * @param bool            $network_wide Whether to enable the plugin for all sites in the network.
  *                                      Default false.
  * @param bool            $silent       Prevent calling activation hooks. Default false.
- * @return bool|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
+ * @return true|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
  */
 function activate_plugins( $plugins, $redirect = '', $network_wide = false, $silent = false ) {
 	if ( ! is_array( $plugins ) ) {
@@ -969,8 +971,10 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		$this_plugin_dir = trailingslashit( dirname( $plugins_dir . $plugin_file ) );
 
-		// If plugin is in its own directory, recursively delete the directory.
-		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		/*
+		 * If plugin is in its own directory, recursively delete the directory.
+		 * Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		 */
 		if ( strpos( $plugin_file, '/' ) && $this_plugin_dir !== $plugins_dir ) {
 			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
 		} else {
@@ -1150,7 +1154,7 @@ function validate_plugin_requirements( $plugin ) {
 				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
 				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
 				get_bloginfo( 'version' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires'],
 				$requirements['requires_php']
@@ -1162,7 +1166,7 @@ function validate_plugin_requirements( $plugin ) {
 			'<p>' . sprintf(
 				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
 				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
-				phpversion(),
+				PHP_VERSION,
 				$plugin_headers['Name'],
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
@@ -1325,6 +1329,19 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
 
 	$new_menu = array( $menu_title, $capability, $menu_slug, $page_title, 'menu-top ' . $icon_class . $hookname, $hookname, $icon_url );
 
+	if ( null !== $position && ! is_numeric( $position ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: add_menu_page() */
+				__( 'The seventh parameter passed to %s should be numeric representing menu position.' ),
+				'<code>add_menu_page()</code>'
+			),
+			'6.0.0'
+		);
+		$position = null;
+	}
+
 	if ( null === $position || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
 	} elseif ( isset( $menu[ (string) $position ] ) ) {
@@ -1421,7 +1438,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			__FUNCTION__,
 			sprintf(
 				/* translators: %s: add_submenu_page() */
-				__( 'The seventh parameter passed to %s should be an integer representing menu position.' ),
+				__( 'The seventh parameter passed to %s should be numeric representing menu position.' ),
 				'<code>add_submenu_page()</code>'
 			),
 			'5.3.0'
@@ -1441,6 +1458,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 			// For negative or `0` positions, prepend the submenu.
 			array_unshift( $submenu[ $parent_slug ], $new_sub_menu );
 		} else {
+			$position = absint( $position );
 			// Grab all of the items before the insertion point.
 			$before_items = array_slice( $submenu[ $parent_slug ], 0, $position, true );
 			// Grab all of the items after the insertion point.
@@ -1921,7 +1939,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 				$parent_file = $parent_page;
 				return $parent_page;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
-				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
+				&& ( empty( $parent_file ) || ! str_contains( $parent_file, '?' ) )
 			) {
 				$parent_file = $parent_page;
 				return $parent_page;
@@ -2422,7 +2440,7 @@ function wp_get_plugin_error( $plugin ) {
  *
  * @param string $plugin   Single plugin to resume.
  * @param string $redirect Optional. URL to redirect to. Default empty string.
- * @return bool|WP_Error True on success, false if `$plugin` was not paused,
+ * @return true|WP_Error True on success, false if `$plugin` was not paused,
  *                       `WP_Error` on failure.
  */
 function resume_plugin( $plugin, $redirect = '' ) {
@@ -2479,12 +2497,16 @@ function paused_plugins_notice() {
 		return;
 	}
 
-	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+	$message = sprintf(
+		'<strong>%s</strong><br>%s</p><p><a href="%s">%s</a>',
 		__( 'One or more plugins failed to load properly.' ),
 		__( 'You can find more details and make changes on the Plugins screen.' ),
 		esc_url( admin_url( 'plugins.php?plugin_status=paused' ) ),
 		__( 'Go to the Plugins screen' )
+	);
+	wp_admin_notice(
+		$message,
+		array( 'type' => 'error' )
 	);
 }
 
@@ -2553,8 +2575,8 @@ function deactivated_plugins_notice() {
 			);
 		}
 
-		printf(
-			'<div class="notice notice-warning"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+		$message = sprintf(
+			'<strong>%s</strong><br>%s</p><p><a href="%s">%s</a>',
 			sprintf(
 				/* translators: %s: Name of deactivated plugin. */
 				__( '%s plugin deactivated during WordPress upgrade.' ),
@@ -2564,6 +2586,7 @@ function deactivated_plugins_notice() {
 			esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ),
 			__( 'Go to the Plugins screen' )
 		);
+		wp_admin_notice( $message, array( 'type' => 'warning' ) );
 	}
 
 	// Empty the options.

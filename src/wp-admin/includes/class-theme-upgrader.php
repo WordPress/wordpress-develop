@@ -48,7 +48,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	public $new_theme_data = array();
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
 	 */
@@ -56,7 +56,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The theme is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the old version of the theme&#8230;' );
 		$this->strings['remove_old_failed']   = __( 'Could not remove the old theme.' );
@@ -65,14 +65,14 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Initialize the installation strings.
+	 * Initializes the installation strings.
 	 *
 	 * @since 2.8.0
 	 */
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
 		$this->strings['installing_package']  = __( 'Installing the theme&#8230;' );
 		$this->strings['remove_old']          = __( 'Removing the old version of the theme&#8230;' );
@@ -110,7 +110,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Check if a child theme is being installed and we need to install its parent.
+	 * Checks if a child theme is being installed and its parent also needs to be installed.
 	 *
 	 * Hooked to the {@see 'upgrader_post_install'} filter by Theme_Upgrader::install().
 	 *
@@ -278,7 +278,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade a theme.
+	 * Upgrades a theme.
 	 *
 	 * @since 2.8.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the update cache optional.
@@ -328,9 +328,14 @@ class Theme_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'theme'  => $theme,
-					'type'   => 'theme',
-					'action' => 'update',
+					'theme'       => $theme,
+					'type'        => 'theme',
+					'action'      => 'update',
+					'temp_backup' => array(
+						'slug' => $theme,
+						'src'  => get_theme_root( $theme ),
+						'dir'  => 'themes',
+					),
 				),
 			)
 		);
@@ -346,8 +351,10 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		wp_clean_themes_cache( $parsed_args['clear_update_cache'] );
 
-		// Ensure any future auto-update failures trigger a failure email by removing
-		// the last failure notification from the list when themes update successfully.
+		/*
+		 * Ensure any future auto-update failures trigger a failure email by removing
+		 * the last failure notification from the list when themes update successfully.
+		 */
 		$past_failure_emails = get_option( 'auto_plugin_theme_update_emails', array() );
 
 		if ( isset( $past_failure_emails[ $theme ] ) ) {
@@ -359,7 +366,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade several themes at once.
+	 * Upgrades several themes at once.
 	 *
 	 * @since 3.0.0
 	 * @since 3.7.0 The `$args` parameter was added, making clearing the update cache optional.
@@ -419,7 +426,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->update_count   = count( $themes );
 		$this->update_current = 0;
 		foreach ( $themes as $theme ) {
-			$this->update_current++;
+			++$this->update_current;
 
 			$this->skin->theme_info = $this->theme_info( $theme );
 
@@ -443,7 +450,12 @@ class Theme_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'theme' => $theme,
+						'theme'       => $theme,
+						'temp_backup' => array(
+							'slug' => $theme,
+							'src'  => get_theme_root( $theme ),
+							'dir'  => 'themes',
+						),
 					),
 				)
 			);
@@ -477,13 +489,15 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$this->skin->footer();
 
-		// Cleanup our hooks, in case something else does a upgrade on this connection.
+		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_filter( 'upgrader_pre_install', array( $this, 'current_before' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'current_after' ) );
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ) );
 
-		// Ensure any future auto-update failures trigger a failure email by removing
-		// the last failure notification from the list when themes update successfully.
+		/*
+		 * Ensure any future auto-update failures trigger a failure email by removing
+		 * the last failure notification from the list when themes update successfully.
+		 */
 		$past_failure_emails = get_option( 'auto_plugin_theme_update_emails', array() );
 
 		foreach ( $results as $theme => $result ) {
@@ -566,15 +580,28 @@ class Theme_Upgrader extends WP_Upgrader {
 			);
 		}
 
-		// If it's not a child theme, it must have at least an index.php to be legit.
-		if ( empty( $info['Template'] ) && ! file_exists( $working_directory . 'index.php' ) ) {
+		/*
+		 * Parent themes must contain an index file:
+		 * - classic themes require /index.php
+		 * - block themes require /templates/index.html or block-templates/index.html (deprecated 5.9.0).
+		 */
+		if (
+			empty( $info['Template'] ) &&
+			! file_exists( $working_directory . 'index.php' ) &&
+			! file_exists( $working_directory . 'templates/index.html' ) &&
+			! file_exists( $working_directory . 'block-templates/index.html' )
+		) {
 			return new WP_Error(
 				'incompatible_archive_theme_no_index',
 				$this->strings['incompatible_archive'],
 				sprintf(
-					/* translators: %s: index.php */
-					__( 'The theme is missing the %s file.' ),
-					'<code>index.php</code>'
+					/* translators: 1: templates/index.html, 2: index.php, 3: Documentation URL, 4: Template, 5: style.css */
+					__( 'Template is missing. Standalone themes need to have a %1$s or %2$s template file. <a href="%3$s">Child themes</a> need to have a %4$s header in the %5$s stylesheet.' ),
+					'<code>templates/index.html</code>',
+					'<code>index.php</code>',
+					__( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' ),
+					'<code>Template</code>',
+					'<code>style.css</code>'
 				)
 			);
 		}
@@ -586,7 +613,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$error = sprintf(
 				/* translators: 1: Current PHP version, 2: Version required by the uploaded theme. */
 				__( 'The PHP version on your server is %1$s, however the uploaded theme requires %2$s.' ),
-				phpversion(),
+				PHP_VERSION,
 				$requires_php
 			);
 
@@ -609,7 +636,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Turn on maintenance mode before attempting to upgrade the active theme.
+	 * Turns on maintenance mode before attempting to upgrade the active theme.
 	 *
 	 * Hooked to the {@see 'upgrader_pre_install'} filter by Theme_Upgrader::upgrade() and
 	 * Theme_Upgrader::bulk_upgrade().
@@ -641,7 +668,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Turn off maintenance mode after upgrading the active theme.
+	 * Turns off maintenance mode after upgrading the active theme.
 	 *
 	 * Hooked to the {@see 'upgrader_post_install'} filter by Theme_Upgrader::upgrade()
 	 * and Theme_Upgrader::bulk_upgrade().
@@ -679,7 +706,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Delete the old theme during an upgrade.
+	 * Deletes the old theme during an upgrade.
 	 *
 	 * Hooked to the {@see 'upgrader_clear_destination'} filter by Theme_Upgrader::upgrade()
 	 * and Theme_Upgrader::bulk_upgrade().
@@ -717,7 +744,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Get the WP_Theme object for a theme.
+	 * Gets the WP_Theme object for a theme.
 	 *
 	 * @since 2.8.0
 	 * @since 3.0.0 The `$theme` argument was added.
@@ -741,5 +768,4 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		return $theme;
 	}
-
 }

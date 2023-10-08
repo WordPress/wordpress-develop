@@ -5,6 +5,11 @@
  * @group auth
  */
 class Tests_Auth extends WP_UnitTestCase {
+	// Class User values assigned to constants.
+	const USER_EMAIL = 'test@password.com';
+	const USER_LOGIN = 'password-user';
+	const USER_PASS  = 'password';
+
 	protected $user;
 
 	/**
@@ -22,7 +27,9 @@ class Tests_Auth extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_user = $factory->user->create_and_get(
 			array(
-				'user_login' => 'password-tests',
+				'user_login' => self::USER_LOGIN,
+				'user_email' => self::USER_EMAIL,
+				'user_pass'  => self::USER_PASS,
 			)
 		);
 
@@ -45,6 +52,10 @@ class Tests_Auth extends WP_UnitTestCase {
 	public function tear_down() {
 		// Cleanup all the global state.
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
+
+		// Cleanup manual auth cookie test.
+		unset( $_COOKIE[ AUTH_COOKIE ] );
+		unset( $_COOKIE[ SECURE_AUTH_COOKIE ] );
 
 		parent::tear_down();
 	}
@@ -98,6 +109,22 @@ class Tests_Auth extends WP_UnitTestCase {
 			$this->assertInstanceOf( 'WP_User', $authed_user );
 			$this->assertSame( $this->user->ID, $authed_user->ID );
 		}
+	}
+
+	/**
+	 * Tests hooking into wp_set_password().
+	 *
+	 * @ticket 57436
+	 *
+	 * @covers ::wp_set_password
+	 */
+	public function test_wp_set_password_action() {
+		$action = new MockAction();
+
+		add_action( 'wp_set_password', array( $action, 'action' ) );
+		wp_set_password( 'A simple password', self::$user_id );
+
+		$this->assertSame( 1, $action->get_call_count() );
 	}
 
 	/**
@@ -407,10 +434,133 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => 'mail@example.com',
 			'user_pass'  => 'password',
 		);
-		$this->factory->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
 		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_username_password_with_wp_user_object() {
+		$result = wp_authenticate_username_password( self::$_user, '', '' );
+		$this->assertSame( $result->ID, self::$user_id );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_username_password_with_login_and_password() {
+		$result = wp_authenticate_username_password( null, self::USER_LOGIN, self::USER_PASS );
+		$this->assertSame( self::$user_id, $result->ID );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_username_password_with_null_password() {
+		$result = wp_authenticate_username_password( null, self::USER_LOGIN, null );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_username_password_with_null_login() {
+		$result = wp_authenticate_username_password( null, null, self::USER_PASS );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_username_password_with_invalid_login() {
+		$result = wp_authenticate_username_password( null, 'invalidlogin', self::USER_PASS );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_username_password_with_invalid_password() {
+		$result = wp_authenticate_username_password( null, self::USER_LOGIN, 'invalidpassword' );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_email_password_with_wp_user_object() {
+		$result = wp_authenticate_email_password( self::$_user, '', '' );
+		$this->assertSame( self::$user_id, $result->ID );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_email_password_with_login_and_password() {
+		$result = wp_authenticate_email_password( null, self::USER_EMAIL, self::USER_PASS );
+		$this->assertSame( self::$user_id, $result->ID );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_email_password_with_null_password() {
+		$result = wp_authenticate_email_password( null, self::USER_EMAIL, null );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_email_password_with_null_email() {
+		$result = wp_authenticate_email_password( null, null, self::USER_PASS );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_email_password_with_invalid_email() {
+		$result = wp_authenticate_email_password( null, 'invalid@example.com', self::USER_PASS );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_email_password_with_invalid_password() {
+		$result = wp_authenticate_email_password( null, self::USER_EMAIL, 'invalidpassword' );
+		$this->assertInstanceOf( 'WP_Error', $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_cookie_with_wp_user_object() {
+		$result = wp_authenticate_cookie( $this->user, null, null );
+		$this->assertSame( self::$user_id, $result->ID );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_cookie_with_null_params() {
+		$result = wp_authenticate_cookie( null, null, null );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * @ticket 36476
+	 */
+	public function test_wp_authenticate_cookie_with_invalid_cookie() {
+		$_COOKIE[ AUTH_COOKIE ]        = 'invalid_cookie';
+		$_COOKIE[ SECURE_AUTH_COOKIE ] = 'secure_invalid_cookie';
+
+		$result = wp_authenticate_cookie( null, null, null );
+		$this->assertInstanceOf( 'WP_Error', $result );
 	}
 
 	/**
@@ -421,11 +571,30 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => "mail\'@example.com",
 			'user_pass'  => 'password',
 		);
-		$this->factory()->user->create( $user_args );
+		self::factory()->user->create( $user_args );
 
 		$_POST['log'] = $user_args['user_email'];
 		$_POST['pwd'] = $user_args['user_pass'];
 		$this->assertInstanceOf( 'WP_User', wp_signon() );
+	}
+
+	/**
+	 * Tests that PHP 8.1 "passing null to non-nullable" deprecation notices
+	 * are not thrown when `user_login` and `user_password` parameters are empty.
+	 *
+	 * The notices that we should not see:
+	 * `Deprecated: preg_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated`.
+	 * `Deprecated: trim(): Passing null to parameter #1 ($string) of type string is deprecated`.
+	 *
+	 * @ticket 56850
+	 */
+	public function test_wp_signon_does_not_throw_deprecation_notices_with_default_parameters() {
+		$error = wp_signon();
+		$this->assertWPError( $error, 'The result should be an instance of WP_Error.' );
+
+		$error_codes = $error->get_error_codes();
+		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
+		$this->assertContains( 'empty_password', $error_codes, 'The "empty_password" error code should be present.' );
 	}
 
 	/**
@@ -436,7 +605,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'user_login' => 'http_auth_login',
 				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.

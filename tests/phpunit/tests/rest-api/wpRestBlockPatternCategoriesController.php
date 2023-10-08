@@ -2,14 +2,8 @@
 /**
  * Unit tests covering WP_Block_Pattern_Categories_Registry functionality.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST_API
- * @since      6.0.0
- */
-
-/**
- * Tests for REST API for Block Pattern Categories Registry.
- *
  * @since 6.0.0
  *
  * @ticket 55505
@@ -71,18 +65,30 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
 		self::$registry_instance_property->setAccessible( true );
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some categories in the test registry.
-		$test_registry->register( 'test', array( 'label' => 'Test' ) );
-		$test_registry->register( 'query', array( 'label' => 'Query' ) );
+		$test_registry->register(
+			'test',
+			array(
+				'label'       => 'Test',
+				'description' => 'Test description',
+			)
+		);
+		$test_registry->register(
+			'query',
+			array(
+				'label'       => 'Query',
+				'description' => 'Query',
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
 		self::$registry_instance_property->setAccessible( false );
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
@@ -103,10 +109,10 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		wp_set_current_user( self::$admin_id );
 
 		$expected_names  = array( 'test', 'query' );
-		$expected_fields = array( 'name', 'label' );
+		$expected_fields = array( 'name', 'label', 'description' );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
-		$request['_fields'] = 'name,label';
+		$request['_fields'] = 'name,label,description';
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 
@@ -136,7 +142,7 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	 */
 	public function test_get_items_forbidden() {
 		// Set current user without `edit_posts` capability.
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$response = rest_do_request( $request );
@@ -145,31 +151,52 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		$this->assertSame( 403, $response->get_status() );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not use context_param.' );
+		// Controller does not use get_context_param().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not have prepare_item route.' );
+		// Controller does not implement prepare_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Controller does not have get_item_schema route.' );
+		// Controller does not implement get_item_schema().
 	}
 }

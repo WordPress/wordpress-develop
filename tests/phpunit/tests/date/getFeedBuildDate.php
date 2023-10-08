@@ -11,7 +11,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_query;
 
-		update_option( 'timezone_string', 'UTC' );
+		update_option( 'timezone_string', '' );
 
 		unset( $wp_query );
 
@@ -47,7 +47,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function test_should_fall_back_to_last_post_modified() {
 		global $wp_query;
 
-		update_option( 'timezone_string', 'Europe/Kiev' );
+		update_option( 'timezone_string', 'Europe/Helsinki' );
 		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
 		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
@@ -55,7 +55,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
 		$this->assertFalse( get_feed_build_date( DATE_RFC3339 ), 'False when unable to determine valid time' );
 
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
 			)
@@ -68,7 +68,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			'Fall back to time of last post modified with no posts'
 		);
 
-		$post_id_broken = $this->factory->post->create();
+		$post_id_broken = self::factory()->post->create();
 		$post_broken    = get_post( $post_id_broken );
 
 		$post_broken->post_modified_gmt = 0;

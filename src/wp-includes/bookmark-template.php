@@ -1,6 +1,6 @@
 <?php
 /**
- * Bookmark Template Functions for usage in Themes
+ * Bookmark Template Functions for usage in Themes.
  *
  * @package WordPress
  * @subpackage Template
@@ -83,7 +83,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		$title = $desc;
 
 		if ( $parsed_args['show_updated'] ) {
-			if ( '00' !== substr( $bookmark->link_updated_f, 0, 2 ) ) {
+			if ( ! str_starts_with( $bookmark->link_updated_f, '00' ) ) {
 				$title .= ' (';
 				$title .= sprintf(
 					/* translators: %s: Date and time of last update. */
@@ -125,7 +125,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		$output .= $parsed_args['link_before'];
 
 		if ( null != $bookmark->link_image && $parsed_args['show_images'] ) {
-			if ( strpos( $bookmark->link_image, 'http' ) === 0 ) {
+			if ( str_starts_with( $bookmark->link_image, 'http' ) ) {
 				$output .= "<img src=\"$bookmark->link_image\" $alt $title />";
 			} else { // If it's a relative path.
 				$output .= '<img src="' . get_option( 'siteurl' ) . "$bookmark->link_image\" $alt $title />";
@@ -164,7 +164,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 }
 
 /**
- * Retrieve or echo all of the bookmarks.
+ * Retrieves or echoes all of the bookmarks.
  *
  * List of default arguments are as follows:
  *

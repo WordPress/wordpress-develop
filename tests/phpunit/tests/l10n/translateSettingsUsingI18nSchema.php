@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::translate_settings_using_i18n_schema
  */
 class Tests_L10n_TranslateSettingsUsingI18nSchema extends WP_UnitTestCase {
 	/**

@@ -3,7 +3,7 @@
 /**
  * @group user
  */
-class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
+class Tests_User_wpGetUsersWithNoRole extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22993
@@ -42,7 +42,6 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 			),
 			$users
 		);
-
 	}
 
 	/**
@@ -149,5 +148,4 @@ class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 
 		$this->assertEmpty( $users );
 	}
-
 }

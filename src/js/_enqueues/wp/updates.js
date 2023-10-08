@@ -5,7 +5,7 @@
  * @output wp-admin/js/updates.js
  */
 
-/* global pagenow */
+/* global pagenow, _wpThemeSettings */
 
 /**
  * @param {jQuery}  $                                        jQuery object.
@@ -515,7 +515,7 @@
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
 			$pluginRow     = $( 'tr[data-plugin="' + response.plugin + '"]' )
-				.removeClass( 'update' )
+				.removeClass( 'update is-enqueued' )
 				.addClass( 'updated' );
 			$updateMessage = $pluginRow.find( '.update-message' )
 				.removeClass( 'updating-message notice-warning' )
@@ -567,7 +567,7 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
-		var $card, $message, errorMessage,
+		var $pluginRow, $card, $message, errorMessage,
 			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
@@ -585,6 +585,8 @@
 		);
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
+			$pluginRow = $( 'tr[data-plugin="' + response.plugin + '"]' ).removeClass( 'is-enqueued' );
+
 			if ( response.plugin ) {
 				$message = $( 'tr[data-plugin="' + response.plugin + '"]' ).find( '.update-message' );
 			} else {
@@ -1614,6 +1616,14 @@
 			} );
 		}
 
+		// DecrementCount from update count.
+		if ( 'themes' === pagenow ) {
+		    var theme = _.find( _wpThemeSettings.themes, { id: response.slug } );
+		    if ( theme.hasUpdate ) {
+		        wp.updates.decrementCount( 'theme' );
+		    }
+		}
+
 		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
 
 		$document.trigger( 'wp-theme-delete-success', response );
@@ -2460,6 +2470,13 @@
 					return;
 				}
 
+				// Don't add items to the update queue again, even if the user clicks the update button several times.
+				if ( 'update-selected' === bulkAction && $itemRow.hasClass( 'is-enqueued' ) ) {
+					return;
+				}
+
+				$itemRow.addClass( 'is-enqueued' );
+
 				// Add it to the queue.
 				wp.updates.queue.push( {
 					action: action,
@@ -2535,7 +2552,7 @@
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
-				s:           event.target.value,
+				s:           encodeURIComponent( event.target.value ),
 				tab:         'search',
 				type:        $( '#typeselector' ).val(),
 				pagenow:     pagenow
@@ -2612,7 +2629,7 @@
 		$pluginSearch.on( 'keyup input', _.debounce( function( event ) {
 			var data = {
 				_ajax_nonce:   wp.updates.ajaxNonce,
-				s:             event.target.value,
+				s:             encodeURIComponent( event.target.value ),
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},
@@ -2654,7 +2671,7 @@
 					sprintf(
 						/* translators: %s: Search query. */
 						__( 'Search results for: %s' ),
-						'<strong>' + _.escape( data.s ) + '</strong>'
+						'<strong>' + _.escape( decodeURIComponent( data.s ) ) + '</strong>'
 					) ),
 					$oldSubTitle = $( '.wrap .subtitle' );
 

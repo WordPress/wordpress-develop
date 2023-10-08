@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi-themes
  * @group restapi
  */
@@ -174,6 +172,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -187,6 +186,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 	}
 
@@ -210,6 +211,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -222,6 +224,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 
 		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
@@ -345,7 +349,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 15, $properties );
+		$this->assertCount( 16, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -358,6 +362,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['description']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['description']['properties'] );
+
+		$this->assertArrayHasKey( 'is_block_theme', $properties );
 
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['name']['properties'] );
@@ -387,6 +393,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$theme_supports = $properties['theme_supports']['properties'];
 		$this->assertArrayHasKey( 'align-wide', $theme_supports );
 		$this->assertArrayHasKey( 'automatic-feed-links', $theme_supports );
+		$this->assertArrayHasKey( 'block-templates', $theme_supports );
+		$this->assertArrayHasKey( 'block-template-parts', $theme_supports, "Theme supports should have 'block-template-parts' key" );
 		$this->assertArrayHasKey( 'custom-header', $theme_supports );
 		$this->assertArrayHasKey( 'custom-background', $theme_supports );
 		$this->assertArrayHasKey( 'custom-logo', $theme_supports );
@@ -395,6 +403,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'dark-editor-style', $theme_supports );
 		$this->assertArrayHasKey( 'disable-custom-font-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'disable-custom-gradients', $theme_supports );
+		$this->assertArrayHasKey( 'disable-layout-styles', $theme_supports );
 		$this->assertArrayHasKey( 'editor-color-palette', $theme_supports );
 		$this->assertArrayHasKey( 'editor-font-sizes', $theme_supports );
 		$this->assertArrayHasKey( 'editor-gradient-presets', $theme_supports );
@@ -405,7 +414,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
 		$this->assertArrayHasKey( 'wp-block-styles', $theme_supports );
-		$this->assertCount( 20, $theme_supports );
+		$this->assertCount( 23, $theme_supports, 'There should be 23 theme supports' );
 	}
 
 	/**
@@ -468,6 +477,27 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'requires_wp', $result[0] );
 		$this->assertSame( '5.3', $result[0]['requires_wp'] );
+	}
+
+	/**
+	 * @ticket 58123
+	 * @covers WP_REST_Themes_Controller::prepare_item_for_response
+	 */
+	public function test_theme_is_block_theme() {
+		// Test classic theme, activated in test setup.
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
+		$this->assertFalse( $result[0]['is_block_theme'] );
+
+		// Test block theme.
+		switch_theme( 'block-theme' );
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
+		$this->assertTrue( $result[0]['is_block_theme'] );
 	}
 
 	/**
@@ -625,7 +655,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 		$this->assertArrayHasKey( 'editor-font-sizes', $result[0]['theme_supports'] );
-		$this->assertEquals( array( $tiny ), $result[0]['theme_supports']['editor-font-sizes'] );
+		$this->assertEqualSetsWithIndex( array( $tiny ), $result[0]['theme_supports']['editor-font-sizes'] );
 	}
 
 	/**
@@ -1199,13 +1229,21 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The create_item() method does not exist for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
 	 * The update_item() method does not exist for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement update_item().
+	}
 
 	/**
 	 * Test single theme.
@@ -1225,6 +1263,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -1375,7 +1414,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'wp/v2',
 			sprintf( '/themes/(?P<stylesheet>%s)//test', WP_REST_Themes_Controller::PATTERN ),
 			array(
-				'callback'            => function ( WP_REST_Request $request ) {
+				'callback'            => static function ( WP_REST_Request $request ) {
 					return $request['stylesheet'];
 				},
 				'permission_callback' => '__return_true',
@@ -1393,11 +1432,19 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The delete_item() method does not exist for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 
 	/**
 	 * Context is not supported for themes.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_context_param() {}
+	public function test_context_param() {
+		// Controller does not use get_context_param().
+	}
 }

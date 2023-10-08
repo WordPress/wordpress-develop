@@ -14,6 +14,7 @@
  *
  * @see WP_Network_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Network_Query {
 
 	/**
@@ -249,7 +250,7 @@ class WP_Network_Query {
 		$last_changed = wp_cache_get_last_changed( 'networks' );
 
 		$cache_key   = "get_network_ids:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'networks' );
+		$cache_value = wp_cache_get( $cache_key, 'network-queries' );
 
 		if ( false === $cache_value ) {
 			$network_ids = $this->get_network_ids();
@@ -261,7 +262,7 @@ class WP_Network_Query {
 				'network_ids'    => $network_ids,
 				'found_networks' => $this->found_networks,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'networks' );
+			wp_cache_add( $cache_key, $cache_value, 'network-queries' );
 		} else {
 			$network_ids          = $cache_value['network_ids'];
 			$this->found_networks = $cache_value['found_networks'];
@@ -438,7 +439,7 @@ class WP_Network_Query {
 
 		$groupby = '';
 
-		$clauses = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
+		$pieces = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
 
 		/**
 		 * Filters the network query clauses.
@@ -448,7 +449,7 @@ class WP_Network_Query {
 		 * @param string[]         $clauses An associative array of network query clauses.
 		 * @param WP_Network_Query $query   Current instance of WP_Network_Query (passed by reference).
 		 */
-		$clauses = apply_filters_ref_array( 'networks_clauses', array( compact( $clauses ), &$this ) );
+		$clauses = apply_filters_ref_array( 'networks_clauses', array( compact( $pieces ), &$this ) );
 
 		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
@@ -531,14 +532,14 @@ class WP_Network_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string   $string  Search string.
+	 * @param string   $search  Search string.
 	 * @param string[] $columns Array of columns to search.
 	 * @return string Search SQL.
 	 */
-	protected function get_search_sql( $string, $columns ) {
+	protected function get_search_sql( $search, $columns ) {
 		global $wpdb;
 
-		$like = '%' . $wpdb->esc_like( $string ) . '%';
+		$like = '%' . $wpdb->esc_like( $search ) . '%';
 
 		$searches = array();
 		foreach ( $columns as $column ) {

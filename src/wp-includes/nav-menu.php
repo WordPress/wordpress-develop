@@ -50,7 +50,7 @@ function wp_get_nav_menu_object( $menu ) {
 }
 
 /**
- * Check if the given ID is a navigation menu.
+ * Determines whether the given ID is a navigation menu.
  *
  * Returns true if it is; false otherwise.
  *
@@ -143,7 +143,7 @@ function register_nav_menu( $location, $description ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @return string[] Associative array of egistered navigation menu descriptions keyed
+ * @return string[] Associative array of registered navigation menu descriptions keyed
  *                  by their location. If none are registered, an empty array.
  */
 function get_registered_nav_menus() {
@@ -255,7 +255,7 @@ function wp_create_nav_menu( $menu_name ) {
 }
 
 /**
- * Delete a Navigation Menu.
+ * Deletes a navigation menu.
  *
  * @since 3.0.0
  *
@@ -302,7 +302,7 @@ function wp_delete_nav_menu( $menu ) {
 }
 
 /**
- * Save the properties of a menu or create a new menu with those properties.
+ * Saves the properties of a menu or create a new menu with those properties.
  *
  * Note that `$menu_data` is expected to be pre-slashed.
  *
@@ -404,7 +404,7 @@ function wp_update_nav_menu_object( $menu_id = 0, $menu_data = array() ) {
 }
 
 /**
- * Save the properties of a menu item or create a new one.
+ * Saves the properties of a menu item or create a new one.
  *
  * The menu-item-title, menu-item-description and menu-item-attr-title are expected
  * to be pre-slashed since they are passed directly to APIs that expect slashed data.
@@ -547,8 +547,10 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		do_action( 'wp_add_nav_menu_item', $menu_id, $menu_item_db_id, $args );
 	}
 
-	// Associate the menu item with the menu term.
-	// Only set the menu term if it isn't set to avoid unnecessary wp_get_object_terms().
+	/*
+	 * Associate the menu item with the menu term.
+	 * Only set the menu term if it isn't set to avoid unnecessary wp_get_object_terms().
+	 */
 	if ( $menu_id && ( ! $update || ! is_object_in_term( $menu_item_db_id, 'nav_menu', (int) $menu->term_id ) ) ) {
 		$update_terms = wp_set_object_terms( $menu_item_db_id, array( $menu->term_id ), 'nav_menu' );
 		if ( is_wp_error( $update_terms ) ) {
@@ -563,6 +565,11 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 
 	$menu_item_db_id = (int) $menu_item_db_id;
 
+	// Reset invalid `menu_item_parent`.
+	if ( (int) $args['menu-item-parent-id'] === $menu_item_db_id ) {
+		$args['menu-item-parent-id'] = 0;
+	}
+
 	update_post_meta( $menu_item_db_id, '_menu_item_type', sanitize_key( $args['menu-item-type'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_menu_item_parent', (string) ( (int) $args['menu-item-parent-id'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_object_id', (string) ( (int) $args['menu-item-object-id'] ) );
@@ -573,7 +580,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	$args['menu-item-xfn']     = implode( ' ', array_map( 'sanitize_html_class', explode( ' ', $args['menu-item-xfn'] ) ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_classes', $args['menu-item-classes'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_xfn', $args['menu-item-xfn'] );
-	update_post_meta( $menu_item_db_id, '_menu_item_url', esc_url_raw( $args['menu-item-url'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_url', sanitize_url( $args['menu-item-url'] ) );
 
 	if ( 0 == $menu_id ) {
 		update_post_meta( $menu_item_db_id, '_menu_item_orphaned', (string) time() );
@@ -641,7 +648,7 @@ function wp_get_nav_menus( $args = array() ) {
 }
 
 /**
- * Return if a menu item is valid.
+ * Determines whether a menu item is valid.
  *
  * @link https://core.trac.wordpress.org/ticket/13958
  *
@@ -669,18 +676,21 @@ function _is_valid_nav_menu_item( $item ) {
  * @param array              $args {
  *     Optional. Arguments to pass to get_posts().
  *
- *     @type string $order       How to order nav menu items as queried with get_posts(). Will be ignored
- *                               if 'output' is ARRAY_A. Default 'ASC'.
- *     @type string $orderby     Field to order menu items by as retrieved from get_posts(). Supply an orderby
- *                               field via 'output_key' to affect the output order of nav menu items.
- *                               Default 'menu_order'.
- *     @type string $post_type   Menu items post type. Default 'nav_menu_item'.
- *     @type string $post_status Menu items post status. Default 'publish'.
- *     @type string $output      How to order outputted menu items. Default ARRAY_A.
- *     @type string $output_key  Key to use for ordering the actual menu items that get returned. Note that
- *                               that is not a get_posts() argument and will only affect output of menu items
- *                               processed in this function. Default 'menu_order'.
- *     @type bool   $nopaging    Whether to retrieve all menu items (true) or paginate (false). Default true.
+ *     @type string $order                  How to order nav menu items as queried with get_posts().
+ *                                          Will be ignored if 'output' is ARRAY_A. Default 'ASC'.
+ *     @type string $orderby                Field to order menu items by as retrieved from get_posts().
+ *                                          Supply an orderby field via 'output_key' to affect the
+ *                                          output order of nav menu items. Default 'menu_order'.
+ *     @type string $post_type              Menu items post type. Default 'nav_menu_item'.
+ *     @type string $post_status            Menu items post status. Default 'publish'.
+ *     @type string $output                 How to order outputted menu items. Default ARRAY_A.
+ *     @type string $output_key             Key to use for ordering the actual menu items that get
+ *                                          returned. Note that that is not a get_posts() argument
+ *                                          and will only affect output of menu items processed in
+ *                                          this function. Default 'menu_order'.
+ *     @type bool   $nopaging               Whether to retrieve all menu items (true) or paginate
+ *                                          (false). Default true.
+ *     @type bool   $update_menu_item_cache Whether to update the menu item cache. Default true.
  * }
  * @return array|false Array of menu items, otherwise false.
  */
@@ -691,21 +701,20 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		return false;
 	}
 
-	static $fetched = array();
-
 	if ( ! taxonomy_exists( 'nav_menu' ) ) {
 		return false;
 	}
 
 	$defaults = array(
-		'order'       => 'ASC',
-		'orderby'     => 'menu_order',
-		'post_type'   => 'nav_menu_item',
-		'post_status' => 'publish',
-		'output'      => ARRAY_A,
-		'output_key'  => 'menu_order',
-		'nopaging'    => true,
-		'tax_query'   => array(
+		'order'                  => 'ASC',
+		'orderby'                => 'menu_order',
+		'post_type'              => 'nav_menu_item',
+		'post_status'            => 'publish',
+		'output'                 => ARRAY_A,
+		'output_key'             => 'menu_order',
+		'nopaging'               => true,
+		'update_menu_item_cache' => true,
+		'tax_query'              => array(
 			array(
 				'taxonomy' => 'nav_menu',
 				'field'    => 'term_taxonomy_id',
@@ -718,33 +727,6 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		$items = get_posts( $args );
 	} else {
 		$items = array();
-	}
-
-	// Prime posts and terms caches.
-	if ( empty( $fetched[ $menu->term_id ] ) ) {
-		$fetched[ $menu->term_id ] = true;
-		$post_ids                  = array();
-		$term_ids                  = array();
-		foreach ( $items as $item ) {
-			$object_id = get_post_meta( $item->ID, '_menu_item_object_id', true );
-			$type      = get_post_meta( $item->ID, '_menu_item_type', true );
-
-			if ( 'post_type' === $type ) {
-				$post_ids[] = (int) $object_id;
-			} elseif ( 'taxonomy' === $type ) {
-				$term_ids[] = (int) $object_id;
-			}
-		}
-
-		if ( ! empty( $post_ids ) ) {
-			_prime_post_caches( $post_ids, false );
-		}
-		unset( $post_ids );
-
-		if ( ! empty( $term_ids ) ) {
-			_prime_term_caches( $term_ids );
-		}
-		unset( $term_ids );
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
@@ -781,6 +763,41 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 }
 
 /**
+ * Updates post and term caches for all linked objects for a list of menu items.
+ *
+ * @since 6.1.0
+ *
+ * @param WP_Post[] $menu_items Array of menu item post objects.
+ */
+function update_menu_item_cache( $menu_items ) {
+	$post_ids = array();
+	$term_ids = array();
+
+	foreach ( $menu_items as $menu_item ) {
+		if ( 'nav_menu_item' !== $menu_item->post_type ) {
+			continue;
+		}
+
+		$object_id = get_post_meta( $menu_item->ID, '_menu_item_object_id', true );
+		$type      = get_post_meta( $menu_item->ID, '_menu_item_type', true );
+
+		if ( 'post_type' === $type ) {
+			$post_ids[] = (int) $object_id;
+		} elseif ( 'taxonomy' === $type ) {
+			$term_ids[] = (int) $object_id;
+		}
+	}
+
+	if ( ! empty( $post_ids ) ) {
+		_prime_post_caches( $post_ids, false );
+	}
+
+	if ( ! empty( $term_ids ) ) {
+		_prime_term_caches( $term_ids );
+	}
+}
+
+/**
  * Decorates a menu item object with the shared navigation menu item properties.
  *
  * Properties:
@@ -808,6 +825,24 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
  * @return object The menu item with standard menu item properties.
  */
 function wp_setup_nav_menu_item( $menu_item ) {
+
+	/**
+	 * Filters whether to short-circuit the wp_setup_nav_menu_item() output.
+	 *
+	 * Returning a non-null value from the filter will short-circuit wp_setup_nav_menu_item(),
+	 * returning that value instead.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param object|null $modified_menu_item Modified menu item. Default null.
+	 * @param object      $menu_item          The menu item to modify.
+	 */
+	$pre_menu_item = apply_filters( 'pre_wp_setup_nav_menu_item', null, $menu_item );
+
+	if ( null !== $pre_menu_item ) {
+		return $pre_menu_item;
+	}
+
 	if ( isset( $menu_item->post_type ) ) {
 		if ( 'nav_menu_item' === $menu_item->post_type ) {
 			$menu_item->db_id            = (int) $menu_item->ID;
@@ -988,7 +1023,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 }
 
 /**
- * Get the menu items associated with a particular object.
+ * Returns the menu items associated with a particular object.
  *
  * @since 3.0.0
  *
@@ -1003,7 +1038,7 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
 	$object_id     = (int) $object_id;
 	$menu_item_ids = array();
 
-	$query      = new WP_Query;
+	$query      = new WP_Query();
 	$menu_items = $query->query(
 		array(
 			'meta_key'       => '_menu_item_object_id',
@@ -1120,7 +1155,7 @@ function _wp_auto_add_pages_to_menu( $new_status, $old_status, $post ) {
 }
 
 /**
- * Delete auto-draft posts associated with the supplied changeset.
+ * Deletes auto-draft posts associated with the supplied changeset.
  *
  * @since 4.8.0
  * @access private
@@ -1154,7 +1189,7 @@ function _wp_delete_customize_changeset_dependent_auto_drafts( $post_id ) {
 }
 
 /**
- * Handle menu config after theme change.
+ * Handles menu config after theme change.
  *
  * @access private
  * @since 4.9.0
@@ -1265,4 +1300,32 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
 	} // End foreach ( $common_slug_groups as $slug_group ).
 
 	return $new_nav_menu_locations;
+}
+
+/**
+ * Prevents menu items from being their own parent.
+ *
+ * Resets menu_item_parent to 0 when the parent is set to the item itself.
+ * For use before saving `_menu_item_menu_item_parent` in nav-menus.php.
+ *
+ * @since 6.2.0
+ * @access private
+ *
+ * @param array $menu_item_data The menu item data array.
+ * @return array The menu item data with reset menu_item_parent.
+ */
+function _wp_reset_invalid_menu_item_parent( $menu_item_data ) {
+	if ( ! is_array( $menu_item_data ) ) {
+		return $menu_item_data;
+	}
+
+	if (
+		! empty( $menu_item_data['ID'] ) &&
+		! empty( $menu_item_data['menu_item_parent'] ) &&
+		(int) $menu_item_data['ID'] === (int) $menu_item_data['menu_item_parent']
+	) {
+		$menu_item_data['menu_item_parent'] = 0;
+	}
+
+	return $menu_item_data;
 }

@@ -169,6 +169,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		self::setup_custom_types();
+
+		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_true' );
 	}
 
 	/**

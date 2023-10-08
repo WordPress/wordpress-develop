@@ -13,6 +13,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
+
+		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_true' );
 	}
 
 	/**
@@ -247,7 +249,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test short-circuit filter.
 		add_filter(
 			'pre_redirect_guess_404_permalink',
-			static function() {
+			static function () {
 				return 'wp';
 			}
 		);
@@ -374,5 +376,53 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertNull( $url );
 
 		delete_option( 'page_on_front' );
+	}
+
+	/**
+	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
+	 *
+	 * @ticket 55955
+	 */
+	public function test_feed_canonical_with_not_exists_query() {
+		// Set a NOT EXISTS tax_query on the global query.
+		$global_query        = $GLOBALS['wp_query'];
+		$GLOBALS['wp_query'] = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'post_format',
+						'operator' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+		// Restore original global.
+		$GLOBALS['wp_query'] = $global_query;
+
+		$this->assertNull( $url );
+	}
+
+	/**
+	 * @ticket 57913
+	 */
+	public function test_canonical_attachment_page_redirect_with_option_disabled() {
+		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_false' );
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+
+		$attachment_id   = $this->_make_attachment( $upload );
+		$attachment_page = get_permalink( $attachment_id );
+
+		$this->go_to( $attachment_page );
+
+		$url      = redirect_canonical( $attachment_page, false );
+		$expected = wp_get_attachment_url( $attachment_id );
+
+		$this->assertSame( $expected, $url );
 	}
 }

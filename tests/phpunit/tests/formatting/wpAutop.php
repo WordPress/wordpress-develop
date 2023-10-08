@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wpautop
  */
 class Tests_Formatting_wpAutop extends WP_UnitTestCase {
 
@@ -100,6 +102,63 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	public function test_skip_input_elements() {
 		$str = 'Username: <input type="text" id="username" name="username" /><br />Password: <input type="password" id="password1" name="password1" />';
 		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+	}
+
+	/**
+	 * wpautop() Should add <p> around inline "<math>" elements.
+	 *
+	 * @ticket 13340
+	 */
+	public function test_wrap_inline_math_elements() {
+		$str = '<math><mrow><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup><mo>=</mo><msup><mi>c</mi><mn>2</mn></msup></mrow></math>';
+
+		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+	}
+
+	/**
+	 * wpautop() Should not add <br> inside block "<math>" elements.
+	 *
+	 * @ticket 13340
+	 */
+	public function test_skip_block_math_elements() {
+		$str = '<math display="block">
+	<mtable>
+		<mtr>
+			<mtd>
+				<msup><mrow><mo>(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>)</mo></mrow><mn>2</mn></msup>
+			</mtd>
+			<mtd>
+				<mo>=</mo>
+			</mtd>
+			<mtd>
+				<msup><mi>c</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>4</mn><mo>⋅</mo>
+				<mo>(</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>a</mi><mi>b</mi><mo>)</mo>
+			</mtd>
+		</mtr>
+		<mtr>
+			<mtd>
+				<msup><mi>a</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo>
+				<msup><mi>b</mi><mn>2</mn></msup>
+			</mtd>
+			<mtd>
+				<mo>=</mo>
+			</mtd>
+			<mtd>
+				<msup><mi>c</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi>
+			</mtd>
+		</mtr>
+		<mtr>
+			<mtd><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup></mtd>
+			<mtd><mo>=</mo></mtd>
+			<mtd><msup><mi>c</mi><mn>2</mn></msup></mtd>
+		</mtr>
+	</mtable>
+</math>';
+
+		$this->assertSameIgnoreEOL( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -306,7 +365,6 @@ Paragraph two.';
 			'map',
 			'area',
 			'address',
-			'math',
 			'style',
 			'p',
 			'h1',
@@ -540,9 +598,6 @@ line 2<br/>
 
 	/**
 	 * wpautop() should not add extra </p> before <figcaption>
-	 *
-	 * @covers ::wpautop
-	 * @uses ::trim
 	 *
 	 * @ticket 39307
 	 */

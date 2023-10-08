@@ -11,7 +11,6 @@
  * Core class used to implement displaying themes to install in a list table.
  *
  * @since 3.1.0
- * @access private
  *
  * @see WP_Themes_List_Table
  */
@@ -186,12 +185,14 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
 		$display_tabs = array();
 		foreach ( (array) $tabs as $action => $text ) {
-			$current_link_attributes                    = ( $action === $tab ) ? ' class="current" aria-current="page"' : '';
-			$href                                       = self_admin_url( 'theme-install.php?tab=' . $action );
-			$display_tabs[ 'theme-install-' . $action ] = "<a href='$href'$current_link_attributes>$text</a>";
+			$display_tabs[ 'theme-install-' . $action ] = array(
+				'url'     => self_admin_url( 'theme-install.php?tab=' . $action ),
+				'label'   => $text,
+				'current' => $action === $tab,
+			);
 		}
 
-		return $display_tabs;
+		return $this->get_views_links( $display_tabs );
 	}
 
 	/**
@@ -543,7 +544,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	}
 
 	/**
-	 * Check to see if the theme is already installed.
+	 * Checks to see if the theme is already installed.
 	 *
 	 * @since 3.4.0
 	 *

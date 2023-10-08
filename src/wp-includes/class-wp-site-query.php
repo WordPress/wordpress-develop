@@ -14,6 +14,7 @@
  *
  * @see WP_Site_Query::__construct() for accepted arguments.
  */
+#[AllowDynamicProperties]
 class WP_Site_Query {
 
 	/**
@@ -173,15 +174,15 @@ class WP_Site_Query {
 	 *     @type string|string[] $meta_key               Meta key or keys to filter by.
 	 *     @type string|string[] $meta_value             Meta value or values to filter by.
 	 *     @type string          $meta_compare           MySQL operator used for comparing the meta value.
-	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                   See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_compare_key       MySQL operator used for comparing the meta key.
-	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                   See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type              MySQL data type that the meta_value column will be CAST to for comparisons.
-	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                   See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type string          $meta_type_key          MySQL data type that the meta_key column will be CAST to for comparisons.
-	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *                                                   See WP_Meta_Query::__construct() for accepted values and default value.
 	 *     @type array           $meta_query             An associative array of WP_Meta_Query arguments.
-	 *                                                   See WP_Meta_Query::__construct for accepted values.
+	 *                                                   See WP_Meta_Query::__construct() for accepted values.
 	 * }
 	 */
 	public function __construct( $query = '' ) {
@@ -357,7 +358,7 @@ class WP_Site_Query {
 		$last_changed = wp_cache_get_last_changed( 'sites' );
 
 		$cache_key   = "get_sites:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'sites' );
+		$cache_value = wp_cache_get( $cache_key, 'site-queries' );
 
 		if ( false === $cache_value ) {
 			$site_ids = $this->get_site_ids();
@@ -369,7 +370,7 @@ class WP_Site_Query {
 				'site_ids'    => $site_ids,
 				'found_sites' => $this->found_sites,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'sites' );
+			wp_cache_add( $cache_key, $cache_value, 'site-queries' );
 		} else {
 			$site_ids          = $cache_value['site_ids'];
 			$this->found_sites = $cache_value['found_sites'];
@@ -387,6 +388,10 @@ class WP_Site_Query {
 
 		$site_ids = array_map( 'intval', $site_ids );
 
+		if ( $this->query_vars['update_site_meta_cache'] ) {
+			wp_lazyload_site_meta( $site_ids );
+		}
+
 		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->sites = $site_ids;
 
@@ -395,7 +400,7 @@ class WP_Site_Query {
 
 		// Prime site network caches.
 		if ( $this->query_vars['update_site_cache'] ) {
-			_prime_site_caches( $site_ids, $this->query_vars['update_site_meta_cache'] );
+			_prime_site_caches( $site_ids, false );
 		}
 
 		// Fetch full site objects from the primed cache.
@@ -626,7 +631,9 @@ class WP_Site_Query {
 
 		$date_query = $this->query_vars['date_query'];
 		if ( ! empty( $date_query ) && is_array( $date_query ) ) {
-			$this->date_query                         = new WP_Date_Query( $date_query, 'registered' );
+			$this->date_query = new WP_Date_Query( $date_query, 'registered' );
+
+			// Strip leading 'AND'.
 			$this->sql_clauses['where']['date_query'] = preg_replace( '/^\s*AND\s*/', '', $this->date_query->get_sql() );
 		}
 
@@ -646,7 +653,7 @@ class WP_Site_Query {
 
 		$where = implode( ' AND ', $this->sql_clauses['where'] );
 
-		$clauses = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
+		$pieces = array( 'fields', 'join', 'where', 'orderby', 'limits', 'groupby' );
 
 		/**
 		 * Filters the site query clauses.
@@ -656,7 +663,7 @@ class WP_Site_Query {
 		 * @param string[]      $clauses An associative array of site query clauses.
 		 * @param WP_Site_Query $query   Current instance of WP_Site_Query (passed by reference).
 		 */
-		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $clauses ), &$this ) );
+		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );
 
 		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
@@ -739,17 +746,17 @@ class WP_Site_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string   $string  Search string.
+	 * @param string   $search  Search string.
 	 * @param string[] $columns Array of columns to search.
 	 * @return string Search SQL.
 	 */
-	protected function get_search_sql( $string, $columns ) {
+	protected function get_search_sql( $search, $columns ) {
 		global $wpdb;
 
-		if ( false !== strpos( $string, '*' ) ) {
-			$like = '%' . implode( '%', array_map( array( $wpdb, 'esc_like' ), explode( '*', $string ) ) ) . '%';
+		if ( str_contains( $search, '*' ) ) {
+			$like = '%' . implode( '%', array_map( array( $wpdb, 'esc_like' ), explode( '*', $search ) ) ) . '%';
 		} else {
-			$like = '%' . $wpdb->esc_like( $string ) . '%';
+			$like = '%' . $wpdb->esc_like( $search ) . '%';
 		}
 
 		$searches = array();
