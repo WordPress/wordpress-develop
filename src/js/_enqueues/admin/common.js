@@ -1271,13 +1271,8 @@ $( function() {
 			e.preventDefault();
 			e.stopPropagation();
 
-			if ( '-1' === topSelector.val() ) {
-				return;
-			}
-
 			topSubmit.trigger('click');
 		}
-
 		bottomSubmit.on('click', triggerSubmitClick);
 	}
 
