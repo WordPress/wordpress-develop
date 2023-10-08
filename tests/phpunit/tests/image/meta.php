@@ -57,7 +57,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
 		$this->assertEquals( 0, $out['iso'], 'Iso value not equivalent' ); // Interesting - a Nikon bug?
 		$this->assertEquals( 1 / 500, $out['shutter_speed'], 'Shutter speed value not equivalent' );
-		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( 'Copyright Alex Shiels', $out['title'], 'Title value not the same' );
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
