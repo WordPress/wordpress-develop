@@ -35,13 +35,14 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertEquals( 6.3, $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
-		$this->assertSame( 'Copyright Alex Shiels', $out['caption'], 'Caption value not the same' );
+		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
 		$this->assertEquals( strtotime( '2004-07-22 17:14:59' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
 		$this->assertEquals( 27, $out['focal_length'], 'Focal length value not equivalent' );
 		$this->assertEquals( 400, $out['iso'], 'Iso value not equivalent' );
 		$this->assertEquals( 1 / 40, $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( print_r( $out, 1 ), '', 'Test of complete image metadata' );
 	}
 
 	public function test_exif_d70_mf() {
@@ -51,13 +52,14 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not the same' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
-		$this->assertSame( 'Copyright Alex Shiels', $out['caption'], 'Caption value not the same' );
+		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
 		$this->assertEquals( strtotime( '2007-06-17 21:18:00' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
 		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
 		$this->assertEquals( 0, $out['iso'], 'Iso value not equivalent' ); // Interesting - a Nikon bug?
 		$this->assertEquals( 1 / 500, $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
+		$this->assertSame( print_r( $out, 1 ), '', 'Test of complete image metadata' );
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
