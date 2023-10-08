@@ -354,10 +354,10 @@ window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
 window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
 
 /**
- * Removed in 6.1.0, needed for back-compatibility.
+ * Removed in 6.4.0, needed for back-compatibility.
  *
  * @since 4.5.0
- * @deprecated 6.1.0
+ * @deprecated 6.4.0
  */
 window.uiAutocompleteL10n = window.uiAutocompleteL10n || {
 	noResults: '',
