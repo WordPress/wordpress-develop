@@ -35,7 +35,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertEquals( 6.3, $out['aperture'], 'Aperture value not equivalent' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
-		$this->assertSame( print_r( $out, 1 ), $out['caption'], 'Caption value not the same' );
+		$this->assertSame( 'Copyright Alex Shiels', $out['caption'], 'Caption value not the same' );
 		$this->assertEquals( strtotime( '2004-07-22 17:14:59' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
 		$this->assertEquals( 27, $out['focal_length'], 'Focal length value not equivalent' );
@@ -51,7 +51,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not the same' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
-		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
+		$this->assertSame( 'Copyright Alex Shiels', $out['caption'], 'Caption value not the same' );
 		$this->assertEquals( strtotime( '2007-06-17 21:18:00' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
 		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
