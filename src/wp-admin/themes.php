@@ -821,13 +821,21 @@ function wp_theme_auto_update_setting_template() {
 
 	<# if ( data.hasUpdate ) { #>
 		<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
-			<div class="update-message notice inline notice-warning notice-alt"><p>
-				<# if ( data.hasPackage ) { #>
-					<?php _e( 'New version available. <button class="button-link" type="button">Update now</button>' ); ?>
-				<# } else { #>
-					<?php _e( 'New version available.' ); ?>
-				<# } #>
-			</p></div>
+			<?php
+			$update_available  = '<# if ( data.hasPackage ) { #>';
+			$update_available .= __( 'New version available. <button class="button-link" type="button">Update now</button>' );
+			$update_available .= '<# } else { #>';
+			$update_available .= __( 'New version available.' );
+			$update_available .= '<# } #>';
+
+			wp_admin_notice(
+				$update_available,
+				array(
+					'type' => 'warning',
+					'additional_classes' => array( 'update-message', 'inline', 'notice-alt' ),
+				)
+			);
+			?>
 		<# } else { #>
 			<div class="update-message notice inline notice-error notice-alt"><p>
 				<# if ( ! data.updateResponse.compatibleWP && ! data.updateResponse.compatiblePHP ) { #>
