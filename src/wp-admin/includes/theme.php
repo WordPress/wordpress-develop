@@ -889,78 +889,89 @@ function customize_themes_print_templates() {
 
 					<# if ( data.hasUpdate ) { #>
 						<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
-							<div class="notice notice-warning notice-alt notice-large" data-slug="{{ data.id }}">
-								<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
-								{{{ data.update }}}
-							</div>
+							<?php
+							wp_admin_notice(
+								'<h3 class="notice-title">' . __( 'Update Available' ) . '</h3>{{{ data.update }}}',
+								array(
+									'type'               => 'warning',
+									'additional_classes' => array( 'notice-alt', 'notice-large' ),
+									'attributes'         => array(
+										'data-slug' => '{{ data.id }}',
+									),
+									'paragraph_wrap'     => false,
+								)
+							);
+							?>
 						<# } else { #>
-							<div class="notice notice-error notice-alt notice-large" data-slug="{{ data.id }}">
-								<h3 class="notice-title"><?php _e( 'Update Incompatible' ); ?></h3>
-								<p>
-									<# if ( ! data.updateResponse.compatibleWP && ! data.updateResponse.compatiblePHP ) { #>
-										<?php
-										printf(
-											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
-											'{{{ data.name }}}'
-										);
-										if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
-											printf(
-												/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
-												' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
-												self_admin_url( 'update-core.php' ),
-												esc_url( wp_get_update_php_url() )
-											);
-											wp_update_php_annotation( '</p><p><em>', '</em>' );
-										} elseif ( current_user_can( 'update_core' ) ) {
-											printf(
-												/* translators: %s: URL to WordPress Updates screen. */
-												' ' . __( '<a href="%s">Please update WordPress</a>.' ),
-												self_admin_url( 'update-core.php' )
-											);
-										} elseif ( current_user_can( 'update_php' ) ) {
-											printf(
-												/* translators: %s: URL to Update PHP page. */
-												' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
-												esc_url( wp_get_update_php_url() )
-											);
-											wp_update_php_annotation( '</p><p><em>', '</em>' );
-										}
-										?>
-									<# } else if ( ! data.updateResponse.compatibleWP ) { #>
-										<?php
-										printf(
-											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
-											'{{{ data.name }}}'
-										);
-										if ( current_user_can( 'update_core' ) ) {
-											printf(
-												/* translators: %s: URL to WordPress Updates screen. */
-												' ' . __( '<a href="%s">Please update WordPress</a>.' ),
-												self_admin_url( 'update-core.php' )
-											);
-										}
-										?>
-									<# } else if ( ! data.updateResponse.compatiblePHP ) { #>
-										<?php
-										printf(
-											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
-											'{{{ data.name }}}'
-										);
-										if ( current_user_can( 'update_php' ) ) {
-											printf(
-												/* translators: %s: URL to Update PHP page. */
-												' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
-												esc_url( wp_get_update_php_url() )
-											);
-											wp_update_php_annotation( '</p><p><em>', '</em>' );
-										}
-										?>
-									<# } #>
-								</p>
-							</div>
+							<?php
+							$update_incompatible = '<h3 class="notice-title">' . __( 'Update Incompatible' ) . '</h3><p><# if ( ! data.updateResponse.compatibleWP && ! data.updateResponse.compatiblePHP ) { #>';
+							$update_incompatible .= sprintf(
+								/* translators: %s: Theme name. */
+								__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
+								'{{{ data.name }}}'
+							);
+							if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+								$update_incompatible .= sprintf(
+									/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+									' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+									self_admin_url( 'update-core.php' ),
+									esc_url( wp_get_update_php_url() )
+								);
+								$update_incompatible .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
+							} elseif ( current_user_can( 'update_core' ) ) {
+								$update_incompatible .= sprintf(
+									/* translators: %s: URL to WordPress Updates screen. */
+									' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+									self_admin_url( 'update-core.php' )
+								);
+							} elseif ( current_user_can( 'update_php' ) ) {
+								$update_incompatible .= sprintf(
+									/* translators: %s: URL to Update PHP page. */
+									' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+									esc_url( wp_get_update_php_url() )
+								);
+								$update_incompatible .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
+							}
+							$update_incompatible .= '<# } else if ( ! data.updateResponse.compatibleWP ) { #>'
+							$update_incompatible .= sprintf(
+								/* translators: %s: Theme name. */
+								__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
+								'{{{ data.name }}}'
+							);
+							if ( current_user_can( 'update_core' ) ) {
+								$update_incompatible .= sprintf(
+									/* translators: %s: URL to WordPress Updates screen. */
+									' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+									self_admin_url( 'update-core.php' )
+								);
+							}
+							$update_incompatible .= '<# } else if ( ! data.updateResponse.compatiblePHP ) { #>';
+							$update_incompatible .= sprintf(
+								/* translators: %s: Theme name. */
+								__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
+								'{{{ data.name }}}'
+							);
+							if ( current_user_can( 'update_php' ) ) {
+								$update_incompatible .= sprintf(
+									/* translators: %s: URL to Update PHP page. */
+									' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+									esc_url( wp_get_update_php_url() )
+								);
+								$update_incompatible .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
+							}
+							$update_incompatible .=  '<# } #>';
+							wp_admin_notice(
+								$update_incompatible,
+								array(
+									'type' => 'error',
+									'additional_classes' => array( 'notice-alt', 'notice-large' ),
+									'attributes'         => array(
+										'data-slug' => '{{ data.id }}',
+									),
+									'paragraph_wrap'     => false,
+								)
+							);
+							?>
 						<# } #>
 					<# } #>
 
@@ -977,73 +988,38 @@ function customize_themes_print_templates() {
 					<# } #>
 
 					<# if ( ! data.compatibleWP || ! data.compatiblePHP ) { #>
-						<div class="notice notice-error notice-alt notice-large"><p>
-							<# if ( ! data.compatibleWP && ! data.compatiblePHP ) { #>
-								<?php
-								_e( 'This theme does not work with your versions of WordPress and PHP.' );
-								if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
-									printf(
-										/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
-										' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
-										self_admin_url( 'update-core.php' ),
-										esc_url( wp_get_update_php_url() )
-									);
-									wp_update_php_annotation( '</p><p><em>', '</em>' );
-								} elseif ( current_user_can( 'update_core' ) ) {
-									printf(
-										/* translators: %s: URL to WordPress Updates screen. */
-										' ' . __( '<a href="%s">Please update WordPress</a>.' ),
-										self_admin_url( 'update-core.php' )
-									);
-								} elseif ( current_user_can( 'update_php' ) ) {
-									printf(
-										/* translators: %s: URL to Update PHP page. */
-										' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
-										esc_url( wp_get_update_php_url() )
-									);
-									wp_update_php_annotation( '</p><p><em>', '</em>' );
-								}
-								?>
-							<# } else if ( ! data.compatibleWP ) { #>
-								<?php
-								_e( 'This theme does not work with your version of WordPress.' );
-								if ( current_user_can( 'update_core' ) ) {
-									printf(
-										/* translators: %s: URL to WordPress Updates screen. */
-										' ' . __( '<a href="%s">Please update WordPress</a>.' ),
-										self_admin_url( 'update-core.php' )
-									);
-								}
-								?>
-							<# } else if ( ! data.compatiblePHP ) { #>
-								<?php
-								_e( 'This theme does not work with your version of PHP.' );
-								if ( current_user_can( 'update_php' ) ) {
-									printf(
-										/* translators: %s: URL to Update PHP page. */
-										' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
-										esc_url( wp_get_update_php_url() )
-									);
-									wp_update_php_annotation( '</p><p><em>', '</em>' );
-								}
-								?>
-							<# } #>
-						</p></div>
-					<# } else if ( ! data.active && data.blockTheme ) { #>
-						<div class="notice notice-error notice-alt notice-large"><p>
 						<?php
-							_e( 'This theme doesn\'t support Customizer.' );
+						// The data object properties aren't consistent between templates.
+						$properties             = array( 'compatible_wp', 'compatible_php' );
+						$new_properties         = array( 'compatibleWP', 'compatiblePHP' );
+						$compatibility_template = theme_compatibility_template();
+						$compatibility_template = str_replace( $properties, $new_properties, $compatibility_template );
+						wp_admin_notice(
+							$compatibility_template, 
+							array(
+								'type'               => 'error',
+								'additional_classes' => array( 'notice-alt', 'notice-large' ),
+							)
+						);
 						?>
-						<# if ( data.actions.activate ) { #>
-							<?php
-							printf(
-								/* translators: %s: URL to the themes page (also it activates the theme). */
-								' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
-								'{{{ data.actions.activate }}}'
-							);
-							?>
-						<# } #>
-						</p></div>
+					<# } else if ( ! data.active && data.blockTheme ) { #>
+						<?php
+						$no_customizer_support = __( 'This theme doesn\'t support Customizer.' );
+						$no_customizer_support .= '<# if ( data.actions.activate ) { #>';
+						$no_customizer_support .= sprintf(
+							/* translators: %s: URL to the themes page (also it activates the theme). */
+							' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+							'{{{ data.actions.activate }}}'
+						);
+						$no_customizer_support .= '<# } #>';
+						wp_admin_notice(
+							$no_customizer_support,
+							array(
+								'type'               => 'error',
+								'additional_classes' => array( 'notice-alt', 'notice-large' ),
+							)
+						);
+						?>
 					<# } #>
 
 					<p class="theme-description">{{{ data.description }}}</p>
