@@ -730,6 +730,7 @@ ul.wp-block-archives,
 }
 
 /** === Latest Posts === */
+
 .wp-block-latest-posts {
 
 	.wp-block-latest-posts__post-date {
@@ -1021,7 +1022,7 @@ $group-block-background__padding: $font__size_base;
 	}
 }
 
-/* Post Author Block  */
+/** === Post Author Block === */
 .editor-styles-wrapper {
 	
 	& .avatar,
