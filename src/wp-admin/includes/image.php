@@ -899,7 +899,6 @@ function wp_read_image_metadata( $file ) {
 			if ( empty( $meta['caption'] ) ) {
 				$meta['caption'] = $exif_description;
 			}
-
 		} elseif ( empty( $meta['caption'] ) && $exif_usercomment ) {
 			$meta['caption']    = $exif_usercomment;
 			$description_length = strlen( $exif_usercomment );
@@ -909,7 +908,6 @@ function wp_read_image_metadata( $file ) {
 		} elseif ( empty( $meta['caption'] ) && ! empty( $exif['Comments'] ) ) {
 			$meta['caption'] = trim( $exif['Comments'] );
 		}
-			$meta['caption'] = print_r( $exif, 1 );
 
 		if ( empty( $meta['credit'] ) ) {
 			if ( ! empty( $exif['Artist'] ) ) {
