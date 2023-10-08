@@ -867,6 +867,8 @@ $_old_files = array(
 	'wp-includes/images/wlw',
 	'wp-includes/wlwmanifest.xml',
 	'wp-includes/random_compat',
+	// 6.4
+	'wp-includes/navigation-fallback.php',
 );
 
 /**
@@ -997,6 +999,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentyone/'   => '5.6',
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
+	'themes/twentytwentyfour/'  => '6.4',
 );
 
 /**
