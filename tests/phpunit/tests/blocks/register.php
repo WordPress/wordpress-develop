@@ -645,8 +645,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'Block type should contain selectors from metadata.'
 		);
 		// @ticket 59346
-		$this->assertSame(
-			array( 'core/post-content' => 'before' ),
+		$this->assertSameSets(
+			array(
+				'tests/before'      => 'before',
+				'tests/after'       => 'after',
+				'tests/first-child' => 'first_child',
+				'tests/last-child'  => 'last_child',
+			),
 			$result->block_hooks,
 			'Block type should contain block hooks from metadata.'
 		);
@@ -1068,5 +1073,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$actual = register_block_style( 'core/query', $block_styles );
 		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @ticket 59346
+	 *
+	 * @covers ::register_block_type
+	 *
+	 * @expectedIncorrectUsage register_block_type_from_metadata
+	 */
+	public function test_register_block_hooks_targeting_itself() {
+		$block_type = register_block_type(
+			DIR_TESTDATA . '/blocks/hooked-block-error'
+		);
+
+		$this->assertSame(
+			array( 'tests/other-block' => 'after' ),
+			$block_type->block_hooks
+		);
 	}
 }

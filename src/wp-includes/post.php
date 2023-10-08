@@ -77,7 +77,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
 				'add_new'        => __( 'Add New Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
-				'view_item'      => __( 'View Attachment Page' ),
+				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
@@ -1382,7 +1382,7 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$args->label_count = _n_noop( $args->label, $args->label );
 	}
 
@@ -7262,6 +7262,7 @@ function clean_post_cache( $post ) {
 
 	wp_cache_delete( $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
+	wp_cache_delete( $post->ID, 'post_parent' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
 
@@ -7796,6 +7797,33 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 }
 
 /**
+ * Prime post parent caches.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @since 6.4.0
+ *
+ * @param int[] $ids ID list.
+ */
+function _prime_post_parents_caches( array $ids ) {
+	global $wpdb;
+
+	$non_cached_ids = _get_non_cached_ids( $ids, 'post_parent' );
+	if ( ! empty( $non_cached_ids ) ) {
+		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.ID, $wpdb->posts.post_parent FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
+
+		if ( $fresh_posts ) {
+			$post_parent_data = array();
+			foreach ( $fresh_posts as $fresh_post ) {
+				$post_parent_data[ (int) $fresh_post->ID ] = (int) $fresh_post->post_parent;
+			}
+
+			wp_cache_add_multiple( $post_parent_data, 'post_parent' );
+		}
+	}
+}
+
+/**
  * Adds a suffix if any trashed posts have a given slug.
  *
  * Store its desired (i.e. current) slug so it can try to reclaim it
@@ -7888,7 +7916,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	 * @param string[]|null $mime_types An array of MIME types. Default null.
 	 * @param string        $type       The post type name. Usually 'attachment' but can be any post type.
 	 */
-	$mime_types = apply_filters( 'get_available_post_mime_types', null, $type );
+	$mime_types = apply_filters( 'pre_get_available_post_mime_types', null, $type );
 
 	if ( ! is_array( $mime_types ) ) {
 		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
