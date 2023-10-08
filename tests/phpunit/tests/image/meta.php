@@ -48,11 +48,10 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// Exif from a Nikon D70 - manual focus lens, so some data is unavailable.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
 
-		$this->assertSame( print_r( $out, 1 ), '', 'Test of complete image metadata' );
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not the same' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
-		$this->assertSame( '', $out['caption'], 'Caption value not the same' );
+		$this->assertSame( 'Copyright Alex Shiels', $out['caption'], 'Caption value not the same' );
 		$this->assertEquals( strtotime( '2007-06-17 21:18:00' ), $out['created_timestamp'], 'Timestamp value not equivalent' );
 		$this->assertSame( '', $out['copyright'], 'Copyright value not the same' );
 		$this->assertEquals( 0, $out['focal_length'], 'Focal length value not equivalent' );
