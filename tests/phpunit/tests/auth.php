@@ -846,6 +846,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			'user_email' => "jo'hn@example.com",
 			'user_pass'  => 'password',
 		);
+
 		$user_id = self::factory()->user->create( $user_args );
 
 		$user = get_userdata( $user_id );
