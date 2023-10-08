@@ -42,13 +42,13 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertEquals( 400, $out['iso'], 'Iso value not equivalent' );
 		$this->assertEquals( 1 / 40, $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
-		$this->assertSame( print_r( $out, 1 ), '', 'Test of complete image metadata' );
 	}
 
 	public function test_exif_d70_mf() {
 		// Exif from a Nikon D70 - manual focus lens, so some data is unavailable.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
 
+		$this->assertSame( print_r( $out, 1 ), '', 'Test of complete image metadata' );
 		$this->assertSame( '0', $out['aperture'], 'Aperture value not the same' );
 		$this->assertSame( '', $out['credit'], 'Credit value not the same' );
 		$this->assertSame( 'NIKON D70', $out['camera'], 'Camera value not the same' );
@@ -59,7 +59,6 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertEquals( 0, $out['iso'], 'Iso value not equivalent' ); // Interesting - a Nikon bug?
 		$this->assertEquals( 1 / 500, $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( '', $out['title'], 'Title value not the same' );
-		$this->assertSame( print_r( $out, 1 ), '', 'Test of complete image metadata' );
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
