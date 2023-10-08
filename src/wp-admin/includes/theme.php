@@ -964,7 +964,7 @@ function customize_themes_print_templates() {
 								);
 								$update_incompatible .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 							}
-							$update_incompatible .=  '<# } #>';
+							$update_incompatible .= '<# } #>';
 							wp_admin_notice(
 								$update_incompatible,
 								array(
@@ -1000,7 +1000,7 @@ function customize_themes_print_templates() {
 						$compatibility_template = theme_compatibility_template();
 						$compatibility_template = str_replace( $properties, $new_properties, $compatibility_template );
 						wp_admin_notice(
-							$compatibility_template, 
+							$compatibility_template,
 							array(
 								'type'               => 'error',
 								'additional_classes' => array( 'notice-alt', 'notice-large' ),
