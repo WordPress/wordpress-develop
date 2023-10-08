@@ -165,13 +165,13 @@
 
 	//! Button
 	.wp-block-button {
+		line-height: $font__line-height-heading;
 
 		.wp-block-button__link {
 			@include button-transition;
 			border: none;
 			font-size: $font__size-sm;
 			@include font-family( $font__heading );
-			line-height: $font__line-height-heading;
 			box-sizing: border-box;
 			font-weight: bold;
 			text-decoration: none;
