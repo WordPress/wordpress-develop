@@ -772,7 +772,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
 			$template = get_block_template( $id, $this->post_type );
-			if ( ! is_wp_error( $template ) && $template && $template->wp_id ) {
+			if ( $template instanceof WP_Block_Template && ! empty( $template->wp_id ) ) {
 				$revisions       = wp_get_latest_revision_id_and_total_count( $template->wp_id );
 				$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
 				$revisions_base  = sprintf( '/%s/%s/%s/revisions', $this->namespace, $this->rest_base, $id );
