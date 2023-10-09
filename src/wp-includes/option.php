@@ -2144,8 +2144,6 @@ function update_network_option( $network_id, $option, $value ) {
 	 */
 	$value = apply_filters( "pre_update_site_option_{$option}", $value, $old_value, $option, $network_id );
 
-	$is_multisite = is_multisite();
-
 	/*
 	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
 	 * Immediately after getting the raw value, they are reinstated.
@@ -2177,7 +2175,7 @@ function update_network_option( $network_id, $option, $value ) {
 		(
 			false !== $raw_old_value &&
 			// Site meta values are nullable. Don't check if the values are loosely equal to null.
-			( ! $is_multisite || ( null !== $raw_old_value && null !== $value ) ) &&
+			( ! is_multisite() || ( null !== $raw_old_value && null !== $value ) ) &&
 			_is_equal_database_value( $raw_old_value, $value )
 		)
 	) {
@@ -2196,7 +2194,7 @@ function update_network_option( $network_id, $option, $value ) {
 		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 	}
 
-	if ( ! $is_multisite ) {
+	if ( ! is_multisite() ) {
 		$result = update_option( $option, $value, 'no' );
 	} else {
 		$value = sanitize_option( $option, $value );
