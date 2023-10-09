@@ -438,7 +438,7 @@ final class WP_Post_Type {
 	public $autosave_rest_controller;
 
 	/**
-	 * A flag to direct the REST API controllers for autosave / revisions should be registered before/after the post type controller.
+	 * A flag to register the post type REST API controller after its associated autosave / revisions controllers, instead of before. Registration order affects route matching priority.
 	 *
 	 * @since 6.4.0
 	 * @var bool $late_route_registration
