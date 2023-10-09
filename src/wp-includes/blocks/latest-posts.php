@@ -151,13 +151,13 @@ function render_block_core_latest_posts( $attributes ) {
 				$excerpt_length = (int) apply_filters( 'excerpt_length', $block_core_latest_posts_excerpt_length );
 				if ( $excerpt_length <= $block_core_latest_posts_excerpt_length ) {
 					$trimmed_excerpt  = substr( $trimmed_excerpt, 0, -11 );
+					$trimmed_excerpt .= '… <a href="' . esc_url( $post_link ) . '" rel="noopener noreferrer">';
 					$trimmed_excerpt .= sprintf(
-						/* translators: 1: A URL to a post, 2: The static string "Read more", 3: The post title only visible to screen readers. */
-						__( '… <a href="%1$s" rel="noopener noreferrer">%2$s<span class="screen-reader-text">: %3$s</span></a>' ),
-						esc_url( $post_link ),
-						__( 'Read more' ),
+						/* translators: %s: The post title only visible to screen readers */
+						__( 'Continue reading <span class="screen-reader-text">%s</span>' ),
 						esc_html( $title )
 					);
+					$trimmed_excerpt .= '</a>';
 				}
 			}
 
