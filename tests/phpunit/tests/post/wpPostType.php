@@ -260,7 +260,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 * @return array[] Arguments {
 	 *     @type string $property_name           Property name.
 	 *     @type string $property_value          Property value.
-	 *     @type string $expected_property_value Expected property value.
+	 *     @type string|bool $expected_property_value Expected property value.
 	 * }
 	 */
 	public function data_should_have_correct_custom_revisions_and_autosaves_controllers_properties() {

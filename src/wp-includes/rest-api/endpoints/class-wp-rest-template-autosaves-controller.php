@@ -197,7 +197,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	}
 
 	/**
-	 * Get the autosave, if the ID is valid.
+	 * Gets the autosave, if the ID is valid.
 	 *
 	 * @since 6.4.0
 	 *
@@ -241,7 +241,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param WP_Block_Template $template Template
+	 * @param WP_Block_Template $template Template.
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $template ) {

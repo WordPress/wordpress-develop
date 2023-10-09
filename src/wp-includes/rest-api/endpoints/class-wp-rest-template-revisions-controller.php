@@ -156,7 +156,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	}
 
 	/**
-	 * Get the parent post, if the ID is valid.
+	 * Gets the parent post, if the ID is valid.
 	 *
 	 * @since 6.4.0
 	 *
@@ -254,7 +254,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param WP_Block_Template $template Template
+	 * @param WP_Block_Template $template Template.
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $template ) {
@@ -277,7 +277,6 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 *
 	 * @return array Item schema data.
 	 */
-
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
