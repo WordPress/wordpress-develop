@@ -2156,7 +2156,9 @@ function update_network_option( $network_id, $option, $value ) {
 	if ( has_filter( $pre_option_hook ) ) {
 		$old_filters = $wp_filter[ $pre_option_hook ];
 		unset( $wp_filter[ $pre_option_hook ] );
-		$raw_old_value = get_network_option( $network_id, $option );
+		/** This filter is documented in wp-includes/options.php */
+		$default_value  = apply_filters( 'default_site_option_' . $option, false, $option, $network_id );
+		$raw_old_value = is_multisite() ? get_network_option( $network_id, $option ) : get_option( $option, $default_value );
 		$wp_filter[ $pre_option_hook ] = $old_filters;
 	} else {
 		$raw_old_value = $old_value;
