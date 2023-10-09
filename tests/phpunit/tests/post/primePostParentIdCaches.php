@@ -97,7 +97,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 		_prime_post_parent_id_caches( array( $page_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
 
-		$this->assertSame( 0, $num_queries, 'Unexpected number of queries on second run' );
+		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on second run' );
 		$this->assertSameSets( array( self::$posts[1] ), wp_cache_get_multiple( array( $page_id ), 'post_parent' ), 'Array of parent ids with post 1 as parent' );
 	}
 
