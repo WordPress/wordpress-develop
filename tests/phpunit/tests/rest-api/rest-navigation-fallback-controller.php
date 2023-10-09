@@ -152,7 +152,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	 *
 	 * @ticket 58557
 	 *
-	 * @covers ::wp_add_fields_to_navigation_fallback_embedded_links
+	 * @covers WP_Navigation_Fallback::update_wp_navigation_post_schema
 	 *
 	 * @since 6.3.0 Added Navigation Fallbacks endpoint.
 	 */
