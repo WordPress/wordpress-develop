@@ -151,26 +151,16 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The test passes if a Notice | Warning | Error is not raised. Thus. the absence of a Notice | Warning | Error
+	 * is an indicator the fix in the ticket resolves the issue.
+	 *
 	 * @ticket 57674
 	 *
 	 * @covers ::unregister_setting
 	 */
-	public function test_unregister_invalid_setting_does_not_raise_a_php_warning() {
+	public function test_unregister_invalid_setting_does_not_raise_php_notice_warning_or_error() {
 		$setting = uniqid();
-		set_error_handler(
-			function ( $errno = 0, $errstr = '' ) {
-				$error_types = array(
-					E_ERROR   => 'Fatal',
-					E_WARNING => 'Warning',
-					E_NOTICE  => 'Notice',
-				);
-				$error_type  = isset( $error_types[ $errno ] ) ? $error_types[ $errno ] : 'Unknown';
-				$this->fail( 'PHP ' . $error_type . ': ' . $errstr );
-				return false;
-			}
-		);
 		unregister_setting( $setting, $setting );
-		restore_error_handler();
 		$this->assertFalse( has_filter( 'default_option_' . $setting, 'filter_default_option' ) );
 	}
 }
