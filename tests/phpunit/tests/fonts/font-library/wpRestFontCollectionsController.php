@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase {
+class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Fonts directory (in uploads).
@@ -282,7 +282,28 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_TestCase 
 		);
 	}
 
+	/**
+	 * @covers WP_REST_Font_Collections_Controller::prepare_item_for_response
+	 * @ticket 56922
+	 */
 	public function test_prepare_item() {
+		$font_collection_id = 'collection-with-url';
+		$request            = new WP_REST_Request( 'GET', '/wp/v2/font-collections/' . $font_collection_id );
+
+		/** @var WP_Font_Collection $font_collection */
+		$font_collection = WP_Font_Library::get_font_collection( $font_collection_id );
+
+		$font_collection_data          = $font_collection->get_data();
+		$controller                    = new WP_REST_Font_Collections_Controller();
+		$response_font_collection_data = $controller->prepare_item_for_response( $font_collection_data, $request );
+		$this->assertIsArray( $font_collection_data, 'Font collection data should be an array.' );
+		$this->assertSame( $font_collection_data['id'], $response_font_collection_data['id'], 'Font collection ID should remain consistent in the response.' );
+		$this->assertSame( $font_collection_data['name'], $response_font_collection_data['name'], 'Font collection name should be consistent in the response.' );
+		$this->assertSame( $font_collection_data['description'], $response_font_collection_data['description'], 'Font collection description should be consistent in the response.' );
+		$this->assertIsArray( $response_font_collection_data['data'], 'Response font collection data should be an array.' );
+		$this->assertSame( $font_collection_data['data']['categories'], $response_font_collection_data['data']['categories'], 'Font collection categories should be consistent in the response.' );
+		$this->assertArrayNotHasKey( 'fontFamilies', $response_font_collection_data['data'], 'Response font collection data should not contain the "fontFamilies" key.' );
+		$this->assertSame( $font_collection_data['data']['font_families'], $response_font_collection_data['data']['font_families'], 'Font families should be consistent in the response.' );
 	}
 
 	public function test_get_item_schema() {
