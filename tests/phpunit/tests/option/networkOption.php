@@ -896,8 +896,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		update_network_option( null, $option, 'false' );
 
-		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters were not applied." );
-		$this->assertSame( 2, $option_hook->get_call_count(), "'default_option_{$option}' filters were not applied." );
+		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters should have been applied twice." );
+		$this->assertSame( 2, $option_hook->get_call_count(), "'default_option_{$option}' filters should have been applied twice." );
 	}
 
 	/**
@@ -921,8 +921,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		update_network_option( null, $option, 'false' );
 
-		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters were not applied." );
-		$this->assertSame( 0, $option_hook->get_call_count(), "'default_option_{$option}' filters were not applied." );
+		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters should have been applied twice." );
+		$this->assertSame( 0, $option_hook->get_call_count(), "'default_option_{$option}' filters should not have been applied." );
 	}
 
 	/**
@@ -946,8 +946,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		update_network_option( null, $option, 'false' );
 
-		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters were not applied." );
-		$this->assertSame( 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters were not applied." );
+		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters should have been applied once." );
+		$this->assertSame( 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters should have been applied once." );
 	}
 
 	/**
@@ -971,8 +971,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		update_network_option( null, $option, 'false' );
 
-		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters were not applied." );
-		$this->assertSame( 0, $option_hook->get_call_count(), "'pre_option_{$option}' filters were not applied." );
+		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters should have been applied once." );
+		$this->assertSame( 0, $option_hook->get_call_count(), "'pre_option_{$option}' filters should not have been applied." );
 	}
 
 	/**
