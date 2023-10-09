@@ -156,6 +156,28 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
+	 * Prepares the content of a block pattern. If hooked blocks are registered, they get injected into the pattern,
+	 * when they met the defined criteria.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $pattern       Registered pattern properties.
+	 * @param array $hooked_blocks The list of hooked blocks.
+	 * @return string The content of the block pattern.
+	 */
+	private function prepare_content( $pattern, $hooked_blocks ) {
+		$content = $pattern['content'];
+		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+			$blocks               = parse_blocks( $content );
+			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
+			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
+			$content              = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		}
+
+		return $content;
+	}
+
+	/**
 	 * Retrieves an array containing the properties of a registered block pattern.
 	 *
 	 * @since 5.5.0
@@ -170,7 +192,7 @@ final class WP_Block_Patterns_Registry {
 
 		$pattern = $this->registered_patterns[ $pattern_name ];
 		if ( ! $pattern['parsed'] ) {
-			$pattern['content']                         = $this->get_parse_blocks( $pattern );
+			$pattern['content']                         = $this->prepare_content( $pattern, get_hooked_blocks() );
 			$pattern['parsed']                          = true;
 			$this->registered_patterns[ $pattern_name ] = $pattern;
 		}
@@ -192,9 +214,11 @@ final class WP_Block_Patterns_Registry {
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns;
 
+		$hooked_blocks = get_hooked_blocks();
+
 		foreach ( $patterns as $pattern_name => $pattern ) {
 			if ( ! $pattern['parsed'] ) {
-				$pattern['content']        = $this->get_parse_blocks( $pattern );
+				$pattern['content']        = $this->prepare_content( $pattern, $hooked_blocks );
 				$pattern['parsed']         = true;
 				$patterns[ $pattern_name ] = $pattern;
 			}
