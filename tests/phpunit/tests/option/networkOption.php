@@ -926,6 +926,56 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that update_network_option() applies 'pre_site_option_{$option}' and 'pre_option_{$option}' filters on Single Site.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_apply_pre_site_option_and_pre_option_filters_on_single_site() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'This test should only run on Single Site.' );
+		}
+
+		$option      = 'foo';
+		$site_hook   = new MockAction();
+		$option_hook = new MockAction();
+
+		add_filter( "pre_site_option_{$option}", array( $site_hook, 'filter' ) );
+		add_filter( "pre_option_{$option}", array( $option_hook, 'filter' ) );
+
+		update_network_option( null, $option, 'false' );
+
+		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters were not applied." );
+		$this->assertSame( 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters were not applied." );
+	}
+
+	/**
+	 * Tests that update_network_option() applies only 'pre_site_option_{$option}' filters on Multisite.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_apply_only_pre_site_option_filters_on_multisite() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'This test should only run on Multisite.' );
+		}
+
+		$option      = 'foo';
+		$site_hook   = new MockAction();
+		$option_hook = new MockAction();
+
+		add_filter( "pre_site_option_{$option}", array( $site_hook, 'filter' ) );
+		add_filter( "pre_option_{$option}", array( $option_hook, 'filter' ) );
+
+		update_network_option( null, $option, 'false' );
+
+		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters were not applied." );
+		$this->assertSame( 0, $option_hook->get_call_count(), "'pre_option_{$option}' filters were not applied." );
+	}
+
+	/**
 	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value.
 	 *
 	 * @ticket 59360
