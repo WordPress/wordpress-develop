@@ -639,10 +639,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			'(int) 0'            => array( 0, 0 ),
 			'(float) 0.0'        => array( 0.0, 0.0 ),
 			'empty array'        => array( array(), array() ),
+			'false'              => array( false, false ),
 
 			/*
-			 * false and null are not included in these datasets
-			 * because false is the default value, which triggers
+			 * null is not included in these datasets because
+			 * false is the default value, which triggers
 			 * a call to add_option().
 			 *
 			 * See data_stored_as_empty_string() and its related test.
@@ -679,7 +680,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_stored_as_empty_string() {
 		return array(
-			'false'        => array( false ),
 			'empty string' => array( '' ),
 			'null'         => array( null ),
 		);
@@ -705,7 +705,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertTrue( update_option( $option, $default_value ), 'update_option() should have returned true.' );
+		/*
+		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
+		 * Because the default is different than false here though, passing false is expected to result in
+		 * a database update.
+		 */
+		$this->assertTrue( update_option( $option, false ), 'update_option() should have returned true.' );
 
 		$actual = $wpdb->get_row(
 			$wpdb->prepare(
@@ -716,7 +721,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$this->assertIsObject( $actual, 'The option was not added to the database.' );
 		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
-		$this->assertSame( $default_value, $actual->option_value, 'The value was not stored as an empty string.' );
+		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
 	}
 
 	/**
@@ -771,5 +776,37 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		// Assert that the filter is still present.
 		$this->assertSame( 10, has_filter( 'pre_option_foo', '__return_zero' ) );
+	}
+
+	/**
+	 * Tests that calling update_option() with changed autoload from 'no' to 'yes' updates the cache correctly.
+	 *
+	 * This ensures that no stale data is served in case the option is deleted after.
+	 *
+	 * @ticket 51352
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_autoload_change_no_to_yes() {
+		add_option( 'foo', 'value1', '', 'no' );
+		update_option( 'foo', 'value2', 'yes' );
+		delete_option( 'foo' );
+		$this->assertFalse( get_option( 'foo' ) );
+	}
+
+	/**
+	 * Tests that calling update_option() with changed autoload from 'yes' to 'no' updates the cache correctly.
+	 *
+	 * This ensures that no stale data is served in case the option is deleted after.
+	 *
+	 * @ticket 51352
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_autoload_change_yes_to_no() {
+		add_option( 'foo', 'value1', '', 'yes' );
+		update_option( 'foo', 'value2', 'no' );
+		delete_option( 'foo' );
+		$this->assertFalse( get_option( 'foo' ) );
 	}
 }
