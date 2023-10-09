@@ -3572,7 +3572,7 @@ function _reset_front_page_settings_for_post( $post_id ) {
  * @param WP_Post $post   The post object representing the post.
  */
 function _set_post_parent_cache( $post_id, $post ) {
-	wp_cache_set( $post_id, $post->post_parent );
+	wp_cache_set( $post_id, $post->post_parent, 'post_parent' );
 }
 
 /**
