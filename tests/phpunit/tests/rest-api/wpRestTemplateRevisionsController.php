@@ -310,10 +310,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertSame(
 			$revision_id,
 			$revision['wp_id'],
-			sprintf(
-				'Failed asserting that the revision id is the same as %s.',
-				$revision_id
-			)
+			"Failed asserting that the revision id is the same as $revision_id"
 		);
 		$this->assertSame(
 			self::$template_post->ID,
@@ -362,10 +359,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertSame(
 			$revision_id,
 			$revision['wp_id'],
-			sprintf(
-				'Failed asserting that the revision id is the same as %s.',
-				$revision_id
-			)
+			"Failed asserting that the revision id is the same as $revision_id."
 		);
 		$this->assertSame(
 			self::$template_post->ID,

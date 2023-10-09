@@ -231,10 +231,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertSame(
 			$autosave_post_id,
 			$autosave['wp_id'],
-			sprintf(
-				'Failed asserting that the autosave id is the same as %s.',
-				$autosave_post_id
-			)
+			"Failed asserting that the autosave id is the same as $autosave_post_id."
 		);
 		$this->assertSame(
 			self::$template_post->ID,
@@ -275,10 +272,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertSame(
 			$autosave_db_post->ID,
 			$autosave['wp_id'],
-			sprintf(
-				'Failed asserting that the autosave id is the same as %s.',
-				$autosave_db_post->ID
-			)
+			"Failed asserting that the autosave id is the same as $autosave_db_post->ID."
 		);
 		$this->assertSame(
 			self::$template_post->ID,
@@ -295,19 +289,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertStringEndsWith(
 			$template_id . '/autosaves/' . $autosave_db_post->ID,
 			$links['self'][0]['href'],
-			sprintf(
-				'Failed asserting that the self link ends with %s.',
-				$template_id . '/autosaves/' . $autosave_db_post->ID
-			)
+			"Failed asserting that the self link ends with $template_id . '/autosaves/' . $autosave_db_post->ID."
 		);
 
 		$this->assertStringEndsWith(
 			$template_id,
 			$links['parent'][0]['href'],
-			sprintf(
-				'Failed asserting that the parent link ends with %s.',
-				$template_id
-			)
+			"Failed asserting that the parent link ends with %$template_id."
 		);
 	}
 
@@ -362,7 +350,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$request->set_body_params( $request_parameters );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertNotWPError( $response );
+		$this->assertNotWPError( $response, 'The response from this request should not return a WP_Error object' );
 		$response = rest_ensure_response( $response );
 		$data     = $response->get_data();
 
