@@ -2150,14 +2150,14 @@ function update_network_option( $network_id, $option, $value ) {
 	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
 	 * else, and is not passed to any of the hooks either.
 	 */
-	if ( has_filter( "pre_site_option_{$option}" ) ) {
-		global $wp_filter;
+	global $wp_filter;
 
-		$old_filters = $wp_filter[ "pre_site_option_{$option}" ];
-		unset( $wp_filter[ "pre_site_option_{$option}" ] );
-
-		$raw_old_value                            = get_network_option( $network_id, $option, false );
-		$wp_filter[ "pre_site_option_{$option}" ] = $old_filters;
+	$pre_option_hook = is_multisite() ? "pre_site_option_{$option}" : "pre_option_{$option}";
+	if ( has_filter( $pre_option_hook ) ) {
+		$old_filters = $wp_filter[ $pre_option_hook ];
+		unset( $wp_filter[ $pre_option_hook ] );
+		$raw_old_value = is_multisite() ? get_network_option( $network_id, $option ) : get_option( $option );
+		$wp_filter[ $pre_option_hook ] = $old_filters;
 	} else {
 		$raw_old_value = $old_value;
 	}
