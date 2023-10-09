@@ -354,11 +354,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$response = rest_ensure_response( $response );
 		$data     = $response->get_data();
 
-		$this->assertArrayHasKey( 'content', $data );
-		$this->assertSame( $request_parameters['content'], $data['content']['raw'] );
+		$this->assertArrayHasKey( 'content', $data, 'Response should contain a key called content' );
+		$this->assertSame( $request_parameters['content'], $data['content']['raw'], 'Repsonse data should match for field content' );
 
-		$this->assertArrayHasKey( 'title', $data );
-		$this->assertSame( $request_parameters['title'], $data['title']['raw'] );
+		$this->assertArrayHasKey( 'title', $data, 'Response should contain a key called title' );
+		$this->assertSame( $request_parameters['title'], $data['title']['raw'], 'Repsonse data should match for field title' );
 	}
 
 	/**
