@@ -2145,6 +2145,25 @@ function update_network_option( $network_id, $option, $value ) {
 	$value = apply_filters( "pre_update_site_option_{$option}", $value, $old_value, $option, $network_id );
 
 	$is_multisite = is_multisite();
+
+	/*
+	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
+	 * Immediately after getting the raw value, they are reinstated.
+	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
+	 * else, and is not passed to any of the hooks either.
+	 */
+	if ( has_filter( "pre_site_option_{$option}" ) ) {
+		global $wp_filter;
+
+		$old_filters = $wp_filter[ "pre_site_option_{$option}" ];
+		unset( $wp_filter[ "pre_site_option_{$option}" ] );
+
+		$raw_old_value                            = get_network_option( $network_id, $option, false );
+		$wp_filter[ "pre_site_option_{$option}" ] = $old_filters;
+	} else {
+		$raw_old_value = $old_value;
+	}
+
 	/*
 	 * If the new and old values are the same, no need to update.
 	 *
@@ -2154,21 +2173,18 @@ function update_network_option( $network_id, $option, $value ) {
 	 * See https://core.trac.wordpress.org/ticket/44956 and https://core.trac.wordpress.org/ticket/22192 and https://core.trac.wordpress.org/ticket/59360
 	 */
 	if (
-		$value === $old_value ||
+		$value === $raw_old_value ||
 		(
-			false !== $old_value &&
-			/*
-			 * Multisite uses the `meta_value` database field, which is nullable.
-			 * Don't check for values that are equal to `null`.
-			 */
-			( ! $is_multisite || ( null !== $old_value && null !== $value ) ) &&
-			_is_equal_database_value( $old_value, $value )
+			false !== $raw_old_value &&
+			// Site meta values are nullable. Don't check if the values are loosely equal to null.
+			( ! $is_multisite || ( null !== $raw_old_value && null !== $value ) ) &&
+			_is_equal_database_value( $raw_old_value, $value )
 		)
 	) {
 		return false;
 	}
 
-	if ( false === $old_value ) {
+	if ( false === $raw_old_value ) {
 		return add_network_option( $network_id, $option, $value );
 	}
 
