@@ -714,7 +714,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$default_value = 'default-value';
 
 		add_filter(
-			"default_site_option_{$option}",
+			"pre_site_option_{$option}",
 			static function () use ( $default_value ) {
 				return $default_value;
 			}
@@ -769,7 +769,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		add_option( null, 'foo', 1 );
 
 		// Force a return value of integer 0.
-		add_filter( 'default_site_option_foo', '__return_zero' );
+		add_filter( 'pre_site_option_foo', '__return_zero' );
 
 		/*
 		 * This should succeed, since the 'foo' option has a value of 1 in the database.
@@ -790,6 +790,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		update_network_option( null, 'foo', 0 );
 
 		// Assert that the filter is still present.
-		$this->assertSame( 10, has_filter( 'default_site_option_foo', '__return_zero' ) );
+		$this->assertSame( 10, has_filter( 'pre_site_option_foo', '__return_zero' ) );
 	}
 }
