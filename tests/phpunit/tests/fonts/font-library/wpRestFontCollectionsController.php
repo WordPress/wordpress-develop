@@ -303,7 +303,7 @@ class Tests_Fonts_WpRestFontCollectionsController extends WP_Test_REST_Controlle
 		$this->assertIsArray( $response_font_collection_data['data'], 'Response font collection data should be an array.' );
 		$this->assertSame( $font_collection_data['data']['categories'], $response_font_collection_data['data']['categories'], 'Font collection categories should be consistent in the response.' );
 		$this->assertArrayNotHasKey( 'fontFamilies', $response_font_collection_data['data'], 'Response font collection data should not contain the "fontFamilies" key.' );
-		$this->assertSame( $font_collection_data['data']['font_families'], $response_font_collection_data['data']['font_families'], 'Font families should be consistent in the response.' );
+		$this->assertSame( $font_collection_data['data']['fontFamilies'], $response_font_collection_data['data']['font_families'], 'Font families should be consistent in the response.' );
 	}
 
 	public function test_get_item_schema() {
