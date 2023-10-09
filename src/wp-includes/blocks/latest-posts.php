@@ -152,8 +152,8 @@ function render_block_core_latest_posts( $attributes ) {
 				if ( $excerpt_length <= $block_core_latest_posts_excerpt_length ) {
 					$trimmed_excerpt  = substr( $trimmed_excerpt, 0, -11 );
 					$trimmed_excerpt .= sprintf(
-						/* translators: 1: A URL to a post, 2: The post title only visible to screen readers. */
-						__( '… <a href="%1$s" rel="noopener noreferrer">Read more<span class="screen-reader-text">: %3$s</span></a>' ),
+						/* translators: 1: A URL to a post, 2: Hidden accessibility text: Post title */
+						__( '… <a href="%1$s" rel="noopener noreferrer">Read more<span class="screen-reader-text">: %2$s</span></a>' ),
 						esc_url( $post_link ),
 						esc_html( $title )
 					);
