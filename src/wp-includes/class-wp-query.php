@@ -3200,9 +3200,9 @@ class WP_Query {
 						/** @var int[] */
 						$post_parents = wp_cache_get_multiple( $post_parent_cache_keys, 'posts' );
 
-						foreach ( $post_parents as $id => $post_parent ) {
+						foreach ( $post_parents as $cache_key => $post_parent ) {
 							$obj              = new stdClass();
-							$obj->ID          = (int) $id;
+							$obj->ID          = (int) substr( $cache_key, 13 );
 							$obj->post_parent = (int) $post_parent;
 
 							$this->posts[] = $obj;
