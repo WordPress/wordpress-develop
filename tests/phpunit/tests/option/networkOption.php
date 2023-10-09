@@ -407,9 +407,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_network_option( null, 'foo', $new_value );
 
-		$expected_queries = $old_value === $new_value || ! is_multisite() ? 0 : 1;
-		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
-
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
@@ -446,9 +444,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			$old_value = (string) $old_value;
 		}
 
-		$expected_queries = $old_value === $new_value || ! is_multisite() ? 1 : 2;
-		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
-
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
@@ -480,9 +476,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		 * Strictly equal old and new values will cause an early return
 		 * with no additional queries.
 		 */
-		$expected_queries = $old_value === $new_value || ! is_multisite() ? 0 : 1;
-		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
-
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
@@ -567,8 +561,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * On Single Site, this will result in no additional queries as
 	 * the option_value database field is not nullable.
 	 *
-	 * On Multisite, this will result in one additional query as
-	 * the meta_value database field is nullable.
+	 * On Multisite, this will result in no additional query because
+	 * of early return.
 	 *
 	 * @ticket 59360
 	 *
@@ -582,14 +576,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		// Comparison will happen against value cached during add_option() above.
 		$updated = update_network_option( null, 'foo', null );
 
-		$expected_queries = is_multisite() ? 1 : 0;
-		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
-
-		if ( is_multisite() ) {
-			$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
-		} else {
-			$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
-		}
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
 	/**
@@ -599,8 +587,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * On Single Site, this will result in only 1 additional query as
 	 * the option_value database field is not nullable.
 	 *
-	 * On Multisite, this will result in two additional queries as
-	 * the meta_value database field is nullable.
+	 * On Multisite, this will result in only 1 additional queries as
+	 * the meta_value database field is not nullable.
 	 *
 	 * @ticket 59360
 	 *
@@ -618,14 +606,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		$updated = update_network_option( null, 'foo', null );
 
-		$expected_queries = is_multisite() ? 2 : 1;
-		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
-
-		if ( is_multisite() ) {
-			$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
-		} else {
-			$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
-		}
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
+		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
 	/**
@@ -635,8 +617,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * On Single Site, this will result in no additional queries as
 	 * the option_value database field is not nullable.
 	 *
-	 * On Multisite, this will result in one additional query as
-	 * the meta_value database field is nullable.
+	 * On Multisite, this will result in no additional query as
+	 * the meta_value database field is not nullable.
 	 *
 	 * @ticket 59360
 	 *
@@ -652,14 +634,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$updated     = update_network_option( null, 'foo', null );
 
-		$expected_queries = is_multisite() ? 1 : 0;
-		$this->assertSame( $expected_queries, get_num_queries() - $num_queries, "The number of queries should have increased by $expected_queries." );
-
-		if ( is_multisite() ) {
-			$this->assertTrue( $updated, 'update_network_option() should have returned true.' );
-		} else {
-			$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
-		}
+		$this->assertSame( $num_queries, get_num_queries(), 'No additional queries should have run.' );
+		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
 
 	/**
