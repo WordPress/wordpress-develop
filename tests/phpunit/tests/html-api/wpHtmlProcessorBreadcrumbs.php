@@ -23,7 +23,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $tag_name Name of first tag in HTML (because HTML treats IMAGE as IMG this may not match the HTML).
 	 */
 	public function test_navigates_into_normative_html_for_supported_elements( $html, $tag_name ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		$this->assertTrue( $p->step(), "Failed to step into supported {$tag_name} element." );
 		$this->assertSame( $tag_name, $p->get_tag(), "Misread {$tag_name} as a {$p->get_tag()} element." );
@@ -85,7 +85,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html HTML string containing unsupported elements.
 	 */
 	public function test_fails_when_encountering_unsupported_tag( $html ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		$this->assertFalse( $p->step(), "Should not have stepped into unsupported {$p->get_tag()} element." );
 	}
@@ -236,7 +236,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html HTML containing unsupported markup.
 	 */
 	public function test_fails_when_encountering_unsupported_markup( $html, $description ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		while ( $p->step() && null === $p->get_attribute( 'supported' ) ) {
 			continue;
@@ -277,7 +277,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param int    $n           How many breadcrumb matches to scan through in order to find "target" element.
 	 */
 	public function test_finds_correct_tag_given_breadcrumbs( $html, $breadcrumbs, $n ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		$p->next_tag(
 			array(
@@ -303,7 +303,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_reports_correct_breadcrumbs_for_html( $html, $breadcrumbs, $ignored_n ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		while ( $p->next_tag() && null === $p->get_attribute( 'target' ) ) {
 			continue;
@@ -362,7 +362,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param bool     $should_match          Whether the target node should match the breadcrumbs.
 	 */
 	public function test_reports_if_tag_matches_breadcrumbs_of_various_specificity( $html_with_target_node, $breadcrumbs, $should_match ) {
-		$processor = WP_HTML_Processor::createFragment( $html_with_target_node );
+		$processor = WP_HTML_Processor::create_fragment( $html_with_target_node );
 		while ( $processor->next_tag() && null === $processor->get_attribute( 'target' ) ) {
 			continue;
 		}
@@ -420,7 +420,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::set_attribute
 	 */
 	public function test_can_modify_attributes_after_finding_tag() {
-		$p = WP_HTML_Processor::createFragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
 
 		$this->assertTrue( $p->next_tag( array( 'breadcrumbs' => array( 'figcaption' ) ) ), 'Unable to find given tag.' );
 
@@ -438,7 +438,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::next_tag
 	 */
 	public function test_can_query_an_element_by_tag_name() {
-		$p = WP_HTML_Processor::createFragment( '<div><DIV><strong><img></strong></DIV>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><DIV><strong><img></strong></DIV>' );
 		$p->next_tag( 'IMG' );
 		$p->set_attribute( 'loading', 'lazy' );
 
@@ -455,7 +455,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::seek
 	 */
 	public function test_can_seek_back_and_forth() {
-		$p = WP_HTML_Processor::createFragment( '<div><p one><div><p><div two><p><div><p><div><p three>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><p one><div><p><div two><p><div><p><div><p three>' );
 
 		// Find first tag of interest.
 		while ( $p->next_tag() && null === $p->get_attribute( 'one' ) ) {
