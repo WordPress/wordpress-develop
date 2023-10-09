@@ -777,4 +777,36 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		// Assert that the filter is still present.
 		$this->assertSame( 10, has_filter( 'pre_option_foo', '__return_zero' ) );
 	}
+
+	/**
+	 * Tests that calling update_option() with changed autoload from 'no' to 'yes' updates the cache correctly.
+	 *
+	 * This ensures that no stale data is served in case the option is deleted after.
+	 *
+	 * @ticket 51352
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_autoload_change_no_to_yes() {
+		add_option( 'foo', 'value1', '', 'no' );
+		update_option( 'foo', 'value2', 'yes' );
+		delete_option( 'foo' );
+		$this->assertFalse( get_option( 'foo' ) );
+	}
+
+	/**
+	 * Tests that calling update_option() with changed autoload from 'yes' to 'no' updates the cache correctly.
+	 *
+	 * This ensures that no stale data is served in case the option is deleted after.
+	 *
+	 * @ticket 51352
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_autoload_change_yes_to_no() {
+		add_option( 'foo', 'value1', '', 'yes' );
+		update_option( 'foo', 'value2', 'no' );
+		delete_option( 'foo' );
+		$this->assertFalse( get_option( 'foo' ) );
+	}
 }
