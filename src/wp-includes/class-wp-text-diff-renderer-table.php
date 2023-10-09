@@ -16,6 +16,10 @@
 #[AllowDynamicProperties]
 class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 
+	protected $_title;
+	protected $_title_left;
+	protected $_title_right;
+	
 	/**
 	 * @see Text_Diff_Renderer::_leading_context_lines
 	 * @var int
