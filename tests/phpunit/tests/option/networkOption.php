@@ -439,11 +439,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		$updated = update_network_option( null, 'foo', $new_value );
 
-		// Mimic the behavior of the database by casting the old value to string.
-		if ( is_scalar( $old_value ) ) {
-			$old_value = (string) $old_value;
-		}
-
 		$this->assertSame( 1, get_num_queries() - $num_queries, 'One additional query should have run to update the value.' );
 		$this->assertFalse( $updated, 'update_network_option() should have returned false.' );
 	}
