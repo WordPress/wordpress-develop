@@ -748,7 +748,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 */
 	public function test_update_network_option_with_pre_filter_adds_missing_option() {
 		// Force a return value of integer 0.
-		add_filter( 'default_site_option_foo', '__return_zero' );
+		add_filter( 'pre_site_option_foo', '__return_zero' );
 
 		/*
 		 * This should succeed, since the 'foo' option does not exist in the database.
@@ -786,7 +786,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_maintains_pre_filters() {
-		add_filter( 'default_site_option_foo', '__return_zero' );
+		add_filter( 'pre_site_option_foo', '__return_zero' );
 		update_network_option( null, 'foo', 0 );
 
 		// Assert that the filter is still present.
