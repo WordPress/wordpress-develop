@@ -88,8 +88,6 @@ jQuery( function($) {
 	}
 });
 
-jQuery(window).on( 'pagehide', function () { window.tinymce = window.tinyMCE = window.wpgallery = null; } ); // Cleanup.
-
 jQuery(window).on(
 	'pageshow',
 	/**
