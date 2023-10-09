@@ -2201,8 +2201,15 @@ function update_network_option( $network_id, $option, $value ) {
 		$value === $raw_old_value ||
 		(
 			false !== $raw_old_value &&
-			// Site meta values are nullable. Don't check if the values are loosely equal to null.
-			( ! is_multisite() || ( null !== $raw_old_value && null !== $value ) ) &&
+			/*
+			 * Single site stores values in the `option_value` field, which cannot be set to NULL.
+			 * This means a PHP `null` value will be cast to an empty string, which can be considered
+			 * equal to values such as an empty string, or false when cast to string.
+			 *
+			 * However, Multisite stores values in the `meta_value` field, which can be set to NULL.
+			 * As NULL is unique in the database, skip checking an old or new value of NULL
+			 * against any other value.
+			 */
 			_is_equal_database_value( $raw_old_value, $value )
 		)
 	) {
