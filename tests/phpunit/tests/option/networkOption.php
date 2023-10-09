@@ -697,13 +697,10 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_with_pre_filter_adds_missing_option() {
-
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Single Site.' );
-		}
+		$hook_name = is_multisite() ? 'pre_site_option_foo' : 'pre_option_foo';
 
 		// Force a return value of integer 0.
-		add_filter( 'pre_option_foo', '__return_zero' );
+		add_filter( $hook_name, '__return_zero' );
 
 		/*
 		 * This should succeed, since the 'foo' option does not exist in the database.
@@ -720,16 +717,13 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_with_pre_filter_updates_option_with_different_value() {
-
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Single Site.' );
-		}
+		$hook_name = is_multisite() ? 'pre_site_option_foo' : 'pre_option_foo';
 
 		// Add the option with a value of 1 to the database.
 		update_network_option( null, 'foo', 1 );
 
 		// Force a return value of integer 0.
-		add_filter( 'pre_option_foo', '__return_zero' );
+		add_filter( $hook_name, '__return_zero' );
 
 		/*
 		 * This should succeed, since the 'foo' option has a value of 1 in the database.
@@ -746,86 +740,61 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_maintains_pre_filters() {
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Single Site.' );
-		}
+		$hook_name = is_multisite() ? 'pre_site_option_foo' : 'pre_option_foo';
 
-		add_filter( 'pre_option_foo', '__return_zero' );
+		add_filter( $hook_name, '__return_zero' );
 		update_network_option( null, 'foo', 0 );
 
 		// Assert that the filter is still present.
-		$this->assertSame( 10, has_filter( 'pre_option_foo', '__return_zero' ) );
+		$this->assertSame( 10, has_filter( $hook_name, '__return_zero' ) );
 	}
 
 	/**
-	 * Tests that a non-existent option is added even when its pre filter returns a value.
+	 * Tests that update_network_option() conditionally applies
+	 * 'pre_site_option_{$option}' and 'pre_option_{$option}' filters.
 	 *
 	 * @ticket 59360
 	 *
 	 * @covers ::update_network_option
 	 */
-	public function test_multisite_update_network_option_with_pre_filter_adds_missing_option() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Multisite.' );
-		}
+	public function test_update_network_option_should_conditionally_apply_pre_site_option_and_pre_option_filters() {
+		$option      = 'foo';
+		$site_hook   = new MockAction();
+		$option_hook = new MockAction();
 
-		// Force a return value of integer 0.
-		add_filter( 'pre_site_option_foo', '__return_zero' );
+		add_filter( "pre_site_option_{$option}", array( $site_hook, 'filter' ) );
+		add_filter( "pre_option_{$option}", array( $option_hook, 'filter' ) );
 
-		/*
-		 * This should succeed, since the 'foo' option does not exist in the database.
-		 * The default value is false, so it differs from 0.
-		 */
-		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+		update_network_option( null, $option, 'false' );
+
+		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters should have been applied once." );
+		$this->assertSame( is_multisite() ? 0 : 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters should have been applied once." );
 	}
 
 	/**
-	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 * Tests that update_network_option() conditionally applies
+	 * 'default_site_{$option}' and 'default_option_{$option}' filters.
 	 *
 	 * @ticket 59360
 	 *
 	 * @covers ::update_network_option
 	 */
-	public function test_multisite_update_network_option_with_pre_filter_updates_option_with_different_value() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Multisite.' );
-		}
+	public function test_update_network_option_should_conditionally_apply_site_and_option_default_value_filters() {
+		$option      = 'foo';
+		$site_hook   = new MockAction();
+		$option_hook = new MockAction();
 
-		// Add the option with a value of 1 to the database.
-		update_network_option( null, 'foo', 1 );
+		add_filter( "default_site_option_{$option}", array( $site_hook, 'filter' ) );
+		add_filter( "default_option_{$option}", array( $option_hook, 'filter' ) );
 
-		// Force a return value of integer 0.
-		add_filter( 'pre_site_option_foo', '__return_zero' );
+		update_network_option( null, $option, 'false' );
 
-		/*
-		 * This should succeed, since the 'foo' option has a value of 1 in the database.
-		 * Therefore it differs from 0 and should be updated.
-		 */
-		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters should have been applied twice." );
+		$this->assertSame( is_multisite() ? 0 : 2, $option_hook->get_call_count(), "'default_option_{$option}' filters should have been applied twice." );
 	}
 
 	/**
-	 * Tests that calling update_network_option() does not permanently remove pre filters.
-	 *
-	 * @ticket 59360
-	 *
-	 * @covers ::update_network_option
-	 */
-	public function test_multisite_update_network_option_maintains_pre_filters() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Multisite.' );
-		}
-
-		add_filter( 'pre_site_option_foo', '__return_zero' );
-		update_network_option( null, 'foo', 0 );
-
-		// Assert that the filter is still present.
-		$this->assertSame( 10, has_filter( 'pre_site_option_foo', '__return_zero' ) );
-	}
-
-	/**
-	 * Tests that update_network_option() adds a non-existent option that uses
-	 * a filtered default site value and a filtered default option value in Single Site.
+	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value.
 	 *
 	 * @ticket 59360
 	 *
@@ -833,10 +802,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 */
 	public function test_update_network_option_should_add_option_with_filtered_default_value() {
 		global $wpdb;
-
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Single Site.' );
-		}
 
 		$option               = 'foo';
 		$default_site_value   = 'default-site-value';
@@ -863,158 +828,26 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		 */
 		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
 
-		$actual = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
-				$option
-			)
-		);
+		if ( is_multisite() ) {
+			$actual = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s LIMIT 1",
+					$option
+				)
+			);
+		} else {
+			$actual = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
+					$option
+				)
+			);
+		}
+
+		$value_field = is_multisite() ? 'meta_value' : 'option_value';
 
 		$this->assertIsObject( $actual, 'The option was not added to the database.' );
-		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
-		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
-	}
-
-	/**
-	 * Tests that update_network_option() applies site and option default value filters on Single Site.
-	 *
-	 * @ticket 59360
-	 *
-	 * @covers ::update_network_option
-	 */
-	public function test_update_network_option_should_apply_site_and_option_default_value_filters_on_single_site() {
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Single Site.' );
-		}
-
-		$option      = 'foo';
-		$site_hook   = new MockAction();
-		$option_hook = new MockAction();
-
-		add_filter( "default_site_option_{$option}", array( $site_hook, 'filter' ) );
-		add_filter( "default_option_{$option}", array( $option_hook, 'filter' ) );
-
-		update_network_option( null, $option, 'false' );
-
-		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters should have been applied twice." );
-		$this->assertSame( 2, $option_hook->get_call_count(), "'default_option_{$option}' filters should have been applied twice." );
-	}
-
-	/**
-	 * Tests that update_network_option() applies only site option default value filters on Multisite.
-	 *
-	 * @ticket 59360
-	 *
-	 * @covers ::update_network_option
-	 */
-	public function test_update_network_option_should_apply_only_site_default_value_filters_on_multisite() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Multisite.' );
-		}
-
-		$option      = 'foo';
-		$site_hook   = new MockAction();
-		$option_hook = new MockAction();
-
-		add_filter( "default_site_option_{$option}", array( $site_hook, 'filter' ) );
-		add_filter( "default_option_{$option}", array( $option_hook, 'filter' ) );
-
-		update_network_option( null, $option, 'false' );
-
-		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters should have been applied twice." );
-		$this->assertSame( 0, $option_hook->get_call_count(), "'default_option_{$option}' filters should not have been applied." );
-	}
-
-	/**
-	 * Tests that update_network_option() applies 'pre_site_option_{$option}' and 'pre_option_{$option}' filters on Single Site.
-	 *
-	 * @ticket 59360
-	 *
-	 * @covers ::update_network_option
-	 */
-	public function test_update_network_option_should_apply_pre_site_option_and_pre_option_filters_on_single_site() {
-		if ( is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Single Site.' );
-		}
-
-		$option      = 'foo';
-		$site_hook   = new MockAction();
-		$option_hook = new MockAction();
-
-		add_filter( "pre_site_option_{$option}", array( $site_hook, 'filter' ) );
-		add_filter( "pre_option_{$option}", array( $option_hook, 'filter' ) );
-
-		update_network_option( null, $option, 'false' );
-
-		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters should have been applied once." );
-		$this->assertSame( 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters should have been applied once." );
-	}
-
-	/**
-	 * Tests that update_network_option() applies only 'pre_site_option_{$option}' filters on Multisite.
-	 *
-	 * @ticket 59360
-	 *
-	 * @covers ::update_network_option
-	 */
-	public function test_update_network_option_should_apply_only_pre_site_option_filters_on_multisite() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Multisite.' );
-		}
-
-		$option      = 'foo';
-		$site_hook   = new MockAction();
-		$option_hook = new MockAction();
-
-		add_filter( "pre_site_option_{$option}", array( $site_hook, 'filter' ) );
-		add_filter( "pre_option_{$option}", array( $option_hook, 'filter' ) );
-
-		update_network_option( null, $option, 'false' );
-
-		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters should have been applied once." );
-		$this->assertSame( 0, $option_hook->get_call_count(), "'pre_option_{$option}' filters should not have been applied." );
-	}
-
-	/**
-	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value.
-	 *
-	 * @ticket 59360
-	 *
-	 * @covers ::update_network_option
-	 */
-	public function test_multisite_update_network_option_should_add_option_with_filtered_default_value() {
-		global $wpdb;
-
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test should only run on Multisite.' );
-		}
-
-		$option        = 'foo';
-		$default_value = 'default-value';
-
-		add_filter(
-			"default_site_option_{$option}",
-			static function () use ( $default_value ) {
-				return $default_value;
-			}
-		);
-
-		/*
-		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
-		 * Because the default is different than false here though, passing false is expected to result in
-		 * a database update.
-		 */
-		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
-
-		$actual = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s LIMIT 1",
-				$option
-			)
-		);
-
-		$this->assertIsObject( $actual, 'The option was not added to the database.' );
-		$this->assertObjectHasProperty( 'meta_value', $actual, 'The "meta_value" property was not included.' );
-		$this->assertSame( '', $actual->meta_value, 'The new value was not stored in the database.' );
+		$this->assertObjectHasProperty( $value_field, $actual, "The '$value_field' property was not included." );
+		$this->assertSame( '', $actual->$value_field, 'The new value was not stored in the database.' );
 	}
 }
