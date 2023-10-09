@@ -714,7 +714,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$default_value = 'default-value';
 
 		add_filter(
-			"pre_site_option_{$option}",
+			"default_site_option_{$option}",
 			static function () use ( $default_value ) {
 				return $default_value;
 			}
@@ -726,17 +726,28 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		 * a database update.
 		 */
 		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
+		if ( is_multisite() ) {
+				$table       = $wpdb->sitemeta;
+				$name_field  = 'meta_key';
+				$value_field = 'meta_value';
+		} else {
+				$table       = $wpdb->options;
+				$name_field  = 'option_name';
+				$value_field = 'option_value';
+		}
 
 		$actual = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
-				$option
+				"SELECT %s FROM %s WHERE %s = 'foo' LIMIT 1",
+				$value_field,
+				$table,
+				$name_field
 			)
 		);
 
 		$this->assertIsObject( $actual, 'The option was not added to the database.' );
-		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
-		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
+		$this->assertObjectHasProperty( $value_field, $actual, "The '$value_field' property was not included." );
+		$this->assertSame( '', $actual->$value_field, 'The new value was not stored in the database.' );
 	}
 
 	/**
