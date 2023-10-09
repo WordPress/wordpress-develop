@@ -27,7 +27,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @throws Exception
 	 */
 	public function test_in_body_skips_unexpected_button_closer() {
-		$p = WP_HTML_Processor::createFragment( '<div>Test</button></div>' );
+		$p = WP_HTML_Processor::create_fragment( '<div>Test</button></div>' );
 
 		$p->step();
 		$this->assertEquals( 'DIV', $p->get_tag(), 'Did not stop at initial DIV tag.' );
@@ -52,7 +52,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_in_body_button_with_no_button_in_scope() {
-		$p = WP_HTML_Processor::createFragment( '<div><p>Click the button <button one>here</button>!</p></div><button two>not here</button>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><p>Click the button <button one>here</button>!</p></div><button two>not here</button>' );
 
 		$this->assertTrue( $p->next_tag( 'BUTTON' ), 'Could not find expected first button.' );
 		$this->assertTrue( $p->get_attribute( 'one' ), 'Failed to match expected attribute on first button.' );
@@ -79,7 +79,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_in_body_button_with_button_in_scope_as_parent() {
-		$p = WP_HTML_Processor::createFragment( '<div><p>Click the button <button one>almost<button two>here</button>!</p></div><button three>not here</button>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><p>Click the button <button one>almost<button two>here</button>!</p></div><button three>not here</button>' );
 
 		$this->assertTrue( $p->next_tag( 'BUTTON' ), 'Could not find expected first button.' );
 		$this->assertTrue( $p->get_attribute( 'one' ), 'Failed to match expected attribute on first button.' );
@@ -114,7 +114,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_in_body_button_with_button_in_scope_as_ancestor() {
-		$p = WP_HTML_Processor::createFragment( '<div><button one><p>Click the button <span><button two>here</button>!</span></p></div><button three>not here</button>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><button one><p>Click the button <span><button two>here</button>!</span></p></div><button three>not here</button>' );
 
 		// This button finds itself normally nesting inside the DIV.
 		$this->assertTrue( $p->next_tag( 'BUTTON' ), 'Could not find expected first button.' );
@@ -149,7 +149,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::step_in_body
 	 */
 	public function test_in_body_any_other_end_tag_with_unclosed_special_element() {
-		$p = WP_HTML_Processor::createFragment( '<div><span><p></span><div>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><span><p></span><div>' );
 
 		$p->next_tag( 'P' );
 		$this->assertSame( 'P', $p->get_tag(), "Expected to start test on P element but found {$p->get_tag()} instead." );
@@ -172,7 +172,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::step_in_body
 	 */
 	public function test_in_body_any_other_end_tag_with_unclosed_non_special_element() {
-		$p = WP_HTML_Processor::createFragment( '<div><span><code></span><div>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><span><code></span><div>' );
 
 		$p->next_tag( 'CODE' );
 		$this->assertSame( 'CODE', $p->get_tag(), "Expected to start test on CODE element but found {$p->get_tag()} instead." );
