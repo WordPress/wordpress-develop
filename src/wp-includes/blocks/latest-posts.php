@@ -152,7 +152,7 @@ function render_block_core_latest_posts( $attributes ) {
 				if ( $excerpt_length <= $block_core_latest_posts_excerpt_length ) {
 					$trimmed_excerpt  = substr( $trimmed_excerpt, 0, -11 );
 					$trimmed_excerpt .= sprintf(
-						/* translators: The static string "Read more". %1$s: A URL to a post, %2$s: Hidden accessibility text: Post title */
+						/* translators: 1: A URL to a post, 2: Hidden accessibility text: Post title */
 						__( '… <a href="%1$s" rel="noopener noreferrer">Read more<span class="screen-reader-text">: %2$s</span></a>' ),
 						esc_url( $post_link ),
 						esc_html( $title )
