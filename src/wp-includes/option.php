@@ -2147,13 +2147,18 @@ function update_network_option( $network_id, $option, $value ) {
 	/*
 	 * If the new and old values are the same, no need to update.
 	 *
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
+	 * An exception applies when no value is set in the database, i.e. the old value is the default.
+	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
 	 *
-	 * See https://core.trac.wordpress.org/ticket/44956
+	 * See https://core.trac.wordpress.org/ticket/44956 and https://core.trac.wordpress.org/ticket/22192 and https://core.trac.wordpress.org/ticket/59360
 	 */
-	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
+	if (
+		$value === $old_value ||
+		(
+			false !== $old_value &&
+			_is_equal_database_value( $old_value, $value )
+		)
+	) {
 		return false;
 	}
 
