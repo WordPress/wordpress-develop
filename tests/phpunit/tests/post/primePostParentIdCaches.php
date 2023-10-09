@@ -73,13 +73,12 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	 * @ticket 59188
 	 */
 	public function test_prime_post_parent_id_caches_update() {
-		$page_id = self::factory()->post->create(
+		$page_id            = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_parent' => self::$posts[0],
 			)
 		);
-		clean_post_cache( $page_id );
 		$before_num_queries = get_num_queries();
 		_prime_post_parent_id_caches( array( $page_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
@@ -106,18 +105,17 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	 * @ticket 59188
 	 */
 	public function test_prime_post_parent_id_caches_delete() {
-		$parent_page_id = self::factory()->post->create(
+		$parent_page_id     = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 			)
 		);
-		$page_id        = self::factory()->post->create(
+		$page_id            = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_parent' => $parent_page_id,
 			)
 		);
-		clean_post_cache( $page_id );
 		$before_num_queries = get_num_queries();
 		_prime_post_parent_id_caches( array( $page_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
