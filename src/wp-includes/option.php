@@ -2152,17 +2152,29 @@ function update_network_option( $network_id, $option, $value ) {
 	 */
 	global $wp_filter;
 
-	$default_value_hook = is_multisite() ? "default_site_option_{$option}" : "default_option_{$option}";
-	$default_value      = apply_filters( $default_value_hook, false, $option, $network_id );
-	$pre_option_hook    = is_multisite() ? "pre_site_option_{$option}" : "pre_option_{$option}";
+	$default_value = apply_filters( "default_site_option_{$option}", false, $option, $network_id );
 
-	if ( has_filter( $pre_option_hook ) ) {
-		$old_filters = $wp_filter[ $pre_option_hook ];
-		unset( $wp_filter[ $pre_option_hook ] );
+	$has_site_filter   = has_filter( "pre_site_option_{$option}" );
+	$has_option_filter = has_filter( "pre_option_{$option}" );
+	if ( $has_site_filter || $has_option_filter ) {
+		if ( $has_site_filter ) {
+			$old_ms_filters = $wp_filter[ "pre_site_option_{$option}" ];
+			unset( $wp_filter[ "pre_site_option_{$option}" ] );
+		}
+
+		if ( $has_option_filter ) {
+			$old_single_site_filters = $wp_filter[ "pre_option_{$option}" ];
+			unset( $wp_filter[ "pre_option_{$option}" ] );
+		}
 
 		$raw_old_value = is_multisite() ? get_network_option( $network_id, $option ) : get_option( $option, $default_value );
 
-		$wp_filter[ $pre_option_hook ] = $old_filters;
+		if ( $has_site_filter ) {
+			$wp_filter[ "pre_site_option_{$option}" ] = $old_ms_filters;
+		}
+		if ( $has_option_filter ) {
+			$wp_filter[ "pre_option_{$option}" ] = $old_single_site_filters;
+		}
 	} else {
 		$raw_old_value = $old_value;
 	}

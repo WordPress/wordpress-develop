@@ -824,6 +824,108 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that update_network_option() adds a non-existent option that uses
+	 * a filtered default site value and a filtered default option value in Single Site.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_add_option_with_filtered_default_value() {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'This test should only run on Single Site.' );
+		}
+
+		$option               = 'foo';
+		$default_site_value   = 'default-site-value';
+		$default_option_value = 'default-option-value';
+
+		add_filter(
+			"default_site_option_{$option}",
+			static function () use ( $default_site_value ) {
+				return $default_site_value;
+			}
+		);
+
+		add_filter(
+			"default_option_{$option}",
+			static function () use ( $default_option_value ) {
+				return $default_option_value;
+			}
+		);
+
+		/*
+		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
+		 * Because the default is different than false here though, passing false is expected to result in
+		 * a database update.
+		 */
+		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
+
+		$actual = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
+				$option
+			)
+		);
+
+		$this->assertIsObject( $actual, 'The option was not added to the database.' );
+		$this->assertObjectHasProperty( 'option_value', $actual, 'The "option_value" property was not included.' );
+		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
+	}
+
+	/**
+	 * Tests that update_network_option() applies site and option default value filters on Single Site.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_apply_site_and_option_default_value_filters_on_single_site() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'This test should only run on Single Site.' );
+		}
+
+		$option      = 'foo';
+		$site_hook   = new MockAction();
+		$option_hook = new MockAction();
+
+		add_filter( "default_site_option_{$option}", array( $site_hook, 'filter' ) );
+		add_filter( "default_option_{$option}", array( $option_hook, 'filter' ) );
+
+		update_network_option( null, $option, 'false' );
+
+		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters were not applied." );
+		$this->assertSame( 1, $option_hook->get_call_count(), "'default_option_{$option}' filters were not applied." );
+	}
+
+	/**
+	 * Tests that update_network_option() applies only site option default value filters on Multisite.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_apply_only_site_default_value_filters_on_multisite() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'This test should only run on Multisite.' );
+		}
+
+		$option      = 'foo';
+		$site_hook   = new MockAction();
+		$option_hook = new MockAction();
+
+		add_filter( "default_site_option_{$option}", array( $site_hook, 'filter' ) );
+		add_filter( "default_option_{$option}", array( $option_hook, 'filter' ) );
+
+		update_network_option( null, $option, 'false' );
+
+		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters were not applied." );
+		$this->assertSame( 0, $option_hook->get_call_count(), "'default_option_{$option}' filters were not applied." );
+	}
+
+	/**
 	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value.
 	 *
 	 * @ticket 59360
