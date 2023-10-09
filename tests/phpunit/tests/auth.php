@@ -844,4 +844,46 @@ class Tests_Auth extends WP_UnitTestCase {
 			'not allowed' => array( 'subscriber', false ),
 		);
 	}
+
+	/*
+	 * @ticket 57512
+	 * @covers ::wp_populate_basic_auth_from_authorization_header
+	 */
+	public function tests_basic_http_authentication_with_username_and_password() {
+		// Header passed as "username:password".
+		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ=';
+
+		wp_populate_basic_auth_from_authorization_header();
+
+		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
+		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'password' );
+	}
+
+	/*
+	 * @ticket 57512
+	 * @covers ::wp_populate_basic_auth_from_authorization_header
+	 */
+	public function tests_basic_http_authentication_with_username_only() {
+		// Malformed header passed as "username" with no password.
+		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU=';
+
+		wp_populate_basic_auth_from_authorization_header();
+
+		$this->assertArrayNotHasKey( 'PHP_AUTH_USER', $_SERVER );
+		$this->assertArrayNotHasKey( 'PHP_AUTH_PW', $_SERVER );
+	}
+
+	/*
+	 * @ticket 57512
+	 * @covers ::wp_populate_basic_auth_from_authorization_header
+	 */
+	public function tests_basic_http_authentication_with_colon_in_password() {
+		// Header passed as "username:pass:word" where password contains colon.
+		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU6cGFzczp3b3Jk';
+
+		wp_populate_basic_auth_from_authorization_header();
+
+		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
+		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'pass:word' );
+	}
 }
