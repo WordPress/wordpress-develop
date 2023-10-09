@@ -62,7 +62,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
