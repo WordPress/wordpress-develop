@@ -855,8 +855,8 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		wp_populate_basic_auth_from_authorization_header();
 
-		$this->assertSame($_SERVER['PHP_AUTH_USER'], 'username');
-		$this->assertSame($_SERVER['PHP_AUTH_PW'], 'password');
+		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
+		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'password' );
 	}
 
 	/*
@@ -869,21 +869,21 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		wp_populate_basic_auth_from_authorization_header();
 
-		$this->assertArrayNotHasKey('PHP_AUTH_USER', $_SERVER);
-		$this->assertArrayNotHasKey('PHP_AUTH_PW', $_SERVER);
+		$this->assertArrayNotHasKey( 'PHP_AUTH_USER', $_SERVER );
+		$this->assertArrayNotHasKey( 'PHP_AUTH_PW', $_SERVER );
 	}
 
 	/*
 	 * @ticket 57512
 	 * @covers ::wp_populate_basic_auth_from_authorization_header
 	 */
-	public function tests_basic_http_authentication_with_more_than_2_parts() {
+	public function tests_basic_http_authentication_with_colon_in_password() {
 		// Header passed as "username:pass:word" where password contains colon.
 		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU6cGFzczp3b3Jk';
 
 		wp_populate_basic_auth_from_authorization_header();
 
-		$this->assertSame($_SERVER['PHP_AUTH_USER'], 'username');
-		$this->assertSame($_SERVER['PHP_AUTH_PW'], 'pass:word');
+		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
+		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'pass:word' );
 	}
 }
