@@ -2210,6 +2210,7 @@ function update_network_option( $network_id, $option, $value ) {
 			 * As NULL is unique in the database, skip checking an old or new value of NULL
 			 * against any other value.
 			 */
+			( ! is_multisite() || ! ( null === $raw_old_value || null === $value ) ) &&
 			_is_equal_database_value( $raw_old_value, $value )
 		)
 	) {
