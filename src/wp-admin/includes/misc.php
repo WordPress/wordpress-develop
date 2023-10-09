@@ -1402,7 +1402,7 @@ function wp_admin_canonical_url() {
 	/**
 	 * Filters the admin canonical url value.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param string $filtered_url The admin canonical url value.
 	 */
