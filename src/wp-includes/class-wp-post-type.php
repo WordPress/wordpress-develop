@@ -880,7 +880,6 @@ final class WP_Post_Type {
 	 *                                 is set not to show in rest.
 	 */
 	public function get_revisions_rest_controller() {
-
 		if ( ! $this->show_in_rest ) {
 			return null;
 		}
