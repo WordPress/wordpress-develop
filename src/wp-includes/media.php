@@ -2354,7 +2354,7 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	 * (this maintains behavior consistent with how this function worked on 
 	 * PHP versions 7.0 and older.)
 	 */
-	if (!isset($attr) || !is_array($attr)) {
+	if ( ! isset( $attr ) || ! is_array( $attr ) ) {
 		$attr = array();
 	}
 	// New-style shortcode with the caption inside the shortcode with the link and image tags.
