@@ -88,21 +88,6 @@ jQuery( function($) {
 	}
 });
 
-jQuery(window).on(
-	'pageshow',
-	/**
-	 * Makes sure that the cleaned-up globals get reconstructed when page is restored from bfcache.
-	 *
-	 * @param {jQuery.Event} event
-	 * @param {PageTransitionEvent} event.originalEvent
-	 */
-	function ( event ) {
-		if ( event.originalEvent.persisted ) {
-			window.location.reload();
-		}
-	}
-);
-
 /* gallery settings */
 window.tinymce = null;
 
