@@ -153,18 +153,21 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
-	 * Prepares the content of a block pattern.
+	 * Prepares the content of a block pattern. If hooked blocks are registered, they get injected into the pattern,
+	 * when they met the defined criteria.
 	 *
-	 * @param array $pattern     Registered pattern properties.
-	 * @param array $block_hooks The list of hooked blocks.
+	 * @since 6.4.0
+	 *
+	 * @param array $pattern       Registered pattern properties.
+	 * @param array $hooked_blocks The list of hooked blocks.
 	 * @return string The content of the block pattern.
 	 */
-	private function prepare_content( $pattern, $block_hooks ) {
+	private function prepare_content( $pattern, $hooked_blocks ) {
 		$content = $pattern['content'];
-		if ( ! empty( $block_hooks ) || has_filter( 'hooked_block_types' ) ) {
+		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
 			$blocks               = parse_blocks( $content );
-			$before_block_visitor = make_before_block_visitor( $pattern, $block_hooks );
-			$after_block_visitor  = make_after_block_visitor( $pattern, $block_hooks );
+			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
+			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
 			$content              = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 		}
 
@@ -200,14 +203,14 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns    = array_values(
+		$patterns      = array_values(
 			$outside_init_only
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns
 		);
-		$block_hooks = get_hooked_blocks();
+		$hooked_blocks = get_hooked_blocks();
 		foreach ( $patterns as $index => $pattern ) {
-			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $block_hooks );
+			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
 		}
 		return $patterns;
 	}
