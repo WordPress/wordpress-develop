@@ -358,7 +358,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertSame( $request_parameters['content'], $data['content']['raw'], 'Response data should match for field content' );
 
 		$this->assertArrayHasKey( 'title', $data, 'Response should contain a key called title' );
-		$this->assertSame( $request_parameters['title'], $data['title']['raw'], 'Repsonse data should match for field title' );
+		$this->assertSame( $request_parameters['title'], $data['title']['raw'], 'Response data should match for field title' );
 	}
 
 	/**
