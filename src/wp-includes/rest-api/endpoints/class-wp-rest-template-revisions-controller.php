@@ -8,7 +8,7 @@
  */
 
 /**
- * Core class used to access revisions via the REST API.
+ * Core class used to access template revisions via the REST API.
  *
  * @since 6.4.0
  *
@@ -182,7 +182,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param mixed           $item    WordPress representation of the item.
+	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
