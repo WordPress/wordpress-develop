@@ -777,7 +777,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 */
 	public function test_update_network_option_with_pre_filter_updates_option_with_different_value() {
 		// Add the option with a value of 1 to the database.
-		add_option( null, 'foo', 1 );
+		update_network_option( null, 'foo', 1 );
 
 		// Force a return value of integer 0.
 		add_filter( 'pre_site_option_foo', '__return_zero' );
