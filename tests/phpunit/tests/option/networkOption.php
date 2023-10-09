@@ -688,4 +688,58 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			'null'         => array( null ),
 		);
 	}
+
+	/**
+	 * Tests that a non-existent option is added even when its pre filter returns a value.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_with_pre_filter_adds_missing_option() {
+		// Force a return value of integer 0.
+		add_filter( 'pre_site_option_foo', '__return_zero' );
+
+		/*
+		 * This should succeed, since the 'foo' option does not exist in the database.
+		 * The default value is false, so it differs from 0.
+		 */
+		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_with_pre_filter_updates_option_with_different_value() {
+		// Add the option with a value of 1 to the database.
+		update_network_option( null, 'foo', 1 );
+
+		// Force a return value of integer 0.
+		add_filter( 'pre_site_option_foo', '__return_zero' );
+
+		/*
+		 * This should succeed, since the 'foo' option has a value of 1 in the database.
+		 * Therefore it differs from 0 and should be updated.
+		 */
+		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+	}
+
+	/**
+	 * Tests that calling update_network_option() does not permanently remove pre filters.
+	 *
+	 * @ticket 59360
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_maintains_pre_filters() {
+		add_filter( 'pre_site_option_foo', '__return_zero' );
+		update_network_option( null, 'foo', 0 );
+
+		// Assert that the filter is still present.
+		$this->assertSame( 10, has_filter( 'pre_site_option_foo', '__return_zero' ) );
+	}
 }
