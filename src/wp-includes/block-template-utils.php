@@ -719,6 +719,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  *
  * @since 5.9.0
  * @since 6.3.0 Added `modified` property to template objects.
+ * @since 6.4.0 Adds support for a revision post to be passed to this function.
  * @access private
  *
  * @param WP_Post $post Template post.
