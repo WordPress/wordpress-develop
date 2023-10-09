@@ -96,7 +96,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'tests/hooked-at-before'           => array(
 					'before' => array(
@@ -110,6 +110,14 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 						'tests/injected-two',
 					),
 				),
+				'tests/hooked-at-before-and-after' => array(
+					'before' => array(
+						'tests/injected-one',
+					),
+					'after'  => array(
+						'tests/injected-two',
+					),
+				),
 				'tests/hooked-at-first-child'      => array(
 					'first_child' => array(
 						'tests/injected-two',
@@ -117,14 +125,6 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 				),
 				'tests/hooked-at-last-child'       => array(
 					'last_child' => array(
-						'tests/injected-two',
-					),
-				),
-				'tests/hooked-at-before-and-after' => array(
-					'before' => array(
-						'tests/injected-one',
-					),
-					'after'  => array(
 						'tests/injected-two',
 					),
 				),
