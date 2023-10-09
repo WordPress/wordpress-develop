@@ -7270,8 +7270,8 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_delete( $post->ID, 'posts' );
+	wp_cache_delete( 'post_parent::' . (string) $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
-	wp_cache_delete( $post->ID, 'post_parent' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
 
