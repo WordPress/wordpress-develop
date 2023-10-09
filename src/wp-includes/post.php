@@ -7797,7 +7797,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 }
 
 /**
- * Prime post parent caches.
+ * Prime the cache containing the parent ID of various post objects.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
