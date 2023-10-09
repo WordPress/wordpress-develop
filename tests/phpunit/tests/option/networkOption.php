@@ -767,8 +767,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		update_network_option( null, $option, 'false' );
 
-		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters should have been applied once." );
-		$this->assertSame( is_multisite() ? 0 : 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters should have been applied once." );
+		$this->assertSame( 1, $site_hook->get_call_count(), "'pre_site_option_{$option}' filters occurred an unexpected number of times." );
+		$this->assertSame( is_multisite() ? 0 : 1, $option_hook->get_call_count(), "'pre_option_{$option}' filters occurred an unexpected number of times." );
 	}
 
 	/**
@@ -789,8 +789,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		update_network_option( null, $option, 'false' );
 
-		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters should have been applied twice." );
-		$this->assertSame( is_multisite() ? 0 : 2, $option_hook->get_call_count(), "'default_option_{$option}' filters should have been applied twice." );
+		$this->assertSame( 2, $site_hook->get_call_count(), "'default_site_option_{$option}' filters occurred an unexpected number of times." );
+		$this->assertSame( is_multisite() ? 0 : 2, $option_hook->get_call_count(), "'default_option_{$option}' filters occurred an unexpected number of times." );
 	}
 
 	/**
