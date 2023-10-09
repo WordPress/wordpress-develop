@@ -233,13 +233,6 @@ final class WP_Block_Patterns_Registry {
 		return array_values( $patterns );
 	}
 
-	protected function get_parse_blocks( $pattern ) {
-		$blocks               = parse_blocks( $pattern['content'] );
-		$before_block_visitor = make_before_block_visitor( $pattern );
-		$after_block_visitor  = make_after_block_visitor( $pattern );
-		return traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-	}
-
 	/**
 	 * Checks if a block pattern is registered.
 	 *
