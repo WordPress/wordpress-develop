@@ -2152,6 +2152,7 @@ function update_network_option( $network_id, $option, $value ) {
 	 */
 	global $wp_filter;
 
+	/** This filter is documented in wp-includes/option.php */
 	$default_value = apply_filters( "default_site_option_{$option}", false, $option, $network_id );
 
 	$has_site_filter   = has_filter( "pre_site_option_{$option}" );
@@ -2167,7 +2168,13 @@ function update_network_option( $network_id, $option, $value ) {
 			unset( $wp_filter[ "pre_option_{$option}" ] );
 		}
 
-		$raw_old_value = is_multisite() ? get_network_option( $network_id, $option ) : get_option( $option, $default_value );
+		if ( is_multisite() ) {
+			$raw_old_value = get_network_option( $network_id, $option );
+		} else {
+			$raw_old_value = get_option( $option, $default_value );
+			/** This filter is documented in wp-includes/option.php */
+			$default_value = apply_filters( "default_option_{$option}", $default_value, $option, true );
+		}
 
 		if ( $has_site_filter ) {
 			$wp_filter[ "pre_site_option_{$option}" ] = $old_ms_filters;
@@ -2177,6 +2184,10 @@ function update_network_option( $network_id, $option, $value ) {
 		}
 	} else {
 		$raw_old_value = $old_value;
+		if ( ! is_multisite() ) {
+			/** This filter is documented in wp-includes/option.php */
+			$default_value = apply_filters( "default_option_{$option}", $default_value, $option, true );
+		}
 	}
 
 	/*
