@@ -730,10 +730,16 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
+	 *
+	 * @dataProvider data_pre_filter_hooks
+	 *
+	 * @param string $hook_name The name of the pre-filter hook.
 	 */
-	public function test_update_option_with_pre_filter_adds_missing_option() {
+	public function test_update_option_with_pre_filter_adds_missing_option( $hook_name ) {
+		$hook_name = str_replace( '{OPTION}', 'foo', $hook_name );
+
 		// Force a return value of integer 0.
-		add_filter( 'pre_option_foo', '__return_zero' );
+		add_filter( $hook_name, '__return_zero' );
 
 		/*
 		 * This should succeed, since the 'foo' option does not exist in the database.
@@ -748,13 +754,19 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
+	 *
+	 * @dataProvider data_pre_filter_hooks
+	 *
+	 * @param string $hook_name The name of the pre-filter hook.
 	 */
-	public function test_update_option_with_pre_filter_updates_option_with_different_value() {
+	public function test_update_option_with_pre_filter_updates_option_with_different_value( $hook_name ) {
+		$hook_name = str_replace( '{OPTION}', 'foo', $hook_name );
+
 		// Add the option with a value of 1 to the database.
 		add_option( 'foo', 1 );
 
 		// Force a return value of integer 0.
-		add_filter( 'pre_option_foo', '__return_zero' );
+		add_filter( $hook_name, '__return_zero' );
 
 		/*
 		 * This should succeed, since the 'foo' option has a value of 1 in the database.
@@ -769,13 +781,28 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @ticket 22192
 	 *
 	 * @covers ::update_option
+	 *
+	 * @dataProvider data_pre_filter_hooks
+	 *
+	 * @param string $hook_name The name of the pre-filter hook.
 	 */
-	public function test_update_option_maintains_pre_filters() {
-		add_filter( 'pre_option_foo', '__return_zero' );
+	public function test_update_option_maintains_pre_filters( $hook_name ) {
+		$hook_name = str_replace( '{OPTION}', 'foo', $hook_name );
+
+		add_filter( $hook_name, '__return_zero' );
 		update_option( 'foo', 0 );
 
 		// Assert that the filter is still present.
-		$this->assertSame( 10, has_filter( 'pre_option_foo', '__return_zero' ) );
+		$this->assertSame( 10, has_filter( $hook_name, '__return_zero' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_pre_filter_hooks() {
+		return self::text_array_to_dataprovider( array( 'pre_option_{OPTION}', 'pre_option' ) );
 	}
 
 	/**
