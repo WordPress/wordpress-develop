@@ -570,6 +570,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @group add_query_arg
 	 */
 	public function test_add_query_arg_sanitize_url() {
+		$old_request_uri = $_SERVER['REQUEST_URI'];
+
 		$urls_with_query_string = array(
 			'http://example.com/two words?foo=1' => 'http://example.com/two%20words?foo=1',
 			'http;//example.com?foo=1' => 'http://example.com?foo=1',
@@ -603,6 +605,8 @@ class Tests_Functions extends WP_UnitTestCase {
 			$_SERVER['REQUEST_URI'] = $wrong_url;
 			$this->assertSame( "$correct_url?foo=1", add_query_arg( array( 'foo' => '1' ) ) );
 		}
+
+		$_SERVER['REQUEST_URI'] = $old_request_uri;
 	}
 
 	/**
