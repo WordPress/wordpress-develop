@@ -782,14 +782,30 @@ function update_option( $option, $value, $autoload = null ) {
 	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
 	 * else, and is not passed to any of the hooks either.
 	 */
-	if ( has_filter( "pre_option_{$option}" ) ) {
+	$has_pre_option_filter        = has_filter( "pre_option_{$option}" );
+	$has_global_pre_option_filter = has_filter( 'pre_option' );
+	if ( $has_pre_option_filter || $has_global_pre_option_filter ) {
 		global $wp_filter;
 
-		$old_filters = $wp_filter[ "pre_option_{$option}" ];
-		unset( $wp_filter[ "pre_option_{$option}" ] );
+		if ( $has_pre_option_filter ) {
+			$old_pre_filters = $wp_filter[ "pre_option_{$option}" ];
+			unset( $wp_filter[ "pre_option_{$option}" ] );
+		}
 
-		$raw_old_value                       = get_option( $option );
-		$wp_filter[ "pre_option_{$option}" ] = $old_filters;
+		if ( $has_global_pre_option_filter ) {
+			$old_global_pre_filters = $wp_filter['pre_option'];
+			unset( $wp_filter['pre_option'] );
+		}
+
+		$raw_old_value = get_option( $option );
+
+		if ( $has_pre_option_filter ) {
+			$wp_filter[ "pre_option_{$option}" ] = $old_pre_filters;
+		}
+
+		if ( $has_global_pre_option_filter ) {
+			$wp_filter['pre_option'] = $old_global_pre_filters;
+		}
 	} else {
 		$raw_old_value = $old_value;
 	}
