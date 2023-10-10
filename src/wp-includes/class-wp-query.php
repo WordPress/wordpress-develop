@@ -3250,8 +3250,9 @@ class WP_Query {
 			$this->set_found_posts( $q, $limits );
 
 			/** @var int[] */
-			$post_parents = array();
-			$post_ids     = array();
+			$post_parents       = array();
+			$post_ids           = array();
+			$post_parents_cache = array();
 
 			foreach ( $this->posts as $key => $post ) {
 				$this->posts[ $key ]->ID          = (int) $post->ID;
