@@ -560,7 +560,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$_SERVER['REQUEST_URI'] = 'nothing';
 
-		$this->assertSame( "baz=1&foo=1", add_query_arg( 'foo', '1', 'baz=1' ) ); // #WP4903
+		$this->assertSame( 'baz=1&foo=1', add_query_arg( 'foo', '1', 'baz=1' ) ); // #WP4903
 
 		$_SERVER['REQUEST_URI'] = $old_req_uri;
 	}
