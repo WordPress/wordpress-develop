@@ -319,7 +319,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	/**
 	 * Should insert a theme attribute into Template Part blocks in registered patterns.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 59583
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 * @covers WP_Block_Patterns_Registry::get_all_registered
@@ -394,7 +394,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	/**
 	 * Should insert a theme attribute into Template Part blocks in registered patterns.
 	 *
-	 * @ticket XXXXX
+	 * @ticket 59583
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 * @covers WP_Block_Patterns_Registry::get_registered
