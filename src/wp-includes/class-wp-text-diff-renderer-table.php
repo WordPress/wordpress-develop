@@ -33,7 +33,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	/**
 	 * Title of the item being compared.
 	 *
-	 * @since 6.4.0
+	 * @since 6.4.0 Explicitly declare dynamic class property.
 	 * @var string|null
 	 */
 	public $_title;
@@ -41,7 +41,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	/**
 	 * Title for the left column.
 	 *
-	 * @since 6.4.0
+	 * @since 6.4.0 Explicitly declare dynamic class property.
 	 * @var string|null
 	 */
 	public $_title_left;
@@ -49,7 +49,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	/**
 	 * Title for the right column.
 	 *
-	 * @since 6.4.0
+	 * @since 6.4.0 Explicitly declare dynamic class property.
 	 * @var string|null
 	 */
 	public $_title_right;
