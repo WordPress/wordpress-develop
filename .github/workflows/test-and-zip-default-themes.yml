@@ -49,6 +49,52 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Checks for zero-byte files.
+  #
+  # Occasionally, binary files such as images and fonts are added to themes incorrectly.
+  # This checks that all files contain contents.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Checks for zero-byte (empty) files.
+  check-for-empty-files:
+    name: ${{ matrix.theme }} empty file check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [
+          'twentytwentyfour',
+          'twentytwentythree',
+          'twentytwentytwo',
+          'twentytwentyone',
+          'twentytwenty',
+          'twentynineteen',
+          'twentyseventeen',
+          'twentysixteen',
+          'twentyfifteen',
+          'twentyfourteen',
+          'twentythirteen',
+          'twentytwelve',
+          'twentyeleven',
+          'twentyten'
+        ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Check for zero-byte (empty) files
+        run: |
+          [[ ! $(find src/wp-content/themes/${{ matrix.theme }} -empty) ]]
+
   # Tests the build script for themes that have one.
   #
   # Performs the following steps:
@@ -110,13 +156,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs: [ test-build-scripts ]
+    needs: [ check-for-empty-files, test-build-scripts ]
     timeout-minutes: 10
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         theme: [
+            'twentytwentyfour',
             'twentytwentythree',
             'twentytwentytwo',
             'twentytwentyone',
@@ -152,7 +199,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ bundle-theme, test-build-scripts ]
+    needs: [ check-for-empty-files, bundle-theme, test-build-scripts ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
