@@ -62,8 +62,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section has-2-columns has-accent-4-background-color">
 			<div class="column is-vertically-aligned-center" style="padding-right: 6rem">
-				<h3><?php _e('Say hello to<br>Twenty Twenty-Four'); ?></h3>
-				<p><?php _e('Experience the latest advancements in site editing with Twenty Twenty-Four. Built with three distinct use cases in mind, the versatility of the new default theme makes it an ideal choice for almost any type of website. Dive into its collection of templates and patterns and unlock a world of creative possibilities with just a few tweaks.'); ?></p>
+				<h3><?php _e( 'Say hello to<br>Twenty Twenty-Four' ); ?></h3>
+				<p><?php _e( 'Experience the latest advancements in site editing with Twenty Twenty-Four. Built with three distinct use cases in mind, the versatility of the new default theme makes it an ideal choice for almost any type of website. Dive into its collection of templates and patterns and unlock a world of creative possibilities with just a few tweaks.' ); ?></p>
 			</div>
 			<div class="column is-vertically-aligned-bottom" style="padding-right:0;padding-bottom:0">
 				<div class="about__image">
