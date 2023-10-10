@@ -3,7 +3,7 @@
 /**
  * Test the content in some root directory files.
  *
- * No Covers as this checks for content in files
+ * These tests do not cover any production code as they only check for content in files.
  *
  * @group basic
  */
