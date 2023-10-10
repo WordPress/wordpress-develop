@@ -55,7 +55,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</h2>
 				<p class="is-subheading">
-					<?php _e( 'Every version of WordPress is crafted to empower your creative freedom, and WordPress 6.4 is no different. New features and updates to your site editing, design, and writing experience allow your ideas to take shape seamlessly. Elevate your site-building journey with the flexibility and power of WordPress 6.4.' ); ?>
+					<?php _e( 'Every version of WordPress empowers your creative freedom, and WordPress 6.4 is no different. New features and upgrades to your site editing, design, and writing experience allow your ideas to take shape seamlessly. Elevate your site-building journey with the flexibility and power of WordPress 6.4.' ); ?>
 				</p>
 			</div>
 		</div>
@@ -63,7 +63,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns has-accent-4-background-color">
 			<div class="column is-vertically-aligned-center" style="padding-right: 6rem">
 				<h3><?php _e( 'Say hello to<br>Twenty Twenty-Four' ); ?></h3>
-				<p><?php _e( 'Experience the latest advancements in site editing with Twenty Twenty-Four. Built with three distinct use cases in mind, the versatility of the new default theme makes it an ideal choice for almost any type of website. Dive into its collection of templates and patterns and unlock a world of creative possibilities with just a few tweaks.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Introduction to Twenty Twenty-Four link. */
+						__( 'Experience the latest advancements in site editing with <a href="%s">Twenty Twenty-Four</a>. Built with three distinct use cases in mind, the versatility of the new default theme makes it an ideal choice for almost any type of website. Dive into its collection of templates and patterns and unlock a world of creative possibilities with just a few tweaks.' ),
+						__('https://make.wordpress.org/core/2023/08/24/introducing-twenty-twenty-four/')
+					); ?>
+				</p>
 			</div>
 			<div class="column is-vertically-aligned-bottom" style="padding-right:0;padding-bottom:0">
 				<div class="about__image">
@@ -78,7 +85,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="https://s.w.org/images/core/6.3/5-style-revisions.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Add a lightbox effect to your images' ); ?></h3>
-				<p><?php _e( 'Turn lightbox functionality on for interactive, full-screen images with a simple click. Apply it globally or to specific images to customize your visitors’ viewing experience.' ); ?></p>
+				<p><?php _e( 'Turn lightbox functionality on for interactive, full-screen images with a simple click. Apply it globally or to specific images to customize the viewing experience.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -92,7 +99,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="https://s.w.org/images/core/6.3/7-details-block.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Get more done with the Command Palette' ); ?></h3>
-				<p><?php _e( 'Enjoy a refreshed design and more commands to find what you\'re looking for, perform tasks efficiently, and save time in the creation process.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Command palette improvement link. */
+						__( 'Enjoy <a href="%s">a refreshed design and more commands</a> to find what you\'re looking for, perform tasks efficiently, and save time in the creation process.' ),
+						__('https://make.wordpress.org/core/2023/09/12/core-editor-improvement-commanding-the-command-palette/')
+					); ?>
+				</p>
 			</div>
 		</div>
 
@@ -108,15 +122,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.3/6-footnotes-block.webp" alt="" height="270" width="270" />
 				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Explore image previews in List View' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Image previews in List View' ); ?></h3>
 				<p><?php _e( 'New media previews for Gallery and Image blocks in List View let you visualize and locate at a glance where images on your content are.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.3/7-details-block.webp" alt="" height="270" width="270" />
 				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Import and export patterns from the Site Editor' ); ?></h3>
-				<p><?php _e( 'Need to use your custom patterns on another site? Import and export them as JSON files from the Site Editor\'s patterns view to take them wherever you go.' ); ?></p>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Share patterns across sites' ); ?></h3>
+				<p><?php _e( 'Need to use your custom patterns on another site? It’s simple! Import and export them as JSON files from the Site Editor\'s patterns view.' ); ?></p>
 			</div>
 		</div>
 
@@ -128,7 +142,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center" style="padding-left:6rem">
 				<h3><?php _e( 'Enjoy new writing improvements' ); ?></h3>
-				<p><?php _e( 'New enhancements ensure your content creation journey is smooth. Find new keyboard shortcuts in List View, refined list merging, and enhanced control over link settings. A revamped and cohesive toolbar experience for Navigation, List, and Quote blocks lets you efficiently work with the tooling options you need.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: New enhancements link. */
+						__( '<a href="%s">New enhancements</a> ensure your content creation journey is smooth. Find new keyboard shortcuts in List View, refined list merging, and enhanced control over link settings. A revamped and cohesive toolbar experience for Navigation, List, and Quote blocks lets you efficiently work with the tooling options you need.' ),
+						__('https://make.wordpress.org/core/2023/10/05/core-editor-improvement-ensuring-excellence-in-the-writing-experience/')
+					); ?>
+				</p>
 			</div>
 		</div>
 
@@ -175,7 +196,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Accessibility' ); ?></h3>
-				<p><?php _e( 'Every release is committed to making the WordPress experience accessible to everyone. Notable updates in 6.4 address the user interface (UI) experience, including better button placements, improved "Add New" admin menu items context, fixes to the image editing in the Media Library, upgraded Site Health spoken messages, and more.' ); ?></p>
+				<p><?php _e( 'Every release is committed to making WordPress accessible to everyone. 6.4 brings List View improvements and aria-label support for the Navigation block, among other highlights. The admin user interface (UI) includes enhancements to button placements, "Add New" menu items context, and Site Health spoken messages.' ); ?></p>
 			</div>
 		</div>
 
@@ -197,7 +218,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: 1: Learn WordPress link, 2: Workshops link. */
-						__( '<a href="%1$s">Learn WordPress</a> is a free resource for new and experienced WordPress users. Learn is stocked with how-to videos on using various features in WordPress, <a href="%2$s">interactive events</a> for exploring topics in-depth, and lesson plans for diving deep into specific areas of WordPress.' ),
+						__( '<a href="%1$s">Learn WordPress</a> is a free resource for new and experienced WordPress users. Learn is stocked with how-to videos on using various features in WordPress, <a href="%2$s">interactive workshops</a> for exploring topics in-depth, and lesson plans for diving deep into specific areas of WordPress.' ),
 						'https://learn.wordpress.org/',
 						'https://learn.wordpress.org/online-workshops/'
 					);
@@ -218,8 +239,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: WordPress Field Guide link. */
-						__( 'Check out the latest version of the <a href="%s">WordPress Field Guide</a>. It is overflowing with detailed developer notes to help you build with WordPress.' ),
-						__( 'https://make.wordpress.org/core/2023/07/18/wordpress-6-3-field-guide/' )
+						__( 'Explore the <a href="%1$s">WordPress %2$s Field Guide</a>. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
+						__( 'https://make.wordpress.org/core/2023/07/18/wordpress-6-3-field-guide/' ),
+						'6.4'
 					);
 					?>
 				</p>
@@ -236,7 +258,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: 1: WordPress Release Notes link, 2: WordPress version number. */
-						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for more information on the included enhancements and issues fixed, installation information, developer notes and resources, release contributors, and the list of file changes in this release.' ),
+						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
 						sprintf(
 							/* translators: %s: WordPress version number. */
 							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
