@@ -2,7 +2,6 @@
  * External dependencies
  */
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 
 /**
@@ -18,9 +17,7 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 
 const config = defineConfig( {
 	...baseConfig,
-	globalSetup: fileURLToPath(
-		new URL( './config/global-setup.js', 'file:' + __filename ).href
-	),
+	globalSetup: require.resolve( './config/global-setup.js' ),
 	webServer: {
 		...baseConfig.webServer,
 		command: 'npm run env:start',

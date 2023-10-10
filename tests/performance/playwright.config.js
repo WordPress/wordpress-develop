@@ -2,7 +2,6 @@
  * External dependencies
  */
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 
 /**
@@ -19,9 +18,7 @@ process.env.TEST_RUNS ??= '20';
 
 const config = defineConfig( {
 	...baseConfig,
-	globalSetup: fileURLToPath(
-		new URL( './config/global-setup.js', 'file:' + __filename ).href
-	),
+	globalSetup: require.resolve( './config/global-setup.js' ),
 	reporter: process.env.CI
 		? './config/performance-reporter.js'
 		: [ [ 'list' ], [ './config/performance-reporter.js' ] ],
