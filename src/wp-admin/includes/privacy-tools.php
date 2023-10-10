@@ -166,9 +166,23 @@ function _wp_personal_data_handle_actions() {
 				}
 
 				if ( 'pending' === $status ) {
-					wp_send_user_request( $request_id );
+
+					$user_request = wp_send_user_request( $request_id );
+
+					if ( is_wp_error( $user_request ) ) {
+
+						add_settings_error(
+							'username_or_email_for_privacy_request',
+							'username_or_email_for_privacy_request',
+							$user_request->get_error_message(),
+							'success'
+						);
+
+						break;
+					}
 
 					$message = __( 'Confirmation request initiated successfully.' );
+
 				} elseif ( 'confirmed' === $status ) {
 					$message = __( 'Request added successfully.' );
 				}
