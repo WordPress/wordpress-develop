@@ -574,12 +574,12 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$urls_with_query_string = array(
 			'http://example.com/two words?foo=1' => 'http://example.com/two%20words?foo=1',
-			'http;//example.com?foo=1' => 'http://example.com?foo=1',
-			'example.com?foo=1' => 'http://example.com?foo=1',
-			'/example?foo=1' => '/example?foo=1',
-			' ?foo=1' => '?foo=1',
-			' example.com?foo=1' => 'http://example.com?foo=1',
-			'http://example.com?foo=[1]' => 'http://example.com?foo=%5B1%5D',
+			'http;//example.com?foo=1'           => 'http://example.com?foo=1',
+			'example.com?foo=1'                  => 'http://example.com?foo=1',
+			'/example?foo=1'                     => '/example?foo=1',
+			' ?foo=1'                            => '?foo=1',
+			' example.com?foo=1'                 => 'http://example.com?foo=1',
+			'http://example.com?foo=[1]'         => 'http://example.com?foo=%5B1%5D',
 		);
 
 		foreach ( $urls_with_query_string as $wrong_url => $correct_url ) {
@@ -588,17 +588,17 @@ class Tests_Functions extends WP_UnitTestCase {
 		}
 
 		$urls_without_query_string = array(
-			'/' => '/',
-			'example.com' => 'http://example.com',
-			' example.com' => 'http://example.com',
-			'http;//example.com' => 'http://example.com',
-			'http://example.com/two words' => 'http://example.com/two%20words',
-			'wrongprotocol://example.com' => '',
-			'/example' => '/example',
-			'example.php' => 'example.php',
-			'example' => 'http://example',
+			'/'                              => '/',
+			'example.com'                    => 'http://example.com',
+			' example.com'                   => 'http://example.com',
+			'http;//example.com'             => 'http://example.com',
+			'http://example.com/two words'   => 'http://example.com/two%20words',
+			'wrongprotocol://example.com'    => '',
+			'/example'                       => '/example',
+			'example.php'                    => 'example.php',
+			'example'                        => 'http://example',
 			'http://example/%0d%0a%0D%0A%20' => 'http://example/%20',
-			'mailto:%0d%0a%0D%0A%20' => 'mailto:%0d%0a%0D%0A%20',
+			'mailto:%0d%0a%0D%0A%20'         => 'mailto:%0d%0a%0D%0A%20',
 		);
 
 		foreach ( $urls_without_query_string as $wrong_url => $correct_url ) {
