@@ -416,7 +416,6 @@ final class WP_Post_Type {
 	 */
 	public $revisions_rest_controller;
 
-
 	/**
 	 * The controller for this post type's autosave REST API endpoints.
 	 *

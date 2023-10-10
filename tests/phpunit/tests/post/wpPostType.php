@@ -291,9 +291,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	/**
 	 * @ticket 56922
 	 *
-	 * @dataProvider data_get_revisions_rest_controller_should_return_correct_values
-	 *
 	 * @covers WP_Post_Type::get_revisions_rest_controller
+	 *
+	 * @dataProvider data_get_revisions_rest_controller_should_return_correct_values
 	 *
 	 * @param bool        $show_in_rest                    Enables "show_in_rest" support.
 	 * @param bool        $supports_revisions              Enables revisions support.
@@ -368,9 +368,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	/**
 	 * @ticket 56922
 	 *
-	 * @dataProvider data_get_autosave_rest_controller_should_return_correct_values
-	 *
 	 * @covers WP_Post_Type::get_autosave_rest_controller
+	 *
+	 * @dataProvider data_get_autosave_rest_controller_should_return_correct_values
 	 *
 	 * @param bool        $show_in_rest                   Enables "show_in_rest" support.
 	 * @param string      $post_type                      Post type.
