@@ -36,7 +36,7 @@ const config = defineConfig( {
 		command: 'npm run env:start',
 	},
 	use: {
-		...baseConfig.default.use,
+		...baseConfig.use,
 		video: 'off',
 	},
 } );
