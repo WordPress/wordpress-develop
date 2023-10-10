@@ -416,14 +416,14 @@
 }
 
 .about__section a {
-	color: var(--accent-1);
+	color: var(--text);
 	text-decoration: underline;
 }
 
 .about__section a:hover,
 .about__section a:active,
 .about__section a:focus {
-	color: var(--accent-1);
+	color: var(--text);
 	text-decoration: none;
 }
 
