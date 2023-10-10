@@ -1621,8 +1621,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.
  *     @type string       $rest_namespace                  To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.
- *     @type string       $autosave_rest_controller_class  REST API controller class name. Default is 'WP_REST_Autosaves_Controller'.
- *     @type string       $revisions_rest_controller_class REST API controller class name. Default is 'WP_REST_Revisions_Controller'.
+ *     @type string|bool  $autosave_rest_controller_class  REST API controller class name. Default is 'WP_REST_Autosaves_Controller'.
+ *     @type string|bool  $revisions_rest_controller_class REST API controller class name. Default is 'WP_REST_Revisions_Controller'.
  *     @type bool         $late_route_registration         A flag to direct the REST API controllers for autosave / revisions should be registered before/after the post type controller.
  *     @type int          $menu_position                   The position in the menu order the post type should appear. To work,
  *                                                         $show_in_menu must be true. Default null (at the bottom).
