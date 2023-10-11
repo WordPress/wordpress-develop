@@ -4,18 +4,18 @@
 class CacheOptionPerPage {
 
 	private static $conditional_options_context;
-	private static $alloptions_names;
-	private static $alloptions_used;
+	private static $alloptions_names = array();
+	private static $alloptions_used  = array();
 
 	public static function init() {
 		if ( ! isset( $_REQUEST['dco'] ) ) {
 			add_filter( 'pre_get_alloptions', array( __CLASS__, 'performance_conditional_options_options_preload' ), 1, 2 );
+			var_dump( self::performance_conditional_options_get_context() );
 		}
-
+var_dump( self::performance_conditional_options_get_context() );
 		add_filter( 'pre_option_all', array( __CLASS__, 'performance_conditional_options_get_option' ), 10, 3 );
 		add_action( 'shutdown', array( __CLASS__, 'performance_conditional_options_save_options_cache' ) );
 		add_action( 'shutdown', array( __CLASS__, 'performance_conditional_options_stats' ), 99 );
-
 	}
 
 
@@ -27,6 +27,7 @@ class CacheOptionPerPage {
 	 */
 	public static function performance_conditional_options_options_preload( $pre, $force_cache ) {
 		global $wpdb;
+		var_dump( '$alloptions' );
 
 		if ( ! wp_installing() || ! is_multisite() ) {
 			$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
@@ -36,13 +37,25 @@ class CacheOptionPerPage {
 		}
 
 		if ( ! empty( self::$alloptions_names ) ) {
+
 			return $pre;
 		}
-		self::$alloptions_names = array();
+
 		if ( self::performance_conditional_has_persistent_caching() ) {
-			$maybe_option_ids = wp_cache_get( self::performance_conditional_options_get_context(), 'wp_conditional_options' );
+			foreach ( self::performance_conditional_options_get_context() as $context ) {
+				$maybe_option_ids = wp_cache_get( $context, 'wp_conditional_options' );
+				var_dump( $maybe_option_ids );
+				if( ! empty( $maybe_option_ids ) ){
+					break;
+				}
+			}
+
 		} else {
-			$maybe_option_ids = $wpdb->get_results( $wpdb->prepare( "SELECT option_value FROM `$wpdb->options` WHERE option_name = '%s'", self::performance_conditional_options_get_context() );
+			$context = "'" . implode( "','", self::performance_conditional_options_get_context() ) ."'";
+			$sql = "SELECT o option_value FROM wp_options where option_name in ( '5c55205db6f69baedde443bfe936a5d5', $context )
+ ORDER BY FIELD(option_name, $context ) LIMIT 1";
+			var_dump( $sql );
+			$maybe_option_ids = $wpdb->get_results( $wpdb->prepare( "SELECT option_value FROM `$wpdb->options` WHERE option_name = '%s'", self::performance_conditional_options_get_context() ) );
 		}
 
 		if ( empty( $maybe_option_ids ) ) {
@@ -56,7 +69,7 @@ class CacheOptionPerPage {
 		$alloptions = array();
 		foreach ( (array) $alloptions_db as $o ) {
 			$alloptions[ $o->option_name ] = $o->option_value;
-			self::$alloptions_names[]            = $o->option_name;
+			self::$alloptions_names[]      = $o->option_name;
 		}
 
 		if ( ! empty( $alloptions ) ) {
@@ -80,9 +93,6 @@ class CacheOptionPerPage {
 	 */
 	public static function performance_conditional_options_get_option( $pre, $option_name, $default = false ) {
 
-		if ( ! is_array( self::$alloptions_used ) ) {
-			self::$alloptions_used = array();
-		}
 
 		if ( ! in_array( $option_name, self::$alloptions_used, true ) && self::performance_conditional_options_get_context() !== $option_name ) {
 			self::$alloptions_used[] = $option_name;
@@ -97,6 +107,10 @@ class CacheOptionPerPage {
 	 */
 	public static function performance_conditional_options_save_options_cache() {
 		global $wpdb;
+
+		if ( null === self::$alloptions_used ) {
+			self::$alloptions_used = array();
+		}
 
 		if ( array_diff( self::$alloptions_used, self::$alloptions_names ) !== array() ) {
 
@@ -158,19 +172,24 @@ class CacheOptionPerPage {
 		if ( self::$conditional_options_context ) {
 			return self::$conditional_options_context;
 		}
-
-		$queried_name = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
-
 		// find out if logged in
 		// this is too early to use WP functions
+		$logined = 'false';
 		foreach ( $_COOKIE as $key => $val ) {
 			if ( false !== strpos( $key, 'wordpress_logged_in_' ) ) {
-				$queried_name .= $val;
+				$logined = $val;
 				break;
 			}
 		}
+		$path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 
-		self::$conditional_options_context = md5( $queried_name );
+		self::$conditional_options_context[] = md5( 'root' . $logined );
+		foreach ( explode( $path, '/' ) as $path_fragment ) {
+
+			self::$conditional_options_context[] = md5( $path_fragment . $logined );
+		}
+		// reverse the array
+		self::$conditional_options_context = array_reverse( self::$conditional_options_context );
 
 		return self::$conditional_options_context;
 	}
@@ -185,7 +204,6 @@ class CacheOptionPerPage {
 
 		return false;
 	}
-
 }
 
 CacheOptionPerPage::init();
