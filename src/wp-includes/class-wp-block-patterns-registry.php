@@ -192,15 +192,8 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		$pattern       = $this->registered_patterns[ $pattern_name ];
-		$hooked_blocks = get_hooked_blocks();
-
-		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-			$blocks  = parse_blocks( $pattern['content'] );
-			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
-			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
-			$pattern['content']   = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-		}
+		$pattern            = $this->registered_patterns[ $pattern_name ];
+		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
 
 		return $pattern;
 	}
