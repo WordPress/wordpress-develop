@@ -7,10 +7,6 @@
  */
 class Tests_User_PasswordHash extends WP_UnitTestCase {
 
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-	}
-
 	/**
 	 * Tests that PasswordHash::gensalt_blowfish() does not throw a deprecation notice on PHP 8.1.
 	 *
