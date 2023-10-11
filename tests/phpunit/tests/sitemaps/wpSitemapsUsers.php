@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @coversDefaultClass WP_Sitemaps_Users
  */
 class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 
@@ -10,14 +12,14 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	public static $users;
+	private static $users;
 
 	/**
 	 * Editor ID for use in some tests.
 	 *
 	 * @var int
 	 */
-	public static $editor_id;
+	private static $editor_id;
 
 	/**
 	 * Set up fixtures.
@@ -32,6 +34,8 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 	/**
 	 * Test getting a URL list for a users sitemap page via
 	 * WP_Sitemaps_Users::get_url_list().
+	 *
+	 * @covers ::get_url_list
 	 */
 	public function test_get_url_list_users() {
 		// Set up the user to an editor to assign posts to other users.
@@ -40,7 +44,7 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 		// Create a set of posts for each user and generate the expected URL list data.
 		$expected = array_map(
 			static function ( $user_id ) {
-				$post = self::factory()->post->create_and_get( array( 'post_author' => $user_id ) );
+				self::factory()->post->create( array( 'post_author' => $user_id ) );
 
 				return array(
 					'loc' => get_author_posts_url( $user_id ),
@@ -54,5 +58,35 @@ class Tests_Sitemaps_wpSitemapsUsers extends WP_UnitTestCase {
 		$url_list = $user_provider->get_url_list( 1 );
 
 		$this->assertSameSets( $expected, $url_list );
+	}
+
+	/**
+	 * @covers ::get_url_list
+	 * @covers ::get_users_query_args
+	 */
+	public function test_get_url_list_skips_users_with_only_attachments_and_pages() {
+		// Set up the user to an editor to assign posts to other users.
+		wp_set_current_user( self::$editor_id );
+
+		foreach ( self::$users as $user_id ) {
+			self::factory()->post->create(
+				array(
+					'post_author' => $user_id,
+					'post_type'   => 'attachment',
+				)
+			);
+			self::factory()->post->create(
+				array(
+					'post_author' => $user_id,
+					'post_type'   => 'page',
+				)
+			);
+		}
+
+		$user_provider = new WP_Sitemaps_Users();
+
+		$url_list = $user_provider->get_url_list( 1 );
+
+		$this->assertEmpty( $url_list );
 	}
 }

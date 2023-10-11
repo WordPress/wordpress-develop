@@ -6,17 +6,11 @@
  * @subpackage Fonts
  *
  * @since 6.4.0
- */
-require_once __DIR__ . '/base.php';
-
-/**
+ *
  * @group fonts
  * @group fontface
  *
  * @covers wp_print_font_faces
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
  */
 class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
