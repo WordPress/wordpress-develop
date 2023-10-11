@@ -352,9 +352,18 @@ function _register_theme_block_patterns() {
 
 			// The actual pattern content is the output of the file.
 			ob_start();
-			include $dirpath . $file;
+			@include $dirpath . $file;
 			$pattern_data['content'] = ob_get_clean();
 			if ( ! $pattern_data['content'] ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: file name. */
+						__( 'Could not register file "%s" as a block pattern as the file is empty.' ),
+						$file
+					),
+					'6.4.0'
+				);
 				continue;
 			}
 
