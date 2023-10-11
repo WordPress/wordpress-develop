@@ -73,7 +73,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	 * @ticket 59188
 	 */
 	public function test_prime_post_parent_id_caches_update() {
-		$page_id            = self::factory()->post->create(
+		$page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_parent' => self::$posts[0],
@@ -106,7 +106,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	 * @ticket 59188
 	 */
 	public function test_prime_post_parent_id_caches_delete() {
-		$parent_page_id     = self::factory()->post->create(
+		$parent_page_id = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
 			)
