@@ -48,7 +48,7 @@ function wp_register_background_support( $block_type ) {
  */
 function wp_render_background_support( $block_content, $block ) {
 	$block_type                   = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$block_attributes             = $block['attrs'];
+	$block_attributes             = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
 	$has_background_image_support = block_has_support( $block_type, array( 'background', 'backgroundImage' ), false );
 
 	if (
@@ -58,9 +58,15 @@ function wp_render_background_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$background_image_source = _wp_array_get( $block_attributes, array( 'style', 'background', 'backgroundImage', 'source' ), null );
-	$background_image_url    = _wp_array_get( $block_attributes, array( 'style', 'background', 'backgroundImage', 'url' ), null );
-	$background_size         = _wp_array_get( $block_attributes, array( 'style', 'background', 'backgroundSize' ), 'cover' );
+	$background_image_source = isset( $block_attributes['style']['background']['backgroundImage']['source'] )
+		? $block_attributes['style']['background']['backgroundImage']['source']
+		: null;
+	$background_image_url    = isset( $block_attributes['style']['background']['backgroundImage']['url'] )
+		? $block_attributes['style']['background']['backgroundImage']['url']
+		: null;
+	$background_size         = isset( $block_attributes['style']['background']['backgroundSize'] )
+		? $block_attributes['style']['background']['backgroundSize']
+		: 'cover';
 
 	$background_block_styles = array();
 

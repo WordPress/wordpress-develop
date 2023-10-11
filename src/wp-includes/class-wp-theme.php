@@ -59,6 +59,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.6.0 Added the Twenty Twenty-One theme.
 	 * @since 5.9.0 Added the Twenty Twenty-Two theme.
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
+	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -77,6 +78,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentyone'   => 'Twenty Twenty-One',
 		'twentytwentytwo'   => 'Twenty Twenty-Two',
 		'twentytwentythree' => 'Twenty Twenty-Three',
+		'twentytwentyfour'  => 'Twenty Twenty-Four',
 	);
 
 	/**
@@ -819,6 +821,49 @@ final class WP_Theme implements ArrayAccess {
 		$this->block_template_folders = null;
 		$this->headers                = array();
 		$this->__construct( $this->stylesheet, $this->theme_root );
+		$this->delete_pattern_cache();
+	}
+
+	/**
+	 * Gets block pattern cache.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
+	 */
+	public function get_pattern_cache() {
+		if ( ! $this->exists() ) {
+			return false;
+		}
+		$pattern_data = get_transient( 'wp_theme_patterns_' . $this->stylesheet );
+		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
+			return $pattern_data['patterns'];
+		}
+		return false;
+	}
+
+	/**
+	 * Sets block pattern cache.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $patterns Block patterns data to set in cache.
+	 */
+	public function set_pattern_cache( array $patterns ) {
+		$pattern_data = array(
+			'version'  => $this->get( 'Version' ),
+			'patterns' => $patterns,
+		);
+		set_transient( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data );
+	}
+
+	/**
+	 * Clears block pattern cache.
+	 *
+	 * @since 6.4.0
+	 */
+	public function delete_pattern_cache() {
+		delete_transient( 'wp_theme_patterns_' . $this->stylesheet );
 	}
 
 	/**

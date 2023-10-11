@@ -511,7 +511,7 @@ if ( $action ) {
 
 				// Return early if all selected plugins already have auto-updates enabled or disabled.
 				// Must use non-strict comparison, so that array order is not treated as significant.
-				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 					wp_redirect( $redirect );
 					exit;
 				}
@@ -690,7 +690,7 @@ if ( isset( $_GET['error'] ) ) {
 	);
 
 } elseif ( isset( $_GET['deleted'] ) ) {
-	$delete_result       = get_transient( 'plugins_delete_result_' . $user_ID );
+	$delete_result = get_transient( 'plugins_delete_result_' . $user_ID );
 	// Delete it once we're done.
 	delete_transient( 'plugins_delete_result_' . $user_ID );
 
