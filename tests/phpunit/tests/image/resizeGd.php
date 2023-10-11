@@ -19,12 +19,6 @@ class Test_Image_Resize_GD extends WP_Tests_Image_Resize_UnitTestCase {
 	 */
 	public $editor_engine = 'WP_Image_Editor_GD';
 
-	public function set_up() {
-
-		// This needs to come after the mock image editor class is loaded.
-		parent::set_up();
-	}
-
 	/**
 	 * Try resizing a php file (bad image)
 	 *
