@@ -516,7 +516,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  * @param string $template_file_path Absolute path to a theme template file.
  * @return string The template file contents.
  */
-function _get_template_file_content( $template_file_path ) {
+function _get_block_template_file_content( $template_file_path ) {
 	$theme = wp_get_theme();
 
 	$template_file_path = wp_normalize_path( $template_file_path );
@@ -578,7 +578,7 @@ function _get_template_file_content( $template_file_path ) {
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
-	$template_content       = _get_template_file_content( $template_file['path'] );
+	$template_content       = _get_block_template_file_content( $template_file['path'] );
 	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();
