@@ -364,6 +364,9 @@ function _register_theme_block_patterns() {
 					),
 					'6.4.0'
 				);
+				if ( ! file_exists( $dirpath . $file ) ) {
+					$theme->delete_pattern_cache();
+				}
 				continue;
 			}
 
