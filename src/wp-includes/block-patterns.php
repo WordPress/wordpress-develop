@@ -350,9 +350,10 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
+			$file_path = $dirpath . $file;
 			// The actual pattern content is the output of the file.
 			ob_start();
-			@include $dirpath . $file;
+			@include $file_path;
 			$pattern_data['content'] = ob_get_clean();
 			if ( ! $pattern_data['content'] ) {
 				_doing_it_wrong(
@@ -364,7 +365,7 @@ function _register_theme_block_patterns() {
 					),
 					'6.4.0'
 				);
-				if ( ! file_exists( $dirpath . $file ) ) {
+				if ( ! file_exists( $file_path ) ) {
 					$theme->delete_pattern_cache();
 				}
 				continue;
