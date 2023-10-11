@@ -779,8 +779,6 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
 	return function ( &$block, $parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
-		_inject_theme_attribute_in_template_part_block( $block );
-
 		$markup = '';
 
 		if ( $parent_block && ! $prev ) {

@@ -6046,7 +6046,7 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
  * stylesheet as a theme attribute into each wp_template_part
  *
  * @since 5.9.0
- * @deprecated 6.4.0 Use traverse_and_serialize_blocks( parse_blocks( $template_content ), '_inject_theme_attribute_in_template_part_block' ) instead.
+ * @deprecated 6.4.0 Use traverse_and_serialize_blocks( parse_blocks( $template_content ) ) instead.
  * @access private
  *
  * @param string $template_content serialized wp_template content.
@@ -6056,7 +6056,7 @@ function _inject_theme_attribute_in_block_template_content( $template_content ) 
 	_deprecated_function(
 		__FUNCTION__,
 		'6.4.0',
-		'traverse_and_serialize_blocks( parse_blocks( $template_content ), "_inject_theme_attribute_in_template_part_block" )'
+		'traverse_and_serialize_blocks( parse_blocks( $template_content ) )'
 	);
 
 	$has_updated_content = false;

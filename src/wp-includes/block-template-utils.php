@@ -471,25 +471,6 @@ function _flatten_blocks( &$blocks ) {
 }
 
 /**
- * Injects the active theme's stylesheet as a `theme` attribute
- * into a given template part block.
- *
- * @since 6.4.0
- * @access private
- *
- * @param array $block a parsed block.
- * @return void
- */
-function _inject_theme_attribute_in_template_part_block( &$block ) {
-	if (
-		'core/template-part' === $block['blockName'] &&
-		! isset( $block['attrs']['theme'] )
-	) {
-		$block['attrs']['theme'] = get_stylesheet();
-	}
-}
-
-/**
  * Removes the `theme` attribute from a given template part block.
  *
  * @since 6.4.0
@@ -549,7 +530,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
-	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
+	$before_block_visitor = null;
 	$after_block_visitor  = null;
 	$hooked_blocks        = get_hooked_blocks();
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
