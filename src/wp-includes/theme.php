@@ -877,6 +877,12 @@ function switch_theme( $stylesheet ) {
 	$new_theme->delete_pattern_cache();
 	$old_theme->delete_pattern_cache();
 
+	// Clear template content caches.
+	delete_transient( 'wp_theme_template_contents_' . $new_theme->get_stylesheet() );
+	delete_transient( 'wp_theme_template_contents_' . $new_theme->get_template() );
+	delete_transient( 'wp_theme_template_contents_' . $old_theme->get_stylesheet() );
+	delete_transient( 'wp_theme_template_contents_' . $old_theme->get_template() );
+
 	/**
 	 * Fires after the theme is switched.
 	 *
