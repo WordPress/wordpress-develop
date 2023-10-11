@@ -741,7 +741,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$post_ids   = wp_list_pluck( $query1->posts, 'ID' );
 		$cache_keys = array_map(
 			function ( $post_id ) {
-				return "post_parent::{$post_id}";
+				return "post_parent:{$post_id}";
 			},
 			$post_ids
 		);

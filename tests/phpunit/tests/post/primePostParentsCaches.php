@@ -42,7 +42,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries.' );
-		$this->assertSameSets( array( 0 ), wp_cache_get_multiple( array( "post_parent::{$post_id}" ), 'posts' ), 'Array of parent ids' );
+		$this->assertSameSets( array( 0 ), wp_cache_get_multiple( array( "post_parent:{$post_id}" ), 'posts' ), 'Array of parent ids' );
 	}
 
 	/**
@@ -55,7 +55,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 
 		$cache_keys = array_map(
 			function ( $post_id ) {
-				return "post_parent::{$post_id}";
+				return "post_parent:{$post_id}";
 			},
 			self::$posts
 		);
@@ -91,7 +91,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on first run' );
-		$this->assertSameSets( array( self::$posts[0] ), wp_cache_get_multiple( array( "post_parent::{$page_id}" ), 'posts' ), 'Array of parent ids with post 0 as parent' );
+		$this->assertSameSets( array( self::$posts[0] ), wp_cache_get_multiple( array( "post_parent:{$page_id}" ), 'posts' ), 'Array of parent ids with post 0 as parent' );
 
 		wp_update_post(
 			array(
@@ -105,7 +105,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on second run' );
-		$this->assertSameSets( array( self::$posts[1] ), wp_cache_get_multiple( array( "post_parent::{$page_id}" ), 'posts' ), 'Array of parent ids with post 1 as parent' );
+		$this->assertSameSets( array( self::$posts[1] ), wp_cache_get_multiple( array( "post_parent:{$page_id}" ), 'posts' ), 'Array of parent ids with post 1 as parent' );
 	}
 
 	/**
@@ -128,11 +128,11 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on first run' );
-		$this->assertSameSets( array( $parent_page_id ), wp_cache_get_multiple( array( "post_parent::{$page_id}" ), 'posts' ), 'Array of parent ids with post 0 as parent' );
+		$this->assertSameSets( array( $parent_page_id ), wp_cache_get_multiple( array( "post_parent:{$page_id}" ), 'posts' ), 'Array of parent ids with post 0 as parent' );
 
 		wp_delete_post( $parent_page_id, true );
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on second run' );
-		$this->assertSameSets( array( false ), wp_cache_get_multiple( array( "post_parent::{$page_id}" ), 'posts' ), 'Array of parent ids with false values' );
+		$this->assertSameSets( array( false ), wp_cache_get_multiple( array( "post_parent:{$page_id}" ), 'posts' ), 'Array of parent ids with false values' );
 	}
 }

@@ -7270,7 +7270,7 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_delete( $post->ID, 'posts' );
-	wp_cache_delete( 'post_parent::' . (string) $post->ID, 'posts' );
+	wp_cache_delete( 'post_parent:' . (string) $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
@@ -7826,7 +7826,7 @@ function _prime_post_parent_id_caches( array $ids ) {
 
 	$cache_keys = array();
 	foreach ( $ids as $id ) {
-		$cache_keys[ $id ] = 'post_parent::' . (string) $id;
+		$cache_keys[ $id ] = 'post_parent:' . (string) $id;
 	}
 
 	$cached_data = wp_cache_get_multiple( $cache_keys, 'posts' );
@@ -7844,7 +7844,7 @@ function _prime_post_parent_id_caches( array $ids ) {
 		if ( $fresh_posts ) {
 			$post_parent_data = array();
 			foreach ( $fresh_posts as $fresh_post ) {
-				$post_parent_data[ 'post_parent::' . (string) $fresh_post->ID ] = (int) $fresh_post->post_parent;
+				$post_parent_data[ 'post_parent:' . (string) $fresh_post->ID ] = (int) $fresh_post->post_parent;
 			}
 
 			wp_cache_add_multiple( $post_parent_data, 'posts' );
