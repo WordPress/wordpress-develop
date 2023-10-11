@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    timeout-minutes: 5
+    timeout-minutes: 20
 
     steps:
       - name: Rerun a workflow
