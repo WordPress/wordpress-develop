@@ -16,9 +16,4 @@ class Test_Image_Resize_Imagick extends WP_Tests_Image_Resize_UnitTestCase {
 	 * @var string
 	 */
 	public $editor_engine = 'WP_Image_Editor_Imagick';
-
-	public function set_up() {
-		// This needs to come after the mock image editor class is loaded.
-		parent::set_up();
-	}
 }
