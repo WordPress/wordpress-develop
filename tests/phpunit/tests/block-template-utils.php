@@ -220,6 +220,98 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_inject_theme_attribute_in_template_part_block() {
+		$template_part_block = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
+		$expected = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => get_stylesheet(),
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		$this->assertSame(
+			$expected,
+			$template_part_block,
+			'`theme` attribute was not correctly injected in template part block.'
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_in_template_part_block_theme_attribute_exists() {
+		$template_part_block = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => 'fake-theme',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$expected = $template_part_block;
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
+		$this->assertSame(
+			$expected,
+			$template_part_block,
+			'Existing `theme` attribute in template part block was not respected by attribute injection.'
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_non_template_part_block() {
+		$non_template_part_block = array(
+			'blockName'    => 'core/post-content',
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$expected = $non_template_part_block;
+		_inject_theme_attribute_in_template_part_block( $non_template_part_block );
+		$this->assertSame(
+			$expected,
+			$non_template_part_block,
+			'`theme` attribute injection modified non-template-part block.'
+		);
+	}
+
+	/**
 	 * @ticket 59452
 	 *
 	 * @covers ::_inject_theme_attribute_in_block_template_content
