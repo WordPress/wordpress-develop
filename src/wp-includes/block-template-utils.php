@@ -520,13 +520,13 @@ function _get_block_template_file_content( $template_file_path ) {
 	$theme = wp_get_theme();
 
 	$template_file_path = wp_normalize_path( $template_file_path );
-	$theme_dir          = wp_normalize_path( $theme->get_stylesheet_directory() );
+	$theme_dir          = wp_normalize_path( $theme->get_stylesheet_directory() ) . '/';
 
 	if ( str_starts_with( $template_file_path, $theme_dir ) ) {
 		$relative_path = substr( $template_file_path, strlen( $theme_dir ) );
 	} elseif ( $theme->parent() ) {
 		$theme     = $theme->parent();
-		$theme_dir = wp_normalize_path( $theme->get_stylesheet_directory() );
+		$theme_dir = wp_normalize_path( $theme->get_stylesheet_directory() ) . '/';
 		if ( str_starts_with( $template_file_path, $theme_dir ) ) {
 			$relative_path = substr( $template_file_path, strlen( $theme_dir ) );
 		}
