@@ -2217,7 +2217,7 @@ function update_network_option( $network_id, $option, $value ) {
 		return false;
 	}
 
-	if ( $default_value === $raw_old_value ) {
+	if ( false === $raw_old_value ) {
 		return add_network_option( $network_id, $option, $value );
 	}
 
