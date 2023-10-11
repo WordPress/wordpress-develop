@@ -293,6 +293,8 @@ final class WP_Autoload {
 		'wp_rest_sidebars_controller'                 => 'wp-includes/rest-api/endpoints/class-wp-rest-sidebars-controller.php',
 		'wp_rest_site_health_controller'              => 'wp-includes/rest-api/endpoints/class-wp-rest-site-health-controller.php',
 		'wp_rest_taxonomies_controller'               => 'wp-includes/rest-api/endpoints/class-wp-rest-taxonomies-controller.php',
+		'wp_rest_template_autosaves_controller'       => 'wp-includes/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php',
+		'wp_rest_template_revisions_controller'       => 'wp-includes/rest-api/endpoints/class-wp-rest-template-revisions-controller.php',
 		'wp_rest_templates_controller'                => 'wp-includes/rest-api/endpoints/class-wp-rest-templates-controller.php',
 		'wp_rest_terms_controller'                    => 'wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php',
 		'wp_rest_themes_controller'                   => 'wp-includes/rest-api/endpoints/class-wp-rest-themes-controller.php',
