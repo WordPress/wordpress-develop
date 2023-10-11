@@ -360,17 +360,18 @@ class WP_Site_Query {
 		$cache_key   = "get_sites:$key:$last_changed";
 		$cache_value = wp_cache_get( $cache_key, 'site-queries' );
 
-		if ( false === $cache_value ) {
+		if ( ! is_array( $cache_value ) || $cache_value['last_changed'] !== $last_changed ) {
 			$site_ids = $this->get_site_ids();
 			if ( $site_ids ) {
 				$this->set_found_sites();
 			}
 
 			$cache_value = array(
-				'site_ids'    => $site_ids,
-				'found_sites' => $this->found_sites,
+				'site_ids'     => $site_ids,
+				'found_sites'  => $this->found_sites,
+				'last_changed' => $last_changed,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'site-queries' );
+			wp_cache_set( $cache_key, $cache_value, 'site-queries' );
 		} else {
 			$site_ids          = $cache_value['site_ids'];
 			$this->found_sites = $cache_value['found_sites'];
