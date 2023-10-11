@@ -7829,7 +7829,7 @@ function _prime_post_parent_id_caches( array $ids ) {
 		$cache_keys[ $id ] = 'post_parent:' . (string) $id;
 	}
 
-	$cached_data = wp_cache_get_multiple( $cache_keys, 'posts' );
+	$cached_data = wp_cache_get_multiple( array_values( $cache_keys ), 'posts' );
 
 	$non_cached_ids = array();
 	foreach ( $cache_keys as $id => $cache_key ) {
