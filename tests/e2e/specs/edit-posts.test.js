@@ -121,7 +121,7 @@ test.describe( 'Edit Posts', () => {
 		const listTable = page.getByRole( 'table', { name: 'Table ordered by' } );
 		await expect( listTable ).toBeVisible();
 
-		// // Focus on the post title link.
+		// Focus on the post title link.
 		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
