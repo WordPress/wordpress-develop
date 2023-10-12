@@ -778,4 +778,36 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$content = _get_block_template_file_content( $template_file );
 		$this->assertSame( file_get_contents( $template_file ), $content );
 	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` while using 'theme' development mode clears the existing cache for the current theme.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_theme_development_mode_clears_existing_cache() {
+		global $_wp_tests_development_mode;
+
+		$_wp_tests_development_mode = 'theme';
+
+		switch_theme( 'block-theme' );
+
+		$template_file = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+		set_transient(
+			'wp_theme_template_contents_block-theme',
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'parts/small-header.html' => '<div>Some content.</div>',
+				),
+			)
+		);
+
+		// We don't care about the value here as it is already covered by the test above.
+		_get_block_template_file_content( $template_file );
+
+		// Ensure the relevant transient was deleted.
+		$this->assertFalse( get_transient( 'wp_theme_template_contents_block-theme' ) );
+	}
 }

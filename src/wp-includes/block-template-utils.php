@@ -537,8 +537,18 @@ function _get_block_template_file_content( $template_file_path ) {
 		return file_get_contents( $template_file_path );
 	}
 
-	// Bypass cache while developing a theme.
+	/*
+	 * Bypass cache while developing a theme.
+	 * If there is an existing cache, it should be deleted.
+	 * This ensures that no stale cache values can be served when temporarily
+	 * enabling "theme" development mode and then disabling it again.
+	 */
 	if ( wp_is_development_mode( 'theme' ) ) {
+		$template_data = get_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet() );
+		if ( false !== $template_data ) {
+			delete_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet() );
+		}
+
 		return file_get_contents( $template_file_path );
 	}
 
