@@ -538,8 +538,7 @@ function _get_block_template_file_content( $template_file_path ) {
 	}
 
 	// Bypass cache while developing a theme.
-	$can_use_cache = ! wp_is_development_mode( 'theme' );
-	if ( ! $can_use_cache ) {
+	if ( wp_is_development_mode( 'theme' ) ) {
 		return file_get_contents( $template_file_path );
 	}
 
