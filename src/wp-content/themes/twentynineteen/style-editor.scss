@@ -1023,12 +1023,8 @@ $group-block-background__padding: $font__size_base;
 
 /** === Post Author Block === */
 
-.editor-styles-wrapper {
-	
-	& .avatar,
-	& .wp-block-post-author__avatar img {
-		border-radius: 50%;
-	}
-
+.avatar,
+.wp-block-post-author__avatar img {
+	border-radius: 100%;
 }
 
