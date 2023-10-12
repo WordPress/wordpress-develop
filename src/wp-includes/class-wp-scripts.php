@@ -281,8 +281,14 @@ class WP_Scripts extends WP_Dependencies {
 			$intended_strategy = '';
 		}
 
-		// If the script is in the header group, current output is the header, the intended strategy is `defer`, the
-		// actual strategy is not defer and all dependent scripts are in the footer - move this script to the footer.
+		/*
+		 * Move this script to the footer if:
+		 * 1. The script is in the header group.
+		 * 2. The current output is the header.
+		 * 3. The intended strategy is delayed.
+		 * 4. The actual strategy is not delayed.
+		 * 5. All dependent scripts are in the footer.
+		 */
 		if ( $intended_strategy && ! $this->is_delayed_strategy( $strategy ) && 0 === $this->groups[ $handle ] && 0 === $group ) {
 			// Check that all depedencies are in the footer.
 			$all_deps_in_footer = true;
