@@ -421,11 +421,13 @@ add_action( 'init', '_register_theme_block_patterns' );
 function _wp_get_block_patterns( WP_Theme $theme ) {
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
-	if ( $can_use_cached ) {
-		$pattern_data = $theme->get_pattern_cache();
-		if ( is_array( $pattern_data ) ) {
+	$pattern_data = $theme->get_pattern_cache();
+	if ( is_array( $pattern_data ) ) {
+		if ( $can_use_cached ) {
 			return $pattern_data;
 		}
+		// If in development mode, clear pattern cache. 
+		$theme->delete_pattern_cache();
 	}
 
 	$dirpath      = $theme->get_stylesheet_directory() . '/patterns/';
