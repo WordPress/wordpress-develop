@@ -291,6 +291,49 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that updates to a tag's attributes doesn't shift
+	 * the current position into the input HTML document.
+	 *
+	 * @ticket 59607
+	 */
+	public function test_remains_stable_when_editing_attributes() {
+		$p = WP_HTML_Processor::create_fragment( '<div><button>First<button><b here>Second' );
+		$p->next_tag( array( 'breadcrumbs' => array( 'BUTTON', 'B' ) ) );
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->set_attribute( 'a-name', 'a-value' );
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have found the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->get_updated_html();
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have stayed at the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag after updating attributes.'
+		);
+	}
+
+	/**
 	 * @ticket 58517
 	 *
 	 * @covers WP_HTML_Processor::get_breadcrumbs
