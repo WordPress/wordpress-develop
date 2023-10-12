@@ -3569,6 +3569,21 @@ function _reset_front_page_settings_for_post( $post_id ) {
 }
 
 /**
+ * Set or update the post parent cache for a specific post.
+ *
+ * This function sets or updates the post parent cache for a given post ID.
+ * The post parent cache is used to store the parent ID of a post for quick retrieval.
+ *
+ *  @since 6.4.0
+ *
+ * @param int    $post_id The ID of the post for which to set or update the parent cache.
+ * @param WP_Post $post   The post object representing the post.
+ */
+function _set_post_parent_cache( $post_id, $post ) {
+	wp_cache_set( $post_id, $post->post_parent, 'post_parent' );
+}
+
+/**
  * Moves a post or page to the Trash
  *
  * If Trash is disabled, the post or page is permanently deleted.
