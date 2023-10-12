@@ -5818,7 +5818,7 @@ body.page .main-navigation {
   line-height: 1.8;
 }
 
-.entry .entry-content .wp-block-quote cite {
+.entry .entry-content .wp-block-quote:not([class*="-font-size"]):not([style*="font-size"]) cite {
   /*
 			 * This requires a rem-based font size calculation instead of our normal em-based one,
 			 * because the cite tag sometimes gets wrapped in a p tag. This is equivalent to $font-size_xs.
