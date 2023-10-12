@@ -3170,45 +3170,52 @@ class WP_Query {
 		}
 
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
-			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$cache_key   = $this->generate_cache_key( $q, $new_request );
+			$new_request  = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
+			$cache_key    = $this->generate_cache_key( $q, $new_request );
+			$last_changed = wp_cache_get_last_changed( 'posts' );
+			if ( ! empty( $this->tax_query->queries ) ) {
+				$last_changed .= wp_cache_get_last_changed( 'terms' );
+			}
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
 				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
-
 				if ( $cached_results ) {
-					/** @var int[] */
-					$post_ids = array_map( 'intval', $cached_results['posts'] );
-
-					$this->post_count    = count( $post_ids );
-					$this->found_posts   = $cached_results['found_posts'];
-					$this->max_num_pages = $cached_results['max_num_pages'];
-
-					if ( 'ids' === $q['fields'] ) {
-						$this->posts = $post_ids;
-
-						return $this->posts;
-					} elseif ( 'id=>parent' === $q['fields'] ) {
-						_prime_post_parent_id_caches( $post_ids );
-
+					if ( $cached_results['last_changed'] === $last_changed ) {
 						/** @var int[] */
-						$post_parents = wp_cache_get_multiple( $post_ids, 'post_parent' );
+						$post_ids = array_map( 'intval', $cached_results['posts'] );
 
-						foreach ( $post_parents as $id => $post_parent ) {
-							$obj              = new stdClass();
-							$obj->ID          = (int) $id;
-							$obj->post_parent = (int) $post_parent;
+						$this->post_count    = count( $post_ids );
+						$this->found_posts   = $cached_results['found_posts'];
+						$this->max_num_pages = $cached_results['max_num_pages'];
 
-							$this->posts[] = $obj;
+						if ( 'ids' === $q['fields'] ) {
+							$this->posts = $post_ids;
+
+							return $this->posts;
+						} elseif ( 'id=>parent' === $q['fields'] ) {
+							_prime_post_parent_id_caches( $post_ids );
+
+							/** @var int[] */
+							$post_parents = wp_cache_get_multiple( $post_ids, 'post_parent' );
+
+							foreach ( $post_parents as $id => $post_parent ) {
+								$obj              = new stdClass();
+								$obj->ID          = (int) $id;
+								$obj->post_parent = (int) $post_parent;
+
+								$this->posts[] = $obj;
+							}
+
+							return $post_parents;
+						} else {
+							_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+							/** @var WP_Post[] */
+							$this->posts = array_map( 'get_post', $post_ids );
 						}
-
-						return $post_parents;
-					} else {
-						_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
-						/** @var WP_Post[] */
-						$this->posts = array_map( 'get_post', $post_ids );
 					}
+				} else {
+					$cache_found = false;
 				}
 			}
 		}
@@ -3228,6 +3235,7 @@ class WP_Query {
 					'posts'         => $this->posts,
 					'found_posts'   => $this->found_posts,
 					'max_num_pages' => $this->max_num_pages,
+					'last_changed'  => $last_changed,
 				);
 
 				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
@@ -3263,6 +3271,7 @@ class WP_Query {
 					'posts'         => $post_ids,
 					'found_posts'   => $this->found_posts,
 					'max_num_pages' => $this->max_num_pages,
+					'last_changed'  => $last_changed,
 				);
 
 				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
@@ -3348,6 +3357,7 @@ class WP_Query {
 				'posts'         => $post_ids,
 				'found_posts'   => $this->found_posts,
 				'max_num_pages' => $this->max_num_pages,
+				'last_changed'  => $last_changed,
 			);
 
 			wp_cache_set( $cache_key, $cache_value, 'post-queries' );
@@ -4870,12 +4880,7 @@ class WP_Query {
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 		$key = md5( serialize( $args ) . $sql );
 
-		$last_changed = wp_cache_get_last_changed( 'posts' );
-		if ( ! empty( $this->tax_query->queries ) ) {
-			$last_changed .= wp_cache_get_last_changed( 'terms' );
-		}
-
-		return "wp_query:$key:$last_changed";
+		return "wp_query:$key";
 	}
 
 	/**

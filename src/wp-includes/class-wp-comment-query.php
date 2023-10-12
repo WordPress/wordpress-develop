@@ -451,9 +451,9 @@ class WP_Comment_Query {
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
-		$cache_key   = "get_comments:$key:$last_changed";
+		$cache_key   = "get_comments:$key";
 		$cache_value = wp_cache_get( $cache_key, 'comment-queries' );
-		if ( false === $cache_value ) {
+		if ( ! is_array( $cache_value ) || $cache_value['last_changed'] !== $last_changed ) {
 			$comment_ids = $this->get_comment_ids();
 			if ( $comment_ids ) {
 				$this->set_found_comments();
@@ -462,8 +462,9 @@ class WP_Comment_Query {
 			$cache_value = array(
 				'comment_ids'    => $comment_ids,
 				'found_comments' => $this->found_comments,
+				'last_changed'   => $last_changed,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'comment-queries' );
+			wp_cache_set( $cache_key, $cache_value, 'comment-queries' );
 		} else {
 			$comment_ids          = $cache_value['comment_ids'];
 			$this->found_comments = $cache_value['found_comments'];
