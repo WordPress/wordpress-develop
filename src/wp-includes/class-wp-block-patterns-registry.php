@@ -171,7 +171,7 @@ final class WP_Block_Patterns_Registry {
 			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
 			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
 		}
-		if ( ! is_null( $before_block_visitor ) || ! is_null( $after_block_visitor ) ) {
+		if ( null !== $before_block_visitor || null !== $after_block_visitor ) {
 			$blocks  = parse_blocks( $content );
 			$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 		}
