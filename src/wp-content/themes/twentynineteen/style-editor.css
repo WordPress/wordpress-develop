@@ -1059,6 +1059,8 @@ figcaption,
 .wp-block-quote footer,
 .wp-block-quote .wp-block-quote__citation {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 0.71111em;
+  line-height: 1.6;
   color: inherit;
 }
 
