@@ -679,7 +679,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'template_content' => array(
 					'parts/small-header.html' => $forced_content,
 				),
-			)
+			),
+			WEEK_IN_SECONDS
 		);
 
 		$content = _get_block_template_file_content( $template_file );
@@ -705,7 +706,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'template_content' => array(
 					'templates/page-1.html' => $forced_content,
 				),
-			)
+			),
+			WEEK_IN_SECONDS
 		);
 
 		$content = _get_block_template_file_content( $template_file );
@@ -731,7 +733,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'template_content' => array(
 					'parts/small-header.html' => $forced_content,
 				),
-			)
+			),
+			WEEK_IN_SECONDS
 		);
 
 		$content = _get_block_template_file_content( $template_file );
@@ -772,7 +775,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'template_content' => array(
 					'parts/small-header.html' => $forced_content,
 				),
-			)
+			),
+			WEEK_IN_SECONDS
 		);
 
 		$content = _get_block_template_file_content( $template_file );
@@ -801,7 +805,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'template_content' => array(
 					'parts/small-header.html' => '<div>Some content.</div>',
 				),
-			)
+			),
+			WEEK_IN_SECONDS
 		);
 
 		// We don't care about the value here as it is already covered by the test above.

@@ -569,7 +569,7 @@ function _get_block_template_file_content( $template_file_path ) {
 	$template_data['template_content'][ $relative_path ] = file_get_contents( $template_file_path );
 
 	// Update the cache.
-	set_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet(), $template_data );
+	set_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet(), $template_data, WEEK_IN_SECONDS );
 
 	return $template_data['template_content'][ $relative_path ];
 }
