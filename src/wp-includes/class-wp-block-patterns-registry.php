@@ -153,6 +153,31 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
+	 * Prepares the content of a block pattern. If hooked blocks are registered, they get injected into the pattern,
+	 * when they met the defined criteria.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $pattern       Registered pattern properties.
+	 * @param array $hooked_blocks The list of hooked blocks.
+	 * @return string The content of the block pattern.
+	 */
+	private function prepare_content( $pattern, $hooked_blocks ) {
+		$content = $pattern['content'];
+
+		$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
+		$after_block_visitor  = null;
+		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
+			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
+		}
+		$blocks  = parse_blocks( $content );
+		$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+
+		return $content;
+	}
+
+	/**
 	 * Retrieves an array containing the properties of a registered block pattern.
 	 *
 	 * @since 5.5.0
@@ -165,7 +190,10 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		return $this->registered_patterns[ $pattern_name ];
+		$pattern            = $this->registered_patterns[ $pattern_name ];
+		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
+
+		return $pattern;
 	}
 
 	/**
@@ -178,11 +206,16 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		return array_values(
+		$patterns      = array_values(
 			$outside_init_only
 				? $this->registered_patterns_outside_init
 				: $this->registered_patterns
 		);
+		$hooked_blocks = get_hooked_blocks();
+		foreach ( $patterns as $index => $pattern ) {
+			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
+		}
+		return $patterns;
 	}
 
 	/**

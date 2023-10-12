@@ -174,5 +174,4 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( new WP_Error( 'wpdb_get_table_charset_failure' ), false, false ), // @ticket 53986
 		);
 	}
-
 }

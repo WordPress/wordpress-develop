@@ -126,7 +126,12 @@ function wp_populate_basic_auth_from_authorization_header() {
 	$token    = substr( $header, 6 );
 	$userpass = base64_decode( $token );
 
-	list( $user, $pass ) = explode( ':', $userpass );
+	// There must be at least one colon in the string.
+	if ( ! str_contains( $userpass, ':' ) ) {
+		return;
+	}
+
+	list( $user, $pass ) = explode( ':', $userpass, 2 );
 
 	// Now shove them in the proper keys where we're expecting later on.
 	$_SERVER['PHP_AUTH_USER'] = $user;
@@ -1049,11 +1054,14 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
-		$themes[] = STYLESHEETPATH;
+	$stylesheet_path = get_stylesheet_directory();
+	$template_path   = get_template_directory();
+
+	if ( $template_path !== $stylesheet_path ) {
+		$themes[] = $stylesheet_path;
 	}
 
-	$themes[] = TEMPLATEPATH;
+	$themes[] = $template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
@@ -1865,7 +1873,6 @@ function wp_is_jsonp_request() {
 	$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
 	return $jsonp_enabled;
-
 }
 
 /**

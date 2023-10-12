@@ -320,5 +320,4 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 		}
 		return $anonymous;
 	}
-
 }

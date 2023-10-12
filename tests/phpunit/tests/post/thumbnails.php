@@ -571,7 +571,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	private function track_last_attachment_image_context( &$last_context ) {
 		add_filter(
 			'wp_get_attachment_image_context',
-			static function( $context ) use ( &$last_context ) {
+			static function ( $context ) use ( &$last_context ) {
 				$last_context = $context;
 				return $context;
 			},

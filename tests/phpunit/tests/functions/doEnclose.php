@@ -289,5 +289,4 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
