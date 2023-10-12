@@ -1444,10 +1444,7 @@ ul.wp-block-archives li ul,
   margin-inline-start: 0px;
 }
 
-.wp-block-freeform {
-  /* Add style for galleries in classic-editor block */
-}
-
+/* Add style for galleries in classic-editor block */
 .wp-block-freeform blockquote {
   border-left: 2px solid #0073aa;
 }
