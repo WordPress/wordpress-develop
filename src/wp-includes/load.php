@@ -881,7 +881,7 @@ function wp_start_object_cache() {
 			)
 		);
 
-		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json', 'block_template' ) );
 	}
 
 	$first_init = false;
