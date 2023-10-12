@@ -102,7 +102,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id
  * Enqueues the skip-link script & styles.
  *
  * @access private
- * @since 5.8.0
+ * @since 6.4.0
  *
  * @global string $_wp_current_template_content
  */
