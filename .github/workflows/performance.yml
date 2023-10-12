@@ -31,10 +31,10 @@ permissions: {}
 
 env:
   # Performance testing should be performed in an environment reflecting a standard production environment.
-  WP_DEBUG: false
-  SCRIPT_DEBUG: false
-  SAVEQUERIES : false
-  WP_DEVELOPMENT_MODE: ''
+  LOCAL_WP_DEBUG: false
+  LOCAL_SCRIPT_DEBUG: false
+  LOCAL_SAVEQUERIES: false
+  LOCAL_WP_DEVELOPMENT_MODE: "''"
 
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
