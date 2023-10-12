@@ -1062,18 +1062,6 @@ figcaption,
   color: inherit;
 }
 
-.wp-block-quote:not([style*="font-size"]) cite,
-.wp-block-quote:not([style*="font-size"]) footer,
-.wp-block-quote:not([style*="font-size"]) .wp-block-quote__citation {
-  font-size: 0.71111em;
-}
-
-.wp-block-quote:not([style*="line-height"]) cite,
-.wp-block-quote:not([style*="line-height"]) footer,
-.wp-block-quote:not([style*="line-height"]) .wp-block-quote__citation {
-  line-height: 1.6;
-}
-
 /** === Pullquote === */
 .wp-block-pullquote {
   border-color: transparent;
