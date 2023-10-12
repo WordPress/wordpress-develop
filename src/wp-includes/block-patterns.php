@@ -426,7 +426,7 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 		if ( $can_use_cached ) {
 			return $pattern_data;
 		}
-		// If in development mode, clear pattern cache. 
+		// If in development mode, clear pattern cache.
 		$theme->delete_pattern_cache();
 	}
 
