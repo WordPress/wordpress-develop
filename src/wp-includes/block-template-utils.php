@@ -556,7 +556,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
 	}
-	if ( ! is_null( $before_block_visitor ) || ! is_null( $after_block_visitor ) ) {
+	if ( null !== $before_block_visitor || null !== $after_block_visitor ) {
 		$blocks           = parse_blocks( $template_content );
 		$template_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
