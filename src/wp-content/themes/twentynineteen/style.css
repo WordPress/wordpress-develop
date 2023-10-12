@@ -3976,7 +3976,6 @@ body.page .main-navigation {
   transform: translateX(-50%) translateY(-50%);
   width: auto;
   z-index: 1;
-  /* When image filters are active, make it grayscale to colorize it blue. */
 }
 
 @supports (object-fit: cover) {
@@ -3991,6 +3990,8 @@ body.page .main-navigation {
 }
 
 .image-filters-enabled .site-header.featured-image .site-featured-image .post-thumbnail img {
+  /* First layer: grayscale. */
+  /* When image filters are active, make it grayscale to colorize it blue. */
   filter: grayscale(100%);
 }
 
