@@ -508,7 +508,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
 }
 
 /**
- * Gets the contents for the given template file path, using a transient cache.
+ * Gets the contents for the given template file path.
  *
  * @since 6.4.0
  * @access private
