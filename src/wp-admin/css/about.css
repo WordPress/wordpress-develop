@@ -547,19 +547,19 @@
 }
 
 .credits-php .about__header {
-	background-image: url('../images/about-header-about.svg?ver=6.4');
+	background-image: url('../images/about-header-credits.svg?ver=6.4');
 }
 
 .freedoms-php .about__header {
-	background-image: url('../images/about-header-about.svg?ver=6.4');
+	background-image: url('../images/about-header-freedoms.svg?ver=6.4');
 }
 
 .privacy-php .about__header {
-	background-image: url('../images/about-header-about.svg?ver=6.4');
+	background-image: url('../images/about-header-privacy.svg?ver=6.4');
 }
 
 .contribute-php .about__header {
-	background-image: url('../images/about-header-about.svg?ver=6.4');
+	background-image: url('../images/about-header-contribute.svg?ver=6.4');
 }
 
 .about__header-image {
@@ -568,7 +568,7 @@
 
 .about__header-title {
 	box-sizing: border-box;
-	margin: 0 var(--gap);
+	margin: 0 calc(var(--gap) + 3rem);
 	padding: 0;
 }
 
