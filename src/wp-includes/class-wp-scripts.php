@@ -294,8 +294,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 			if ( $all_deps_in_footer ) {
 				$this->in_footer[] = $handle;
-				$this->groups[ $handle ] = 1;
-				return;
+				return false;
 			}
 		}
 
