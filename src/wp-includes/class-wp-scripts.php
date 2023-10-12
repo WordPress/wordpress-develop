@@ -287,8 +287,7 @@ class WP_Scripts extends WP_Dependencies {
 			// Check that all depedencies are in the footer.
 			$all_deps_in_footer = true;
 			foreach ( $this->get_dependents( $handle ) as $dep ) {
-				error_log( "dep: $dep" );
-				if ( ! empty( $this->groups[ $dep ] ) && 1 !== $this->groups[ $dep ] ) {
+				if ( isset( $this->groups[ $dep ] ) && 1 !== $this->groups[ $dep ] ) {
 					$all_deps_in_footer = false;
 					break;
 				}
