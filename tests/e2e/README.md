@@ -24,11 +24,14 @@ WP_BASE_URL=http://mycustomurl WP_USERNAME=username WP_PASSWORD=password npm run
 ```
 **DO NOT run these tests in an actual production environment, as they will delete all your content.**
 
-For debugging purposes, you might want to follow the test visually. You can do so by running the tests in an interactive mode.
+For debugging purposes, you might want to follow the test visually. You can do so by running the tests in an interactive mode:
 
 ```
-npm run test:e2e -- --debug
+npm run test:e2e -- --ui
 ```
+
+[UI Mode](https://playwright.dev/docs/test-ui-mode) let's you explore, run and debug tests with a time travel experience complete with watch mode.
+All test files are loaded into the testing sidebar where you can expand each file and describe block to individually run, view, watch and debug each test.
 
 You can also run a single test file separately:
 
