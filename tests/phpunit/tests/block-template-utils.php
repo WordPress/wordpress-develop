@@ -536,6 +536,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * This should store the file content in cache.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_current_theme_file() {
 		switch_theme( 'block-theme' );
@@ -557,6 +559,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * This should store the file content in cache.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_current_parent_theme_file() {
 		switch_theme( 'block-theme-child' );
@@ -578,6 +582,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * This should not set any cache.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_another_theme_file() {
 		switch_theme( 'block-theme-patterns' );
@@ -603,6 +609,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * This should not set any cache.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_current_theme_file_and_theme_development_mode() {
 		global $_wp_tests_development_mode;
@@ -624,6 +632,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Tests `_get_block_template_file_content()` with files that are part of the current theme expands the existing cache.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_expands_existing_cache() {
 		switch_theme( 'block-theme' );
@@ -654,6 +664,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme relies on cached values.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_current_theme_file_relies_on_cache() {
 		switch_theme( 'block-theme' );
@@ -678,6 +690,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Tests `_get_block_template_file_content()` with a file that is part of the another theme ignores cached values.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_another_theme_file_ignores_cache() {
 		switch_theme( 'block-theme' );
@@ -702,6 +716,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme refreshes existing cache when version is outdated.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_current_theme_file_refreshes_cache_when_version_outdated() {
 		switch_theme( 'block-theme' );
@@ -737,6 +753,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme ignores cached values while using 'theme' development mode.
 	 *
 	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
 	 */
 	public function test_get_block_template_file_content_with_current_theme_file_and_theme_development_mode_ignores_cache() {
 		global $_wp_tests_development_mode;
