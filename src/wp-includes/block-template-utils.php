@@ -530,7 +530,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		return $template;
 	}
 
-	$theme                    = ! isset( $template_file['theme'] ) ? $template_file['theme'] : get_stylesheet();
+	$theme                    = isset( $template_file['theme'] ) ? $template_file['theme'] : get_stylesheet();
 	$template->content        = file_get_contents( $template_file['path'] );
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
