@@ -4852,7 +4852,10 @@ function wp_parse_args( $args, $defaults = array() ) {
 	}
 
 	if ( is_array( $defaults ) && $defaults ) {
-		return array_merge( $defaults, $parsed_args );
+		foreach ( $parsed_args as $key => $value ) {
+			$defaults[ $key ] = $value;
+		}
+		return $defaults;
 	}
 	return $parsed_args;
 }
