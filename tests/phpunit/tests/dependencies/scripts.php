@@ -3109,7 +3109,7 @@ HTML
 	 */
 	public function data_provider_script_move_to_footer() {
 		return array(
-			'footer-blocking-dependent-of-delayed-head-script' => array(
+			'footer-blocking-dependent-of-defer-head-script' => array(
 				'set_up'             => static function () {
 					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
@@ -3117,6 +3117,22 @@ HTML
 				'expected_header'    => '',
 				'expected_footer'    => '
 					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
+					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
+				',
+				'expected_in_footer' => array(
+					'script-a',
+					'script-b',
+				),
+			),
+
+			'footer-blocking-dependent-of-async-head-script' => array(
+				'set_up'             => static function () {
+					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'async' ) );
+					wp_enqueue_script( 'script-b', 'https://example.com/script-b.js', array( 'script-a' ), null, array( 'in_footer' => true ) );
+				},
+				'expected_header'    => '',
+				'expected_footer'    => '
+					<script type="text/javascript" src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="async"></script>
 					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js"></script>
 				',
 				'expected_in_footer' => array(
