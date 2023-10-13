@@ -86,6 +86,12 @@ These commands run the PHP and end-to-end test suites, respectively:
 npm run test:php
 npm run test:e2e
 ```
+You can pass extra params into the php tests by adding -- and then the [param options](https://docs.phpunit.de/en/10.4/textui.html#command-line-options)
+
+```
+npm run test:php -- --filter {test_name}
+npm run test:php -- --group {goup_name}
+```
 
 #### To restart the development environment
 
