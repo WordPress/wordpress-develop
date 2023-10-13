@@ -39,7 +39,7 @@ jobs:
   # - Creates a `wp-config.php` file.
   # - Installs WordPress.
   install-tests-mysql:
-    name: WP ${{ inputs.new-version || 'latest' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
+    name: WP ${{ inputs.wp-version || 'latest' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
