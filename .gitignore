@@ -100,4 +100,4 @@ wp-tests-config.php
 /docker-compose.override.yml
 
 # Visual regression test diffs
-tests/visual-regression/specs/__image_snapshots__
+tests/visual-regression/specs/__snapshots__
