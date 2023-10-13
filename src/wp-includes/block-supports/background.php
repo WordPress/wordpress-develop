@@ -90,7 +90,7 @@ function wp_render_background_support( $block_content, $block ) {
 			$existing_style = $tags->get_attribute( 'style' );
 			$updated_style  = '';
 
-			if ( ! empty( $existing_style ) ) {
+			if ( is_string( $existing_style ) && ! empty( $existing_style ) ) {
 				$updated_style = $existing_style;
 				if ( ! str_ends_with( $existing_style, ';' ) ) {
 					$updated_style .= ';';
