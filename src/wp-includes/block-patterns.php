@@ -356,7 +356,7 @@ function _register_theme_block_patterns() {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
-						/* translators: 1: file name. */
+						/* translators: %s: file name. */
 						__( 'Could not register file "%s" as a block pattern as the file does not exist.' ),
 						$file
 					),
