@@ -25,7 +25,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_wpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	/**
 	 * Fails to assert if the HTML Processor handles the given tag.
 	 *
@@ -44,7 +44,7 @@ class Tests_HtmlApi_wpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 * @param string $tag_name the HTML Processor should abort when encountering this tag, e.g. "BUTTON".
 	 */
 	private function ensure_support_is_added_everywhere( $tag_name ) {
-		$p = WP_HTML_Processor::createFragment( "<$tag_name>" );
+		$p = WP_HTML_Processor::create_fragment( "<$tag_name>" );
 
 		$this->assertFalse( $p->step(), "Must support terminating elements in specific scope check before adding support for the {$tag_name} element." );
 	}
@@ -176,8 +176,6 @@ class Tests_HtmlApi_wpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
 		$this->ensure_support_is_added_everywhere( 'DESC' );
 		$this->ensure_support_is_added_everywhere( 'TITLE' );
-
-		$this->ensure_support_is_added_everywhere( 'BUTTON' );
 	}
 
 	/**
@@ -218,9 +216,6 @@ class Tests_HtmlApi_wpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
 		$this->ensure_support_is_added_everywhere( 'DESC' );
 		$this->ensure_support_is_added_everywhere( 'TITLE' );
-
-		// This element is specific to BUTTON scope.
-		$this->ensure_support_is_added_everywhere( 'BUTTON' );
 	}
 
 	/**
@@ -261,8 +256,6 @@ class Tests_HtmlApi_wpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
 		$this->ensure_support_is_added_everywhere( 'DESC' );
 		$this->ensure_support_is_added_everywhere( 'TITLE' );
-
-		$this->ensure_support_is_added_everywhere( 'BUTTON' );
 	}
 
 	/**

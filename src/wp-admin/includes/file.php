@@ -777,9 +777,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     An array of override parameters for this file, or boolean false if none are provided.
  *
  *     @type callable $upload_error_handler     Function to call when there is an error during the upload process.
- *                                              @see wp_handle_upload_error().
+ *                                              See {@see wp_handle_upload_error()}.
  *     @type callable $unique_filename_callback Function to call when determining a unique file name for the file.
- *                                              @see wp_unique_filename().
+ *                                              See {@see wp_unique_filename()}.
  *     @type string[] $upload_error_strings     The strings that describe the error indicated in
  *                                              `$_FILES[{form field}]['error']`.
  *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
@@ -845,7 +845,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * @since 5.7.0
 	 *
 	 * @param array|false $overrides An array of override parameters for this file. Boolean false if none are
-	 *                               provided. @see _wp_handle_upload().
+	 *                               provided. See {@see _wp_handle_upload()}.
 	 * @param array       $file      {
 	 *     Reference to a single element from `$_FILES`.
 	 *
@@ -1266,7 +1266,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
 	}
 
-	// Perform signature valiation if supported.
+	// Perform signature validation if supported.
 	if ( $signature_verification ) {
 		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
@@ -1493,7 +1493,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 		// Ensure only valid-length signatures are considered.
 		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
-			$skipped_signature++;
+			++$skipped_signature;
 			continue;
 		}
 
@@ -1502,7 +1502,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 
 			// Only pass valid public keys through.
 			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
-				$skipped_key++;
+				++$skipped_key;
 				continue;
 			}
 
@@ -1672,6 +1672,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 		$info = $z->statIndex( $i );
 
 		if ( ! $info ) {
+			$z->close();
 			return new WP_Error( 'stat_failed_ziparchive', __( 'Could not retrieve file from archive.' ) );
 		}
 
@@ -1697,6 +1698,9 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 		}
 	}
 
+	// Enough space to unzip the file and copy its contents, with a 10% buffer.
+	$required_space = $uncompressed_size * 2.1;
+
 	/*
 	 * disk_free_space() could return false. Assume that any falsey value is an error.
 	 * A disk that has zero free bytes has bigger problems.
@@ -1705,7 +1709,8 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	if ( wp_doing_cron() ) {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
-		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
+		if ( $available_space && ( $required_space > $available_space ) ) {
+			$z->close();
 			return new WP_Error(
 				'disk_full_unzip_file',
 				__( 'Could not copy files. You may have run out of disk space.' ),
@@ -1743,15 +1748,36 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	foreach ( $needed_dirs as $_dir ) {
 		// Only check to see if the Dir exists upon creation failure. Less I/O this way.
 		if ( ! $wp_filesystem->mkdir( $_dir, FS_CHMOD_DIR ) && ! $wp_filesystem->is_dir( $_dir ) ) {
+			$z->close();
 			return new WP_Error( 'mkdir_failed_ziparchive', __( 'Could not create directory.' ), $_dir );
 		}
 	}
-	unset( $needed_dirs );
+
+	/**
+	 * Filters archive unzipping to override with a custom process.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param null|true|WP_Error $result         The result of the override. True on success, otherwise WP Error. Default null.
+	 * @param string             $file           Full path and filename of ZIP archive.
+	 * @param string             $to             Full path on the filesystem to extract archive to.
+	 * @param string[]           $needed_dirs    A full list of required folders that need to be created.
+	 * @param float              $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
+	 */
+	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
+
+	if ( null !== $pre ) {
+		// Ensure the ZIP file archive has been closed.
+		$z->close();
+
+		return $pre;
+	}
 
 	for ( $i = 0; $i < $z->numFiles; $i++ ) {
 		$info = $z->statIndex( $i );
 
 		if ( ! $info ) {
+			$z->close();
 			return new WP_Error( 'stat_failed_ziparchive', __( 'Could not retrieve file from archive.' ) );
 		}
 
@@ -1771,17 +1797,34 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 		$contents = $z->getFromIndex( $i );
 
 		if ( false === $contents ) {
+			$z->close();
 			return new WP_Error( 'extract_failed_ziparchive', __( 'Could not extract file from archive.' ), $info['name'] );
 		}
 
 		if ( ! $wp_filesystem->put_contents( $to . $info['name'], $contents, FS_CHMOD_FILE ) ) {
+			$z->close();
 			return new WP_Error( 'copy_failed_ziparchive', __( 'Could not copy file.' ), $info['name'] );
 		}
 	}
 
 	$z->close();
 
-	return true;
+	/**
+	 * Filters the result of unzipping an archive.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param true|WP_Error $result         The result of unzipping the archive. True on success, otherwise WP_Error. Default true.
+	 * @param string        $file           Full path and filename of ZIP archive.
+	 * @param string        $to             Full path on the filesystem the archive was extracted to.
+	 * @param string[]      $needed_dirs    A full list of required folders that were created.
+	 * @param float         $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
+	 */
+	$result = apply_filters( 'unzip_file', true, $file, $to, $needed_dirs, $required_space );
+
+	unset( $needed_dirs );
+
+	return $result;
 }
 
 /**
@@ -1838,6 +1881,9 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		$needed_dirs[] = $to . untrailingslashit( $file['folder'] ? $file['filename'] : dirname( $file['filename'] ) );
 	}
 
+	// Enough space to unzip the file and copy its contents, with a 10% buffer.
+	$required_space = $uncompressed_size * 2.1;
+
 	/*
 	 * disk_free_space() could return false. Assume that any falsey value is an error.
 	 * A disk that has zero free bytes has bigger problems.
@@ -1846,7 +1892,7 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 	if ( wp_doing_cron() ) {
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( WP_CONTENT_DIR ) : false;
 
-		if ( $available_space && ( $uncompressed_size * 2.1 ) > $available_space ) {
+		if ( $available_space && ( $required_space > $available_space ) ) {
 			return new WP_Error(
 				'disk_full_unzip_file',
 				__( 'Could not copy files. You may have run out of disk space.' ),
@@ -1887,7 +1933,13 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 			return new WP_Error( 'mkdir_failed_pclzip', __( 'Could not create directory.' ), $_dir );
 		}
 	}
-	unset( $needed_dirs );
+
+	/** This filter is documented in src/wp-admin/includes/file.php */
+	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
+
+	if ( null !== $pre ) {
+		return $pre;
+	}
 
 	// Extract the files from the zip.
 	foreach ( $archive_files as $file ) {
@@ -1909,7 +1961,12 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 		}
 	}
 
-	return true;
+	/** This action is documented in src/wp-admin/includes/file.php */
+	$result = apply_filters( 'unzip_file', true, $file, $to, $needed_dirs, $required_space );
+
+	unset( $needed_dirs );
+
+	return $result;
 }
 
 /**
@@ -2426,7 +2483,13 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		if ( is_wp_error( $error ) ) {
 			$error_string = esc_html( $error->get_error_message() );
 		}
-		echo '<div id="message" class="error"><p>' . $error_string . '</p></div>';
+		wp_admin_notice(
+			$error_string,
+			array(
+				'id'                 => 'message',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 
 	$types = array();
@@ -2701,7 +2764,6 @@ function wp_opcache_invalidate_directory( $dir ) {
 				__( '%s expects a non-empty string.' ),
 				'<code>wp_opcache_invalidate_directory()</code>'
 			);
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
 			trigger_error( $error_message );
 		}
 		return;
@@ -2726,7 +2788,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 	 *                        with sub-directories represented as nested arrays.
 	 * @param string $path    Absolute path to the directory.
 	 */
-	$invalidate_directory = static function( $dirlist, $path ) use ( &$invalidate_directory ) {
+	$invalidate_directory = static function ( $dirlist, $path ) use ( &$invalidate_directory ) {
 		$path = trailingslashit( $path );
 
 		foreach ( $dirlist as $name => $details ) {

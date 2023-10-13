@@ -311,25 +311,24 @@ function post_submit_meta_box( $post, $args = array() ) {
 		endif;
 
 		if ( 'draft' === $post->post_status && get_post_meta( $post_id, '_customize_changeset_uuid', true ) ) :
-			?>
-			<div class="notice notice-info notice-alt inline">
-				<p>
-					<?php
-					printf(
-						/* translators: %s: URL to the Customizer. */
-						__( 'This draft comes from your <a href="%s">unpublished customization changes</a>. You can edit, but there is no need to publish now. It will be published automatically with those changes.' ),
-						esc_url(
-							add_query_arg(
-								'changeset_uuid',
-								rawurlencode( get_post_meta( $post_id, '_customize_changeset_uuid', true ) ),
-								admin_url( 'customize.php' )
-							)
-						)
-					);
-					?>
-				</p>
-			</div>
-			<?php
+			$message = sprintf(
+				/* translators: %s: URL to the Customizer. */
+				__( 'This draft comes from your <a href="%s">unpublished customization changes</a>. You can edit, but there is no need to publish now. It will be published automatically with those changes.' ),
+				esc_url(
+					add_query_arg(
+						'changeset_uuid',
+						rawurlencode( get_post_meta( $post_id, '_customize_changeset_uuid', true ) ),
+						admin_url( 'customize.php' )
+					)
+				)
+			);
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'notice-alt', 'inline' ),
+				)
+			);
 		endif;
 
 		/**
@@ -902,8 +901,8 @@ function post_comment_meta_box( $post ) {
 	$total         = get_comments(
 		array(
 			'post_id' => $post->ID,
-			'number'  => 1,
 			'count'   => true,
+			'orderby' => 'none',
 		)
 	);
 	$wp_list_table = _get_list_table( 'WP_Post_Comments_List_Table' );
@@ -1033,7 +1032,7 @@ function page_attributes_meta_box( $post ) {
 		endif; // End empty pages check.
 	endif;  // End hierarchical check.
 
-	if ( count( get_page_templates( $post ) ) > 0 && get_option( 'page_for_posts' ) != $post->ID ) :
+	if ( count( get_page_templates( $post ) ) > 0 && (int) get_option( 'page_for_posts' ) !== $post->ID ) :
 		$template = ! empty( $post->page_template ) ? $post->page_template : false;
 		?>
 <p class="post-attributes-label-wrapper page-template-label-wrapper"><label class="post-attributes-label" for="page_template"><?php _e( 'Template' ); ?></label>
@@ -1496,7 +1495,7 @@ function link_advanced_meta_box( $link ) {
 		<?php
 		for ( $rating = 0; $rating <= 10; $rating++ ) {
 			echo '<option value="' . $rating . '"';
-			if ( isset( $link->link_rating ) && $link->link_rating == $rating ) {
+			if ( isset( $link->link_rating ) && $link->link_rating === $rating ) {
 				echo ' selected="selected"';
 			}
 			echo '>' . $rating . '</option>';

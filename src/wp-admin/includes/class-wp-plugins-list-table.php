@@ -728,7 +728,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$suffix = 2;
 		while ( in_array( $plugin_id_attr, $plugin_id_attrs, true ) ) {
 			$plugin_id_attr = "$plugin_slug-$suffix";
-			$suffix++;
+			++$suffix;
 		}
 
 		$plugin_id_attrs[] = $plugin_id_attr;
@@ -993,12 +993,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$checkbox = '';
 		} else {
 			$checkbox = sprintf(
-				'<label class="label-covers-full-cell" for="%1$s"><span class="screen-reader-text">%2$s</span></label>' .
-				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" />',
+				'<input type="checkbox" name="checked[]" value="%1$s" id="%2$s" />' .
+				'<label for="%2$s"><span class="screen-reader-text">%3$s</span></label>',
+				esc_attr( $plugin_file ),
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
-				sprintf( __( 'Select %s' ), $plugin_data['Name'] ),
-				esc_attr( $plugin_file )
+				sprintf( __( 'Select %s' ), $plugin_data['Name'] )
 			);
 		}
 
@@ -1243,7 +1243,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					 */
 					echo apply_filters( 'plugin_auto_update_setting_html', $html, $plugin_file, $plugin_data );
 
-					echo '<div class="notice notice-error notice-alt inline hidden"><p></p></div>';
+					wp_admin_notice(
+						'',
+						array(
+							'type'               => 'error',
+							'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+						)
+					);
+
 					echo '</td>';
 
 					break;
@@ -1273,58 +1280,65 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		if ( ! $compatible_php || ! $compatible_wp ) {
 			printf(
-				'<tr class="plugin-update-tr">' .
-				'<td colspan="%s" class="plugin-update colspanchange">' .
-				'<div class="update-message notice inline notice-error notice-alt"><p>',
+				'<tr class="plugin-update-tr"><td colspan="%s" class="plugin-update colspanchange">',
 				esc_attr( $this->get_column_count() )
 			);
 
+			$incompatible_message = '';
 			if ( ! $compatible_php && ! $compatible_wp ) {
-				_e( 'This plugin does not work with your versions of WordPress and PHP.' );
+				$incompatible_message .= __( 'This plugin does not work with your versions of WordPress and PHP.' );
 				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
-					printf(
+					$incompatible_message .= sprintf(
 						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
 						' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
 						self_admin_url( 'update-core.php' ),
 						esc_url( wp_get_update_php_url() )
 					);
-					wp_update_php_annotation( '</p><p><em>', '</em>' );
+					$incompatible_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 				} elseif ( current_user_can( 'update_core' ) ) {
-					printf(
+					$incompatible_message .= sprintf(
 						/* translators: %s: URL to WordPress Updates screen. */
 						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 						self_admin_url( 'update-core.php' )
 					);
 				} elseif ( current_user_can( 'update_php' ) ) {
-					printf(
+					$incompatible_message .= sprintf(
 						/* translators: %s: URL to Update PHP page. */
 						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
 						esc_url( wp_get_update_php_url() )
 					);
-					wp_update_php_annotation( '</p><p><em>', '</em>' );
+					$incompatible_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 				}
 			} elseif ( ! $compatible_wp ) {
-				_e( 'This plugin does not work with your version of WordPress.' );
+				$incompatible_message .= __( 'This plugin does not work with your version of WordPress.' );
 				if ( current_user_can( 'update_core' ) ) {
-					printf(
+					$incompatible_message .= sprintf(
 						/* translators: %s: URL to WordPress Updates screen. */
 						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 						self_admin_url( 'update-core.php' )
 					);
 				}
 			} elseif ( ! $compatible_php ) {
-				_e( 'This plugin does not work with your version of PHP.' );
+				$incompatible_message .= __( 'This plugin does not work with your version of PHP.' );
 				if ( current_user_can( 'update_php' ) ) {
-					printf(
+					$incompatible_message .= sprintf(
 						/* translators: %s: URL to Update PHP page. */
 						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
 						esc_url( wp_get_update_php_url() )
 					);
-					wp_update_php_annotation( '</p><p><em>', '</em>' );
+					$incompatible_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 				}
 			}
 
-			echo '</p></div></td></tr>';
+			wp_admin_notice(
+				$incompatible_message,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'notice-alt', 'inline', 'update-message' ),
+				)
+			);
+
+			echo '</td></tr>';
 		}
 
 		/**

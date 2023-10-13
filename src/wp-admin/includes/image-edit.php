@@ -32,15 +32,16 @@ function wp_image_editor( $post_id, $msg = false ) {
 
 	$backup_sizes = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
 	$can_restore  = false;
+
 	if ( ! empty( $backup_sizes ) && isset( $backup_sizes['full-orig'], $meta['file'] ) ) {
 		$can_restore = wp_basename( $meta['file'] ) !== $backup_sizes['full-orig']['file'];
 	}
 
 	if ( $msg ) {
 		if ( isset( $msg->error ) ) {
-			$note = "<div class='notice notice-error' tabindex='-1' role='alert'><p>$msg->error</p></div>";
+			$note = "<div class='notice notice-error' role='alert'><p>$msg->error</p></div>";
 		} elseif ( isset( $msg->msg ) ) {
-			$note = "<div class='notice notice-success' tabindex='-1' role='alert'><p>$msg->msg</p></div>";
+			$note = "<div class='notice notice-success' role='alert'><p>$msg->msg</p></div>";
 		}
 	}
 
@@ -62,7 +63,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 			<button type="button" onclick="imageEdit.toggleCropTool( <?php echo "$post_id, '$nonce'"; ?>, this );" aria-expanded="false" aria-controls="imgedit-crop" class="imgedit-crop button disabled" disabled><?php esc_html_e( 'Crop' ); ?></button>
 			<button type="button" class="imgedit-scale button" onclick="imageEdit.toggleControls(this);" aria-expanded="false" aria-controls="imgedit-scale"><?php esc_html_e( 'Scale' ); ?></button>
 			<div class="imgedit-rotate-menu-container">
-				<button type="button" aria-controls="imgedit-rotate-menu" class="imgedit-rotate button" aria-expanded="false" onclick="imageEdit.togglePopup(this)"><?php esc_html_e( 'Image Rotation' ); ?></button>
+				<button type="button" aria-controls="imgedit-rotate-menu" class="imgedit-rotate button" aria-expanded="false" onclick="imageEdit.togglePopup(this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Image Rotation' ); ?></button>
 				<div id="imgedit-rotate-menu" class="imgedit-popup-menu">
 			<?php
 			// On some setups GD library does not provide imagerotate() - Ticket #11536.
@@ -74,9 +75,9 @@ function wp_image_editor( $post_id, $msg = false ) {
 			) ) {
 				$note_no_rotate = '';
 				?>
-					<button type="button" class="imgedit-rleft button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate( 90, <?php echo "$post_id, '$nonce'"; ?>, this)"><?php esc_html_e( 'Rotate 90° left' ); ?></button>
-					<button type="button" class="imgedit-rright button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate(-90, <?php echo "$post_id, '$nonce'"; ?>, this)"><?php esc_html_e( 'Rotate 90° right' ); ?></button>
-					<button type="button" class="imgedit-rfull button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate(180, <?php echo "$post_id, '$nonce'"; ?>, this)"><?php esc_html_e( 'Rotate 180°' ); ?></button>
+					<button type="button" class="imgedit-rleft button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate( 90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; left' ); ?></button>
+					<button type="button" class="imgedit-rright button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate(-90, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 90&deg; right' ); ?></button>
+					<button type="button" class="imgedit-rfull button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.rotate(180, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()"><?php esc_html_e( 'Rotate 180&deg;' ); ?></button>
 				<?php
 			} else {
 				$note_no_rotate = '<p class="note-no-rotate"><em>' . __( 'Image rotation is not supported by your web host.' ) . '</em></p>';
@@ -87,8 +88,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 			}
 			?>
 					<hr />
-					<button type="button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.flip(1, <?php echo "$post_id, '$nonce'"; ?>, this)" class="imgedit-flipv button"><?php esc_html_e( 'Flip vertical' ); ?></button>
-					<button type="button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.flip(2, <?php echo "$post_id, '$nonce'"; ?>, this)" class="imgedit-fliph button"><?php esc_html_e( 'Flip horizontal' ); ?></button>
+					<button type="button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.flip(1, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-flipv button"><?php esc_html_e( 'Flip vertical' ); ?></button>
+					<button type="button" onkeyup="imageEdit.browsePopup(this)" onclick="imageEdit.flip(2, <?php echo "$post_id, '$nonce'"; ?>, this)" onblur="imageEdit.monitorPopup()" class="imgedit-fliph button"><?php esc_html_e( 'Flip horizontal' ); ?></button>
 					<?php echo $note_no_rotate; ?>
 				</div>
 			</div>
@@ -636,15 +637,18 @@ function image_edit_apply_changes( $image, $changes ) {
 			$obj->sel  = $obj->c;
 			unset( $obj->c );
 		}
+
 		$changes[ $key ] = $obj;
 	}
 
 	// Combine operations.
 	if ( count( $changes ) > 1 ) {
 		$filtered = array( $changes[0] );
+
 		for ( $i = 0, $j = 1, $c = count( $changes ); $j < $c; $j++ ) {
 			$combined = false;
-			if ( $filtered[ $i ]->type == $changes[ $j ]->type ) {
+
+			if ( $filtered[ $i ]->type === $changes[ $j ]->type ) {
 				switch ( $filtered[ $i ]->type ) {
 					case 'rotate':
 						$filtered[ $i ]->angle += $changes[ $j ]->angle;
@@ -656,10 +660,12 @@ function image_edit_apply_changes( $image, $changes ) {
 						break;
 				}
 			}
+
 			if ( ! $combined ) {
 				$filtered[ ++$i ] = $changes[ $j ];
 			}
 		}
+
 		$changes = $filtered;
 		unset( $filtered );
 	}
@@ -693,7 +699,7 @@ function image_edit_apply_changes( $image, $changes ) {
 	foreach ( $changes as $operation ) {
 		switch ( $operation->type ) {
 			case 'rotate':
-				if ( 0 != $operation->angle ) {
+				if ( 0 !== $operation->angle ) {
 					if ( $image instanceof WP_Image_Editor ) {
 						$image->rotate( $operation->angle );
 					} else {
@@ -702,11 +708,11 @@ function image_edit_apply_changes( $image, $changes ) {
 				}
 				break;
 			case 'flip':
-				if ( 0 != $operation->axis ) {
+				if ( 0 !== $operation->axis ) {
 					if ( $image instanceof WP_Image_Editor ) {
-						$image->flip( ( $operation->axis & 1 ) != 0, ( $operation->axis & 2 ) != 0 );
+						$image->flip( ( $operation->axis & 1 ) !== 0, ( $operation->axis & 2 ) !== 0 );
 					} else {
-						$image = _flip_image_resource( $image, ( $operation->axis & 1 ) != 0, ( $operation->axis & 2 ) != 0 );
+						$image = _flip_image_resource( $image, ( $operation->axis & 1 ) !== 0, ( $operation->axis & 2 ) !== 0 );
 					}
 				}
 				break;
@@ -801,9 +807,8 @@ function wp_restore_image( $post_id ) {
 	if ( isset( $backup_sizes['full-orig'] ) && is_array( $backup_sizes['full-orig'] ) ) {
 		$data = $backup_sizes['full-orig'];
 
-		if ( $parts['basename'] != $data['file'] ) {
+		if ( $parts['basename'] !== $data['file'] ) {
 			if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE ) {
-
 				// Delete only if it's an edited image.
 				if ( preg_match( '/-e[0-9]{13}\./', $parts['basename'] ) ) {
 					wp_delete_file( $file );
@@ -828,9 +833,9 @@ function wp_restore_image( $post_id ) {
 	foreach ( $default_sizes as $default_size ) {
 		if ( isset( $backup_sizes[ "$default_size-orig" ] ) ) {
 			$data = $backup_sizes[ "$default_size-orig" ];
-			if ( isset( $meta['sizes'][ $default_size ] ) && $meta['sizes'][ $default_size ]['file'] != $data['file'] ) {
-				if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE ) {
 
+			if ( isset( $meta['sizes'][ $default_size ] ) && $meta['sizes'][ $default_size ]['file'] !== $data['file'] ) {
+				if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE ) {
 					// Delete only if it's an edited image.
 					if ( preg_match( '/-e[0-9]{13}-/', $meta['sizes'][ $default_size ]['file'] ) ) {
 						$delete_file = path_join( $parts['dirname'], $meta['sizes'][ $default_size ]['file'] );
@@ -847,9 +852,9 @@ function wp_restore_image( $post_id ) {
 		}
 	}
 
-	if ( ! wp_update_attachment_metadata( $post_id, $meta ) ||
-		( $old_backup_sizes !== $backup_sizes && ! update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backup_sizes ) ) ) {
-
+	if ( ! wp_update_attachment_metadata( $post_id, $meta )
+		|| ( $old_backup_sizes !== $backup_sizes && ! update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backup_sizes ) )
+	) {
 		$msg->error = __( 'Cannot save image metadata.' );
 		return $msg;
 	}
@@ -858,6 +863,7 @@ function wp_restore_image( $post_id ) {
 		$msg->error = __( 'Image metadata is inconsistent.' );
 	} else {
 		$msg->msg = __( 'Image restored successfully.' );
+
 		if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE ) {
 			delete_post_meta( $post_id, '_wp_attachment_backup_sizes' );
 		}
@@ -886,35 +892,36 @@ function wp_save_image( $post_id ) {
 	$post    = get_post( $post_id );
 
 	$img = wp_get_image_editor( _load_image_to_edit_path( $post_id, 'full' ) );
+
 	if ( is_wp_error( $img ) ) {
 		$return->error = esc_js( __( 'Unable to create new image.' ) );
 		return $return;
 	}
 
-	$fwidth  = ! empty( $_REQUEST['fwidth'] ) ? (int) $_REQUEST['fwidth'] : 0;
-	$fheight = ! empty( $_REQUEST['fheight'] ) ? (int) $_REQUEST['fheight'] : 0;
-	$target  = ! empty( $_REQUEST['target'] ) ? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['target'] ) : '';
-	$scale   = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
+	$full_width  = ! empty( $_REQUEST['fwidth'] ) ? (int) $_REQUEST['fwidth'] : 0;
+	$full_height = ! empty( $_REQUEST['fheight'] ) ? (int) $_REQUEST['fheight'] : 0;
+	$target      = ! empty( $_REQUEST['target'] ) ? preg_replace( '/[^a-z0-9_-]+/i', '', $_REQUEST['target'] ) : '';
+	$scale       = ! empty( $_REQUEST['do'] ) && 'scale' === $_REQUEST['do'];
 
 	/** This filter is documented in wp-admin/includes/image-edit.php */
 	$edit_thumbnails_separately = (bool) apply_filters( 'image_edit_thumbnails_separately', false );
 
 	if ( $scale ) {
-		$size = $img->get_size();
-		$sX   = $size['width'];
-		$sY   = $size['height'];
+		$size            = $img->get_size();
+		$original_width  = $size['width'];
+		$original_height = $size['height'];
 
-		if ( $sX < $fwidth || $sY < $fheight ) {
+		if ( $full_width > $original_width || $full_height > $original_height ) {
 			$return->error = esc_js( __( 'Images cannot be scaled to a size larger than the original.' ) );
 			return $return;
 		}
 
-		if ( $fwidth > 0 && $fheight > 0 ) {
+		if ( $full_width > 0 && $full_height > 0 ) {
 			// Check if it has roughly the same w / h ratio.
-			$diff = round( $sX / $sY, 2 ) - round( $fwidth / $fheight, 2 );
+			$diff = round( $original_width / $original_height, 2 ) - round( $full_width / $full_height, 2 );
 			if ( -0.1 < $diff && $diff < 0.1 ) {
 				// Scale the full size image.
-				if ( $img->resize( $fwidth, $fheight ) ) {
+				if ( $img->resize( $full_width, $full_height ) ) {
 					$scaled = true;
 				}
 			}
@@ -955,8 +962,9 @@ function wp_save_image( $post_id ) {
 	$filename = pathinfo( $path, PATHINFO_FILENAME );
 	$suffix   = time() . rand( 100, 999 );
 
-	if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE &&
-		isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] != $basename ) {
+	if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE
+		&& isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] !== $basename
+	) {
 
 		if ( $edit_thumbnails_separately && 'thumbnail' === $target ) {
 			$new_path = "{$dirname}/{$filename}-temp.{$ext}";
@@ -969,8 +977,9 @@ function wp_save_image( $post_id ) {
 			$filename    .= "-e{$suffix}";
 			$new_filename = "{$filename}.{$ext}";
 			$new_path     = "{$dirname}/$new_filename";
+
 			if ( file_exists( $new_path ) ) {
-				$suffix++;
+				++$suffix;
 			} else {
 				break;
 			}
@@ -985,8 +994,11 @@ function wp_save_image( $post_id ) {
 
 	if ( 'nothumb' === $target || 'all' === $target || 'full' === $target || $scaled ) {
 		$tag = false;
+
 		if ( isset( $backup_sizes['full-orig'] ) ) {
-			if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE ) && $backup_sizes['full-orig']['file'] !== $basename ) {
+			if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE )
+				&& $backup_sizes['full-orig']['file'] !== $basename
+			) {
 				$tag = "full-$suffix";
 			}
 		} else {
@@ -1000,6 +1012,7 @@ function wp_save_image( $post_id ) {
 				'file'   => $basename,
 			);
 		}
+
 		$success = ( $path === $new_path ) || update_attached_file( $post_id, $new_path );
 
 		$meta['file'] = _wp_relative_upload_path( $new_path );
@@ -1045,9 +1058,12 @@ function wp_save_image( $post_id ) {
 
 		foreach ( $sizes as $size ) {
 			$tag = false;
+
 			if ( isset( $meta['sizes'][ $size ] ) ) {
 				if ( isset( $backup_sizes[ "$size-orig" ] ) ) {
-					if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE ) && $backup_sizes[ "$size-orig" ]['file'] != $meta['sizes'][ $size ]['file'] ) {
+					if ( ( ! defined( 'IMAGE_EDIT_OVERWRITE' ) || ! IMAGE_EDIT_OVERWRITE )
+						&& $backup_sizes[ "$size-orig" ]['file'] !== $meta['sizes'][ $size ]['file']
+					) {
 						$tag = "$size-$suffix";
 					}
 				} else {
@@ -1088,10 +1104,12 @@ function wp_save_image( $post_id ) {
 		if ( 'thumbnail' === $target || 'all' === $target || 'full' === $target ) {
 			// Check if it's an image edit from attachment edit screen.
 			if ( ! empty( $_REQUEST['context'] ) && 'edit-attachment' === $_REQUEST['context'] ) {
-				$thumb_url         = wp_get_attachment_image_src( $post_id, array( 900, 600 ), true );
+				$thumb_url = wp_get_attachment_image_src( $post_id, array( 900, 600 ), true );
+
 				$return->thumbnail = $thumb_url[0];
 			} else {
 				$file_url = wp_get_attachment_url( $post_id );
+
 				if ( ! empty( $meta['sizes']['thumbnail'] ) ) {
 					$thumb             = $meta['sizes']['thumbnail'];
 					$return->thumbnail = path_join( dirname( $file_url ), $thumb['file'] );
@@ -1109,5 +1127,6 @@ function wp_save_image( $post_id ) {
 	}
 
 	$return->msg = esc_js( __( 'Image saved' ) );
+
 	return $return;
 }

@@ -35,7 +35,7 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only supports Node.js `14.x` and npm `6.x`.
+**Note:** WordPress currently only officially supports Node.js `16.x` and npm `8.x`.
 
 You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
 

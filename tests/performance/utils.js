@@ -16,18 +16,24 @@ function median( array ) {
 /**
  * Gets the result file name.
  *
- * @param {string} File name.
+ * @param {string} fileName File name.
  *
  * @return {string} Result file name.
  */
 function getResultsFilename( fileName ) {
-	const prefixArg = process.argv.find( ( arg ) => arg.startsWith( '--prefix' ) );
-	const fileNamePrefix = prefixArg ? `${prefixArg.split( '=' )[1]}-` : '';
-	const resultsFilename = fileNamePrefix + fileName + '.results.json';
-	return resultsFilename;
+	const prefix = process.env.TEST_RESULTS_PREFIX;
+	const fileNamePrefix = prefix ? `${ prefix.split( '=' )[ 1 ] }-` : '';
+	return `${fileNamePrefix + fileName}.results.json`;
+}
+
+function camelCaseDashes( str ) {
+	return str.replace( /-([a-z])/g, function( g ) {
+		return g[ 1 ].toUpperCase();
+	} );
 }
 
 module.exports = {
 	median,
 	getResultsFilename,
+	camelCaseDashes,
 };

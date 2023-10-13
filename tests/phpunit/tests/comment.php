@@ -481,7 +481,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			'The comment is not an instance of WP_Comment.'
 		);
 
-		$this->assertObjectHasAttribute(
+		$this->assertObjectHasProperty(
 			'comment_author',
 			$comment,
 			'The comment object does not have a "comment_author" property.'
@@ -1012,7 +1012,6 @@ class Tests_Comment extends WP_UnitTestCase {
 			),
 			$this->preprocess_comment_data
 		);
-
 	}
 
 	public function filter_preprocess_comment( $commentdata ) {

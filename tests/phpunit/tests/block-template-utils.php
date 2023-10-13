@@ -161,6 +161,105 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertEmpty( $template_part->modified );
 	}
 
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_inject_theme_attribute_in_template_part_block() {
+		$template_part_block = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
+		$expected = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => get_stylesheet(),
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+		$this->assertSame(
+			$expected,
+			$template_part_block,
+			'`theme` attribute was not correctly injected in template part block.'
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_in_template_part_block_theme_attribute_exists() {
+		$template_part_block = array(
+			'blockName'    => 'core/template-part',
+			'attrs'        => array(
+				'slug'      => 'header',
+				'align'     => 'full',
+				'tagName'   => 'header',
+				'className' => 'site-header',
+				'theme'     => 'fake-theme',
+			),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$expected = $template_part_block;
+		_inject_theme_attribute_in_template_part_block( $template_part_block );
+		$this->assertSame(
+			$expected,
+			$template_part_block,
+			'Existing `theme` attribute in template part block was not respected by attribute injection.'
+		);
+	}
+
+	/**
+	 * @ticket 59338
+	 *
+	 * @covers ::_inject_theme_attribute_in_template_part_block
+	 */
+	public function test_not_inject_theme_attribute_non_template_part_block() {
+		$non_template_part_block = array(
+			'blockName'    => 'core/post-content',
+			'attrs'        => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+			'innerBlocks'  => array(),
+		);
+
+		$expected = $non_template_part_block;
+		_inject_theme_attribute_in_template_part_block( $non_template_part_block );
+		$this->assertSame(
+			$expected,
+			$non_template_part_block,
+			'`theme` attribute injection modified non-template-part block.'
+		);
+	}
+
+	/**
+	 * @ticket 59452
+	 *
+	 * @covers ::_inject_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _inject_theme_attribute_in_block_template_content
+	 */
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
@@ -204,11 +303,37 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54448
+	 * @ticket 59460
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
 	 */
 	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+	}
+
+	/**
+	 * @ticket 59460
+	 *
+	 * @covers ::_remove_theme_attribute_from_template_part_block
+	 * @covers ::traverse_and_serialize_blocks
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @param string $template_content The template markup.
+	 * @param string $expected         The expected markup after removing the theme attribute from Template Part blocks.
+	 */
+	public function test_remove_theme_attribute_from_template_part_block( $template_content, $expected ) {
+		$template_content_parsed_blocks = parse_blocks( $template_content );
+
+		$this->assertSame(
+			$expected,
+			traverse_and_serialize_blocks(
+				$template_content_parsed_blocks,
+				'_remove_theme_attribute_from_template_part_block'
+			)
+		);
 	}
 
 	public function data_remove_theme_attribute_in_block_template_content() {
