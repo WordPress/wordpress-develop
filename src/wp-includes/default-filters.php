@@ -613,6 +613,15 @@ add_action( 'wp_head', 'wp_maybe_inline_styles', 1 ); // Run for styles enqueued
 add_action( 'wp_footer', 'wp_maybe_inline_styles', 1 ); // Run for late-loaded styles in the footer.
 
 /*
+ * Block specific actions and filters.
+ */
+
+// Footnotes Block.
+add_action( 'init', '_wp_footnotes_kses_init' );
+add_action( 'set_current_user', '_wp_footnotes_kses_init' );
+add_filter( 'force_filtered_html_on_import', '_wp_footnotes_force_filtered_html_on_import_filter', 999 );
+
+/*
  * Disable "Post Attributes" for wp_navigation post type. The attributes are
  * also conditionally enabled when a site has custom templates. Block Theme
  * templates can be available for every post type.
@@ -710,6 +719,9 @@ add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template
 add_action( 'wp_footer', 'the_block_template_skip_link' );
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
+
+// wp_navigation post type.
+add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', 'update_wp_navigation_post_schema' ) );
 
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
