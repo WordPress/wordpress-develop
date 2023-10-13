@@ -2020,8 +2020,7 @@ class WP_Query {
 		}
 
 		if ( isset( $q['page'] ) ) {
-			$q['page'] = trim( $q['page'], '/' );
-			$q['page'] = absint( $q['page'] );
+			$q['page'] = is_scalar( $q['page'] ) ? absint( trim( $q['page'], '/' ) ) : 0;
 		}
 
 		// If true, forcibly turns off SQL_CALC_FOUND_ROWS even when limits are present.
@@ -3191,7 +3190,7 @@ class WP_Query {
 
 						return $this->posts;
 					} elseif ( 'id=>parent' === $q['fields'] ) {
-						_prime_post_parents_caches( $post_ids );
+						_prime_post_parent_id_caches( $post_ids );
 
 						/** @var int[] */
 						$post_parents = wp_cache_get_multiple( $post_ids, 'post_parent' );
