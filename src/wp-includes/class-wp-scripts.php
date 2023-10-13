@@ -316,7 +316,6 @@ class WP_Scripts extends WP_Dependencies {
 			$this->are_all_dependents_in_footer( $handle )
 		) {
 			$this->in_footer[] = $handle;
-			$this->set_group( $handle, 1 );
 			return false;
 		}
 
