@@ -18,7 +18,6 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 	 *
 	 * @param string $theme    The theme's slug.
 	 * @param array  $expected The expected pattern data.
-
 	 */
 	public function test_should_return_block_patterns( $theme, $expected ) {
 		$patterns = _wp_get_block_patterns( wp_get_theme( $theme ) );
@@ -116,6 +115,39 @@ class Tests_Blocks_WpGetBlockPatterns extends WP_UnitTestCase {
 				'theme'    => 'invalid',
 				'patterns' => array(),
 			),
+		);
+	}
+
+	/**
+	 * Tests that _wp_get_block_patterns() clears existing transient when in theme development mode.
+	 *
+	 * @ticket 59591
+	 */
+	public function test_should_clear_existing_transient_when_in_development_mode() {
+		$theme = wp_get_theme( 'block-theme-patterns' );
+
+		// Calling the function should set the cache.
+		_wp_get_block_patterns( $theme );
+		$this->assertSameSets(
+			array(
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
+				),
+			),
+			$theme->get_pattern_cache(),
+			'The transient for block theme patterns should be set'
+		);
+
+		// Calling the function while in theme development mode should clear the cache.
+		$GLOBALS['_wp_tests_development_mode'] = 'theme';
+		_wp_get_block_patterns( $theme );
+		unset( $GLOBALS['_wp_tests_development_mode'] ); // Reset to not pollute other tests.
+		$this->assertFalse(
+			$theme->get_pattern_cache(),
+			'The transient for block theme patterns should have been cleared due to theme development mode'
 		);
 	}
 }
