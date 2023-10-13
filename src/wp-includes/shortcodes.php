@@ -602,9 +602,8 @@ function get_shortcode_atts_regex() {
  * @since 2.5.0
  *
  * @param string $text Shortcode arguments list.
- * @return array|string Array of attribute values keyed by attribute name.
- *                      Returns empty array if there are no attributes.
- *                      Returns the original arguments string if it cannot be parsed.
+ * @return array Array of attribute values keyed by attribute name.
+ *                      Returns empty array if there are no attributes or the original arguments string if it cannot be parsed.
  */
 function shortcode_parse_atts( $text ) {
 	$atts    = array();
@@ -635,8 +634,6 @@ function shortcode_parse_atts( $text ) {
 				}
 			}
 		}
-	} else {
-		$atts = ltrim( $text );
 	}
 
 	return $atts;
