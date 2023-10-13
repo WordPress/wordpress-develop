@@ -351,23 +351,25 @@ function _register_theme_block_patterns() {
 			}
 
 			$file_path = $dirpath . $file;
-			// The actual pattern content is the output of the file.
-			ob_start();
-			@include $file_path;
-			$pattern_data['content'] = ob_get_clean();
-			if ( ! $pattern_data['content'] ) {
+
+			if ( ! file_exists( $file_path ) ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
 						/* translators: 1: file name. */
-						__( 'Could not register file "%s" as a block pattern as the file is empty.' ),
+						__( 'Could not register file "%s" as a block pattern as the file does not exist.' ),
 						$file
 					),
 					'6.4.0'
 				);
-				if ( ! file_exists( $file_path ) ) {
-					$theme->delete_pattern_cache();
-				}
+				$theme->delete_pattern_cache();
+			}
+
+			// The actual pattern content is the output of the file.
+			ob_start();
+			include $file_path;
+			$pattern_data['content'] = ob_get_clean();
+			if ( ! $pattern_data['content'] ) {
 				continue;
 			}
 
