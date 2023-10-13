@@ -381,14 +381,14 @@ class WP_Site_Health {
 
 		// Loop over the available plugins and check their versions and active state.
 		foreach ( $plugins as $plugin_path => $plugin ) {
-			$plugins_total++;
+			++$plugins_total;
 
 			if ( is_plugin_active( $plugin_path ) ) {
-				$plugins_active++;
+				++$plugins_active;
 			}
 
 			if ( array_key_exists( $plugin_path, $plugin_updates ) ) {
-				$plugins_need_update++;
+				++$plugins_need_update;
 			}
 		}
 
@@ -543,21 +543,21 @@ class WP_Site_Health {
 		}
 
 		foreach ( $all_themes as $theme_slug => $theme ) {
-			$themes_total++;
+			++$themes_total;
 
 			if ( array_key_exists( $theme_slug, $theme_updates ) ) {
-				$themes_need_updates++;
+				++$themes_need_updates;
 			}
 		}
 
 		// If this is a child theme, increase the allowed theme count by one, to account for the parent.
 		if ( is_child_theme() ) {
-			$allowed_theme_count++;
+			++$allowed_theme_count;
 		}
 
 		// If there's a default theme installed and not in use, we count that as allowed as well.
 		if ( $has_default_theme && ! $using_default_theme ) {
-			$allowed_theme_count++;
+			++$allowed_theme_count;
 		}
 
 		if ( $themes_total > $allowed_theme_count ) {
@@ -1356,13 +1356,8 @@ class WP_Site_Health {
 			}
 		}
 
-		if ( $wpdb->use_mysqli ) {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
-			$mysql_client_version = mysqli_get_client_info();
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			$mysql_client_version = mysql_get_client_info();
-		}
+		// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
+		$mysql_client_version = mysqli_get_client_info();
 
 		/*
 		 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
@@ -1560,10 +1555,9 @@ class WP_Site_Health {
 	 */
 	public function get_test_https_status() {
 		/*
-		 * Enforce fresh HTTPS detection results. This is normally invoked by using cron,
-		 * but for Site Health it should always rely on the latest results.
+		 * Check HTTPS detection results.
 		 */
-		wp_update_https_detection_errors();
+		$errors = wp_get_https_detection_errors();
 
 		$default_update_url = wp_get_default_update_https_url();
 
@@ -3298,11 +3292,11 @@ class WP_Site_Health {
 
 		foreach ( $results as $result ) {
 			if ( 'critical' === $result['status'] ) {
-				$site_status['critical']++;
+				++$site_status['critical'];
 			} elseif ( 'recommended' === $result['status'] ) {
-				$site_status['recommended']++;
+				++$site_status['recommended'];
 			} else {
-				$site_status['good']++;
+				++$site_status['good'];
 			}
 		}
 
@@ -3638,5 +3632,4 @@ class WP_Site_Health {
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}
-
 }

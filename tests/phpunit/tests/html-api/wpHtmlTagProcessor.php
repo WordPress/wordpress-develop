@@ -499,6 +499,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_next_tag_matches_decoded_class_names() {
+		$p = new WP_HTML_Tag_Processor( '<div class="&lt;egg&gt;">' );
+
+		$this->assertTrue( $p->next_tag( array( 'class_name' => '<egg>' ) ), 'Failed to find tag with HTML-encoded class name.' );
+	}
+
+	/**
 	 * @ticket 56299
 	 * @ticket 57852
 	 *
@@ -1049,15 +1060,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Removing an attribute that's listed many times, e.g. `<div id="a" id="b" />` should remove
 	 * all its instances and output just `<div />`.
 	 *
-	 * Today, however, WP_HTML_Tag_Processor only removes the first such attribute. It seems like a corner case
-	 * and introducing additional complexity to correctly handle this scenario doesn't seem to be worth it.
-	 * Let's revisit if and when this becomes a problem.
+	 * @since 6.3.2 Removes all duplicated attributes as expected.
 	 *
-	 * This test is in place to confirm this behavior, which while incorrect, is well-defined.
-	 * A later fix introduced to the Tag Processor should update this test to reflect the
-	 * wanted and correct behavior.
-	 *
-	 * @ticket 56299
+	 * @ticket 58119
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
@@ -1066,8 +1071,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'id' );
 
-		$this->assertSame(
-			'<div  id="ignored-id"><span id="second">Text</span></div>',
+		$this->assertStringNotContainsString(
+			'update-me',
 			$p->get_updated_html(),
 			'First attribute (when duplicates exist) was not removed'
 		);
@@ -1087,6 +1092,61 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'<div ><span id="second">Text</span></div>',
 			$p->get_updated_html(),
 			'Attribute was not removed'
+		);
+	}
+
+	/**
+	 * @ticket 58119
+	 *
+	 * @since 6.3.2 Removes all duplicated attributes as expected.
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_html_with_duplicated_attributes
+	 */
+	public function test_remove_attribute_with_duplicated_attributes_removes_all_of_them( $html_with_duplicate_attributes, $attribute_to_remove ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
+		$p->next_tag();
+
+		$p->remove_attribute( $attribute_to_remove );
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
+
+		// Recreate a tag processor with the updated HTML after removing the attribute.
+		$p = new WP_HTML_Tag_Processor( $p->get_updated_html() );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
+	}
+
+	/**
+	 * @ticket 58119
+	 *
+	 * @since 6.3.2 Removes all duplicated attributes as expected.
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 */
+	public function test_previous_duplicated_attributes_are_not_removed_on_successive_tag_removal() {
+		$p = new WP_HTML_Tag_Processor( '<span id=one id=two id=three><span id=four>' );
+		$p->next_tag();
+		$p->next_tag();
+		$p->remove_attribute( 'id' );
+
+		$this->assertSame( '<span id=one id=two id=three><span >', $p->get_updated_html() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @ticket 58119
+	 *
+	 * @return array[].
+	 */
+	public function data_html_with_duplicated_attributes() {
+		return array(
+			'Double attributes'               => array( '<div id=one id=two>', 'id' ),
+			'Triple attributes'               => array( '<div id=one id=two id=three>', 'id' ),
+			'Duplicates around another'       => array( '<img src="test.png" alt="kites flying in the wind" src="kites.jpg">', 'src' ),
+			'Case-variants of attribute'      => array( '<button disabled inert DISABLED dISaBled INERT DisABleD>', 'disabled' ),
+			'Case-variants of attribute name' => array( '<button disabled inert DISABLED dISaBled INERT DisABleD>', 'DISABLED' ),
 		);
 	}
 
@@ -1868,6 +1928,187 @@ HTML;
 				'rcdata_then_div' => '<textarea class="d-md-none"></title></textarea><div></div>',
 				'rcdata_tag'      => 'TEXTAREA',
 			),
+		);
+	}
+
+	/**
+	 * @ticket 59292
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_next_tag_ignores_contents_of_rawtext_tags
+	 *
+	 * @param string $rawtext_element_then_target_node HTML starting with a RAWTEXT-specifying element such as STYLE,
+	 *                                                 then an element afterward containing the "target" attribute.
+	 */
+	public function test_next_tag_ignores_contents_of_rawtext_tags( $rawtext_element_then_target_node ) {
+		$processor = new WP_HTML_Tag_Processor( $rawtext_element_then_target_node );
+		$processor->next_tag();
+
+		$processor->next_tag();
+		$this->assertNotNull(
+			$processor->get_attribute( 'target' ),
+			"Expected to find element with target attribute but found {$processor->get_tag()} instead."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_next_tag_ignores_contents_of_rawtext_tags() {
+		return array(
+			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
+			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
+			'NOFRAMES'         => array( '<noframes><p>Check the rules here.</p></noframes><div target>' ),
+			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
+			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
+			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
+		);
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_missing_class() {
+		$p = new WP_HTML_Tag_Processor( '<div>' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_class_is_boolean() {
+		$p = new WP_HTML_Tag_Processor( '<div class>' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_class_is_empty() {
+		$p = new WP_HTML_Tag_Processor( '<div class="">' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_visits_each_class_in_order() {
+		$p = new WP_HTML_Tag_Processor( '<div class="one two three">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( 'one', 'two', 'three' ), $found_classes, 'Failed to visit the class names in their original order.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_decodes_class_names() {
+		$p = new WP_HTML_Tag_Processor( '<div class="&notin;-class &lt;egg&gt; &#xff03;">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( '∉-class', '<egg>', "\u{ff03}" ), $found_classes, 'Failed to report class names in their decoded form.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_visits_unique_class_names_only_once() {
+		$p = new WP_HTML_Tag_Processor( '<div class="one one &#x6f;ne">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( 'one' ), $found_classes, 'Visited multiple copies of the same class name when it should have skipped the duplicates.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 *
+	 * @dataProvider data_html_with_variations_of_class_values_and_sought_class_names
+	 *
+	 * @param string $html         Contains a tag optionally containing a `class` attribute.
+	 * @param string $sought_class Name of class to find in the input tag's `class`.
+	 * @param bool   $has_class    Whether the sought class exists in the given HTML.
+	 */
+	public function test_has_class_handles_expected_class_name_variations( $html, $sought_class, $has_class ) {
+		$p = new WP_HTML_Tag_Processor( $html );
+		$p->next_tag();
+
+		if ( $has_class ) {
+			$this->assertTrue( $p->has_class( $sought_class ), "Failed to find expected class {$sought_class}." );
+		} else {
+			$this->assertFalse( $p->has_class( $sought_class ), "Found class {$sought_class} when it doesn't exist." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_with_variations_of_class_values_and_sought_class_names() {
+		return array(
+			'Tag without any classes'      => array( '<div>', 'foo', false ),
+			'Tag with boolean class'       => array( '<img class>', 'foo', false ),
+			'Tag with empty class'         => array( '<p class="">', 'foo', false ),
+			'Tag with exact match'         => array( '<button class="foo">', 'foo', true ),
+			'Tag with duplicate matches'   => array( '<span class="foo bar foo">', 'foo', true ),
+			'Tag with non-initial match'   => array( '<section class="bar foo">', 'foo', true ),
+			'Tag with encoded match'       => array( '<main class="&hellip;">', '…', true ),
+			'Class with tab separator'     => array( "<div class='one\ttwo'>", 'two', true ),
+			'Class with newline separator' => array( "<div class='one\ntwo\n'>", 'two', true ),
+			'False duplicate attribute'    => array( '<img class=dog class=cat>', 'cat', false ),
 		);
 	}
 

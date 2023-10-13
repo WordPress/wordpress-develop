@@ -713,9 +713,6 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	public function test_mysqli_flush_sync() {
 		global $wpdb;
-		if ( ! $wpdb->use_mysqli ) {
-			$this->markTestSkipped( 'mysqli not being used.' );
-		}
 
 		$suppress = $wpdb->suppress_errors( true );
 
