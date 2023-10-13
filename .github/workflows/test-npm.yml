@@ -37,9 +37,6 @@ concurrency:
 # Any needed permissions should be configured at the job level.
 permissions: {}
 
-env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
-
 jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.
   #
