@@ -4852,6 +4852,14 @@ function wp_parse_args( $args, $defaults = array() ) {
 	}
 
 	if ( is_array( $defaults ) && $defaults ) {
+		if ( count( $defaults ) < 3 ) {
+			foreach ( $defaults as $key => $value ) {
+				if ( ! isset( $parsed_args[ $key ] ) && ! array_key_exists( $key, $parsed_args ) ) {
+					$parsed_args[ $key ] = $value;
+				}
+			}
+			return $parsed_args;
+		}
 		foreach ( $parsed_args as $key => $value ) {
 			$defaults[ $key ] = $value;
 		}
