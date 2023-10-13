@@ -99,14 +99,14 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_id
 }
 
 /**
- * Prints the skip-link script & styles.
+ * Prints the skip-link styles.
  *
  * @access private
- * @since 5.8.0
+ * @since 6.4.0
  *
  * @global string $_wp_current_template_content
  */
-function the_block_template_skip_link() {
+function the_block_template_skip_link_style() {
 	global $_wp_current_template_content;
 
 	// Early exit if not a block theme.
@@ -158,6 +158,28 @@ function the_block_template_skip_link() {
 	wp_register_style( $handle, false );
 	wp_add_inline_style( $handle, $skip_link_styles );
 	wp_enqueue_style( $handle );
+}
+
+/**
+ * Prints the skip-link script.
+ *
+ * @access private
+ * @since 6.4.0
+ *
+ * @global string $_wp_current_template_content
+ */
+function the_block_template_skip_link_script() {
+	global $_wp_current_template_content;
+
+	// Early exit if not a block theme.
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
+		return;
+	}
 
 	/**
 	 * Enqueue the skip-link script.
