@@ -363,6 +363,7 @@ function _register_theme_block_patterns() {
 					'6.4.0'
 				);
 				$theme->delete_pattern_cache();
+				continue;
 			}
 
 			// The actual pattern content is the output of the file.
