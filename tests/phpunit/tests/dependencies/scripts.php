@@ -3082,10 +3082,17 @@ HTML
 	public function test_wp_scripts_move_to_footer( $set_up, $expected_header, $expected_footer, $expected_in_footer ) {
 		$set_up();
 
-		// Run the header and footer capturing the output.
+		// Get the header output.
 		ob_start();
 		wp_scripts()->do_head_items();
 		$header = ob_get_clean();
+
+		// Print a script in the body just to make sure it doesn't cause problems.
+		ob_start();
+		wp_print_scripts( array( 'jquery' ) );
+		ob_end_clean();
+
+		// Get the footer output.
 		ob_start();
 		wp_scripts()->do_footer_items();
 		$footer = ob_get_clean();
