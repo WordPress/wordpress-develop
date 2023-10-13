@@ -104,12 +104,6 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
 
-      - name: Upload the build directory as GitHub artifact
-        uses: actions/upload-artifact
-        with:
-          name: build
-          path: build
-
   # Verifies that installing npm dependencies and building WordPress works as expected on MacOS.
   #
   # This is separate from the job above in order to use stricter conditions about when to run.

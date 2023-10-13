@@ -98,6 +98,12 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Upload the build directory as GitHub artifact
+        uses: actions/upload-artifact
+        with:
+          name: build
+          path: build
+
       - name: Start Docker environment
         run: |
           npm run env:start
