@@ -794,60 +794,37 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value.
+	 * Tests that update_network_option() does not add a non-existent option that uses a filtered default value in multisite.
 	 *
 	 * @ticket 59360
 	 *
 	 * @covers ::update_network_option
 	 */
-	public function test_update_network_option_should_add_option_with_filtered_default_value() {
+	public function test_update_network_option_should_not_add_option_with_filtered_default_value() {
 		global $wpdb;
 
-		$option               = 'foo';
-		$default_site_value   = 'default-site-value';
-		$default_option_value = 'default-option-value';
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'This test only runs in Multisite.' );
+		}
+
+		$option = 'foo';
 
 		add_filter(
 			"default_site_option_{$option}",
-			static function () use ( $default_site_value ) {
-				return $default_site_value;
+			static function () {
+				return 'default-site-value';
 			}
 		);
 
-		add_filter(
-			"default_option_{$option}",
-			static function () use ( $default_option_value ) {
-				return $default_option_value;
-			}
+		$this->assertFalse( update_network_option( null, $option, false ), 'update_network_option() should have returned false.' );
+
+		$actual = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s LIMIT 1",
+				$option
+			)
 		);
 
-		/*
-		 * For a non existing option with the unfiltered default of false, passing false here wouldn't work.
-		 * Because the default is different than false here though, passing false is expected to result in
-		 * a database update.
-		 */
-		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
-
-		if ( is_multisite() ) {
-			$actual = $wpdb->get_row(
-				$wpdb->prepare(
-					"SELECT meta_value FROM $wpdb->sitemeta WHERE meta_key = %s LIMIT 1",
-					$option
-				)
-			);
-		} else {
-			$actual = $wpdb->get_row(
-				$wpdb->prepare(
-					"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
-					$option
-				)
-			);
-		}
-
-		$value_field = is_multisite() ? 'meta_value' : 'option_value';
-
-		$this->assertIsObject( $actual, 'The option was not added to the database.' );
-		$this->assertObjectHasProperty( $value_field, $actual, "The '$value_field' property was not included." );
-		$this->assertSame( '', $actual->$value_field, 'The new value was not stored in the database.' );
+		$this->assertNull( $actual, 'The option was added to the database.' );
 	}
 }
