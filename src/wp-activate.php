@@ -159,7 +159,7 @@ $blog_details = get_site();
 				printf(
 					/* translators: 1: Site URL, 2: Username, 3: User email address, 4: Lost password URL. */
 					esc_html__( 'Your site at %1$s is active. You may now log in to your site using your chosen username of &#8220;%2$s&#8221;. Please check your email inbox at %3$s for your password and login instructions. If you do not receive an email, please check your junk or spam folder. If you still do not receive an email within an hour, you can <a href="%4$s">reset your password</a>.' ),
-					esc_url( sprintf( '<a href="http://%1$s%2$s">%1$s%2$s</a>', $signup->domain, $blog_details->path )),
+					esc_url( sprintf( '<a href="http://%1$s%2$s">%1$s%2$s</a>', $signup->domain, $blog_details->path ) ),
 					esc_html( $signup->user_login ),
 					esc_html( $signup->user_email ),
 					esc_url( wp_lostpassword_url() )
