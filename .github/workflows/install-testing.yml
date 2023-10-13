@@ -52,11 +52,20 @@ jobs:
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
+      - name: Determine major WordPress version
+        id: wp-version
+        run: |
+          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
+            echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
+          else
+            echo "version=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get supported PHP versions
         id: php-versions
         run: |
-          if  -n "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
-            echo "versions=$(jq '.["${{ inputs.wp-version }}"] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
+          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ]; then
+            echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
           fi
@@ -64,8 +73,8 @@ jobs:
       - name: Get supported MySQL versions
         id: mysql-versions
         run: |
-          if  -n "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
-            echo "versions=$(jq -r '.["${{ inputs.wp-version }}"] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
+          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ]; then
+            echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
           fi
@@ -73,8 +82,8 @@ jobs:
       - name: Get supported MariaDB versions
         id: mariadb-versions
         run: |
-          if  -n "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
-            echo "versions=$(jq -r '.["${{ inputs.wp-version }}"] | @json' version-support-mariadb.json)" >> $GITHUB_OUTPUT
+          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ]; then
+            echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-mariadb.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-mariadb.json)" >> $GITHUB_OUTPUT
           fi
@@ -109,7 +118,15 @@ jobs:
         image: ${{ matrix.db-type }}:${{ matrix.db-version }}
         ports:
           - 3306
-        options: --health-cmd="${{ matrix.db-type == 'mysql' && 'mysqladmin' || 'mariadb-admin' }} ping" --health-interval=30s --health-timeout=10s --health-retries=5 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test_db --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }} -c "exec docker-entrypoint.sh mysqld${{ matrix.db-version != '5.5' && ' --default-authentication-plugin=mysql_native_password"' || '' }}
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=30s
+          --health-timeout=10s
+          --health-retries=5
+          -e MYSQL_ROOT_PASSWORD=root
+          -e MYSQL_DATABASE=test_db
+          --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }}
+          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-version != '5.5' && ' --default-authentication-plugin=mysql_native_password"' || '' }}
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
@@ -117,7 +134,7 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
-          tools: wp-cli
+          tools: wp-cli${{ contains( fromJSON('["5.3", "5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '' }}
 
       - name: Start the database server
         run: |
@@ -141,7 +158,7 @@ jobs:
   # - Creates a `wp-config.php` file.
   # - Installs WordPress.
   install-tests-mariadb:
-    name: WP ${{ inputs.wp-version || 'latest' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }} / ${{ matrix.os }}
+    name: WP ${{ inputs.wp-version || 'latest' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
@@ -162,7 +179,15 @@ jobs:
         image: ${{ matrix.db-type }}:${{ matrix.db-version }}
         ports:
           - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval=30s --health-timeout=10s --health-retries=5 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=test_db --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }} -c "exec docker-entrypoint.sh mysqld${{ matrix.db-version != '5.5' && ' --default-authentication-plugin=mysql_native_password"' || '' }}
+        options: >-
+          --health-cmd="mariadb-admin ping"
+          --health-interval=30s
+          --health-timeout=10s
+          --health-retries=5
+          -e MYSQL_ROOT_PASSWORD=root
+          -e MYSQL_DATABASE=test_db
+          --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }}
+          -c "exec docker-entrypoint.sh mariadbd
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
@@ -170,7 +195,7 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
-          tools: wp-cli
+          tools: wp-cli${{ contains( fromJSON('["5.3", "5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '' }}
 
       - name: Start the database server
         run: |
