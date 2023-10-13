@@ -89,6 +89,14 @@ jobs:
       - name: Build WordPress in /src
         run: npm run build:dev
 
+      - name: Upload the build directory as GitHub artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: always()
+        with:
+            name: wordpress-build-dev
+            path: build
+            if-no-files-found: ignore
+
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
 
@@ -98,19 +106,19 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Upload the build directory as GitHub artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: always()
+        with:
+            name: wordpress-build-dev
+            path: build
+            if-no-files-found: ignore
+
       - name: Clean after building
         run: npm run grunt clean
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
-
-      - name: Upload the build directory as GitHub artifact
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
-        if: always()
-        with:
-            name: wordpress-build
-            path: build
-            if-no-files-found: ignore
 
   # Verifies that installing npm dependencies and building WordPress works as expected on MacOS.
   #
