@@ -22,7 +22,7 @@ function median( array ) {
  */
 function getResultsFilename( fileName ) {
 	const prefix = process.env.TEST_RESULTS_PREFIX;
-	const fileNamePrefix = prefix ? `${ prefix.split( '=' )[ 1 ] }-` : '';
+	const fileNamePrefix = prefix ? `${ prefix }-` : '';
 	return `${fileNamePrefix + fileName}.results.json`;
 }
 
