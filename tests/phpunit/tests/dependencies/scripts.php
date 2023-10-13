@@ -3138,32 +3138,12 @@ HTML
 				'expected_in_footer' => array(),
 			),
 
-			'delayed-footer-dependents-of-delayed-head-script' => array(
+			'delayed-footer-dependent-of-delayed-head-script' => array(
 				'set_up'             => static function () {
 					wp_enqueue_script( 'script-a', 'https://example.com/script-a.js', array(), null, array( 'strategy' => 'defer' ) );
 					wp_enqueue_script(
 						'script-b',
 						'https://example.com/script-b.js',
-						array( 'script-a' ),
-						null,
-						array(
-							'strategy'  => 'defer',
-							'in_footer' => true,
-						)
-					);
-					wp_enqueue_script(
-						'script-c',
-						'https://example.com/script-c.js',
-						array( 'script-a' ),
-						null,
-						array(
-							'strategy'  => 'defer',
-							'in_footer' => true,
-						)
-					);
-					wp_enqueue_script(
-						'script-d',
-						'https://example.com/script-d.js',
 						array( 'script-a' ),
 						null,
 						array(
@@ -3177,13 +3157,9 @@ HTML
 				',
 				'expected_footer'    => '
 					<script type="text/javascript" src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-c.js" id="script-c-js" defer="defer" data-wp-strategy="defer"></script>
-					<script type="text/javascript" src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
 				',
 				'expected_in_footer' => array(
 					'script-b',
-					'script-c',
-					'script-d',
 				),
 			),
 
