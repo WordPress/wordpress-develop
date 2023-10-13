@@ -25,10 +25,12 @@
 	],
 	"devDependencies": {
 		"@lodder/grunt-postcss": "^3.1.1",
+		"@playwright/test": "1.32.0",
 		"@pmmmwh/react-refresh-webpack-plugin": "0.5.5",
 		"@wordpress/babel-preset-default": "7.26.6",
 		"@wordpress/dependency-extraction-webpack-plugin": "4.25.6",
 		"@wordpress/e2e-test-utils": "10.13.6",
+		"@wordpress/e2e-test-utils-playwright": "0.11.0",
 		"@wordpress/scripts": "26.13.6",
 		"autoprefixer": "10.4.16",
 		"chalk": "5.3.0",
@@ -189,10 +191,10 @@
 		"env:cli": "node ./tools/local-env/scripts/docker.js run cli",
 		"env:logs": "node ./tools/local-env/scripts/docker.js logs",
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
-		"test:performance": "node ./tests/performance/run-tests.js",
+		"test:performance": "wp-scripts test-playwright --config tests/performance/playwright.config.js",
 		"test:php": "node ./tools/local-env/scripts/docker.js run -T php composer update -W && node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit",
-		"test:e2e": "node ./tests/e2e/run-tests.js",
-		"test:visual": "node ./tests/visual-regression/run-tests.js",
+		"test:e2e": "wp-scripts test-playwright --config tests/e2e/playwright.config.js",
+		"test:visual": "wp-scripts test-playwright --config tests/visual-regression/playwright.config.js",
 		"sync-gutenberg-packages": "grunt sync-gutenberg-packages",
 		"postsync-gutenberg-packages": "grunt wp-packages:sync-stable-blocks && grunt build --dev && grunt build"
 	}
