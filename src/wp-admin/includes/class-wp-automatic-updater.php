@@ -1718,9 +1718,12 @@ Thanks! -- The WordPress Team"
 		$needle_start           = "###### wp_scraping_result_start:$scrape_key ######";
 		$needle_end             = "###### wp_scraping_result_end:$scrape_key ######";
 		$url                    = add_query_arg( $scrape_params, home_url( '/' ) );
-		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
-		error_log( var_export( substr( $r['body'], strpos( $r['body'], '###### wp_scraping_result_start:' ) ), true ) );
-		$body                   = wp_remote_retrieve_body( $r );
+		$response               = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+
+		// If this outputs `true` in the log, it means there were no fatal errors detected.
+		error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
+
+		$body                   = wp_remote_retrieve_body( $response );
 		$scrape_result_position = strpos( $body, $needle_start );
 		$result                 = null;
 
