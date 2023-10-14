@@ -447,7 +447,12 @@ class WP_Automatic_Updater {
 		}
 
 		if ( 'plugin' === $type ) {
-			$upgrader->maintenance_mode( true );
+			$was_active = is_plugin_active( $upgrader_item );
+			error_log( '    Upgrading plugin ' . var_export( $item->slug, true ) . '...' );
+		}
+
+		if ( 'theme' === $type ) {
+			error_log( '    Upgrading theme ' . var_export( $item->theme, true ) . '...' );
 		}
 
 		// Boom, this site's about to get a whole new splash of paint!
@@ -490,96 +495,106 @@ class WP_Automatic_Updater {
 			}
 		}
 
-		error_log( 'Checking ' . var_export( $item->slug, true ) );
+		if ( 'theme' === $type ) {
+			error_log( '    Theme ' . var_export( $item->theme, true ) . ' has been upgraded.' );
+		}
 
-		if ( 'plugin' === $type && ! is_wp_error( $upgrade_result ) ) {
-			/*
-			 * The usual time limit is five minutes. However, as loopback requests
-			 * are about to be performed, increase the time limit to account for these.
-			 */
-			if ( function_exists( 'set_time_limit' ) ) {
-				set_time_limit( 10 * MINUTE_IN_SECONDS );
+		if ( 'plugin' === $type ) {
+			error_log( '    Plugin ' . var_export( $item->slug, true ) . ' has been upgraded.' );
+			if ( is_plugin_inactive( $upgrader_item ) ) {
+				error_log( '    ' . var_export( $upgrader_item, true ) . ' is inactive and will not be checked for fatal errors.' );
 			}
 
-			/*
-			 * Maintenance mode is disabled after an active plugin
-			 * has been updated during automatic updates.
-			 *
-			 * See Plugin_Upgrader::active_after().
-			 *
-			 * This means the loopback requests performed here will
-			 * be able to navigate to the site and scrape for errors.
-			 *
-			 * Even if visitors browse the site during this time and
-			 * also see the errors, this process will attempt to restore
-			 * the previously installed version within seconds of detecting
-			 * a fatal error.
-			 */
-			if ( $this->has_fatal_error() ) {
-				$upgrade_result = new WP_Error();
-				$temp_backup    = array(
-					array(
-						'dir'  => 'plugins',
-						'slug' => $item->slug,
-						'src'  => WP_PLUGIN_DIR,
-					)
-				);
+			if ( $was_active && ! is_wp_error( $upgrade_result ) ) {
 
 				/*
-				 * Enable maintenance mode while attempting to restore
-				 * the previously installed version and delete the backup.
-				 *
-				 * This avoids errors if the site is visited while files
-				 * are still being moved.
+				 * The usual time limit is five minutes. However, as a loopback request
+				 * is about to be performed, increase the time limit to account for this.
 				 */
-				$upgrader->maintenance_mode( true );
-
-				$backup_restored = $upgrader->restore_temp_backup( $temp_backup );
-				if ( is_wp_error( $backup_restored ) ) {
-					$upgrade_result->add(
-						'plugin_update_fatal_error_rollback_failed',
-						sprintf(
-							/* translators: %s: The plugin's slug. */
-							__( 'The update for %s contained a fatal error. The previously installed version could not be restored.' ),
-							$item->slug
-						)
-					);
-
-					$upgrade_result->merge_from( $backup_restored );
-				} else {
-					$upgrade_result->add(
-						'plugin_update_fatal_error_rollback_successful',
-						sprintf(
-							/* translators: %s: The plugin's slug. */
-							__( 'The update for %s contained a fatal error. The previously installed version has been restored.' ),
-							$item->slug
-						)
-					);
-
-					$backup_deleted = $upgrader->delete_temp_backup( $temp_backup );
-					if ( is_wp_error( $backup_deleted ) ) {
-						$upgrade_result->merge_from( $backup_deleted );
-					}
+				if ( function_exists( 'set_time_limit' ) ) {
+					set_time_limit( 10 * MINUTE_IN_SECONDS );
 				}
 
 				/*
-				 * The attempt to restore the previously installed version
-				 * and delete the backup is complete.
-				 *
-				 * Allow visitors to browse the site again.
-				 */
-				$upgrader->maintenance_mode( false );
+				* Enable maintenance mode while attempting to detect fatal errors
+				* and potentially rolling back.
+				*
+				* This avoids errors if the site is visited while fatal errors exist
+				* or while files are still being moved.
+				*/
+				$upgrader->maintenance_mode( true );
+
+				// Avoid a race condition when there are 2 sequential plugins that have fatal errors.
+				sleep( 2 );
 
 				/*
-				 * Should emails not be working, log the message(s) so that
-				 * the log file contains context for the fatal error,
-				 * and whether a rollback was performed.
+				 * Maintenance mode is disabled after an active plugin
+				 * has been updated during automatic updates.
 				 *
-				 * `trigger_error()` is not used as it outputs a stack trace
-				 * to this location rather than to the fatal error, which will
-				 * appear above this entry in the log file.
+				 * See Plugin_Upgrader::active_after().
+				 *
+				 * This means the loopback request performed here will
+				 * be able to navigate to the site and scrape for errors.
+				 *
+				 * Even if visitors browse the site during this time and
+				 * also see the errors, this process will attempt to restore
+				 * the previously installed version within seconds of detecting
+				 * a fatal error.
 				 */
-				error_log( implode( "\n", $upgrade_result->get_error_messages() ) );
+				if ( $this->has_fatal_error() ) {
+					$upgrade_result = new WP_Error();
+					$temp_backup    = array(
+						array(
+							'dir'  => 'plugins',
+							'slug' => $item->slug,
+							'src'  => WP_PLUGIN_DIR,
+						),
+					);
+
+					$backup_restored = $upgrader->restore_temp_backup( $temp_backup );
+					if ( is_wp_error( $backup_restored ) ) {
+						$upgrade_result->add(
+							'plugin_update_fatal_error_rollback_failed',
+							sprintf(
+								/* translators: %s: The plugin's slug. */
+								__( "The update for '%s' contained a fatal error. The previously installed version could not be restored." ),
+								$item->slug
+							)
+						);
+
+						$upgrade_result->merge_from( $backup_restored );
+					} else {
+						$upgrade_result->add(
+							'plugin_update_fatal_error_rollback_successful',
+							sprintf(
+								/* translators: %s: The plugin's slug. */
+								__( "The update for '%s' contained a fatal error. The previously installed version has been restored." ),
+								$item->slug
+							)
+						);
+
+						$backup_deleted = $upgrader->delete_temp_backup( $temp_backup );
+						if ( is_wp_error( $backup_deleted ) ) {
+							$upgrade_result->merge_from( $backup_deleted );
+						}
+					}
+
+					/*
+					 * Should emails not be working, log the message(s) so that
+					 * the log file contains context for the fatal error,
+					 * and whether a rollback was performed.
+					 *
+					 * `trigger_error()` is not used as it outputs a stack trace
+					 * to this location rather than to the fatal error, which will
+					 * appear above this entry in the log file.
+					 */
+					error_log( '    ' . implode( "\n", $upgrade_result->get_error_messages() ) );
+				} else {
+					error_log( '    The update for ' . var_export( $item->slug, true ) . ' has no fatal errors.' );
+				}
+
+				// All processes are complete. Allow visitors to browse the site again.
+				$upgrader->maintenance_mode( false );
 			}
 		}
 
@@ -611,38 +626,46 @@ class WP_Automatic_Updater {
 			return;
 		}
 
+		error_log( 'Automatic updates starting...' );
+
 		// Don't automatically run these things, as we'll handle it ourselves.
 		remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
 		remove_action( 'upgrader_process_complete', 'wp_version_check' );
 		remove_action( 'upgrader_process_complete', 'wp_update_plugins' );
 		remove_action( 'upgrader_process_complete', 'wp_update_themes' );
 
-		error_log( 'Automatic plugin updates starting.' );
-
 		// Next, plugins.
 		wp_update_plugins(); // Check for plugin updates.
 		$plugin_updates = get_site_transient( 'update_plugins' );
 		if ( $plugin_updates && ! empty( $plugin_updates->response ) ) {
+			error_log( '  Automatic plugin updates starting...' );
+
 			foreach ( $plugin_updates->response as $plugin ) {
 				$this->update( 'plugin', $plugin );
 			}
 
 			// Force refresh of plugin update information.
 			wp_clean_plugins_cache();
-		}
 
-		error_log( 'Automatic plugin updates complete.' );
+			error_log( '  Automatic plugin updates complete.' );
+		}
 
 		// Next, those themes we all love.
 		wp_update_themes();  // Check for theme updates.
 		$theme_updates = get_site_transient( 'update_themes' );
 		if ( $theme_updates && ! empty( $theme_updates->response ) ) {
+			error_log( '  Automatic theme updates starting...' );
+
 			foreach ( $theme_updates->response as $theme ) {
 				$this->update( 'theme', (object) $theme );
 			}
 			// Force refresh of theme update information.
 			wp_clean_themes_cache();
+
+			error_log( '  Automatic theme updates complete.' );
 		}
+
+		error_log( 'Automatic updates complete.' );
 
 		// Next, process any core update.
 		wp_version_check(); // Check for core updates.
@@ -1655,8 +1678,7 @@ Thanks! -- The WordPress Team"
 	}
 
 	/**
-	 * Performs two loopback requests, one to the dashboard and one to the homepage,
-	 * to check for potential fatal errors.
+	 * Performs a loopback request to check for potential fatal errors.
 	 *
 	 * @since 6.5.0
 	 *
@@ -1667,7 +1689,7 @@ Thanks! -- The WordPress Team"
 		$transient    = 'scrape_key_' . $scrape_key;
 		$scrape_nonce = (string) rand();
 
-		set_transient( $transient, $scrape_nonce, 60 );
+		set_transient( $transient, $scrape_nonce, 30 );
 
 		$cookies       = wp_unslash( $_COOKIE );
 		$scrape_params = array(
@@ -1681,19 +1703,21 @@ Thanks! -- The WordPress Team"
 		/** This filter is documented in wp-includes/class-wp-http-streams.php */
 		$sslverify = apply_filters( 'https_local_ssl_verify', false );
 
-		// Include Basic auth in loopback requests.
+		// Include Basic auth in the loopback request.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
-		// Time to wait for loopback requests to finish.
-		$timeout = 100; // 100 seconds.
+		// Time to wait for loopback request to finish.
+		$timeout = 50; // 50 seconds.
+
+		error_log( '    Scraping home page...' );
 
 		$needle_start           = "###### wp_scraping_result_start:$scrape_key ######";
 		$needle_end             = "###### wp_scraping_result_end:$scrape_key ######";
-		$url                    = add_query_arg( $scrape_params, admin_url() );
-		error_log( 'Scraping admin page: ' . $url );
+		$url                    = add_query_arg( $scrape_params, home_url( '/' ) );
 		$r                      = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+		error_log( var_export( substr( $r['body'], strpos( $r['body'], '###### wp_scraping_result_start:' ) ), true ) );
 		$body                   = wp_remote_retrieve_body( $r );
 		$scrape_result_position = strpos( $body, $needle_start );
 		$result                 = null;
@@ -1702,38 +1726,6 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
-		}
-
-		// Try making request to homepage as well to see if visitors have been whitescreened.
-		if ( true === $result ) {
-			$homepage = home_url( '/' );
-
-			/**
-			 * Filters the frontend URL to check for fatal errors.
-			 *
-			 * Must start with the homepage URL.
-			 *
-			 * @since 6.5.0
-			 *
-			 * @param string $url The url to check. Default homepage.
-			 */
-			$url = apply_filters( 'automatic_update_frontend_fatal_check_url', $homepage );
-
-			if ( ! str_starts_with( $url, $homepage ) ) {
-				$url = home_url( '/' );
-			}
-
-			$url                    = add_query_arg( $scrape_params, $url );
-			error_log( 'Scraping home page: ' . $url );
-			$response               = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
-			$body                   = wp_remote_retrieve_body( $response );
-			$scrape_result_position = strpos( $body, $needle_start );
-
-			if ( false !== $scrape_result_position ) {
-				$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
-				$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
-				$result       = json_decode( trim( $error_output ), true );
-			}
 		}
 
 		delete_transient( $transient );
