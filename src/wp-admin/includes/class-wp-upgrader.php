@@ -906,8 +906,12 @@ class WP_Upgrader {
 				 * Actions running on `shutdown` are immune to PHP timeouts,
 				 * so in case the failure was due to a PHP timeout,
 				 * it will still be able to properly restore the previous version.
+				 *
+				 * Zero arguments are accepted as a string can sometimes be passed
+				 * internally during actions, causing an error because
+				 * `WP_Upgrader::restore_temp_backup()` expects an array.
 				 */
-				add_action( 'shutdown', array( $this, 'restore_temp_backup' ) );
+				add_action( 'shutdown', array( $this, 'restore_temp_backup' ), 10, 0 );
 			}
 			$this->skin->error( $result );
 
