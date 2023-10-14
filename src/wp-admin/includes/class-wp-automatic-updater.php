@@ -455,6 +455,20 @@ class WP_Automatic_Updater {
 			error_log( '    Upgrading theme ' . var_export( $item->theme, true ) . '...' );
 		}
 
+		/*
+		 * Enable maintenance mode before upgrading the plugin.
+		 *
+		 * This avoids potential non-fatal errors being detected
+		 * while scraping for a fatal error if some files are still
+		 * being moved.
+		 *
+		 * While these checks are intended only for plugins,
+		 * maintenance mode is enabled for all upgrade types as any
+		 * update could contain an error or warning, which could cause
+		 * the scrape to miss a fatal error in the plugin update.
+		 */
+		$upgrader->maintenance_mode( true );
+
 		// Boom, this site's about to get a whole new splash of paint!
 		$upgrade_result = $upgrader->upgrade(
 			$upgrader_item,
@@ -468,6 +482,17 @@ class WP_Automatic_Updater {
 				'allow_relaxed_file_ownership' => $allow_relaxed_file_ownership,
 			)
 		);
+
+		/*
+		 * After WP_Upgrader::upgrade() completes, maintenance mode is disabled.
+		 *
+		 * Re-enable maintenance mode while attempting to detect fatal errors
+		 * and potentially rolling back.
+		 *
+		 * This avoids errors if the site is visited while fatal errors exist
+		 * or while files are still being moved.
+		 */
+		$upgrader->maintenance_mode( true );
 
 		// If the filesystem is unavailable, false is returned.
 		if ( false === $upgrade_result ) {
@@ -515,32 +540,9 @@ class WP_Automatic_Updater {
 					set_time_limit( 10 * MINUTE_IN_SECONDS );
 				}
 
-				/*
-				* Enable maintenance mode while attempting to detect fatal errors
-				* and potentially rolling back.
-				*
-				* This avoids errors if the site is visited while fatal errors exist
-				* or while files are still being moved.
-				*/
-				$upgrader->maintenance_mode( true );
-
 				// Avoid a race condition when there are 2 sequential plugins that have fatal errors.
 				sleep( 2 );
 
-				/*
-				 * Maintenance mode is disabled after an active plugin
-				 * has been updated during automatic updates.
-				 *
-				 * See Plugin_Upgrader::active_after().
-				 *
-				 * This means the loopback request performed here will
-				 * be able to navigate to the site and scrape for errors.
-				 *
-				 * Even if visitors browse the site during this time and
-				 * also see the errors, this process will attempt to restore
-				 * the previously installed version within seconds of detecting
-				 * a fatal error.
-				 */
 				if ( $this->has_fatal_error() ) {
 					$upgrade_result = new WP_Error();
 					$temp_backup    = array(
@@ -592,11 +594,11 @@ class WP_Automatic_Updater {
 				} else {
 					error_log( '    The update for ' . var_export( $item->slug, true ) . ' has no fatal errors.' );
 				}
-
-				// All processes are complete. Allow visitors to browse the site again.
-				$upgrader->maintenance_mode( false );
 			}
 		}
+
+		// All processes are complete. Allow visitors to browse the site again.
+		$upgrader->maintenance_mode( false );
 
 		$this->update_results[ $type ][] = (object) array(
 			'item'     => $item,
