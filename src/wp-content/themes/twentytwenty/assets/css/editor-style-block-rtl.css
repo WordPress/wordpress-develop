@@ -801,11 +801,14 @@ hr.wp-block-separator.is-style-dots::before {
 /* Block: Pullquote -------------------------- */
 
 .editor-styles-wrapper .wp-block-pullquote {
-	border: none;
 	color: inherit;
 	padding: 0;
 	position: relative;
 	text-align: center;
+}
+
+.editor-styles-wrapper .wp-block-pullquote:not(.has-border-color):not([style*=border-width]) {
+	border: none;
 }
 
 .editor-styles-wrapper .wp-block-pullquote::before {

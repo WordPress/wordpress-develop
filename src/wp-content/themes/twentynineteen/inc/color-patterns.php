@@ -133,13 +133,15 @@ function twentynineteen_custom_colors_css() {
 
 		/*
 		 * Set border color for:
-		 * wp block quote
-		 * :focus
+		 * - wp block quote
+		 * - :focus
+		 * - Blocks (primary border color)
 		 */
 		blockquote,
 		.entry .entry-content blockquote,
 		.entry .entry-content .wp-block-quote:not(.is-large),
 		.entry .entry-content .wp-block-quote:not(.is-style-large),
+		.entry .entry-content *[class^="wp-block-"].has-primary-border-color,
 		input[type="text"]:focus,
 		input[type="email"]:focus,
 		input[type="url"]:focus,
@@ -157,6 +159,13 @@ function twentynineteen_custom_colors_css() {
 		input[type="color"]:focus,
 		textarea:focus {
 			border-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
+		}
+
+		/*
+		 * - Blocks (secondary border color)
+		 */
+		.entry .entry-content *[class^="wp-block-"].has-secondary-border-color {
+			border-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 
 		.gallery-item > div > a:focus {
