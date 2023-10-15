@@ -801,7 +801,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::update_network_option
 	 */
-	public function test_update_network_option_should_not_add_option_with_filtered_default_value() {
+	public function test_update_network_option_should_not_add_option_with_filtered_default_value_in_multisite() {
 		global $wpdb;
 
 		$option = 'foo';
@@ -823,5 +823,39 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		);
 
 		$this->assertNull( $actual, 'The option was added to the database.' );
+	}
+
+	/**
+	 * Tests that update_network_option() adds a non-existent option that uses a filtered default value in single site.
+	 *
+	 * @ticket 59360
+	 * @group ms-excluded
+	 *
+	 * @covers ::update_network_option
+	 */
+	public function test_update_network_option_should_add_option_with_filtered_default_value_in_single_site() {
+		global $wpdb;
+
+		$option = 'foo';
+
+		add_filter(
+			"default_option_{$option}",
+			static function () {
+				return 'default-value';
+			}
+		);
+
+		$this->assertTrue( update_network_option( null, $option, false ), 'update_network_option() should have returned true.' );
+
+		$actual = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1",
+				$option
+			)
+		);
+
+		$this->assertIsObject( $actual, 'The option was not added to the database.' );
+		$this->assertObjectHasProperty( 'option_value', $actual, "The 'option_value' property was not included." );
+		$this->assertSame( '', $actual->option_value, 'The new value was not stored in the database.' );
 	}
 }
