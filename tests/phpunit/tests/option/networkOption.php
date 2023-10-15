@@ -797,15 +797,12 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * Tests that update_network_option() does not add a non-existent option that uses a filtered default value in multisite.
 	 *
 	 * @ticket 59360
+	 * @group ms-required
 	 *
 	 * @covers ::update_network_option
 	 */
 	public function test_update_network_option_should_not_add_option_with_filtered_default_value() {
 		global $wpdb;
-
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test only runs in Multisite.' );
-		}
 
 		$option = 'foo';
 
