@@ -68,8 +68,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Introduction to Twenty Twenty-Four link. */
 						__( 'Experience the latest advancements in site editing with <a href="%s">Twenty Twenty-Four</a>. Built with three distinct use cases in mind, the versatility of the new default theme makes it an ideal choice for almost any type of website. Dive into its collection of templates and patterns and unlock a world of creative possibilities with just a few tweaks.' ),
-						__('https://make.wordpress.org/core/2023/08/24/introducing-twenty-twenty-four/')
-					); ?>
+						__( 'https://make.wordpress.org/core/2023/08/24/introducing-twenty-twenty-four/' )
+					);
+					?>
 				</p>
 			</div>
 			<div class="column is-vertically-aligned-bottom is-edge-to-edge">
@@ -104,8 +105,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Command palette improvement link. */
 						__( 'Enjoy <a href="%s">a refreshed design and more commands</a> to find what you\'re looking for, perform tasks efficiently, and save time as you create.' ),
-						__('https://make.wordpress.org/core/2023/09/12/core-editor-improvement-commanding-the-command-palette/')
-					); ?>
+						__( 'https://make.wordpress.org/core/2023/09/12/core-editor-improvement-commanding-the-command-palette/' )
+					);
+					?>
 				</p>
 			</div>
 		</div>
@@ -147,8 +149,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: New enhancements link. */
 						__( '<a href="%s">New enhancements</a> ensure your content creation journey is smooth. Find new keyboard shortcuts in List View, refined list merging, and enhanced control over link settings. A revamped and cohesive toolbar experience for Navigation, List, and Quote blocks lets you efficiently work with the tooling options you need.' ),
-						__('https://make.wordpress.org/core/2023/10/05/core-editor-improvement-ensuring-excellence-in-the-writing-experience/')
-					); ?>
+						__( 'https://make.wordpress.org/core/2023/10/05/core-editor-improvement-ensuring-excellence-in-the-writing-experience/' )
+					);
+					?>
 				</p>
 			</div>
 		</div>
