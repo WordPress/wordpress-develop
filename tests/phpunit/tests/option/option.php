@@ -353,10 +353,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		// Force a return value of false.
 		add_filter( 'pre_option_foo', '__return_false' );
 
-		/*
-		 * This should succeed, since the 'foo' option has a value of 0 in the database.
-		 * Therefore it differs from true and should be updated.
-		 */
+		// This should succeed, since the pre-filtered option will be treated as the default.
 		$this->assertTrue( update_option( 'foo', $option ) );
 	}
 
