@@ -63,7 +63,7 @@ jobs:
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
-    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: MacOS
     uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
@@ -102,7 +102,7 @@ jobs:
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
-    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: MacOS
     uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
