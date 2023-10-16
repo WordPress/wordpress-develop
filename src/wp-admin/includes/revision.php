@@ -73,9 +73,10 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 	 *
 	 * Developers can use this filter to control the display of fields on the revisions screen.
 	 *
+	 * @since 6.4.0
+	 *
 	 * @param array   $revision_screen_fields  Associative array of revision screen fields (key => title).
 	 * @param WP_Post $post                    The post object.
-	 * @since 6.4.0
 	 */
 	$revision_screen_fields = apply_filters( 'wp_revision_ui_fields', $revision_screen_fields, $post );
 
