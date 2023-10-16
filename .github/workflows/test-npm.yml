@@ -86,15 +86,16 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-core-build-proces-macos:
     name: Test npm on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ macos-latest ]
+    with:
+      os: ${{ matrix.os }}
 
   slack-notifications:
     name: Slack Notifications
