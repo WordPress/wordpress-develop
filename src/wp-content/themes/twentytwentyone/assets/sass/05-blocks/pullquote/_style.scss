@@ -7,11 +7,7 @@
 	color: currentColor;
 	border-color: currentColor;
 	position: relative;
-	font-weight: 700;
-	font-style: var(--pullquote--font-style);
 	font-family: var(--pullquote--font-family);
-	letter-spacing: var(--pullquote--letter-spacing);
-	line-height: var(--pullquote--line-height);
 
 	blockquote::before {
 		color: currentColor;
@@ -22,6 +18,26 @@
 		font-size: 3rem;
 		font-weight: 500;
 		line-height: 1;
+	}
+
+	&:not([style*="font-size"]):not([class*="font-size"]) p {
+		font-size: var(--pullquote--font-size);
+	}
+
+	&:not([style*="font-weight"]) p {
+		font-weight: 700;
+	}
+
+	&:not([style*="font-style"]) p {
+		font-style: var(--pullquote--font-style);
+	}
+
+	&:not([style*="letter-spacing"]) p {
+		letter-spacing: var(--pullquote--letter-spacing);
+	}
+
+	&:not([style*="line-height"]) p {
+		line-height: var(--pullquote--line-height);
 	}
 
 	p {

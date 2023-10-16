@@ -2824,11 +2824,7 @@ pre.wp-block-preformatted {
 	color: currentColor;
 	border-color: currentColor;
 	position: relative;
-	font-weight: 700;
-	font-style: var(--pullquote--font-style);
 	font-family: var(--pullquote--font-family);
-	letter-spacing: var(--pullquote--letter-spacing);
-	line-height: var(--pullquote--line-height);
 
 	/**
    * Block Options
@@ -2844,6 +2840,26 @@ pre.wp-block-preformatted {
 	font-size: 3rem;
 	font-weight: 500;
 	line-height: 1;
+}
+
+.wp-block-pullquote:not([style*=font-size]):not([class*=font-size]) p {
+	font-size: var(--pullquote--font-size);
+}
+
+.wp-block-pullquote:not([style*=font-weight]) p {
+	font-weight: 700;
+}
+
+.wp-block-pullquote:not([style*=font-style]) p {
+	font-style: var(--pullquote--font-style);
+}
+
+.wp-block-pullquote:not([style*=letter-spacing]) p {
+	letter-spacing: var(--pullquote--letter-spacing);
+}
+
+.wp-block-pullquote:not([style*=line-height]) p {
+	line-height: var(--pullquote--line-height);
 }
 
 .wp-block-pullquote p {
