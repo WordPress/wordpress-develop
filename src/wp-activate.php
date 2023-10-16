@@ -127,7 +127,7 @@ $blog_details = get_site();
 	<div class="wp-activate-container">
 	<?php if ( ! $key ) { ?>
 
-		<h2><?php esc_html_e( 'Activation Key Required' ); ?></h2>
+		<h2><?php _e( 'Activation Key Required' ); ?></h2>
 		<form name="activateform" id="activateform" method="post" action="<?php echo esc_url( network_site_url( $blog_details->path . 'wp-activate.php' ) ); ?>">
 			<p>
 				<label for="key"><?php esc_html_e( 'Activation Key:' ); ?></label>
