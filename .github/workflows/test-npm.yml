@@ -84,7 +84,7 @@ jobs:
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
-  test-core-build-proces-macos:
+  test-core-build-process-macos:
     name: Test npm on ${{ matrix.os }}
     uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
     permissions:
