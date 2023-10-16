@@ -1,8 +1,8 @@
 <?php
 /**
  * Title: Post navigation
- * slug: twentytwentyfour/post-navigation
- * inserter: no
+ * Slug: twentytwentyfour/hidden-post-navigation
+ * Inserter: no
  */
 ?>
 

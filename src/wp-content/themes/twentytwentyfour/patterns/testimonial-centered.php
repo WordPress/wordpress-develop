@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Centered Testimonial
+ * Title: Centered testimonial
  * Slug: twentytwentyfour/testimonial-centered
  * Keywords: quote, review, about
  * Categories: testimonials, text

@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Blogging Archive
+ * Title: Blogging archive template
  * Slug: twentytwentyfour/template-archive-blogging
  * Template Types: archive, category, tag, author, date
  * Viewport width: 1400
@@ -14,7 +14,7 @@
 <main class="wp-block-group" style="margin-top:0">
 	<!-- wp:query-title {"type":"archive","style":{"typography":{"lineHeight":"1"},"spacing":{"padding":{"top":"var:preset|spacing|50"}}}} /-->
 
-	<!-- wp:pattern {"slug":"twentytwentyfour/posts-one-column"} /-->
+	<!-- wp:pattern {"slug":"twentytwentyfour/posts-1-col"} /-->
 </main>
 <!-- /wp:group -->
 

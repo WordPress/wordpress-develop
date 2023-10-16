@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Portfolio Search
+ * Title: Portfolio search template
  * Slug: twentytwentyfour/template-search-portfolio
  * Template Types: search
  * Viewport width: 1400
@@ -16,11 +16,11 @@
 
 	<!-- wp:group {"align":"wide","layout":{"type":"constrained","contentSize":"840px","justifyContent":"left"}} -->
 	<div class="wp-block-group alignwide">
-		<!-- wp:pattern {"slug":"twentytwentyfour/search"} /-->
+		<!-- wp:pattern {"slug":"twentytwentyfour/hidden-search"} /-->
 	</div>
 	<!-- /wp:group -->
 
-	<!-- wp:pattern {"slug":"twentytwentyfour/posts-three-columns-images"} /-->
+	<!-- wp:pattern {"slug":"twentytwentyfour/posts-images-only-3-col"} /-->
 </main>
 <!-- /wp:group -->
 

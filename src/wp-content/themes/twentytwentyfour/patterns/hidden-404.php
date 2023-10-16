@@ -1,7 +1,7 @@
 <?php
 /**
- * Title: A 404 page
- * Slug: twentytwentyfour/404
+ * Title: 404
+ * Slug: twentytwentyfour/hidden-404
  * Inserter: no
  */
 ?>
@@ -12,4 +12,4 @@
 <!-- wp:paragraph -->
 <p><?php echo esc_html_x( 'The page you are looking for does not exist, or it has been moved. Please try searching using the form below.', 'Message to convey that a webpage could not be found', 'twentytwentyfour' ); ?></p>
 <!-- /wp:paragraph -->
-<!-- wp:pattern {"slug":"twentytwentyfour/search"} /-->
+<!-- wp:pattern {"slug":"twentytwentyfour/hidden-search"} /-->

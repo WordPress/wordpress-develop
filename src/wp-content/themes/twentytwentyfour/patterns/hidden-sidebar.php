@@ -1,8 +1,7 @@
 <?php
 /**
- * Title: sidebar
- * Slug: twentytwentyfour/sidebar
- * Categories: hidden
+ * Title: Sidebar
+ * Slug: twentytwentyfour/hidden-sidebar
  * Inserter: no
  */
 ?>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Blogging Index
+ * Title: Blogging index template
  * Slug: twentytwentyfour/template-index-blogging
  * Template Types: index, home
  * Viewport width: 1400
@@ -16,7 +16,7 @@
 	<h1 class="wp-block-heading" style="padding-top:var(--wp--preset--spacing--50);line-height:1"><?php esc_html_e( 'Watch, Read, Listen', 'twentytwentyfour' ); ?></h1>
 	<!-- /wp:heading -->
 
-	<!-- wp:pattern {"slug":"twentytwentyfour/posts-one-column"} /-->
+	<!-- wp:pattern {"slug":"twentytwentyfour/posts-1-col"} /-->
 </main>
 <!-- /wp:group -->
 

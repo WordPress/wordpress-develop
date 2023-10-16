@@ -1,7 +1,7 @@
 <?php
 /**
- * Title: Post Meta
- * Slug: twentytwentyfour/post-meta
+ * Title: Post meta
+ * Slug: twentytwentyfour/hidden-post-meta
  * Inserter: no
  */
 ?>

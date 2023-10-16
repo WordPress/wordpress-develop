@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Business Home
+ * Title: Business home template
  * Slug: twentytwentyfour/template-home
  * Template Types: front-page, index, home
  * Viewport width: 1400
@@ -12,7 +12,7 @@
 
 <!-- wp:group {"tagName":"main","style":{"spacing":{"blockGap":"0","margin":{"top":"0"}}},"layout":{"type":"default"}} -->
 <main class="wp-block-group" style="margin-top:0">
-	<!-- wp:pattern {"slug":"twentytwentyfour/home"} /-->
+	<!-- wp:pattern {"slug":"twentytwentyfour/home-business"} /-->
 </main>
 <!-- /wp:group -->
 

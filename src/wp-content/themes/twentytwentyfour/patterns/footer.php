@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Footer with colophon, four columns
+ * Title: Footer with colophon, 4 columns
  * Slug: twentytwentyfour/footer
  * Categories: footer
  * Block Types: core/template-part/footer

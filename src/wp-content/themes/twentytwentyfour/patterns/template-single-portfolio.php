@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Portfolio Single post
+ * Title: Portfolio single post template
  * Slug: twentytwentyfour/template-single-portfolio
  * Template Types: posts, single
  * Viewport width: 1400

@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Blogging Search Results
+ * Title: Blogging search template
  * Slug: twentytwentyfour/template-search-blogging
  * Template Types: search
  * Viewport width: 1400
@@ -15,11 +15,11 @@
 	<!-- wp:group {"layout":{"type":"default"}} -->
 	<div class="wp-block-group">
 		<!-- wp:query-title {"type":"search","style":{"typography":{"lineHeight":"1"},"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|30"}}}} /-->
-		<!-- wp:pattern {"slug":"twentytwentyfour/search"} /-->
+		<!-- wp:pattern {"slug":"twentytwentyfour/hidden-search"} /-->
 	</div>
 	<!-- /wp:group -->
 
-	<!-- wp:pattern {"slug":"twentytwentyfour/posts-one-column"} /-->
+	<!-- wp:pattern {"slug":"twentytwentyfour/posts-1-col"} /-->
 </main>
 <!-- /wp:group -->
 
