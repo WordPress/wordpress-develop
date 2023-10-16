@@ -44,6 +44,7 @@ jobs:
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           repository: 'WordPress/gutenberg'
+          ref: 'wp/6.4'
           path: ${{ env.GUTENBERG_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
@@ -51,6 +52,10 @@ jobs:
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            src/wp-content/plugins/gutenberg/package-lock.json
 
       - name: Log debug information
         run: |
