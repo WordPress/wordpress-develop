@@ -3,7 +3,7 @@ name: Test npm
 on:
   push:
     branches:
-      - trunk
+      - 'combine/npm-testing'
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
@@ -51,58 +51,18 @@ jobs:
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
-  test-npm:
+  test-core-build-process:
     name: Test npm on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Build WordPress in /src
-        run: npm run build:dev
-
-      - name: Clean after building in /src
-        run: npm run grunt clean -- --dev
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
+    with:
+      os: ${{ matrix.os }}
 
   # Verifies that installing npm dependencies and building WordPress works as expected on MacOS.
   #
@@ -124,53 +84,17 @@ jobs:
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
-  test-npm-macos:
-    name: Test npm on MacOS
-    runs-on: macos-latest
+  test-core-build-proces-macos:
+    name: Test npm on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
-    timeout-minutes: 30
+    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          curl --version
-          git --version
-          svn --version
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Build WordPress in /src
-        run: npm run build:dev
-
-      - name: Clean after building in /src
-        run: npm run grunt clean -- --dev
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest ]
 
   slack-notifications:
     name: Slack Notifications
@@ -178,7 +102,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-npm, test-npm-macos ]
+    needs: [ test-core-build-process, test-core-build-process-macos ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
