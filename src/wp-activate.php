@@ -201,7 +201,7 @@ $blog_details = get_site();
 				<?php
 					printf(
 						/* translators: 1: Login URL, 2: Network home URL. */
-						esc_html__( 'Your account is now activated. <a href="%1$s">Log in</a> or go back to the <a href="%2$s">homepage</a>.' ),
+						__( 'Your account is now activated. <a href="%1$s">Log in</a> or go back to the <a href="%2$s">homepage</a>.' ),
 						esc_url( network_site_url( $blog_details->path . 'wp-login.php', 'login' ) ),
 						esc_url( network_home_url( $blog_details->path ) )
 					);
