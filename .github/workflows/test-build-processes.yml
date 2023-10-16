@@ -114,6 +114,7 @@ jobs:
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
+      directory: ${{ matrix.directory }}
 
   slack-notifications:
     name: Slack Notifications
