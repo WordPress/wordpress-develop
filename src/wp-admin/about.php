@@ -60,8 +60,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<div class="about__section has-2-columns has-accent-4-background-color">
-			<div class="column is-vertically-aligned-center" style="padding-right: 6rem">
+		<div class="about__section has-2-columns has-accent-4-background-color is-wider-right">
+			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Say hello to<br>Twenty Twenty-Four' ); ?></h3>
 				<p>
 					<?php
@@ -72,9 +72,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					); ?>
 				</p>
 			</div>
-			<div class="column is-vertically-aligned-bottom" style="padding-right:0;padding-bottom:0">
+			<div class="column is-vertically-aligned-bottom is-edge-to-edge">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="./images/6-4/1-Twenty-Twenty-Four.png" alt="" height="600" width="600" />
 				</div>
 			</div>
 		</div>
@@ -82,28 +82,28 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='270' height='270' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="270" width="270" />
+					<img src="./images/6-4/2-image-lightbox.png" alt="" height="270" width="270" />
 				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Add a lightbox effect to your images' ); ?></h3>
+				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Add a lightbox effect to images' ); ?></h3>
 				<p><?php _e( 'Turn lightbox functionality on for interactive, full-screen images with a simple click. Apply it globally or to specific images to customize the viewing experience.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='270' height='270' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="270" width="270" />
+					<img src="./images/6-4/3-categorize-patterns.png" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Categorize and filter patterns' ); ?></h3>
-				<p><?php _e( 'Organize your synced and unsynced patterns with categories. Explore advanced filtering in the Patterns section of the inserter to find all your patterns more intuitively.' ); ?></p>
+				<p><?php _e( 'Organize your synced and unsynced patterns with categories. Explore advanced filtering in the Patterns section of the inserter to find them all more intuitively.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='270' height='270' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="270" width="270" />
+					<img src="./images/6-4/4-command-palette.png" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Get more done with the Command Palette' ); ?></h3>
 				<p>
 					<?php
 					printf(
 						/* translators: %s: Command palette improvement link. */
-						__( 'Enjoy <a href="%s">a refreshed design and more commands</a> to find what you\'re looking for, perform tasks efficiently, and save time in the creation process.' ),
+						__( 'Enjoy <a href="%s">a refreshed design and more commands</a> to find what you\'re looking for, perform tasks efficiently, and save time as you create.' ),
 						__('https://make.wordpress.org/core/2023/09/12/core-editor-improvement-commanding-the-command-palette/')
 					); ?>
 				</p>
@@ -113,34 +113,34 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='270' height='270' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="270" width="270" />
+					<img src="./images/6-4/5-renaming-groups.png" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Rename Group blocks' ); ?></h3>
-				<p><?php _e( 'Set custom names for Group blocks to easily organize and differentiate parts of your content. These names will be visible in the List view.' ); ?></p>
+				<p><?php _e( 'Set custom names for Group blocks to easily organize and differentiate parts of your content. These names will be visible in List view.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='270' height='270' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="270" width="270" />
+					<img src="./images/6-4/6-image-preview.png" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Image previews in List View' ); ?></h3>
 				<p><?php _e( 'New media previews for Gallery and Image blocks in List View let you visualize and locate at a glance where images on your content are.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='270' height='270' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="270" width="270" />
+					<img src="./images/6-4/7-import-export-patterns.png" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Share patterns across sites' ); ?></h3>
 				<p><?php _e( 'Need to use your custom patterns on another site? It\'s simple! Import and export them as JSON files from the Site Editor\'s patterns view.' ); ?></p>
 			</div>
 		</div>
 
-		<div class="about__section has-2-columns has-accent-background-color">
+		<div class="about__section has-2-columns has-subtle-background-color is-wider-left">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="./images/6-4/8-captured-toolbar.png" alt="" height="434" width="536" />
 				</div>
 			</div>
-			<div class="column is-vertically-aligned-center" style="padding-left:6rem">
+			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Enjoy new writing improvements' ); ?></h3>
 				<p>
 					<?php
@@ -160,7 +160,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="./images/6-4/9-design-tools.png" alt="" height="355" width="436" />
 				</div>
 			</div>
 		</div>
@@ -168,7 +168,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23dcdcde' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="./images/6-4/10-block-hooks.png" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">

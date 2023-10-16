@@ -62,11 +62,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<li><?php _e( '<strong>Translate</strong> WordPress into your local language.' ); ?></li>
 				<li><?php _e( '<strong>Create</strong> and improve WordPress educational materials.' ); ?></li>
 				<li><?php _e( '<strong>Promote</strong> the WordPress project to your community.' ); ?></li>
-				<li><?php _e( '<strong>Curate</strong> submissions or take photos for the WordPress Photos Directory.' ); ?></li>
-				<li><?php _e( '<strong>Organize</strong> or participate in local WordPress Meetups and WordCamps.' ); ?></li>
+				<li><?php _e( '<strong>Curate</strong> submissions or take photos for the Photo Directory.' ); ?></li>
+				<li><?php _e( '<strong>Organize</strong> or participate in local Meetups and WordCamps.' ); ?></li>
 				<li><?php _e( '<strong>Lend</strong> your creative imagination to the WordPress UI design.' ); ?></li>
 				<li><?php _e( '<strong>Edit</strong> videos and add captions to WordPress.tv.' ); ?></li>
-				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of millions of websites.' ); ?></li>
+				<li><?php _e( '<strong>Explore</strong> ways to reduce the environmental impact of websites.' ); ?></li>
 			</ul>
 		</div>
 		<div class="column">
@@ -82,7 +82,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<p><?php _e( 'If you do code, or want to learn how, you can contribute technically in numerous ways:' ); ?></p>
 			<ul>
 				<li><?php _e( '<strong>Find</strong> and report bugs in the WordPress core software.' ); ?></li>
-				<li><?php _e( '<strong>Test</strong> new releases and proposed features for the block editor.' ); ?></li>
+				<li><?php _e( '<strong>Test</strong> new releases and proposed features for the Block Editor.' ); ?></li>
 				<li><?php _e( '<strong>Write</strong> and submit patches to fix bugs or help build new features.' ); ?></li>
 				<li><?php _e( '<strong>Contribute</strong> to the code, improve the UX, and test the WordPress app.' ); ?></li>
 			</ul>
