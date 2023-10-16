@@ -777,46 +777,20 @@ function update_option( $option, $value, $autoload = null ) {
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
 	/*
-	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
-	 * Immediately after getting the raw value, they are reinstated.
-	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
-	 * else, and is not passed to any of the hooks either.
-	 */
-	if ( has_filter( "pre_option_{$option}" ) ) {
-		global $wp_filter;
-
-		$old_filters = $wp_filter[ "pre_option_{$option}" ];
-		unset( $wp_filter[ "pre_option_{$option}" ] );
-
-		$raw_old_value                       = get_option( $option );
-		$wp_filter[ "pre_option_{$option}" ] = $old_filters;
-	} else {
-		$raw_old_value = $old_value;
-	}
-
-	/** This filter is documented in wp-includes/option.php */
-	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
-
-	/*
 	 * If the new and old values are the same, no need to update.
 	 *
-	 * An exception applies when no value is set in the database, i.e. the old value is the default.
-	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
 	 *
-	 * See https://core.trac.wordpress.org/ticket/38903 and https://core.trac.wordpress.org/ticket/22192.
+	 * See https://core.trac.wordpress.org/ticket/38903
 	 */
-	if (
-		$value === $raw_old_value ||
-		(
-			$raw_old_value !== $default_value &&
-			_is_equal_database_value( $raw_old_value, $value )
-		)
-	) {
+	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
 
-	if ( $raw_old_value === $default_value ) {
-
+	/** This filter is documented in wp-includes/option.php */
+	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
 			$autoload = 'yes';
