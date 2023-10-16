@@ -690,13 +690,121 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test cases for testing whether update_network_option() will add a non-existent option.
+	 */
+	public function data_option_values() {
+		return array(
+			array( '1' ),
+			array( 1 ),
+			array( 1.0 ),
+			array( true ),
+			array( 'true' ),
+			array( '0' ),
+			array( 0 ),
+			array( 0.0 ),
+			array( false ),
+			array( '' ),
+			array( null ),
+			array( array() ),
+		);
+	}
+
+	/**
+	 * Tests that a non-existent option is added only when the pre-filter matches the default 'false'.
+	 *
+	 * @ticket 59360
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_false_pre_filter_adds_missing_option( $option ) {
+		// Filter the old option value to `false`.
+		add_filter( 'pre_option_foo', '__return_false' );
+		add_filter( 'pre_site_option_foo', '__return_false' );
+
+		/*
+		 * When the network option is equal to the filtered version, update option will bail early.
+		 * Otherwise, The pre-filter will make the old option `false`, which is equal to the
+		 * default value. This causes an add_network_option() to be triggered.
+		 */
+		if ( false === $option ) {
+			$this->assertFalse( update_network_option( null, 'foo', $option ) );
+		} else {
+			$this->assertTrue( update_network_option( null, 'foo', $option ) );
+		}
+	}
+
+	/**
+	 * Tests that a non-existent option is never added when the pre-filter is not 'false'.
+	 *
+	 * @ticket 59360
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_truthy_pre_filter_does_not_add_missing_option( $option ) {
+		// Filter the old option value to `true`.
+		add_filter( 'pre_option_foo', '__return_true' );
+		add_filter( 'pre_site_option_foo', '__return_true' );
+
+		$this->assertFalse( update_network_option( null, 'foo', $option ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 59360
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_false_pre_filter_updates_option( $option ) {
+		// Add the option with a value that is different than any updated.
+		add_network_option( null, 'foo', 'bar' );
+
+		// Force a return value of false.
+		add_filter( 'pre_option_foo', '__return_false' );
+		add_filter( 'pre_site_option_foo', '__return_false' );
+
+		// This should succeed, since the pre-filtered option will be treated as the default.
+		$this->assertTrue( update_network_option( null, 'foo', $option ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 59360
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_true_pre_filter_updates_option( $option ) {
+		// Add the option with a value that is different than any updated.
+		update_network_option( null, 'foo', 'bar' );
+
+		// Force a return value of true.
+		add_filter( 'pre_option_foo', '__return_true' );
+		add_filter( 'pre_site_option_foo', '__return_true' );
+
+		/*
+		 * If the option will result in the same DB value, the option should not
+		 * be updated. Otherwise, the option should be updated regardless of the prefilter.
+		 */
+		if ( _is_equal_database_value( $option, true ) ) {
+			$this->assertFalse( update_network_option( null, 'foo', $option ) );
+		} else {
+			$this->assertTrue( update_network_option( null, 'foo', $option ) );
+		}
+	}
+
+	/**
 	 * Tests that a non-existent option is added even when its pre filter returns a value.
 	 *
 	 * @ticket 59360
 	 *
 	 * @covers ::update_network_option
 	 */
-	public function test_update_network_option_with_pre_filter_adds_missing_option() {
+	public function test_update_network_option_with_pre_filter_does_not_missing_option() {
 		$hook_name = is_multisite() ? 'pre_site_option_foo' : 'pre_option_foo';
 
 		// Force a return value of integer 0.
@@ -706,7 +814,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		 * This should succeed, since the 'foo' option does not exist in the database.
 		 * The default value is false, so it differs from 0.
 		 */
-		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+		$this->assertFalse( update_network_option( null, 'foo', 0 ) );
 	}
 
 	/**
@@ -716,7 +824,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 *
 	 * @covers ::update_network_option
 	 */
-	public function test_update_network_option_with_pre_filter_updates_option_with_different_value() {
+	public function test_update_network_option_with_pre_filter_does_not_option_with_different_value() {
 		$hook_name = is_multisite() ? 'pre_site_option_foo' : 'pre_option_foo';
 
 		// Add the option with a value of 1 to the database.
@@ -729,7 +837,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		 * This should succeed, since the 'foo' option has a value of 1 in the database.
 		 * Therefore it differs from 0 and should be updated.
 		 */
-		$this->assertTrue( update_network_option( null, 'foo', 0 ) );
+		$this->assertFalse( update_network_option( null, 'foo', 0 ) );
 	}
 
 	/**
