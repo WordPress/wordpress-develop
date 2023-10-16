@@ -1,222 +1,166 @@
-import { visitAdminPage } from '@wordpress/e2e-test-utils';
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-// See https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagescreenshotoptions for more available options.
-const screenshotOptions = {
-	fullPage: true,
-};
+const elementsToHide = [
+	'#footer-upgrade',
+	'#wp-admin-bar-root-default',
+	'#toplevel_page_gutenberg'
+];
 
-async function hideElementVisibility( elements ) {
-	for ( let i = 0; i < elements.length; i++ ) {
-		const elementOnPage = await page.$( elements[ i ] );
-		if ( elementOnPage ) {
-			await elementOnPage.evaluate( ( el ) => {
-				el.style.visibility = 'hidden';
-			} );
-		}
-	}
-	await page.waitFor( 1000 );
-}
-
-async function removeElementFromLayout( elements ) {
-	for ( let i = 0; i < elements.length; i++ ) {
-		const elementOnPage = await page.$( elements[ i ] );
-		if ( elementOnPage ) {
-			await elementOnPage.evaluate( ( el ) => {
-				el.style.visibility = 'hidden';
-			} );
-		}
-	}
-	await page.waitFor( 1000 );
-}
-
-const elementsToHide = [ '#footer-upgrade', '#wp-admin-bar-root-default' ];
-
-const elementsToRemove = [ '#toplevel_page_gutenberg' ];
-
-describe( 'Admin Visual Snapshots', () => {
-	beforeAll( async () => {
-		await page.setViewport( {
-			width: 1000,
-			height: 750,
-		} );
+test.describe( 'Admin Visual Snapshots', () => {
+	test( 'All Posts', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/edit.php' );
+		await expect( page ).toHaveScreenshot( 'All Posts.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'All Posts', async () => {
-		await visitAdminPage( '/edit.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Categories', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/edit-tags.php', 'taxonomy=category' );
+		await expect( page ).toHaveScreenshot( 'Categories.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Categories', async () => {
-		await visitAdminPage( '/edit-tags.php', 'taxonomy=category' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Tags', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/edit-tags.php', 'taxonomy=post_tag' );
+		await expect( page ).toHaveScreenshot( 'Tags.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Tags', async () => {
-		await visitAdminPage( '/edit-tags.php', 'taxonomy=post_tag' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Media Library', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/upload.php' );
+		await expect( page ).toHaveScreenshot( 'Media Library.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Media Library', async () => {
-		await visitAdminPage( '/upload.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Add New Media', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/media-new.php' );
+		await expect( page ).toHaveScreenshot( 'Add New Media.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Add New Media', async () => {
-		await visitAdminPage( '/media-new.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'All Pages', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/edit.php', 'post_type=page' );
+		await expect( page ).toHaveScreenshot( 'All Pages.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'All Pages', async () => {
-		await visitAdminPage( '/edit.php', 'post_type=page' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Comments', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/edit-comments.php' );
+		await expect( page ).toHaveScreenshot( 'Comments.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Comments', async () => {
-		await visitAdminPage( '/edit-comments.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Widgets', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/widgets.php' );
+		await expect( page ).toHaveScreenshot( 'Widgets.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Widgets', async () => {
-		await visitAdminPage( '/widgets.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Menus', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/nav-menus.php' );
+		await expect( page ).toHaveScreenshot( 'Menus.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Menus', async () => {
-		await visitAdminPage( '/nav-menus.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Plugins', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/plugins.php' );
+		await expect( page ).toHaveScreenshot( 'Plugins.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Plugins', async () => {
-		await visitAdminPage( '/plugins.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'All Users', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/users.php' );
+		await expect( page ).toHaveScreenshot( 'All Users.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'All Users', async () => {
-		await visitAdminPage( '/users.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Add New User', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/user-new.php' );
+		await expect( page ).toHaveScreenshot( 'Add New User.png', {
+			mask: [
+					...elementsToHide,
+					'.password-input-wrapper'
+			].map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Add New User', async () => {
-		await visitAdminPage( '/user-new.php' );
-		await hideElementVisibility( [
-			...elementsToHide,
-			'.password-input-wrapper',
-		] );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Your Profile', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/profile.php' );
+		await expect( page ).toHaveScreenshot( 'Your Profile.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Your Profile', async () => {
-		await visitAdminPage( '/profile.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Available Tools', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/tools.php' );
+		await expect( page ).toHaveScreenshot( 'Available Tools.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Available Tools', async () => {
-		await visitAdminPage( '/tools.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Import', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/import.php' );
+		await expect( page ).toHaveScreenshot( 'Import.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Import', async () => {
-		await visitAdminPage( '/import.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Export', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/export.php' );
+		await expect( page ).toHaveScreenshot( 'Export.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Export', async () => {
-		await visitAdminPage( '/export.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Export Personal Data', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/export-personal-data.php' );
+		await expect( page ).toHaveScreenshot( 'Export Personal Data.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Export Personal Data', async () => {
-		await visitAdminPage( '/export-personal-data.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Erase Personal Data', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/erase-personal-data.php' );
+		await expect( page ).toHaveScreenshot( 'Erase Personal Data.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Erase Personal Data', async () => {
-		await visitAdminPage( '/erase-personal-data.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Reading Settings', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/options-reading.php' );
+		await expect( page ).toHaveScreenshot( 'Reading Settings.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Reading Settings', async () => {
-		await visitAdminPage( '/options-reading.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Discussion Settings', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/options-discussion.php' );
+		await expect( page ).toHaveScreenshot( 'Discussion Settings.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Discussion Settings', async () => {
-		await visitAdminPage( '/options-discussion.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Media Settings', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/options-media.php' );
+		await expect( page ).toHaveScreenshot( 'Media Settings.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 
-	it( 'Media Settings', async () => {
-		await visitAdminPage( '/options-media.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
-	} );
-
-	it( 'Privacy Settings', async () => {
-		await visitAdminPage( '/options-privacy.php' );
-		await hideElementVisibility( elementsToHide );
-		await removeElementFromLayout( elementsToRemove );
-		const image = await page.screenshot( screenshotOptions );
-		expect( image ).toMatchImageSnapshot();
+	test( 'Privacy Settings', async ({ admin, page }) => {
+		await admin.visitAdminPage( '/options-privacy.php' );
+		await expect( page ).toHaveScreenshot( 'Privacy Settings.png', {
+			mask: elementsToHide.map( ( selector ) => page.locator( selector ) ),
+		});
 	} );
 } );

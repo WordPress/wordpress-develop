@@ -549,7 +549,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			 *
 			 * @return string Returns the block content.
 			 */
-			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
 				ob_start();
 				require $template_path;
 				return ob_get_clean();
@@ -723,14 +723,13 @@ function get_dynamic_block_names() {
 }
 
 /**
- * Retrieves block types hooked into the given block, grouped by their relative position.
+ * Retrieves block types hooked into the given block, grouped by anchor block type and the relative position.
  *
  * @since 6.4.0
  *
- * @param string $name Block type name including namespace.
- * @return array[] Array of block types grouped by their relative position.
+ * @return array[] Array of block types grouped by anchor block type and the relative position.
  */
-function get_hooked_blocks( $name ) {
+function get_hooked_blocks() {
 	$block_types   = WP_Block_Type_Registry::get_instance()->get_all_registered();
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
@@ -738,15 +737,16 @@ function get_hooked_blocks( $name ) {
 			continue;
 		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			if ( $anchor_block_type !== $name ) {
-				continue;
+			if ( ! isset( $hooked_blocks[ $anchor_block_type ] ) ) {
+				$hooked_blocks[ $anchor_block_type ] = array();
 			}
-			if ( ! isset( $hooked_blocks[ $relative_position ] ) ) {
-				$hooked_blocks[ $relative_position ] = array();
+			if ( ! isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
+				$hooked_blocks[ $anchor_block_type ][ $relative_position ] = array();
 			}
-			$hooked_blocks[ $relative_position ][] = $block_type->name;
+			$hooked_blocks[ $anchor_block_type ][ $relative_position ][] = $block_type->name;
 		}
 	}
+
 	return $hooked_blocks;
 }
 
@@ -760,11 +760,12 @@ function get_hooked_blocks( $name ) {
  * @since 6.4.0
  * @access private
  *
- * @param WP_Block_Template|array $context A block template, template part, or pattern that the blocks belong to.
+ * @param array                   $hooked_blocks An array of blocks hooked to another given block.
+ * @param WP_Block_Template|array $context       A block template, template part, or pattern that the blocks belong to.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $context ) {
+function make_before_block_visitor( $hooked_blocks, $context ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -777,8 +778,10 @@ function make_before_block_visitor( $context ) {
 	 * @param array $prev         The previous sibling block of the given block.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, $parent_block = null, $prev = null ) use ( $context ) {
-		_inject_theme_attribute_in_template_part_block( $block );
+	return function ( &$block, $parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			_inject_theme_attribute_in_template_part_block( $block );
+		}
 
 		$markup = '';
 
@@ -786,9 +789,8 @@ function make_before_block_visitor( $context ) {
 			// Candidate for first-child insertion.
 			$relative_position  = 'first_child';
 			$anchor_block_type  = $parent_block['blockName'];
-			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-			$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
-				? $hooked_block_types[ $relative_position ]
+			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 				: array();
 
 			/**
@@ -810,9 +812,8 @@ function make_before_block_visitor( $context ) {
 
 		$relative_position  = 'before';
 		$anchor_block_type  = $block['blockName'];
-		$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-		$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
-			? $hooked_block_types[ $relative_position ]
+		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+			? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 			: array();
 
 		/** This filter is documented in wp-includes/blocks.php */
@@ -835,11 +836,12 @@ function make_before_block_visitor( $context ) {
  * @since 6.4.0
  * @access private
  *
- * @param WP_Block_Template|array $context A block template, template part, or pattern that the blocks belong to.
+ * @param array                   $hooked_blocks An array of blocks hooked to another block.
+ * @param WP_Block_Template|array $context       A block template, template part, or pattern that the blocks belong to.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $context ) {
+function make_after_block_visitor( $hooked_blocks, $context ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
@@ -851,15 +853,14 @@ function make_after_block_visitor( $context ) {
 	 * @param array $next         The next sibling block of the given block.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, $parent_block = null, $next = null ) use ( $context ) {
+	return function ( &$block, $parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
 		$markup = '';
 
 		$relative_position  = 'after';
 		$anchor_block_type  = $block['blockName'];
-		$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-		$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
-			? $hooked_block_types[ $relative_position ]
-			: array();
+		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+				: array();
 
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
@@ -871,9 +872,8 @@ function make_after_block_visitor( $context ) {
 			// Candidate for last-child insertion.
 			$relative_position  = 'last_child';
 			$anchor_block_type  = $parent_block['blockName'];
-			$hooked_block_types = get_hooked_blocks( $anchor_block_type );
-			$hooked_block_types = isset( $hooked_block_types[ $relative_position ] )
-				? $hooked_block_types[ $relative_position ]
+			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 				: array();
 
 			/** This filter is documented in wp-includes/blocks.php */
@@ -1947,4 +1947,86 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
 	}
 	return null;
+}
+
+/**
+ * Strips all HTML from the content of footnotes, and sanitizes the ID.
+ * This function expects slashed data on the footnotes content.
+ *
+ * @access private
+ * @since 6.3.2
+ *
+ * @param string $footnotes JSON encoded string of an array containing the content and ID of each footnote.
+ * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
+ */
+function _wp_filter_post_meta_footnotes( $footnotes ) {
+	$footnotes_decoded   = json_decode( $footnotes, true );
+	if ( ! is_array( $footnotes_decoded ) ) {
+		return '';
+	}
+	$footnotes_sanitized = array();
+	foreach ( $footnotes_decoded as $footnote ) {
+		if ( ! empty( $footnote['content'] ) && ! empty( $footnote['id'] ) ) {
+			$footnotes_sanitized[] = array(
+				'id'      => sanitize_key( $footnote['id'] ),
+				'content' => wp_unslash( wp_filter_post_kses( wp_slash( $footnote['content'] ) ) ),
+			);
+		}
+	}
+	return wp_json_encode( $footnotes_sanitized );
+}
+
+/**
+ * Adds the filters to filter footnotes meta field.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_kses_init_filters() {
+	add_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
+}
+
+/**
+ * Removes the filters that filter footnotes meta field.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_remove_filters() {
+	remove_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
+}
+
+/**
+ * Registers the filter of footnotes meta field if the user does not have unfiltered_html capability.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_kses_init() {
+	_wp_footnotes_remove_filters();
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		_wp_footnotes_kses_init_filters();
+	}
+}
+
+/**
+ * Initializes footnotes meta field filters when imported data should be filtered.
+ *
+ * This filter is the last being executed on force_filtered_html_on_import.
+ * If the input of the filter is true it means we are in an import situation and should
+ * enable kses, independently of the user capabilities.
+ * So in that case we call _wp_footnotes_kses_init_filters;
+ *
+ * @access private
+ * @since 6.3.2
+ *
+ * @param string $arg Input argument of the filter.
+ * @return string Input argument of the filter.
+ */
+function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
+	// force_filtered_html_on_import is true we need to init the global styles kses filters.
+	if ( $arg ) {
+		_wp_footnotes_kses_init_filters();
+	}
+	return $arg;
 }

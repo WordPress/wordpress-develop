@@ -1266,7 +1266,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		$signature_verification = in_array( parse_url( $url, PHP_URL_HOST ), $signed_hostnames, true );
 	}
 
-	// Perform signature valiation if supported.
+	// Perform signature validation if supported.
 	if ( $signature_verification ) {
 		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
@@ -2764,7 +2764,6 @@ function wp_opcache_invalidate_directory( $dir ) {
 				__( '%s expects a non-empty string.' ),
 				'<code>wp_opcache_invalidate_directory()</code>'
 			);
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
 			trigger_error( $error_message );
 		}
 		return;

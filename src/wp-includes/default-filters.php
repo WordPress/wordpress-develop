@@ -531,7 +531,7 @@ add_action( 'delete_attachment', '_delete_attachment_theme_mod' );
 add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_dependent_auto_drafts', 20, 3 );
 
 // Block Theme Previews.
-add_action( 'plugins_loaded', 'initialize_theme_preview_hooks', 1 );
+add_action( 'plugins_loaded', 'wp_initialize_theme_preview_hooks', 1 );
 
 // Calendar widget cache.
 add_action( 'save_post', 'delete_get_calendar_cache' );
@@ -611,6 +611,15 @@ add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
 
 add_action( 'wp_head', 'wp_maybe_inline_styles', 1 ); // Run for styles enqueued in <head>.
 add_action( 'wp_footer', 'wp_maybe_inline_styles', 1 ); // Run for late-loaded styles in the footer.
+
+/*
+ * Block specific actions and filters.
+ */
+
+// Footnotes Block.
+add_action( 'init', '_wp_footnotes_kses_init' );
+add_action( 'set_current_user', '_wp_footnotes_kses_init' );
+add_filter( 'force_filtered_html_on_import', '_wp_footnotes_force_filtered_html_on_import_filter', 999 );
 
 /*
  * Disable "Post Attributes" for wp_navigation post type. The attributes are
@@ -707,9 +716,13 @@ add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
 add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug', 10, 5 );
 add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template_part' );
-add_action( 'wp_footer', 'the_block_template_skip_link' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_template_skip_link' );
+add_action( 'wp_footer', 'the_block_template_skip_link' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_block_template_skip_link().
 add_action( 'setup_theme', 'wp_enable_block_templates' );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
+
+// wp_navigation post type.
+add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', 'update_wp_navigation_post_schema' ) );
 
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );

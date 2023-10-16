@@ -71,8 +71,14 @@ jobs:
               run_id: ${{ github.run_id }},
             });
 
-            // When a workflow has been restarted to fix a failure, check the previous run attempt.
-            if ( workflow_run.data.run_attempt > 1 ) {
+            if ( '${{ inputs.calling_status }}' == 'failure' && workflow_run.data.run_attempt == 1 ) {
+              return 'first-failure';
+            }
+
+            // When a workflow has been restarted, check the previous run attempt. Because workflows are automatically
+            // restarted once and a failure on the first run is not reported, failures on the second run should not be
+            // considered.
+            if ( workflow_run.data.run_attempt > 2 ) {
               const previous_run = await github.rest.actions.getWorkflowRunAttempt({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -157,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'failure' || failure() }}
+    if: ${{ needs.prepare.outputs.previous_conclusion != 'first-failure' && inputs.calling_status == 'failure' || failure() }}
 
     steps:
       - name: Post failure notifications to Slack
