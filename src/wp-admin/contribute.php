@@ -37,8 +37,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	</nav>
 
 	<div class="about__section has-2-columns is-wider-right">
-		<div class="column about__image">
-			<img src="<?php echo esc_url( admin_url( 'images/contribute-main.svg?ver=6.3' ) ); ?>" alt="" />
+		<div class="column">
+			<img src="<?php echo esc_url( admin_url( 'images/contribute-main.svg?ver=6.4' ) ); ?>" alt="" width="290" height="290" />
 		</div>
 		<div class="column is-vertically-aligned-center">
 			<p><?php _e( 'Do you use WordPress for work, for personal projects, or even just for fun? You can help shape the long-term success of the open source project that powers millions of websites around the world.' ); ?></p>
@@ -70,12 +70,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</ul>
 		</div>
 		<div class="column">
-			<img src="<?php echo esc_url( admin_url( 'images/contribute-no-code.svg?ver=6.3' ) ); ?>" alt="" />
+			<img src="<?php echo esc_url( admin_url( 'images/contribute-no-code.svg?ver=6.4' ) ); ?>" alt="" width="290" height="290" />
 		</div>
 	</div>
 	<div class="about__section has-2-columns is-wider-right">
 		<div class="column">
-			<img src="<?php echo esc_url( admin_url( 'images/contribute-code.svg?ver=6.3' ) ); ?>" alt="" />
+			<img src="<?php echo esc_url( admin_url( 'images/contribute-code.svg?ver=6.4' ) ); ?>" alt="" width="290" height="290" />
 		</div>
 		<div class="column is-vertically-aligned-center">
 			<h3><?php _e( 'Code-based contribution' ); ?></h3>
