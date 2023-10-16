@@ -438,6 +438,8 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 		$theme->delete_pattern_cache();
 	}
 
+	$pattern_data = array();
+
 	$default_headers = array(
 		'title'         => 'Title',
 		'slug'          => 'Slug',
