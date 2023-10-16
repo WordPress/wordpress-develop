@@ -64,6 +64,9 @@ jobs:
           git --version
           svn --version
 
+      - name: Install Core Dependencies
+        run: npm ci
+
       - name: Install Gutenberg Dependencies
         run: npm ci
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
@@ -71,9 +74,6 @@ jobs:
       - name: Run Gutenberg build script
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
-
-      - name: Install Core Dependencies
-        run: npm ci
 
       - name: Run Gutenberg build script with Core dependencies installed
         run: npm run build
