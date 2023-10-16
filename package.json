@@ -47,7 +47,6 @@
 		"grunt-contrib-cssmin": "~5.0.0",
 		"grunt-contrib-imagemin": "~4.0.0",
 		"grunt-contrib-jshint": "3.2.0",
-		"grunt-contrib-qunit": "~8.0.1",
 		"grunt-contrib-uglify": "~5.2.2",
 		"grunt-contrib-watch": "~1.1.0",
 		"grunt-file-append": "0.0.7",
