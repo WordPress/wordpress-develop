@@ -300,7 +300,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html        HTML string with tags in it, one of which contains the "target" attribute.
 	 * @param array  $breadcrumbs Breadcrumbs of element with "target" attribute set.
 	 * @param int    $ignored_n   Not used in this test but provided in the dataset for other tests.
-	 * @return void
 	 */
 	public function test_reports_correct_breadcrumbs_for_html( $html, $breadcrumbs, $ignored_n ) {
 		$p = WP_HTML_Processor::create_fragment( $html );
