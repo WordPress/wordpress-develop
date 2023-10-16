@@ -84,7 +84,7 @@ jobs:
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
-      - name: Build WordPress in ${{ inputs.directory }}
+      - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run build${{ inputs.directory == 'src' && ':dev' }}
 
       - name: Run Gutenberg build script after building Core to run from ${{ inputs.directory }}
