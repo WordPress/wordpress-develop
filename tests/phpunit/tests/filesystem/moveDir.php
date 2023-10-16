@@ -308,5 +308,4 @@ class Tests_Filesystem_MoveDir extends WP_UnitTestCase {
 			'An unexpected error code was returned.'
 		);
 	}
-
 }

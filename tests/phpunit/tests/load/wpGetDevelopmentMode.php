@@ -8,7 +8,7 @@
  *
  * @group load.php
  * @covers ::wp_get_development_mode
- * @covers ::wp_in_development_mode
+ * @covers ::wp_is_development_mode
  */
 class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 
@@ -46,29 +46,29 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `wp_in_development_mode()` returns expected results.
+	 * Tests that `wp_is_development_mode()` returns expected results.
 	 *
 	 * @ticket 57487
-	 * @dataProvider data_wp_in_development_mode
+	 * @dataProvider data_wp_is_development_mode
 	 */
-	public function test_wp_in_development_mode( $current, $given, $expected ) {
+	public function test_wp_is_development_mode( $current, $given, $expected ) {
 		global $_wp_tests_development_mode;
 
 		$_wp_tests_development_mode = $current;
 
 		if ( $expected ) {
-			$this->assertTrue( wp_in_development_mode( $given ), "{$given} is expected to pass in {$current} mode" );
+			$this->assertTrue( wp_is_development_mode( $given ), "{$given} is expected to pass in {$current} mode" );
 		} else {
-			$this->assertFalse( wp_in_development_mode( $given ), "{$given} is expected to fail in {$current} mode" );
+			$this->assertFalse( wp_is_development_mode( $given ), "{$given} is expected to fail in {$current} mode" );
 		}
 	}
 
 	/**
-	 * Data provider that returns test scenarios for the `test_wp_in_development_mode()` method.
+	 * Data provider that returns test scenarios for the `test_wp_is_development_mode()` method.
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_in_development_mode() {
+	public function data_wp_is_development_mode() {
 		return array(
 			'core mode, testing for core'              => array(
 				'core',
