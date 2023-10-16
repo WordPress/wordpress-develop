@@ -193,7 +193,7 @@ $blog_details = get_site();
 				<p class="view">
 				<?php
 					/* translators: 1: Site URL, 2: Login URL. */
-					printf( esc_html__( 'Your account is now activated. <a href="%1$s">View your site</a> or <a href="%2$s">Log in</a>' ), $url, esc_url( $login_url ) );
+					printf( __( 'Your account is now activated. <a href="%1$s">View your site</a> or <a href="%2$s">Log in</a>' ), esc_url( $url ), esc_url( $login_url ) );
 				?>
 				</p>
 			<?php else : ?>
