@@ -168,7 +168,7 @@ $blog_details = get_site();
 			echo '</p>';
 		} elseif ( null === $result || is_wp_error( $result ) ) {
 			?>
-			<h2><?php esc_html_e( 'An error occurred during the activation' ); ?></h2>
+			<h2><?php _e( 'An error occurred during the activation' ); ?></h2>
 			<?php if ( is_wp_error( $result ) ) : ?>
 				<p><?php echo esc_html( $result->get_error_message() ); ?></p>
 			<?php endif; ?>
