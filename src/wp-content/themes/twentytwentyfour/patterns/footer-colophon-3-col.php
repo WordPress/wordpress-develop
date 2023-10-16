@@ -1,7 +1,7 @@
 <?php
 /**
- * Title: Footer portfolio
- * Slug: twentytwentyfour/footer-portfolio
+ * Title: Footer with colophon, 3 columns
+ * Slug: twentytwentyfour/footer-colophon-3-col
  * Categories: footer
  * Block Types: core/template-part/footer
  */
@@ -12,11 +12,13 @@
 	<!-- wp:group {"align":"wide","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}}} -->
 	<div class="wp-block-group alignwide" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
 		<!-- wp:image {"width":"40px","height":"auto","sizeSlug":"full","linkDestination":"none"} -->
-		<figure class="wp-block-image size-full is-resized"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/icon-message.webp" alt="" style="width:40px;height:auto"/></figure>
+		<figure class="wp-block-image size-full is-resized">
+			<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/icon-message.webp" alt="" style="width:40px;height:auto" />
+		</figure>
 		<!-- /wp:image -->
 
 		<!-- wp:separator {"className":"is-style-wide"} -->
-		<hr class="wp-block-separator has-alpha-channel-opacity is-style-wide"/>
+		<hr class="wp-block-separator has-alpha-channel-opacity is-style-wide" />
 		<!-- /wp:separator -->
 
 		<!-- wp:columns {"style":{"spacing":{"padding":{"top":"var:preset|spacing|10"}}}} -->
@@ -33,7 +35,7 @@
 				<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|10"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 				<div class="wp-block-group">
 					<!-- wp:heading {"level":3,"fontSize":"medium","fontFamily":"body"} -->
-					<h3 class="wp-block-heading has-body-font-family has-medium-font-size"><?php esc_html_e( 'Contact Me', 'twentytwentyfour' ); ?></h3>
+					<h3 class="wp-block-heading has-body-font-family has-medium-font-size"><?php esc_html_e( 'Contact', 'twentytwentyfour' ); ?></h3>
 					<!-- /wp:heading -->
 					<!-- wp:paragraph -->
 					<p><a href="#"><?php echo esc_html_x( 'info@example.com', 'Example email in site footer', 'twentytwentyfour' ); ?></a></p>
@@ -51,7 +53,7 @@
 						<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|10"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 						<div class="wp-block-group">
 							<!-- wp:heading {"level":3,"fontSize":"medium","fontFamily":"body"} -->
-							<h3 class="wp-block-heading has-body-font-family has-medium-font-size"><?php esc_html_e( 'Follow Me', 'twentytwentyfour' ); ?></h3>
+							<h3 class="wp-block-heading has-body-font-family has-medium-font-size"><?php esc_html_e( 'Follow', 'twentytwentyfour' ); ?></h3>
 							<!-- /wp:heading -->
 							<!-- wp:paragraph -->
 							<p><a href="#"><?php esc_html_e( 'Instagram', 'twentytwentyfour' ); ?></a> / <a href="#"><?php esc_html_e( 'Facebook', 'twentytwentyfour' ); ?></a></p>
@@ -84,14 +86,14 @@
 			<!-- wp:paragraph {"fontSize":"small"} -->
 			<p class="has-small-font-size">
 				<?php
-					/* Translators: WordPress link. */
-					$wordpress_link = '<a href="' . esc_url( __( 'https://wordpress.org', 'twentytwentyfour' ) ) . '" rel="nofollow">WordPress</a>';
-					echo sprintf(
-						/* Translators: Designed with WordPress */
-						esc_html__( 'Designed with %1$s', 'twentytwentyfour' ),
-						$wordpress_link
-					);
-					?>
+				/* Translators: WordPress link. */
+				$wordpress_link = '<a href="' . esc_url( __( 'https://wordpress.org', 'twentytwentyfour' ) ) . '" rel="nofollow">WordPress</a>';
+				echo sprintf(
+					/* Translators: Designed with WordPress */
+					esc_html__( 'Designed with %1$s', 'twentytwentyfour' ),
+					$wordpress_link
+				);
+				?>
 			</p>
 			<!-- /wp:paragraph -->
 		</div>

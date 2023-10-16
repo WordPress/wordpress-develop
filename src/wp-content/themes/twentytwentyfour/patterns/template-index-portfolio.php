@@ -1,13 +1,14 @@
 <?php
 /**
- * Title: Portfolio Index Template
+ * Title: Portfolio Index
  * Slug: twentytwentyfour/template-index-portfolio
  * Template Types: index
  * Viewport width: 1400
+ * Inserter: no
  */
 ?>
 
-<!-- wp:template-part {"slug":"header"} /-->
+<!-- wp:template-part {"slug":"header","area":"header","tagName":"header"} /-->
 
 <!-- wp:group {"tagName":"main","align":"full","layout":{"type":"constrained"}} -->
 <main class="wp-block-group alignfull">

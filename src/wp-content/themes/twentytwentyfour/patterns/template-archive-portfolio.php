@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Portfolio Archive Template
+ * Title: Portfolio Archive
  * Slug: twentytwentyfour/template-archive-portfolio
  * Template Types: archive
  * Viewport width: 1400
@@ -8,7 +8,7 @@
  */
 ?>
 
-<!-- wp:template-part {"slug":"header"} /-->
+<!-- wp:template-part {"slug":"header","area":"header","tagName":"header"} /-->
 
 <!-- wp:group {"tagName":"main","align":"full","layout":{"type":"constrained"}} -->
 <main class="wp-block-group alignfull">

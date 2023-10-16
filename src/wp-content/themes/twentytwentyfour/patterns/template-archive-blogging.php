@@ -1,8 +1,8 @@
 <?php
 /**
- * Title: Blogging Search Results
- * Slug: twentytwentyfour/template-search-blogging
- * Template Types: search
+ * Title: Blogging Archive
+ * Slug: twentytwentyfour/template-archive-blogging
+ * Template Types: archive, category, tag, author, date
  * Viewport width: 1400
  * Inserter: no
  */
@@ -12,12 +12,7 @@
 
 <!-- wp:group {"tagName":"main","style":{"spacing":{"blockGap":"0","margin":{"top":"0"}}},"layout":{"type":"constrained"}} -->
 <main class="wp-block-group" style="margin-top:0">
-	<!-- wp:group {"layout":{"type":"default"}} -->
-	<div class="wp-block-group">
-		<!-- wp:query-title {"type":"search","style":{"typography":{"lineHeight":"1"},"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|30"}}}} /-->
-		<!-- wp:pattern {"slug":"twentytwentyfour/search"} /-->
-	</div>
-	<!-- /wp:group -->
+	<!-- wp:query-title {"type":"archive","style":{"typography":{"lineHeight":"1"},"spacing":{"padding":{"top":"var:preset|spacing|50"}}}} /-->
 
 	<!-- wp:pattern {"slug":"twentytwentyfour/posts-one-column"} /-->
 </main>
