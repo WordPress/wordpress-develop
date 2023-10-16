@@ -84,6 +84,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
+        directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
 
@@ -105,6 +106,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macos-latest ]
+        directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
 
