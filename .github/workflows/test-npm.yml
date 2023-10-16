@@ -52,7 +52,7 @@ jobs:
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
   test-core-build-process:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
     uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
     permissions:
       contents: read
@@ -85,7 +85,7 @@ jobs:
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
   test-core-build-process-macos:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
     uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
     permissions:
       contents: read
