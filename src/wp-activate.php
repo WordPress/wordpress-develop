@@ -180,8 +180,8 @@ $blog_details = get_site();
 			<h2><?php _e( 'Your account is now active!' ); ?></h2>
 
 			<div id="signup-welcome">
-			<p><span class="h3"><?php esc_html_e( 'Username:' ); ?></span> <?php echo esc_html( $user->user_login ); ?></p>
-			<p><span class="h3"><?php esc_html_e( 'Password:' ); ?></span> <?php echo esc_html( $result['password'] ); ?></p>
+			<p><span class="h3"><?php _e( 'Username:' ); ?></span> <?php echo esc_html( $user->user_login ); ?></p>
+			<p><span class="h3"><?php _e( 'Password:' ); ?></span> <?php echo esc_html( $result['password'] ); ?></p>
 			</div>
 
 			<?php
