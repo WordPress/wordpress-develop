@@ -56,10 +56,10 @@ jobs:
         run: npm ci
 
       - name: Build WordPress in ${{ inputs.directory }}
-        run: npm run build${{ inputs.directory == 'src' && ':dev' }}
+        run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
 
       - name: Clean after building in /src
-        run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' }}
+        run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' || '' }}
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
