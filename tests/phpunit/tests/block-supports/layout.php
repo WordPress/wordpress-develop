@@ -267,7 +267,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div><div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
+				'expected_output' => '<div><div class="wp-block-group"></div>',
 			),
 			'element with true class attribute before target' => array(
 				'args'            => array(
@@ -286,7 +286,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<div class><div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
+				'expected_output' => '<div class><div class="wp-block-group"></div>',
 			),
 		);
 	}
