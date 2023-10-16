@@ -49,8 +49,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
+        directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
+      directory: ${{ matrix.directory }}
 
   # Creates a job to test the WordPress Core build process on MacOS.
   #
@@ -70,8 +72,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ macos-latest ]
+        directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
+      directory: ${{ matrix.directory }}
 
   # Creates a job to test the Gutenberg plugin build process on multiple operating systems.
   test-gutenberg-build-process:

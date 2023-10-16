@@ -11,7 +11,11 @@ on:
         required: false
         type: 'string'
         default: 'ubuntu-latest'
-
+      directory:
+        description: 'Directory to run WordPress out of. Valid values are src or build'
+        required: false
+        type: 'string'
+        default: 'src'
 jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.
   #
@@ -20,14 +24,11 @@ jobs:
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
-  # - Builds WordPress to run from the `build` directory.
-  # - Cleans up after building WordPress to the `build` directory.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Builds WordPress to run from the `src` directory.
-  # - Cleans up after building WordPress to the `src` directory.
+  # - Builds WordPress to run from the desired location (src or build).
+  # - Cleans up after building WordPress.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
-    name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Core Build Process
+    name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Core Build Process for ${{ inputs.directory }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
@@ -54,20 +55,11 @@ jobs:
       - name: Install npm Dependencies
         run: npm ci
 
-      - name: Build WordPress in /src
-        run: npm run build:dev
+      - name: Build WordPress in ${{ inputs.directory }}
+        run: npm run build${{ inputs.directory == 'src' && ':dev' }}
 
       - name: Clean after building in /src
-        run: npm run grunt clean -- --dev
-
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
-        run: git diff --exit-code
-
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Clean after building
-        run: npm run grunt clean
+        run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' }}
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
