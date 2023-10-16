@@ -75,7 +75,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-bottom is-edge-to-edge">
 				<div class="about__image">
-					<img src="./images/6-4/1-Twenty-Twenty-Four.png" alt="" height="600" width="600" />
+					<img src="https://s.w.org/images/core/6-4/1-Twenty-Twenty-Four.webp" alt="" height="600" width="600" />
 				</div>
 			</div>
 		</div>
@@ -83,21 +83,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="./images/6-4/2-image-lightbox.png" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6-4/2-image-lightbox.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Add a lightbox effect to images' ); ?></h3>
 				<p><?php _e( 'Turn lightbox functionality on for interactive, full-screen images with a simple click. Apply it globally or to specific images to customize the viewing experience.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="./images/6-4/3-categorize-patterns.png" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6-4/3-categorize-patterns.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Categorize and filter patterns' ); ?></h3>
 				<p><?php _e( 'Organize your synced and unsynced patterns with categories. Explore advanced filtering in the Patterns section of the inserter to find them all more intuitively.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="./images/6-4/4-command-palette.png" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6-4/4-command-palette.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Get more done with the Command Palette' ); ?></h3>
 				<p>
@@ -115,21 +115,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="./images/6-4/5-renaming-groups.png" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6-4/5-renaming-groups.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Rename Group blocks' ); ?></h3>
 				<p><?php _e( 'Set custom names for Group blocks to easily organize and differentiate parts of your content. These names will be visible in List View.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="./images/6-4/6-image-preview.png" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6-4/6-image-preview.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Image previews in List View' ); ?></h3>
 				<p><?php _e( 'New media previews for Gallery and Image blocks in List View let you visualize and locate at a glance where images on your content are.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="./images/6-4/7-import-export-patterns.png" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6-4/7-import-export-patterns.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Share patterns across sites' ); ?></h3>
 				<p><?php _e( 'Need to use your custom patterns on another site? It\'s simple! Import and export them as JSON files from the Site Editor\'s patterns view.' ); ?></p>
@@ -139,7 +139,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns has-subtle-background-color is-wider-left">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="./images/6-4/8-captured-toolbar.png" alt="" height="434" width="536" />
+					<img src="https://s.w.org/images/core/6-4/8-captured-toolbar.webp" alt="" height="434" width="536" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -163,7 +163,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="./images/6-4/9-design-tools.png" alt="" height="355" width="436" />
+					<img src="https://s.w.org/images/core/6-4/9-design-tools.webp" alt="" height="355" width="436" />
 				</div>
 			</div>
 		</div>
@@ -171,7 +171,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="./images/6-4/10-block-hooks.png" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6-4/10-block-hooks.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
