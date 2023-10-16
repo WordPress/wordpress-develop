@@ -222,11 +222,11 @@ jobs:
             });
 
   build-wordpress:
-    name: Build WordPress
+    name: Upload WordPress build as artifact
     permissions:
       contents: read
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    #if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
