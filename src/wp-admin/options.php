@@ -279,7 +279,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			$_POST['gmt_offset']      = $_POST['timezone_string'];
 			$_POST['gmt_offset']      = preg_replace( '/UTC\+?/', '', $_POST['gmt_offset'] );
 			$_POST['timezone_string'] = '';
-		} elseif ( isset( $_POST['timezone_string'] ) && ! in_array( $_POST['timezone_string'], timezone_identifiers_list(), true ) ) {
+		} elseif ( isset( $_POST['timezone_string'] ) && ! in_array( $_POST['timezone_string'], timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
 			// Reset to the current value.
 			$current_timezone_string = get_option( 'timezone_string' );
 
