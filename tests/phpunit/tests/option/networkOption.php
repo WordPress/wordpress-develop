@@ -330,7 +330,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		 * If the option is the same as the pre-filtered value, the option should not
 		 * be updated. Otherwise, the option should be updated regardless of the pre-filter.
 		 */
-		if ( $option === true ) {
+		if ( true === $option ) {
 			$this->assertFalse( update_network_option( null, 'foo', $option ) );
 		} else {
 			$this->assertTrue( update_network_option( null, 'foo', $option ) );
