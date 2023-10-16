@@ -69,6 +69,13 @@ jobs:
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
+      - name: Checkout Gutenberg plugin
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          repository: 'WordPress/gutenberg'
+          path: 'src/wp-content/plugins/gutenberg'
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
       - name: Set up Node.js
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
@@ -100,6 +107,14 @@ jobs:
 
       - name: Clean after building
         run: npm run grunt clean
+
+      - name: Install Gutenberg dependencies
+        run: npm ci
+        working-directory: src/wp-content/plugins/gutenberg
+
+      - name: Build Gutenberg
+        run: npm run build
+        working-directory: src/wp-content/plugins/gutenberg
 
       - name: Ensure version-controlled files are not modified or deleted during building and cleaning
         run: git diff --exit-code
