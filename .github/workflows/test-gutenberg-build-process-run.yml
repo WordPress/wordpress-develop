@@ -32,7 +32,7 @@ jobs:
   # - Runs the Gutenberg build process.
   # - Installs Core npm dependencies.
   # - Runs the Gutenberg build process.
-  # - Builds WordPress to run from the `src` directory.
+  # - Builds WordPress to run from the relevant location (src or build).
   # - Runs the Gutenberg build process.
   build-process-tests:
     name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Gutenberg Build Process from ${{ inputs.directory }}
