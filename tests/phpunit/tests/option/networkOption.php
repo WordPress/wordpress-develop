@@ -715,7 +715,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 59360
 	 * @dataProvider data_option_values
 	 *
-	 * @covers ::update_option
+	 * @covers ::update_network_option
 	 */
 	public function test_update_option_with_false_pre_filter_adds_missing_option( $option ) {
 		// Filter the old option value to `false`.
@@ -740,7 +740,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 59360
 	 * @dataProvider data_option_values
 	 *
-	 * @covers ::update_option
+	 * @covers ::update_network_option
 	 */
 	public function test_update_option_with_truthy_pre_filter_does_not_add_missing_option( $option ) {
 		// Filter the old option value to `true`.
@@ -756,7 +756,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 59360
 	 * @dataProvider data_option_values
 	 *
-	 * @covers ::update_option
+	 * @covers ::update_network_option
 	 */
 	public function test_update_option_with_false_pre_filter_updates_option( $option ) {
 		// Add the option with a value that is different than any updated.
@@ -776,7 +776,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	 * @ticket 59360
 	 * @dataProvider data_option_values
 	 *
-	 * @covers ::update_option
+	 * @covers ::update_network_option
 	 */
 	public function test_update_option_with_true_pre_filter_updates_option( $option ) {
 		// Add the option with a value that is different than any updated.
