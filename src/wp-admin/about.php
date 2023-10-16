@@ -116,7 +116,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="./images/6-4/5-renaming-groups.png" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Rename Group blocks' ); ?></h3>
-				<p><?php _e( 'Set custom names for Group blocks to easily organize and differentiate parts of your content. These names will be visible in List view.' ); ?></p>
+				<p><?php _e( 'Set custom names for Group blocks to easily organize and differentiate parts of your content. These names will be visible in List View.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
