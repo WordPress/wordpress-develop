@@ -177,7 +177,7 @@ $blog_details = get_site();
 			$url  = isset( $result['blog_id'] ) ? esc_url( get_home_url( (int) $result['blog_id'] ) ) : '';
 			$user = get_userdata( (int) $result['user_id'] );
 			?>
-			<h2><?php esc_html_e( 'Your account is now active!' ); ?></h2>
+			<h2><?php _e( 'Your account is now active!' ); ?></h2>
 
 			<div id="signup-welcome">
 			<p><span class="h3"><?php esc_html_e( 'Username:' ); ?></span> <?php echo esc_html( $user->user_login ); ?></p>
