@@ -1,4 +1,4 @@
-name: Test npm
+name: Test Build Processes
 
 on:
   push:
