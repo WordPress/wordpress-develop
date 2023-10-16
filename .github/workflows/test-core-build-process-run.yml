@@ -1,7 +1,7 @@
 ##
 # A callable workflow that tests the WordPress Core build process.
 ##
-name: Run WordPress Build Process Tests
+name: Test the WordPress Build Process
 
 on:
   workflow_call:
@@ -26,7 +26,7 @@ jobs:
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
   # - Ensures version-controlled files are not modified or deleted.
-  core-build-process-tests:
+  build-process-tests:
     name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Core Build Process
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20

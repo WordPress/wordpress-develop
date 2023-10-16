@@ -1,0 +1,87 @@
+##
+# A callable workflow that tests the Gutenberg plugin build process.
+##
+name: Test the Gutenberg plugin Build Process
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+
+env:
+  GUTENBERG_DIRECTORY: 'src/wp-content/plugins/gutenberg'
+
+jobs:
+  # Verifies that installing npm dependencies and building the Gutenberg plugin works as expected.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Checks out the Gutenberg plugin repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies for Gutenberg.
+  # - Runs the Gutenberg build process.
+  # - Installs Core npm dependencies.
+  # - Runs the Gutenberg build process.
+  # - Builds WordPress to run from the `src` directory.
+  # - Runs the Gutenberg build process.
+  build-process-tests:
+    name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Gutenberg Build Process
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Checkout Gutenberg plugin
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        with:
+          repository: 'WordPress/gutenberg'
+          path: ${{ env.GUTENBERG_DIRECTORY }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            src/wp-content/plugins/gutenberg/package-lock.json
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install Gutenberg Dependencies
+        run: npm ci
+        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Run Gutenberg build script
+        run: npm run build
+        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Install Core Dependencies
+        run: npm ci
+
+      - name: Run Gutenberg build script with Core dependencies installed
+        run: npm run build
+        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Run Gutenberg build script after building Core to run from src/
+        run: npm run build
+        working-directory: ${{ env.GUTENBERG_DIRECTORY }}

@@ -38,22 +38,10 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Verifies that installing npm dependencies and building WordPress works as expected.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Builds WordPress to run from the `build` directory.
-  # - Cleans up after building WordPress to the `build` directory.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Builds WordPress to run from the `src` directory.
-  # - Cleans up after building WordPress to the `src` directory.
-  # - Ensures version-controlled files are not modified or deleted.
+  # Creates a job to test the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
-    uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
+    uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -64,7 +52,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
 
-  # Verifies that installing npm dependencies and building WordPress works as expected on MacOS.
+  # Creates a job to test the WordPress Core build process on MacOS.
   #
   # This is separate from the job above in order to use stricter conditions about when to run.
   # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
@@ -72,21 +60,44 @@ jobs:
   # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Builds WordPress to run from the `build` directory.
-  # - Cleans up after building WordPress to the `build` directory.
-  # - Ensures version-controlled files are not modified or deleted.
-  # - Builds WordPress to run from the `src` directory.
-  # - Cleans up after building WordPress to the `src` directory.
-  # - Ensures version-controlled files are not modified or deleted.
   test-core-build-process-macos:
     name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
-    uses: desrosj/wordpress-develop/.github/workflows/test-npm-run.yml@combine/npm-testing
+    uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest ]
+    with:
+      os: ${{ matrix.os }}
+
+  # Creates a job to test the Gutenberg plugin build process on multiple operating systems.
+  test-gutenberg-build-process:
+    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    with:
+      os: ${{ matrix.os }}
+
+  # Creates a job to test the Gutenberg plugin build process on MacOS.
+  #
+  # This is separate from the job above in order to use stricter conditions about when to run.
+  # This avoids unintentionally consuming excessive minutes, as MacOS jobs consume minutes at a 10x rate.
+  #
+  # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
+  # currently no way to determine the OS being used on a given job.
+  # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
+  test-gutenberg-build-process-macos:
+    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -103,7 +114,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-core-build-process, test-core-build-process-macos ]
+    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
