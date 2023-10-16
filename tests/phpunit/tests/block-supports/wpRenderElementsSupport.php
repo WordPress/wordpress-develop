@@ -25,8 +25,6 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	 * @ticket 59578
 	 *
 	 * @covers ::wp_render_elements_support
-	 *
-	 * @return void
 	 */
 	public function test_leaves_block_content_alone_when_block_type_not_registered() {
 		$block = array(
