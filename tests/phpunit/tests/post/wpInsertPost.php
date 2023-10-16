@@ -831,10 +831,12 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_should_respect_post_modified_date() {
 		$date = new DateTime( '-2 hours', new DateTimeZone( 'UTC' ) );
 
-		$post_id = self::factory()->post->create( array(
+		$post_id = self::factory()->post->create(
+			array(
 				'post_status' => 'publish',
 				'post_date'   => $date->format( 'Y-m-d H:i:s' ),
-		) );
+			)
+		);
 
 		// Modify the date and update the post.
 		$date->modify( '+1 hour' );
