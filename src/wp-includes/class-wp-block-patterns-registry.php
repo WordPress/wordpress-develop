@@ -171,7 +171,6 @@ final class WP_Block_Patterns_Registry {
 
 			$blocks  = parse_blocks( $content );
 			$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
 		}
 
 		return $content;
