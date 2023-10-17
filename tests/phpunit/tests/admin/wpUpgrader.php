@@ -816,7 +816,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		add_filter(
 			'upgrader_pre_install',
-			static function() {
+			static function () {
 				return new WP_Error( 'from_upgrader_pre_install' );
 			}
 		);
@@ -878,7 +878,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		add_filter(
 			'upgrader_source_selection',
-			function( $source ) {
+			function ( $source ) {
 				$this->assertSame( '/source_dir/subdir/', $source );
 
 				// Return a WP_Error to exit before `move_dir()/copy_dir()`.
@@ -959,7 +959,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		add_filter(
 			'upgrader_source_selection',
-			function( $source ) {
+			function ( $source ) {
 				$this->assertSame( '/source_dir/', $source );
 
 				// Return a WP_Error to exit before `move_dir()/copy_dir()`.
@@ -1033,7 +1033,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		add_filter(
 			'upgrader_clear_destination',
-			function( $removed, $local_destination, $remote_destination, $hook_extra ) {
+			function ( $removed, $local_destination, $remote_destination, $hook_extra ) {
 				$this->assertTrue(
 					is_bool( $removed ) || is_wp_error( $removed ),
 					'The "removed" argument is not a bool or WP_Error'
@@ -1132,7 +1132,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		add_filter(
 			'upgrader_clear_destination',
-			function( $removed, $local_destination, $remote_destination ) use ( $expected ) {
+			function ( $removed, $local_destination, $remote_destination ) use ( $expected ) {
 				$this->assertSame( $expected, $remote_destination );
 				return new WP_Error( 'exit_early' );
 			},
@@ -1587,7 +1587,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	public function test_download_package_should_return_a_file_with_the_package_name() {
 		add_filter(
 			'pre_http_request',
-			static function() {
+			static function () {
 				return array( 'response' => array( 'code' => 200 ) );
 			}
 		);
