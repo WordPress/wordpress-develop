@@ -4,8 +4,8 @@ Theme URI: https://wordpress.org/themes/twentyseventeen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Seventeen brings your site to life with header video and immersive featured images. With a focus on business sites, it features multiple sections on the front page as well as widgets, navigation and social menus, a logo, and more. Personalize its asymmetrical grid with a custom color scheme and showcase your multimedia content with post formats. Our default theme for 2017 works great in many languages, for any abilities, and on any device.
-Version: 3.3
-Tested up to: 6.3
+Version: 3.4
+Tested up to: 6.4
 Requires at least: 4.7
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
@@ -311,7 +311,8 @@ template {
 	overflow: hidden;
 	position: absolute !important;
 	width: 1px;
-	word-wrap: normal !important; /* Many screen reader and browser combinations announce broken words as they would appear visually. */
+	word-wrap: normal !important;
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 }
 
 .screen-reader-text:focus {
@@ -333,7 +334,8 @@ template {
 	text-decoration: none;
 	top: 5px;
 	width: auto;
-	z-index: 100000; /* Above WP toolbar. */
+	z-index: 100000;
+	/* Above WP toolbar. */
 }
 
 /*--------------------------------------------------------------
@@ -997,8 +999,8 @@ input[type="checkbox"] {
 	margin-right: 0.5em;
 }
 
-input[type="radio"] + label,
-input[type="checkbox"] + label {
+input[type="radio"]+label,
+input[type="checkbox"]+label {
 	font-weight: 400;
 }
 
@@ -1024,9 +1026,9 @@ input[type="submit"] {
 	transition: background 0.2s;
 }
 
-input + button,
-input + input[type="button"],
-input + input[type="submit"] {
+input+button,
+input+input[type="button"],
+input+input[type="submit"] {
 	padding: 0.75em 2em;
 }
 
@@ -1039,8 +1041,8 @@ input[type="submit"].secondary {
 	color: #222;
 }
 
-:not( .mejs-button ) > button:hover,
-:not( .mejs-button ) > button:focus,
+:not(.mejs-button)>button:hover,
+:not(.mejs-button)>button:focus,
 input[type="button"]:hover,
 input[type="button"]:focus,
 input[type="submit"]:hover,
@@ -1113,8 +1115,8 @@ ol {
 	list-style: decimal;
 }
 
-li > ul,
-li > ol {
+li>ul,
+li>ol {
 	margin-bottom: 0;
 	margin-left: 1.5em;
 }
@@ -1346,8 +1348,8 @@ a:hover .nav-title,
 	transition: color 0.2s;
 }
 
-.navigation-top .current-menu-item > a,
-.navigation-top .current_page_item > a {
+.navigation-top .current-menu-item>a,
+.navigation-top .current_page_item>a {
 	color: #767676;
 }
 
@@ -1369,18 +1371,18 @@ a:hover .nav-title,
  */
 
 .js .main-navigation ul,
-.main-navigation .menu-item-has-children > a > .icon,
-.main-navigation .page_item_has_children > a > .icon,
-.main-navigation ul a > .icon {
+.main-navigation .menu-item-has-children>a>.icon,
+.main-navigation .page_item_has_children>a>.icon,
+.main-navigation ul a>.icon {
 	display: none;
 }
 
-.main-navigation > div > ul {
+.main-navigation>div>ul {
 	border-top: 1px solid #eee;
 	padding: 0.75em 1.695em;
 }
 
-.js .main-navigation.toggled-on > div > ul {
+.js .main-navigation.toggled-on>div>ul {
 	display: block;
 }
 
@@ -1501,8 +1503,10 @@ a:hover .nav-title,
 }
 
 .dropdown-toggle.toggled-on .icon {
-	-ms-transform: rotate(-180deg); /* IE 9 */
-	-webkit-transform: rotate(-180deg); /* Chrome, Safari, Opera */
+	-ms-transform: rotate(-180deg);
+	/* IE 9 */
+	-webkit-transform: rotate(-180deg);
+	/* Chrome, Safari, Opera */
 	transform: rotate(-180deg);
 }
 
@@ -1604,7 +1608,8 @@ body {
 .site-title,
 .site-title a {
 	color: #222;
-	opacity: 1; /* Prevent opacity from changing during selective refreshes in the customize preview */
+	opacity: 1;
+	/* Prevent opacity from changing during selective refreshes in the customize preview */
 }
 
 body.has-header-image .site-title,
@@ -1683,9 +1688,12 @@ body:not(.title-tagline-hidden) .site-branding-text {
 
 .custom-header-media:before {
 	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.3+75 */
-	background: -moz-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 75%, rgba(0, 0, 0, 0.3) 100%); /* FF3.6-15 */
-	background: -webkit-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 75%, rgba(0, 0, 0, 0.3) 100%); /* Chrome10-25,Safari5.1-6 */
-	background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 75%, rgba(0, 0, 0, 0.3) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	background: -moz-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 75%, rgba(0, 0, 0, 0.3) 100%);
+	/* FF3.6-15 */
+	background: -webkit-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 75%, rgba(0, 0, 0, 0.3) 100%);
+	/* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 75%, rgba(0, 0, 0, 0.3) 100%);
+	/* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 	bottom: 0;
 	content: "";
 	display: block;
@@ -1705,17 +1713,20 @@ body:not(.title-tagline-hidden) .site-branding-text {
 	max-width: 1000%;
 	min-height: 100%;
 	min-width: 100%;
-	min-width: 100vw; /* vw prevents 1px gap on left that 100% has */
+	min-width: 100vw;
+	/* vw prevents 1px gap on left that 100% has */
 	width: auto;
 	top: 50%;
-	padding-bottom: 1px; /* Prevent header from extending beyond the footer */
+	padding-bottom: 1px;
+	/* Prevent header from extending beyond the footer */
 	-ms-transform: translateX(-50%) translateY(-50%);
 	-moz-transform: translateX(-50%) translateY(-50%);
 	-webkit-transform: translateX(-50%) translateY(-50%);
 	transform: translateX(-50%) translateY(-50%);
 }
 
-.wp-custom-header .wp-custom-header-video-button { /* Specificity prevents .color-dark button overrides */
+.wp-custom-header .wp-custom-header-video-button {
+	/* Specificity prevents .color-dark button overrides */
 	background-color: rgba(34, 34, 34, 0.5);
 	border: 1px solid rgba(255, 255, 255, 0.6);
 	color: rgba(255, 255, 255, 0.6);
@@ -1731,7 +1742,8 @@ body:not(.title-tagline-hidden) .site-branding-text {
 }
 
 .wp-custom-header .wp-custom-header-video-button:hover,
-.wp-custom-header .wp-custom-header-video-button:focus { /* Specificity prevents .color-dark button overrides */
+.wp-custom-header .wp-custom-header-video-button:focus {
+	/* Specificity prevents .color-dark button overrides */
 	border-color: rgba(255, 255, 255, 0.8);
 	background-color: rgba(34, 34, 34, 0.8);
 	color: #fff;
@@ -1752,7 +1764,8 @@ body:not(.title-tagline-hidden) .site-branding-text {
 }
 
 /* For browsers that support 'object-fit' */
-@supports ( object-fit: cover ) {
+@supports (object-fit: cover) {
+
 	.has-header-image .custom-header-media img,
 	.has-header-video .custom-header-media video,
 	.has-header-image:not(.twentyseventeen-front-page):not(.home) .custom-header-media img {
@@ -1806,11 +1819,14 @@ body:not(.has-header-image):not(.has-header-video) .custom-header-media {
 }
 
 .panel-image:before {
-	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.3+100 */ /* FF3.6-15 */
-	background: -webkit-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%); /* Chrome10-25,Safari5.1-6 */
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.3+100 */
+	/* FF3.6-15 */
+	background: -webkit-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%);
+	/* Chrome10-25,Safari5.1-6 */
 	background: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, 0)), to(rgba(0, 0, 0, 0.3)));
 	background: -webkit-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%);
-	background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%);
+	/* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 	bottom: 0;
 	content: "";
 	left: 0;
@@ -2041,9 +2057,9 @@ body.page:not(.twentyseventeen-front-page) .entry-title {
 
 /* Blog landing, search, archives */
 
-.blog .site-main > article,
-.archive .site-main > article,
-.search .site-main > article {
+.blog .site-main>article,
+.archive .site-main>article,
+.search .site-main>article {
 	padding-bottom: 2em;
 }
 
@@ -2153,7 +2169,7 @@ body:not(.twentyseventeen-front-page) .entry-header {
 	text-transform: uppercase;
 }
 
-.entry-footer .cat-links + .tags-links {
+.entry-footer .cat-links+.tags-links {
 	margin-top: 1em;
 }
 
@@ -2494,7 +2510,7 @@ body:not(.twentyseventeen-front-page) .entry-header {
 	width: 30px;
 }
 
-.bypostauthor > .comment-body > .comment-meta > .comment-author .avatar {
+.bypostauthor>.comment-body>.comment-meta>.comment-author .avatar {
 	border: 1px solid #333;
 	padding: 2px;
 }
@@ -2570,7 +2586,7 @@ h2.widget-title {
 	padding: 0.5em 0;
 }
 
-.widget:not(.widget_tag_cloud) ul li + li {
+.widget:not(.widget_tag_cloud) ul li+li {
 	margin-top: -1px;
 }
 
@@ -2657,7 +2673,7 @@ h2.widget-title {
 	list-style-position: inside;
 }
 
-.widget_text ol li + li {
+.widget_text ol li+li {
 	margin-top: -1px;
 }
 
@@ -2853,8 +2869,10 @@ h2.widget-title {
 
 img,
 video {
-	height: auto; /* Make sure images are scaled correctly. */
-	max-width: 100%; /* Adhere to container width. */
+	height: auto;
+	/* Make sure images are scaled correctly. */
+	max-width: 100%;
+	/* Adhere to container width. */
 }
 
 img.alignleft,
@@ -2888,9 +2906,9 @@ object {
 
 /* Remove bottom on embeds that wrapped in paragraphs via wpautop. */
 
-p > embed:only-child,
-p > iframe:only-child,
-p > object:only-child {
+p>embed:only-child,
+p>iframe:only-child,
+p>object:only-child {
 	margin-bottom: 0;
 }
 
@@ -3063,7 +3081,8 @@ p > object:only-child {
 	display: inline-block;
 	fill: currentColor;
 	height: 1em;
-	position: relative; /* Align more nicely with capital letters */
+	position: relative;
+	/* Align more nicely with capital letters */
 	top: -0.0625em;
 	vertical-align: middle;
 	width: 1em;
@@ -3131,7 +3150,8 @@ p > object:only-child {
 --------------------------------------------------------------*/
 
 .highlight-front-sections.twentyseventeen-customizer.twentyseventeen-front-page .twentyseventeen-panel:after {
-	border: 2px dashed #0085ba; /* Matches visible edit shortcuts. */
+	border: 2px dashed #0085ba;
+	/* Matches visible edit shortcuts. */
 	bottom: 1em;
 	content: "";
 	display: block;
@@ -3143,7 +3163,8 @@ p > object:only-child {
 }
 
 .highlight-front-sections.twentyseventeen-customizer.twentyseventeen-front-page .twentyseventeen-panel .panel-content {
-	z-index: 2; /* Prevent :after from preventing interactions within the section */
+	z-index: 2;
+	/* Prevent :after from preventing interactions within the section */
 }
 
 /* Used for placeholder text */
@@ -3168,7 +3189,7 @@ p > object:only-child {
 }
 
 /* Add some space around the visual edit shortcut buttons. */
-.twentyseventeen-panel > .customize-partial-edit-shortcut > button {
+.twentyseventeen-panel>.customize-partial-edit-shortcut>button {
 	top: 30px;
 	left: 30px;
 }
@@ -3202,14 +3223,18 @@ p > object:only-child {
 	font-size: 1.25rem;
 	font-weight: 400;
 	line-height: 1;
-	-webkit-transform: rotate(180deg); /* Chrome, Safari, Opera */
-	-ms-transform: rotate(180deg); /* IE 9 */
+	-webkit-transform: rotate(180deg);
+	/* Chrome, Safari, Opera */
+	-ms-transform: rotate(180deg);
+	/* IE 9 */
 	transform: rotate(180deg);
 }
 
 .no-svg .dropdown-toggle.toggled-on .svg-fallback.icon-angle-down {
-	-webkit-transform: rotate(0); /* Chrome, Safari, Opera */
-	-ms-transform: rotate(0); /* IE 9 */
+	-webkit-transform: rotate(0);
+	/* Chrome, Safari, Opera */
+	-ms-transform: rotate(0);
+	/* IE 9 */
 	transform: rotate(0);
 }
 
@@ -3237,7 +3262,8 @@ p > object:only-child {
 	font-size: 1rem;
 	font-weight: 400;
 	height: auto;
-	position: relative !important; /* overrides previous !important styles */
+	position: relative !important;
+	/* overrides previous !important styles */
 	width: auto;
 }
 
@@ -3384,7 +3410,7 @@ p > object:only-child {
 
 @media screen and (min-width: 48em) {
 	html {
-		scroll-padding-top: calc( var(--wp-admin--admin-bar--height, 0px) + 72px );
+		scroll-padding-top: calc(var(--wp-admin--admin-bar--height, 0px) + 72px);
 	}
 
 	/* Typography */
@@ -3553,7 +3579,7 @@ p > object:only-child {
 
 	.js .main-navigation ul,
 	.js .main-navigation ul ul,
-	.js .main-navigation > div > ul {
+	.js .main-navigation>div>ul {
 		display: block;
 	}
 
@@ -3562,7 +3588,7 @@ p > object:only-child {
 		padding: 0;
 	}
 
-	.main-navigation > div > ul {
+	.main-navigation>div>ul {
 		border: 0;
 		margin-bottom: 0;
 		padding: 0;
@@ -3629,8 +3655,8 @@ p > object:only-child {
 		border-color: transparent transparent #fff;
 	}
 
-	.main-navigation ul ul li:hover > ul,
-	.main-navigation ul ul li.focus > ul {
+	.main-navigation ul ul li:hover>ul,
+	.main-navigation ul ul li.focus>ul {
 		left: 100%;
 		right: auto;
 	}
@@ -3655,9 +3681,9 @@ p > object:only-child {
 		transition: color 0.3s ease-in-out;
 	}
 
-	.main-navigation li li.focus > a,
-	.main-navigation li li:focus > a,
-	.main-navigation li li:hover > a,
+	.main-navigation li li.focus>a,
+	.main-navigation li li:focus>a,
+	.main-navigation li li:hover>a,
 	.main-navigation li li a:hover,
 	.main-navigation li li a:focus,
 	.main-navigation li li.current_page_item a:hover,
@@ -3667,29 +3693,31 @@ p > object:only-child {
 		color: #fff;
 	}
 
-	.main-navigation ul li:hover > ul,
-	.main-navigation ul li.focus > ul {
+	.main-navigation ul li:hover>ul,
+	.main-navigation ul li.focus>ul {
 		left: 0.5em;
 		right: auto;
 	}
 
-	.main-navigation .menu-item-has-children > a > .icon,
-	.main-navigation .page_item_has_children > a > .icon {
+	.main-navigation .menu-item-has-children>a>.icon,
+	.main-navigation .page_item_has_children>a>.icon {
 		display: inline;
 		left: 5px;
 		position: relative;
 		top: -1px;
 	}
 
-	.main-navigation ul ul .menu-item-has-children > a > .icon,
-	.main-navigation ul ul .page_item_has_children > a > .icon {
+	.main-navigation ul ul .menu-item-has-children>a>.icon,
+	.main-navigation ul ul .page_item_has_children>a>.icon {
 		margin-top: -9px;
 		left: auto;
 		position: absolute;
 		right: 1em;
 		top: 50%;
-		-webkit-transform: rotate(-90deg); /* Chrome, Safari, Opera */
-		-ms-transform: rotate(-90deg); /* IE 9 */
+		-webkit-transform: rotate(-90deg);
+		/* Chrome, Safari, Opera */
+		-ms-transform: rotate(-90deg);
+		/* IE 9 */
 		transform: rotate(-90deg);
 	}
 
@@ -3724,8 +3752,10 @@ p > object:only-child {
 	}
 
 	.site-header .menu-scroll-down .icon {
-		-webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
-		-ms-transform: rotate(90deg); /* IE 9 */
+		-webkit-transform: rotate(90deg);
+		/* Chrome, Safari, Opera */
+		-ms-transform: rotate(90deg);
+		/* IE 9 */
 		transform: rotate(90deg);
 	}
 
@@ -3796,7 +3826,8 @@ p > object:only-child {
 		background-attachment: fixed;
 	}
 
-	@supports ( -webkit-touch-callout: none ) {
+	@supports (-webkit-touch-callout: none) {
+
 		/* Image scrolls with the content in iOS Safari. */
 		.background-fixed .panel-image {
 			background-attachment: scroll;
@@ -3903,9 +3934,9 @@ p > object:only-child {
 		width: 58%;
 	}
 
-	.blog .site-main > article,
-	.archive .site-main > article,
-	.search .site-main > article {
+	.blog .site-main>article,
+	.archive .site-main>article,
+	.search .site-main>article {
 		padding-bottom: 4em;
 	}
 
@@ -4098,7 +4129,7 @@ p > object:only-child {
 		width: 58%;
 	}
 
-	.social-navigation + .site-info {
+	.social-navigation+.site-info {
 		margin-left: 6%;
 	}
 
@@ -4133,7 +4164,7 @@ p > object:only-child {
 	}
 }
 
-@media screen and ( min-width: 67em ) {
+@media screen and (min-width: 67em) {
 
 	/* Layout */
 
@@ -4183,7 +4214,7 @@ p > object:only-child {
 	}
 }
 
-@media screen and ( min-width: 79em ) {
+@media screen and (min-width: 79em) {
 
 	.has-sidebar .entry-content blockquote.alignleft {
 		margin-left: -20%;
@@ -4197,7 +4228,7 @@ p > object:only-child {
 	}
 }
 
-@media screen and ( max-width: 48.875em ) and ( min-width: 48em ) {
+@media screen and (max-width: 48.875em) and (min-width: 48em) {
 
 	.admin-bar .site-navigation-fixed.navigation-top,
 	.admin-bar .site-navigation-hidden.navigation-top {
@@ -4311,7 +4342,8 @@ p > object:only-child {
 
 	.site-branding {
 		margin-top: 0;
-		margin-bottom: 1.75em !important; /* override styles added by JavaScript */
+		margin-bottom: 1.75em !important;
+		/* override styles added by JavaScript */
 	}
 
 	.site-title {
@@ -4337,7 +4369,8 @@ p > object:only-child {
 
 	body,
 	.site {
-		background: none !important; /* Brute force since user agents all print differently. */
+		background: none !important;
+		/* Brute force since user agents all print differently. */
 	}
 
 	body,
@@ -4347,7 +4380,8 @@ p > object:only-child {
 	.twentyseventeen-front-page.has-header-video .site-title,
 	.twentyseventeen-front-page.has-header-image .site-title a,
 	.twentyseventeen-front-page.has-header-video .site-title a {
-		color: #222 !important; /* Make sure color schemes don't affect to print */
+		color: #222 !important;
+		/* Make sure color schemes don't affect to print */
 	}
 
 	h2,
@@ -4358,7 +4392,8 @@ p > object:only-child {
 	.twentyseventeen-front-page.has-header-video .site-description,
 	.entry-meta,
 	.entry-meta a {
-		color: #777 !important; /* Make sure color schemes don't affect to print */
+		color: #777 !important;
+		/* Make sure color schemes don't affect to print */
 	}
 
 	.entry-content blockquote.alignleft,
