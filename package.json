@@ -62,11 +62,11 @@
 		"install-changed": "1.1.0",
 		"jest-image-snapshot": "^6.2.0",
 		"matchdep": "~2.0.0",
-		"postcss": "8.4.30",
+		"postcss": "8.4.31",
 		"prettier": "npm:wp-prettier@2.6.2",
-		"qunit": "~2.19.4",
+		"qunit": "~2.20.0",
 		"react-refresh": "0.14.0",
-		"sass": "1.68.0",
+		"sass": "1.69.3",
 		"sinon": "16.0.0",
 		"sinon-test": "~3.1.5",
 		"source-map-loader": "4.0.1",
@@ -74,7 +74,7 @@
 		"uglify-js": "^3.17.4",
 		"uuid": "9.0.1",
 		"wait-on": "7.0.1",
-		"webpack": "5.88.2",
+		"webpack": "5.89.0",
 		"webpack-livereload-plugin": "3.0.2"
 	},
 	"dependencies": {
