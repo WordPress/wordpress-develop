@@ -1147,6 +1147,17 @@ ul.cat-checklist {
 	overflow-y: scroll;
 }
 
+ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
+	content: '';
+	border-top: 2px solid grey;
+	width: 65%;
+	height: 2px;
+	position: absolute;
+	top: calc( 50% + 1px );
+	left: 50%;
+	transform: translate( -50%, -50% );
+}
+
 #bulk-titles .ntdelbutton,
 #bulk-titles .ntdeltitle,
 .inline-edit-row fieldset ul.cat-checklist label {
@@ -1916,7 +1927,6 @@ div.action-links,
 	/* Show comment bubble as text instead */
 	.post-com-count .screen-reader-text {
 		position: static;
-		-webkit-clip-path: none;
 		clip-path: none;
 		width: auto;
 		height: auto;

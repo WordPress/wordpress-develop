@@ -776,23 +776,21 @@ function update_option( $option, $value, $autoload = null ) {
 	 */
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
-	/** This filter is documented in wp-includes/option.php */
-	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
-
 	/*
 	 * If the new and old values are the same, no need to update.
 	 *
-	 * An exception applies when no value is set in the database, i.e. the old value is the default.
-	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
 	 *
-	 * See https://core.trac.wordpress.org/ticket/38903 and https://core.trac.wordpress.org/ticket/22192.
+	 * See https://core.trac.wordpress.org/ticket/38903
 	 */
-	if ( $old_value !== $default_value && _is_equal_database_value( $old_value, $value ) ) {
+	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
 
-	if ( $old_value === $default_value ) {
-
+	/** This filter is documented in wp-includes/option.php */
+	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
 			$autoload = 'yes';
@@ -835,11 +833,30 @@ function update_option( $option, $value, $autoload = null ) {
 	}
 
 	if ( ! wp_installing() ) {
-		$alloptions = wp_load_alloptions( true );
-		if ( isset( $alloptions[ $option ] ) ) {
+		if ( ! isset( $update_args['autoload'] ) ) {
+			// Update the cached value based on where it is currently cached.
+			$alloptions = wp_load_alloptions( true );
+			if ( isset( $alloptions[ $option ] ) ) {
+				$alloptions[ $option ] = $serialized_value;
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			} else {
+				wp_cache_set( $option, $serialized_value, 'options' );
+			}
+		} elseif ( 'yes' === $update_args['autoload'] ) {
+			// Delete the individual cache, then set in alloptions cache.
+			wp_cache_delete( $option, 'options' );
+
+			$alloptions = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
+			// Delete the alloptions cache, then set the individual cache.
+			$alloptions = wp_load_alloptions( true );
+			if ( isset( $alloptions[ $option ] ) ) {
+				unset( $alloptions[ $option ] );
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			}
+
 			wp_cache_set( $option, $serialized_value, 'options' );
 		}
 	}
@@ -2082,7 +2099,7 @@ function update_network_option( $network_id, $option, $value ) {
 
 	wp_protect_special_option( $option );
 
-	$old_value = get_network_option( $network_id, $option, false );
+	$old_value = get_network_option( $network_id, $option );
 
 	/**
 	 * Filters a specific network option before its value is updated.
@@ -2800,7 +2817,10 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		$option_group = 'reading';
 	}
 
-	$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
+	$pos = false;
+	if ( isset( $new_allowed_options[ $option_group ] ) ) {
+		$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
+	}
 
 	if ( false !== $pos ) {
 		unset( $new_allowed_options[ $option_group ][ $pos ] );
@@ -2888,41 +2908,4 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
-}
-
-/**
- * Determines whether two values will be equal when stored in the database.
- *
- * @since 6.4.0
- * @access private
- *
- * @param mixed $old_value The old value to compare.
- * @param mixed $new_value The new value to compare.
- * @return bool True if the values are equal, false otherwise.
- */
-function _is_equal_database_value( $old_value, $new_value ) {
-	$values = array(
-		'old' => $old_value,
-		'new' => $new_value,
-	);
-
-	foreach ( $values as $_key => &$_value ) {
-		// Cast scalars or null to a string so type discrepancies don't result in cache misses.
-		if ( null === $_value || is_scalar( $_value ) ) {
-			$_value = (string) $_value;
-		}
-	}
-
-	if ( $values['old'] === $values['new'] ) {
-		return true;
-	}
-
-	/*
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/38903
-	 */
-	return maybe_serialize( $old_value ) === maybe_serialize( $new_value );
 }

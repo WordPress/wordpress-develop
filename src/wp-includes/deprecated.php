@@ -4008,7 +4008,7 @@ function wp_make_content_images_responsive( $content ) {
  * @access private
  * @deprecated 5.5.0
  */
-function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
+function wp_unregister_GLOBALS() {
 	// register_globals was deprecated in PHP 5.3 and removed entirely in PHP 5.4.
 	_deprecated_function( __FUNCTION__, '5.5.0' );
 }
@@ -4253,7 +4253,9 @@ function wp_render_duotone_filter_preset( $preset ) {
 function wp_skip_border_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$border_support = _wp_array_get( $block_type->supports, array( '__experimentalBorder' ), false );
+	$border_support = isset( $block_type->supports['__experimentalBorder'] )
+		? $block_type->supports['__experimentalBorder']
+		: false;
 
 	return is_array( $border_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $border_support ) &&
@@ -4275,7 +4277,9 @@ function wp_skip_border_serialization( $block_type ) {
 function wp_skip_dimensions_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$dimensions_support = _wp_array_get( $block_type->supports, array( '__experimentalDimensions' ), false );
+	$dimensions_support = isset( $block_type->supports['__experimentalDimensions'] )
+		? $block_type->supports['__experimentalDimensions']
+		: false;
 
 	return is_array( $dimensions_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $dimensions_support ) &&
@@ -4297,7 +4301,9 @@ function wp_skip_dimensions_serialization( $block_type ) {
 function wp_skip_spacing_serialization( $block_type ) {
 	_deprecated_function( __FUNCTION__, '6.0.0', 'wp_should_skip_block_supports_serialization()' );
 
-	$spacing_support = _wp_array_get( $block_type->supports, array( 'spacing' ), false );
+	$spacing_support = isset( $block_type->supports['spacing'] )
+		? $block_type->supports['spacing']
+		: false;
 
 	return is_array( $spacing_support ) &&
 		array_key_exists( '__experimentalSkipSerialization', $spacing_support ) &&
@@ -6033,4 +6039,197 @@ function wp_img_tag_add_decoding_attr( $image, $context ) {
 	}
 
 	return $image;
+}
+
+/**
+ * Parses wp_template content and injects the active theme's
+ * stylesheet as a theme attribute into each wp_template_part
+ *
+ * @since 5.9.0
+ * @deprecated 6.4.0 Use traverse_and_serialize_blocks( parse_blocks( $template_content ), '_inject_theme_attribute_in_template_part_block' ) instead.
+ * @access private
+ *
+ * @param string $template_content serialized wp_template content.
+ * @return string Updated 'wp_template' content.
+ */
+function _inject_theme_attribute_in_block_template_content( $template_content ) {
+	_deprecated_function(
+		__FUNCTION__,
+		'6.4.0',
+		'traverse_and_serialize_blocks( parse_blocks( $template_content ), "_inject_theme_attribute_in_template_part_block" )'
+	);
+
+	$has_updated_content = false;
+	$new_content         = '';
+	$template_blocks     = parse_blocks( $template_content );
+
+	$blocks = _flatten_blocks( $template_blocks );
+	foreach ( $blocks as &$block ) {
+		if (
+			'core/template-part' === $block['blockName'] &&
+			! isset( $block['attrs']['theme'] )
+		) {
+			$block['attrs']['theme'] = get_stylesheet();
+			$has_updated_content     = true;
+		}
+	}
+
+	if ( $has_updated_content ) {
+		foreach ( $template_blocks as &$block ) {
+			$new_content .= serialize_block( $block );
+		}
+
+		return $new_content;
+	}
+
+	return $template_content;
+}
+
+/**
+ * Parses a block template and removes the theme attribute from each template part.
+ *
+ * @since 5.9.0
+ * @deprecated 6.4.0 Use traverse_and_serialize_blocks( parse_blocks( $template_content ), '_remove_theme_attribute_from_template_part_block' ) instead.
+ * @access private
+ *
+ * @param string $template_content Serialized block template content.
+ * @return string Updated block template content.
+ */
+function _remove_theme_attribute_in_block_template_content( $template_content ) {
+	_deprecated_function(
+		__FUNCTION__,
+		'6.4.0',
+		'traverse_and_serialize_blocks( parse_blocks( $template_content ), "_remove_theme_attribute_from_template_part_block" )'
+	);
+
+	$has_updated_content = false;
+	$new_content         = '';
+	$template_blocks     = parse_blocks( $template_content );
+
+	$blocks = _flatten_blocks( $template_blocks );
+	foreach ( $blocks as $key => $block ) {
+		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
+			unset( $blocks[ $key ]['attrs']['theme'] );
+			$has_updated_content = true;
+		}
+	}
+
+	if ( ! $has_updated_content ) {
+		return $template_content;
+	}
+
+	foreach ( $template_blocks as $block ) {
+		$new_content .= serialize_block( $block );
+	}
+
+	return $new_content;
+}
+
+/**
+ * Prints the skip-link script & styles.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.4.0 Use wp_enqueue_block_template_skip_link() instead.
+ *
+ * @global string $_wp_current_template_content
+ */
+function the_block_template_skip_link() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_block_template_skip_link()' );
+
+	global $_wp_current_template_content;
+
+	// Early exit if not a block theme.
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
+		return;
+	}
+	?>
+
+	<?php
+	/**
+	 * Print the skip-link styles.
+	 */
+	?>
+	<style id="skip-link-styles">
+		.skip-link.screen-reader-text {
+			border: 0;
+			clip: rect(1px,1px,1px,1px);
+			clip-path: inset(50%);
+			height: 1px;
+			margin: -1px;
+			overflow: hidden;
+			padding: 0;
+			position: absolute !important;
+			width: 1px;
+			word-wrap: normal !important;
+		}
+
+		.skip-link.screen-reader-text:focus {
+			background-color: #eee;
+			clip: auto !important;
+			clip-path: none;
+			color: #444;
+			display: block;
+			font-size: 1em;
+			height: auto;
+			left: 5px;
+			line-height: normal;
+			padding: 15px 23px 14px;
+			text-decoration: none;
+			top: 5px;
+			width: auto;
+			z-index: 100000;
+		}
+	</style>
+	<?php
+	/**
+	 * Print the skip-link script.
+	 */
+	?>
+	<script>
+	( function() {
+		var skipLinkTarget = document.querySelector( 'main' ),
+			sibling,
+			skipLinkTargetID,
+			skipLink;
+
+		// Early exit if a skip-link target can't be located.
+		if ( ! skipLinkTarget ) {
+			return;
+		}
+
+		/*
+		 * Get the site wrapper.
+		 * The skip-link will be injected in the beginning of it.
+		 */
+		sibling = document.querySelector( '.wp-site-blocks' );
+
+		// Early exit if the root element was not found.
+		if ( ! sibling ) {
+			return;
+		}
+
+		// Get the skip-link target's ID, and generate one if it doesn't exist.
+		skipLinkTargetID = skipLinkTarget.id;
+		if ( ! skipLinkTargetID ) {
+			skipLinkTargetID = 'wp--skip-link--target';
+			skipLinkTarget.id = skipLinkTargetID;
+		}
+
+		// Create the skip link.
+		skipLink = document.createElement( 'a' );
+		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
+		skipLink.href = '#' + skipLinkTargetID;
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
+
+		// Inject the skip link.
+		sibling.parentElement.insertBefore( skipLink, sibling );
+	}() );
+	</script>
+	<?php
 }
