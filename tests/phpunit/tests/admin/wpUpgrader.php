@@ -1460,7 +1460,20 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @covers WP_Upgrader::release_lock
 	 */
 	public function test_release_lock_should_remove_lock_option() {
-		update_option( 'lock.lock', 'content' );
+		global $wpdb;
+
+		$this->assertSame(
+			1,
+			$wpdb->insert(
+				$wpdb->options,
+				array(
+					'option_name'  => 'lock.lock',
+					'option_value' => 'content',
+				),
+				'%s'
+			),
+			'The initial lock was not created.'
+		);
 
 		WP_Upgrader::release_lock( 'lock' );
 
@@ -1480,14 +1493,14 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		add_filter(
 			'upgrader_pre_download',
-			static function ( $reply ) {
-				return ! $reply;
+			static function () {
+				return 'a non-false value';
 			}
 		);
 
 		$result = self::$instance->download_package( 'package' );
 
-		$this->assertTrue( $result );
+		$this->assertSame( 'a non-false value', $result );
 	}
 
 	/**
