@@ -30,6 +30,8 @@ concurrency:
 permissions: {}
 
 env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
   # Performance testing should be performed in an environment reflecting a standard production environment.
   LOCAL_WP_DEBUG: false
   LOCAL_SCRIPT_DEBUG: false
