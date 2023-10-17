@@ -32,7 +32,7 @@ jobs:
   # - Cleans up after building WordPress.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
-    name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Core Build Process for ${{ inputs.directory }}
+    name: Core ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} from ${{ inputs.directory }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 

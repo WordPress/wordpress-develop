@@ -40,7 +40,7 @@ permissions: {}
 jobs:
   # Creates a job to test the WordPress Core build process on multiple operating systems.
   test-core-build-process:
-    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Core
     uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
@@ -63,7 +63,7 @@ jobs:
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
-    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Core
     uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
