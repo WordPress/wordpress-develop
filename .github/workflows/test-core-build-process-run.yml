@@ -16,6 +16,10 @@ on:
         required: false
         type: 'string'
         default: 'src'
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
 jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.
   #
