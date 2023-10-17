@@ -37,6 +37,11 @@ concurrency:
 # Any needed permissions should be configured at the job level.
 permissions: {}
 
+# Exposes WordPress builds as a GitHub artifact to enable 
+# previewing Pull Requests inside WordPress Playground.
+# 
+# @see https://github.com/WordPress/wordpress-playground/pull/700
+# @see https://github.com/WordPress/wordpress-develop/pull/5481
 jobs:
   build-wordpress:
     name: Upload WordPress build as an artifact
