@@ -657,7 +657,6 @@ function has_blocks( $post = null ) {
  * should use the block parser on post content.
  *
  * @since 5.0.0
- * @since 6.3.0 Reusable Blocks renamed to Patterns.
  *
  * @see parse_blocks()
  *
