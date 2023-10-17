@@ -3174,7 +3174,7 @@ class WP_Query {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 
 			// `posts_request_ids` can be used to modify the query used to get an array of post IDs, leading to cache collisions.
-			if( has_filter( 'posts_request_ids' ) ) {
+			if ( has_filter( 'posts_request_ids' ) ) {
 				$q['posts_request_ids_filters'] = $wp_filter['posts_request_ids'];
 			}
 
