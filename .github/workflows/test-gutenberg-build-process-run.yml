@@ -11,6 +11,11 @@ on:
         required: false
         type: 'string'
         default: 'ubuntu-latest'
+      with-core:
+        description: 'Whether to test with WordPress Core'
+        required: false
+        type: 'boolean'
+        default: false
       directory:
         description: 'Directory to run WordPress out of. Valid values are src or build'
         required: false
@@ -70,6 +75,10 @@ jobs:
           git --version
           svn --version
 
+      - name: Install Core Dependencies
+        if: ${{ matrix.with-core }}
+        run: npm ci
+
       - name: Install Gutenberg Dependencies
         run: npm ci
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
@@ -78,16 +87,12 @@ jobs:
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
-      - name: Install Core Dependencies
-        run: npm ci
-
-      - name: Run Gutenberg build script with Core dependencies installed
-        run: npm run build
-        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
-
       - name: Build WordPress to run from ${{ inputs.directory }}
+        if: ${{ matrix.with-core }}
+
         run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
 
       - name: Run Gutenberg build script after building Core to run from ${{ inputs.directory }}
+        if: ${{ matrix.with-core }}
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
