@@ -1,9 +1,5 @@
 <?php
 
-if($_GET['test']) {
-	die("If you see this message, the PR previewer work!");
-}
-
 /**
  * Note: this file exists only to remind developers to build the assets.
  * For the real index.php that gets built and boots WordPress,
