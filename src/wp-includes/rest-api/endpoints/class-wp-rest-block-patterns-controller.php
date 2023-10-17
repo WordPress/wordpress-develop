@@ -115,6 +115,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
 		foreach ( $patterns as $pattern ) {
 			$migrated_pattern = $this->migrate_pattern_categories( $pattern );
+			$prepared_pattern = $this->prepare_pattern_content( $pattern );
 			$prepared_pattern = $this->prepare_item_for_response( $migrated_pattern, $request );
 			$response[]       = $this->prepare_response_for_collection( $prepared_pattern );
 		}
@@ -149,6 +150,11 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 		}
 
 		return $pattern;
+	}
+
+	protected function prepare_pattern_content( $pattern ) {
+		$blocks             = parse_blocks( $pattern['content'] );
+		$pattern['content'] = traverse_and_serialize_blocks( $blocks, '_inject_theme_attribute_in_template_part_block' );
 	}
 
 	/**
