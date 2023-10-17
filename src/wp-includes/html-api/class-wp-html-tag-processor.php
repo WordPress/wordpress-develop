@@ -2323,6 +2323,9 @@ class WP_HTML_Tag_Processor {
 		while ( $this->parse_next_attribute() ) {
 			continue;
 		}
+		$tag_ends_at                = strpos( $this->html, '>', $this->bytes_already_parsed );
+		$this->tag_ends_at          = $tag_ends_at;
+		$this->bytes_already_parsed = $tag_ends_at;
 
 		return $this->html;
 	}
