@@ -63,5 +63,5 @@ jobs:
         if: always()
         with:
             name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
-            path: wordpress.zip
+            path: build/wordpress.zip
             if-no-files-found: error
