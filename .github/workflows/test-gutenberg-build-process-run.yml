@@ -41,7 +41,7 @@ jobs:
   # - Builds WordPress to run from the relevant location (src or build).
   # - Runs the Gutenberg build process.
   build-process-tests:
-    name: ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} / Gutenberg Build Process from ${{ inputs.directory }}
+    name: Gutenberg ${{ matrix.with-core && ' with Core' || '' }} ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} from ${{ inputs.directory }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 30
 
@@ -89,7 +89,6 @@ jobs:
 
       - name: Build WordPress to run from ${{ inputs.directory }}
         if: ${{ matrix.with-core }}
-
         run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
 
       - name: Run Gutenberg build script after building Core to run from ${{ inputs.directory }}

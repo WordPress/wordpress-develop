@@ -79,7 +79,7 @@ jobs:
 
   # Creates a job to test the Gutenberg plugin build process on multiple operating systems.
   test-gutenberg-build-process:
-    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Gutenberg ${{ matrix.with-core && ' with Core' || '' }}
     uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
@@ -104,7 +104,7 @@ jobs:
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
-    name: ${{ matrix.os == 'macos-latest' && 'MacOS' || matrix.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Gutenberg ${{ matrix.with-core && ' with Core' || '' }}
     uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
     permissions:
       contents: read
