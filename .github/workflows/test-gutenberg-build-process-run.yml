@@ -31,15 +31,15 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Checks out the Gutenberg plugin repository.
+  # - Checks out the Gutenberg plugin repository in the plugins directory.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
+  # - Installs Core npm dependencies if testing with Core.
   # - Installs npm dependencies for Gutenberg.
   # - Runs the Gutenberg build process.
-  # - Installs Core npm dependencies.
+  # - Builds WordPress to run from the relevant location (src or build) if testing with Core.
   # - Runs the Gutenberg build process.
-  # - Builds WordPress to run from the relevant location (src or build).
-  # - Runs the Gutenberg build process.
+  # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
     name: Gutenberg ${{ inputs.with-core && ' with Core' || '' }} / Running from ${{ inputs.directory }} on ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
     runs-on: ${{ inputs.os }}
@@ -76,7 +76,7 @@ jobs:
           svn --version
 
       - name: Install Core Dependencies
-        if: ${{ matrix.with-core }}
+        if: ${{ inputs.with-core }}
         run: npm ci
 
       - name: Install Gutenberg Dependencies
@@ -88,10 +88,13 @@ jobs:
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
       - name: Build WordPress to run from ${{ inputs.directory }}
-        if: ${{ matrix.with-core }}
+        if: ${{ inputs.with-core }}
         run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
 
       - name: Run Gutenberg build script after building Core to run from ${{ inputs.directory }}
-        if: ${{ matrix.with-core }}
+        if: ${{ inputs.with-core }}
         run: npm run build
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+
+      - name: Ensure version-controlled files are not modified or deleted during building
+        run: git diff --exit-code

@@ -29,6 +29,7 @@ jobs:
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
   # - Builds WordPress to run from the desired location (src or build).
+  # - Ensures version-controlled files are not modified or deleted.
   # - Cleans up after building WordPress.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
@@ -59,11 +60,14 @@ jobs:
       - name: Install npm Dependencies
         run: npm ci
 
-      - name: Build WordPress in ${{ inputs.directory }}
+      - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
 
-      - name: Clean after building in /src
+      - name: Ensure version-controlled files are not modified or deleted during building
+        run: git diff --exit-code
+
+      - name: Clean after building to run from ${{ inputs.directory }}
         run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' || '' }}
 
-      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+      - name: Ensure version-controlled files are not modified or deleted during cleaning
         run: git diff --exit-code
