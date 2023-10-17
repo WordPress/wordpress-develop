@@ -127,24 +127,31 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_init_should_initialize_strings() {
-		return array(
-			'bad_request'          => array( 'key' => 'bad_request' ),
-			'fs_unavailable'       => array( 'key' => 'fs_unavailable' ),
-			'fs_error'             => array( 'key' => 'fs_error' ),
-			'fs_no_root_dir'       => array( 'key' => 'fs_no_root_dir' ),
-			'fs_no_content_dir'    => array( 'key' => 'fs_no_content_dir' ),
-			'fs_no_plugins_dir'    => array( 'key' => 'fs_no_plugins_dir' ),
-			'fs_no_themes_dir'     => array( 'key' => 'fs_no_themes_dir' ),
-			'fs_no_folder'         => array( 'key' => 'fs_no_folder' ),
-			'download_failed'      => array( 'key' => 'download_failed' ),
-			'installing_package'   => array( 'key' => 'installing_package' ),
-			'no_files'             => array( 'key' => 'no_files' ),
-			'folder_exists'        => array( 'key' => 'folder_exists' ),
-			'mkdir_failed'         => array( 'key' => 'mkdir_failed' ),
-			'incompatible_archive' => array( 'key' => 'incompatible_archive' ),
-			'files_not_writable'   => array( 'key' => 'files_not_writable' ),
-			'maintenance_start'    => array( 'key' => 'maintenance_start' ),
-			'maintenance_end'      => array( 'key' => 'maintenance_end' ),
+		return self::text_array_to_dataprovider(
+			array(
+				'bad_request',
+				'fs_unavailable',
+				'fs_error',
+				'fs_no_root_dir',
+				'fs_no_content_dir',
+				'fs_no_plugins_dir',
+				'fs_no_themes_dir',
+				'fs_no_folder',
+				'no_package',
+				'download_failed',
+				'installing_package',
+				'no_files',
+				'folder_exists',
+				'mkdir_failed',
+				'incompatible_archive',
+				'files_not_writable',
+				'maintenance_start',
+				'maintenance_end',
+				'temp_backup_mkdir_failed',
+				'temp_backup_move_failed',
+				'temp_backup_restore_failed',
+				'temp_backup_delete_failed',
+			)
 		);
 	}
 
