@@ -56,12 +56,12 @@ jobs:
         run: npm run build
 
       - name: Zip WordPress build
-        run: zip -r build.zip build/*
+        run: zip -r wordpress.zip build/*
 
       - name: Upload the build directory as GitHub artifact
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         if: always()
         with:
             name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
-            path: build.zip
+            path: wordpress.zip
             if-no-files-found: error
