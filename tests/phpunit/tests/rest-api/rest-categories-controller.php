@@ -12,6 +12,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	protected static $administrator;
 	protected static $contributor;
 	protected static $subscriber;
+	protected static $author;
 
 	protected static $category_ids     = array();
 	protected static $total_categories = 30;
@@ -33,6 +34,12 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 				'role' => 'subscriber',
 			)
 		);
+		self::$author        = $factory->user->create(
+			array(
+				'role' => 'author',
+			)
+		);
+
 
 		// Set up categories for pagination tests.
 		for ( $i = 0; $i < self::$total_categories - 1; $i++ ) {
@@ -47,6 +54,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$administrator );
 		self::delete_user( self::$subscriber );
+		self::delete_user( self::$author );
 
 		// Remove categories for pagination tests.
 		foreach ( self::$category_ids as $category_id ) {
@@ -1176,6 +1184,18 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
+	}
+
+	/**
+	 * @ticket 59660
+	 */
+	public function test_create_item_pattern_category_incorrect_permissions_author() {
+		wp_set_current_user( self::$author );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/wp_pattern_category' );
+		$request->set_param( 'name', 'Incorrect permissions' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_create', $response, 403 );
 	}
 
 	public function additional_field_get_callback( $response_data, $field_name ) {
