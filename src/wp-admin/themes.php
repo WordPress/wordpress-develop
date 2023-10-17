@@ -271,7 +271,7 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 } elseif ( isset( $_GET['activated'] ) ) {
 	if ( isset( $_GET['previewed'] ) ) {
 		wp_admin_notice(
-			__( 'Settings saved and theme activated.' ) . '<a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
+			__( 'Settings saved and theme activated.' ) . ' <a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
 			array(
 				'id'                 => 'message2',
 				'additional_classes' => array( 'updated' ),
@@ -280,7 +280,7 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 		);
 	} else {
 		wp_admin_notice(
-			__( 'New theme activated.' ) . '<a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
+			__( 'New theme activated.' ) . ' <a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
 			array(
 				'id'                 => 'message2',
 				'additional_classes' => array( 'updated' ),
@@ -1221,22 +1221,22 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<# if ( data.actions.activate ) { #>
-						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
-					<# } #>
 					<# if ( ! data.blockTheme ) { #>
 						<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
+					<# if ( data.actions.activate ) { #>
+						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 					<# } #>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<# if ( data.actions.activate ) { #>
-						<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
-					<# } #>
 					<# if ( ! data.blockTheme ) { #>
 						<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
+					<# if ( data.actions.activate ) { #>
+						<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<# } #>
 				<# } #>
 			</div>

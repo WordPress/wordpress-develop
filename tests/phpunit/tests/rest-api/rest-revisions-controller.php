@@ -179,6 +179,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			'modified_gmt',
 			'guid',
 			'id',
+			'meta',
 			'parent',
 			'slug',
 			'title',
@@ -335,7 +336,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 12, $properties );
+		$this->assertCount( 13, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
@@ -348,6 +349,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
+		$this->assertArrayHasKey( 'meta', $properties );
 	}
 
 	public function test_create_item() {

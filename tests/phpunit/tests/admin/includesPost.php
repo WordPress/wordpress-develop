@@ -1144,8 +1144,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * Test refreshed nonce for metabox loader.
-	 *
-	 * @return void
 	 */
 	public function test_user_get_refreshed_metabox_nonce() {
 

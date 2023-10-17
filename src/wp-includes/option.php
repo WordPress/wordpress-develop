@@ -833,11 +833,30 @@ function update_option( $option, $value, $autoload = null ) {
 	}
 
 	if ( ! wp_installing() ) {
-		$alloptions = wp_load_alloptions( true );
-		if ( isset( $alloptions[ $option ] ) ) {
+		if ( ! isset( $update_args['autoload'] ) ) {
+			// Update the cached value based on where it is currently cached.
+			$alloptions = wp_load_alloptions( true );
+			if ( isset( $alloptions[ $option ] ) ) {
+				$alloptions[ $option ] = $serialized_value;
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			} else {
+				wp_cache_set( $option, $serialized_value, 'options' );
+			}
+		} elseif ( 'yes' === $update_args['autoload'] ) {
+			// Delete the individual cache, then set in alloptions cache.
+			wp_cache_delete( $option, 'options' );
+
+			$alloptions = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
+			// Delete the alloptions cache, then set the individual cache.
+			$alloptions = wp_load_alloptions( true );
+			if ( isset( $alloptions[ $option ] ) ) {
+				unset( $alloptions[ $option ] );
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			}
+
 			wp_cache_set( $option, $serialized_value, 'options' );
 		}
 	}
@@ -2080,7 +2099,7 @@ function update_network_option( $network_id, $option, $value ) {
 
 	wp_protect_special_option( $option );
 
-	$old_value = get_network_option( $network_id, $option, false );
+	$old_value = get_network_option( $network_id, $option );
 
 	/**
 	 * Filters a specific network option before its value is updated.
@@ -2798,7 +2817,10 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		$option_group = 'reading';
 	}
 
-	$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
+	$pos = false;
+	if ( isset( $new_allowed_options[ $option_group ] ) ) {
+		$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
+	}
 
 	if ( false !== $pos ) {
 		unset( $new_allowed_options[ $option_group ][ $pos ] );
