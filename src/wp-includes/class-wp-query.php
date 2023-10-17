@@ -3173,7 +3173,10 @@ class WP_Query {
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 
-			// `posts_request_ids` can be used to modify the query used to get an array of post IDs, leading to cache collisions.
+			/* 
+			 * `posts_request_ids` can be used to modify the query used to get an array of post IDs.
+			 * This may lead to cache collisions if not taken into consideration during key generation.
+			 */
 			if ( has_filter( 'posts_request_ids' ) ) {
 				$q['posts_request_ids_filters'] = $wp_filter['posts_request_ids'];
 			}
