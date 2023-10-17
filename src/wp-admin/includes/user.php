@@ -737,7 +737,7 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 	$host     = wp_parse_url( $url, PHP_URL_HOST );
 	$is_local = 'local' === wp_get_environment_type();
 
-	// validates if the proper URI format is applied to the $url
+	// Validates if the proper URI format is applied to the $url.
 	if ( empty( $host ) || empty( $scheme ) || in_array( strtolower( $scheme ), $invalid_protocols, true ) ) {
 		return new WP_Error(
 			'invalid_redirect_url_format',
