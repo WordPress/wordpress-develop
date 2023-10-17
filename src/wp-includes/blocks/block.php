@@ -8,8 +8,6 @@
 /**
  * Renders the `core/block` block on server.
  *
- * @since 6.3.0 Reusable Blocks renamed to Patterns.
- *
  * @param array $attributes The block attributes.
  *
  * @return string Rendered HTML of the referenced block.
