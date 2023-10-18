@@ -161,6 +161,10 @@ jobs:
         if: ${{ inputs.multisite }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ms-files
 
+      - name: Run tests tests as a subdomain multisite install
+        if: ${{ inputs.multisite }}
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} -d SUBDOMAIN_INSTALL=true
+
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group external-http
