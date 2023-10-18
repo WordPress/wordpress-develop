@@ -1,12 +1,16 @@
 <?php
 /**
- * Class Ginger_MO_Translation_File_MO.
+ * Ginger MO: Ginger_MO_Translation_File_MO class.
  *
  * @package WordPress
+ * @subpackage Ginger_MO
+ * @since 6.5.0
  */
 
 /**
  * Class Ginger_MO_Translation_File_MO.
+ *
+ * @since 6.5.0
  */
 class Ginger_MO_Translation_File_MO extends Ginger_MO_Translation_File {
 	/**
@@ -16,6 +20,8 @@ class Ginger_MO_Translation_File_MO extends Ginger_MO_Translation_File {
 	 *
 	 * Used for unpack().
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var false|'V'|'N'
 	 */
 	protected $uint32 = false;
@@ -23,12 +29,16 @@ class Ginger_MO_Translation_File_MO extends Ginger_MO_Translation_File {
 	/**
 	 * The magic number of the GNU message catalog format.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var int
 	 */
 	const MAGIC_MARKER = 0x950412de;
 
 	/**
 	 * Detects endian and validates file.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $header File contents.
 	 * @return false|'V'|'N' V for little endian, N for big endian, or false on failure.
@@ -73,11 +83,11 @@ class Ginger_MO_Translation_File_MO extends Ginger_MO_Translation_File {
 	/**
 	 * Parses the file.
 	 *
-	 * @SuppressWarnings(PHPMD.NPathComplexity)
+	 * @since 6.5.0
 	 *
 	 * @return bool True on success, false otherwise.
 	 */
-	protected function parse_file(): bool {
+	protected function parse_file() {
 		$this->parsed = true;
 
 		$file_contents = file_get_contents( $this->file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -163,9 +173,11 @@ class Ginger_MO_Translation_File_MO extends Ginger_MO_Translation_File {
 	/**
 	 * Exports translation contents as a string.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return string Translation file contents.
 	 */
-	public function export(): string {
+	public function export() {
 		// Prefix the headers as the first key.
 		$headers_string = '';
 		foreach ( $this->headers as $header => $value ) {

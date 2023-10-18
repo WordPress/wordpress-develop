@@ -1,16 +1,22 @@
 <?php
 /**
- * Base Ginger_MO_Translation_File class.
+ * Ginger MO: Ginger_MO_Translation_File class.
  *
  * @package WordPress
+ * @subpackage Ginger_MO
+ * @since 6.5.0
  */
 
 /**
  * Class Ginger_MO_Translation_File.
+ *
+ * @since 6.5.0
  */
 abstract class Ginger_MO_Translation_File {
 	/**
 	 * List of headers.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @var array<string, string>
 	 */
@@ -19,12 +25,16 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Whether file has been parsed.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var bool
 	 */
 	protected $parsed = false;
 
 	/**
 	 * Error information.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @var bool|string
 	 */
@@ -33,12 +43,16 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * File name.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var string
 	 */
 	protected $file = '';
 
 	/**
 	 * Translation entries.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @var array<string, string>
 	 */
@@ -47,6 +61,8 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Plural forms function.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var callable|null Plural forms.
 	 */
 	protected $plural_forms = null;
@@ -54,7 +70,9 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Constructor.
 	 *
-	 * @param string $file    File to load.
+	 * @since 6.5.0
+	 *
+	 * @param string $file File to load.
 	 */
 	protected function __construct( string $file ) {
 		$this->file = $file;
@@ -63,11 +81,11 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Creates a new Ginger_MO_Translation_File instance for a given file.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string      $file     File name.
 	 * @param string|null $filetype Optional. File type. Default inferred from file name.
 	 * @return false|Ginger_MO_Translation_File
-	 *
-	 * @phpstan-param 'mo'|'php'|null $filetype
 	 */
 	public static function create( string $file, string $filetype = null ) {
 		if ( ! is_readable( $file ) ) {
@@ -94,6 +112,8 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Returns all headers.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return array<string, string> Headers.
 	 */
 	public function headers() {
@@ -106,8 +126,9 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Returns all entries.
 	 *
-	 * @return array<string, string> Entries.
-	 * @phstan-return array<string, non-empty-array<string>> Entries.
+	 * @since 6.5.0
+	 *
+	 * @return array<string, string[]> Entries.
 	 */
 	public function entries() {
 		if ( ! $this->parsed ) {
@@ -120,7 +141,7 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Returns the current error information.
 	 *
-	 * @phpstan-impure
+	 * @since 6.5.0
 	 *
 	 * @return bool|string Error
 	 */
@@ -131,14 +152,18 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Returns the file name.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return string File name.
 	 */
-	public function get_file(): string {
+	public function get_file() {
 		return $this->file;
 	}
 
 	/**
 	 * Translates a given string.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $text String to translate.
 	 * @return false|string Translation(s) on success, false otherwise.
@@ -154,10 +179,12 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Returns the plural form for a count.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param int $number Count.
 	 * @return int Plural form.
 	 */
-	public function get_plural_form( int $number ): int {
+	public function get_plural_form( int $number ) {
 		if ( ! $this->parsed ) {
 			$this->parse_file();
 		}
@@ -171,7 +198,7 @@ abstract class Ginger_MO_Translation_File {
 			/**
 			 * Plural form.
 			 *
-			 * @phpstan-var int $result Plural form.
+			 * @var int $result Plural form.
 			 */
 			$result = call_user_func( $this->plural_forms, $number );
 			return $result;
@@ -183,7 +210,9 @@ abstract class Ginger_MO_Translation_File {
 
 	/**
 	 * Makes a function, which will return the right translation index, according to the
-	 * plural forms header
+	 * plural forms header.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $expression Plural form expression.
 	 * @return callable(int $num): int Plural forms function.
@@ -201,11 +230,11 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Creates a new Ginger_MO_Translation_File instance for a given file.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $file     Source file name.
 	 * @param string $filetype Desired target file type.
 	 * @return string|false Transformed translation file contents on success, false otherwise.
-	 *
-	 * @phpstan-param 'mo'|'php' $filetype
 	 */
 	public static function transform( string $file, string $filetype ) {
 		$source = self::create( $file );
@@ -237,10 +266,12 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Imports translations from another file.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param Ginger_MO_Translation_File $source Source file.
 	 * @return bool True on success, false otherwise.
 	 */
-	protected function import( Ginger_MO_Translation_File $source ): bool {
+	protected function import( Ginger_MO_Translation_File $source ) {
 		if ( false !== $source->error() ) {
 			return false;
 		}
@@ -255,7 +286,7 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Parses the file.
 	 *
-	 * @return void
+	 * @since 6.5.0
 	 */
 	abstract protected function parse_file();
 
@@ -263,7 +294,9 @@ abstract class Ginger_MO_Translation_File {
 	/**
 	 * Exports translation contents as a string.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return string Translation file contents.
 	 */
-	abstract public function export(): string;
+	abstract public function export();
 }

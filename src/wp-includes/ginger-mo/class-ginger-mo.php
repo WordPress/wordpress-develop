@@ -1,18 +1,22 @@
 <?php
 /**
- * Main functionality.
+ * Ginger MO: Ginger_MO class.
  *
  * @package WordPress
+ * @subpackage Ginger_MO
+ * @since 6.5.0
  */
 
 /**
  * Class Ginger_MO.
  *
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @since 6.5.0
  */
 class Ginger_MO {
 	/**
 	 * Current locale.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @var string
 	 */
@@ -23,6 +27,8 @@ class Ginger_MO {
 	 *
 	 * [ Locale => [ Textdomain => [ .., .. ] ] ]
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var array<string, array<string, Ginger_MO_Translation_File[]>>
 	 */
 	protected $loaded_translations = array();
@@ -32,6 +38,8 @@ class Ginger_MO {
 	 *
 	 * [ Filename => [ Locale => [ Textdomain => Ginger_MO_Translation_File ] ] ]
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var array<string,array<string, array<string, Ginger_MO_Translation_File|false>>>
 	 */
 	protected $loaded_files = array();
@@ -39,9 +47,11 @@ class Ginger_MO {
 	/**
 	 * Returns the Ginger_MO singleton.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return Ginger_MO
 	 */
-	public static function instance(): Ginger_MO {
+	public static function instance() {
 		static $instance;
 
 		if ( ! $instance ) {
@@ -54,17 +64,20 @@ class Ginger_MO {
 	/**
 	 * Returns the current locale.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return string Locale.
 	 */
-	public function get_locale(): string {
+	public function get_locale() {
 		return $this->current_locale;
 	}
 
 	/**
 	 * Sets the current locale.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $locale Locale.
-	 * @return void
 	 */
 	public function set_locale( string $locale ) {
 		$this->current_locale = $locale;
@@ -73,14 +86,14 @@ class Ginger_MO {
 	/**
 	 * Loads a translation file.
 	 *
-	 * @SuppressWarnings(PHPMD.NPathComplexity)
+	 * @since 6.5.0
 	 *
 	 * @param string $translation_file Translation file.
 	 * @param string $textdomain       Text domain.
 	 * @param string $locale           Optional. Locale. Default current locale.
 	 * @return bool True on success, false otherwise.
 	 */
-	public function load( string $translation_file, string $textdomain = 'default', string $locale = null ): bool {
+	public function load( string $translation_file, string $textdomain = 'default', string $locale = null ) {
 		if ( null === $locale ) {
 			$locale = $this->current_locale;
 		}
@@ -129,14 +142,14 @@ class Ginger_MO {
 	/**
 	 * Unload all translation files or a specific one for a given text domain.
 	 *
-	 * @SuppressWarnings(PHPMD.NPathComplexity)
+	 * @since 6.5.0
 	 *
 	 * @param string                            $textdomain Text domain.
 	 * @param Ginger_MO_Translation_File|string $mo         Translation file instance or file name.
 	 * @param string                            $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
-	public function unload( string $textdomain = 'default', $mo = null, string $locale = null ): bool {
+	public function unload( string $textdomain = 'default', $mo = null, string $locale = null ) {
 		if ( ! $this->is_loaded( $textdomain, $locale ) ) {
 			return false;
 		}
@@ -199,11 +212,13 @@ class Ginger_MO {
 	/**
 	 * Determines whether translations are loaded for a given text domain.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $textdomain Text domain.
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return bool True if there are any loaded translations, false otherwise.
 	 */
-	public function is_loaded( string $textdomain = 'default', string $locale = null ): bool {
+	public function is_loaded( string $textdomain = 'default', string $locale = null ) {
 		if ( null === $locale ) {
 			$locale = $this->current_locale;
 		}
@@ -214,6 +229,8 @@ class Ginger_MO {
 
 	/**
 	 * Translates a singular string.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $text       Text to translate.
 	 * @param string $context    Optional. Context for the string.
@@ -241,7 +258,7 @@ class Ginger_MO {
 	 * Checks both singular+plural combinations as well as just singulars,
 	 * in case the translation file does not store the plural.
 	 *
-	 * @todo Revisit this.
+	 * @since 6.5.0
 	 *
 	 * @param array{0: string, 1: string} $plurals    Pair of singular and plural translation.
 	 * @param int                         $number     Number of items.
@@ -271,19 +288,19 @@ class Ginger_MO {
 		$source = $translation['source'];
 		$num    = $source->get_plural_form( $number );
 
-		// TODO: Use nplurals from Plural-Forms header?
-		// See \Translations::translate_plural() in core.
-
+		// See \Translations::translate_plural().
 		return $translation['entries'][ $num ] ?? $translation['entries'][0];
 	}
 
 	/**
 	 * Returns all existing headers for a given text domain.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $textdomain Text domain.
 	 * @return array<string, string> Headers.
 	 */
-	public function get_headers( string $textdomain = 'default' ): array {
+	public function get_headers( string $textdomain = 'default' ) {
 		if ( array() === $this->loaded_translations ) {
 			return array();
 		}
@@ -302,10 +319,12 @@ class Ginger_MO {
 	/**
 	 * Normalizes header names to be capitalized.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $header Header name.
 	 * @return string Normalized header name.
 	 */
-	protected function normalize_header( string $header ): string {
+	protected function normalize_header( string $header ) {
 		$parts = explode( '-', $header );
 		$parts = array_map( 'ucfirst', $parts );
 		return implode( '-', $parts );
@@ -314,10 +333,12 @@ class Ginger_MO {
 	/**
 	 * Returns all entries for a given text domain.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $textdomain Text domain.
 	 * @return array<string, string> Entries.
 	 */
-	public function get_entries( string $textdomain = 'default' ): array {
+	public function get_entries( string $textdomain = 'default' ) {
 		if ( array() === $this->loaded_translations ) {
 			return array();
 		}
@@ -333,6 +354,8 @@ class Ginger_MO {
 
 	/**
 	 * Locates translation for a given string and text domain.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $singular   Singular translation.
 	 * @param string $textdomain Text domain.
@@ -366,11 +389,13 @@ class Ginger_MO {
 	/**
 	 * Returns all translation files for a given text domain.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $textdomain Text domain.
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return Ginger_MO_Translation_File[] List of translation files.
 	 */
-	protected function get_files( string $textdomain = 'default', string $locale = null ): array {
+	protected function get_files( string $textdomain = 'default', string $locale = null ) {
 		if ( null === $locale ) {
 			$locale = $this->current_locale;
 		}

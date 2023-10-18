@@ -1,18 +1,22 @@
 <?php
 /**
- * Class Ginger_MO_Translation_File_PHP.
+ * Ginger MO: Ginger_MO_Translation_File_PHP class.
  *
  * @package WordPress
+ * @subpackage Ginger_MO
+ * @since 6.5.0
  */
 
 /**
  * Class Ginger_MO_Translation_File_PHP.
+ *
+ * @since 6.5.0
  */
 class Ginger_MO_Translation_File_PHP extends Ginger_MO_Translation_File {
 	/**
 	 * Parses the file.
 	 *
-	 * @return void
+	 * @since 6.5.0
 	 */
 	protected function parse_file() {
 		$this->parsed = true;
@@ -40,48 +44,14 @@ class Ginger_MO_Translation_File_PHP extends Ginger_MO_Translation_File {
 	/**
 	 * Exports translation contents as a string.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return string Translation file contents.
 	 */
-	public function export(): string {
+	public function export() {
 		$data = array_merge( $this->headers, array( 'messages' => $this->entries ) );
 
 		return '<?php' . PHP_EOL . 'return ' . $this->var_export( $data ) . ';' . PHP_EOL;
-	}
-
-	/**
-	 * Determines if the given array is a list.
-	 *
-	 * An array is considered a list if its keys consist of consecutive numbers from 0 to count($array)-1.
-	 *
-	 * Polyfill for array_is_list() in PHP 8.1.
-	 *
-	 * @see https://github.com/symfony/polyfill-php81/tree/main
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedLocalVariable)
-	 *
-	 * @codeCoverageIgnore
-	 *
-	 * @param array<mixed> $arr The array being evaluated.
-	 * @return bool True if array is a list, false otherwise.
-	 */
-	private function array_is_list( array $arr ): bool {
-		if ( function_exists( 'array_is_list' ) ) {
-			return array_is_list( $arr );
-		}
-
-		if ( ( array() === $arr ) || ( array_values( $arr ) === $arr ) ) {
-			return true;
-		}
-
-		$next_key = -1;
-
-		foreach ( $arr as $k => $v ) {
-			if ( ++$next_key !== $k ) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	/**
@@ -90,17 +60,19 @@ class Ginger_MO_Translation_File_PHP extends Ginger_MO_Translation_File {
 	 * Like {@see var_export()} but "minified", using short array syntax
 	 * and no newlines.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param mixed $value The variable you want to export.
 	 * @return string The variable representation.
 	 */
-	private function var_export( $value ): string {
+	private function var_export( $value ) {
 		if ( ! is_array( $value ) ) {
 			return var_export( $value, true );
 		}
 
 		$entries = array();
 
-		$is_list = $this->array_is_list( $value );
+		$is_list = array_is_list( $value );
 
 		foreach ( $value as $key => $val ) {
 			$entries[] = $is_list ? $this->var_export( $val ) : var_export( $key, true ) . '=>' . $this->var_export( $val );

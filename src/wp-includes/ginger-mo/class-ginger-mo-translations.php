@@ -57,9 +57,10 @@ class Ginger_MO_Translations {
 	/**
 	 * Magic setter.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $name Property name.
 	 * @param mixed  $value Property value.
-	 * @return void
 	 */
 	public function __set( string $name, $value ) {}
 
