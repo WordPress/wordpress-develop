@@ -75,6 +75,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59669
+	 *
 	 * @covers ::traverse_and_serialize_blocks
 	 */
 	public function test_traverse_and_serialize_blocks_post_callback_modifies_current_block() {
