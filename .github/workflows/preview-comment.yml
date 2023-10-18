@@ -1,10 +1,7 @@
 name: Comment on PR
 
 on:
-  workflow_run:
-    workflows: ["Upload WordPress build as an artifact"]
-    types:
-      - completed
+  pull_request:
 
 jobs:
   comment:
