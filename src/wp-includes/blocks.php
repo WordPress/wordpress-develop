@@ -1067,7 +1067,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 					? null
 					: $block['innerBlocks'][ $block_index + 1 ];
 
-					$post_markup = call_user_func_array(
+				$post_markup = call_user_func_array(
 					$post_callback,
 					array( &$inner_block, $block, $next )
 				);
