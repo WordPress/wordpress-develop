@@ -1,12 +1,16 @@
 <?php
 /**
- * Class Ginger_MO_Translations.
+ * Ginger MO: Ginger_MO_Translations class.
  *
  * @package WordPress
+ * @subpackage Ginger_MO
+ * @since 6.5.0
  */
 
 /**
  * Class Ginger_MO_Translations.
+ *
+ * @since 6.5.0
  *
  * @property-read array<string, string> $headers
  * @property-read array<string, string[]> $entries
@@ -15,12 +19,16 @@ class Ginger_MO_Translations {
 	/**
 	 * Text domain.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var string
 	 */
 	protected $textdomain = 'default';
 
 	/**
 	 * Constructor.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $textdomain Text domain.
 	 */
@@ -30,6 +38,8 @@ class Ginger_MO_Translations {
 
 	/**
 	 * Magic getter for backward compatibility.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $name Property name.
 	 * @return mixed
@@ -69,6 +79,8 @@ class Ginger_MO_Translations {
 	 *
 	 * @see MO::make_entry()
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string $original    Original string to translate from MO file. Might contain
 	 *                            0x04 as context separator or 0x00 as singular/plural separator.
 	 * @param string $translations Translation strings from MO file.
@@ -99,6 +111,8 @@ class Ginger_MO_Translations {
 	/**
 	 * Translates a plural string.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @param string|null $singular Singular string.
 	 * @param string|null $plural   Plural string.
 	 * @param int|float   $count    Count. Should be an integer, but some plugins pass floats.
@@ -121,6 +135,8 @@ class Ginger_MO_Translations {
 
 	/**
 	 * Translates a singular string.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string|null $singular Singular string.
 	 * @param string|null $context  Context.
