@@ -2,7 +2,7 @@ name: Comment on PR
 
 on:
   workflow_run:
-    workflows: ["Build WordPress"]
+    workflows: ["Upload WordPress build as an artifact"]
     types:
       - completed
 
