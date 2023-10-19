@@ -2001,7 +2001,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 6.4.0
 	 */
-	private function delete_pattern_cache() {
+	public function delete_pattern_cache() {
 		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet );
 	}
 
