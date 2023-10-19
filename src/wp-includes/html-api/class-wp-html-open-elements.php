@@ -106,13 +106,20 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-the-specific-scope
 	 *
-	 * @param string   $tag_name         Name of tag check.
+	 * @param string   $tag_name         Name of tag check, or the class constant HEADING_ELEMENTS to specify H1-H6.
 	 * @param string[] $termination_list List of elements that terminate the search.
 	 * @return bool Whether the element was found in a specific scope.
 	 */
 	public function has_element_in_specific_scope( $tag_name, $termination_list ) {
 		foreach ( $this->walk_up() as $node ) {
 			if ( $node->node_name === $tag_name ) {
+				return true;
+			}
+
+			if (
+				self::HEADING_ELEMENTS === $tag_name &&
+				in_array( $node->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+			) {
 				return true;
 			}
 
@@ -263,12 +270,20 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
-	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements.
+	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements,
+	 *                         or the class constant HEADING_ELEMENTS to specify any of H1-H6.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
 	public function pop_until( $tag_name ) {
 		foreach ( $this->walk_up() as $item ) {
 			$this->pop();
+
+			if (
+				self::HEADING_ELEMENTS === $tag_name &&
+				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
+			) {
+				return true;
+			}
 
 			if ( $tag_name === $item->node_name ) {
 				return true;
@@ -429,4 +444,15 @@ class WP_HTML_Open_Elements {
 				break;
 		}
 	}
+
+	/**
+	 * Represents the collection of H1-H6 elements.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @see has_element_in_scope()
+	 *
+	 * @var string
+	 */
+	const HEADING_ELEMENTS = 'heading-elements';
 }

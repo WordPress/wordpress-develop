@@ -120,10 +120,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * element in scope, that it skips the tag entirely.
 	 *
 	 * @ticket 58961
-	 *
-	 * @since 6.4.0
-	 *
-	 * @throws Exception
 	 */
 	public function test_in_body_skips_unexpected_button_closer() {
 		$p = WP_HTML_Processor::create_fragment( '<div>Test</button></div>' );
@@ -145,10 +141,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * Verifies insertion of a BUTTON element when no existing BUTTON is already in scope.
 	 *
 	 * @ticket 58961
-	 *
-	 * @since 6.4.0
-	 *
-	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_in_body_button_with_no_button_in_scope() {
 		$p = WP_HTML_Processor::create_fragment( '<div><p>Click the button <button one>here</button>!</p></div><button two>not here</button>' );
@@ -174,8 +166,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @ticket 58961
 	 *
 	 * @since 6.4.0
-	 *
-	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_in_body_button_with_button_in_scope_as_parent() {
 		$p = WP_HTML_Processor::create_fragment( '<div><p>Click the button <button one>almost<button two>here</button>!</p></div><button three>not here</button>' );
@@ -209,8 +199,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @ticket 58961
 	 *
 	 * @since 6.4.0
-	 *
-	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_in_body_button_with_button_in_scope_as_ancestor() {
 		$p = WP_HTML_Processor::create_fragment( '<div><button one><p>Click the button <span><button two>here</button>!</span></p></div><button three>not here</button>' );
@@ -236,7 +224,39 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( array( 'HTML', 'BODY', 'BUTTON' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting for third button.' );
 	}
 
-	/*
+	/**
+	 * Verifies that H1 through H6 elements close an open P element.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @dataProvider data_heading_elements
+	 *
+	 * @param string $tag_name Name of H1 - H6 element under test.
+	 */
+	public function test_heading_element_closes_open_p_tag( $tag_name ) {
+		$p = WP_HTML_Processor::create_fragment( "<p>Open<{$tag_name}>Closed P</{$tag_name}></p>" );
+
+		$p->next_tag( $tag_name );
+		$this->assertSame( array( 'HTML', 'BODY', $tag_name ), $p->get_breadcrumbs() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_heading_elements() {
+		return array(
+			array( 'H1' ),
+			array( 'H2' ),
+			array( 'H3' ),
+			array( 'H4' ),
+			array( 'H5' ),
+			array( 'H5' ),
+		);
+	}
+
+	/**
 	 * Verifies that when "in body" and encountering "any other end tag"
 	 * that the HTML processor ignores the end tag if there's a special
 	 * element on the stack of open elements before the matching opening.
@@ -259,7 +279,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'SPAN', 'DIV' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting: SPAN should still be open and DIV should be its child.' );
 	}
 
-	/*
+	/**
 	 * Verifies that when "in body" and encountering "any other end tag"
 	 * that the HTML processor closes appropriate elements on the stack of
 	 * open elements up to the matching opening.
