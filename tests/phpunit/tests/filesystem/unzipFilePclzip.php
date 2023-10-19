@@ -3,7 +3,8 @@
 /**
  * Tests _unzip_file_pclzip().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::_unzip_file_pclzip
  */

@@ -3,6 +3,8 @@
 /**
  * Test the block WP_Duotone class.
  *
+ * @group block-supports
+ *
  * @package WordPress
  */
 
