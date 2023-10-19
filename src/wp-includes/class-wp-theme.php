@@ -1826,7 +1826,7 @@ final class WP_Theme implements ArrayAccess {
 	 *    - Template Types   (comma-separated values)
 	 *
 	 * @since 6.4.0
-
+	 *	 
 	 * @return array Block pattern data.
 	 */
 	public function get_block_patterns() {
