@@ -69,5 +69,6 @@
 	"viewScript": [ "tests-notice-view-script", "tests-notice-view-script-2" ],
 	"editorStyle": "tests-notice-editor-style",
 	"style": [ "tests-notice-style", "tests-notice-style-2" ],
+	"viewStyle": [ "tests-notice-view-style" ],
 	"render": "file:./render.php"
 }
