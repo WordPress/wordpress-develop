@@ -41,7 +41,7 @@ jobs:
   # Creates a job to test the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
+    uses: desrosj/wordpress-develop/.github/workflows/callable/test-core-build-process.yml@combine/npm-testing
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -64,7 +64,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/test-core-build-process-run.yml@combine/npm-testing
+    uses: desrosj/wordpress-develop/.github/workflows/callable/test-core-build-process.yml@combine/npm-testing
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -80,7 +80,7 @@ jobs:
   # Creates a job to test the Gutenberg plugin build process on multiple operating systems.
   test-gutenberg-build-process:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
+    uses: desrosj/wordpress-develop/.github/workflows/callable/test-gutenberg-build-process.yml@combine/npm-testing
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -103,7 +103,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/test-gutenberg-build-process-run.yml@combine/npm-testing
+    uses: desrosj/wordpress-develop/.github/workflows/callable/test-gutenberg-build-process.yml@combine/npm-testing
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
