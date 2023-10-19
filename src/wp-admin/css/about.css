@@ -695,14 +695,6 @@
 		min-height: auto;
 	}
 
-	.about__header,
-	.credits-php .about__header,
-	.freedoms-php .about__header,
-	.privacy-php .about__header,
-	.contribute-php .about__header {
-		background-image: none;
-	}
-
 	.about__header-title p {
 		font-size: 2.4em;
 	}
