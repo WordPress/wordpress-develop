@@ -406,7 +406,7 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 */
 	public function test_get_headers_no_loaded_translations() {
 		$controller = new WP_I18n_Translation_Controller();
-		$headers   = $controller->get_headers();
+		$headers    = $controller->get_headers();
 		$this->assertEmpty( $headers );
 	}
 
@@ -447,7 +447,7 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 */
 	public function test_get_entries_no_loaded_translations() {
 		$controller = new WP_I18n_Translation_Controller();
-		$headers   = $controller->get_entries();
+		$headers    = $controller->get_entries();
 		$this->assertEmpty( $headers );
 	}
 
