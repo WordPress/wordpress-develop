@@ -855,7 +855,7 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->exists() ) {
 			return false;
 		}
-		$pattern_data = get_transient( 'wp_theme_patterns_' . $this->stylesheet );
+		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet );
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}
@@ -874,7 +874,7 @@ final class WP_Theme implements ArrayAccess {
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
 		);
-		set_transient( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data );
+		wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data );
 	}
 
 	/**
@@ -883,7 +883,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.4.0
 	 */
 	public function delete_pattern_cache() {
-		delete_transient( 'wp_theme_patterns_' . $this->stylesheet );
+		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet );
 	}
 
 	/**
