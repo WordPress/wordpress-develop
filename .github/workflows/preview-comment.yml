@@ -8,10 +8,12 @@ on:
 jobs:
   comment:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - uses: actions/github-script@v6
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{ github.token }}
           script: |
             const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
             const issueComment = `Preview link: [${previewLink}](${previewLink})`;
