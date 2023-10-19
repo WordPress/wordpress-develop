@@ -20,6 +20,47 @@ class WP_Debug_Data {
 		wp_update_themes();
 	}
 
+	/*
+	 * Helper function to determine the true value of a constant.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $constant_name The name of the constant to be checked.
+	 * @return string If the constant is not defined at all, it will return "Undefined"
+	 *                If the constant is as a true boolean it will return "Defined as boolean with value true."
+	 *                If the constant is as a false boolean it will return "Defined as boolean with value false."
+	 *                If the constant is defined as NULL, it will return "Defined as NULL"
+	 *                If the constant is defined as empty, it will return "Defined as an empty string.".
+	 *                Otherwise it is the value as defined.
+	*/
+	private static function get_define_info( $constant_name ) {
+		if ( ! defined( $constant_name ) ) {
+			return __( 'Undefined' );
+		}
+
+		$value = constant( $constant_name );
+
+		if ( true === $value ) {
+			// Translators: %s is always replaced with the PHP boolean named "true"
+			return sprintf( __ ( 'Defined as boolean with value %s.' ), 'true' );
+		}
+		
+		
+		if ( false === $value ) {
+			// Translators: %s is always replaced with the PHP boolean named "false"
+			return sprintf( __ ( 'Defined as boolean with value %s.' ), 'false' );
+		}
+		if ( NULL === $value ) {
+			// Translators: %s is always replaced with the PHP type named "NULL"
+			return sprintf( __ ( 'Defined as %s.' ), 'NULL' );
+		}
+		if ( '' === $value ) {
+			return __( 'Defined as an empty string.' );
+		}
+
+		return $value;
+	}
+
 	/**
 	 * Static function for generating site debug data when required.
 	 *
@@ -236,13 +277,6 @@ class WP_Debug_Data {
 			$compress_css_debug = 'undefined';
 		}
 
-		// Check WP_ENVIRONMENT_TYPE.
-		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
-			$wp_environment_type = WP_ENVIRONMENT_TYPE;
-		} else {
-			$wp_environment_type = __( 'Undefined' );
-		}
-
 		$info['wp-constants'] = array(
 			'label'       => __( 'WordPress Constants' ),
 			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
@@ -254,13 +288,13 @@ class WP_Debug_Data {
 				),
 				'WP_HOME'             => array(
 					'label' => 'WP_HOME',
-					'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
-					'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
+					'value' => self::get_define_info( 'WP_HOME' ),
+					'debug' => self::get_define_info( 'WP_HOME' ),
 				),
 				'WP_SITEURL'          => array(
 					'label' => 'WP_SITEURL',
-					'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
-					'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
+					'value' => self::get_define_info( 'WP_SITEURL' ),
+					'debug' => self::get_define_info( 'WP_SITEURL' ),
 				),
 				'WP_CONTENT_DIR'      => array(
 					'label' => 'WP_CONTENT_DIR',
@@ -330,13 +364,13 @@ class WP_Debug_Data {
 				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
-					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
+					'value' => self::get_define_info( 'DB_CHARSET' ),
+					'debug' => self::get_define_info( 'DB_CHARSET' ),
 				),
 				'DB_COLLATE'          => array(
 					'label' => 'DB_COLLATE',
-					'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
+					'value' => self::get_define_info( 'DB_COLLATE' ),
+					'debug' => self::get_define_info( 'DB_COLLATE' ),
 				),
 			),
 		);
