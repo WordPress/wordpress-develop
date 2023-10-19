@@ -41,15 +41,15 @@ class WP_Debug_Data {
 		$value = constant( $constant_name );
 
 		if ( true === $value ) {
-			// Translators: %s is always replaced with the PHP boolean named "true"
+			// translators: %s is always replaced with the PHP boolean named "true".
 			return sprintf( __( 'Defined as boolean with value %s.' ), 'true' );
 		}
 		if ( false === $value ) {
-			// Translators: %s is always replaced with the PHP boolean named "false"
+			// translators: %s is always replaced with the PHP boolean named "false".
 			return sprintf( __( 'Defined as boolean with value %s.' ), 'false' );
 		}
 		if ( null === $value ) {
-			// Translators: %s is always replaced with the PHP type named "NULL"
+			// translators: %s is always replaced with the PHP type named "null".
 			return sprintf( __( 'Defined as %s.' ), 'null' );
 		}
 		if ( '' === $value ) {
