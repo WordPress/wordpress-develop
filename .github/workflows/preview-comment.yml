@@ -12,8 +12,13 @@ jobs:
       issues: write
     steps:
       - uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ env.BOT_TOKEN }}
+          GIT_AUTHOR_NAME: ${{ env.BOT_NAME }}[bot]
+          GIT_AUTHOR_EMAIL: ${{ env.BOT_NAME }}[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: ${{ env.BOT_NAME }}[bot]
         with:
-          github-token: ${{ github.token }}
+          github-token: ${{ env.BOT_TOKEN }}
           script: |
             const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
             const issueComment = `Preview link: [${previewLink}](${previewLink})`;
