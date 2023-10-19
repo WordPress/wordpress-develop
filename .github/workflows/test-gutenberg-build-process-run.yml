@@ -79,10 +79,6 @@ jobs:
         if: ${{ inputs.with-core }}
         run: npm ci
 
-      - name: Check Node.js version
-        run: nvm install
-        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
-
       - name: Install Gutenberg Dependencies
         run: npm ci
         working-directory: ${{ env.GUTENBERG_DIRECTORY }}
