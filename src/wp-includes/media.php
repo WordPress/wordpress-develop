@@ -2660,6 +2660,11 @@ function gallery_shortcode( $attr ) {
 		return '';
 	}
 
+	// Necessary because in get_posts(), when specifying include="", the numberposts parameter is ignored (it's set to match the number of items in include="")
+	if ( $total_count > 0 ){
+		$attachments = array_slice( $attachments, 0, $total_count, true );
+	}
+
 	if ( is_feed() ) {
 		$output = "\n";
 		foreach ( $attachments as $att_id => $attachment ) {
