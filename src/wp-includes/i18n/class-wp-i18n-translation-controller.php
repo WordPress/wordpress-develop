@@ -1,18 +1,18 @@
 <?php
 /**
- * Ginger MO: Ginger_MO class.
+ * I18N: WP_I18n_Translation_Controller class.
  *
  * @package WordPress
- * @subpackage Ginger_MO
+ * @subpackage WP_I18n_Translation_Controller
  * @since 6.5.0
  */
 
 /**
- * Class Ginger_MO.
+ * Class WP_I18n_Translation_Controller.
  *
  * @since 6.5.0
  */
-class Ginger_MO {
+class WP_I18n_Translation_Controller {
 	/**
 	 * Current locale.
 	 *
@@ -29,33 +29,33 @@ class Ginger_MO {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array<string, array<string, Ginger_MO_Translation_File[]>>
+	 * @var array<string, array<string, WP_I18n_Translation_File[]>>
 	 */
 	protected $loaded_translations = array();
 
 	/**
 	 * List of loaded translation files.
 	 *
-	 * [ Filename => [ Locale => [ Textdomain => Ginger_MO_Translation_File ] ] ]
+	 * [ Filename => [ Locale => [ Textdomain => WP_I18n_Translation_File ] ] ]
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array<string,array<string, array<string, Ginger_MO_Translation_File|false>>>
+	 * @var array<string,array<string, array<string, WP_I18n_Translation_File|false>>>
 	 */
 	protected $loaded_files = array();
 
 	/**
-	 * Returns the Ginger_MO singleton.
+	 * Returns the WP_I18n_Translation_Controller singleton.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return Ginger_MO
+	 * @return WP_I18n_Translation_Controller
 	 */
 	public static function instance() {
 		static $instance;
 
 		if ( ! $instance ) {
-			$instance = new Ginger_MO();
+			$instance = new WP_I18n_Translation_Controller();
 		}
 
 		return $instance;
@@ -117,7 +117,7 @@ class Ginger_MO {
 		) {
 			$moe = reset( $this->loaded_files[ $translation_file ][ $locale ] );
 		} else {
-			$moe = Ginger_MO_Translation_File::create( $translation_file );
+			$moe = WP_I18n_Translation_File::create( $translation_file );
 			if ( false === $moe || false !== $moe->error() ) {
 				$moe = false;
 			}
@@ -125,7 +125,7 @@ class Ginger_MO {
 
 		$this->loaded_files[ $translation_file ][ $locale ][ $textdomain ] = $moe;
 
-		if ( ! $moe instanceof Ginger_MO_Translation_File ) {
+		if ( ! $moe instanceof WP_I18n_Translation_File ) {
 			return false;
 		}
 
@@ -145,7 +145,7 @@ class Ginger_MO {
 	 * @since 6.5.0
 	 *
 	 * @param string                            $textdomain Text domain.
-	 * @param Ginger_MO_Translation_File|string $mo         Translation file instance or file name.
+	 * @param WP_I18n_Translation_File|string $mo         Translation file instance or file name.
 	 * @param string                            $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
@@ -284,7 +284,7 @@ class Ginger_MO {
 			}
 		}
 
-		/* @var Ginger_MO_Translation_File $source */
+		/* @var WP_I18n_Translation_File $source */
 		$source = $translation['source'];
 		$num    = $source->get_plural_form( $number );
 
@@ -360,7 +360,7 @@ class Ginger_MO {
 	 * @param string $singular   Singular translation.
 	 * @param string $textdomain Text domain.
 	 * @param string $locale     Optional. Locale. Default current locale.
-	 * @return array{source: Ginger_MO_Translation_File, entries: string[]}|false Translations on success, false otherwise.
+	 * @return array{source: WP_I18n_Translation_File, entries: string[]}|false Translations on success, false otherwise.
 	 */
 	protected function locate_translation( string $singular, string $textdomain = 'default', string $locale = null ) {
 		if ( array() === $this->loaded_translations ) {
@@ -393,7 +393,7 @@ class Ginger_MO {
 	 *
 	 * @param string $textdomain Text domain.
 	 * @param string $locale     Optional. Locale. Default current locale.
-	 * @return Ginger_MO_Translation_File[] List of translation files.
+	 * @return WP_I18n_Translation_File[] List of translation files.
 	 */
 	protected function get_files( string $textdomain = 'default', string $locale = null ) {
 		if ( null === $locale ) {

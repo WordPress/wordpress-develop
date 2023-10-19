@@ -1,18 +1,18 @@
 <?php
 /**
- * Ginger MO: Ginger_MO_Translation_File_MO class.
+ * I18N: WP_I18n_Translation_File_MO class.
  *
  * @package WordPress
- * @subpackage Ginger_MO
+ * @subpackage WP_I18n_Translation_Controller
  * @since 6.5.0
  */
 
 /**
- * Class Ginger_MO_Translation_File_MO.
+ * Class WP_I18n_Translation_File_MO.
  *
  * @since 6.5.0
  */
-class Ginger_MO_Translation_File_MO extends Ginger_MO_Translation_File {
+class WP_I18n_Translation_File_MO extends WP_I18n_Translation_File {
 	/**
 	 * Endian value.
 	 *

@@ -1,21 +1,21 @@
 <?php
 /**
- * Ginger MO: Ginger_MO_Translations class.
+ * I18N: WP_I18n_Translations class.
  *
  * @package WordPress
- * @subpackage Ginger_MO
+ * @subpackage WP_I18n_Translation_Controller
  * @since 6.5.0
  */
 
 /**
- * Class Ginger_MO_Translations.
+ * Class WP_I18n_Translations.
  *
  * @since 6.5.0
  *
  * @property-read array<string, string> $headers
  * @property-read array<string, string[]> $entries
  */
-class Ginger_MO_Translations {
+class WP_I18n_Translations {
 	/**
 	 * Text domain.
 	 *
@@ -46,7 +46,7 @@ class Ginger_MO_Translations {
 	 */
 	public function __get( string $name ) {
 		if ( 'entries' === $name ) {
-			$entries = Ginger_MO::instance()->get_entries( $this->textdomain );
+			$entries = WP_I18n_Translation_Controller::instance()->get_entries( $this->textdomain );
 
 			$result = array();
 
@@ -58,7 +58,7 @@ class Ginger_MO_Translations {
 		}
 
 		if ( 'headers' === $name ) {
-			return Ginger_MO::instance()->get_headers( $this->textdomain );
+			return WP_I18n_Translation_Controller::instance()->get_headers( $this->textdomain );
 		}
 
 		return null;
@@ -124,7 +124,7 @@ class Ginger_MO_Translations {
 			return $singular;
 		}
 
-		$translation = Ginger_MO::instance()->translate_plural( array( $singular, $plural ), (int) $count, (string) $context, $this->textdomain );
+		$translation = WP_I18n_Translation_Controller::instance()->translate_plural( array( $singular, $plural ), (int) $count, (string) $context, $this->textdomain );
 		if ( false !== $translation ) {
 			return $translation;
 		}
@@ -147,7 +147,7 @@ class Ginger_MO_Translations {
 			return $singular;
 		}
 
-		$translation = Ginger_MO::instance()->translate( $singular, (string) $context, $this->textdomain );
+		$translation = WP_I18n_Translation_Controller::instance()->translate( $singular, (string) $context, $this->textdomain );
 		if ( false !== $translation ) {
 			return $translation;
 		}

@@ -1,18 +1,18 @@
 <?php
 /**
- * Ginger MO: Ginger_MO_Translation_File_PHP class.
+ * I18N: WP_I18n_Translation_File_PHP class.
  *
  * @package WordPress
- * @subpackage Ginger_MO
+ * @subpackage WP_I18n_Translation_Controller
  * @since 6.5.0
  */
 
 /**
- * Class Ginger_MO_Translation_File_PHP.
+ * Class WP_I18n_Translation_File_PHP.
  *
  * @since 6.5.0
  */
-class Ginger_MO_Translation_File_PHP extends Ginger_MO_Translation_File {
+class WP_I18n_Translation_File_PHP extends WP_I18n_Translation_File {
 	/**
 	 * Parses the file.
 	 *

@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
+class WP_I18n_Translation_Controller_Integration_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @return void
@@ -16,9 +16,9 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 * @covers Ginger_MO::get_entries
-	 * @covers Ginger_MO::get_headers
-	 * @covers Ginger_MO::normalize_header
+	 * @covers WP_I18n_Translation_Controller::get_entries
+	 * @covers WP_I18n_Translation_Controller::get_headers
+	 * @covers WP_I18n_Translation_Controller::normalize_header
 	 *
 	 * @return void
 	 */
@@ -33,9 +33,9 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$is_loaded = Ginger_MO::instance()->is_loaded( 'wp-tests-domain' );
-		$headers   = Ginger_MO::instance()->get_headers( 'wp-tests-domain' );
-		$entries   = Ginger_MO::instance()->get_entries( 'wp-tests-domain' );
+		$is_loaded = WP_I18n_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$headers   = WP_I18n_Translation_Controller::instance()->get_headers( 'wp-tests-domain' );
+		$entries   = WP_I18n_Translation_Controller::instance()->get_entries( 'wp-tests-domain' );
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 
@@ -44,10 +44,10 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 		$this->assertFalse( $loaded_before_load, 'Text domain was already loaded at beginning of the test' );
 		$this->assertTrue( $load_successful, 'Text domain not successfully loaded' );
 		$this->assertTrue( $loaded_after_load, 'Text domain is not considered loaded' );
-		$this->assertInstanceOf( Ginger_MO_Translations::class, $compat_instance, 'No compat provider instance used' );
+		$this->assertInstanceOf( WP_I18n_Translations::class, $compat_instance, 'No compat provider instance used' );
 		$this->assertTrue( $unload_successful, 'Text domain not successfully unloaded' );
 		$this->assertFalse( $loaded_after_unload, 'Text domain still considered loaded after unload' );
-		$this->assertTrue( $is_loaded, 'Text domain not considered loaded in Ginger-MO' );
+		$this->assertTrue( $is_loaded, 'Text domain not considered loaded' );
 		$this->assertEqualSetsWithIndex(
 			array(
 				'Project-Id-Version'   => 'WordPress 2.6-bleeding',
@@ -68,9 +68,9 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 * @covers Ginger_MO::get_entries
-	 * @covers Ginger_MO::get_headers
-	 * @covers Ginger_MO::normalize_header
+	 * @covers WP_I18n_Translation_Controller::get_entries
+	 * @covers WP_I18n_Translation_Controller::get_headers
+	 * @covers WP_I18n_Translation_Controller::normalize_header
 	 *
 	 * @return void
 	 */
@@ -81,7 +81,7 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$is_loaded_wp = is_textdomain_loaded( 'wp-tests-domain' );
 
-		$is_loaded = Ginger_MO::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded = WP_I18n_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
 
 		remove_filter( 'override_load_textdomain', '__return_true' );
 
@@ -174,7 +174,7 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$this->assertSame( 'dyado', $simple );
 		$this->assertSame( 'oney dragoney', $context );
-		$this->assertInstanceOf( Ginger_MO_Translations::class, $l10n['wp-tests-domain'] );
+		$this->assertInstanceOf( WP_I18n_Translations::class, $l10n['wp-tests-domain'] );
 	}
 
 	/**
@@ -205,7 +205,7 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$this->assertSame( 'dyado', $simple );
 		$this->assertSame( 'oney dragoney', $context );
-		$this->assertInstanceOf( Ginger_MO_Translations::class, $l10n['wp-tests-domain'] );
+		$this->assertInstanceOf( WP_I18n_Translations::class, $l10n['wp-tests-domain'] );
 	}
 
 	/**
@@ -234,14 +234,14 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$this->assertSame( 'dyado', $simple );
 		$this->assertSame( 'oney dragoney', $context );
-		$this->assertInstanceOf( Ginger_MO_Translations::class, $l10n['wp-tests-domain'] );
+		$this->assertInstanceOf( WP_I18n_Translations::class, $l10n['wp-tests-domain'] );
 	}
 
 	/**
 	 * @covers ::unload_textdomain
-	 * @covers Ginger_MO::get_entries
-	 * @covers Ginger_MO::get_headers
-	 * @covers Ginger_MO::normalize_header
+	 * @covers WP_I18n_Translation_Controller::get_entries
+	 * @covers WP_I18n_Translation_Controller::get_headers
+	 * @covers WP_I18n_Translation_Controller::normalize_header
 	 *
 	 * @return void
 	 */
@@ -256,14 +256,14 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$is_loaded = Ginger_MO::instance()->is_loaded( 'wp-tests-domain' );
-		$headers   = Ginger_MO::instance()->get_headers( 'wp-tests-domain' );
-		$entries   = Ginger_MO::instance()->get_entries( 'wp-tests-domain' );
+		$is_loaded = WP_I18n_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$headers   = WP_I18n_Translation_Controller::instance()->get_headers( 'wp-tests-domain' );
+		$entries   = WP_I18n_Translation_Controller::instance()->get_entries( 'wp-tests-domain' );
 
 		$this->assertNull( $compat_instance, 'Compat instance was not removed' );
 		$this->assertTrue( $unload_successful, 'Text domain not successfully unloaded' );
 		$this->assertFalse( $loaded_after_unload, 'Text domain still considered loaded after unload' );
-		$this->assertFalse( $is_loaded, 'Text domain still considered loaded in Ginger-MO' );
+		$this->assertFalse( $is_loaded, 'Text domain still considered loaded' );
 		$this->assertEmpty( $headers, 'Actual translation headers are not empty' );
 		$this->assertEmpty( $entries, 'Actual translation entries are not empty' );
 	}
@@ -280,13 +280,13 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 
-		$is_loaded = Ginger_MO::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded = WP_I18n_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
 
 		remove_filter( 'override_unload_textdomain', '__return_true' );
 
 		$unload_successful_after = unload_textdomain( 'wp-tests-domain' );
 
-		$is_loaded_after = Ginger_MO::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded_after = WP_I18n_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
 
 		$this->assertTrue( $unload_successful );
 		$this->assertTrue( $is_loaded );
@@ -305,14 +305,14 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$actual = __( 'Invalid parameter.' );
 
-		$this->assertTrue( Ginger_MO::instance()->is_loaded() );
-		$this->assertTrue( Ginger_MO::instance()->is_loaded( 'default', 'es_ES' ) );
+		$this->assertTrue( WP_I18n_Translation_Controller::instance()->is_loaded() );
+		$this->assertTrue( WP_I18n_Translation_Controller::instance()->is_loaded( 'default', 'es_ES' ) );
 
 		restore_previous_locale();
 
 		$actual_2 = __( 'Invalid parameter.' );
 
-		$this->assertTrue( Ginger_MO::instance()->is_loaded( 'default', 'es_ES' ) );
+		$this->assertTrue( WP_I18n_Translation_Controller::instance()->is_loaded( 'default', 'es_ES' ) );
 
 		$this->assertSame( 'Parámetro no válido. ', $actual );
 		$this->assertSame( 'Invalid parameter.', $actual_2 );
@@ -326,7 +326,7 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_switch_to_locale_translations_stay_loaded_custom_textdomain() {
-		$this->assertSame( 'en_US', Ginger_MO::instance()->get_locale() );
+		$this->assertSame( 'en_US', WP_I18n_Translation_Controller::instance()->get_locale() );
 
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
 
@@ -336,16 +336,16 @@ class Ginger_MO_Integration_Tests extends WP_UnitTestCase {
 
 		$actual = i18n_plugin_test();
 
-		$this->assertSame( 'es_ES', Ginger_MO::instance()->get_locale() );
-		$this->assertTrue( Ginger_MO::instance()->is_loaded( 'internationalized-plugin', 'es_ES' ) );
-		$this->assertTrue( Ginger_MO::instance()->is_loaded( 'default', 'es_ES' ) );
-		$this->assertFalse( Ginger_MO::instance()->is_loaded( 'foo-bar', 'es_ES' ) );
+		$this->assertSame( 'es_ES', WP_I18n_Translation_Controller::instance()->get_locale() );
+		$this->assertTrue( WP_I18n_Translation_Controller::instance()->is_loaded( 'internationalized-plugin', 'es_ES' ) );
+		$this->assertTrue( WP_I18n_Translation_Controller::instance()->is_loaded( 'default', 'es_ES' ) );
+		$this->assertFalse( WP_I18n_Translation_Controller::instance()->is_loaded( 'foo-bar', 'es_ES' ) );
 
 		restore_previous_locale();
 
 		$after = i18n_plugin_test();
 
-		$this->assertTrue( Ginger_MO::instance()->is_loaded( 'internationalized-plugin', 'es_ES' ) );
+		$this->assertTrue( WP_I18n_Translation_Controller::instance()->is_loaded( 'internationalized-plugin', 'es_ES' ) );
 
 		$this->assertSame( 'This is a dummy plugin', $before );
 		$this->assertSame( 'Este es un plugin dummy', $actual );

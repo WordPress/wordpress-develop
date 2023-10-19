@@ -1,18 +1,18 @@
 <?php
 /**
- * Ginger MO: Ginger_MO_Translation_File class.
+ * I18N: WP_I18n_Translation_File class.
  *
  * @package WordPress
- * @subpackage Ginger_MO
+ * @subpackage WP_I18n_Translation_Controller
  * @since 6.5.0
  */
 
 /**
- * Class Ginger_MO_Translation_File.
+ * Class WP_I18n_Translation_File.
  *
  * @since 6.5.0
  */
-abstract class Ginger_MO_Translation_File {
+abstract class WP_I18n_Translation_File {
 	/**
 	 * List of headers.
 	 *
@@ -79,13 +79,13 @@ abstract class Ginger_MO_Translation_File {
 	}
 
 	/**
-	 * Creates a new Ginger_MO_Translation_File instance for a given file.
+	 * Creates a new WP_I18n_Translation_File instance for a given file.
 	 *
 	 * @since 6.5.0
 	 *
 	 * @param string      $file     File name.
 	 * @param string|null $filetype Optional. File type. Default inferred from file name.
-	 * @return false|Ginger_MO_Translation_File
+	 * @return false|WP_I18n_Translation_File
 	 */
 	public static function create( string $file, string $filetype = null ) {
 		if ( ! is_readable( $file ) ) {
@@ -101,9 +101,9 @@ abstract class Ginger_MO_Translation_File {
 
 		switch ( $filetype ) {
 			case 'mo':
-				return new Ginger_MO_Translation_File_MO( $file );
+				return new WP_I18n_Translation_File_MO( $file );
 			case 'php':
-				return new Ginger_MO_Translation_File_PHP( $file );
+				return new WP_I18n_Translation_File_PHP( $file );
 			default:
 				return false;
 		}
@@ -228,7 +228,7 @@ abstract class Ginger_MO_Translation_File {
 	}
 
 	/**
-	 * Creates a new Ginger_MO_Translation_File instance for a given file.
+	 * Creates a new WP_I18n_Translation_File instance for a given file.
 	 *
 	 * @since 6.5.0
 	 *
@@ -245,10 +245,10 @@ abstract class Ginger_MO_Translation_File {
 
 		switch ( $filetype ) {
 			case 'mo':
-				$destination = new Ginger_MO_Translation_File_MO( '' );
+				$destination = new WP_I18n_Translation_File_MO( '' );
 				break;
 			case 'php':
-				$destination = new Ginger_MO_Translation_File_PHP( '' );
+				$destination = new WP_I18n_Translation_File_PHP( '' );
 				break;
 			default:
 				return false;
@@ -268,10 +268,10 @@ abstract class Ginger_MO_Translation_File {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param Ginger_MO_Translation_File $source Source file.
+	 * @param WP_I18n_Translation_File $source Source file.
 	 * @return bool True on success, false otherwise.
 	 */
-	protected function import( Ginger_MO_Translation_File $source ) {
+	protected function import( WP_I18n_Translation_File $source ) {
 		if ( false !== $source->error() ) {
 			return false;
 		}

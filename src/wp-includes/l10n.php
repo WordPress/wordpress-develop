@@ -789,7 +789,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	}
 
 	// Ensures the correct locale is set as the current one, in case it was filtered.
-	Ginger_MO::instance()->set_locale( $locale );
+	WP_I18n_Translation_Controller::instance()->set_locale( $locale );
 
 	/**
 	 * Filters the preferred file format for translation files.
@@ -822,17 +822,17 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		 */
 		$mofile_preferred = apply_filters( 'load_translation_file', $mofile_preferred, $domain );
 
-		$success = Ginger_MO::instance()->load( $mofile_preferred, $domain, $locale );
+		$success = WP_I18n_Translation_Controller::instance()->load( $mofile_preferred, $domain, $locale );
 
 		if ( $success ) {
 			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
-				Ginger_MO::instance()->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
+				WP_I18n_Translation_Controller::instance()->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
 			}
 
 			// Unset Noop_Translations reference in get_translations_for_domain.
 			unset( $l10n[ $domain ] );
 
-			$l10n[ $domain ] = new Ginger_MO_Translations( $domain );
+			$l10n[ $domain ] = new WP_I18n_Translations( $domain );
 
 			$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
 
@@ -849,17 +849,17 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	/** This filter is documented in wp-includes/l10n.php */
 	$mofile = apply_filters( 'load_translation_file', $mofile, $domain );
 
-	$success = Ginger_MO::instance()->load( $mofile, $domain, $locale );
+	$success = WP_I18n_Translation_Controller::instance()->load( $mofile, $domain, $locale );
 
 	if ( $success ) {
 		if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
-			Ginger_MO::instance()->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
+			WP_I18n_Translation_Controller::instance()->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
 		}
 
 		// Unset Noop_Translations reference in get_translations_for_domain.
 		unset( $l10n[ $domain ] );
 
-		$l10n[ $domain ] = new Ginger_MO_Translations( $domain );
+		$l10n[ $domain ] = new WP_I18n_Translations( $domain );
 
 		$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
 	}
@@ -927,7 +927,7 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 		// Since we support multiple locales, we don't actually need to unload reloadable text domains.
 		if ( ! $reloadable ) {
-			return Ginger_MO::instance()->unload( $domain );
+			return WP_I18n_Translation_Controller::instance()->unload( $domain );
 		}
 
 		return true;
