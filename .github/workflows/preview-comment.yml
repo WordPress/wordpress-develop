@@ -14,7 +14,7 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
-            const issueComment = `${identifier}\nPreview link: [${previewLink}](${previewLink})`;
+            const issueComment = `Preview link: [${previewLink}](${previewLink})`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
