@@ -532,8 +532,10 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	}
 
 	$wpdb->set_blog_id( $new_blog_id );
-	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
-	$GLOBALS['blog_id']      = $new_blog_id;
+	$GLOBALS['table_prefix']       = $wpdb->get_blog_prefix();
+	$GLOBALS['blog_id']            = $new_blog_id;
+	$GLOBALS['wp_template_path']   = null;
+	$GLOBALS['wp_stylesheet_path'] = null;
 
 	if ( function_exists( 'wp_cache_switch_to_blog' ) ) {
 		wp_cache_switch_to_blog( $new_blog_id );
@@ -625,8 +627,10 @@ function restore_current_blog() {
 	}
 
 	$wpdb->set_blog_id( $new_blog_id );
-	$GLOBALS['blog_id']      = $new_blog_id;
-	$GLOBALS['table_prefix'] = $wpdb->get_blog_prefix();
+	$GLOBALS['blog_id']            = $new_blog_id;
+	$GLOBALS['table_prefix']       = $wpdb->get_blog_prefix();
+	$GLOBALS['wp_template_path']   = null;
+	$GLOBALS['wp_stylesheet_path'] = null;
 
 	if ( function_exists( 'wp_cache_switch_to_blog' ) ) {
 		wp_cache_switch_to_blog( $new_blog_id );
