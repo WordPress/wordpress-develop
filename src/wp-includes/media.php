@@ -2596,11 +2596,11 @@ function gallery_shortcode( $attr ) {
 
 	// Check total_count less than 0. If so set it to -1.
 	if ( -1 > $total_count ) {
-	    $total_count = abs( $total_count );
+		$total_count = abs( $total_count );
 	} elseif ( empty( $total_count ) ) {
 		$total_count = -1;
 	}
-	       
+
 	// Check atts is not empty.
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts(
