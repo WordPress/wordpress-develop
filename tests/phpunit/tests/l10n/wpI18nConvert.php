@@ -524,18 +524,8 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 
 		foreach ( $source->entries() as $original => $translation ) {
 			// Verify the translation is in the destination file
-			if ( false !== strpos( $original, "\0" ) ) {
-				// Plurals:
-				$new_translation = $destination_read->translate( $original );
-
-				$this->assertSame( $translation, $new_translation );
-
-			} else {
-				// Single
-				$new_translation = $destination_read->translate( $original );
-
-				$this->assertSame( $translation, $new_translation );
-			}
+			$new_translation = $destination_read->translate( $original );
+			$this->assertSame( $translation, $new_translation );
 		}
 	}
 
