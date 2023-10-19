@@ -2561,7 +2561,7 @@ function gallery_shortcode( $attr ) {
 	 *
 	 * @param string $output      The gallery output. Default empty.
 	 * @param array  $attr        Attributes of the gallery shortcode.
-	 * @param int    $instance 	  Unique numeric ID of this gallery shortcode instance.
+	 * @param int    $instance    Unique numeric ID of this gallery shortcode instance.
 	 * @param int    $total_count Sets a maxiumum list of attachments to display.
 	 */
 	$output = apply_filters( 'post_gallery', '', $attr, $instance );
@@ -2594,14 +2594,14 @@ function gallery_shortcode( $attr ) {
 
 	$total_count = (int) $atts['limit'];
 
- 	// Check total_count less than 0. If so set it to -1. 
- 	if ( -1 > $total_count ) {
- 		$total_count = abs($total_count);
- 	}elseif(empty($total_count)){
+	// Check total_count less than 0. If so set it to -1.
+	if ( -1 > $total_count ) {
+	    $total_count = abs( $total_count );
+	} elseif ( empty( $total_count ) ) {
 		$total_count = -1;
 	}
- 		       
- 	// Check atts is not empty.
+	       
+	// Check atts is not empty.
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts(
 			array(
@@ -2618,9 +2618,9 @@ function gallery_shortcode( $attr ) {
 		foreach ( $_attachments as $key => $val ) {
 			$attachments[ $val->ID ] = $_attachments[ $key ];
 		}
-		// Necessary because in get_posts(), when specifying include="", 
+		// Necessary because in get_posts(), when specifying include="",
 		// the numberposts parameter is ignored (it's set to match the number of items in include="")
-		if ( 0 < $total_count ){
+		if ( 0 < $total_count ) {
 			$attachments = array_slice( $attachments, 0, $total_count, true );
 		}
 	} elseif ( ! empty( $atts['exclude'] ) ) {
