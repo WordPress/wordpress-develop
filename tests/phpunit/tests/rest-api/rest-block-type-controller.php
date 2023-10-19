@@ -553,7 +553,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 30, $properties );
+		$this->assertCount( 31, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
@@ -578,6 +578,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'view_script_handles', $properties );
 		$this->assertArrayHasKey( 'editor_style_handles', $properties );
 		$this->assertArrayHasKey( 'style_handles', $properties );
+		$this->assertArrayHasKey( 'view_style_handles', $properties, 'schema must contain view_style_handles' );
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
 		// Deprecated properties.
 		$this->assertArrayHasKey( 'editor_script', $properties );
