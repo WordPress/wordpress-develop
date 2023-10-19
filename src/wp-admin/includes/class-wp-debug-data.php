@@ -29,7 +29,7 @@ class WP_Debug_Data {
 	 * @return string If the constant is not defined at all, it will return "Undefined"
 	 *                If the constant is as a true boolean it will return "Defined as boolean with value true."
 	 *                If the constant is as a false boolean it will return "Defined as boolean with value false."
-	 *                If the constant is defined as NULL, it will return "Defined as NULL"
+	 *                If the constant is defined as null, it will return "Defined as null"
 	 *                If the constant is defined as empty, it will return "Defined as an empty string.".
 	 *                Otherwise it is the value as defined.
 	*/
@@ -42,17 +42,15 @@ class WP_Debug_Data {
 
 		if ( true === $value ) {
 			// Translators: %s is always replaced with the PHP boolean named "true"
-			return sprintf( __ ( 'Defined as boolean with value %s.' ), 'true' );
+			return sprintf( __( 'Defined as boolean with value %s.' ), 'true' );
 		}
-		
-		
 		if ( false === $value ) {
 			// Translators: %s is always replaced with the PHP boolean named "false"
-			return sprintf( __ ( 'Defined as boolean with value %s.' ), 'false' );
+			return sprintf( __( 'Defined as boolean with value %s.' ), 'false' );
 		}
-		if ( NULL === $value ) {
+		if ( null === $value ) {
 			// Translators: %s is always replaced with the PHP type named "NULL"
-			return sprintf( __ ( 'Defined as %s.' ), 'NULL' );
+			return sprintf( __( 'Defined as %s.' ), 'null' );
 		}
 		if ( '' === $value ) {
 			return __( 'Defined as an empty string.' );
@@ -289,12 +287,12 @@ class WP_Debug_Data {
 				'WP_HOME'             => array(
 					'label' => 'WP_HOME',
 					'value' => self::get_define_info( 'WP_HOME' ),
-					'debug' => self::get_define_info( 'WP_HOME' ),
+					'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
 				),
 				'WP_SITEURL'          => array(
 					'label' => 'WP_SITEURL',
 					'value' => self::get_define_info( 'WP_SITEURL' ),
-					'debug' => self::get_define_info( 'WP_SITEURL' ),
+					'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
 				),
 				'WP_CONTENT_DIR'      => array(
 					'label' => 'WP_CONTENT_DIR',
@@ -354,8 +352,8 @@ class WP_Debug_Data {
 				),
 				'WP_ENVIRONMENT_TYPE' => array(
 					'label' => 'WP_ENVIRONMENT_TYPE',
-					'value' => $wp_environment_type,
-					'debug' => $wp_environment_type,
+					'value' => self::get_define_info( 'WP_ENVIRONMENT_TYPE' ),
+					'debug' => ( defined( 'WP_ENVIRONMENT_TYPE' ) ? WP_ENVIRONMENT_TYPE : 'undefined' ),
 				),
 				'WP_DEVELOPMENT_MODE' => array(
 					'label' => 'WP_DEVELOPMENT_MODE',
@@ -365,12 +363,12 @@ class WP_Debug_Data {
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
 					'value' => self::get_define_info( 'DB_CHARSET' ),
-					'debug' => self::get_define_info( 'DB_CHARSET' ),
+					'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
 				),
 				'DB_COLLATE'          => array(
 					'label' => 'DB_COLLATE',
 					'value' => self::get_define_info( 'DB_COLLATE' ),
-					'debug' => self::get_define_info( 'DB_COLLATE' ),
+					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
 				),
 			),
 		);
@@ -1555,7 +1553,7 @@ class WP_Debug_Data {
 					continue;
 				}
 
-				if ( 'debug' === $data_type && isset( $field['debug'] ) ) {
+				if ( 'debug' === $data_type && array_key_exists( 'debug', $field ) ) {
 					$debug_data = $field['debug'];
 				} else {
 					$debug_data = $field['value'];
@@ -1570,8 +1568,10 @@ class WP_Debug_Data {
 					}
 				} elseif ( is_bool( $debug_data ) ) {
 					$value = $debug_data ? 'true' : 'false';
-				} elseif ( empty( $debug_data ) && '0' !== $debug_data ) {
-					$value = 'undefined';
+				} elseif ( null === $debug_data ) {
+					$value = 'null';
+				} elseif ( '' ===  $debug_data ) {
+					$value = 'empty string';				
 				} else {
 					$value = $debug_data;
 				}
