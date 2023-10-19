@@ -1062,12 +1062,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Test whether a switched site retrieves the correct stylesheet directory.
 	 *
 	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
 	 */
 	public function test_get_stylesheet_directory_with_switched_site() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'Test only runs on multisite.' );
-		}
-
 		$blog_id = self::factory()->blog->create();
 
 		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
@@ -1086,12 +1085,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Test whether a switched site retrieves the correct template directory.
 	 *
 	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
 	 */
 	public function test_get_template_directory_with_switched_site() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'Test only runs on multisite.' );
-		}
-
 		$blog_id = self::factory()->blog->create();
 
 		update_blog_option( $blog_id, 'template', 'switched_template' );
@@ -1110,12 +1108,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Test whether a restored site retrieves the correct stylesheet directory.
 	 *
 	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
 	 */
 	public function test_get_stylesheet_directory_with_restored_site() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'Test only runs on multisite.' );
-		}
-
 		$blog_id = self::factory()->blog->create();
 
 		update_option( 'stylesheet', 'original_stylesheet' );
@@ -1136,12 +1133,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Test whether a restored site retrieves the correct template directory.
 	 *
 	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
 	 */
 	public function test_get_template_directory_with_restored_site() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'Test only runs on multisite.' );
-		}
-
 		$blog_id = self::factory()->blog->create();
 
 		update_option( 'template', 'original_template' );
