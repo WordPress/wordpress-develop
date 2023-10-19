@@ -68,12 +68,12 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_unload_file_is_not_actually_loaded() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->unload( 'unittest', DIR_TESTDATA . '/i18n/simple.mo' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
+		$this->assertTrue( $controller->unload( 'unittest', DIR_TESTDATA . '/i18n/simple.mo' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
-		$this->assertSame( 'translation', $WP_I18n_Translation_Controller->translate( 'original', '', 'unittest' ) );
+		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertSame( 'translation', $controller->translate( 'original', '', 'unittest' ) );
 	}
 
 	/**
@@ -199,25 +199,25 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_simple_translation_files( string $file ) {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/' . $file, 'unittest' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/' . $file, 'unittest' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
-		$this->assertFalse( $WP_I18n_Translation_Controller->is_loaded( 'textdomain not loaded' ) );
+		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertFalse( $controller->is_loaded( 'textdomain not loaded' ) );
 
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( "string that doesn't exist", '', 'unittest' ) );
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'original', '', 'textdomain not loaded' ) );
+		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
+		$this->assertFalse( $controller->translate( 'original', '', 'textdomain not loaded' ) );
 
-		$this->assertSame( 'translation', $WP_I18n_Translation_Controller->translate( 'original', '', 'unittest' ) );
-		$this->assertSame( 'translation with context', $WP_I18n_Translation_Controller->translate( 'original with context', 'context', 'unittest' ) );
+		$this->assertSame( 'translation', $controller->translate( 'original', '', 'unittest' ) );
+		$this->assertSame( 'translation with context', $controller->translate( 'original with context', 'context', 'unittest' ) );
 
-		$this->assertSame( 'translation1', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0', 'plural1' ), 0, '', 'unittest' ) );
-		$this->assertSame( 'translation0', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0', 'plural1' ), 1, '', 'unittest' ) );
-		$this->assertSame( 'translation1', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0', 'plural1' ), 2, '', 'unittest' ) );
+		$this->assertSame( 'translation1', $controller->translate_plural( array( 'plural0', 'plural1' ), 0, '', 'unittest' ) );
+		$this->assertSame( 'translation0', $controller->translate_plural( array( 'plural0', 'plural1' ), 1, '', 'unittest' ) );
+		$this->assertSame( 'translation1', $controller->translate_plural( array( 'plural0', 'plural1' ), 2, '', 'unittest' ) );
 
-		$this->assertSame( 'translation1 with context', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 0, 'context', 'unittest' ) );
-		$this->assertSame( 'translation0 with context', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 1, 'context', 'unittest' ) );
-		$this->assertSame( 'translation1 with context', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 2, 'context', 'unittest' ) );
+		$this->assertSame( 'translation1 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 0, 'context', 'unittest' ) );
+		$this->assertSame( 'translation0 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 1, 'context', 'unittest' ) );
+		$this->assertSame( 'translation1 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 2, 'context', 'unittest' ) );
 	}
 
 	/**
@@ -244,42 +244,42 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_multiple_files() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/simple.mo', 'unittest' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/plural.mo', 'unittest' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/simple.mo', 'unittest' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/plural.mo', 'unittest' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
 
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( "string that doesn't exist", '', 'unittest' ) );
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'original', '', 'textdomain not loaded' ) );
+		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
+		$this->assertFalse( $controller->translate( 'original', '', 'textdomain not loaded' ) );
 
 		// From example-simple.mo
 
-		$this->assertSame( 'translation', $WP_I18n_Translation_Controller->translate( 'original', '', 'unittest' ) );
-		$this->assertSame( 'translation with context', $WP_I18n_Translation_Controller->translate( 'original with context', 'context', 'unittest' ) );
+		$this->assertSame( 'translation', $controller->translate( 'original', '', 'unittest' ) );
+		$this->assertSame( 'translation with context', $controller->translate( 'original with context', 'context', 'unittest' ) );
 
-		$this->assertSame( 'translation1', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0', 'plural1' ), 0, '', 'unittest' ) );
-		$this->assertSame( 'translation0', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0', 'plural1' ), 1, '', 'unittest' ) );
-		$this->assertSame( 'translation1', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0', 'plural1' ), 2, '', 'unittest' ) );
+		$this->assertSame( 'translation1', $controller->translate_plural( array( 'plural0', 'plural1' ), 0, '', 'unittest' ) );
+		$this->assertSame( 'translation0', $controller->translate_plural( array( 'plural0', 'plural1' ), 1, '', 'unittest' ) );
+		$this->assertSame( 'translation1', $controller->translate_plural( array( 'plural0', 'plural1' ), 2, '', 'unittest' ) );
 
-		$this->assertSame( 'translation1 with context', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 0, 'context', 'unittest' ) );
-		$this->assertSame( 'translation0 with context', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 1, 'context', 'unittest' ) );
-		$this->assertSame( 'translation1 with context', $WP_I18n_Translation_Controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 2, 'context', 'unittest' ) );
+		$this->assertSame( 'translation1 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 0, 'context', 'unittest' ) );
+		$this->assertSame( 'translation0 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 1, 'context', 'unittest' ) );
+		$this->assertSame( 'translation1 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 2, 'context', 'unittest' ) );
 
 		// From simple.mo.
 
-		$this->assertSame( 'dyado', $WP_I18n_Translation_Controller->translate( 'baba', '', 'unittest' ) );
+		$this->assertSame( 'dyado', $controller->translate( 'baba', '', 'unittest' ) );
 
 		// From plural.mo.
 
-		$this->assertSame( 'oney dragoney', $WP_I18n_Translation_Controller->translate_plural( array( 'one dragon', '%d dragons' ), 1, '', 'unittest' ), 'Actual translation does not match expected one' );
-		$this->assertSame( 'twoey dragoney', $WP_I18n_Translation_Controller->translate_plural( array( 'one dragon', '%d dragons' ), 2, '', 'unittest' ), 'Actual translation does not match expected one' );
-		$this->assertSame( 'twoey dragoney', $WP_I18n_Translation_Controller->translate_plural( array( 'one dragon', '%d dragons' ), -8, '', 'unittest' ), 'Actual translation does not match expected one' );
+		$this->assertSame( 'oney dragoney', $controller->translate_plural( array( 'one dragon', '%d dragons' ), 1, '', 'unittest' ), 'Actual translation does not match expected one' );
+		$this->assertSame( 'twoey dragoney', $controller->translate_plural( array( 'one dragon', '%d dragons' ), 2, '', 'unittest' ), 'Actual translation does not match expected one' );
+		$this->assertSame( 'twoey dragoney', $controller->translate_plural( array( 'one dragon', '%d dragons' ), -8, '', 'unittest' ), 'Actual translation does not match expected one' );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->unload( 'unittest', DIR_TESTDATA . '/i18n/simple.mo' ) );
+		$this->assertTrue( $controller->unload( 'unittest', DIR_TESTDATA . '/i18n/simple.mo' ) );
 
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'baba', '', 'unittest' ) );
+		$this->assertFalse( $controller->translate( 'baba', '', 'unittest' ) );
 	}
 
 	/**
@@ -294,39 +294,39 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_multiple_locales() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
+		$controller = new WP_I18n_Translation_Controller();
 
-		$this->assertSame( 'en_US', $WP_I18n_Translation_Controller->get_locale() );
+		$this->assertSame( 'en_US', $controller->get_locale() );
 
-		$WP_I18n_Translation_Controller->set_locale( 'de_DE' );
+		$controller->set_locale( 'de_DE' );
 
-		$this->assertSame( 'de_DE', $WP_I18n_Translation_Controller->get_locale() );
+		$this->assertSame( 'de_DE', $controller->get_locale() );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/simple.mo', 'unittest', 'es_ES' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/plural.mo', 'unittest', 'en_US' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/simple.mo', 'unittest', 'es_ES' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/plural.mo', 'unittest', 'en_US' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
 
 		// From example-simple.mo
 
-		$this->assertSame( 'translation', $WP_I18n_Translation_Controller->translate( 'original', '', 'unittest' ), 'String should be translated in de_DE' );
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'original', '', 'unittest', 'es_ES' ), 'String should not be translated in es_ES' );
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'original', '', 'unittest', 'en_US' ), 'String should not be translated in en_US' );
+		$this->assertSame( 'translation', $controller->translate( 'original', '', 'unittest' ), 'String should be translated in de_DE' );
+		$this->assertFalse( $controller->translate( 'original', '', 'unittest', 'es_ES' ), 'String should not be translated in es_ES' );
+		$this->assertFalse( $controller->translate( 'original', '', 'unittest', 'en_US' ), 'String should not be translated in en_US' );
 
 		// From simple.mo.
 
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'baba', '', 'unittest' ), 'String should not be translated in de_DE' );
-		$this->assertSame( 'dyado', $WP_I18n_Translation_Controller->translate( 'baba', '', 'unittest', 'es_ES' ), 'String should be translated in es_ES' );
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( 'baba', '', 'unittest', 'en_US' ), 'String should not be translated in en_US' );
+		$this->assertFalse( $controller->translate( 'baba', '', 'unittest' ), 'String should not be translated in de_DE' );
+		$this->assertSame( 'dyado', $controller->translate( 'baba', '', 'unittest', 'es_ES' ), 'String should be translated in es_ES' );
+		$this->assertFalse( $controller->translate( 'baba', '', 'unittest', 'en_US' ), 'String should not be translated in en_US' );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->unload( 'unittest', DIR_TESTDATA . '/i18n/plural.mo', 'de_DE' ) );
+		$this->assertTrue( $controller->unload( 'unittest', DIR_TESTDATA . '/i18n/plural.mo', 'de_DE' ) );
 
-		$this->assertSame( 'oney dragoney', $WP_I18n_Translation_Controller->translate_plural( array( 'one dragon', '%d dragons' ), 1, '', 'unittest', 'en_US' ), 'String should be translated in en_US' );
+		$this->assertSame( 'oney dragoney', $controller->translate_plural( array( 'one dragon', '%d dragons' ), 1, '', 'unittest', 'en_US' ), 'String should be translated in en_US' );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->unload( 'unittest', DIR_TESTDATA . '/i18n/plural.mo', 'en_US' ) );
+		$this->assertTrue( $controller->unload( 'unittest', DIR_TESTDATA . '/i18n/plural.mo', 'en_US' ) );
 
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate_plural( array( 'one dragon', '%d dragons' ), 1, '', 'unittest', 'en_US' ), 'String should not be translated in en_US' );
+		$this->assertFalse( $controller->translate_plural( array( 'one dragon', '%d dragons' ), 1, '', 'unittest', 'en_US' ), 'String should not be translated in en_US' );
 	}
 
 	/**
@@ -336,11 +336,11 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_with_default_textdomain() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo' ) );
-		$this->assertFalse( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
-		$this->assertSame( 'translation', $WP_I18n_Translation_Controller->translate( 'original' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo' ) );
+		$this->assertFalse( $controller->is_loaded( 'unittest' ) );
+		$this->assertSame( 'translation', $controller->translate( 'original' ) );
 	}
 
 	/**
@@ -349,11 +349,11 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_same_file_twice() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
 	}
 
 	/**
@@ -362,12 +362,12 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_file_is_already_loaded_for_different_textdomain() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'foo' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'bar' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'foo' ) );
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'bar' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'foo' ) );
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'bar' ) );
+		$this->assertTrue( $controller->is_loaded( 'foo' ) );
+		$this->assertTrue( $controller->is_loaded( 'bar' ) );
 	}
 
 	/**
@@ -384,19 +384,19 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_no_plurals() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$this->assertTrue( $WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/fa_IR.mo', 'unittest' ) );
+		$controller = new WP_I18n_Translation_Controller();
+		$this->assertTrue( $controller->load( DIR_TESTDATA . '/i18n/fa_IR.mo', 'unittest' ) );
 
-		$this->assertTrue( $WP_I18n_Translation_Controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
 
-		$this->assertFalse( $WP_I18n_Translation_Controller->translate( "string that doesn't exist", '', 'unittest' ) );
+		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
 
-		$this->assertSame( 'رونوشت‌ها فعال نشدند.', $WP_I18n_Translation_Controller->translate( 'Revisions not enabled.', '', 'unittest' ) );
-		$this->assertSame( 'افزودن جدید', $WP_I18n_Translation_Controller->translate( 'Add New', 'file', 'unittest' ) );
+		$this->assertSame( 'رونوشت‌ها فعال نشدند.', $controller->translate( 'Revisions not enabled.', '', 'unittest' ) );
+		$this->assertSame( 'افزودن جدید', $controller->translate( 'Add New', 'file', 'unittest' ) );
 
-		$this->assertSame( '%s دیدگاه', $WP_I18n_Translation_Controller->translate_plural( array( '%s comment', '%s comments' ), 0, '', 'unittest' ) );
-		$this->assertSame( '%s دیدگاه', $WP_I18n_Translation_Controller->translate_plural( array( '%s comment', '%s comments' ), 1, '', 'unittest' ) );
-		$this->assertSame( '%s دیدگاه', $WP_I18n_Translation_Controller->translate_plural( array( '%s comment', '%s comments' ), 2, '', 'unittest' ) );
+		$this->assertSame( '%s دیدگاه', $controller->translate_plural( array( '%s comment', '%s comments' ), 0, '', 'unittest' ) );
+		$this->assertSame( '%s دیدگاه', $controller->translate_plural( array( '%s comment', '%s comments' ), 1, '', 'unittest' ) );
+		$this->assertSame( '%s دیدگاه', $controller->translate_plural( array( '%s comment', '%s comments' ), 2, '', 'unittest' ) );
 	}
 
 	/**
@@ -405,8 +405,8 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_headers_no_loaded_translations() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$headers   = $WP_I18n_Translation_Controller->get_headers();
+		$controller = new WP_I18n_Translation_Controller();
+		$headers   = $controller->get_headers();
 		$this->assertEmpty( $headers );
 	}
 
@@ -416,9 +416,9 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_headers_with_default_textdomain() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo' );
-		$headers = $WP_I18n_Translation_Controller->get_headers();
+		$controller = new WP_I18n_Translation_Controller();
+		$controller->load( DIR_TESTDATA . '/i18n/example-simple.mo' );
+		$headers = $controller->get_headers();
 		$this->assertSame(
 			array(
 				'Po-Revision-Date' => '2016-01-05 18:45:32+1000',
@@ -433,9 +433,9 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_headers_no_loaded_translations_for_domain() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'foo' );
-		$headers = $WP_I18n_Translation_Controller->get_headers( 'bar' );
+		$controller = new WP_I18n_Translation_Controller();
+		$controller->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'foo' );
+		$headers = $controller->get_headers( 'bar' );
 		$this->assertEmpty( $headers );
 	}
 
@@ -446,8 +446,8 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_entries_no_loaded_translations() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$headers   = $WP_I18n_Translation_Controller->get_entries();
+		$controller = new WP_I18n_Translation_Controller();
+		$headers   = $controller->get_entries();
 		$this->assertEmpty( $headers );
 	}
 
@@ -457,9 +457,9 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_entries_with_default_textdomain() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/simple.mo' );
-		$headers = $WP_I18n_Translation_Controller->get_entries();
+		$controller = new WP_I18n_Translation_Controller();
+		$controller->load( DIR_TESTDATA . '/i18n/simple.mo' );
+		$headers = $controller->get_entries();
 		$this->assertSame(
 			array(
 				'baba'       => 'dyado',
@@ -475,9 +475,9 @@ class WP_I18n_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_get_entries_no_loaded_translations_for_domain() {
-		$WP_I18n_Translation_Controller = new WP_I18n_Translation_Controller();
-		$WP_I18n_Translation_Controller->load( DIR_TESTDATA . '/i18n/simple.mo', 'foo' );
-		$headers = $WP_I18n_Translation_Controller->get_entries( 'bar' );
+		$controller = new WP_I18n_Translation_Controller();
+		$controller->load( DIR_TESTDATA . '/i18n/simple.mo', 'foo' );
+		$headers = $controller->get_entries( 'bar' );
 		$this->assertEmpty( $headers );
 	}
 
