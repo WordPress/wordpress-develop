@@ -89,10 +89,8 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
-        with-core: [ true, false ]
     with:
       os: ${{ matrix.os }}
-      with-core: ${{ matrix.with-core }}
       directory: ${{ matrix.directory }}
 
   # Creates a job to test the Gutenberg plugin build process on MacOS.
@@ -114,10 +112,8 @@ jobs:
       matrix:
         os: [ macos-latest ]
         directory: [ 'src', 'build' ]
-        with-core: [ true, false ]
     with:
       os: ${{ matrix.os }}
-      with-core: ${{ matrix.with-core }}
       directory: ${{ matrix.directory }}
 
   slack-notifications:
