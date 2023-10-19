@@ -1570,8 +1570,8 @@ class WP_Debug_Data {
 					$value = $debug_data ? 'true' : 'false';
 				} elseif ( null === $debug_data ) {
 					$value = 'null';
-				} elseif ( '' ===  $debug_data ) {
-					$value = 'empty string';				
+				} elseif ( '' === $debug_data ) {
+					$value = 'empty string';
 				} else {
 					$value = $debug_data;
 				}
