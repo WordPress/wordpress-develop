@@ -2562,6 +2562,7 @@ function gallery_shortcode( $attr ) {
 	 * @param string $output   The gallery output. Default empty.
 	 * @param array  $attr     Attributes of the gallery shortcode.
 	 * @param int    $instance Unique numeric ID of this gallery shortcode instance.
+	 * @param int    $total_count Sets a maxiumum list of attachments to display.
 	 */
 	$output = apply_filters( 'post_gallery', '', $attr, $instance );
 
@@ -2580,6 +2581,7 @@ function gallery_shortcode( $attr ) {
 			'captiontag' => $html5 ? 'figcaption' : 'dd',
 			'columns'    => 3,
 			'size'       => 'thumbnail',
+			'limit'	 	 => 5,
 			'include'    => '',
 			'exclude'    => '',
 			'link'       => '',
@@ -2590,6 +2592,14 @@ function gallery_shortcode( $attr ) {
 
 	$id = (int) $atts['id'];
 
+	$total_count = intval( $atts['limit'] );
+
+ 	// Check total_count isset and less than 0
+ 	if( isset( $total_count ) && $total_count <= 0 ) {
+ 		$total_count = -1;
+ 	}
+ 		       
+ 	// Check atts is not empty.
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts(
 			array(
@@ -2617,6 +2627,7 @@ function gallery_shortcode( $attr ) {
 				'post_mime_type' => 'image',
 				'order'          => $atts['order'],
 				'orderby'        => $atts['orderby'],
+				'numberposts'	 => $total_count,
 			)
 		);
 	} else {
@@ -2629,6 +2640,7 @@ function gallery_shortcode( $attr ) {
 				'post_mime_type' => 'image',
 				'order'          => $atts['order'],
 				'orderby'        => $atts['orderby'],
+				'numberposts'	 => $total_count,
 			)
 		);
 	}
