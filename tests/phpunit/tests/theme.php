@@ -1059,7 +1059,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test whether a switched site retrieves the correct stylesheet directory.
+	 * Tests whether a switched site retrieves the correct stylesheet directory.
 	 *
 	 * @ticket 59677
 	 * @group ms-required
@@ -1082,7 +1082,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test whether a switched site retrieves the correct template directory.
+	 * Tests whether a switched site retrieves the correct template directory.
 	 *
 	 * @ticket 59677
 	 * @group ms-required
@@ -1105,7 +1105,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test whether a restored site retrieves the correct stylesheet directory.
+	 * Tests whether a restored site retrieves the correct stylesheet directory.
 	 *
 	 * @ticket 59677
 	 * @group ms-required
@@ -1130,7 +1130,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test whether a restored site retrieves the correct template directory.
+	 * Tests whether a restored site retrieves the correct template directory.
 	 *
 	 * @ticket 59677
 	 * @group ms-required
