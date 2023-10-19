@@ -603,7 +603,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'view_style_handles'   => array(
+				'view_style_handles'    => array(
 					'description' => __( 'Public facing style handles.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),

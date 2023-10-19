@@ -462,7 +462,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 
 		// Test viewStyle property
-		$result   = register_block_style_handle( $metadata, 'viewStyle' );
+		$result = register_block_style_handle( $metadata, 'viewStyle' );
 		$this->assertSame( 'unit-tests-test-block-view-style', $result );
 
 		// @ticket 59673

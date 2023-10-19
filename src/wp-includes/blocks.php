@@ -470,7 +470,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$style_fields = array(
 		'editorStyle' => 'editor_style_handles',
 		'style'       => 'style_handles',
-		'viewStyle'	  => 'view_style_handles',
+		'viewStyle'   => 'view_style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
@@ -1964,7 +1964,7 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
  * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
  */
 function _wp_filter_post_meta_footnotes( $footnotes ) {
-	$footnotes_decoded   = json_decode( $footnotes, true );
+	$footnotes_decoded = json_decode( $footnotes, true );
 	if ( ! is_array( $footnotes_decoded ) ) {
 		return '';
 	}

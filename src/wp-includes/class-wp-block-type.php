@@ -312,7 +312,7 @@ class WP_Block_Type {
 	 *     @type string[]      $view_script_handles      Block type front end only script handles.
 	 *     @type string[]      $editor_style_handles     Block type editor only style handles.
 	 *     @type string[]      $style_handles            Block type front end and editor style handles.
-	 * 	   @type string[]      $view_style_handles		 Block type front end only style handles.
+	 *     @type string[]      $view_style_handles       Block type front end only style handles.
 	 * }
 	 */
 	public function __construct( $block_type, $args = array() ) {
