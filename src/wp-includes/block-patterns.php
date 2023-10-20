@@ -350,25 +350,9 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			$file_path = $dirpath . $file;
-
-			if ( ! file_exists( $file_path ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: %s: file name. */
-						__( 'Could not register file "%s" as a block pattern as the file does not exist.' ),
-						$file
-					),
-					'6.4.0'
-				);
-				$theme->delete_pattern_cache();
-				continue;
-			}
-
 			// The actual pattern content is the output of the file.
 			ob_start();
-			include $file_path;
+			include $dirpath . $file;
 			$pattern_data['content'] = ob_get_clean();
 			if ( ! $pattern_data['content'] ) {
 				continue;
@@ -424,15 +408,6 @@ add_action( 'init', '_register_theme_block_patterns' );
 function _wp_get_block_patterns( WP_Theme $theme ) {
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
-	$pattern_data = $theme->get_pattern_cache();
-	if ( is_array( $pattern_data ) ) {
-		if ( $can_use_cached ) {
-			return $pattern_data;
-		}
-		// If in development mode, clear pattern cache.
-		$theme->delete_pattern_cache();
-	}
-
 	$dirpath      = $theme->get_stylesheet_directory() . '/patterns/';
 	$pattern_data = array();
 
@@ -449,6 +424,21 @@ function _wp_get_block_patterns( WP_Theme $theme ) {
 		}
 		return $pattern_data;
 	}
+
+	$pattern_data = $theme->get_pattern_cache();
+	if ( is_array( $pattern_data ) ) {
+		$compare_files = array();
+		foreach ( $pattern_data as $file => $data ) {
+			$compare_files[] = $dirpath . $file;
+		}
+		if ( ! array_diff( $compare_files, $files ) && $can_use_cached ) {
+			return $pattern_data;
+		}
+		// If in development mode, clear pattern cache.
+		$theme->delete_pattern_cache();
+	}
+
+	$pattern_data = array();
 
 	$default_headers = array(
 		'title'         => 'Title',
