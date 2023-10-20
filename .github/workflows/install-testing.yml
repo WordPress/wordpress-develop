@@ -123,7 +123,7 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
-          tools: wp-cli${{ contains( fromJSON('["5.3", "5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '' }}
+          tools: wp-cli${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '5.3' == matrix.php && ':2.2.0' || '' }}
 
       - name: Start the database server
         run: |
