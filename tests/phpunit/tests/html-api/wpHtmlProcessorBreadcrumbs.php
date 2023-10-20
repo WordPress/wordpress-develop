@@ -352,6 +352,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			),
 			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
 			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
+			'EM inside H3 after unclosed P'         => array( '<p><h3><em target>Important Message</em></h3>', array( 'HTML', 'BODY', 'H3', 'EM' ), 1 ),
+			'H4 after H2'                           => array( '<h2>Major</h2><h4 target>Minor</h4>', array( 'HTML', 'BODY', 'H4' ), 1 ),
 		);
 	}
 
@@ -387,29 +389,29 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_html_with_breadcrumbs_of_various_specificity() {
 		return array(
 			// Test with void elements.
-			'Inner IMG'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
-			'Inner IMG wildcard'             => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
-			'Inner IMG no wildcard'          => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
-			'Full specification'             => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
-			'Invalid Full specification'     => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
+			'Inner IMG'                               => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
+			'Inner IMG wildcard'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
+			'Inner IMG no wildcard'                   => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
+			'Full specification'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
+			'Invalid Full specification'              => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
 
 			// Test also with non-void elements that open and close.
-			'Inner P'                        => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'figure', 'p' ), true ),
-			'Inner P wildcard'               => array( '<div><span><figure><p target></figure></span></div>', array( 'span', '*', 'p' ), true ),
-			'Inner P no wildcard'            => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'p' ), false ),
-			'Full specification (P)'         => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), true ),
-			'Invalid Full specification (P)' => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+			'Inner P'                                 => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'figure', 'p' ), true ),
+			'Inner P wildcard'                        => array( '<div><span><figure><p target></figure></span></div>', array( 'span', '*', 'p' ), true ),
+			'Inner P no wildcard'                     => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P)'                  => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), true ),
+			'Invalid Full specification (P)'          => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
 
 			// Ensure that matches aren't on tag closers.
-			'Inner P'                        => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'figure', 'p' ), false ),
-			'Inner P wildcard'               => array( '<div><span><figure></p target></figure></span></div>', array( 'span', '*', 'p' ), false ),
-			'Inner P no wildcard'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
-			'Full specification (P)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
-			'Invalid Full specification (P)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+			'Inner P (Closer)'                        => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'figure', 'p' ), false ),
+			'Inner P wildcard (Closer)'               => array( '<div><span><figure></p target></figure></span></div>', array( 'span', '*', 'p' ), false ),
+			'Inner P no wildcard (Closer)'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P) (Closer)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
+			'Invalid Full specification (P) (Closer)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
 
 			// Test wildcard behaviors.
-			'Single wildcard element'        => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( '*' ), true ),
-			'Child of wildcard element'      => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( 'SPAN', '*' ), true ),
+			'Single wildcard element'                 => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( '*' ), true ),
+			'Child of wildcard element'               => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( 'SPAN', '*' ), true ),
 		);
 	}
 
