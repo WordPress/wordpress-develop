@@ -27,7 +27,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 
 	public function tear_down() {
 		// Reset development mode after each test.
-		$GLOBALS['_wp_tests_development_mode'] = '';
+		unset( $GLOBALS['_wp_tests_development_mode'] );
 
 		// Reset the theme support.
 		if ( $this->remove_theme_support_at_teardown ) {

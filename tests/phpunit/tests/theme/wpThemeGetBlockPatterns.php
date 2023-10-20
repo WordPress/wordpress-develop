@@ -15,12 +15,12 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass() {
 		// Ensure development mode is reset before running these tests.
-		$GLOBALS['_wp_tests_development_mode'] = '';
+		unset( $GLOBALS['_wp_tests_development_mode'] );
 	}
 
 	public static function wpTearDownAfterClass() {
 		// Ensure development mode is reset after running these tests.
-		$GLOBALS['_wp_tests_development_mode'] = '';
+		unset( $GLOBALS['_wp_tests_development_mode'] );
 	}
 
 	/**
