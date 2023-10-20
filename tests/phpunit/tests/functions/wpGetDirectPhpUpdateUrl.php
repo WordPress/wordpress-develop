@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the wpGetDirectPhpUpdateUrl and  function.
+ * Tests for the wp_get_direct_php_update_url and wp_direct_php_update_button functions.
  *
  * @group functions.php
  *
