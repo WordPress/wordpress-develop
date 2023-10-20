@@ -8,7 +8,7 @@
  * @package WordPress
  */
 
-class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
+class Tests_Block_Supports_DuoTone extends WP_UnitTestCase {
 	/**
 	 * Cleans up CSS added to block-supports from duotone styles. We neeed to do this
 	 * in order to avoid impacting other tests.
