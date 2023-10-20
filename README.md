@@ -90,7 +90,7 @@ You can pass extra params into the php tests by adding -- and then the [param op
 
 ```
 npm run test:php -- --filter {test_name}
-npm run test:php -- --group {goup_name}
+npm run test:php -- --group {group_name}
 ```
 
 #### To restart the development environment
