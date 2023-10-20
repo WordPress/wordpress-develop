@@ -40,7 +40,6 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			)
 		);
 
-
 		// Set up categories for pagination tests.
 		for ( $i = 0; $i < self::$total_categories - 1; $i++ ) {
 			self::$category_ids[] = $factory->category->create(
