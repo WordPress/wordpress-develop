@@ -96,7 +96,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 				 */
 				'[^\/:<>\*\?"\|]+\/{1,2}',
 				// Matches the template name.
-				'[\/\w%-]+',
+				'[\w%-]+',
 				$this->rest_base
 			),
 			array(
@@ -135,7 +135,7 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 				 */
 				'[^\/:<>\*\?"\|]+\/{1,2}',
 				// Matches the template name.
-				'[\/\w%-]+',
+				'[\w%-]+',
 				$this->rest_base,
 				'(?P<id>[\d]+)'
 			),

@@ -116,7 +116,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 				 */
 				'[^\/:<>\*\?"\|]+\/{1,2}',
 				// Matches the template name.
-				'[\/\w%-]+',
+				'[\w%-]+',
 				$this->rest_base,
 				'(?P<id>[\d]+)'
 			),
