@@ -218,7 +218,7 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
 		// If blocks opt into Gutenberg's layout implementation
-		// the container will receive an added classname of `wp_unique_id( 'wp-container-[blockname]-layout' )`
+		// the container will receive an additional, unique classname based on "wp-container-[blockname]-layout"
 		// so we need to normalize the random id.
 		$normalized_html = preg_replace( '/wp-container-[a-z-]+\d+/', 'wp-container-1', $html );
 

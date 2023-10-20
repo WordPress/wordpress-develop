@@ -541,26 +541,6 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 }
 
 /**
- * Generates an incremental ID that is independent per each different prefix.
- *
- * It is similar to `wp_unique_id`, but each prefix has it's own internal ID
- * counter to make each prefix independent from each other. The ID starts at 1
- * and increments on each call. The returned value is not universally unique,
- * but it is unique across the life of the PHP process and it's stable per
- * prefix.
- *
- * @param  string $prefix Prefix for the returned ID.
- * @return string         Incremental ID per prefix.
- */
-function wp_incremental_id_per_prefix( $prefix = '' ) {
-	static $id_counters = array();
-	if ( ! array_key_exists( $prefix, $id_counters ) ) {
-			$id_counters[ $prefix ] = 0;
-	}
-	return $prefix . (string) ++$id_counters[ $prefix ];
-}
-
-/**
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
@@ -652,12 +632,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$layout_definitions = wp_get_layout_definitions();
 
 	/*
-	* We use an incremental ID that is independent per prefix to make sure that
-	* rendering different numbers of blocks doesn't affect the IDs of other
-	* blocks. We need this to make the CSS class names stable across paginations
-	* for features like the enhanced pagination of the Query block.
+	 * We use an incremental ID that is independent per prefix to make sure that
+	 * rendering different numbers of blocks doesn't affect the IDs of other
+	 * blocks. We need this to make the CSS class names stable across paginations
+	 * for features like the enhanced pagination of the Query block.
 	*/
-	$container_class = wp_incremental_id_per_prefix(
+	$container_class = wp_unique_prefixed_id(
 		'wp-container-' . sanitize_title( $block['blockName'] ) . '-layout-'
 	);
 
