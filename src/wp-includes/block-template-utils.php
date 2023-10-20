@@ -506,6 +506,73 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
 }
 
 /**
+ * Gets the contents for the given template file path.
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @param string $template_file_path Absolute path to a theme template file.
+ * @return string The template file contents.
+ */
+function _get_block_template_file_content( $template_file_path ) {
+	$theme = wp_get_theme();
+
+	$template_file_path = wp_normalize_path( $template_file_path );
+	$theme_dir          = wp_normalize_path( $theme->get_stylesheet_directory() ) . '/';
+
+	if ( str_starts_with( $template_file_path, $theme_dir ) ) {
+		$relative_path = substr( $template_file_path, strlen( $theme_dir ) );
+	} elseif ( $theme->parent() ) {
+		$theme     = $theme->parent();
+		$theme_dir = wp_normalize_path( $theme->get_stylesheet_directory() ) . '/';
+		if ( str_starts_with( $template_file_path, $theme_dir ) ) {
+			$relative_path = substr( $template_file_path, strlen( $theme_dir ) );
+		}
+	}
+
+	// Bypass cache if the file is not within the theme directory.
+	if ( ! isset( $relative_path ) ) {
+		return file_get_contents( $template_file_path );
+	}
+
+	/*
+	 * Bypass cache while developing a theme.
+	 * If there is an existing cache, it should be deleted.
+	 * This ensures that no stale cache values can be served when temporarily
+	 * enabling "theme" development mode and then disabling it again.
+	 */
+	if ( wp_is_development_mode( 'theme' ) ) {
+		$template_data = get_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet() );
+		if ( false !== $template_data ) {
+			delete_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet() );
+		}
+
+		return file_get_contents( $template_file_path );
+	}
+
+	// Check theme template cache first (if cached version matches the current theme version).
+	$template_data = get_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet() );
+	if ( is_array( $template_data ) && $template_data['version'] === $theme->get( 'Version' ) ) {
+		if ( isset( $template_data['template_content'][ $relative_path ] ) ) {
+			return $template_data['template_content'][ $relative_path ];
+		}
+	} else {
+		$template_data = array(
+			'version'          => $theme->get( 'Version' ),
+			'template_content' => array(),
+		);
+	}
+
+	// Retrieve fresh file contents if not found in cache.
+	$template_data['template_content'][ $relative_path ] = file_get_contents( $template_file_path );
+
+	// Update the cache.
+	set_transient( 'wp_theme_template_contents_' . $theme->get_stylesheet(), $template_data, WEEK_IN_SECONDS );
+
+	return $template_data['template_content'][ $relative_path ];
+}
+
+/**
  * Builds a unified template object based on a theme file.
  *
  * @since 5.9.0
@@ -518,7 +585,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
-	$template_content       = file_get_contents( $template_file['path'] );
+	$template_content       = _get_block_template_file_content( $template_file['path'] );
 	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();

@@ -86,6 +86,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		switch_theme( self::TEST_THEME );
 	}
 
+	public function tear_down() {
+		parent::tear_down();
+
+		unset( $GLOBALS['_wp_tests_development_mode'] );
+	}
+
 	public function test_build_block_template_result_from_post() {
 		$template = _build_block_template_result_from_post(
 			self::$template_post,
@@ -522,5 +528,291 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			}
 		}
 		$this->assertTrue( $has_html_files, 'contains at least one html file' );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme.
+	 *
+	 * This should store the file content in cache.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_current_theme_file() {
+		switch_theme( 'block-theme' );
+
+		$template_file = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content, 'Unexpected file content' );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme' );
+		$this->assertArrayHasKey( 'template_content', $cache_result, 'Invalid cache value' );
+		$this->assertArrayHasKey( 'parts/small-header.html', $cache_result['template_content'], 'File not set in cache' );
+		$this->assertSame( $content, $cache_result['template_content']['parts/small-header.html'], 'File has incorrect content in cache' );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the current parent theme.
+	 *
+	 * This should store the file content in cache.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_current_parent_theme_file() {
+		switch_theme( 'block-theme-child' );
+
+		$template_file = DIR_TESTDATA . '/themedir1/block-theme/templates/index.html';
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content, 'Unexpected file content' );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme' );
+		$this->assertArrayHasKey( 'template_content', $cache_result, 'Invalid cache value' );
+		$this->assertArrayHasKey( 'templates/index.html', $cache_result['template_content'], 'File not set in cache' );
+		$this->assertSame( $content, $cache_result['template_content']['templates/index.html'], 'File has incorrect content in cache' );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is not part of the current theme.
+	 *
+	 * This should not set any cache.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_another_theme_file() {
+		switch_theme( 'block-theme-patterns' );
+
+		$template_file = DIR_TESTDATA . '/themedir1/block-theme-child/templates/page-1.html';
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content, 'Unexpected file content' );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme-patterns' );
+		$this->assertFalse( $cache_result, 'Cache unexpectedly set for current theme' );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme' );
+		$this->assertFalse( $cache_result, 'Cache unexpectedly set for current parent theme' );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme-child' );
+		$this->assertFalse( $cache_result, 'Cache unexpectedly set for non-current theme' );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme while using 'theme' development mode.
+	 *
+	 * This should not set any cache.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_current_theme_file_and_theme_development_mode() {
+		global $_wp_tests_development_mode;
+
+		$_wp_tests_development_mode = 'theme';
+
+		switch_theme( 'block-theme' );
+
+		$template_file = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content, 'Unexpected file content' );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme' );
+		$this->assertFalse( $cache_result, 'Cache unexpectedly set despite theme development mode' );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with files that are part of the current theme expands the existing cache.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_expands_existing_cache() {
+		switch_theme( 'block-theme' );
+
+		$template_file1 = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+		$template_file2 = DIR_TESTDATA . '/themedir1/block-theme/templates/index.html';
+		$template_file3 = DIR_TESTDATA . '/themedir1/block-theme/templates/page-home.html';
+
+		$content1 = _get_block_template_file_content( $template_file1 );
+		$content2 = _get_block_template_file_content( $template_file2 );
+		$content3 = _get_block_template_file_content( $template_file3 );
+
+		$cache_result = get_transient( 'wp_theme_template_contents_block-theme' );
+		$this->assertSame(
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'parts/small-header.html'  => $content1,
+					'templates/index.html'     => $content2,
+					'templates/page-home.html' => $content3,
+				),
+			),
+			$cache_result
+		);
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme relies on cached values.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_current_theme_file_relies_on_cache() {
+		switch_theme( 'block-theme' );
+
+		$template_file  = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+		$forced_content = '<div>Some cache content that is not actually the file content.</div>';
+		set_transient(
+			'wp_theme_template_contents_block-theme',
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'parts/small-header.html' => $forced_content,
+				),
+			),
+			WEEK_IN_SECONDS
+		);
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( $forced_content, $content );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the another theme ignores cached values.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_another_theme_file_ignores_cache() {
+		switch_theme( 'block-theme' );
+
+		$template_file  = DIR_TESTDATA . '/themedir1/block-theme-child/templates/page-1.html';
+		$forced_content = '<div>Some cache content that is not actually the file content.</div>';
+		set_transient(
+			'wp_theme_template_contents_block-theme-child',
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'templates/page-1.html' => $forced_content,
+				),
+			),
+			WEEK_IN_SECONDS
+		);
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme refreshes existing cache when version is outdated.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_current_theme_file_refreshes_cache_when_version_outdated() {
+		switch_theme( 'block-theme' );
+
+		$template_file  = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+		$forced_content = '<div>Some cache content that is not actually the file content.</div>';
+		set_transient(
+			'wp_theme_template_contents_block-theme',
+			array(
+				'version'          => '0.9.0',
+				'template_content' => array(
+					'parts/small-header.html' => $forced_content,
+				),
+			),
+			WEEK_IN_SECONDS
+		);
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content, 'Cached file content unexpectedly returned' );
+
+		$this->assertSame(
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'parts/small-header.html' => $content,
+				),
+			),
+			get_transient( 'wp_theme_template_contents_block-theme' ),
+			'Cached transient was not updated'
+		);
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` with a file that is part of the current theme ignores cached values while using 'theme' development mode.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_current_theme_file_and_theme_development_mode_ignores_cache() {
+		global $_wp_tests_development_mode;
+
+		$_wp_tests_development_mode = 'theme';
+
+		switch_theme( 'block-theme' );
+
+		$template_file  = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+		$forced_content = '<div>Some cache content that is not actually the file content.</div>';
+		set_transient(
+			'wp_theme_template_contents_block-theme',
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'parts/small-header.html' => $forced_content,
+				),
+			),
+			WEEK_IN_SECONDS
+		);
+
+		$content = _get_block_template_file_content( $template_file );
+		$this->assertSame( file_get_contents( $template_file ), $content );
+	}
+
+	/**
+	 * Tests `_get_block_template_file_content()` while using 'theme' development mode clears the existing cache for the current theme.
+	 *
+	 * @ticket 59600
+	 *
+	 * @covers ::_get_block_template_file_content
+	 */
+	public function test_get_block_template_file_content_with_theme_development_mode_clears_existing_cache() {
+		global $_wp_tests_development_mode;
+
+		$_wp_tests_development_mode = 'theme';
+
+		switch_theme( 'block-theme' );
+
+		$template_file = DIR_TESTDATA . '/themedir1/block-theme/parts/small-header.html';
+		set_transient(
+			'wp_theme_template_contents_block-theme',
+			array(
+				'version'          => '1.0.0',
+				'template_content' => array(
+					'parts/small-header.html' => '<div>Some content.</div>',
+				),
+			),
+			WEEK_IN_SECONDS
+		);
+
+		// We don't care about the value here as it is already covered by the test above.
+		_get_block_template_file_content( $template_file );
+
+		// Ensure the relevant transient was deleted.
+		$this->assertFalse( get_transient( 'wp_theme_template_contents_block-theme' ) );
 	}
 }
