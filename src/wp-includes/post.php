@@ -1641,7 +1641,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         See get_post_type_capabilities().
  *     @type bool         $map_meta_cap                    Whether to use the internal default meta capability handling.
  *                                                         Default false.
- *     @type array        $supports                        Core feature(s) the post type supports. Serves as an alias for calling
+ *     @type array|bool   $supports                        Core feature(s) the post type supports. Serves as an alias for calling
  *                                                         add_post_type_support() directly. Core features include 'title',
  *                                                         'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
  *                                                         'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
@@ -1649,7 +1649,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         will store revisions, and the 'comments' feature dictates whether the
  *                                                         comments count will show on the edit screen. A feature can also be
  *                                                         specified as an array of arguments to provide additional information
- *                                                         about supporting that feature.
+ *                                                         about supporting that feature. If false, no features will be added.
  *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
  *                                                         Default is an array containing 'title' and 'editor'.
  *     @type callable     $register_meta_box_cb            Provide a callback function that sets up the meta boxes for the
