@@ -60,7 +60,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 				),
 			),
 			$this->get_pattern_cache( $theme ),
-			'The cache for block theme patterns should be set.'
+			'The cache for block theme patterns should match the expected.'
 		);
 		$theme->delete_pattern_cache();
 		$this->assertFalse(
@@ -79,7 +79,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$this->assertSameSets(
 			array(),
 			$this->get_pattern_cache( $theme1 ),
-			'The cache for block theme should be set.'
+			'The cache for block theme should be empty.'
 		);
 		switch_theme( 'block-theme-patterns' );
 		$this->assertFalse( $this->get_pattern_cache( $theme1 ), 'Cache should not be set for block theme after switch theme.' );
@@ -97,7 +97,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 
 			),
 			$this->get_pattern_cache( $theme2 ),
-			'The cache for block theme patterns should be set.'
+			'The cache for block theme patterns should match the expected.'
 		);
 	}
 
