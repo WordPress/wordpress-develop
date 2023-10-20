@@ -1059,6 +1059,102 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests whether a switched site retrieves the correct stylesheet directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_with_switched_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
+
+		// Prime global storage with the current site's data.
+		get_stylesheet_directory();
+
+		switch_to_blog( $blog_id );
+		$switched_stylesheet = get_stylesheet_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/switched_stylesheet', $switched_stylesheet );
+	}
+
+	/**
+	 * Tests whether a switched site retrieves the correct template directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_with_switched_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_blog_option( $blog_id, 'template', 'switched_template' );
+
+		// Prime global storage with the current site's data.
+		get_template_directory();
+
+		switch_to_blog( $blog_id );
+		$switched_template = get_template_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/switched_template', $switched_template );
+	}
+
+	/**
+	 * Tests whether a restored site retrieves the correct stylesheet directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_with_restored_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_option( 'stylesheet', 'original_stylesheet' );
+		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
+
+		$stylesheet = get_stylesheet_directory();
+
+		switch_to_blog( $blog_id );
+
+		// Prime global storage with the restored site's data.
+		get_stylesheet_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/original_stylesheet', $stylesheet );
+	}
+
+	/**
+	 * Tests whether a restored site retrieves the correct template directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_with_restored_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_option( 'template', 'original_template' );
+		update_blog_option( $blog_id, 'template', 'switched_template' );
+
+		$template = get_template_directory();
+
+		switch_to_blog( $blog_id );
+
+		// Prime global storage with the switched site's data.
+		get_template_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/original_template', $template );
+	}
+
+	/**
 	 * Helper function to ensure that a block theme is available and active.
 	 */
 	private function helper_requires_block_theme() {
