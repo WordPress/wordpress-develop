@@ -80,7 +80,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
 				 * Excludes invalid directory name characters: `/:<>*?"|`.
 				 */
-				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				'([^\/:<>\*\?"\|]+\/\/?[^\/:<>\*\?"\|]+)',
 				// Matches the template name.
 				'[\/\w%-]+',
 				$this->rest_base
@@ -112,7 +112,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
 				 * Excludes invalid directory name characters: `/:<>*?"|`.
 				 */
-				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				'([^\/:<>\*\?"\|]+\/\/?[^\/:<>\*\?"\|]+)',
 				// Matches the template name.
 				'[\/\w%-]+',
 				$this->rest_base,
