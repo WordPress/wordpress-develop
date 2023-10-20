@@ -102,6 +102,9 @@ jobs:
         multisite: [ false, true ]
         memcached: [ false ]
 
+        exclude:
+          - php: '5.3'
+
     services:
       database:
         image: ${{ matrix.db-type }}:${{ matrix.db-version }}
@@ -123,7 +126,7 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
-          tools: wp-cli${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '5.3' == matrix.php && ':2.2.0' || '' }}
+          tools: wp-cli${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && ':2.4.0' || '' }}
 
       - name: Start the database server
         run: |
