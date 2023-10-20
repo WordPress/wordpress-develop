@@ -10,7 +10,7 @@
  *
  * @covers WP_Theme::get_block_patterns
  */
-class Tests_Blocks_WPThemeGetBlockPatterns extends WP_UnitTestCase {
+class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 
 	/**
 	 * Test helper to access the private get_pattern_cache method of a theme.
@@ -18,7 +18,7 @@ class Tests_Blocks_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 * @param WP_Theme $wp_theme A WP_Theme object.
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
-	public function get_pattern_cache( $wp_theme ) {
+	private function get_pattern_cache( $wp_theme ) {
 		$reflection = new ReflectionMethod( $wp_theme, 'get_pattern_cache' );
 		$reflection->setAccessible( true );
 
