@@ -1733,7 +1733,7 @@ $( function() {
 						setTimeout( function() {
 							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
 							var focusIsInSidebar = $.contains( sidebar, focusedElement );
-							
+
 							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
 								$( toggleButton ).trigger( 'click.wp-responsive' );
 							}
@@ -2129,8 +2129,8 @@ $( function( $ ) {
 /**
  * Freeze animated plugin icons when reduced motion is enabled.
  *
- * When the user has enabled the 'prefers-reduced-motion' setting, this module 
- * stops animations for all GIFs on the page with the class 'plugin-icon' or 
+ * When the user has enabled the 'prefers-reduced-motion' setting, this module
+ * stops animations for all GIFs on the page with the class 'plugin-icon' or
  * plugin icon images in the update plugins table.
  *
  * @since 6.4.0
@@ -2156,7 +2156,7 @@ $( function( $ ) {
 			var width = img.width;
 			var height = img.height;
 			var canvas = document.createElement( 'canvas' );
-			
+
 			// Set canvas dimensions.
 			canvas.width = width;
 			canvas.height = height;
@@ -2220,8 +2220,14 @@ $( function( $ ) {
 	// Listen for jQuery AJAX events.
 	( function( $ ) {
 		$( document ).ajaxComplete( function( event, xhr, settings ) {
+
+			// Return early if this is not the plugin-install.php page.
+			if ( ! $body.hasClass( 'plugin-install-php' ) ) {
+				return;
+			}
+
 			// Check if this is the 'search-install-plugins' request.
-			if ( settings.data && settings.data.includes( 'action=search-install-plugins' ) ) {
+			if ( settings.data && typeof settings.data === "string" && settings.data.includes( 'action=search-install-plugins' ) ) {
 				// Recheck if the user prefers reduced motion.
 				if ( window.matchMedia ) {
 					var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
