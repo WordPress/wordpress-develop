@@ -2335,6 +2335,13 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%cc%80',
 				'%cc%84',
 				'%cc%8c',
+				// Apostrophes.
+				'%ca%bc',
+				'%cb%ae',
+				'%d5%9a',
+				'%df%b4',
+				'%df%b5',
+				'%ef%bc%87',
 				// Non-visible characters that display without a width.
 				'%e2%80%8b', // Zero width space.
 				'%e2%80%8c', // Zero width non-joiner.
