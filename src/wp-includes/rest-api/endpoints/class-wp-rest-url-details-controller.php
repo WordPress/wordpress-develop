@@ -187,8 +187,8 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 				$title_value = $processor->get_title_content_and_advance();
 				if ( is_string( $title_value ) ) {
 					$title = $this->prepare_metadata_for_output( trim( $title_value ) );
-					continue;
 				}
+				continue;
 			}
 
 			if ( 'LINK' === $tag_name && ! isset( $icon ) ) {
@@ -236,6 +236,23 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 						$image = $this->get_image( trim( $content ), $url );
 					}
 				}
+			}
+
+			/*
+			 * Stop looking for meta information once reaching the BODY.
+			 * It's possible that more LINK, META, or TITLE elements may
+			 * appear later on, and they would still apply in a browser,
+			 * but for the scraping here it's a pragmatic choice to stop
+			 * processing and give up. Those kinds of valid-yet-invalid
+			 * HTML constructions aren't supported here.
+			 *
+			 * It would be valid here to continue past this tag, but that
+			 * would likely incur an average performance penalty and only
+			 * recover a set of rare cases where the markup is malformed
+			 * in this specific manner.
+			 */
+			if ( 'BODY' === $tag_name ) {
+				break;
 			}
 		}
 
