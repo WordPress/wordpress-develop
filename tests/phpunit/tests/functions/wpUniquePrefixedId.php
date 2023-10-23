@@ -85,7 +85,7 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given() {
-		$message =  'wp_unique_prefixed_id(): The prefix must be a string. "%s" data type given.';
+		$message = 'wp_unique_prefixed_id(): The prefix must be a string. "%s" data type given.';
 		return array(
 			'prefix as null'         => array(
 				'non_string_prefix' => null,

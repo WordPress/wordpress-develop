@@ -7849,8 +7849,8 @@ function wp_unique_prefixed_id( $prefix = '' ) {
 
 	if ( ! is_string( $prefix ) ) {
 		wp_trigger_error(
-				__FUNCTION__,
-				sprintf( 'The prefix must be a string. "%s" data type given.', gettype( $prefix ) )
+			__FUNCTION__,
+			sprintf( 'The prefix must be a string. "%s" data type given.', gettype( $prefix ) )
 		);
 		$prefix = '';
 	}
