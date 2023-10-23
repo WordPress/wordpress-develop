@@ -9,6 +9,8 @@
  *
  * @group functions.php
  * @covers ::wp_unique_prefixed_id
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
  */
 class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 
