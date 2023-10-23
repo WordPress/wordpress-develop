@@ -1,19 +1,19 @@
 <?php
 /**
- * Test `_prime_post_parent_id_caches()`.
+ * Test `wp_prime_post_parent_id_caches()`.
  *
  * @package WordPress
  */
 
 /**
- * Test class for `_prime_post_parent_id_caches()`.
+ * Test class for `wp_prime_post_parent_id_caches()`.
  *
  * @group post
  * @group cache
  *
- * @covers ::_prime_post_parent_id_caches
+ * @covers ::wp_prime_post_parent_id_caches
  */
-class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
+class Tests_Post_WpPrimePostParentIdCaches extends WP_UnitTestCase {
 
 	/**
 	 * Post IDs.
@@ -34,11 +34,11 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	/**
 	 * @ticket 59188
 	 */
-	public function test_prime_post_parent_id_caches() {
+	public function test_wp_prime_post_parent_id_caches() {
 		$post_id = self::$posts[0];
 
 		$before_num_queries = get_num_queries();
-		_prime_post_parent_id_caches( array( $post_id ) );
+		wp_prime_post_parent_id_caches( array( $post_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries.' );
@@ -48,9 +48,9 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	/**
 	 * @ticket 59188
 	 */
-	public function test_prime_post_parent_id_caches_multiple() {
+	public function test_wp_prime_post_parent_id_caches_multiple() {
 		$before_num_queries = get_num_queries();
-		_prime_post_parent_id_caches( self::$posts );
+		wp_prime_post_parent_id_caches( self::$posts );
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$cache_keys = array_map(
@@ -67,10 +67,10 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	/**
 	 * @ticket 59188
 	 */
-	public function test_prime_post_parent_id_caches_multiple_runs() {
-		_prime_post_parent_id_caches( self::$posts );
+	public function test_wp_prime_post_parent_id_caches_multiple_runs() {
+		wp_prime_post_parent_id_caches( self::$posts );
 		$before_num_queries = get_num_queries();
-		_prime_post_parent_id_caches( self::$posts );
+		wp_prime_post_parent_id_caches( self::$posts );
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries.' );
@@ -79,7 +79,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	/**
 	 * @ticket 59188
 	 */
-	public function test_prime_post_parent_id_caches_update() {
+	public function test_wp_prime_post_parent_id_caches_update() {
 		$page_id            = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
@@ -87,7 +87,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 			)
 		);
 		$before_num_queries = get_num_queries();
-		_prime_post_parent_id_caches( array( $page_id ) );
+		wp_prime_post_parent_id_caches( array( $page_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on first run' );
@@ -101,7 +101,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 		);
 
 		$before_num_queries = get_num_queries();
-		_prime_post_parent_id_caches( array( $page_id ) );
+		wp_prime_post_parent_id_caches( array( $page_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on second run' );
@@ -111,7 +111,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 	/**
 	 * @ticket 59188
 	 */
-	public function test_prime_post_parent_id_caches_delete() {
+	public function test_wp_prime_post_parent_id_caches_delete() {
 		$parent_page_id     = self::factory()->post->create(
 			array(
 				'post_type' => 'page',
@@ -124,7 +124,7 @@ class Tests_Post_PrimePostParentIdCaches extends WP_UnitTestCase {
 			)
 		);
 		$before_num_queries = get_num_queries();
-		_prime_post_parent_id_caches( array( $page_id ) );
+		wp_prime_post_parent_id_caches( array( $page_id ) );
 		$num_queries = get_num_queries() - $before_num_queries;
 
 		$this->assertSame( 1, $num_queries, 'Unexpected number of queries on first run' );
