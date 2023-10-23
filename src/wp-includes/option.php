@@ -248,15 +248,15 @@ function get_option( $option, $default_value = false ) {
 }
 
 /**
- * Primes specific options into the cache with a single database query.
+ * Loads specific options into the cache with a single database query.
  *
- * Only options that do not already exist in cache will be primed.
+ * Only options that do not already exist in cache will be loaded.
  *
  * @since 6.4.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $options An array of option names to be primed.
+ * @param array $options An array of option names to be loaded.
  */
 function _prime_options_cache( $options ) {
 	$alloptions     = wp_load_alloptions();
@@ -270,7 +270,7 @@ function _prime_options_cache( $options ) {
 		}
 	}
 
-	// Bail early if there are no options to be primed.
+	// Bail early if there are no options to be loaded.
 	if ( empty( $options_to_prime ) ) {
 		return;
 	}
@@ -321,13 +321,13 @@ function _prime_options_cache( $options ) {
 }
 
 /**
- * Primes all options registered with a specific option group.
+ * Loads all options registered with a specific option group.
  *
  * @since 6.4.0
  *
  * @global array $new_allowed_options
  *
- * @param string $option_group The option group to prime options for.
+ * @param string $option_group The option group to load options for.
  */
 function _prime_options_cache_by_group( $option_group ) {
 	global $new_allowed_options;
@@ -340,7 +340,7 @@ function _prime_options_cache_by_group( $option_group ) {
 /**
  * Retrieves multiple options.
  *
- * Options are primed as necessary first in order to use a single database query at most.
+ * Options are loaded as necessary first in order to use a single database query at most.
  *
  * @since 6.4.0
  *

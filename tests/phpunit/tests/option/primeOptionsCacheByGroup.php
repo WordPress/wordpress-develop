@@ -16,7 +16,7 @@ class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
 	public function test_prime_options_cache_by_group() {
 		global $new_allowed_options;
 
-		// Create some options to prime.
+		// Create some options to load.
 		$new_allowed_options = array(
 			'group1' => array(
 				'option1',
@@ -27,7 +27,7 @@ class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
 			),
 		);
 
-		$options_to_prime = array(
+		$options_to_load = array(
 			'option1',
 			'option2',
 			'option3',
@@ -38,7 +38,7 @@ class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_prime as $option ) {
+		foreach ( $options_to_load as $option ) {
 			update_option( $option, "value_$option", false );
 			wp_cache_delete( $option, 'options' );
 			$this->assertFalse( wp_cache_get( $option, 'options' ), "$option was not deleted from the cache." );
@@ -48,8 +48,8 @@ class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
 		_prime_options_cache_by_group( 'group1' );
 
 		// Check that options are now in the cache.
-		$this->assertSame( get_option( 'option1' ), wp_cache_get( 'option1', 'options' ), 'option1 was not primed.' );
-		$this->assertSame( get_option( 'option2' ), wp_cache_get( 'option2', 'options' ), 'option2 was not primed.' );
+		$this->assertSame( get_option( 'option1' ), wp_cache_get( 'option1', 'options' ), 'option1 was not loaded.' );
+		$this->assertSame( get_option( 'option2' ), wp_cache_get( 'option2', 'options' ), 'option2 was not loaded.' );
 
 		// Make sure option3 is still not in cache.
 		$this->assertFalse( wp_cache_get( 'option3', 'options' ), 'option3 was not deleted from the cache.' );
