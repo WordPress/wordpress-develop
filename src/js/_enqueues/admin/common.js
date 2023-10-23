@@ -2139,6 +2139,7 @@ $( function( $ ) {
 	// Private variables and methods.
 	var priv = {},
 		pub = {},
+		$body = $( document.body ),
 		mediaQuery;
 
 	// Initialize pauseAll to false; it will be set to true if reduced motion is preferred.
@@ -2222,7 +2223,7 @@ $( function( $ ) {
 		$( document ).ajaxComplete( function( event, xhr, settings ) {
 
 			// Return early if this is not the plugin-install.php page.
-			if ( ! $body.hasClass( 'plugin-install-php' ) ) {
+			if ( ! body.hasClass( 'plugin-install-php' ) ) {
 				return;
 			}
 
