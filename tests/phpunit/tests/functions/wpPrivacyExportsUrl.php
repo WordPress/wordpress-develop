@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for the wpPrivacyExportsUrl function.
+ * Tests for the wp_privacy_exports_url function.
  *
  * @group functions.php
  *
