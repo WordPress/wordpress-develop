@@ -85,7 +85,7 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 
 	/**
 	 * Tests whether the CSS declarations are generated even if the block content is
-	 * empty. We need this to make the CSS output stable across paginations for
+	 * empty. This is needed to make the CSS output stable across paginations for
 	 * features like the enhanced pagination of the Query block.
 	 *
 	 * @ticket 59694
@@ -104,7 +104,6 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		WP_Duotone::render_duotone_support( '', $block, $wp_block );
 		$this->assertNotEmpty( $block_css_declarations_property->getValue() );
 	}
-
 
 	/**
 	 * Data provider.
