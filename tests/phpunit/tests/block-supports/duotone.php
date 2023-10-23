@@ -84,6 +84,25 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_get_slug_from_attribute() {
+		return array(
+			'pipe-slug'                       => array( 'var:preset|duotone|blue-orange', 'blue-orange' ),
+			'css-var'                         => array( 'var(--wp--preset--duotone--blue-orange)', 'blue-orange' ),
+			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', '.' ),
+			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', '' ),
+			'invalid'                         => array( 'not a valid attribute', '' ),
+			'css-var-no-value'                => array( 'var(--wp--preset--duotone--)', '' ),
+			'pipe-slug-no-value'              => array( 'var:preset|duotone|', '' ),
+			'css-var-spaces'                  => array( 'var(--wp--preset--duotone--    ', '' ),
+			'pipe-slug-spaces'                => array( 'var:preset|duotone|  ', '' ),
+		);
+	}
+
+	/**
 	 * Tests whether the CSS declarations are generated even if the block content is
 	 * empty. This is needed to make the CSS output stable across paginations for
 	 * features like the enhanced pagination of the Query block.
@@ -103,25 +122,6 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		$block_css_declarations_property->setValue( array() );
 		WP_Duotone::render_duotone_support( '', $block, $wp_block );
 		$this->assertNotEmpty( $block_css_declarations_property->getValue() );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[].
-	 */
-	public function data_get_slug_from_attribute() {
-		return array(
-			'pipe-slug'                       => array( 'var:preset|duotone|blue-orange', 'blue-orange' ),
-			'css-var'                         => array( 'var(--wp--preset--duotone--blue-orange)', 'blue-orange' ),
-			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', '.' ),
-			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', '' ),
-			'invalid'                         => array( 'not a valid attribute', '' ),
-			'css-var-no-value'                => array( 'var(--wp--preset--duotone--)', '' ),
-			'pipe-slug-no-value'              => array( 'var:preset|duotone|', '' ),
-			'css-var-spaces'                  => array( 'var(--wp--preset--duotone--    ', '' ),
-			'pipe-slug-spaces'                => array( 'var:preset|duotone|  ', '' ),
-		);
 	}
 
 	/**
