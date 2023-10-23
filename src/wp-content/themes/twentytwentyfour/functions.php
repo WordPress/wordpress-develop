@@ -9,7 +9,7 @@
  */
 
 /**
- * Register block styles
+ * Register block styles.
  */
 
 if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
@@ -18,7 +18,6 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 	 *
 	 * @return void
 	 * @since Twenty Twenty-Four 1.0
-	 *
 	 */
 	function twentytwentyfour_block_styles() {
 		/**
@@ -176,7 +175,6 @@ if ( ! function_exists( 'twentytwentyfour_pattern_categories' ) ) :
 	 *
 	 * @return void
 	 * @since Twenty Twenty-Four 1.0
-	 *
 	 */
 	function twentytwentyfour_pattern_categories() {
 
