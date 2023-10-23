@@ -252,14 +252,17 @@ function get_option( $option, $default_value = false ) {
  *
  * Only options that do not already exist in cache will be primed.
  *
+ * @todo decide upon prime_options_cache vs _prime_options_cache
+ *
  * @since 6.4.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param array $options An array of option names to be primed.
  */
-function prime_options( $options ) {
-	$alloptions     = wp_load_alloptions();
+function prime_options_cache( $options ) {
+# function _prime_options_cache( $options ) {
+		$alloptions     = wp_load_alloptions();
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
 
 	// Filter options that are not in the cache.
@@ -323,17 +326,20 @@ function prime_options( $options ) {
 /**
  * Primes all options registered with a specific option group.
  *
+ * @todo decide upon prime_options_cache_by_group vs _prime_options_cache_by_group
+ *
  * @since 6.4.0
  *
  * @global array $new_allowed_options
  *
  * @param string $option_group The option group to prime options for.
  */
-function prime_options_by_group( $option_group ) {
-	global $new_allowed_options;
+function _prime_options_cache_by_group( $option_group ) {
+# function prime_options_cache_by_group( $option_group ) {
+		global $new_allowed_options;
 
 	if ( isset( $new_allowed_options[ $option_group ] ) ) {
-		prime_options( $new_allowed_options[ $option_group ] );
+		prime_options_cache( $new_allowed_options[ $option_group ] );
 	}
 }
 
@@ -348,7 +354,7 @@ function prime_options_by_group( $option_group ) {
  * @return array An array of key-value pairs for the requested options.
  */
 function get_options( $options ) {
-	prime_options( $options );
+	/*_*/prime_options_cache( $options );
 
 	$result = array();
 	foreach ( $options as $option ) {
