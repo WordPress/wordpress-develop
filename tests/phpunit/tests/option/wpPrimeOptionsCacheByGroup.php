@@ -6,7 +6,7 @@
  *
  * @covers ::_prime_options_cache_by_group
  */
-class Tests_Option_PrimeOptionsByGroup extends WP_UnitTestCase {
+class Tests_Option_WpPrimeOptionsCacheByGroup extends WP_UnitTestCase {
 
 	/**
 	 * Tests that wp_prime_options_cache_by_group() only primes options in the specified group.
