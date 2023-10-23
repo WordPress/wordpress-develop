@@ -119,7 +119,7 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		$wp_block                        = new WP_Block( $block );
 		$block_css_declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
 		$block_css_declarations_property->setAccessible( true );
-		$block_css_declarations_property->setValue( array() );
+		$block_css_declarations_property->setValue( $wp_block, array() );
 
 		WP_Duotone::render_duotone_support( '', $block, $wp_block );
 		$actual = $block_css_declarations_property->getValue();
