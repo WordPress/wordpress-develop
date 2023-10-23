@@ -5,7 +5,8 @@
  *
  * @since 6.4.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_trigger_error
  */
 class Tests_Functions_WpTriggerError extends WP_UnitTestCase {

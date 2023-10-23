@@ -3,7 +3,8 @@
 /**
  * Tests for `maybe_serialize()` and `maybe_unserialize()`.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::maybe_serialize
  * @covers ::maybe_unserialize
  */

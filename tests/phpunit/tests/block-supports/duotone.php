@@ -3,10 +3,12 @@
 /**
  * Test the block WP_Duotone class.
  *
+ * @group block-supports
+ *
  * @package WordPress
  */
 
-class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
+class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
 	 * Cleans up CSS added to block-supports from duotone styles. We neeed to do this
 	 * in order to avoid impacting other tests.
