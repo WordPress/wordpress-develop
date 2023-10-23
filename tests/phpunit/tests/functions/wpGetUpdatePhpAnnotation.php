@@ -6,7 +6,7 @@
  *
  * @covers ::wp_get_update_php_annotation
  */
-class tests_functions_wpGetUpdatePhpAnnotation extends WP_UnitTestCase {
+class Tests_functions_wpGetUpdatePhpAnnotation extends WP_UnitTestCase {
 
 	/**
 	 * Test that the annotation is NOT return if the URLs are the same
