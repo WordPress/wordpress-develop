@@ -636,7 +636,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * rendering different numbers of blocks doesn't affect the IDs of other
 	 * blocks. We need this to make the CSS class names stable across paginations
 	 * for features like the enhanced pagination of the Query block.
-	*/
+	 */
 	$container_class = wp_unique_prefixed_id(
 		'wp-container-' . sanitize_title( $block['blockName'] ) . '-layout-'
 	);
