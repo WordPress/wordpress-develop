@@ -84,6 +84,29 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests whether the CSS declarations are generated even if the block content is
+	 * empty. We need this to make the CSS output stable across paginations for
+	 * features like the enhanced pagination of the Query block.
+	 *
+	 * @ticket 59694
+	 *
+	 * @covers ::render_duotone_support
+	 */
+	public function test_css_declarations_are_generated_even_with_empty_block_content() {
+		$block                           = array(
+			'blockName' => 'core/image',
+			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'var:preset|duotone|blue-orange' ) ) ),
+		);
+		$wp_block                        = new WP_Block( $block );
+		$block_css_declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
+		$block_css_declarations_property->setAccessible( true );
+		$block_css_declarations_property->setValue( array() );
+		WP_Duotone::render_duotone_support( '', $block, $wp_block );
+		$this->assertNotEmpty( $block_css_declarations_property->getValue() );
+	}
+
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[].
