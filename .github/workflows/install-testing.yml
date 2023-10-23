@@ -104,10 +104,6 @@ jobs:
 
         exclude:
           - php: '5.3'
-          - php: '5.4'
-            db-version: '8.0'
-          - php: '5.5'
-            db-version: '8.0'
 
     services:
       database:
