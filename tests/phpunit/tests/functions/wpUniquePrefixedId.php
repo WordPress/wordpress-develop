@@ -59,6 +59,14 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 				'prefix'   => '1',
 				'expected' => array( '11', '12' ),
 			),
+			'prefix as a (string) "."'     => array(
+				'prefix'   => '.',
+				'expected' => array( '.1', '.2' ),
+			),
+			'prefix as a block name'       => array(
+				'prefix'   => 'core/list-item',
+				'expected' => array( 'core/list-item1', 'core/list-item2' ),
+			),
 		);
 	}
 
