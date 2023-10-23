@@ -4,40 +4,40 @@
  *
  * @group functions.php
  *
- * @covers ::wp_privacy_exports_url
+ * @covers ::wp_privacy_exports_dir
  */#
-class Tests_functions_test_wp_privacy_exports_url extends WP_UnitTestCase {
+class Tests_functions_wp_privacy_exports_dir extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 59709
+	 * @ticket 59710
 	 */
-	public function test_wp_privacy_exports_url() {
+	public function test_wp_privacy_exports_dir() {
 
-		$this->assertEquals( 'http://example.org/wp-content/uploads/wp-personal-data-exports/', wp_privacy_exports_url() );
+		$this->assertEquals( '/var/www/src/wp-content/uploads/wp-personal-data-exports/', wp_privacy_exports_dir() );
 	}
 
 	/**
-	 * @ticket 59709
+	 * @ticket 59710
 	 */
-	public function test_wp_privacy_exports_url_filtered() {
+	public function test_wp_privacy_exports_dir_filtered() {
 
-		add_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
+		add_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 
-		$expected_url = 'https://filtered.com/wp-personal-data-exports/';
-		$actual_url   = wp_privacy_exports_url();
+		$expected_url = '/wp-personal-data-exports-url/';
+		$actual_url   = wp_privacy_exports_dir();
 		$this->assertEquals( $expected_url, $actual_url );
 
-		remove_filter( 'wp_privacy_exports_url', array( $this, 'filter_wp_privacy_exports_url' ) );
+		remove_filter( 'wp_privacy_exports_dir', array( $this, 'filter_wp_privacy_exports_dir' ) );
 	}
 
 	/**
 	 * Filter for test
 	 *
-	 * @param string $url
+	 * @param string $dir
 	 */
-	public function filter_wp_privacy_exports_url( $url ) {
+	public function filter_wp_privacy_exports_dir( $dir ) {
 
-		return 'https://filtered.com/wp-personal-data-exports/';
+		return '/wp-personal-data-exports-url/';
 	}
 }
 
