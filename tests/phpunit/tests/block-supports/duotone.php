@@ -120,8 +120,13 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		$block_css_declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
 		$block_css_declarations_property->setAccessible( true );
 		$block_css_declarations_property->setValue( array() );
+
 		WP_Duotone::render_duotone_support( '', $block, $wp_block );
-		$this->assertNotEmpty( $block_css_declarations_property->getValue() );
+		$actual = $block_css_declarations_property->getValue();
+		// Reset the property's visibility.
+		$block_css_declarations_property->setAccessible( false );
+
+		$this->assertNotEmpty( $actual );
 	}
 
 	/**
