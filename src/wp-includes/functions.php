@@ -7859,7 +7859,9 @@ function wp_unique_prefixed_id( $prefix = '' ) {
 		$id_counters[ $prefix ] = 0;
 	}
 
-	return $prefix . (string) ++$id_counters[ $prefix ];
+	$id = ++$id_counters[ $prefix ];
+
+	return $prefix . (string) $id;
 }
 
 /**
