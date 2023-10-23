@@ -7846,9 +7846,10 @@ function wp_unique_id( $prefix = '' ) {
  */
 function wp_unique_prefixed_id( $prefix = '' ) {
 	static $id_counters = array();
-	if ( ! array_key_exists( $prefix, $id_counters ) ) {
+	if ( ! isset( $id_counters[ $prefix ] ) ) {
 		$id_counters[ $prefix ] = 0;
 	}
+
 	return $prefix . (string) ++$id_counters[ $prefix ];
 }
 
