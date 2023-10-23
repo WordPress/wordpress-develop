@@ -37,21 +37,13 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 */
 	public function data_should_create_unique_prefixed_ids() {
 		return array(
-			'prefix as null'               => array(
-				'prefix'   => null,
-				'expected' => array( '1', '2' ),
-			),
 			'prefix as empty string'       => array(
 				'prefix'   => '',
-				'expected' => array( '3', '4' ),
+				'expected' => array( '1', '2' ),
 			),
 			'prefix as (string) "0"'       => array(
 				'prefix'   => '0',
 				'expected' => array( '01', '02' ),
-			),
-			'prefix as (int) 0'            => array(
-				'prefix'   => 0,
-				'expected' => array( '03', '04' ),
 			),
 			'prefix as string'             => array(
 				'prefix'   => 'test',
@@ -65,9 +57,53 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 				'prefix'   => '1',
 				'expected' => array( '11', '12' ),
 			),
-			'prefix as (int) 1'            => array(
-				'prefix'   => 1,
-				'expected' => array( '13', '14' ),
+		);
+	}
+
+	/**
+	 * @ticket 59681
+	 *
+	 * @dataProvider data_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given
+	 *
+	 * @param mixed  $non_string_prefix Non-string prefix.
+	 * @param string $expected_message  Expected notice message.
+	 * @param string $expected_value    Expected unique ID.
+	 */
+	public function test_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given( $non_string_prefix, $expected_message, $expected_value ) {
+		$this->expectNotice();
+		$this->expectNoticeMessage( $expected_message );
+
+		$actual = wp_unique_prefixed_id( $non_string_prefix );
+		$this->assertSame( $expected_value, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given() {
+		$message =  'wp_unique_prefixed_id(): The prefix must be a string. "%s" data type given.';
+		return array(
+			'prefix as null'         => array(
+				'non_string_prefix' => null,
+				'expected_message'  => sprintf( $message, 'NULL' ),
+				'expected_value'    => '3',
+			),
+			'prefix as (int) 0'      => array(
+				'non_string_prefix' => 0,
+				'expected_message'  => sprintf( $message, 'integer' ),
+				'expected_value'    => '4',
+			),
+			'prefix as (int) 1'      => array(
+				'non_string_prefix'  => 1,
+				'expected_data_type' => sprintf( $message, 'integer' ),
+				'expected_value'     => '5',
+			),
+			'prefix as (bool) false' => array(
+				'non_string_prefix'  => false,
+				'expected_data_type' => sprintf( $message, 'boolean' ),
+				'expected_value'     => '6',
 			),
 		);
 	}
