@@ -5,7 +5,7 @@
  *
  * @package WordPress\UnitTests
  *
- * @since 6.4
+ * @since 6.4.0
  *
  * @group functions.php
  * @covers ::wp_unique_prefixed_id

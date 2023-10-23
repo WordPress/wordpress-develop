@@ -7839,7 +7839,7 @@ function wp_unique_id( $prefix = '' ) {
  * but it is unique across the life of the PHP process and it's stable per
  * prefix.
  *
- * @since 6.4
+ * @since 6.4.0
  *
  * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
  * @return string Incremental ID per prefix.
