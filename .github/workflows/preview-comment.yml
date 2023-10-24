@@ -2,6 +2,7 @@ name: Post a PR preview link
 
 on:
   pull_request_target:
+    types: [ opened, edited ]
     branches:
       - trunk
 
