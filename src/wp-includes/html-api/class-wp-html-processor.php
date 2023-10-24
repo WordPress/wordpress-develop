@@ -192,6 +192,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $last_error = null;
 
 	/**
+	 * Called when ignoring a token, given the current token.
+	 *
+	 * @var callable|null
+	 */
+	private $on_ignore = null;
+
+	/**
 	 * Releases a bookmark when PHP garbage-collects its wrapping WP_HTML_Token instance.
 	 *
 	 * This function is created inside the class constructor so that it can be passed to
@@ -506,6 +513,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$at       = $token->start;
 		};
 
+		/**
+		 * Skips printing an ignored token into the output.
+		 *
+		 * @param WP_HTML_Token $token
+		 */
+		$ignore_tag = function ( $token ) use ( &$at, $html, &$output, $processor ) {
+			$span    = $processor->bookmarks[ $token->bookmark_name ];
+			$output .= substr( $html, $at, $span->start - $at );
+			$at      = $span->end + 1;
+		};
+
+		$processor->on_ignore                             = $ignore_tag;
 		$processor->state->stack_of_open_elements->on_pop = $close_tag;
 		while ( $processor->next_tag() ) {
 			continue;
@@ -598,6 +617,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return false;
 		}
+	}
+
+	/**
+	 * Ignores the current token.
+	 *
+	 * @throws Exception When unable to acquire bookmarks.
+	 *
+	 * @return bool
+	 */
+	private function ignore_token() {
+		if ( $this->on_ignore ) {
+			call_user_func( $this->on_ignore, $this->state->current_token );
+		}
+		return $this->step();
 	}
 
 	/**
@@ -702,7 +735,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $tag_name ) ) {
 					// @TODO: Report parse error.
 					// Ignore the token.
-					return $this->step();
+					return $this->ignore_token();
 				}
 
 				$this->generate_implied_end_tags();
@@ -817,7 +850,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					// > Otherwise, if node is in the special category, then this is a parse error; ignore the token, and return.
 					if ( self::is_special( $item->node_name ) ) {
-						return $this->step();
+						return $this->ignore_token();
 					}
 				}
 				// Execution should not reach here; if it does then something went wrong.
