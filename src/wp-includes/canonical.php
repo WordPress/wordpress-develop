@@ -81,6 +81,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	$redirect_url = false;
 	$redirect_obj = false;
 
+	$is_search_pretty_permalink = false;
+
 	// Notice fixing.
 	if ( ! isset( $redirect['path'] ) ) {
 		$redirect['path'] = '';
@@ -216,7 +218,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		 *
 		 * @see https://core.trac.wordpress.org/ticket/4463
 		 */
-		$is_search_pretty_permalink = false;
 		if ( str_contains( $requested_url, '/search/' ) ) {
 			$search_query       = explode( '/search/', $requested_url )[1];
 			$search_query_parts = explode( '/', $search_query );
