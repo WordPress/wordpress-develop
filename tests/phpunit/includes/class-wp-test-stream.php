@@ -206,7 +206,7 @@ class WP_Test_Stream {
 		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $plainfile ] ) || isset( WP_Test_Stream::$data[ $this->bucket ][ $this->file ] ) ) {
 			return false;
 		}
-		
+
 		$dir_ref = & $this->get_directory_ref();
 		$dir_ref = 'DIRECTORY';
 		return true;
