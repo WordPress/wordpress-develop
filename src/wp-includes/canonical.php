@@ -77,9 +77,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	$redirect     = $original;
-	$redirect_url = false;
-	$redirect_obj = false;
+	$redirect                   = $original;
+	$redirect_url               = false;
+	$redirect_obj               = false;
+	$is_search_pretty_permalink = false;
 
 	// Notice fixing.
 	if ( ! isset( $redirect['path'] ) ) {
@@ -216,7 +217,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		 *
 		 * @see https://core.trac.wordpress.org/ticket/4463
 		 */
-		$is_search_pretty_permalink = false;
 		if ( str_contains( $requested_url, '/search/' ) ) {
 			preg_match( '/\/search\/(.*)\/feed\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_long );
 			preg_match( '/\/search\/(.+)\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_short );
