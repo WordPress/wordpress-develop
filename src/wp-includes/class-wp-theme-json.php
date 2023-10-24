@@ -1934,7 +1934,7 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$args      = func_get_args();
+		$args      = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
 		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
 		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
 
