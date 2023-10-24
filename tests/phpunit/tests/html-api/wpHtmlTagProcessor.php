@@ -2583,4 +2583,24 @@ HTML
 			),
 		);
 	}
+
+	public function test_handles_binary_data_when_mbstring_func_overloading_active() {
+		ini_set( 'mbstring.func_overload', 7 );
+
+		$func_overload = ini_get( 'mbstring.func_overload' );
+		if ( false === $func_overload ) {
+			return;
+		}
+
+		$this->assertSame( 7, ini_get( 'mbstring.func_overload' ) );
+
+		$p = new WP_HTML_Tag_Processor( '<a title="🅰 is not א" class="take me away">Test</a>"' );
+		$p->next_tag();
+
+		$this->assertSame( "🅰 is not א", $p->get_attribute( 'title' ) );
+
+		$p->remove_attribute( 'title' );
+		$p->remove_class( 'me' );
+		$this->assertSame( '<a  class="take  away">Test</a>', $p->get_updated_html() );
+	}
 }
