@@ -269,7 +269,7 @@ jobs:
     needs: [ performance ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+      calling_status: ${{ needs.performance.result == 'success' && 'success' || needs.performance.result == 'cancelled' && 'cancelled' || 'failure' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -288,8 +288,7 @@ jobs:
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        contains( needs.*.result, 'cancelled' ) ||
-        contains( needs.*.result, 'failure' )
+        needs.performance.result == 'cancelled' || needs.performance.result == 'failure'
       )
 
     steps:
