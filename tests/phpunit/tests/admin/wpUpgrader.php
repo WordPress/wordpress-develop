@@ -777,16 +777,16 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 */
 	public function data_install_package_invalid_paths() {
 		return array(
-			'empty string' => array( 'path' => '' ),
+			'empty string'                   => array( 'path' => '' ),
 
 			// Type checks.
-			'empty array'  => array( 'path' => array() ),
-			'(int) 0'      => array( 'path' => 0 ),
-			'(int) -0'     => array( 'path' => -0 ),
-			'(float) 0.0'  => array( 'path' => 0.0 ),
-			'(float) -0.0' => array( 'path' => -0.0 ),
-			'(bool) false' => array( 'path' => false ),
-			'null'         => array( 'path' => null ),
+			'empty array'                    => array( 'path' => array() ),
+			'(int) 0'                        => array( 'path' => 0 ),
+			'(int) -0'                       => array( 'path' => -0 ),
+			'(float) 0.0'                    => array( 'path' => 0.0 ),
+			'(float) -0.0'                   => array( 'path' => -0.0 ),
+			'(bool) false'                   => array( 'path' => false ),
+			'null'                           => array( 'path' => null ),
 		);
 	}
 
