@@ -328,6 +328,14 @@ function _register_remote_theme_patterns() {
  * @access private
  */
 function _register_theme_block_patterns() {
+
+	/**
+	 * Bail early if WP is installing, since the theme may not be fully loaded at this point.
+	 */
+	if ( wp_installing() ) {
+		return;
+	}
+
 	/*
 	 * Register patterns for the active theme. If the theme is a child theme,
 	 * let it override any patterns from the parent theme that shares the same slug.
