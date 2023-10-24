@@ -216,6 +216,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		 *
 		 * @see https://core.trac.wordpress.org/ticket/4463
 		 */
+		$is_search_pretty_permalink = false;
 		if ( str_contains( $requested_url, '/search/' ) ) {
 			preg_match( '/\/search\/(.*)\/feed\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_long );
 			preg_match( '/\/search\/(.+)\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_short );
@@ -225,8 +226,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			if ( $matches_search_feed_long ) {
 				// Redirect /search/{search_query}/feed/{feed_type}/ to /?s={search_query}&feed={feed_type}.
-				$do_redirect  = true;
-				$redirect_url = add_query_arg(
+				$is_search_pretty_permalink = true;
+				$redirect_url               = add_query_arg(
 					array(
 						's'    => $matches_search_feed_long[1],
 						'feed' => $matches_search_feed_long[2],
@@ -235,8 +236,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				);
 			} elseif ( $matches_search_feed_short ) {
 				// Redirect /search/{search_query}/{feed_type}/ to /?s={search_query}&feed={feed_type}.
-				$do_redirect  = true;
-				$redirect_url = add_query_arg(
+				$is_search_pretty_permalink = true;
+				$redirect_url               = add_query_arg(
 					array(
 						's'    => $matches_search_feed_short[1],
 						'feed' => $matches_search_feed_short[2],
@@ -245,8 +246,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				);
 			} elseif ( $matches_search_embed ) {
 				// Redirect /search/{search_query}/embed/ to /?s={search_query}&embed=true.
-				$do_redirect  = true;
-				$redirect_url = add_query_arg(
+				$is_search_pretty_permalink = true;
+				$redirect_url               = add_query_arg(
 					array(
 						's'     => $matches_search_embed[1],
 						'embed' => 'true',
@@ -255,8 +256,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				);
 			} elseif ( $matches_search_paged ) {
 				// Redirect /search/{search_query}/page/{page_number}/ to /?s={search_query}&paged={page_number}.
-				$do_redirect  = true;
-				$redirect_url = add_query_arg(
+				$is_search_pretty_permalink = true;
+				$redirect_url               = add_query_arg(
 					array(
 						's'     => $matches_search_paged[1],
 						'paged' => $matches_search_paged[2],
@@ -265,8 +266,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				);
 			} elseif ( $matches_search ) {
 				// Redirect /search/{search_query}/ to /?s={search_query}.
-				$do_redirect  = true;
-				$redirect_url = add_query_arg(
+				$is_search_pretty_permalink = true;
+				$redirect_url               = add_query_arg(
 					array( 's' => $matches_search[1] ),
 					home_url( '/' )
 				);
@@ -874,10 +875,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( ! $redirect_url || strip_fragment_from_url( $redirect_url ) === strip_fragment_from_url( $requested_url ) ) {
 		return;
 	}
-
-	if ( $do_redirect ) {
+	if ( $do_redirect || $is_search_pretty_permalink ) {
 		// Protect against chained redirects.
-		if ( ! redirect_canonical( $redirect_url, false ) ) {
+		if ( $is_search_pretty_permalink || ! redirect_canonical( $redirect_url, false ) ) {
 			wp_redirect( $redirect_url, 301 );
 			exit;
 		} else {
