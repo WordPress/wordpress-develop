@@ -289,7 +289,6 @@ class WP_Rewrite {
 		'%post_id%',
 		'%author%',
 		'%pagename%',
-		'%search%',
 	);
 
 	/**
@@ -310,7 +309,6 @@ class WP_Rewrite {
 		'([0-9]+)',
 		'([^/]+)',
 		'([^/]+?)',
-		'(.+)',
 	);
 
 	/**
@@ -330,7 +328,6 @@ class WP_Rewrite {
 		'p=',
 		'author_name=',
 		'pagename=',
-		's=',
 	);
 
 	/**

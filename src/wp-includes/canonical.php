@@ -210,6 +210,69 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 		}
 
+		/**
+		 * Pretty permalinks for search-results were removed in 6.5.0.
+		 * All search results are now served from /?s={search_query}.
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/4463
+		 */
+		if ( str_contains( $requested_url, '/search/' ) ) {
+			preg_match( '/\/search\/(.*)\/feed\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_long );
+			preg_match( '/\/search\/(.+)\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_short );
+			preg_match( '/\/search\/(.+)\/embed\/?$/', $requested_url, $matches_search_embed );
+			preg_match( '/\/search\/(.+)\/page\/([0-9]{1,})\/?$/', $requested_url, $matches_search_paged );
+			preg_match( '/\/search\/(.+)\/?$/', $requested_url, $matches_search );
+
+			if ( $matches_search_feed_long ) {
+				// Redirect /search/{search_query}/feed/{feed_type}/ to /?s={search_query}&feed={feed_type}.
+				$do_redirect  = true;
+				$redirect_url = add_query_arg(
+					array(
+						's'    => $matches_search_feed_long[1],
+						'feed' => $matches_search_feed_long[2],
+					),
+					home_url( '/' )
+				);
+			} elseif ( $matches_search_feed_short ) {
+				// Redirect /search/{search_query}/{feed_type}/ to /?s={search_query}&feed={feed_type}.
+				$do_redirect  = true;
+				$redirect_url = add_query_arg(
+					array(
+						's'    => $matches_search_feed_short[1],
+						'feed' => $matches_search_feed_short[2],
+					),
+					home_url( '/' )
+				);
+			} elseif ( $matches_search_embed ) {
+				// Redirect /search/{search_query}/embed/ to /?s={search_query}&embed=true.
+				$do_redirect  = true;
+				$redirect_url = add_query_arg(
+					array(
+						's'     => $matches_search_embed[1],
+						'embed' => 'true',
+					),
+					home_url( '/' )
+				);
+			} elseif ( $matches_search_paged ) {
+				// Redirect /search/{search_query}/page/{page_number}/ to /?s={search_query}&paged={page_number}.
+				$do_redirect  = true;
+				$redirect_url = add_query_arg(
+					array(
+						's'     => $matches_search_paged[1],
+						'paged' => $matches_search_paged[2],
+					),
+					home_url( '/' )
+				);
+			} elseif ( $matches_search ) {
+				// Redirect /search/{search_query}/ to /?s={search_query}.
+				$do_redirect  = true;
+				$redirect_url = add_query_arg(
+					array( 's' => $matches_search[1] ),
+					home_url( '/' )
+				);
+			}
+		}
+
 		if ( ! $redirect_url ) {
 			$redirect_url = redirect_guess_404_permalink();
 
