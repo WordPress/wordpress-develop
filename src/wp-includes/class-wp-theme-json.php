@@ -1934,6 +1934,14 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
+		$args      = func_get_args();
+		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
+		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
+
+		if ( $cache ) {
+			return $cache;
+		}
+
 		$root_variable_duplicates = array();
 
 		foreach ( $properties as $css_property => $value_path ) {
@@ -1999,6 +2007,8 @@ class WP_Theme_JSON {
 				array_splice( $declarations, $discard, 1 );
 			}
 		}
+
+		wp_cache_set( $cache_key, $declarations, 'wp-styles' );
 
 		return $declarations;
 	}
