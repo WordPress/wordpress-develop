@@ -112,18 +112,24 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	 * @covers ::render_duotone_support
 	 */
 	public function test_css_declarations_are_generated_even_with_empty_block_content() {
-		$block                           = array(
+		$block    = array(
 			'blockName' => 'core/image',
 			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'var:preset|duotone|blue-orange' ) ) ),
 		);
-		$wp_block                        = new WP_Block( $block );
-		$block_css_declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
+		$wp_block = new WP_Block( $block );
+
+		// Work with the static private property.
+		$wp_duotone_reflected_class      = new ReflectionClass( WP_Duotone::class );
+		$block_css_declarations_property = $wp_duotone_reflected_class->getProperty( 'block_css_declarations' );
 		$block_css_declarations_property->setAccessible( true );
-		$block_css_declarations_property->setValue( $wp_block, array() );
+		$previous_value = $wp_duotone_reflected_class->getStaticPropertyValue( 'block_css_declarations' );
+		$wp_duotone_reflected_class->setStaticPropertyValue( 'block_css_declarations', array() );
 
 		WP_Duotone::render_duotone_support( '', $block, $wp_block );
-		$actual = $block_css_declarations_property->getValue();
-		// Reset the property's visibility.
+		$actual = $wp_duotone_reflected_class->getStaticPropertyValue( 'block_css_declarations' );
+
+		// Reset the static property's visibility.
+		$wp_duotone_reflected_class->setStaticPropertyValue( 'block_css_declarations', $previous_value );
 		$block_css_declarations_property->setAccessible( false );
 
 		$this->assertNotEmpty( $actual );
