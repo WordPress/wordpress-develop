@@ -1575,7 +1575,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * Tests that `WP_Upgrader::download_package()` returns a WP_Error object
 	 * for an empty package.
 	 *
-	 * @ticket 54245
+	 * @ticket 59712
 	 *
 	 * @covers WP_Upgrader::download_package
 	 */
