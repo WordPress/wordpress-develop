@@ -192,6 +192,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $last_error = null;
 
 	/**
+	 * Called when inserting an HTML element, given the opening tag that created it.
+	 *
+	 * @var callable|null
+	 */
+	private $on_insert = null;
+
+	/**
 	 * Called when ignoring a token, given the current token.
 	 *
 	 * @var callable|null
@@ -495,11 +502,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$at        = 0;
 
 		/**
+		 * Adds opening tags.
+		 *
+		 * @param WP_HTML_Token $token
+		 */
+		$open_tag = function ( $token ) use ( &$at, $html, &$output, $processor ) {
+			$span    = $processor->bookmarks[ $token->bookmark_name ];
+			$output .= substr( $html, $at, $span->start - $at );
+			if ( ! $processor->is_tag_closer() ) {
+				$output .= substr( $html, $span->start, $span->end + 1 - $at );
+			}
+			$at = $span->end + 1;
+		};
+
+		/**
 		 * Adds closing tags.
 		 *
 		 * @param WP_HTML_Token $item Item popped off of stack.
-		 *
-		 * @return void
 		 */
 		$close_tag = function ( $item ) use ( &$at, $html, &$output, $processor ) {
 			if ( $processor->is_tag_closer() || $processor->get_last_error() ) {
@@ -524,6 +543,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$at      = $span->end + 1;
 		};
 
+		$processor->on_insert                             = $open_tag;
 		$processor->on_ignore                             = $ignore_tag;
 		$processor->state->stack_of_open_elements->on_pop = $close_tag;
 		while ( $processor->next_tag() ) {
@@ -1323,6 +1343,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
 	private function insert_html_element( $token ) {
+		if ( $this->on_insert ) {
+			call_user_func( $this->on_insert, $token );
+		}
 		$this->state->stack_of_open_elements->push( $token );
 	}
 
