@@ -112,18 +112,32 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	 * @covers ::render_duotone_support
 	 */
 	public function test_css_declarations_are_generated_even_with_empty_block_content() {
-		$block                           = array(
+		$block    = array(
 			'blockName' => 'core/image',
 			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'var:preset|duotone|blue-orange' ) ) ),
 		);
-		$wp_block                        = new WP_Block( $block );
-		$block_css_declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
+		$wp_block = new WP_Block( $block );
+
+		/*
+		 * Handling to access the static WP_Duotone::#block_css_declarations property.
+		 *
+		 * Why is an instance needed?
+		 * WP_Duotone is a static class by design, meaning it only contains static properties and methods.
+		 * In production, it should not be instantiated. However, as PHP 8.3, ReflectionProperty::setValue() needs
+		 * an object.
+		 */
+		$wp_duotone                      = new WP_Duotone();
+		$wp_duotone_reflected_class      = new ReflectionClass( WP_Duotone::class );
+		$block_css_declarations_property = $wp_duotone_reflected_class->getProperty( 'block_css_declarations' );
 		$block_css_declarations_property->setAccessible( true );
-		$block_css_declarations_property->setValue( $wp_block, array() );
+		$previous_value = $block_css_declarations_property->getValue();
+		$block_css_declarations_property->setValue( $wp_duotone, array() );
 
 		WP_Duotone::render_duotone_support( '', $block, $wp_block );
 		$actual = $block_css_declarations_property->getValue();
-		// Reset the property's visibility.
+
+		// Reset the property.
+		$block_css_declarations_property->setValue( $wp_duotone, $previous_value );
 		$block_css_declarations_property->setAccessible( false );
 
 		$this->assertNotEmpty( $actual );
