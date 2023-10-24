@@ -9,8 +9,6 @@
  *
  * @group functions.php
  * @covers ::wp_unique_prefixed_id
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
  */
 class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 
@@ -20,6 +18,9 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 * @ticket 59681
 	 *
 	 * @dataProvider data_should_create_unique_prefixed_ids
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 *
 	 * @param mixed $prefix   The prefix.
 	 * @param array $expected The next two expected IDs.
@@ -74,6 +75,9 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 	 * @ticket 59681
 	 *
 	 * @dataProvider data_should_raise_notice_and_use_empty_string_prefix_when_nonstring_given
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 *
 	 * @param mixed  $non_string_prefix Non-string prefix.
 	 * @param string $expected_message  Expected notice message.
