@@ -2227,7 +2227,7 @@ $( function( $ ) {
 			}
 
 			// Check if this is the 'search-install-plugins' request.
-			if ( settings.data && typeof settings.data === "string" && settings.data.includes( 'action=search-install-plugins' ) ) {
+			if ( settings.data && typeof settings.data === 'string' && settings.data.includes( 'action=search-install-plugins' ) ) {
 				// Recheck if the user prefers reduced motion.
 				if ( window.matchMedia ) {
 					var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
