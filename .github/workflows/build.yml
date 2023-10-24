@@ -18,6 +18,7 @@ permissions: {}
 # Exposes WordPress builds as a GitHub artifact to enable 
 # previewing Pull Requests inside WordPress Playground.
 # 
+# @see preview-comment.yml
 # @see https://github.com/WordPress/wordpress-playground/pull/700
 # @see https://github.com/WordPress/wordpress-develop/pull/5481
 jobs:

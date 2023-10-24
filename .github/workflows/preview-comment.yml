@@ -1,10 +1,18 @@
-name: Comment on PR
+name: Post a PR preview link
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [ opened ]
     branches:
       - trunk
 
+# Comment on wordpress-develop PRs to inform WordPress developers 
+# about the new preview feature built with WordPress Playground.
+# 
+# @see build.yml
+# @see https://github.com/WordPress/wordpress-develop/pull/5526
+# @see https://github.com/WordPress/wordpress-playground/pull/700
+# @see https://github.com/WordPress/wordpress-develop/pull/5481
 jobs:
   comment:
     runs-on: ubuntu-latest
@@ -12,16 +20,14 @@ jobs:
       issues: write
     steps:
       - uses: actions/github-script@v6
-        env:
-          GITHUB_TOKEN: ${{ env.BOT_TOKEN }}
-          GIT_AUTHOR_NAME: ${{ env.BOT_NAME }}[bot]
-          GIT_AUTHOR_EMAIL: ${{ env.BOT_NAME }}[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: ${{ env.BOT_NAME }}[bot]
         with:
-          github-token: ${{ env.BOT_TOKEN }}
           script: |
             const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
-            const issueComment = `Preview link: [${previewLink}](${previewLink})`;
+            const issueComment = `You can preview this Pull Request in [WordPress Playground](https://developer.wordpress.org/playground/), 
+            an experimental environment that securely runs WordPress inside your web browser:
+              
+            [Click here to preview](${previewLink})
+            `;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
