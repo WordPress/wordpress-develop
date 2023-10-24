@@ -495,16 +495,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * @return void
 		 */
 		$close_tag = function ( $item ) use ( &$at, $html, &$output, $processor ) {
-			if ( $processor->is_tag_closer() ) {
+			if ( $processor->is_tag_closer() || $processor->get_last_error() ) {
 				return;
 			}
+
 			$token    = $processor->bookmarks[ $processor->state->current_token->bookmark_name ];
 			$output  .= substr( $html, $at, $token->start - $at );
 			$tag_name = substr( $html, $processor->bookmarks[ $item->bookmark_name ]->start + 1, strlen( $item->node_name ) );
-			if ( null === $processor->get_last_error() ) {
-				$output .= "</{$tag_name}>";
-			}
-			$at = $token->start;
+			$output  .= "</{$tag_name}>";
+			$at       = $token->start;
 		};
 
 		$processor->state->stack_of_open_elements->on_pop = $close_tag;
@@ -514,14 +513,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$output .= substr( $html, $at );
 
+		if ( $processor->get_last_error() ) {
+			return $output;
+		}
+
 		foreach ( $processor->state->stack_of_open_elements->walk_up() as $item ) {
 			if ( 'context-node' === $item->bookmark_name ) {
 				break;
 			}
 			$tag_name = substr( $html, $processor->bookmarks[ $item->bookmark_name ]->start + 1, strlen( $item->node_name ) );
-			if ( null === $processor->get_last_error() ) {
-				$output .= "</{$tag_name}>";
-			}
+			$output  .= "</{$tag_name}>";
 		}
 
 		return $output;
