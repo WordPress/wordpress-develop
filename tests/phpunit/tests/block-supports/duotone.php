@@ -119,11 +119,11 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		$wp_block = new WP_Block( $block );
 
 		/*
-		 * Handling to access the static WP_Duotone::#block_css_declarations property.
+		 * Handling to access the static WP_Duotone::$block_css_declarations property.
 		 *
 		 * Why is an instance needed?
 		 * WP_Duotone is a static class by design, meaning it only contains static properties and methods.
-		 * In production, it should not be instantiated. However, as PHP 8.3, ReflectionProperty::setValue() needs
+		 * In production, it should not be instantiated. However, as of PHP 8.3, ReflectionProperty::setValue() needs
 		 * an object.
 		 */
 		$wp_duotone                      = new WP_Duotone();
