@@ -15,7 +15,10 @@ concurrency:
 # Any needed permissions should be configured at the job level.
 permissions: {}
 
-# Exposes WordPress builds as a GitHub artifact to enable 
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+# Exposes WordPress builds as a GitHub artifact to enable
 # previewing Pull Requests inside WordPress Playground.
 # 
 # @see preview-comment.yml
