@@ -52,6 +52,13 @@ class WP_HTML_Open_Elements {
 	private $has_p_in_button_scope = false;
 
 	/**
+	 * Called when an element is popped from the stack of open elements.
+	 *
+	 * @var callable|null
+	 */
+	public $on_pop = null;
+
+	/**
 	 * Reports if a specific node is in the stack of open elements.
 	 *
 	 * @since 6.4.0
@@ -427,6 +434,10 @@ class WP_HTML_Open_Elements {
 			case 'P':
 				$this->has_p_in_button_scope = $this->has_element_in_button_scope( 'P' );
 				break;
+		}
+
+		if ( $this->on_pop ) {
+			call_user_func( $this->on_pop, $item );
 		}
 	}
 }
