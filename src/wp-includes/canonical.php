@@ -77,10 +77,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	$redirect                   = $original;
-	$redirect_url               = false;
-	$redirect_obj               = false;
-	$is_search_pretty_permalink = false;
+	$redirect     = $original;
+	$redirect_url = false;
+	$redirect_obj = false;
 
 	// Notice fixing.
 	if ( ! isset( $redirect['path'] ) ) {
@@ -217,60 +216,55 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		 *
 		 * @see https://core.trac.wordpress.org/ticket/4463
 		 */
+		$is_search_pretty_permalink = false;
 		if ( str_contains( $requested_url, '/search/' ) ) {
-			preg_match( '/\/search\/(.*)\/feed\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_long );
-			preg_match( '/\/search\/(.+)\/(feed|rdf|rss|rss2|atom)\/?$/', $requested_url, $matches_search_feed_short );
-			preg_match( '/\/search\/(.+)\/embed\/?$/', $requested_url, $matches_search_embed );
-			preg_match( '/\/search\/(.+)\/page\/([0-9]{1,})\/?$/', $requested_url, $matches_search_paged );
-			preg_match( '/\/search\/(.+)\/?$/', $requested_url, $matches_search );
+			$search_query       = explode( '/search/', $requested_url )[1];
+			$search_query_parts = explode( '/', $search_query );
+			$search_query_args  = array();
 
-			if ( $matches_search_feed_long ) {
-				// Redirect /search/{search_query}/feed/{feed_type}/ to /?s={search_query}&feed={feed_type}.
+			$skip_next = false;
+			foreach ( $search_query_parts as $key => $search_query_part ) {
+				if ( $skip_next ) {
+					$skip_next = false;
+					continue;
+				}
+
+				// Add the search term.
+				if ( 0 === $key ) {
+					$search_query_args['s'] = $search_query_part;
+					continue;
+				}
+
+				// Handle feeds.
+				if ( 'feed' === $search_query_part &&
+					isset( $search_query_parts[ $key + 1 ] ) &&
+					in_array( $search_query_parts[ $key + 1 ], array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true )
+				) {
+					$search_query_args['feed'] = $search_query_parts[ $key + 1 ];
+					$skip_next                 = true;
+					continue;
+				} elseif ( in_array( $search_query_part, array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true ) ) {
+					$search_query_args['feed'] = $search_query_part;
+					continue;
+				}
+
+				// Handle embeds.
+				if ( 'embed' === $search_query_part ) {
+					$search_query_args['embed'] = 'true';
+					continue;
+				}
+
+				// Handle pagination.
+				if ( 'page' === $search_query_part && isset( $search_query_parts[ $key + 1 ] ) ) {
+					$search_query_args['paged'] = (int) $search_query_parts[ $key + 1 ];
+					$skip_next                  = true;
+					continue;
+				}
+			}
+
+			if ( ! empty( $search_query_args ) ) {
+				$redirect_url               = add_query_arg( $search_query_args, home_url( '/' ) );
 				$is_search_pretty_permalink = true;
-				$redirect_url               = add_query_arg(
-					array(
-						's'    => $matches_search_feed_long[1],
-						'feed' => $matches_search_feed_long[2],
-					),
-					home_url( '/' )
-				);
-			} elseif ( $matches_search_feed_short ) {
-				// Redirect /search/{search_query}/{feed_type}/ to /?s={search_query}&feed={feed_type}.
-				$is_search_pretty_permalink = true;
-				$redirect_url               = add_query_arg(
-					array(
-						's'    => $matches_search_feed_short[1],
-						'feed' => $matches_search_feed_short[2],
-					),
-					home_url( '/' )
-				);
-			} elseif ( $matches_search_embed ) {
-				// Redirect /search/{search_query}/embed/ to /?s={search_query}&embed=true.
-				$is_search_pretty_permalink = true;
-				$redirect_url               = add_query_arg(
-					array(
-						's'     => $matches_search_embed[1],
-						'embed' => 'true',
-					),
-					home_url( '/' )
-				);
-			} elseif ( $matches_search_paged ) {
-				// Redirect /search/{search_query}/page/{page_number}/ to /?s={search_query}&paged={page_number}.
-				$is_search_pretty_permalink = true;
-				$redirect_url               = add_query_arg(
-					array(
-						's'     => $matches_search_paged[1],
-						'paged' => $matches_search_paged[2],
-					),
-					home_url( '/' )
-				);
-			} elseif ( $matches_search ) {
-				// Redirect /search/{search_query}/ to /?s={search_query}.
-				$is_search_pretty_permalink = true;
-				$redirect_url               = add_query_arg(
-					array( 's' => $matches_search[1] ),
-					home_url( '/' )
-				);
 			}
 		}
 
