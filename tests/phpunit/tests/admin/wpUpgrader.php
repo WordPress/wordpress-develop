@@ -137,6 +137,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 				'fs_no_plugins_dir',
 				'fs_no_themes_dir',
 				'fs_no_folder',
+				'no_package',
 				'download_failed',
 				'installing_package',
 				'no_files',
@@ -781,12 +782,26 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 			// Type checks.
 			'empty array'                    => array( 'path' => array() ),
+			'populated array'                => array( 'path' => array( '/' ) ),
 			'(int) 0'                        => array( 'path' => 0 ),
 			'(int) -0'                       => array( 'path' => -0 ),
+			'(int) -1'                       => array( 'path' => -1 ),
+			'(int) 1'                        => array( 'path' => 1 ),
 			'(float) 0.0'                    => array( 'path' => 0.0 ),
 			'(float) -0.0'                   => array( 'path' => -0.0 ),
+			'(float) 1.0'                    => array( 'path' => 1.0 ),
+			'(float) -1.0'                   => array( 'path' => -1.0 ),
 			'(bool) false'                   => array( 'path' => false ),
+			'(bool) true'                    => array( 'path' => true ),
 			'null'                           => array( 'path' => null ),
+			'empty object'                   => array( 'path' => new stdClass() ),
+			'populated object'               => array( 'path' => (object) array( '/' ) ),
+
+			// Ensures that `trim()` is run.
+			'a string with spaces'           => array( 'path' => '   ' ),
+			'a string with tabs'             => array( 'path' => "\t\t" ),
+			'a string with new lines'        => array( 'path' => "\n\n" ),
+			'a string with carriage returns' => array( 'path' => "\r\r" ),
 		);
 	}
 
@@ -1554,6 +1569,31 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		$result = self::$instance->download_package( __FILE__ );
 
 		$this->assertSame( __FILE__, $result );
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::download_package()` returns a WP_Error object
+	 * for an empty package.
+	 *
+	 * @ticket 54245
+	 *
+	 * @covers WP_Upgrader::download_package
+	 */
+	public function test_download_package_should_return_a_wp_error_object_for_an_empty_package() {
+		self::$instance->init();
+
+		$result = self::$instance->download_package( '' );
+
+		$this->assertWPError(
+			$result,
+			'WP_Upgrader::download_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'no_package',
+			$result->get_error_code(),
+			'Unexpected WP_Error code'
+		);
 	}
 
 	/**
