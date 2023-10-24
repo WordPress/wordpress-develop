@@ -7,7 +7,7 @@
  */
 
 /**
- * Gets the elements class names.
+ * Gets the elements class name for a given block.
  *
  * @since 6.0.0
  * @access private
