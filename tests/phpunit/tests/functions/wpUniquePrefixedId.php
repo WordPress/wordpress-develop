@@ -130,6 +130,12 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 				'expected_data_type'        => sprintf( $message, 'boolean' ),
 				'expected_ids'              => array( '1', '2', '3', '4', '5' ),
 			),
+			'prefix as (double) 98.7' => array(
+				'non_string_prefix'         => 98.7,
+				'number_of_ids_to_generate' => 6,
+				'expected_data_type'        => sprintf( $message, 'double' ),
+				'expected_ids'              => array( '1', '2', '3', '4', '5', '6' ),
+			),
 		);
 	}
 }
