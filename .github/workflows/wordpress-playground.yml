@@ -1,7 +1,10 @@
-name: Build WordPress
+# Performs tasks required to make a pull request available for testing within WordPress Playground.
+name: WordPress Playground
 
 on:
-  pull_request:
+  pull_request_target:
+    branches:
+      - trunk
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -18,13 +21,9 @@ permissions: {}
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
-# Exposes WordPress builds as a GitHub artifact to enable
-# previewing Pull Requests inside WordPress Playground.
-# 
-# @see preview-comment.yml
-# @see https://github.com/WordPress/wordpress-playground/pull/700
-# @see https://github.com/WordPress/wordpress-develop/pull/5481
 jobs:
+  # Creates a built copy of WordPress and uploads it as an artifact that can be used
+  # to preview the changes inside of WordPress Playground.
   build-wordpress:
     name: Upload WordPress build as an artifact
     runs-on: ubuntu-latest
@@ -69,3 +68,27 @@ jobs:
             name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
             path: build/wordpress.zip
             if-no-files-found: error
+
+  # Leaves a comment on a pull request with a link to test the changes in a WordPress Playground instance.
+  comment-on-pr:
+    name: Comment on the pull request
+    runs-on: ubuntu-latest
+    permissions: {}
+    needs: [ 'build-wordpress' ]
+    if: ${{ 'opened' == github.event.action }}
+    steps:
+      - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          script: |
+            const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
+            const issueComment = `You can preview this Pull Request in [WordPress Playground](https://developer.wordpress.org/playground/),
+            an experimental environment that securely runs WordPress inside your web browser:
+
+            [Click here to preview](${previewLink})
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: issueComment
+            })
