@@ -2,7 +2,6 @@
 name: WordPress Playground
 
 on:
-  pull_request:
   pull_request_target:
     branches:
       - trunk
