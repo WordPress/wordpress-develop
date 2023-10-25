@@ -498,11 +498,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		switch_theme( 'twentytwentythree' );
 
 		$theme          = wp_get_theme();
-		$theme_patterns = array();
-
-		foreach ( $theme->get_block_patterns() as $pattern ) {
-			$theme_patterns[] = $pattern['slug'];
-		}
+		$theme_patterns = wp_list_pluck( $theme->get_block_patterns(), 'slug' );
 
 		// This helper is fired on the init hook.
 		_register_theme_block_patterns();
@@ -515,12 +511,12 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		}
 
 		foreach ( $theme_patterns as $pattern ) {
-			$this->assertContains( $pattern, $registered, 'Could not confirm theme patterns were registered' );
+			$this->assertContains( $pattern, $registered, 'Could not confirm theme patterns were registered.' );
 		}
 	}
 
 	/**
-	 * Ensures theme patterns are not registered when not themes are active and valid.
+	 * Ensures theme patterns are not registered when no themes are active and valid.
 	 *
 	 * @ticket 59723
 	 *
@@ -534,13 +530,9 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		switch_theme( 'twentytwentythree' );
 
 		$theme          = wp_get_theme();
-		$theme_patterns = array();
+		$theme_patterns = wp_list_pluck( $theme->get_block_patterns(), 'slug' );
 
-		foreach ( $theme->get_block_patterns() as $pattern ) {
-			$theme_patterns[] = $pattern['slug'];
-		}
-
-		/**
+		/*
 		 * This will short-circuit theme activation.
 		 * @see wp_get_active_and_valid_themes().
 		 */
@@ -555,7 +547,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		wp_installing( false );
 
 		foreach ( $theme_patterns as $pattern ) {
-			$this->assertNotContains( $pattern, $registered, 'Could not confirm theme patterns were registered' );
+			$this->assertNotContains( $pattern, $registered, 'Theme patterns were were incorrectly registered.' );
 		}
 	}
 }

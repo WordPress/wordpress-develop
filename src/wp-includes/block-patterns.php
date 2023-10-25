@@ -329,7 +329,7 @@ function _register_remote_theme_patterns() {
  */
 function _register_theme_block_patterns() {
 
-	/**
+	/*
 	 * During the bootstrap process, a check for active and valid themes is run.
 	 * If no themes are returned, the theme's functions.php file will not be loaded,
 	 * which can lead to errors if patterns expect some variables or constants to
