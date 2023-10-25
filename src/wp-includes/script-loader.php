@@ -2960,7 +2960,10 @@ function wp_maybe_inline_styles() {
 		$src  = $wp_styles->registered[ $handle ]->src;
 		$path = $wp_styles->get_data( $handle, 'path' );
 		if ( $path && $src ) {
-			$size = wp_filesize( $path );
+			$size = $wp_styles->get_data( $handle, 'file_size' );
+			if ( ! $size ) {
+				$size = wp_filesize( $path );
+			}
 			if ( ! $size ) {
 				continue;
 			}
