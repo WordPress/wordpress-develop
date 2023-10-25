@@ -94,7 +94,7 @@ jobs:
             - Everytime this pull request is updated, a new ZIP file containing all changes is created. If changes are not reflected in the Playground instance,
             it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/wordpress-playground.yml).
 
-            [Test this pull request WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${{ context.issue.number }}).
+            [Test this pull request WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}).
             `;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
