@@ -7814,7 +7814,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
  *
  * @param int[] $ids ID list.
  */
-function wp_prime_post_parent_id_caches( array $ids ) {
+function _prime_post_parent_id_caches( array $ids ) {
 	global $wpdb;
 
 	$ids = array_filter( $ids, '_validate_cache_id' );
