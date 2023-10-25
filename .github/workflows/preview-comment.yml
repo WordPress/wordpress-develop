@@ -1,14 +1,18 @@
 name: Post a PR preview link
 
 on:
-  pull_request_target:
+  pull_request:
     types: [ opened ]
     branches:
       - trunk
 
-# Comment on wordpress-develop PRs to inform WordPress developers 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+# Comment on wordpress-develop PRs to inform WordPress developers
 # about the new preview feature built with WordPress Playground.
-# 
+#
 # @see build.yml
 # @see https://github.com/WordPress/wordpress-develop/pull/5526
 # @see https://github.com/WordPress/wordpress-playground/pull/700
@@ -16,14 +20,16 @@ on:
 jobs:
   comment:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/github-script@v6
         with:
           script: |
             const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
-            const issueComment = `You can preview this Pull Request in [WordPress Playground](https://developer.wordpress.org/playground/), 
+            const issueComment = `You can preview this Pull Request in [WordPress Playground](https://developer.wordpress.org/playground/),
             an experimental environment that securely runs WordPress inside your web browser:
-              
+
             [Click here to preview](${previewLink})
             `;
             github.rest.issues.createComment({
@@ -32,4 +38,4 @@ jobs:
               repo: context.repo.repo,
               body: issueComment
             })
-    
+
