@@ -4,7 +4,7 @@ name: WordPress Playground
 on:
   pull_request_target:
     branches:
-      - trunk
+      - temp-trunk
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
