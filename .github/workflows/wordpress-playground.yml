@@ -73,7 +73,8 @@ jobs:
   comment-on-pr:
     name: Comment on the pull request
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+       issues: write
     needs: [ 'build-wordpress' ]
     if: ${{ 'opened' == github.event.action }}
     steps:
