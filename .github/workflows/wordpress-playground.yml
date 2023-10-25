@@ -11,7 +11,7 @@ on:
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request_target' }}
 
     steps:
       - name: Checkout repository
@@ -65,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         if: always()
         with:
-            name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
+            name: wordpress-build-${{ github.event_name == 'pull_request_target' && github.event.number || github.sha }}
             path: build/wordpress.zip
             if-no-files-found: error
 
