@@ -76,11 +76,25 @@ jobs:
     permissions:
        issues: write
     needs: [ 'build-wordpress' ]
-    if: ${{ 'opened' == github.event.action }}
     steps:
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           script: |
+            // Comments are only added after the first successful build. Check for the presence of a comment and bail early.
+            const commentInfo = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            };
+            const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
+
+            for ( const currentComment of comments ) {
+              if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Test using WordPress Playground' ) ) {
+                return;
+              }
+            };
+
+            // No comment was found. Create one.
             const issueComment = `## Test using WordPress Playground
             The changes in this pull request can previewed and tested using a [WordPress Playground](https://developer.wordpress.org/playground/) instance.
 
@@ -98,9 +112,5 @@ jobs:
 
             [Test this pull request WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}).
             `;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: issueComment
-            })
+
+            github.rest.issues.createComment( commentInfo );
