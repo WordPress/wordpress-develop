@@ -87,7 +87,7 @@ jobs:
 
             WordPress Playground is an experimental project that creates a full WordPress instance entirely within the browser.
 
-           ### Some things to be aware of
+            ### Some things to be aware of
             - All changes will be lost when closing a tab with a Playground instance.
             - All changes will be lost when refreshing the page.
             - A fresh instance is created each time the link below is clicked.
