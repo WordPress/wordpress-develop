@@ -330,9 +330,12 @@ function _register_remote_theme_patterns() {
 function _register_theme_block_patterns() {
 
 	/**
-	 * Bail early if WP is installing, since the theme may not be fully loaded at this point.
+	 * During the bootstrap process, a check for active and valid themes is run.
+	 * If no themes are returned, the theme's functions.php file will not be loaded,
+	 * which can lead to errors if patterns expect some variables or constants to
+	 * already be set at this point, so bail early if that is the case.
 	 */
-	if ( wp_installing() ) {
+	if ( empty( wp_get_active_and_valid_themes() ) ) {
 		return;
 	}
 
