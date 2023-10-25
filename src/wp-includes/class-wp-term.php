@@ -226,7 +226,7 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
-	 * @since 6.4.0 The 'data' property was deprecated.
+	 * @since 6.5.0 The 'data' property was deprecated.
 	 *
 	 * @param string $key Property to get.
 	 * @return stdClass|null Property value.
@@ -235,7 +235,7 @@ final class WP_Term {
 		if ( 'data' === $key ) {
 			_deprecated_argument(
 				'WP_Term::$data',
-				'6.4.0',
+				'6.5.0',
 				sprintf(
 					/* translators: %s: The method name to be used instead of the WP_Term::$data property. */
 					__( 'Use %s instead.' ),
@@ -252,7 +252,7 @@ final class WP_Term {
 	/**
 	 * Returns information about the term as it is stored in the database.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @return stdClass
 	 */
