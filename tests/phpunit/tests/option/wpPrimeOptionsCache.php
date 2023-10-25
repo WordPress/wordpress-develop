@@ -26,7 +26,7 @@ class Tests_Option_WpPrimeOptionsCache extends WP_UnitTestCase {
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_load as $option ) {
+		foreach ( $options_to_prime as $option ) {
 			update_option( $option, "value_$option", false );
 			wp_cache_delete( $option, 'options' );
 			$this->assertFalse( wp_cache_get( $option, 'options' ), "$option was not deleted from the cache." );
@@ -39,7 +39,7 @@ class Tests_Option_WpPrimeOptionsCache extends WP_UnitTestCase {
 		$initial_query_count = get_num_queries();
 
 		// Check that options are only in the 'options' cache group.
-		foreach ( $options_to_load as $option ) {
+		foreach ( $options_to_prime as $option ) {
 			$this->assertSame(
 				wp_cache_get( $option, 'options' ),
 				get_option( $option ),
@@ -78,7 +78,7 @@ class Tests_Option_WpPrimeOptionsCache extends WP_UnitTestCase {
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_load as $option ) {
+		foreach ( $options_to_prime as $option ) {
 			$this->assertFalse( wp_cache_get( $option, 'options' ), "$option was not deleted from the cache." );
 		}
 
@@ -86,14 +86,14 @@ class Tests_Option_WpPrimeOptionsCache extends WP_UnitTestCase {
 		wp_prime_options_cache( $options_to_prime );
 
 		// Check that options are not in the cache or database.
-		foreach ( $options_to_load as $option ) {
+		foreach ( $options_to_prime as $option ) {
 			$this->assertFalse( wp_cache_get( $option, 'options' ), "$option was not deleted from the cache." );
 		}
 
 		// Check that options are present in the notoptions cache.
 		$new_notoptions = wp_cache_get( 'notoptions', 'options' );
 		$this->assertIsArray( $new_notoptions, 'The notoptions cache should be an array.' );
-		foreach ( $options_to_load as $option ) {
+		foreach ( $options_to_prime as $option ) {
 			$this->assertArrayHasKey( $option, $new_notoptions, "$option was not added to the notoptions cache." );
 		}
 	}
