@@ -1,13 +1,10 @@
 name: Post a PR preview link
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [ opened ]
     branches:
       - trunk
-
-# Disable permissions for all available scopes by default.
-# Any needed permissions should be configured at the job level.
-permissions: write-all
 
 # Comment on wordpress-develop PRs to inform WordPress developers
 # about the new preview feature built with WordPress Playground.
@@ -35,4 +32,3 @@ jobs:
               repo: context.repo.repo,
               body: issueComment
             })
-
