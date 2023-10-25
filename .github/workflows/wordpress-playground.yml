@@ -81,11 +81,19 @@ jobs:
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           script: |
-            const previewLink = `https://playground.wordpress.net/wordpress.html?pr=${context.issue.number}`;
-            const issueComment = `You can preview this Pull Request in [WordPress Playground](https://developer.wordpress.org/playground/),
-            an experimental environment that securely runs WordPress inside your web browser:
+            const issueComment = `## Test using WordPress Playground
+            The changes in this pull request can previewed and tested using a [WordPress Playground](https://developer.wordpress.org/playground/) instance.
 
-            [Click here to preview](${previewLink})
+            WordPress Playground is an experimental project that creates a full WordPress instance entirely within the browser.
+
+           ### Some things to be aware of
+            - All changes will be lost when closing a tab with a Playground instance.
+            - All changes will be lost when refreshing the page.
+            - A fresh instance is created each time the link below is clicked.
+            - Everytime this pull request is updated, a new ZIP file containing all changes is created. If changes are not reflected in the Playground instance,
+            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/wordpress-playground.yml).
+
+            [Test this pull request WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${{ context.issue.number }}).
             `;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
