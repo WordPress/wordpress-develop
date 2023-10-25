@@ -7,7 +7,7 @@ on:
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
-permissions: {}
+permissions: write-all
 
 # Comment on wordpress-develop PRs to inform WordPress developers
 # about the new preview feature built with WordPress Playground.
@@ -19,8 +19,6 @@ permissions: {}
 jobs:
   comment:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
       - uses: actions/github-script@v6
         with:
