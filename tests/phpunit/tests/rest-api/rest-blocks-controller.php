@@ -98,7 +98,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 
 	/**
 	 * Exhaustively check that each role either can or cannot create, edit,
-	 * update, and delete synced pattern (formerly called reusable blocks).
+	 * update, and delete synced patterns (formerly called reusable blocks).
 	 *
 	 * @ticket 45098
 	 *

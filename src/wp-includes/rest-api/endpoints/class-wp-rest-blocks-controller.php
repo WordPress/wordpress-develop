@@ -9,7 +9,7 @@
 
 /**
  * Controller which provides a REST endpoint for the editor to read, create,
- * edit and delete synced pattern (formerly called reusable blocks).
+ * edit and delete synced patterns (formerly called reusable blocks).
  * Patterns are stored as posts with the wp_block post type.
  *
  * @since 5.0.0
