@@ -241,10 +241,12 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					isset( $search_query_parts[ $key + 1 ] ) &&
 					in_array( $search_query_parts[ $key + 1 ], array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true )
 				) {
+					// URLs formatted like /search/{search_query}/feed/{feed_type}/.
 					$search_query_args['feed'] = $search_query_parts[ $key + 1 ];
 					$skip_next                 = true;
 					continue;
 				} elseif ( in_array( $search_query_part, array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true ) ) {
+					// URLs formatted like /search/{search_query}/{feed_type}/.
 					$search_query_args['feed'] = $search_query_part;
 					continue;
 				}
@@ -870,9 +872,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( ! $redirect_url || strip_fragment_from_url( $redirect_url ) === strip_fragment_from_url( $requested_url ) ) {
 		return;
 	}
-	if ( $do_redirect || $is_search_pretty_permalink ) {
+
+	if ( $do_redirect ) {
 		// Protect against chained redirects.
-		if ( $is_search_pretty_permalink || ! redirect_canonical( $redirect_url, false ) ) {
+		if ( ! redirect_canonical( $redirect_url, false ) || $is_search_pretty_permalink ) {
 			wp_redirect( $redirect_url, 301 );
 			exit;
 		} else {
