@@ -225,14 +225,6 @@ function get_the_block_template_html() {
 		return;
 	}
 
-	/*
-	 * Check whether the current template actually comes from the theme.
-	 * This is generally the case, except when plugins hijack the block template loading process
-	 * to inject a custom template coming from a plugin.
-	 */
-	$current_theme_owns_current_template = $_wp_current_template_id &&
-		str_starts_with( $_wp_current_template_id, get_stylesheet() . '//' );
-
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
 	$content = $wp_embed->autoembed( $content );
 	$content = shortcode_unautop( $content );
@@ -256,7 +248,13 @@ function get_the_block_template_html() {
 	 * it has been injected by a plugin by hijacking the block template loader mechanism. In that case, entirely custom
 	 * logic may be applied which is unpredictable and therefore safer to omit this special handling on.
 	 */
-	if ( $current_theme_owns_current_template && is_singular() && 1 === $wp_query->post_count && have_posts() ) {
+	if (
+		$_wp_current_template_id &&
+		str_starts_with( $_wp_current_template_id, get_stylesheet() . '//' ) &&
+		is_singular() &&
+		1 === $wp_query->post_count &&
+		have_posts()
+	) {
 		while ( have_posts() ) {
 			the_post();
 			$content = do_blocks( $content );
