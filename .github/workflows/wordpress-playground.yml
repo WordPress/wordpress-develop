@@ -94,7 +94,7 @@ jobs:
             };
 
             // No comment was found. Create one.
-            const issueComment = `## Test using WordPress Playground
+            commentInfo.body = `## Test using WordPress Playground
             The changes in this pull request can previewed and tested using a [WordPress Playground](https://developer.wordpress.org/playground/) instance.
 
             [WordPress Playground](https://developer.wordpress.org/playground/) is an experimental project that creates a full WordPress instance entirely within the browser.
