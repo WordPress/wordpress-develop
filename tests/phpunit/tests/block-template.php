@@ -18,8 +18,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		global $_wp_current_template_content;
-		unset( $_wp_current_template_content );
+		global $_wp_current_template_id, $_wp_current_template_content;
+		unset( $_wp_current_template_id, $_wp_current_template_content );
 
 		parent::tear_down();
 	}

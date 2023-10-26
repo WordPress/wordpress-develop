@@ -79,6 +79,9 @@ CAP;
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
 	public function tear_down() {
+		global $_wp_current_template_id, $_wp_current_template_content;
+		unset( $_wp_current_template_id, $_wp_current_template_content );
+
 		parent::tear_down();
 
 		$this->reset_content_media_count();
