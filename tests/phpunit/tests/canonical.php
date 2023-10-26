@@ -425,4 +425,27 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->assertSame( $expected, $url );
 	}
+
+	/**
+	 * @ticket 4463
+	 */
+	public function test_redirect_pretty_search_results() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$test_urls = array(
+			'/search/hello'           => '/?s=hello',
+			'/search/hello/page/2'    => '/?s=hello&paged=2',
+			'/search/hello/feed/rss2' => '/?s=hello&feed=rss2',
+			'/search/hello/rss2'      => '/?s=hello&feed=rss2',
+			'/search/hello/feed'      => '/?s=hello&feed=rss2',
+		);
+
+		foreach ( $test_urls as $test_url => $expected ) {
+			$this->go_to( $test_url );
+			$this->assertSame(
+				sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $expected ),
+				redirect_canonical( sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $test_url ), false )
+			);
+		}
+	}
 }
