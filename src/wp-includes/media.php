@@ -1520,8 +1520,8 @@ function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image
  *
  * @param string|int[] $size          Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order).
- * @param string       $image_src     Optional. The URL to the image file. Default null.
- * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
+ * @param string|null  $image_src     Optional. The URL to the image file. Default null.
+ * @param array|null   $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
  * @param int          $attachment_id Optional. Image attachment ID. Either `$image_meta` or `$attachment_id`
  *                                    is needed when using the image size name as argument for `$size`. Default 0.
