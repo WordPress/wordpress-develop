@@ -498,7 +498,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		switch_theme( 'twentytwentythree' );
 
 		$theme          = wp_get_theme();
-		$theme_patterns = wp_list_pluck( $theme->get_block_patterns(), 'slug' );
+		$theme_patterns = array_values( wp_list_pluck( $theme->get_block_patterns(), 'slug' ) );
 
 		// This helper is fired on the init hook.
 		_register_theme_block_patterns();
@@ -510,9 +510,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			$registry->unregister( $pattern );
 		}
 
-		foreach ( $theme_patterns as $pattern ) {
-			$this->assertContains( $pattern, $registered, 'Could not confirm theme patterns were registered.' );
-		}
+		$this->assertEqualSets( $theme_patterns, array_intersect( $theme_patterns, $registered ), 'Could not confirm theme patterns were registered.' );
 	}
 
 	/**
@@ -530,7 +528,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		switch_theme( 'twentytwentythree' );
 
 		$theme          = wp_get_theme();
-		$theme_patterns = wp_list_pluck( $theme->get_block_patterns(), 'slug' );
+		$theme_patterns = array_values( wp_list_pluck( $theme->get_block_patterns(), 'slug' ) );
 
 		/*
 		 * This will short-circuit theme activation.
@@ -546,8 +544,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// Cleanup.
 		wp_installing( false );
 
-		foreach ( $theme_patterns as $pattern ) {
-			$this->assertNotContains( $pattern, $registered, 'Theme patterns were were incorrectly registered.' );
-		}
+		$this->assertEmpty( array_intersect( $theme_patterns, $registered ), 'Theme patterns were were incorrectly registered.' );
 	}
 }
