@@ -3,7 +3,7 @@
 /**
  * Tests for wp_check_filetype().
  *
- * @group functions.php
+ * @group functions
  * @group upload
  *
  * @covers ::wp_check_filetype
