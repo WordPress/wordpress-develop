@@ -557,7 +557,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$search_query       = explode( '/search/', $requested_url )[1];
 		$search_query_parts = explode( '/', $search_query );
 		$search_query_args  = array();
-		var_dump( $search_query_parts );
+
 		$skip_next = false;
 		foreach ( $search_query_parts as $key => $search_query_part ) {
 			if ( $skip_next ) {
