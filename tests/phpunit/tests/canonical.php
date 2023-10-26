@@ -428,24 +428,48 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * @ticket 4463
+	 * @dataProvider data_test_redirect_pretty_search_results
 	 */
-	public function test_redirect_pretty_search_results() {
+	public function test_redirect_pretty_search_results( $input_url, $expected ) {
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$test_urls = array(
-			'/search/hello'           => '/?s=hello',
-			'/search/hello/page/2'    => '/?s=hello&paged=2',
-			'/search/hello/feed/rss2' => '/?s=hello&feed=rss2',
-			'/search/hello/rss2'      => '/?s=hello&feed=rss2',
-			'/search/hello/feed'      => '/?s=hello&feed=rss2',
+		$this->go_to( $input_url );
+		$this->assertSame(
+			sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $expected ),
+			redirect_canonical( sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $input_url ), false )
 		);
+	}
 
-		foreach ( $test_urls as $test_url => $expected ) {
-			$this->go_to( $test_url );
-			$this->assertSame(
-				sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $expected ),
-				redirect_canonical( sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $test_url ), false )
-			);
-		}
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_with_custom_statuses().
+	 *
+	 * return array[] {
+	 *    array Arguments used to register custom status
+	 *    bool  Whether the 404 link is expected to redirect
+	 * }
+	 */
+	public function data_test_redirect_pretty_search_results() {
+		return array(
+			'simple search'                                => array(
+				'input_url' => '/search/hello',
+				'expected'  => '/?s=hello',
+			),
+			'paged search'                                 => array(
+				'input_url' => '/search/hello/page/2',
+				'expected'  => '/?s=hello&paged=2',
+			),
+			'feed search with both "feed" and "type" args' => array(
+				'input_url' => '/search/hello/feed/rss2',
+				'expected'  => '/?s=hello&feed=rss2',
+			),
+			'feed search with only "type" arg'             => array(
+				'input_url' => '/search/hello/rss2',
+				'expected'  => '/?s=hello&feed=rss2',
+			),
+			'feed search with only "feed" arg'             => array(
+				'input_url' => '/search/hello/feed',
+				'expected'  => '/?s=hello&feed=rss2',
+			),
+		);
 	}
 }
