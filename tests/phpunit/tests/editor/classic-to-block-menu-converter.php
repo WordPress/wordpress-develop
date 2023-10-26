@@ -7,6 +7,8 @@
 
 /**
  * Tests for the WP_Classic_To_Block_Menu_Converter_Test class.
+ *
+ * @group editor
  */
 class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
