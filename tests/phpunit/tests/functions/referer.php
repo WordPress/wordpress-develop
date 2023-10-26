@@ -3,7 +3,8 @@
 /**
  * Test wp_get_referer().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_get_referer
  * @covers ::wp_get_raw_referer
  */

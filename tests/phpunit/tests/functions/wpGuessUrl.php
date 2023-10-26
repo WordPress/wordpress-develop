@@ -3,7 +3,8 @@
 /**
  * Test wp_guess_url().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_guess_url
  */
 class Tests_Functions_wpGuessUrl extends WP_UnitTestCase {
