@@ -36,5 +36,4 @@ class Tests_functions_wpCacheGetLastChanged extends WP_UnitTestCase {
 
 		$this->assertSame( wp_cache_get_last_changed( $group ), wp_cache_get( 'last_changed', $group ) );
 	}
-
 }
