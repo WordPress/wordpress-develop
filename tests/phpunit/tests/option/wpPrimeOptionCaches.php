@@ -43,13 +43,13 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 			$this->assertSame(
 				wp_cache_get( $option, 'options' ),
 				get_option( $option ),
-				"$option was not loaded to the 'options' cache group."
+				"$option was not primed in the 'options' cache group."
 			);
 
 			$this->assertFalse(
 				wp_cache_get( $option, 'notoptions' ),
 				get_option( $option ),
-				"$option was loaded to the 'notoptions' cache group."
+				"$option was primed in the 'notoptions' cache group."
 			);
 		}
 
