@@ -510,7 +510,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			$registry->unregister( $pattern );
 		}
 
-		$this->assertEqualSets( $theme_patterns, array_intersect( $theme_patterns, $registered ), 'Could not confirm theme patterns were registered.' );
+		$this->assertSameSets( $theme_patterns, array_intersect( $theme_patterns, $registered ), 'Could not confirm theme patterns were registered.' );
 	}
 
 	/**
