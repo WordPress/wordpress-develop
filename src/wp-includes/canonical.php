@@ -81,8 +81,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	$redirect_url = false;
 	$redirect_obj = false;
 
-	$is_search_pretty_permalink = false;
-
 	// Notice fixing.
 	if ( ! isset( $redirect['path'] ) ) {
 		$redirect['path'] = '';
@@ -602,8 +600,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 
 		if ( ! empty( $search_query_args ) ) {
-			$redirect_url               = add_query_arg( $search_query_args, home_url( '/' ) );
-			$is_search_pretty_permalink = true;
+			$redirect_url = add_query_arg( $search_query_args, home_url( '/' ) );
 		}
 	}
 
@@ -876,7 +873,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	if ( $do_redirect ) {
 		// Protect against chained redirects.
-		if ( ! redirect_canonical( $redirect_url, false ) || $is_search_pretty_permalink ) {
+		if ( ! redirect_canonical( $redirect_url, false ) ) {
 			wp_redirect( $redirect_url, 301 );
 			exit;
 		} else {
