@@ -144,7 +144,7 @@ for ( const key of testSuites ) {
 		const prevValue = median( prev[ metric ] );
 
 		const delta = value - prevValue;
-		const percentage = Math.round( ( delta / value ) * 100 );
+		const percentage = ( delta / value ) * 100;
 		rows.push( {
 			Metric: metric,
 			Before: `${ prevValue.toFixed( 2 ) } ms`,
