@@ -540,7 +540,7 @@
 	padding: var(--gap) 0;
 	height: clamp(12.5rem, -1.25rem + 36.67vw, 26.25rem);
 	color: var(--text-light);
-	background: url('images/about-header-about.svg?ver=6.4'), url('images/about-header-background.svg?ver=6.4');
+	background-image: url('../images/about-header-about.svg?ver=6.4'), url('../images/about-header-background.svg?ver=6.4');
 	background-size: auto 70%, cover;
 	border-radius: 5px;
 	background-repeat: no-repeat;
@@ -549,19 +549,19 @@
 }
 
 .credits-php .about__header {
-	background-image: url('../images/about-header-credits.svg?ver=6.4'), url('images/about-header-background.svg?ver=6.4');
+	background-image: url('../images/about-header-credits.svg?ver=6.4'), url('../images/about-header-background.svg?ver=6.4');
 }
 
 .freedoms-php .about__header {
-	background-image: url('../images/about-header-freedoms.svg?ver=6.4'), url('images/about-header-background.svg?ver=6.4');
+	background-image: url('../images/about-header-freedoms.svg?ver=6.4'), url('../images/about-header-background.svg?ver=6.4');
 }
 
 .privacy-php .about__header {
-	background-image: url('../images/about-header-privacy.svg?ver=6.4'), url('images/about-header-background.svg?ver=6.4');
+	background-image: url('../images/about-header-privacy.svg?ver=6.4'), url('../images/about-header-background.svg?ver=6.4');
 }
 
 .contribute-php .about__header {
-	background-image: url('../images/about-header-contribute.svg?ver=6.4'), url('images/about-header-background.svg?ver=6.4');
+	background-image: url('../images/about-header-contribute.svg?ver=6.4'), url('../images/about-header-background.svg?ver=6.4');
 }
 
 .about__header-image {
