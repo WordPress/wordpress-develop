@@ -40,4 +40,3 @@ class Tests_functions_wp_privacy_exports_dir extends WP_UnitTestCase {
 		return '/wp-personal-data-exports-url/';
 	}
 }
-
