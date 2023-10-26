@@ -6663,7 +6663,7 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
  *
  * @since 4.2.0
  *
- * @param string      $type Attachment type. Accepts 'image', 'audio', or 'video'.
+ * @param string      $type The type of attachment to check. Valid values are `image`, `audio`, `video`, or any file extension.
  * @param int|WP_Post $post Optional. Attachment ID or object. Default is global $post.
  * @return bool True if one of the accepted types, false otherwise.
  */
