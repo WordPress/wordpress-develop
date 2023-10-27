@@ -71,6 +71,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return ( $image_types & IMG_GIF ) != 0;
 			case 'image/webp':
 				return ( $image_types & IMG_WEBP ) != 0;
+			case 'image/avif':
+				return ( $image_types & IMG_AVIF ) != 0;
 		}
 
 		return false;
