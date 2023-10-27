@@ -446,28 +446,28 @@ class Theme_Upgrader extends WP_Upgrader {
 			// Get the URL to the zip file.
 			$r = $current->response[ $theme ];
 
-			if ( isset( $r->requires ) && ! is_wp_version_compatible( $r->requires ) ) {
+			if ( isset( $r['requires'] ) && ! is_wp_version_compatible( $r['requires'] ) ) {
 				$result = new WP_Error(
 					'incompatible_wp_required_version',
 					sprintf(
 						/* translators: 1: Current WordPress version, 2: WordPress version required by the new theme version. */
 						__( 'Your WordPress version is %1$s, however the new theme version requires %2$s.' ),
 						$wp_version,
-						$r->requires
+						$r['requires']
 					)
 				);
 
 				$this->skin->before( $result );
 				$this->skin->error( $result );
 				$this->skin->after();
-			} elseif ( isset( $r->requires_php ) && ! is_php_version_compatible( $r->requires_php ) ) {
+			} elseif ( isset( $r['requires_php'] ) && ! is_php_version_compatible( $r['requires_php'] ) ) {
 				$result = new WP_Error(
 					'incompatible_php_required_version',
 					sprintf(
 						/* translators: 1: Current PHP version, 2: PHP version required by the new theme version. */
 						__( 'The PHP version on your server is %1$s, however the new theme version requires %2$s.' ),
 						PHP_VERSION,
-						$r->requires_php
+						$r['requires_php']
 					)
 				);
 
