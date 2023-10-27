@@ -442,6 +442,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			// Get the URL to the zip file.
 			$r = $current->response[ $theme ];
 
+			add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 			$result = $this->run(
 				array(
 					'package'           => $r['package'],
@@ -459,6 +460,7 @@ class Theme_Upgrader extends WP_Upgrader {
 					),
 				)
 			);
+			remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 
 			$results[ $theme ] = $result;
 
