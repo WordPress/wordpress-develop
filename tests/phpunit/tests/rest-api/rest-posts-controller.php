@@ -256,7 +256,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
 	 *
-	 * @issue 862
+	 * @ticket 862
 	 */
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
