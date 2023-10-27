@@ -29,11 +29,11 @@ on:
 permissions: {}
 
 env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
   LOCAL_PHP: '7.4-fpm'
   LOCAL_PHP_XDEBUG: true
   LOCAL_PHP_XDEBUG_MODE: 'coverage'
   LOCAL_PHP_MEMCACHED: ${{ false }}
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
 jobs:
   # Runs the PHPUnit tests for WordPress.

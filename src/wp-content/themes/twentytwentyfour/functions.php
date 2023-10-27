@@ -9,16 +9,15 @@
  */
 
 /**
- * Register block Styles
+ * Register block styles.
  */
 
 if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 	/**
 	 * Register custom block styles
 	 *
-	 * @return void
 	 * @since Twenty Twenty-Four 1.0
-	 *
+	 * @return void
 	 */
 	function twentytwentyfour_block_styles() {
 		/**
@@ -52,7 +51,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				.is-style-arrow-icon-details {
 					padding-top: var(--wp--preset--spacing--10);
 					padding-bottom: var(--wp--preset--spacing--10);
-					border-bottom: 1px solid rgba(255, 255, 255, 0.20);
+					border-bottom: 1px solid var(--wp--preset--color--contrast-2, currentColor);
 				}
 
 				.is-style-arrow-icon-details summary {
@@ -165,3 +164,28 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 endif;
 
 add_action( 'init', 'twentytwentyfour_block_styles' );
+
+/**
+ * Register pattern categories.
+ */
+
+if ( ! function_exists( 'twentytwentyfour_pattern_categories' ) ) :
+	/**
+	 * Register pattern categories
+	 *
+	 * @since Twenty Twenty-Four 1.0
+	 * @return void
+	 */
+	function twentytwentyfour_pattern_categories() {
+
+		register_block_pattern_category(
+			'page',
+			array(
+				'label'       => _x( 'Pages', 'Block pattern category' ),
+				'description' => __( 'A collection of full page layouts.' ),
+			)
+		);
+	}
+endif;
+
+add_action( 'init', 'twentytwentyfour_pattern_categories' );

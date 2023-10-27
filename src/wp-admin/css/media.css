@@ -130,6 +130,7 @@
 }
 
 .media-item .edit-attachment.copy-to-clipboard-container {
+	display: flex;
 	margin-top: 0;
 }
 
@@ -1271,6 +1272,7 @@ audio, video {
  * HiDPI Displays
  */
 @media print,
+  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 	.imgedit-wait:before {
 		background-image: url(../images/spinner-2x.gif);
