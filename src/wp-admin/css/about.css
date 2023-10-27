@@ -648,10 +648,6 @@
 }
 
 @media screen and (max-width: 960px) {
-	.about__header-title h1 {
-		/* Fluid font size scales on browser size 600px - 960px. */
-		/*font-size: clamp(3rem, 13.33vw - 2rem, 6rem);*/
-	}
 
 	.about-php .about__header-title h1,
 	.credits-php .about__header-title h1,
