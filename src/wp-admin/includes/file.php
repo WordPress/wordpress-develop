@@ -1139,7 +1139,9 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 /**
  * Downloads a URL to a local temporary file using the WordPress HTTP API.
  *
- * Please note that the calling function must unlink() the file.
+ * Please note that the calling function must `wp_delete_file()` the file.
+ *
+ * @link https://developer.wordpress.org/reference/functions/wp_delete_file/
  *
  * @since 2.5.0
  * @since 5.2.0 Signature Verification with SoftFail was added.
