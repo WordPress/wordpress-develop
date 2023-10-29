@@ -193,7 +193,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 		add_option( 'type_of_option', $option_value, '', false );
 		wp_cache_delete( 'type_of_option', 'options' );
 
-		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'double_primed_option was not deleted from the cache for priming.' );
+		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'type_of_option was not deleted from the cache for priming.' );
 
 		// Call the wp_prime_option_caches function to prime the options.
 		wp_prime_option_caches( array( 'type_of_option' ) );
@@ -201,7 +201,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 
 		// Clear the cache and call get_option directly.
 		wp_cache_delete( 'type_of_option', 'options' );
-		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'double_primed_option was not deleted from the cache for get_option.' );
+		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'type_of_option was not deleted from the cache for get_option.' );
 		$value_after_get_option = get_option( 'type_of_option' );
 
 		/*
@@ -230,14 +230,14 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 		add_option( 'type_of_option', $option_value, '', false );
 		wp_cache_delete( 'type_of_option', 'options' );
 
-		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'double_primed_option was not deleted from the cache for wp_prime_option_caches().' );
+		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'type_of_option was not deleted from the cache for wp_prime_option_caches().' );
 
 		// Call the wp_prime_option_caches function to prime the options.
 		wp_prime_option_caches( array( 'type_of_option' ) );
 		$value_from_priming = wp_cache_get( 'type_of_option', 'options' );
 
 		wp_cache_delete( 'type_of_option', 'options' );
-		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'double_primed_option was not deleted from the cache for get_option().' );
+		$this->assertFalse( wp_cache_get( 'type_of_option', 'options' ), 'type_of_option was not deleted from the cache for get_option().' );
 
 		// Call get_option() to prime the options.
 		get_option( 'type_of_option' );
