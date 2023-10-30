@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  */
 class Tests_Term extends WP_UnitTestCase {
 	protected $taxonomy        = 'category';
@@ -139,7 +140,6 @@ class Tests_Term extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group category.php
 	 *
 	 * @covers ::wp_insert_term
 	 */
