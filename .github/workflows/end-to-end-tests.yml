@@ -32,6 +32,7 @@ permissions: {}
 
 env:
   LOCAL_DIR: build
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
 jobs:
   # Runs the end-to-end test suite.
@@ -158,7 +159,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ e2e-tests ]
+    needs: [ e2e-tests, slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
