@@ -87,88 +87,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::_build_block_template_result_from_post
-	 */
-	public function test_build_block_template_result_from_post() {
-		$template = _build_block_template_result_from_post(
-			self::$template_post,
-			'wp_template'
-		);
-
-		$this->assertNotWPError( $template );
-		$this->assertSame( get_stylesheet() . '//my_template', $template->id );
-		$this->assertSame( get_stylesheet(), $template->theme );
-		$this->assertSame( 'my_template', $template->slug );
-		$this->assertSame( 'publish', $template->status );
-		$this->assertSame( 'custom', $template->source );
-		$this->assertSame( 'My Template', $template->title );
-		$this->assertSame( 'Description of my template', $template->description );
-		$this->assertSame( 'wp_template', $template->type );
-		$this->assertSame( self::$template_post->post_modified, $template->modified, 'Template result properties match' );
-
-		// Test template parts.
-		$template_part = _build_block_template_result_from_post(
-			self::$template_part_post,
-			'wp_template_part'
-		);
-		$this->assertNotWPError( $template_part );
-		$this->assertSame( get_stylesheet() . '//my_template_part', $template_part->id );
-		$this->assertSame( get_stylesheet(), $template_part->theme );
-		$this->assertSame( 'my_template_part', $template_part->slug );
-		$this->assertSame( 'publish', $template_part->status );
-		$this->assertSame( 'custom', $template_part->source );
-		$this->assertSame( 'My Template Part', $template_part->title );
-		$this->assertSame( 'Description of my template part', $template_part->description );
-		$this->assertSame( 'wp_template_part', $template_part->type );
-		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
-		$this->assertSame( self::$template_part_post->post_modified, $template_part->modified, 'Template part result properties match' );
-	}
-
-
-	/**
-	 * @covers ::_build_block_template_result_from_file
-	 */
-	public function test_build_block_template_result_from_file() {
-		$template = _build_block_template_result_from_file(
-			array(
-				'slug' => 'single',
-				'path' => __DIR__ . '/../data/templates/template.html',
-			),
-			'wp_template'
-		);
-
-		$this->assertSame( get_stylesheet() . '//single', $template->id );
-		$this->assertSame( get_stylesheet(), $template->theme );
-		$this->assertSame( 'single', $template->slug );
-		$this->assertSame( 'publish', $template->status );
-		$this->assertSame( 'theme', $template->source );
-		$this->assertSame( 'Single Posts', $template->title );
-		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
-		$this->assertSame( 'wp_template', $template->type );
-		$this->assertEmpty( $template->modified );
-
-		// Test template parts.
-		$template_part = _build_block_template_result_from_file(
-			array(
-				'slug' => 'header',
-				'path' => __DIR__ . '/../data/templates/template.html',
-				'area' => WP_TEMPLATE_PART_AREA_HEADER,
-			),
-			'wp_template_part'
-		);
-		$this->assertSame( get_stylesheet() . '//header', $template_part->id );
-		$this->assertSame( get_stylesheet(), $template_part->theme );
-		$this->assertSame( 'header', $template_part->slug );
-		$this->assertSame( 'publish', $template_part->status );
-		$this->assertSame( 'theme', $template_part->source );
-		$this->assertSame( 'header', $template_part->title );
-		$this->assertSame( '', $template_part->description );
-		$this->assertSame( 'wp_template_part', $template_part->type );
-		$this->assertSame( WP_TEMPLATE_PART_AREA_HEADER, $template_part->area );
-		$this->assertEmpty( $template_part->modified );
-	}
-
-	/**
 	 * @ticket 59338
 	 *
 	 * @covers ::_inject_theme_attribute_in_template_part_block
@@ -312,8 +230,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @ticket 54448
 	 * @ticket 59460
 	 *
-	 * @covers ::_remove_theme_attribute_in_block_template_content
-	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 *
 	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
@@ -370,8 +286,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should retrieve the template from the theme files.
-	 *
-	 * @covers ::get_block_template
 	 */
 	public function test_get_block_template_from_file() {
 		$id       = get_stylesheet() . '//' . 'index';
@@ -397,8 +311,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should retrieve the template from the CPT.
-	 *
-	 * @covers ::get_block_template
 	 */
 	public function test_get_block_template_from_post() {
 		$id       = get_stylesheet() . '//' . 'my_template';
@@ -424,8 +336,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should flatten nested blocks
-	 *
-	 * @covers ::_flatten_blocks
 	 */
 	public function test_flatten_blocks() {
 		$content_template_part_inside_group = '<!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group -->';
@@ -452,8 +362,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @ticket 54448
 	 * @requires extension zip
-	 *
-	 * @covers ::wp_generate_block_templates_export_file
 	 */
 	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();

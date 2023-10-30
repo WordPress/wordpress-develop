@@ -15,6 +15,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		parent::set_up();
 		switch_theme( 'block-theme' );
 		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
 	}
 
 	public function tear_down() {
