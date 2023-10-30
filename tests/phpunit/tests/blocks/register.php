@@ -600,6 +600,126 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests registering a block using arguments instead of a block.json file.
+	 *
+	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_arguments() {
+		$result = register_block_type_from_metadata(
+			'',
+			array(
+				'api_version' => 2,
+				'name'        => 'tests/notice-from-array',
+				'title'       => 'Notice from array',
+				'category'    => 'common',
+				'icon'        => 'star',
+				'description' => 'Shows warning, error or success notices… (registered from an array)',
+				'keywords'    => array(
+					'alert',
+					'message',
+				),
+				'textdomain'  => 'notice-from-array',
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
+		$this->assertSame( 'tests/notice-from-array', $result->name, 'The block name is incorrect' );
+		$this->assertSame( 'Notice from array', $result->title, 'The block title is incorrect' );
+		$this->assertSame( 'common', $result->category, 'The block category is incorrect' );
+		$this->assertSame( 'star', $result->icon, 'The block icon is incorrect' );
+		$this->assertSame(
+			'Shows warning, error or success notices… (registered from an array)',
+			$result->description,
+			'The block description is incorrect'
+		);
+		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords, 'The block keywords are incorrect' );
+	}
+
+	/**
+	 * Tests that defined $args can properly override the block.json file.
+	 *
+	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_block_registers_with_args_override() {
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice',
+			array(
+				'name'  => 'tests/notice-with-overrides',
+				'title' => 'Overriden title',
+				'style' => array( 'tests-notice-style-overridden' ),
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
+		$this->assertSame( 'tests/notice-with-overrides', $result->name, 'The block name was not overridden' );
+		$this->assertSame( 'Overriden title', $result->title, 'The block title was not overridden' );
+		$this->assertSameSets(
+			array( 'tests-notice-editor-script' ),
+			$result->editor_script_handles,
+			'The block editor script is incorrect'
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-style-overridden' ),
+			$result->style_handles,
+			'The block style was not overridden'
+		);
+		$this->assertIsCallable( $result->render_callback );
+	}
+
+	/**
+	 * Tests that when the `name` is missing, `register_block_type_from_metadata()`
+	 * will return `false`.
+	 *
+	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 *
+	 * @dataProvider data_register_block_registers_with_args_override_returns_false_when_name_is_missing
+	 *
+	 * @param string $file The metadata file.
+	 * @param array  $args Array of block type arguments.
+	 */
+	public function test_block_registers_with_args_override_returns_false_when_name_is_missing( $file, $args ) {
+		$this->assertFalse( register_block_type_from_metadata( $file, $args ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
+		return array(
+			'no block.json file and no name argument' => array(
+				'file' => '', // No block.json file.
+				'args' => array(
+					'title' => 'Overriden title',
+					'style' => array( 'tests-notice-style-overridden' ),
+				),
+			),
+			'existing file and args not an array'     => array(
+				// A file that exists but is empty. This will bypass the file_exists() check.
+				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
+				'args' => false,
+			),
+			'existing file and args[name] missing'    => array(
+				// A file that exists but is empty. This will bypass the file_exists() check.
+				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
+				'args' => array(
+					'title' => 'Overriden title',
+					'style' => array( 'tests-notice-style-overridden' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
 	 *
