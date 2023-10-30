@@ -3311,84 +3311,65 @@ function wp_rel_ugc( $text ) {
  * @return string Converted content.
  */
 function wp_targeted_link_rel( $text ) {
-	// Don't run (more expensive) regex if no links with targets.
+	// Don't run more expensive code if it's not possible that A links with targets set are in the text.
 	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
 		return $text;
 	}
 
-	$script_and_style_regex = '/<(script|style).*?<\/\\1>/si';
+	$processor = new WP_HTML_Tag_Processor( $text );
+	while ( $processor->next_tag( 'A' ) ) {
+		$rel    = $processor->get_attribute( 'rel' );
+		$target = $processor->get_attribute( 'target' );
 
-	preg_match_all( $script_and_style_regex, $text, $matches );
-	$extra_parts = $matches[0];
-	$html_parts  = preg_split( $script_and_style_regex, $text );
+		/**
+		 * Generated to support backwards compatability for old filters
+		 * which process the HTML tag string containing the link.
+		 */
+		$fake_link_html = sprintf(
+			'<a href="%s" rel="%s" target="%s">',
+			esc_url( $processor->get_attribute( 'href' ) ),
+			esc_attr( $rel ),
+			esc_attr( $target )
+		);
 
-	foreach ( $html_parts as &$part ) {
-		$part = preg_replace_callback( '|<a\s([^>]*target\s*=[^>]*)>|i', 'wp_targeted_link_rel_callback', $part );
-	}
+		/**
+		 * Filters the rel values that are added to links with `target` attribute.
+		 *
+		 * This filter provides an HTML snippet containing the A element's opening tag
+		 * and it should return a new value for the "rel" attribute.
+		 *
+		 * @since 5.1.0
+		 * @since 6.5.0 Only sends href, rel, and target attributes in the HTML tag string.
+		 *
+		 * @param string $rel       The rel values.
+		 * @param string $link_html HTML snippet containing an opening A tag with href, rel, and target attributes.
+		 */
+		$filtered_rel = apply_filters( 'wp_targeted_link_rel', 'noopener', $fake_link_html );
 
-	$text = '';
-	for ( $i = 0; $i < count( $html_parts ); $i++ ) {
-		$text .= $html_parts[ $i ];
-		if ( isset( $extra_parts[ $i ] ) ) {
-			$text .= $extra_parts[ $i ];
+		// If someone wanted to remove the `rel` attribute then do that and move on.
+		if ( ! $filtered_rel ) {
+			$processor->remove_attribute( 'rel' );
+			continue;
 		}
+
+		// If there is no `target` attribute then there's no need to add special `rel` values.
+		if ( ! is_string( $target ) ) {
+			continue;
+		}
+
+		// Otherwise, append the filtered `rel` value to the original one and only retian the unique components.
+		$new_rel   = ' ';
+		$rel_parts = preg_split( "~[ \t\f\n\r]+~", "{$rel} {$filtered_rel}", -1, PREG_SPLIT_NO_EMPTY );
+		foreach ( $rel_parts as $part ) {
+			if ( ! str_contains( $new_rel, " {$part} " ) ) {
+				$new_rel .= "{$part} ";
+			}
+		}
+
+		$processor->set_attribute( 'rel', trim( $new_rel ) );
 	}
 
-	return $text;
-}
-
-/**
- * Callback to add `rel="noopener"` string to HTML A element.
- *
- * Will not duplicate an existing 'noopener' value to avoid invalidating the HTML.
- *
- * @since 5.1.0
- * @since 5.6.0 Removed 'noreferrer' relationship.
- *
- * @param array $matches Single match.
- * @return string HTML A Element with `rel="noopener"` in addition to any existing values.
- */
-function wp_targeted_link_rel_callback( $matches ) {
-	$link_html          = $matches[1];
-	$original_link_html = $link_html;
-
-	// Consider the HTML escaped if there are no unescaped quotes.
-	$is_escaped = ! preg_match( '/(^|[^\\\\])[\'"]/', $link_html );
-	if ( $is_escaped ) {
-		// Replace only the quotes so that they are parsable by wp_kses_hair(), leave the rest as is.
-		$link_html = preg_replace( '/\\\\([\'"])/', '$1', $link_html );
-	}
-
-	$atts = wp_kses_hair( $link_html, wp_allowed_protocols() );
-
-	/**
-	 * Filters the rel values that are added to links with `target` attribute.
-	 *
-	 * @since 5.1.0
-	 *
-	 * @param string $rel       The rel values.
-	 * @param string $link_html The matched content of the link tag including all HTML attributes.
-	 */
-	$rel = apply_filters( 'wp_targeted_link_rel', 'noopener', $link_html );
-
-	// Return early if no rel values to be added or if no actual target attribute.
-	if ( ! $rel || ! isset( $atts['target'] ) ) {
-		return "<a $original_link_html>";
-	}
-
-	if ( isset( $atts['rel'] ) ) {
-		$all_parts = preg_split( '/\s/', "{$atts['rel']['value']} $rel", -1, PREG_SPLIT_NO_EMPTY );
-		$rel       = implode( ' ', array_unique( $all_parts ) );
-	}
-
-	$atts['rel']['whole'] = 'rel="' . esc_attr( $rel ) . '"';
-	$link_html            = implode( ' ', array_column( $atts, 'whole' ) );
-
-	if ( $is_escaped ) {
-		$link_html = preg_replace( '/[\'"]/', '\\\\$0', $link_html );
-	}
-
-	return "<a $link_html>";
+	return $processor->get_updated_html();
 }
 
 /**
