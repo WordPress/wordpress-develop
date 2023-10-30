@@ -542,9 +542,12 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		);
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<a href="https://example.org"', $output );
-		$this->assertStringContainsString( 'target="_blank"', $output );
-		$this->assertStringContainsString( 'rel="noopener"', $output );
+		$dom = new DOMDocument();
+		$dom->loadHTML( '<html><meta charset="utf-8">' . $output );
+		$a = $dom->getElementsByTagName( 'A' )->item( 0 );
+		$this->assertEquals( 'https://example.org', $a->attributes['href'] );
+		$this->assertEquals( '_blank', $a->attributes['target'] );
+		$this->assertEquals( 'noopener', $a->attributes['rel'] );
 
 		// Populate caption in attachment.
 		wp_update_post(
