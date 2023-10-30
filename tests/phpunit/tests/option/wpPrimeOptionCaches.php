@@ -90,8 +90,11 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 			$this->assertFalse( wp_cache_get( $option, 'options' ), "$option was not deleted from the cache." );
 		}
 
-		// Prime the first option.
-		wp_prime_option_caches( array( 'option1' ) );
+		// Add non-existent option to the options to prime.
+		$options_to_prime[] = 'option404notfound';
+
+		// Prime the first option with a non-existent option.
+		wp_prime_option_caches( array( 'option1', 'option404notfound' ) );
 
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
@@ -108,9 +111,16 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 
 		// Ensure the last query does not contain the pre-primed option.
 		$this->assertStringNotContainsString(
-			'option1',
+			"\'option1\'",
 			$wpdb->last_query,
 			'The last query should not contain the pre-primed option.'
+		);
+
+		// Ensure the last query does not contain the pre-primed notoption.
+		$this->assertStringNotContainsString(
+			"\'option404notfound\'",
+			$wpdb->last_query,
+			'The last query should not contain the pre-primed non-existent option.'
 		);
 	}
 
