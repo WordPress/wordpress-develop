@@ -66,6 +66,55 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_prime_option_caches() handles a mix of primed and unprimed options.
+	 *
+	 * @ticket 58962
+	 */
+	public function test_wp_prime_option_caches_handles_a_mix_of_primed_and_unprimed_options() {
+		global $wpdb;
+		// Create some options to prime.
+		$options_to_prime = array(
+			'option1',
+			'option2',
+			'option3',
+		);
+
+		/*
+		 * Set values for the options,
+		 * clear the cache for the options,
+		 * check options are not in cache initially.
+		 */
+		foreach ( $options_to_prime as $option ) {
+			update_option( $option, "value_$option", false );
+			wp_cache_delete( $option, 'options' );
+			$this->assertFalse( wp_cache_get( $option, 'options' ), "$option was not deleted from the cache." );
+		}
+
+		// Prime the first option.
+		wp_prime_option_caches( array( 'option1' ) );
+
+		// Store the initial database query count.
+		$initial_query_count = get_num_queries();
+
+		// Prime all the options, including the pre-primed option.
+		wp_prime_option_caches( $options_to_prime );
+
+		// Ensure an additional database query was made.
+		$this->assertSame(
+			1,
+			get_num_queries() - $initial_query_count,
+			'Additional database queries were not made.'
+		);
+
+		// Ensure the last query does not contain the pre-primed option.
+		$this->assertStringNotContainsString(
+			'option1',
+			$wpdb->last_query,
+			'The last query should not contain the pre-primed option.'
+		);
+	}
+
+	/**
 	 * Tests wp_prime_option_caches() with options that do not exist in the database.
 	 *
 	 * @ticket 58962
