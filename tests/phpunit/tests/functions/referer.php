@@ -3,7 +3,7 @@
 /**
  * Test wp_get_referer().
  *
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions_Referer extends WP_UnitTestCase {
 
