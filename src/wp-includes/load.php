@@ -1969,3 +1969,8 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	 */
 	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }
+
+function wp_load_files() {
+	global $wp_files;
+	$wp_files = new WP_Files();
+}

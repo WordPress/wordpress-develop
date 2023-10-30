@@ -709,13 +709,13 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
+		if ( wp_file_exists( $stylesheet_path . '/' . $template_name ) ) {
 			$located = $stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( $is_child_theme && file_exists( $template_path . '/' . $template_name ) ) {
+		} elseif ( $is_child_theme && wp_file_exists( $template_path . '/' . $template_name ) ) {
 			$located = $template_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
+		} elseif ( wp_file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
 			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
 			break;
 		}

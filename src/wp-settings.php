@@ -335,6 +335,7 @@ require ABSPATH . WPINC . '/class-wp-block-parser-frame.php';
 require ABSPATH . WPINC . '/class-wp-block-parser.php';
 require ABSPATH . WPINC . '/class-wp-classic-to-block-menu-converter.php';
 require ABSPATH . WPINC . '/class-wp-navigation-fallback.php';
+require ABSPATH . WPINC . '/class-wp-files.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
@@ -391,6 +392,9 @@ if ( is_multisite() ) {
 wp_plugin_directory_constants();
 
 $GLOBALS['wp_plugin_paths'] = array();
+
+// Handles Files existance caching.
+wp_load_files();
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {

@@ -8856,3 +8856,25 @@ function wp_admin_notice( $message, $args = array() ) {
 
 	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
 }
+
+/**
+ * Checks if a file exists in the WordPress filesystem.
+ * 
+ * @since 6.5.0
+ * @param string $file The file to check.
+ * @return bool Whether the file exists.
+ */
+function wp_file_exists( $file ) {
+	global $wp_files;
+	return $wp_files->exists( $file );
+}
+
+/**
+ * Updates the file exists cache.
+ * 
+ * @since 6.5.0
+ */
+function wp_update_file_exists_cache() {
+	global $wp_files;
+	$wp_files->update_exists_cache();
+}

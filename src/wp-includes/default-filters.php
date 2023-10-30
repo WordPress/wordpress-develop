@@ -410,6 +410,7 @@ add_action( 'init', 'smilies_init', 5 );
 add_action( 'plugins_loaded', 'wp_maybe_load_widgets', 0 );
 add_action( 'plugins_loaded', 'wp_maybe_load_embeds', 0 );
 add_action( 'shutdown', 'wp_ob_end_flush_all', 1 );
+add_action( 'shutdown', 'wp_update_file_exists_cache', 1 );
 // Create a revision whenever a post is updated.
 add_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', 9, 3 );
 add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
