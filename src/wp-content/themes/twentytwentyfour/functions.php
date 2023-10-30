@@ -33,7 +33,7 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 			array(
 				'handle' => 'twentytwentyfour-button-style-outline',
 				'src'    => get_theme_file_uri( 'assets/css/button-outline.css' ),
-				'ver'    => wp_get_theme()->get( 'Version' ),
+				'ver'    => wp_get_theme( 'twentytwentyfour' )->get( 'Version' ),
 				'path'   => get_theme_file_path( 'assets/css/button-outline.css' ),
 			)
 		);
@@ -45,7 +45,6 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				'label'        => __( 'Arrow icon', 'twentytwentyfour' ),
 				/*
 				 * Styles for the custom Arrow icon style of the Details block
-				 * https://github.com/WordPress/twentytwentyfour/issues/46
 				 */
 				'inline_style' => '
 				.is-style-arrow-icon-details {
