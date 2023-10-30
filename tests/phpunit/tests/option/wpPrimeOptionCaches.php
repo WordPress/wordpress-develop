@@ -41,8 +41,8 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 		// Check that options are only in the 'options' cache group.
 		foreach ( $options_to_prime as $option ) {
 			$this->assertSame(
+				"value_$option",
 				wp_cache_get( $option, 'options' ),
-				get_option( $option ),
 				"$option was not primed in the 'options' cache group."
 			);
 
