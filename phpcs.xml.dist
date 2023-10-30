@@ -338,16 +338,4 @@
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 
-	<!-- Allow non-snake-case vars & properties for block-related classes. -->
-	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-
 </ruleset>
