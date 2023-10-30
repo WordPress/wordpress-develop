@@ -3995,18 +3995,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertSame( $expected_output['title']['raw'], $actual_output['title']['raw'] );
-		$this->assertSame( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
-		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
-		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
-		$this->assertSame( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
-		$this->assertSame( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
+		$this->assertEqualMarkup( $expected_output['title']['raw'], $actual_output['title']['raw'] );
+		$this->assertEqualMarkup( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
+		$this->assertEqualMarkup( $expected_output['content']['raw'], $actual_output['content']['raw'] );
+		$this->assertEqualMarkup( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
+		$this->assertEqualMarkup( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
+		$this->assertEqualMarkup( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
 
 		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
-		$this->assertSame( $expected_output['title']['raw'], $post->post_title );
-		$this->assertSame( $expected_output['content']['raw'], $post->post_content );
-		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
+		$this->assertEqualMarkup( $expected_output['title']['raw'], $post->post_title );
+		$this->assertEqualMarkup( $expected_output['content']['raw'], $post->post_content );
+		$this->assertEqualMarkup( $expected_output['excerpt']['raw'], $post->post_excerpt );
 
 		// Update the post.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $actual_output['id'] ) );
@@ -4018,18 +4018,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertSame( $expected_output['title']['raw'], $actual_output['title']['raw'] );
-		$this->assertSame( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
-		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
-		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
-		$this->assertSame( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
-		$this->assertSame( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
+		$this->assertEqualMarkup( $expected_output['title']['raw'], $actual_output['title']['raw'] );
+		$this->assertEqualMarkup( $expected_output['title']['rendered'], trim( $actual_output['title']['rendered'] ) );
+		$this->assertEqualMarkup( $expected_output['content']['raw'], $actual_output['content']['raw'] );
+		$this->assertEqualMarkup( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
+		$this->assertEqualMarkup( $expected_output['excerpt']['raw'], $actual_output['excerpt']['raw'] );
+		$this->assertEqualMarkup( $expected_output['excerpt']['rendered'], trim( $actual_output['excerpt']['rendered'] ) );
 
 		// Compare expected API output to WP internal values.
 		$post = get_post( $actual_output['id'] );
-		$this->assertSame( $expected_output['title']['raw'], $post->post_title );
-		$this->assertSame( $expected_output['content']['raw'], $post->post_content );
-		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
+		$this->assertEqualMarkup( $expected_output['title']['raw'], $post->post_title );
+		$this->assertEqualMarkup( $expected_output['content']['raw'], $post->post_content );
+		$this->assertEqualMarkup( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
 	/**
