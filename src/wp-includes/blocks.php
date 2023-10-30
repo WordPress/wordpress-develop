@@ -352,13 +352,14 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$file_or_folder;
 
 	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-
-	if ( ! $is_core_block && ! file_exists( $metadata_file ) ) {
+	// If the block is not a core block, the metadata file must exist.
+	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
+	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
 		return false;
 	}
 
 	// Try to get metadata from the static cache for core blocks.
-	$metadata = false;
+	$metadata = array();
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
@@ -367,14 +368,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// If metadata is not found in the static cache, read it from the file.
-	if ( ! $metadata ) {
+	if ( $metadata_file_exists && empty( $metadata ) ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
 
-	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
+	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
 		return false;
 	}
-	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+
+	$metadata['file'] = $metadata_file_exists ? wp_normalize_path( realpath( $metadata_file ) ) : null;
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -404,6 +406,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$settings          = array();
 	$property_mappings = array(
 		'apiVersion'      => 'api_version',
+		'name'            => 'name',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -426,11 +429,40 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
 			$settings[ $mapped_key ] = $metadata[ $key ];
-			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+			if ( $metadata_file_exists && $textdomain && isset( $i18n_schema->$key ) ) {
 				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
+
+	if ( ! empty( $metadata['render'] ) ) {
+		$template_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['render'] )
+			)
+		);
+		if ( $template_path ) {
+			/**
+			 * Renders the block on the server.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array    $attributes Block attributes.
+			 * @param string   $content    Block default content.
+			 * @param WP_Block $block      Block instance.
+			 *
+			 * @return string Returns the block content.
+			 */
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
+				ob_start();
+				require $template_path;
+				return ob_get_clean();
+			};
+		}
+	}
+
+	$settings = array_merge( $settings, $args );
 
 	$script_fields = array(
 		'editorScript' => 'editor_script_handles',
@@ -438,6 +470,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'viewScript'   => 'view_script_handles',
 	);
 	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$scripts           = $metadata[ $metadata_field_name ];
 			$processed_scripts = array();
@@ -470,6 +505,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'style'       => 'style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
@@ -530,33 +568,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	if ( ! empty( $metadata['render'] ) ) {
-		$template_path = wp_normalize_path(
-			realpath(
-				dirname( $metadata['file'] ) . '/' .
-				remove_block_asset_path_prefix( $metadata['render'] )
-			)
-		);
-		if ( $template_path ) {
-			/**
-			 * Renders the block on the server.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param array    $attributes Block attributes.
-			 * @param string   $content    Block default content.
-			 * @param WP_Block $block      Block instance.
-			 *
-			 * @return string Returns the block content.
-			 */
-			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
-				ob_start();
-				require $template_path;
-				return ob_get_clean();
-			};
-		}
-	}
-
 	/**
 	 * Filters the settings determined from the block type metadata.
 	 *
@@ -565,14 +576,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * @param array $settings Array of determined settings for registering a block type.
 	 * @param array $metadata Metadata provided for registering a block type.
 	 */
-	$settings = apply_filters(
-		'block_type_metadata_settings',
-		array_merge(
-			$settings,
-			$args
-		),
-		$metadata
-	);
+	$settings = apply_filters( 'block_type_metadata_settings', $settings, $metadata );
+
+	$metadata['name'] = ! empty( $settings['name'] ) ? $settings['name'] : $metadata['name'];
 
 	return WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
@@ -1062,18 +1068,20 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 				);
 			}
 
-			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
-
 			if ( is_callable( $post_callback ) ) {
 				$next = count( $block['innerBlocks'] ) - 1 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index + 1 ];
 
-				$block_content .= call_user_func_array(
+				$post_markup = call_user_func_array(
 					$post_callback,
 					array( &$inner_block, $block, $next )
 				);
 			}
+
+			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
+			$block_content .= isset( $post_markup ) ? $post_markup : '';
+
 			++$block_index;
 		}
 	}
@@ -1135,18 +1143,19 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 			);
 		}
 
-		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
-
 		if ( is_callable( $post_callback ) ) {
 			$next = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
 
-			$result .= call_user_func_array(
+			$post_markup = call_user_func_array(
 				$post_callback,
 				array( &$block, null, $next ) // At the top level, there is no parent block to pass to the callback.
 			);
 		}
+
+		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
+		$result .= isset( $post_markup ) ? $post_markup : '';
 	}
 
 	return $result;
@@ -1945,4 +1954,86 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
 	}
 	return null;
+}
+
+/**
+ * Strips all HTML from the content of footnotes, and sanitizes the ID.
+ * This function expects slashed data on the footnotes content.
+ *
+ * @access private
+ * @since 6.3.2
+ *
+ * @param string $footnotes JSON encoded string of an array containing the content and ID of each footnote.
+ * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
+ */
+function _wp_filter_post_meta_footnotes( $footnotes ) {
+	$footnotes_decoded   = json_decode( $footnotes, true );
+	if ( ! is_array( $footnotes_decoded ) ) {
+		return '';
+	}
+	$footnotes_sanitized = array();
+	foreach ( $footnotes_decoded as $footnote ) {
+		if ( ! empty( $footnote['content'] ) && ! empty( $footnote['id'] ) ) {
+			$footnotes_sanitized[] = array(
+				'id'      => sanitize_key( $footnote['id'] ),
+				'content' => wp_unslash( wp_filter_post_kses( wp_slash( $footnote['content'] ) ) ),
+			);
+		}
+	}
+	return wp_json_encode( $footnotes_sanitized );
+}
+
+/**
+ * Adds the filters to filter footnotes meta field.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_kses_init_filters() {
+	add_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
+}
+
+/**
+ * Removes the filters that filter footnotes meta field.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_remove_filters() {
+	remove_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
+}
+
+/**
+ * Registers the filter of footnotes meta field if the user does not have unfiltered_html capability.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_kses_init() {
+	_wp_footnotes_remove_filters();
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		_wp_footnotes_kses_init_filters();
+	}
+}
+
+/**
+ * Initializes footnotes meta field filters when imported data should be filtered.
+ *
+ * This filter is the last being executed on force_filtered_html_on_import.
+ * If the input of the filter is true it means we are in an import situation and should
+ * enable kses, independently of the user capabilities.
+ * So in that case we call _wp_footnotes_kses_init_filters;
+ *
+ * @access private
+ * @since 6.3.2
+ *
+ * @param string $arg Input argument of the filter.
+ * @return string Input argument of the filter.
+ */
+function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
+	// force_filtered_html_on_import is true we need to init the global styles kses filters.
+	if ( $arg ) {
+		_wp_footnotes_kses_init_filters();
+	}
+	return $arg;
 }
