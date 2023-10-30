@@ -3,8 +3,9 @@
 /**
  * Test dbDelta()
  *
- * @group upgrade
+ * @group wpdb
  * @group dbdelta
+ * @group upgrade
  *
  * @covers ::dbDelta
  */

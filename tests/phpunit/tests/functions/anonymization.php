@@ -6,8 +6,9 @@
  *
  * @since 4.9.6
  *
- * @group functions.php
+ * @group functions
  * @group privacy
+ *
  * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
