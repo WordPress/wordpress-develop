@@ -51,6 +51,7 @@ env:
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
 jobs:
   # Runs the PHPUnit tests for WordPress.
