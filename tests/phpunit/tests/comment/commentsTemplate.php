@@ -1,9 +1,9 @@
 <?php
 
 /**
- * @group comment
- *
  * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ *
+ * @group comment
  *
  * @covers ::comments_template
  */
