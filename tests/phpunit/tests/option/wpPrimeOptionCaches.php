@@ -301,6 +301,70 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_prime_option_caches() doesn't trigger DB queries for items primed in alloptions.
+	 *
+	 * @ticket 59738
+	 *
+	 * @dataProvider data_option_types
+	 *
+	 * @param mixed $option_value An option value.
+	 */
+	public function test_wp_prime_option_caches_does_not_trigger_db_queries_for_alloptions( $option_value ) {
+		// As this includes a test setting the value to `(bool) false`, update_option() can not be used so add_option() is used instead.
+		add_option( 'option_in_alloptions', $option_value, '', true );
+		wp_cache_flush_group( 'options' );
+		wp_cache_delete( 'option_in_alloptions', 'options' );
+		$options_to_prime = array( 'option_in_alloptions' );
+
+		$this->assertFalse( wp_cache_get( 'option_in_alloptions', 'options' ), 'option_in_alloptions was not deleted from the cache.' );
+		$this->assertFalse( wp_cache_get( 'alloptions', 'options' ), 'alloptions was not deleted from the cache.' );
+
+		// Prime the alloptions cache.
+		wp_load_alloptions();
+
+		// Store the initial database query count.
+		$initial_query_count = get_num_queries();
+
+		// Call the wp_prime_option_caches function to reprime the option.
+		wp_prime_option_caches( $options_to_prime );
+
+		// Check that options are in the 'alloptions' cache only.
+		foreach ( $options_to_prime as $option ) {
+			$this->assertFalse(
+				wp_cache_get( $option, 'options' ),
+				"$option was primed in the 'options' cache group."
+			);
+
+			$new_notoptions = wp_cache_get( $option, 'notoptions' );
+			if ( ! is_array( $new_notoptions ) ) {
+				$new_notoptions = array();
+			}
+			$this->assertArrayNotHasKey(
+				$option,
+				$new_notoptions,
+				"$option was primed in the 'notoptions' cache."
+			);
+
+			$new_alloptions = wp_cache_get( 'alloptions', 'options' );
+			if ( ! is_array( $new_alloptions ) ) {
+				$new_alloptions = array();
+			}
+			$this->assertArrayHasKey(
+				$option,
+				$new_alloptions,
+				"$option was not primed in the 'alloptions' cache."
+			);
+		}
+
+		// Ensure no additional database queries were made.
+		$this->assertSame(
+			0,
+			get_num_queries() - $initial_query_count,
+			'Additional database queries were made.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
