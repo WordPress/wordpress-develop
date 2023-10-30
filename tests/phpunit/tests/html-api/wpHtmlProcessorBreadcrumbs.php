@@ -300,7 +300,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html        HTML string with tags in it, one of which contains the "target" attribute.
 	 * @param array  $breadcrumbs Breadcrumbs of element with "target" attribute set.
 	 * @param int    $ignored_n   Not used in this test but provided in the dataset for other tests.
-	 * @return void
 	 */
 	public function test_reports_correct_breadcrumbs_for_html( $html, $breadcrumbs, $ignored_n ) {
 		$p = WP_HTML_Processor::create_fragment( $html );
@@ -411,13 +410,60 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that updating tag's attributes doesn't shift the current position
+	 * in the input HTML document.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @ticket 59607
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 */
+	public function test_remains_stable_when_editing_attributes() {
+		$p = WP_HTML_Processor::create_fragment( '<div><button>First<button><b here>Second' );
+		$p->next_tag( array( 'breadcrumbs' => array( 'BUTTON', 'B' ) ) );
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->set_attribute( 'a-name', 'a-value' );
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have found the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->get_updated_html();
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have stayed at the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag after updating attributes.'
+		);
+	}
+
+	/**
 	 * Ensures that the ability to set attributes isn't broken by the HTML Processor.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::set_attribute
+	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_can_modify_attributes_after_finding_tag() {
 		$p = WP_HTML_Processor::create_fragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
