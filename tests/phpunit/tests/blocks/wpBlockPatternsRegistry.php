@@ -317,6 +317,29 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should insert a theme attribute into Template Part blocks in registered patterns.
+	 *
+	 * @ticket 59583
+	 *
+	 * @covers WP_Block_Patterns_Registry::register
+	 * @covers WP_Block_Patterns_Registry::get_all_registered
+	 */
+	public function test_get_all_registered_includes_theme_attribute() {
+		$test_pattern = array(
+			'title'   => 'Test Pattern',
+			'content' => '<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+		);
+		$this->registry->register( 'test/pattern', $test_pattern );
+
+		$expected = sprintf(
+			'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
+			get_stylesheet()
+		);
+		$patterns = $this->registry->get_all_registered();
+		$this->assertSame( $expected, $patterns[0]['content'] );
+	}
+
+	/**
 	 * Should insert hooked blocks into registered patterns.
 	 *
 	 * @ticket 59476
@@ -366,6 +389,29 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 
 		$registered = $this->registry->get_all_registered();
 		$this->assertSame( $expected, $registered );
+	}
+
+	/**
+	 * Should insert a theme attribute into Template Part blocks in registered patterns.
+	 *
+	 * @ticket 59583
+	 *
+	 * @covers WP_Block_Patterns_Registry::register
+	 * @covers WP_Block_Patterns_Registry::get_registered
+	 */
+	public function test_get_registered_includes_theme_attribute() {
+		$test_pattern = array(
+			'title'   => 'Test Pattern',
+			'content' => '<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+		);
+		$this->registry->register( 'test/pattern', $test_pattern );
+
+		$expected = sprintf(
+			'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
+			get_stylesheet()
+		);
+		$pattern  = $this->registry->get_registered( 'test/pattern' );
+		$this->assertSame( $expected, $pattern['content'] );
 	}
 
 	/**

@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  */
 class Tests_Term extends WP_UnitTestCase {
 	protected $taxonomy        = 'category';
