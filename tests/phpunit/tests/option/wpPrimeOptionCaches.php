@@ -131,14 +131,13 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 		$alloptions = wp_load_alloptions();
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
+		$initial_query_count = get_num_queries();
 		wp_prime_option_caches( array() );
 
 		$this->assertSame( $alloptions, wp_cache_get( 'alloptions', 'options' ), 'The alloptions cache was modified.' );
 		$this->assertSame( $notoptions, wp_cache_get( 'notoptions', 'options' ), 'The notoptions cache was modified.' );
 
-		// Check re-priming the options does not result in additional database queries.
-		$initial_query_count = get_num_queries();
-		wp_prime_option_caches( array() );
+		// Check priming an empty array does not result in additional database queries.
 		$this->assertSame(
 			0,
 			get_num_queries() - $initial_query_count,
