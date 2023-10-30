@@ -332,7 +332,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 	public function test_wp_prime_option_caches_does_not_trigger_db_queries_for_alloptions( $option_value ) {
 		// As this includes a test setting the value to `(bool) false`, update_option() can not be used so add_option() is used instead.
 		add_option( 'option_in_alloptions', $option_value, '', true );
-		wp_cache_flush_group( 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
 		wp_cache_delete( 'option_in_alloptions', 'options' );
 		$options_to_prime = array( 'option_in_alloptions' );
 
