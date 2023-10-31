@@ -1132,7 +1132,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  */
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
 	$result = '';
-	$parent = null; // At the top level, there is no parent block to pass to the callback; yet the callback expects a reference.
+	$parent = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
 			$prev = 0 === $index
