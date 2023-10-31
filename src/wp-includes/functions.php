@@ -8859,7 +8859,7 @@ function wp_admin_notice( $message, $args = array() ) {
 
 /**
  * Checks if a file exists in the WordPress filesystem.
- * 
+ *
  * @since 6.5.0
  * @param string $file The file to check.
  * @return bool Whether the file exists.
@@ -8871,11 +8871,11 @@ function wp_file_exists( $file ) {
 
 /**
  * Updates the file exists cache.
- * 
+ *
  * @since 6.5.0
  */
 function wp_update_file_exists_cache() {
 	global $wp_files;
 	$wp_files->update_exists_cache();
-	get_template_cached( [], '', true );
+	get_template_cached( array(), '', true );
 }
