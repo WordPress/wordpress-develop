@@ -101,30 +101,30 @@ function get_query_template( $type, $templates = array() ) {
 	return apply_filters( "{$type}_template", $template, $type, $templates );
 }
 
-function get_template_cached( $templates=[], $type='', $update_cache = false ) {
+function get_template_cached( $templates = array(), $type = '', $update_cache = false ) {
 	static $cached_templates = null;
 
-    // Initialize the cached templates from WordPress cache if not already done.
-    if ( null === $cached_templates ) {
-        $cached_templates = wp_cache_get( 'saved_templates' );
-        if ( false === $cached_templates ) {
-            $cached_templates = [];
-        }
-    }
-
-    if ( $update_cache ) {
-        // Assuming you want to update the entire cache for 'saved_templates'.
-        wp_cache_set( 'saved_templates', $cached_templates );
-        return;
-    }
-	$key = serialize( $templates );
-	if( isset( $cached_templates[$type][ $key ] ) ) {
-		return $cached_templates[$type][ $key ];
+	// Initialize the cached templates from WordPress cache if not already done.
+	if ( null === $cached_templates ) {
+		$cached_templates = wp_cache_get( 'saved_templates', 'files' );
+		if ( false === $cached_templates ) {
+			$cached_templates = array();
+		}
 	}
 
-	$template = locate_template( $templates );
-	$template = locate_block_template( $template, $type, $templates );
-	$cached_templates[$type][ $key ] = $template;
+	if ( $update_cache ) {
+		// Assuming you want to update the entire cache for 'saved_templates'.
+		wp_cache_set( 'saved_templates', $cached_templates, 'files' );
+		return;
+	}
+	$key = serialize( $templates );
+	if ( isset( $cached_templates[ $type ][ $key ] ) ) {
+		return $cached_templates[ $type ][ $key ];
+	}
+
+	$template                          = locate_template( $templates );
+	$template                          = locate_block_template( $template, $type, $templates );
+	$cached_templates[ $type ][ $key ] = $template;
 	return $template;
 }
 
