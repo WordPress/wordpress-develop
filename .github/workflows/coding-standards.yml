@@ -142,6 +142,8 @@ jobs:
       contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
     steps:
       - name: Checkout repository
