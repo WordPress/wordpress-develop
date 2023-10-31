@@ -96,7 +96,7 @@ jobs:
   # - Creates a `wp-config.php` file.
   # - Installs WordPress.
   install-tests-mysql:
-    name: WP ${{ inputs.wp-version || 'latest' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
+    name: WP ${{ inputs.wp-version || 'nightly' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
@@ -144,7 +144,7 @@ jobs:
           sudo systemctl start ${{ matrix.db-type }}
 
       - name: Download WordPress
-        run: wp core download ${{ inputs.wp-version && format( '--version={0}', inputs.wp-version ) || '' }}
+        run: wp core download ${{ inputs.wp-version && format( '--version={0}', inputs.wp-version ) || '--version=nightly' }}
 
       - name: Create wp-config.php file
         run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost=127.0.0.1:${{ job.services.database.ports['3306'] }}
