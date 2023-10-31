@@ -19,7 +19,7 @@ on:
       wp-version:
         description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
         type: string
-        default: 'latest'
+        default: 'nightly'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -53,13 +53,13 @@ jobs:
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
-      - name: Determine major WordPress version
+      - name: Determine the major WordPress version
         id: wp-version
         run: |
-          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
+          if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
             echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
           else
-            echo "version=latest" >> $GITHUB_OUTPUT
+            echo "version=$(echo "${{ inputs.wp-version }}")" >> $GITHUB_OUTPUT
           fi
 
       # Look up the major version's specific PHP support policy when a version is provided.
@@ -67,7 +67,7 @@ jobs:
       - name: Get supported PHP versions
         id: php-versions
         run: |
-          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ]; then
+          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.wp-version.outputs.version }}" != "nightly" ]; then
             echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
@@ -78,7 +78,7 @@ jobs:
       - name: Get supported MySQL versions
         id: mysql-versions
         run: |
-          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ]; then
+          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.wp-version.outputs.version }}" != "nightly" ]; then
             echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
@@ -141,7 +141,7 @@ jobs:
           sudo systemctl start ${{ matrix.db-type }}
 
       - name: Download WordPress
-        run: wp core download ${{ inputs.wp-version && 'latest' != inputs.wp-version && format( '--version={0}', inputs.wp-version ) || '' }}
+        run: wp core download ${{ inputs.wp-version && format( '--version={0}', inputs.wp-version ) || '' }}
 
       - name: Create wp-config.php file
         run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost=127.0.0.1:${{ job.services.database.ports['3306'] }}
