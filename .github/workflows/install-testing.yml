@@ -44,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
+      major-wp-version: ${{ steps.major-wp-version.outputs.version }}
       php-versions: ${{ steps.php-versions.outputs.versions }}
       mysql-versions: ${{ steps.mysql-versions.outputs.versions }}
 
@@ -54,7 +55,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Determine the major WordPress version
-        id: wp-version
+        id: major-wp-version
         run: |
           if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
             echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
@@ -69,8 +70,8 @@ jobs:
       - name: Get supported PHP versions
         id: php-versions
         run: |
-          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
+          if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
+            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
           fi
@@ -80,8 +81,8 @@ jobs:
       - name: Get supported MySQL versions
         id: mysql-versions
         run: |
-          if [ "${{ steps.wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ steps.wp-version.outputs.version }}"] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
+          if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
+            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
           else
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
           fi
