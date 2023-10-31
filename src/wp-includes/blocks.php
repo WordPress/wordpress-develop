@@ -1131,8 +1131,9 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @return string Serialized block markup.
  */
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
-	$result = '';
-	$parent = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+	$result       = '';
+	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
 			$prev = 0 === $index
@@ -1141,7 +1142,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$result .= call_user_func_array(
 				$pre_callback,
-				array( &$block, &$parent, $prev )
+				array( &$block, &$parent_block, $prev )
 			);
 		}
 
@@ -1152,7 +1153,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$post_markup = call_user_func_array(
 				$post_callback,
-				array( &$block, &$parent, $next )
+				array( &$block, &$parent_block, $next )
 			);
 		}
 
