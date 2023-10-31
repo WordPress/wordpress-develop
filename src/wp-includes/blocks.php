@@ -1141,7 +1141,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$result .= call_user_func_array(
 				$pre_callback,
-				array( &$block, $parent, $prev )
+				array( &$block, &$parent, $prev )
 			);
 		}
 
@@ -1152,7 +1152,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$post_markup = call_user_func_array(
 				$post_callback,
-				array( &$block, $parent, $next )
+				array( &$block, &$parent, $next )
 			);
 		}
 
