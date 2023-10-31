@@ -781,8 +781,8 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * `first_child`, respectively, to the serialized markup for the given block.
 	 *
 	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before. Passed by reference.
-	 * @param array $parent_block The parent block of the given block. Passed by reference.
-	 * @param array $prev         The previous sibling block of the given block.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
 	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
@@ -854,8 +854,8 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * `last_child`, respectively, to the serialized markup for the given block.
 	 *
 	 * @param array $block        The block to inject the hooked blocks after. Passed by reference.
-	 * @param array $parent_block The parent block of the given block. Passed by reference.
-	 * @param array $next         The next sibling block of the given block.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
 	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
