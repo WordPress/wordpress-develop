@@ -58,7 +58,7 @@ jobs:
         run: |
           if [ "${{ inputs.wp-version }}" ] && [ "${{ inputs.wp-version }}" != "nightly" ] && [ "${{ inputs.wp-version }}" != "latest" ]; then
             echo "version=$(echo "${{ inputs.wp-version }}" | tr '.' '-' | cut -d '-' -f1-2)" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.wp-version }}" ]
+          elif [ "${{ inputs.wp-version }}" ]; then
             echo "version=$(echo "${{ inputs.wp-version }}")" >> $GITHUB_OUTPUT
           else
             echo "version=nightly" >> $GITHUB_OUTPUT
