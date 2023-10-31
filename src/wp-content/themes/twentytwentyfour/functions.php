@@ -32,9 +32,9 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 			'core/button',
 			array(
 				'handle' => 'twentytwentyfour-button-style-outline',
-				'src'    => get_theme_file_uri( 'assets/css/button-outline.css' ),
-				'ver'    => wp_get_theme( 'twentytwentyfour' )->get( 'Version' ),
-				'path'   => get_theme_file_path( 'assets/css/button-outline.css' ),
+				'src'    => get_parent_theme_file_uri( 'assets/css/button-outline.css' ),
+				'ver'    => wp_get_theme( get_template() )->get( 'Version' ),
+				'path'   => get_parent_theme_file_path( 'assets/css/button-outline.css' ),
 			)
 		);
 
