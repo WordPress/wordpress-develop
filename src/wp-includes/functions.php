@@ -7605,7 +7605,6 @@ function wp_post_preview_js() {
 
 	ob_start();
 	?>
-	<script>
 	( function() {
 		var query = document.location.search;
 
@@ -7617,9 +7616,8 @@ function wp_post_preview_js() {
 			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
-	</script>
 	<?php
-	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+	wp_print_inline_script_tag( ob_get_clean() );
 }
 
 /**
