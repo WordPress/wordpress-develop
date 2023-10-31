@@ -14,6 +14,8 @@ on:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/workflows/install-testing.yml'
+  schedule:
+    - cron: '0 0 * * 1'
   workflow_dispatch:
     inputs:
       wp-version:
