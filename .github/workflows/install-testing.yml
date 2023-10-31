@@ -1,3 +1,6 @@
+# Confirms that installing WordPress using WP-CLI works successfully.
+#
+# This workflow is not meant to test wordpress-develop checkouts, but rather tagged versions officially available on WordPress.org.
 name: Installation Tests
 
 on:
@@ -59,6 +62,8 @@ jobs:
             echo "version=latest" >> $GITHUB_OUTPUT
           fi
 
+      # Look up the major version's specific PHP support policy when a version is provided.
+      # Otherwise, use the current PHP support policy.
       - name: Get supported PHP versions
         id: php-versions
         run: |
@@ -68,6 +73,8 @@ jobs:
             echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
           fi
 
+      # Look up the major version's specific MySQL support policy when a version is provided.
+      # Otherwise, use the current MySQL support policy.
       - name: Get supported MySQL versions
         id: mysql-versions
         run: |
