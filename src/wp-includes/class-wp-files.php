@@ -32,7 +32,7 @@ class WP_Files {
 	 * @return bool
 	 */
 	public function exists( $file ) {
-		if ( isset( $this->scanned_files[ $file ] ) ) {
+		if ( isset( $this->scanned_files[ $file ] ) && 0 === $this->scanned_files[ $file ] ) {
 			return (bool) $this->scanned_files[ $file ];
 		}
 
