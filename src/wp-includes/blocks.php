@@ -1036,6 +1036,7 @@ function serialize_blocks( $blocks ) {
  * into the return value. Prefer `serialize_block` when preparing a block to be saved to post content.
  *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_block()
  *
@@ -1118,6 +1119,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * into the return value. Prefer `serialize_blocks` when preparing blocks to be saved to post content.
  *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_blocks()
  *
