@@ -2549,10 +2549,10 @@ function compression_test() {
  * @param bool         $wrap             True if the output button should be wrapped in a paragraph tag,
  *                                       false otherwise. Defaults to true.
  * @param array|string $other_attributes Other attributes that should be output with the button, mapping
- *                                       attributes to their values, such as setting tabindex to 1, etc.
+ *                                       attributes to their values, such as setting the id attribute, etc.
  *                                       These key/value attribute pairs will be output as attribute="value",
  *                                       where attribute is the key. Other attributes can also be provided
- *                                       as a string such as 'tabindex="1"', though the array format is
+ *                                       as a string such as 'id="search-submit"', though the array format is
  *                                       preferred. Default null.
  */
 function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = null ) {
@@ -2573,10 +2573,10 @@ function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap
  * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph
  *                                       tag, false otherwise. Default true.
  * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
- *                                       mapping attributes to their values, such as `array( 'tabindex' => '1' )`.
+ *                                       mapping attributes to their values, such as `array( 'id' => 'search-submit' )`.
  *                                       These attributes will be output as `attribute="value"`, such as
- *                                       `tabindex="1"`. Other attributes can also be provided as a string such
- *                                       as `tabindex="1"`, though the array format is typically cleaner.
+ *                                       `id="search-submit"`. Other attributes can also be provided as a string such
+ *                                       as `id="search-submit"`, though the array format is typically cleaner.
  *                                       Default empty.
  * @return string Submit button HTML.
  */
