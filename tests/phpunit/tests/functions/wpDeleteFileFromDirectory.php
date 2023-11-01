@@ -6,7 +6,7 @@
  *
  * @covers ::wp_delete_file_from_directory
  */#
-class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase{
+class Tests_functions_wpDeleteFileFromDirectory extends WP_UnitTestCase {
 
 	/**
 	 * call with file and correct directory.
