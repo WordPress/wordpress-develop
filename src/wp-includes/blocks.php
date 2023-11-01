@@ -757,7 +757,7 @@ function get_hooked_blocks() {
 	return $hooked_blocks;
 }
 
-function insert_hooked_blocks( &$block, $relative_position, &$anchor_block, $hooked_blocks, $context ) {
+function insert_hooked_blocks( $relative_position, &$anchor_block, $hooked_blocks, $context ) {
 	$anchor_block_type  = $anchor_block['blockName'];
 	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
@@ -821,10 +821,10 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 
 		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
-			$markup .= insert_hooked_blocks( $block, 'first_child', $parent_block, $hooked_blocks, $context );
+			$markup .= insert_hooked_blocks( 'first_child', $parent_block, $hooked_blocks, $context );
 		}
 
-		$markup .= insert_hooked_blocks( $block, 'before', $block, $hooked_blocks, $context );
+		$markup .= insert_hooked_blocks( 'before', $block, $hooked_blocks, $context );
 
 		return $markup;
 	};
@@ -860,11 +860,11 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
 	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
-		$markup = insert_hooked_blocks( $block, 'after', $block, $hooked_blocks, $context );
+		$markup = insert_hooked_blocks( 'after', $block, $hooked_blocks, $context );
 
 		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
-			$markup .= insert_hooked_blocks( $block, 'last_child', $parent_block, $hooked_blocks, $context );
+			$markup .= insert_hooked_blocks( 'last_child', $parent_block, $hooked_blocks, $context );
 		}
 
 		return $markup;
