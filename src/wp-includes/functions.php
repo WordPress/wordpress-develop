@@ -8877,5 +8877,4 @@ function wp_file_exists( $file ) {
 function wp_update_file_exists_cache() {
 	global $wp_files;
 	$wp_files->update_exists_cache();
-	get_template_cached( array(), '', true );
 }
