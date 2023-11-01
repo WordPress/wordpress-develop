@@ -1035,6 +1035,8 @@ function serialize_blocks( $blocks ) {
  * This function should be used when there is a need to modify the saved block, or to inject markup
  * into the return value. Prefer `serialize_block` when preparing a block to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
  * @access private
  *
@@ -1117,6 +1119,8 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  *
  * This function should be used when there is a need to modify the saved blocks, or to inject markup
  * into the return value. Prefer `serialize_blocks` when preparing blocks to be saved to post content.
+ *
+ * This function is meant for internal use only.
  *
  * @since 6.4.0
  * @access private
