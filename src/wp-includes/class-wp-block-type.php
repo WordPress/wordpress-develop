@@ -243,10 +243,12 @@ class WP_Block_Type {
 	 * Attributes supported by every block.
 	 *
 	 * @since 6.0.0
+	 * @since 6.5.0 Added metadata global attribute.
 	 * @var array
 	 */
 	const GLOBAL_ATTRIBUTES = array(
-		'lock' => array( 'type' => 'object' ),
+		'lock'     => array( 'type' => 'object' ),
+		'metadata' => array( 'type' => 'object' ),
 	);
 
 	/**
