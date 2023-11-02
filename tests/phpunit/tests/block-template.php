@@ -254,8 +254,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Tests that `get_the_block_template_html()` does not start the main query loop generally.
 	 *
 	 * @ticket 58154
-	 * @covers ::get_the_block_template_html
 	 *
+	 * @covers ::get_the_block_template_html
 	 * @covers ::_resolve_home_block_template
 	 */
 	public function test_get_the_block_template_html_does_not_generally_enforce_loop() {
