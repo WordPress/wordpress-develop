@@ -108,7 +108,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 					),
 					'metadata' => array(
 						'type' => 'number',
-					)
+					),
 				),
 			)
 		);
