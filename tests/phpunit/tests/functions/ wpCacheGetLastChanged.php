@@ -4,7 +4,7 @@
  *
  * @group functions.php
  *
- * @covers :: wp_cache_get_last_changed
+ * @covers ::wp_cache_get_last_changed
  */#
 class Tests_functions_wpCacheGetLastChanged extends WP_UnitTestCase {
 
