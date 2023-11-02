@@ -83,7 +83,7 @@ function locate_block_template( $template, $type, array $templates ) {
 		}
 	} else {
 		if ( $template ) {
-			return $template;
+			return '';
 		}
 
 		if ( 'index' === $type ) {
