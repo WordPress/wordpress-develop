@@ -87,7 +87,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$block_type->attributes
 		);
@@ -105,6 +106,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 					'lock' => array(
 						'type' => 'string',
 					),
+					'metadata' => array(
+						'type' => 'number',
+					)
 				),
 			)
 		);
@@ -112,7 +116,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		// Backward compatibility: Don't override attributes with the same name.
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'string' ),
+				'lock'     => array( 'type' => 'string' ),
+				'metadata' => array( 'type' => 'number' ),
 			),
 			$block_type->attributes
 		);

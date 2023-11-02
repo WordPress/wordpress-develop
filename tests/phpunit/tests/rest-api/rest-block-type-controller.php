@@ -242,7 +242,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$data['attributes']
 		);
@@ -316,7 +317,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$data['attributes']
 		);

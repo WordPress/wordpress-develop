@@ -83,6 +83,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					'default' => 10,
 				),
 				'lock'      => array( 'type' => 'object' ),
+				'metadata'  => array( 'type' => 'object' ),
 			),
 			$block->block_type->attributes
 		);

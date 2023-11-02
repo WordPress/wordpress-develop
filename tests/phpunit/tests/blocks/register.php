@@ -744,10 +744,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
 		$this->assertSame(
 			array(
-				'message' => array(
+				'message'  => array(
 					'type' => 'string',
 				),
-				'lock'    => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$result->attributes
 		);
