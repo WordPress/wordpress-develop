@@ -105,7 +105,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			'core/fake',
 			array(
 				'attributes' => array(
-					'lock' => array(
+					'lock'     => array(
 						'type' => 'string',
 					),
 					'metadata' => array(
