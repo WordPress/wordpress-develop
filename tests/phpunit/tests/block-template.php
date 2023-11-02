@@ -219,8 +219,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 58154
 	 * @ticket 59736
-	 * @covers ::get_the_block_template_html
 	 *
+	 * @covers ::get_the_block_template_html
 	 * @covers ::locate_block_template
 	 */
 	public function test_get_the_block_template_html_enforces_singular_query_loop() {
