@@ -61,10 +61,12 @@ function get_query_template( $type, $templates = array() ) {
 	 */
 	$templates = apply_filters( "{$type}_template_hierarchy", $templates );
 
+	$block_template = locate_block_template( '', $type, $templates );
+	if ( $block_template ) {
+		return $block_template;
+	}
+
 	$template = locate_template( $templates );
-
-	$template = locate_block_template( $template, $type, $templates );
-
 	/**
 	 * Filters the path of the queried template by type.
 	 *
