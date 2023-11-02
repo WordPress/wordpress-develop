@@ -70,7 +70,7 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@4bd44f22a98a19e0950cbad5f31095157cc9621b # v2.25.4
+        uses: shivammathur/setup-php@81cd5ae0920b34eef300e1775313071038a53429 # v2.27.0
         with:
           php-version: '7.4'
           coverage: none
