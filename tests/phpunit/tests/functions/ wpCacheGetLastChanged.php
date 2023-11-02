@@ -31,7 +31,7 @@ class Tests_functions_wpCacheGetLastChanged extends WP_UnitTestCase {
 	public function test_wp_cache_get_last_changed_returns_new_time_if_no_cache_value() {
 
 		$group = 'test_group';
-		// clear cache
+		// Clear cache.
 		wp_cache_delete( 'last_changed', $group );
 
 		$this->assertSame( wp_cache_get_last_changed( $group ), wp_cache_get( 'last_changed', $group ) );
