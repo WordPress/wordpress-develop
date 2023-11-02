@@ -9,7 +9,7 @@
 class Tests_functions_wpCacheGetLastChanged extends WP_UnitTestCase {
 
 	/**
-	 * test that a cache is read if set
+	 * Test that a cache is ready if set.
 	 *
 	 * @ticket 59752
 	 */
