@@ -80,6 +80,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 55567
+	 * @ticket 59797
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes() {
@@ -96,6 +97,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 55567
+	 * @ticket 59797
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes_matches_custom() {

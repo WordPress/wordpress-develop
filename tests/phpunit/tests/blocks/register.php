@@ -726,6 +726,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 50263
 	 * @ticket 50328
 	 * @ticket 57585
+	 * @ticket 59797
 	 */
 	public function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
