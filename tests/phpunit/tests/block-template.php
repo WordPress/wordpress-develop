@@ -344,13 +344,13 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * @ticket 58319
 	 *
 	 * @covers ::get_block_theme_folders
+	 * @covers ::_resolve_home_block_template
 	 *
 	 * @dataProvider data_get_block_theme_folders
 	 *
 	 * @param string   $theme    The theme's stylesheet.
 	 * @param string[] $expected The expected associative array of block theme folders.
 	 *
-	 * @covers ::_resolve_home_block_template
 	 */
 	public function test_get_block_theme_folders( $theme, $expected ) {
 		$wp_theme = wp_get_theme( $theme );
