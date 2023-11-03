@@ -1936,7 +1936,7 @@ class WP_Theme_JSON {
 
 		$can_use_cached = ! wp_is_development_mode( 'theme' );
 
-		$args      = func_get_args();
+		$args      = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
 		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
 		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
 
