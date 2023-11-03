@@ -2,7 +2,7 @@
 /**
  * Tests for the wp_cache_set_last_changed function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_cache_set_last_changed
  */#
