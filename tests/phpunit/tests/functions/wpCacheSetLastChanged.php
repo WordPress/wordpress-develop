@@ -1,15 +1,15 @@
 <?php
 /**
- * Tests for the wp_cache_set_last_changed function.
+ * Tests for the wp_cache_set_last_changed() function.
  *
  * @group functions
  *
  * @covers ::wp_cache_set_last_changed
- */#
+ */
 class Tests_functions_wpCacheSetLastChanged extends WP_UnitTestCase {
 
 	/**
-	 * check the cache_set_last_changed is set.
+	 * Check the cache key last_changed is set for the specified group.
 	 *
 	 * @ticket 59737
 	 */
