@@ -1925,14 +1925,6 @@ class WP_Theme_JSON {
 	 * @return array  Returns the modified $declarations.
 	 */
 	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null, $selector = null, $use_root_padding = null ) {
-		$args      = func_get_args();
-		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
-		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
-
-		if ( $cache ) {
-			return $cache;
-		}
-
 		if ( null === $properties ) {
 			$properties = static::PROPERTIES_METADATA;
 		}
@@ -1940,6 +1932,16 @@ class WP_Theme_JSON {
 		$declarations = array();
 		if ( empty( $styles ) ) {
 			return $declarations;
+		}
+
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+		$args      = func_get_args();
+		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
+		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
+
+		if ( $can_use_cached && $cache ) {
+			return $cache;
 		}
 
 		$root_variable_duplicates = array();
@@ -2008,7 +2010,9 @@ class WP_Theme_JSON {
 			}
 		}
 
-		wp_cache_set( $cache_key, $declarations, 'wp-styles' );
+		if ( $can_use_cached ) {
+			wp_cache_set( $cache_key, $declarations, 'wp-styles', DAY_IN_SECONDS );
+		}
 
 		return $declarations;
 	}
