@@ -25,14 +25,11 @@ class Tests_functions_wpCacheSetLastChanged extends WP_UnitTestCase {
 	 * @ticket 59737
 	 */
 	public function test_wp_cache_set_last_changed_action_is_called() {
-
-		add_action(
-			'wp_cache_set_last_changed',
-			function ( $group ) {
-				$this->assertSame( 'group_name', $group );
-			}
-		);
+		$a1 = new MockAction();
+		add_action( 'wp_cache_set_last_changed', array( $a1, 'action' ) );
 
 		wp_cache_set_last_changed( 'group_name' );
+
+		$this->assertSame( 1, $a1->get_call_count() );
 	}
 }
