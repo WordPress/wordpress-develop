@@ -5,6 +5,8 @@
  *
  * @group post
  * @group formatting
+ *
+ * @covers ::the_content
  */
 class Tests_Post_Output extends WP_UnitTestCase {
 

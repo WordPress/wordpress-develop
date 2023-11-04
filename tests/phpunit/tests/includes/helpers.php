@@ -50,6 +50,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_assertSameSets
 	 * @ticket 30522
+	 *
+	 * @covers Tests_TestHelpers::assertSameSets
 	 */
 	public function test_assertSameSets( $expected, $actual, $exception ) {
 		if ( $exception ) {
@@ -206,6 +208,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_assertSameSetsWithIndex
 	 * @ticket 30522
+	 *
+	 * @covers Tests_TestHelpers::assertSameSetsWithIndex
 	 */
 	public function test_assertSameSetsWithIndex( $expected, $actual, $exception ) {
 		if ( $exception ) {
@@ -221,6 +225,9 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::_unregister_post_status
+	 */
 	public function test__unregister_post_status() {
 		register_post_status( 'foo' );
 		_unregister_post_status( 'foo' );
@@ -232,6 +239,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28486
+	 *
+	 * @covers Tests_TestHelpers::setExpectedDeprecated
 	 */
 	public function test_setExpectedDeprecated() {
 		$this->setExpectedDeprecated( 'Tests_TestHelpers::mock_deprecated' );
@@ -240,6 +249,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28486
+	 *
+	 * @covers Tests_TestHelpers::setExpectedIncorrectUsage
 	 */
 	public function test_setExpectedIncorrectUsage() {
 		$this->setExpectedIncorrectUsage( 'Tests_TestHelpers::mock_incorrect_usage' );
@@ -248,6 +259,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31417
+	 *
+	 * @covers Tests_TestHelpers::go_to
 	 */
 	public function test_go_to_should_go_to_home_page_when_passing_the_untrailingslashed_home_url() {
 		$this->assertFalse( is_home() );
@@ -268,6 +281,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36166
+	 *
+	 * @covers ::wp_die
 	 */
 	public function test_die_handler_should_handle_wp_error() {
 		$this->expectException( 'WPDieException' );
@@ -277,6 +292,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46813
+	 *
+	 * @covers ::wp_die
 	 */
 	public function test_die_handler_should_not_cause_doing_it_wrong_notice_without_wp_query_set() {
 		$this->expectException( 'WPDieException' );
@@ -290,6 +307,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 45933
 	 * @dataProvider data_die_process_input
+	 *
+	 * @covers ::_wp_die_process_input
 	 */
 	public function test_die_process_input( $input, $expected ) {
 		$defaults = array(
@@ -394,6 +413,8 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	 * This test is just a setup for the one that follows.
 	 *
 	 * @ticket 38196
+	 *
+	 * @coversNothing
 	 */
 	public function test_setup_postdata_globals_should_be_reset_on_teardown__setup() {
 		$post                = self::factory()->post->create_and_get();
@@ -404,8 +425,12 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38196
+	 *
+	 * @covers WP_UnitTestCase_Base::tear_down
 	 */
 	public function test_setup_postdata_globals_should_be_reset_on_teardown() {
+		static::tear_down();
+		static::tear_down_after_class();
 		$globals = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
 
 		foreach ( $globals as $global ) {

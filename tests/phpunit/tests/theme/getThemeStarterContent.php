@@ -9,6 +9,9 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 	/**
 	 * Testing passing an empty array as starter content.
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::get_theme_starter_content
 	 */
 	public function test_add_theme_support_empty() {
 		add_theme_support( 'starter-content', array() );
@@ -19,6 +22,9 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 	/**
 	 * Testing passing nothing as starter content.
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::get_theme_starter_content
 	 */
 	public function test_add_theme_support_single_param() {
 		add_theme_support( 'starter-content' );
@@ -29,6 +35,9 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 	/**
 	 * Testing that placeholder starter content gets expanded, that unrecognized placeholders are discarded, and that custom items are recognized.
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::get_theme_starter_content
 	 */
 	public function test_default_content_sections() {
 		/*
@@ -171,6 +180,9 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 	/**
 	 * Testing the filter with the text_credits widget.
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::get_theme_starter_content
 	 */
 	public function test_get_theme_starter_content_filter() {
 

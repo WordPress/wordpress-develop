@@ -3,6 +3,8 @@
 /**
  * @group user
  * @group post
+ *
+ * @covers ::count_user_posts
  */
 class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	public static $user_id;

@@ -4,8 +4,6 @@
  * @group date
  * @group datetime
  * @group xmlrpc
- *
- * @covers IXR_Date
  */
 class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 

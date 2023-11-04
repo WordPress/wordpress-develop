@@ -4,6 +4,8 @@
  * @group image
  * @group media
  * @group upload
+ *
+ * @covers ::image_resize_dimensions
  */
 class Tests_Image_Dimensions extends WP_UnitTestCase {
 	public function test_400x400_no_crop() {
@@ -78,8 +80,9 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertFalse( $out );
 	}
 
-	// Cropped versions.
-
+	/**
+	 *  Cropped versions.
+	 */
 	public function test_400x400_crop() {
 		// Landscape: crop 640x480 to fit 400x400: 400x400 taken from a 480x480 crop at (80. 0).
 		$out = image_resize_dimensions( 640, 480, 400, 400, true );

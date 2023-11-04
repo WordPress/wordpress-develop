@@ -41,11 +41,17 @@ if ( is_multisite() ) :
 			wp_update_network_site_counts();
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_no_arguments_returns_current_site() {
 			$site = get_blog_details();
 			$this->assertEquals( get_current_blog_id(), $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_site_name_string_subdirectory() {
 			if ( is_subdomain_install() ) {
 				$this->markTestSkipped( 'This test is only valid in a subdirectory configuration.' );
@@ -55,6 +61,9 @@ if ( is_multisite() ) :
 			$this->assertEquals( self::$site_ids[ WP_TESTS_DOMAIN . '/foo/' ], $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_site_name_string_subdomain() {
 			if ( ! is_subdomain_install() ) {
 				$this->markTestSkipped( 'This test is only valid in a subdomain configuration.' );
@@ -64,31 +73,49 @@ if ( is_multisite() ) :
 			$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_invalid_site_name_string() {
 			$site = get_blog_details( 'invalid' );
 			$this->assertFalse( $site );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_site_id_int() {
 			$site = get_blog_details( self::$site_ids['wordpress.org/'] );
 			$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_invalid_site_id_int() {
 			$site = get_blog_details( 99999 );
 			$this->assertFalse( $site );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_blog_id_in_fields() {
 			$site = get_blog_details( array( 'blog_id' => self::$site_ids['wordpress.org/'] ) );
 			$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_invalid_blog_id_in_fields() {
 			$site = get_blog_details( array( 'blog_id' => 88888 ) );
 			$this->assertFalse( $site );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_domain_and_path_in_fields() {
 			$site = get_blog_details(
 				array(
@@ -99,6 +126,9 @@ if ( is_multisite() ) :
 			$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_domain_and_invalid_path_in_fields() {
 			$site = get_blog_details(
 				array(
@@ -109,6 +139,9 @@ if ( is_multisite() ) :
 			$this->assertFalse( $site );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_path_and_invalid_domain_in_fields() {
 			$site = get_blog_details(
 				array(
@@ -119,6 +152,9 @@ if ( is_multisite() ) :
 			$this->assertFalse( $site );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_only_domain_in_fields_subdomain() {
 			if ( ! is_subdomain_install() ) {
 				$this->markTestSkipped( 'This test is only valid in a subdomain configuration.' );
@@ -128,6 +164,9 @@ if ( is_multisite() ) :
 			$this->assertSame( self::$site_ids['wordpress.org/'], $site->blog_id );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_only_domain_in_fields_subdirectory() {
 			if ( is_subdomain_install() ) {
 				$this->markTestSkipped( 'This test is only valid in a subdirectory configuration.' );
@@ -137,6 +176,9 @@ if ( is_multisite() ) :
 			$this->assertFalse( $site );
 		}
 
+		/**
+		 * @covers ::get_blog_details
+		 */
 		public function test_get_blog_details_with_only_path_in_fields() {
 			$site = get_blog_details( array( 'path' => '/foo/' ) );
 			$this->assertFalse( $site );
@@ -144,6 +186,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 50391
+		 *
+		 * @covers ::get_blog_details
 		 */
 		public function test_get_blog_details_does_not_switch_to_current_blog() {
 			$count = did_action( 'switch_blog' );
@@ -156,6 +200,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_get_all
 		 *
 		 * @ticket 40228
+		 *
+		 * @covers ::get_blog_details
 		 */
 		public function test_get_blog_details_get_object_vars( $get_all ) {
 			$site = get_blog_details(
@@ -175,6 +221,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_get_all
 		 *
 		 * @ticket 40228
+		 *
+		 * @covers ::get_blog_details
 		 */
 		public function test_get_blog_details_iterate_over_result( $get_all ) {
 			$site = get_blog_details(

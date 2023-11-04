@@ -12,6 +12,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers WP_Post_Type::add_supports
+	 * @covers WP_Post_Type::remove_supports
+	 */
 	public function test_add_supports_defaults() {
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type( $post_type );
@@ -32,6 +36,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertSameSets( array(), $post_type_supports_after );
 	}
 
+	/**
+	 * @covers WP_Post_Type::add_supports
+	 * @covers WP_Post_Type::remove_supports
+	 */
 	public function test_add_supports_custom() {
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type(
@@ -66,6 +74,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	 * Test that supports can optionally receive nested args.
 	 *
 	 * @ticket 40413
+	 *
+	 * @covers WP_Post_Type::add_supports
+	 * @covers WP_Post_Type::remove_supports
 	 */
 	public function test_add_supports_custom_with_args() {
 		$post_type        = 'cpt';
@@ -103,6 +114,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertSameSets( array(), $post_type_supports_after );
 	}
 
+	/**
+	 * @covers WP_Post_Type::__construct
+	 * @covers WP_Post_Type::add_rewrite_rules
+	 */
 	public function test_does_not_add_query_var_if_not_public() {
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -122,6 +137,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertNotContains( 'foobar', $wp->public_query_vars );
 	}
 
+	/**
+	 * @covers WP_Post_Type::__construct
+	 * @covers WP_Post_Type::add_rewrite_rules
+	 */
 	public function test_adds_query_var_if_public() {
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -148,6 +167,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertFalse( $in_array_after );
 	}
 
+	/**
+	 * @covers WP_Post_Type::add_rewrite_rules
+	 * @covers WP_Post_Type::remove_rewrite_rules
+	 */
 	public function test_adds_rewrite_rules() {
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -173,6 +196,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertFalse( array_search( "%$post_type%", $rewrite_tags_after, true ) );
 	}
 
+	/**
+	 * @covers WP_Post_Type::register_meta_boxes
+	 * @covers WP_Post_Type::unregister_meta_boxes
+	 */
 	public function test_register_meta_boxes() {
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type( $post_type, array( 'register_meta_box_cb' => '__return_false' ) );
@@ -186,6 +213,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertFalse( $has_action_after );
 	}
 
+	/**
+	 * @covers WP_Post_Type::add_hooks
+	 * @covers WP_Post_Type::remove_hooks
+	 */
 	public function test_adds_future_post_hook() {
 		$post_type        = 'cpt';
 		$post_type_object = new WP_Post_Type( $post_type );
@@ -198,6 +229,10 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$this->assertFalse( $has_action_after );
 	}
 
+	/**
+	 * @covers WP_Post_Type::register_taxonomies
+	 * @covers WP_Post_Type::unregister_taxonomies
+	 */
 	public function test_register_taxonomies() {
 		global $wp_post_types;
 

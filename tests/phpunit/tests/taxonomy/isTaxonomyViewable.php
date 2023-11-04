@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::is_taxonomy_viewable
  */
 class Tests_Taxonomy_IsTaxonomyViewable extends WP_UnitTestCase {
 	public function set_up() {

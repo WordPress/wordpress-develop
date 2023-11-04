@@ -237,6 +237,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50833
+	 *
+	 * @covers ::is_gd_image
 	 */
 	public function test_is_gd_image_invalid_types() {
 		$this->assertFalse( is_gd_image( new stdClass() ) );
@@ -554,6 +556,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 17814
 	 * @covers ::wp_load_image
 	 * @expectedDeprecated wp_load_image
+	 *
+	 * @covers WP_Image_Editor_GD::load
+	 * @covers WP_Image_Editor_Imagick::load
 	 */
 	public function test_wp_load_image_should_fail_with_error_message_when_loading_a_directory() {
 		$editor = wp_load_image( DIR_TESTDATA );
@@ -593,6 +598,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_with_file() {
 		$file = wp_crop_image(
@@ -620,6 +627,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_crop_image
 	 * @requires function imagejpeg
 	 * @requires extension openssl
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
@@ -669,6 +678,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_crop_image
 	 * @requires extension openssl
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
@@ -741,6 +752,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31050
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_wp_generate_attachment_metadata_pdf() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
@@ -817,6 +830,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Tests crop setting for PDF.
 	 *
 	 * @ticket 43226
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_crop_setting_for_pdf() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
@@ -893,6 +908,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39231
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_fallback_intermediate_image_sizes() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
@@ -960,6 +977,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Tests that PDF preview does not overwrite existing JPEG.
 	 *
 	 * @ticket 39875
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_pdf_preview_doesnt_overwrite_existing_jpeg() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {

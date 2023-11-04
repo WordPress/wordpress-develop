@@ -3,10 +3,7 @@
 /**
  * Test wp_get_referer().
  *
- * @group functions
- *
- * @covers ::wp_get_referer
- * @covers ::wp_get_raw_referer
+ * @group functions.php
  */
 class Tests_Functions_Referer extends WP_UnitTestCase {
 
@@ -36,24 +33,40 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 		return $hosts;
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_from_request_relative_referrer() {
 		$_REQUEST['_wp_http_referer'] = addslashes( '/test.php?id=123' );
 		$_SERVER['REQUEST_URI']       = addslashes( '/test.php?id=123' );
 		$this->assertFalse( wp_get_referer() );
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_from_request_same_url() {
 		$_REQUEST['_wp_http_referer'] = addslashes( 'http://' . WP_TESTS_DOMAIN . '/test.php?id=123' );
 		$_SERVER['REQUEST_URI']       = addslashes( '/test.php?id=123' );
 		$this->assertFalse( wp_get_referer() );
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_from_request_different_resource() {
 		$_REQUEST['_wp_http_referer'] = addslashes( 'http://' . WP_TESTS_DOMAIN . '/another.php?id=123' );
 		$_SERVER['REQUEST_URI']       = addslashes( '/test.php?id=123' );
 		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/another.php?id=123', wp_get_referer() );
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_from_request_different_query_args() {
 		$_REQUEST['_wp_http_referer'] = addslashes( 'http://' . WP_TESTS_DOMAIN . '/test.php?another=555' );
 		$_SERVER['REQUEST_URI']       = addslashes( '/test.php?id=123' );
@@ -62,6 +75,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19856
+	 *
+	 * @covers ::wp_get_referer
 	 */
 	public function test_from_request_subfolder_install() {
 		add_filter( 'site_url', array( $this, '_fake_subfolder_install' ) );
@@ -75,6 +90,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19856
+	 *
+	 * @covers ::wp_get_referer
 	 */
 	public function test_from_request_subfolder_install_different_resource() {
 		add_filter( 'site_url', array( $this, '_fake_subfolder_install' ) );
@@ -86,18 +103,30 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 		remove_filter( 'site_url', array( $this, '_fake_subfolder_install' ) );
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_relative_referrer() {
 		$_REQUEST['HTTP_REFERER'] = addslashes( '/test.php?id=123' );
 		$_SERVER['REQUEST_URI']   = addslashes( '/test.php?id=123' );
 		$this->assertFalse( wp_get_referer() );
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_same_url() {
 		$_SERVER['HTTP_REFERER'] = addslashes( 'http://' . WP_TESTS_DOMAIN . '/test.php?id=123' );
 		$_SERVER['REQUEST_URI']  = addslashes( '/test.php?id=123' );
 		$this->assertFalse( wp_get_referer() );
 	}
 
+	/**
+	 *
+	 * @covers ::wp_get_referer
+	 */
 	public function test_different_resource() {
 		$_SERVER['HTTP_REFERER'] = addslashes( 'http://' . WP_TESTS_DOMAIN . '/another.php?id=123' );
 		$_SERVER['REQUEST_URI']  = addslashes( '/test.php?id=123' );
@@ -107,6 +136,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	/**
 	 * @ticket 19856
 	 * @ticket 27152
+	 *
+	 * @covers ::wp_get_referer
 	 */
 	public function test_different_server() {
 		$_SERVER['HTTP_REFERER'] = addslashes( 'http://another.' . WP_TESTS_DOMAIN . '/test.php?id=123' );
@@ -117,6 +148,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	/**
 	 * @ticket 19856
 	 * @ticket 27152
+	 *
+	 * @covers ::wp_get_referer
 	 */
 	public function test_different_server_allowed_redirect_host() {
 		add_filter( 'allowed_redirect_hosts', array( $this, 'filter_allowed_redirect_hosts' ) );
@@ -128,6 +161,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27152
+	 *
+	 * @covers ::wp_get_raw_referer
 	 */
 	public function test_raw_referer_empty() {
 		$this->assertFalse( wp_get_raw_referer() );
@@ -135,6 +170,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27152
+	 *
+	 * @covers ::wp_get_raw_referer
 	 */
 	public function test_raw_referer() {
 		$_SERVER['HTTP_REFERER'] = addslashes( 'http://example.com/foo?bar' );
@@ -143,6 +180,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27152
+	 *
+	 * @covers ::wp_get_raw_referer
 	 */
 	public function test_raw_referer_from_request() {
 		$_REQUEST['_wp_http_referer'] = addslashes( 'http://foo.bar/baz' );
@@ -151,6 +190,8 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27152
+	 *
+	 * @covers ::wp_get_raw_referer
 	 */
 	public function test_raw_referer_both() {
 		$_SERVER['HTTP_REFERER']      = addslashes( 'http://example.com/foo?bar' );

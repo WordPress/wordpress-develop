@@ -89,7 +89,9 @@ class Tests_Template extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-
+	/**
+	 * @covers ::get_404_template
+	 */
 	public function test_404_template_hierarchy() {
 		$url = add_query_arg(
 			array(
@@ -106,6 +108,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_author_template
+	 */
 	public function test_author_template_hierarchy() {
 		$author = self::factory()->user->create_and_get(
 			array(
@@ -124,6 +129,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_category_template
+	 */
 	public function test_category_template_hierarchy() {
 		$term = self::factory()->term->create_and_get(
 			array(
@@ -144,6 +152,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_tag_template
+	 */
 	public function test_tag_template_hierarchy() {
 		$term = self::factory()->term->create_and_get(
 			array(
@@ -164,6 +175,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_taxonomy_template
+	 */
 	public function test_taxonomy_template_hierarchy() {
 		$term = self::factory()->term->create_and_get(
 			array(
@@ -184,6 +198,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_date_template
+	 */
 	public function test_date_template_hierarchy_for_year() {
 		$this->assertTemplateHierarchy(
 			get_year_link( 1984 ),
@@ -194,6 +211,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_date_template
+	 */
 	public function test_date_template_hierarchy_for_month() {
 		$this->assertTemplateHierarchy(
 			get_month_link( 1984, 2 ),
@@ -204,6 +224,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_date_template
+	 */
 	public function test_date_template_hierarchy_for_day() {
 		$this->assertTemplateHierarchy(
 			get_day_link( 1984, 2, 25 ),
@@ -214,6 +237,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_search_template
+	 */
 	public function test_search_template_hierarchy() {
 		$url = add_query_arg(
 			array(
@@ -230,6 +256,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_front_page_template
+	 */
 	public function test_front_page_template_hierarchy_with_posts_on_front() {
 		$this->assertSame( 'posts', get_option( 'show_on_front' ) );
 		$this->assertTemplateHierarchy(
@@ -242,6 +271,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_front_page_template
+	 */
 	public function test_front_page_template_hierarchy_with_page_on_front() {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', self::$page_on_front->ID );
@@ -260,6 +292,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_home_template
+	 */
 	public function test_home_template_hierarchy_with_page_on_front() {
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', self::$page_on_front->ID );
@@ -274,6 +309,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_page_template
+	 */
 	public function test_page_template_hierarchy() {
 		$this->assertTemplateHierarchy(
 			get_permalink( self::$page ),
@@ -291,6 +329,8 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 44005
 	 * @group privacy
+	 *
+	 * @covers ::get_privacy_policy_template
 	 */
 	public function test_privacy_template_hierarchy() {
 		update_option( 'wp_page_for_privacy_policy', self::$page_for_privacy_policy->ID );
@@ -309,6 +349,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18375
+	 *
+	 * @covers ::get_single_template
 	 */
 	public function test_single_template_hierarchy_for_post() {
 		$this->assertTemplateHierarchy(
@@ -324,6 +366,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_single_template
+	 */
 	public function test_single_template_hierarchy_for_custom_post_type() {
 		$cpt = self::factory()->post->create_and_get(
 			array(
@@ -346,6 +391,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18375
+	 *
+	 * @covers ::get_single_template
 	 */
 	public function test_single_template_hierarchy_for_custom_post_type_with_template() {
 		$cpt = self::factory()->post->create_and_get(
@@ -369,6 +416,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_attachment_template
+	 */
 	public function test_attachment_template_hierarchy() {
 		$attachment = self::factory()->attachment->create_and_get(
 			array(
@@ -395,6 +445,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18375
+	 *
+	 * @covers ::get_attachment_template
 	 */
 	public function test_attachment_template_hierarchy_with_template() {
 		$attachment = self::factory()->attachment->create_and_get(
@@ -423,6 +475,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_embed_template
+	 */
 	public function test_embed_template_hierarchy_for_post() {
 		$this->assertTemplateHierarchy(
 			get_post_embed_url( self::$post ),
@@ -440,6 +495,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_embed_template
+	 */
 	public function test_embed_template_hierarchy_for_page() {
 		$this->assertTemplateHierarchy(
 			get_post_embed_url( self::$page ),

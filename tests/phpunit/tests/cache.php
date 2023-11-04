@@ -74,10 +74,16 @@ class Tests_Cache extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_miss() {
 		$this->assertFalse( $this->cache->get( 'test_miss' ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_add_get() {
 		$key = __FUNCTION__;
 		$val = 'val';
@@ -86,6 +92,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::add
+	 */
 	public function test_add_get_0() {
 		$key = __FUNCTION__;
 		$val = 0;
@@ -97,6 +106,9 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20004
+	 *
+	 * @covers WP_Object_Cache::add
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_add_get_null() {
 		$key = __FUNCTION__;
@@ -109,6 +121,9 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20004
+	 *
+	 * @covers WP_Object_Cache::add
+	 * @covers WP_Object_Cache::get
 	 */
 	public function test_add_get_false() {
 		$key = __FUNCTION__;
@@ -119,6 +134,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::add
+	 */
 	public function test_add() {
 		$key  = __FUNCTION__;
 		$val1 = 'val1';
@@ -132,6 +150,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val1, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::replace
+	 * @covers WP_Object_Cache::add
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_replace() {
 		$key  = __FUNCTION__;
 		$val  = 'val1';
@@ -145,7 +168,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertTrue( $this->cache->replace( $key, $val2 ) );
 		$this->assertSame( $val2, $this->cache->get( $key ) );
 	}
-
+	/**
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::replace
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_wp_cache_replace() {
 		$key  = 'my-key';
 		$val1 = 'first-val';
@@ -168,6 +195,10 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $fake_key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_set() {
 		$key  = __FUNCTION__;
 		$val1 = 'val1';
@@ -181,6 +212,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val2, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::flush
+	 * @covers WP_Object_Cache::add
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_flush() {
 		if ( wp_using_ext_object_cache() ) {
 			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
@@ -228,6 +264,13 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	// Make sure objects are cloned going to and from the cache.
+	/**
+	 * Make sure objects are cloned going to and from the cache.
+	 *
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
+	 * @covers WP_Object_Cache::add
+	 */
 	public function test_object_refs() {
 		$key           = __FUNCTION__ . '_1';
 		$object_a      = new stdClass();
@@ -250,6 +293,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'bravo', $object_a->foo );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::incr
+	 */
 	public function test_incr() {
 		$key = __FUNCTION__;
 
@@ -263,6 +309,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 3, $this->cache->get( $key ) );
 	}
 
+	/**
+	 * @covers ::wp_cache_incr
+	 */
 	public function test_wp_cache_incr() {
 		$key = __FUNCTION__;
 
@@ -276,6 +325,10 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 3, wp_cache_get( $key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::decr
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_decr() {
 		$key = __FUNCTION__;
 
@@ -295,6 +348,9 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21327
+	 *
+	 * @covers ::wp_cache_decr
+	 * @covers ::wp_cache_get
 	 */
 	public function test_wp_cache_decr() {
 		$key = __FUNCTION__;
@@ -313,6 +369,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 0, wp_cache_get( $key ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::delete
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_delete() {
 		$key = __FUNCTION__;
 		$val = 'val';
@@ -328,6 +389,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( $this->cache->delete( $key, 'default' ) );
 	}
 
+	/**
+	 * @covers ::wp_cache_delete
+	 * @covers ::wp_cache_get
+	 * @covers ::wp_cache_set
+	 */
 	public function test_wp_cache_delete() {
 		$key = __FUNCTION__;
 		$val = 'val';
@@ -347,6 +413,11 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_delete( $key, 'default' ) );
 	}
 
+	/**
+	 * @covers WP_Object_Cache::switch_to_blog
+	 * @covers WP_Object_Cache::set
+	 * @covers WP_Object_Cache::get
+	 */
 	public function test_switch_to_blog() {
 		if ( ! method_exists( $this->cache, 'switch_to_blog' ) ) {
 			$this->markTestSkipped( 'This test requires a switch_to_blog() method on the cache object.' );
@@ -393,6 +464,9 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val2, $this->cache->get( $key, 'global-cache-test' ) );
 	}
 
+	/**
+	 * @covers ::wp_cache_init
+	 */
 	public function test_wp_cache_init() {
 		$new_blank_cache_object = new WP_Object_Cache();
 		wp_cache_init();
@@ -409,6 +483,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54574
+	 *
+	 * @covers ::wp_cache_add_multiple
 	 */
 	public function test_wp_cache_add_multiple() {
 		$found = wp_cache_add_multiple(
@@ -431,6 +507,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54574
+	 *
+	 * @covers ::wp_cache_set_multiple
 	 */
 	public function test_wp_cache_set_multiple() {
 		$found = wp_cache_set_multiple(
@@ -453,6 +531,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20875
+	 *
+	 * @covers ::wp_cache_get_multiple
 	 */
 	public function test_wp_cache_get_multiple() {
 		wp_cache_set( 'foo1', 'bar', 'group1' );
@@ -472,6 +552,8 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54574
+	 *
+	 * @covers ::wp_cache_delete_multiple
 	 */
 	public function test_wp_cache_delete_multiple() {
 		wp_cache_set( 'foo1', 'bar', 'group1' );

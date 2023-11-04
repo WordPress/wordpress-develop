@@ -14,6 +14,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29911
+	 *
+	 * @covers ::wp_delete_term
 	 */
 	public function test_wp_delete_term_should_invalidate_cache_for_child_terms() {
 		register_taxonomy(
@@ -49,6 +51,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 5381
+	 *
+	 * @covers ::wp_insert_term
 	 */
 	public function test_is_term_type() {
 		// Insert a term.
@@ -67,6 +71,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15919
+	 *
+	 * @covers ::wp_count_terms
 	 */
 	public function test_wp_count_terms() {
 		$count = wp_count_terms(
@@ -81,6 +87,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36399
+	 *
+	 * @covers ::wp_count_terms
 	 */
 	public function test_wp_count_terms_legacy_interoperability() {
 		self::factory()->tag->create_many( 5 );
@@ -99,6 +107,9 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15475
+	 *
+	 * @covers ::wp_add_object_terms
+	 * @covers ::wp_remove_object_terms
 	 */
 	public function test_wp_add_remove_object_terms() {
 		$posts = self::$post_ids;
@@ -128,6 +139,10 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 *
+	 * @covers ::wp_insert_term
+	 */
 	public function test_term_is_ancestor_of() {
 		$term  = rand_str();
 		$term2 = rand_str();
@@ -147,6 +162,10 @@ class Tests_Term extends WP_UnitTestCase {
 		wp_delete_term( $t2['term_id'], 'category' );
 	}
 
+	/**
+	 * @covers ::wp_insert_category
+	 * @covers ::wp_delete_category
+	 */
 	public function test_wp_insert_delete_category() {
 		$term = rand_str();
 		$this->assertNull( category_exists( $term ) );
@@ -172,6 +191,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16550
+	 *
+	 * @covers ::wp_set_post_categories
 	 */
 	public function test_wp_set_post_categories() {
 		$post_id = self::$post_ids[0];
@@ -211,6 +232,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43516
+	 *
+	 * @covers ::wp_set_post_categories
 	 */
 	public function test_wp_set_post_categories_sets_default_category_for_custom_post_types() {
 		add_filter( 'default_category_post_types', array( $this, 'filter_default_category_post_types' ) );
@@ -240,6 +263,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25852
+	 *
+	 * @covers ::sanitize_term_field
 	 */
 	public function test_sanitize_term_field() {
 		$term = wp_insert_term( 'foo', $this->taxonomy );
@@ -297,6 +322,8 @@ class Tests_Term extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19205
+	 *
+	 * @covers ::wp_insert_term
 	 */
 	public function test_orphan_category() {
 		$cat_id1 = self::factory()->category->create();

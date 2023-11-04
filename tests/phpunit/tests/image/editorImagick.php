@@ -36,6 +36,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests support for ImageMagick compatible mime types.
+	 *
+	 * @covers WP_Image_Editor_Imagick::supports_mime_type
 	 */
 	public function test_supports_mime_type() {
 		$imagick_image_editor = new WP_Image_Editor_Imagick( null );
@@ -47,6 +49,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests resizing an image, not using crop.
+	 *
+	 * @covers WP_Image_Editor_Imagick::resize
 	 */
 	public function test_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -67,6 +71,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests multi_resize() with single image resize and no crop.
+	 *
+	 * @covers WP_Image_Editor_Imagick::multi_resize
 	 */
 	public function test_single_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -110,6 +116,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * both height and weight are missing, null, or 0.
 	 *
 	 * @ticket 26823
+	 *
+	 * @covers WP_Image_Editor_Imagick::multi_resize
 	 */
 	public function test_multi_resize_does_not_create() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -178,6 +186,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests multi_resize() with multiple sizes.
 	 *
 	 * @ticket 26823
+	 *
+	 * @covers WP_Image_Editor_Imagick::multi_resize
 	 */
 	public function test_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -392,6 +402,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests resizing an image with cropping.
+	 *
+	 * @covers WP_Image_Editor_Imagick::multi_resize
 	 */
 	public function test_resize_and_crop() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -412,6 +424,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests cropping an image.
+	 *
+	 * @covers WP_Image_Editor_Imagick::crop
 	 */
 	public function test_crop() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -432,6 +446,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests rotating an image 180 deg.
+	 *
+	 * @covers WP_Image_Editor_Imagick::rotate
 	 */
 	public function test_rotate() {
 		$file = DIR_TESTDATA . '/images/one-blue-pixel-100x100.png';
@@ -451,6 +467,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests flipping an image.
+	 *
+	 * @covers WP_Image_Editor_Imagick::flip
 	 */
 	public function test_flip() {
 		$file = DIR_TESTDATA . '/images/one-blue-pixel-100x100.png';
@@ -472,6 +490,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that an image created with WP_Image_Editor_Imagick preserves alpha with no resizing.
 	 *
 	 * @ticket 24871
+	 *
+	 * @covers WP_Image_Editor_Imagick::resize
 	 */
 	public function test_image_preserves_alpha() {
 		$file = DIR_TESTDATA . '/images/transparent.png';
@@ -496,6 +516,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that an image created with WP_Image_Editor_Imagick preserves alpha when resizing.
 	 *
 	 * @ticket 24871
+	 *
+	 * @covers WP_Image_Editor_Imagick::load
 	 */
 	public function test_image_preserves_alpha_on_resize() {
 		$file = DIR_TESTDATA . '/images/transparent.png';
@@ -519,6 +541,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * @ticket 30596
+	 *
+	 * @covers WP_Image_Editor_Imagick::rotate
 	 */
 	public function test_image_preserves_alpha_on_rotate() {
 		$file = DIR_TESTDATA . '/images/transparent.png';
@@ -546,6 +570,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that WP_Image_Editor_Imagick handles extensionless images.
 	 *
 	 * @ticket 39195
+	 *
+	 * @covers WP_Image_Editor_Imagick::load
 	 */
 	public function test_image_non_existent_extension() {
 		$imagick_image_editor = new WP_Image_Editor_Imagick( DIR_TESTDATA . '/images/test-image-no-extension' );
@@ -560,6 +586,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 37140
 	 * @requires function exif_read_data
+	 *
+	 * @covers WP_Image_Editor_Imagick::rotate
 	 */
 	public function test_remove_orientation_data_on_rotate() {
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
@@ -589,6 +617,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Tests that images can be loaded and written over streams.
+	 *
+	 * @covers WP_Image_Editor_Imagick::load
 	 */
 	public function test_streams() {
 		stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
@@ -619,6 +649,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * @ticket 51665
+	 *
+	 * @covers WP_Image_Editor_Imagick::save
 	 */
 	public function test_directory_creation() {
 		$file      = realpath( DIR_TESTDATA ) . '/images/a2-small.jpg';

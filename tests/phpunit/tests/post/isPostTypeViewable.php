@@ -2,8 +2,11 @@
 
 /**
  * @group post
+ *
+ * @covers ::is_post_type_viewable
  */
 class Tests_Post_IsPostTypeViewable extends WP_UnitTestCase {
+
 	public function test_should_return_false_for_non_publicly_queryable_types() {
 		register_post_type(
 			'wptests_pt',

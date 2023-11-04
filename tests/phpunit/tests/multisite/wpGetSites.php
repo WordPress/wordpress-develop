@@ -6,6 +6,8 @@ if ( is_multisite() ) :
 	 * @group wp-get-site
 	 * @group ms-site
 	 * @group multisite
+	 *
+	 * @covers ::wp_get_sites
 	 */
 	class Tests_Multisite_wpGetSites extends WP_UnitTestCase {
 		protected static $site_ids;

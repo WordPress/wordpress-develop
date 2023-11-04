@@ -5,6 +5,8 @@
  * @package WordPress
  *
  * @group robots
+ *
+ * @covers ::wp_robots
  */
 class Tests_Robots extends WP_UnitTestCase {
 

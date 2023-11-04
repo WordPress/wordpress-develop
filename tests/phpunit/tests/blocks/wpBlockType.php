@@ -63,6 +63,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type
 	 */
 	public function test_set_props() {
 		$name = 'core/fake';
@@ -78,7 +80,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$this->assertSame( $args['foo'], $block_type->foo );
 	}
 
-	/*
+	/**
 	 * @ticket 55567
 	 * @covers WP_Block_Type::set_props
 	 */
@@ -93,9 +95,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		);
 	}
 
-	/*
+	/**
 	 * @ticket 55567
-	 * @covers WP_Block_Type::set_props
+	 * @covers WP_Block_Type
 	 */
 	public function test_core_attributes_matches_custom() {
 		$block_type = new WP_Block_Type(
@@ -120,6 +122,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render() {
 		$attributes = array(
@@ -139,6 +143,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render_with_content() {
 		$attributes = array(
@@ -162,6 +168,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render_for_static_block() {
 		$block_type = new WP_Block_Type( 'core/fake', array() );
@@ -172,6 +180,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::is_dynamic
 	 */
 	public function test_is_dynamic_for_static_block() {
 		$block_type = new WP_Block_Type( 'core/fake', array() );
@@ -181,6 +191,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::is_dynamic
 	 */
 	public function test_is_dynamic_for_dynamic_block() {
 		$block_type = new WP_Block_Type(
@@ -195,6 +207,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::prepare_attributes_for_render
 	 */
 	public function test_prepare_attributes() {
 		$attributes = array(
@@ -249,6 +263,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45145
+	 *
+	 * @covers WP_Block_Type::prepare_attributes_for_render
 	 */
 	public function test_prepare_attributes_none_defined() {
 		$attributes = array( 'exists' => 'keep' );
@@ -262,6 +278,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers ::has_block
 	 */
 	public function test_has_block_with_mixed_content() {
 		$mixed_post_content = 'before' .
@@ -297,6 +315,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers ::has_block
 	 */
 	public function test_has_block_with_invalid_content() {
 		// some content with invalid HMTL comments and a single valid block.
@@ -320,6 +340,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers ::has_block
 	 */
 	public function test_post_has_block() {
 		// should fail for a non-existent block `custom/fake`.
@@ -338,6 +360,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$this->assertFalse( has_block( 'core/fake' ) );
 	}
 
+	/**
+	 * @covers ::has_block
+	 */
 	public function test_post_has_block_serialized_name() {
 		$content = '<!-- wp:serialized /--><!-- wp:core/normalized /--><!-- wp:plugin/third-party /-->';
 
@@ -385,6 +410,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48529
+	 *
+	 * @covers WP_Block_Type
 	 */
 	public function test_register_block() {
 		$block_type = new WP_Block_Type(
@@ -417,6 +444,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 * @ticket 43887
 	 *
 	 * @dataProvider data_block_version
+	 *
+	 * @covers ::block_version
 	 *
 	 * @param string|null $content  Content.
 	 * @param int         $expected Expected block version.

@@ -28,6 +28,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		remove_theme_mod( 'custom_logo' );
 	}
 
+	/**
+	 * @covers WP_Site_Icon::intermediate_image_sizes
+	 */
 	public function test_intermediate_image_sizes() {
 		$image_sizes = $this->wp_site_icon->intermediate_image_sizes( array() );
 
@@ -39,6 +42,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertSame( $sizes, $image_sizes );
 	}
 
+	/**
+	 * @covers WP_Site_Icon::intermediate_image_sizes
+	 */
 	public function test_intermediate_image_sizes_with_filter() {
 		add_filter( 'site_icon_image_sizes', array( $this, 'custom_test_sizes' ) );
 		$image_sizes = $this->wp_site_icon->intermediate_image_sizes( array() );
@@ -60,6 +66,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		remove_filter( 'site_icon_image_sizes', array( $this, 'custom_test_sizes' ) );
 	}
 
+	/**
+	 * @covers WP_Site_Icon::additional_sizes
+	 */
 	public function test_additional_sizes() {
 		$image_sizes = $this->wp_site_icon->additional_sizes( array() );
 
@@ -75,6 +84,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertSame( $sizes, $image_sizes );
 	}
 
+	/**
+	 * @covers WP_Site_Icon::additional_sizes
+	 */
 	public function test_additional_sizes_with_filter() {
 		add_filter( 'site_icon_image_sizes', array( $this, 'custom_test_sizes' ) );
 		$image_sizes = $this->wp_site_icon->additional_sizes( array() );
@@ -98,6 +110,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
 	}
 
+	/**
+	 * @covers WP_Site_Icon::create_attachment_object
+	 */
 	public function test_create_attachment_object() {
 		$attachment_id = $this->insert_attachment();
 		$parent_url    = get_post( $attachment_id )->guid;
@@ -112,6 +127,10 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertSame( $object['guid'], $cropped );
 	}
 
+	/**
+	 * @covers WP_Site_Icon::create_attachment_object
+	 * @covers WP_Site_Icon::insert_attachment
+	 */
 	public function test_insert_cropped_attachment() {
 		$attachment_id = $this->insert_attachment();
 		$parent_url    = get_post( $attachment_id )->guid;
@@ -124,6 +143,9 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $cropped_id );
 	}
 
+	/**
+	 * @covers ::wp_delete_attachment
+	 */
 	public function test_delete_attachment_data() {
 		$attachment_id = $this->insert_attachment();
 		update_option( 'site_icon', $attachment_id );
@@ -135,6 +157,8 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34368
+	 *
+	 * @covers WP_Site_Icon::get_post_metadata
 	 */
 	public function test_get_post_metadata() {
 		$attachment_id = $this->insert_attachment();

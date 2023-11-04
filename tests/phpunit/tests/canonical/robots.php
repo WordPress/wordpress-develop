@@ -6,7 +6,10 @@
  * @group query
  */
 class Tests_Canonical_Robots extends WP_Canonical_UnitTestCase {
-
+	/**
+	 * @covers ::redirect_canonical
+	 * @covers ::home_url
+	 */
 	public function test_remove_trailing_slashes_for_robots_requests() {
 		$this->set_permalink_structure( '/%postname%/' );
 		$this->assertCanonical( '/robots.txt', '/robots.txt' );

@@ -10,6 +10,7 @@
 		convertWarningsToExceptions="true"
 		convertNoticesToExceptions="true"
 		convertDeprecationsToExceptions="true"
+		forceCoversAnnotation="true"
 		>
 	<php>
 		<const name="WP_TESTS_MULTISITE" value="1" />

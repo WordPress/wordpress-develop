@@ -10,6 +10,7 @@
  *
  * @group restapi-blocks
  * @group restapi
+ * @coversDefaultClass WP_REST_Block_Types_Controller
  */
 class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
@@ -81,6 +82,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -99,6 +101,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_items
 	 */
 	public function test_get_items() {
 		$block_name = 'fake/test';
@@ -113,6 +116,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_item
 	 */
 	public function test_get_item() {
 		$block_name = 'fake/test';
@@ -125,6 +129,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_item
 	 */
 	public function test_get_item_with_styles() {
 		$block_name   = 'fake/styles';
@@ -144,6 +149,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_item
 	 */
 	public function test_get_item_with_styles_merge() {
 		$block_name   = 'fake/styles2';
@@ -184,6 +190,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_item
 	 */
 	public function test_get_block_invalid_name() {
 		$block_type = 'fake/block';
@@ -198,6 +205,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 * @ticket 57585
 	 * @ticket 59346
+	 * @covers ::get_item
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -272,6 +280,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 * @ticket 57585
 	 * @ticket 59346
+	 * @covers ::get_item
 	 */
 	public function test_get_item_defaults() {
 		$block_type = 'fake/false';
@@ -484,6 +493,9 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
+	/**
+	 * @covers ::get_item
+	 */
 	public function test_get_variation() {
 		$block_type = 'fake/variations';
 		$settings   = array(
@@ -546,6 +558,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 * @ticket 57585
 	 * @ticket 59346
+	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -589,6 +602,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_items
 	 */
 	public function test_get_items_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -599,6 +613,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_item
 	 */
 	public function test_get_item_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -609,6 +624,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_items
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -619,6 +635,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::get_item
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -629,6 +647,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
 		$registry = new WP_Block_Type_Registry();
@@ -647,6 +666,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 47620
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item_limit_fields() {
 		$registry = new WP_Block_Type_Registry();

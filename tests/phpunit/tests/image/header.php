@@ -13,6 +13,9 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->custom_image_header = new Custom_Image_Header( '__return_null' );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::get_header_dimensions
+	 */
 	public function test_header_image_has_correct_dimensions_with_max_width() {
 		global $_wp_theme_features;
 
@@ -32,6 +35,9 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 230, $dimensions['dst_height'] );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::get_header_dimensions
+	 */
 	public function test_header_image_has_correct_dimensions_with_fixed() {
 		global $_wp_theme_features;
 
@@ -51,6 +57,9 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 230, $dimensions['dst_height'] );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::get_header_dimensions
+	 */
 	public function test_header_image_has_correct_dimensions_with_flex_height() {
 		global $_wp_theme_features;
 
@@ -70,6 +79,9 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 900, $dimensions['dst_height'] );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::get_header_dimensions
+	 */
 	public function test_header_image_has_correct_dimensions_with_flex_width() {
 		global $_wp_theme_features;
 
@@ -89,6 +101,9 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 230, $dimensions['dst_height'] );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::get_header_dimensions
+	 */
 	public function test_header_image_has_correct_dimensions_with_flex_width_and_height() {
 		global $_wp_theme_features;
 
@@ -108,6 +123,9 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 1200, $dimensions['dst_height'] );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::create_attachment_object
+	 */
 	public function test_create_attachment_object() {
 		$id = wp_insert_attachment(
 			array(
@@ -127,6 +145,10 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 'image/jpeg', $object['post_mime_type'] );
 	}
 
+	/**
+	 * @covers Custom_Image_Header::create_attachment_object
+	 * @covers Custom_Image_Header::insert_attachment
+	 */
 	public function test_insert_cropped_attachment() {
 		$id = wp_insert_attachment(
 			array(
@@ -148,6 +170,10 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21819
+	 *
+	 * @covers Custom_Image_Header::create_attachment_object
+	 * @covers Custom_Image_Header::get_previous_crop
+	 * @covers Custom_Image_Header::insert_attachment
 	 */
 	public function test_check_get_previous_crop() {
 		$id = wp_insert_attachment(

@@ -3,6 +3,8 @@
  * @group image
  * @group media
  * @group upload
+ *
+ * @covers ::image_make_intermediate_size
  */
 class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	public function tear_down() {

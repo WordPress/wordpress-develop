@@ -34,6 +34,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_insert_term
 	 */
 	public function test_wp_insert_term() {
 		$taxonomies = array(
@@ -81,6 +83,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_update_term
 	 */
 	public function test_wp_update_term() {
 		$taxonomies = array(

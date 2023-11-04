@@ -6,6 +6,7 @@
  * @subpackage REST API
  *
  * @group restapi
+ * @coversDefaultClass WP_REST_Attachments_Controller
  */
 class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
 
@@ -176,6 +177,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 	}
 
+	/**
+	 * @covers ::get_context_param
+	 */
 	public function test_context_param() {
 		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
@@ -293,6 +297,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $headers['Allow'], 'GET, POST, PUT, PATCH, DELETE' );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items() {
 		wp_set_current_user( 0 );
 		$id1            = self::factory()->attachment->create_object(
@@ -333,6 +340,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->check_get_posts_response( $response );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_logged_in_editor() {
 		wp_set_current_user( self::$editor_id );
 		$id1            = self::factory()->attachment->create_object(
@@ -372,6 +382,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertContains( $id3, $ids );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_media_type() {
 		$id1      = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -395,6 +408,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $id1, $data[0]['id'] );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_mime_type() {
 		$id1      = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -418,6 +434,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $id1, $data[0]['id'] );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_parent() {
 		$post_id        = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
 		$attachment_id  = self::factory()->attachment->create_object(
@@ -462,6 +481,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 0, $data );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_invalid_status_param_is_error_response() {
 		wp_set_current_user( self::$editor_id );
 		self::factory()->attachment->create_object(
@@ -479,6 +501,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_invalid_param', $response );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_private_status() {
 		// Logged out users can't make the request.
 		wp_set_current_user( 0 );
@@ -503,6 +528,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $attachment_id1, $data[0]['id'] );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_multiple_statuses() {
 		// Logged out users can't make the request.
 		wp_set_current_user( 0 );
@@ -542,6 +570,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( array( $attachment_id1, $attachment_id2 ), $ids );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_invalid_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'after', 'foo' );
@@ -550,6 +581,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_get_items_valid_date() {
 		$id1     = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -589,6 +623,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 50617
+	 * @covers ::get_items
 	 */
 	public function test_get_items_invalid_modified_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
@@ -600,6 +635,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 50617
+	 * @covers ::get_items
 	 */
 	public function test_get_items_valid_modified_date() {
 		$id1 = self::factory()->attachment->create_object(
@@ -683,6 +719,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_post_invalid_page_number', $response, 400 );
 	}
 
+	/**
+	 * @covers ::get_item
+	 */
 	public function test_get_item() {
 		$attachment_id = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -702,6 +741,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::get_item
 	 */
 	public function test_get_item_sizes() {
 		$attachment_id = self::factory()->attachment->create_object(
@@ -733,6 +774,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::get_item
 	 */
 	public function test_get_item_sizes_with_no_url() {
 		$attachment_id = self::factory()->attachment->create_object(
@@ -760,6 +803,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'source_url', $data['media_details']['sizes']['rest-api-test'] );
 	}
 
+	/**
+	 * @covers ::get_item
+	 */
 	public function test_get_item_private_post_not_authenticated() {
 		wp_set_current_user( 0 );
 		$draft_post = self::factory()->post->create( array( 'post_status' => 'draft' ) );
@@ -776,6 +822,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 401, $response->get_status() );
 	}
 
+	/**
+	 * @covers ::get_item
+	 */
 	public function test_get_item_inherit_status_with_invalid_parent() {
 		$attachment_id = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -793,6 +842,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $attachment_id, $data['id'] );
 	}
 
+	/**
+	 * @covers ::get_item
+	 */
 	public function test_get_item_auto_status_with_invalid_parent_not_authenticated_returns_error() {
 		$attachment_id = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -811,6 +863,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item() {
 		wp_set_current_user( self::$author_id );
@@ -841,6 +895,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'Alt text is stored outside post schema.', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_default_filename_title() {
 		wp_set_current_user( self::$author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -863,6 +920,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_files() {
 		wp_set_current_user( self::$author_id );
@@ -884,6 +943,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_upload_files_role() {
 		wp_set_current_user( self::$uploader_id );
@@ -903,6 +964,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 201, $response->get_status() );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_empty_body() {
 		wp_set_current_user( self::$author_id );
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -910,6 +974,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_upload_no_data', $response, 400 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_missing_content_type() {
 		wp_set_current_user( self::$author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -918,6 +985,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_upload_no_content_type', $response, 400 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_missing_content_disposition() {
 		wp_set_current_user( self::$author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -927,6 +997,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_upload_no_content_disposition', $response, 400 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_bad_md5_header() {
 		wp_set_current_user( self::$author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -938,6 +1011,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_upload_hash_mismatch', $response, 412 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_with_files_bad_md5_header() {
 		wp_set_current_user( self::$author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -956,6 +1032,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_upload_hash_mismatch', $response, 412 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_invalid_upload_files_capability() {
 		wp_set_current_user( self::$contributor_id );
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -963,6 +1042,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_create', $response, 403 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_invalid_edit_permissions() {
 		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		wp_set_current_user( self::$author_id );
@@ -972,6 +1054,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_invalid_upload_permissions() {
 		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		wp_set_current_user( self::$uploader_id );
@@ -981,6 +1066,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * @covers ::create_item
+	 */
 	public function test_create_item_invalid_post_type() {
 		$attachment_id = self::factory()->post->create(
 			array(
@@ -1001,6 +1089,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_alt_text() {
 		wp_set_current_user( self::$author_id );
@@ -1017,6 +1107,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_unsafe_alt_text() {
 		wp_set_current_user( self::$author_id );
@@ -1033,6 +1125,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 40861
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_ensure_relative_path() {
 		wp_set_current_user( self::$author_id );
@@ -1045,6 +1139,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringNotContainsString( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
 	}
 
+	/**
+	 * @covers ::update_item
+	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$editor_id );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -1074,6 +1171,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'Alt text is stored outside post schema.', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
 	}
 
+	/**
+	 * @covers ::update_item
+	 */
 	public function test_update_item_parent() {
 		wp_set_current_user( self::$editor_id );
 		$original_parent = self::factory()->post->create( array() );
@@ -1099,6 +1199,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $new_parent, $attachment->post_parent );
 	}
 
+	/**
+	 * @covers ::update_item
+	 */
 	public function test_update_item_invalid_permissions() {
 		wp_set_current_user( self::$author_id );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -1116,6 +1219,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	/**
+	 * @covers ::update_item
+	 */
 	public function test_update_item_invalid_post_type() {
 		$attachment_id = self::factory()->post->create(
 			array(
@@ -1142,6 +1248,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 40399
+	 *
+	 * @covers ::update_item
 	 */
 	public function test_update_item_with_existing_inherit_status() {
 		wp_set_current_user( self::$editor_id );
@@ -1166,6 +1274,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 40399
+	 *
+	 * @covers ::update_item
 	 */
 	public function test_update_item_with_new_inherit_status() {
 		wp_set_current_user( self::$editor_id );
@@ -1447,6 +1557,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 	}
 
+	/**
+	 * @covers ::delete_item
+	 */
 	public function test_delete_item() {
 		wp_set_current_user( self::$editor_id );
 		$attachment_id    = self::factory()->attachment->create_object(
@@ -1463,6 +1576,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 200, $response->get_status() );
 	}
 
+	/**
+	 * @covers ::delete_item
+	 */
 	public function test_delete_item_no_trash() {
 		wp_set_current_user( self::$editor_id );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -1488,6 +1604,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertNotEmpty( $post );
 	}
 
+	/**
+	 * @covers ::delete_item
+	 */
 	public function test_delete_item_invalid_delete_permissions() {
 		wp_set_current_user( self::$author_id );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -1504,6 +1623,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 	}
 
+	/**
+	 * @covers ::prepare_item_for_response
+	 */
 	public function test_prepare_item() {
 		$attachment_id = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -1523,6 +1645,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->check_post_data( $attachment, $data, 'embed', $response->get_links() );
 	}
 
+	/**
+	 * @covers ::prepare_item_for_response
+	 */
 	public function test_prepare_item_limit_fields() {
 		$attachment_id = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -1549,6 +1674,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 	}
 
+	/**
+	 * @covers ::get_item_schema
+	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
 		$response   = rest_get_server()->dispatch( $request );
@@ -1590,6 +1718,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
 	}
 
+	/**
+	 * @covers ::get_item_schema
+	 */
 	public function test_get_additional_field_registration() {
 
 		$schema = array(
@@ -1633,6 +1764,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$wp_rest_additional_fields = array();
 	}
 
+	/**
+	 * @covers ::get_item_schema
+	 */
 	public function test_additional_field_update_errors() {
 		$schema = array(
 			'type'        => 'integer',
@@ -1687,6 +1821,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 	}
 
+	/**
+	 * @covers ::get_items
+	 */
 	public function test_search_item_by_filename() {
 		$id1 = self::factory()->attachment->create_object(
 			self::$test_file,
@@ -1748,6 +1885,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 0, $publish, 'LDO not found on schema.' );
 	}
 
+	/**
+	 * @covers ::get_item
+	 */
 	public function test_publish_action_link_does_not_exists() {
 
 		wp_set_current_user( self::$editor_id );
@@ -1793,6 +1933,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_file_exceeds_multisite_max_filesize() {
 		wp_set_current_user( self::$author_id );
@@ -1823,6 +1965,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_data_exceeds_multisite_max_filesize() {
 		wp_set_current_user( self::$author_id );
@@ -1844,6 +1988,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_file_exceeds_multisite_site_upload_space() {
 		wp_set_current_user( self::$author_id );
@@ -1874,6 +2020,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @ticket 43751
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_data_exceeds_multisite_site_upload_space() {
 		wp_set_current_user( self::$author_id );
@@ -1897,6 +2045,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 *
 	 * @ticket 45269
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_rest_insert_attachment_hooks_fire_once_on_create() {
 		self::$rest_insert_attachment_count       = 0;
@@ -1927,6 +2077,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * once when attachments are updated.
 	 *
 	 * @ticket 45269
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_rest_insert_attachment_hooks_fire_once_on_update() {
 		self::$rest_insert_attachment_count       = 0;
@@ -1955,6 +2107,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44567
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::create_item
 	 */
 	public function test_create_item_with_meta_values() {
 		register_post_meta(
@@ -1993,6 +2147,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item_permissions_check
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_logged_out() {
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
@@ -2006,6 +2163,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item_permissions_check
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_cannot_upload() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'editor' ) );
@@ -2023,6 +2183,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item_permissions_check
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_cannot_edit() {
 		wp_set_current_user( self::$uploader_id );
@@ -2036,6 +2199,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 *
+	 * @covers ::edit_media_item_permissions_check
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_no_attachment() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2050,6 +2216,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item_permissions_check
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_unsupported_mime_type() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2070,6 +2239,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item_permissions_check
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_no_edits() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2084,6 +2256,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_rotate() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2109,6 +2283,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_crop() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2146,6 +2322,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 44405
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image() {
 		wp_set_current_user( self::$superadmin_id );
@@ -2216,6 +2394,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 50565
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::edit_media_item
 	 */
 	public function test_edit_image_returns_error_if_mismatched_src() {
 		wp_set_current_user( self::$superadmin_id );

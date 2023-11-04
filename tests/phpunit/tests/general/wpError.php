@@ -5,7 +5,6 @@
  * @group general
  * @group errors
  *
- * @covers WP_Error
  * @coversDefaultClass WP_Error
  */
 class Tests_General_wpError extends WP_UnitTestCase {

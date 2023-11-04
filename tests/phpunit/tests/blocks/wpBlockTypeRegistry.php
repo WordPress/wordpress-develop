@@ -46,6 +46,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * @ticket 45097
 	 *
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_invalid_non_string_names() {
 		$result = $this->registry->register( 1, array() );
@@ -58,6 +60,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * @ticket 45097
 	 *
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_invalid_names_without_namespace() {
 		$result = $this->registry->register( 'paragraph', array() );
@@ -70,6 +74,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * @ticket 45097
 	 *
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_invalid_characters() {
 		$result = $this->registry->register( 'still/_doing_it_wrong', array() );
@@ -82,6 +88,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * @ticket 45097
 	 *
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_uppercase_characters() {
 		$result = $this->registry->register( 'Core/Paragraph', array() );
@@ -92,6 +100,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * Should accept valid block names
 	 *
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_register_block_type() {
 		$name     = 'core/paragraph';
@@ -111,6 +121,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * @ticket 45097
 	 *
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_register_block_type_twice() {
 		$name     = 'core/paragraph';
@@ -128,6 +140,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * Should accept a WP_Block_Type instance
 	 *
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type_Registry::register
 	 */
 	public function test_register_block_type_instance() {
 		$block_type = new WP_Fake_Block_Type( 'core/fake' );
@@ -142,6 +156,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * @ticket 45097
 	 *
 	 * @expectedIncorrectUsage WP_Block_Type_Registry::unregister
+	 *
+	 * @covers WP_Block_Type_Registry::unregister
 	 */
 	public function test_unregister_not_registered_block() {
 		$result = $this->registry->unregister( 'core/unregistered' );
@@ -152,6 +168,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 	 * Should unregister existing blocks
 	 *
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type_Registry::unregister
 	 */
 	public function test_unregister_block_type() {
 		$name     = 'core/paragraph';
@@ -168,6 +186,8 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type_Registry::unregister
 	 */
 	public function test_get_all_registered() {
 		$names    = array( 'core/paragraph', 'core/image', 'core/blockquote' );

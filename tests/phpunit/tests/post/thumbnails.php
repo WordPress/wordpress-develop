@@ -31,6 +31,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		parent::tear_down_after_class();
 	}
 
+	/**
+	 * @covers ::has_post_thumbnail
+	 */
 	public function test_has_post_thumbnail() {
 		$this->assertFalse( has_post_thumbnail( self::$post ) );
 		$this->assertFalse( has_post_thumbnail( self::$post->ID ) );
@@ -53,6 +56,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertTrue( has_post_thumbnail() );
 	}
 
+	/**
+	 * @covers ::get_post_thumbnail_id
+	 */
 	public function test_get_post_thumbnail_id() {
 		$this->assertSame( 0, get_post_thumbnail_id( self::$post ) );
 		$this->assertSame( 0, get_post_thumbnail_id( self::$post->ID ) );
@@ -68,6 +74,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( self::$attachment_id, get_post_thumbnail_id() );
 	}
 
+	/**
+	 * @covers ::update_post_thumbnail_cache
+	 */
 	public function test_update_post_thumbnail_cache() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
 
@@ -88,6 +97,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12235
+	 *
+	 * @covers ::get_the_post_thumbnail_caption
 	 */
 	public function test_get_the_post_thumbnail_caption() {
 		$this->assertSame( '', get_the_post_thumbnail_caption() );
@@ -112,6 +123,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12235
+	 *
+	 * @covers ::get_the_post_thumbnail_caption
 	 */
 	public function test_get_the_post_thumbnail_caption_empty() {
 		$post_id       = self::factory()->post->create();
@@ -132,6 +145,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12235
+	 *
+	 * @covers ::get_the_post_thumbnail_caption
 	 */
 	public function test_the_post_thumbnail_caption() {
 		$caption = 'This is a caption.';
@@ -153,6 +168,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		the_post_thumbnail_caption( $post_id );
 	}
 
+	/**
+	 * @covers ::get_the_post_thumbnail
+	 */
 	public function test_get_the_post_thumbnail() {
 		$this->assertSame( '', get_the_post_thumbnail() );
 		$this->assertSame( '', get_the_post_thumbnail( self::$post ) );
@@ -174,6 +192,9 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_the_post_thumbnail() );
 	}
 
+	/**
+	 * @covers ::the_post_thumbnail
+	 */
 	public function test_the_post_thumbnail() {
 
 		$this->expectOutputString( '' );
@@ -201,6 +222,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33070
+	 *
+	 * @covers ::get_the_post_thumbnail_url
 	 */
 	public function test_get_the_post_thumbnail_url() {
 		$this->assertFalse( has_post_thumbnail( self::$post ) );
@@ -219,6 +242,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33070
+	 *
+	 * @covers ::get_the_post_thumbnail_url
 	 */
 	public function test_get_the_post_thumbnail_url_with_invalid_post() {
 		set_post_thumbnail( self::$post, self::$attachment_id );
@@ -233,6 +258,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33070
+	 *
+	 * @covers ::the_post_thumbnail_url
 	 */
 	public function test_the_post_thumbnail_url() {
 		$GLOBALS['post'] = self::$post;
@@ -248,6 +275,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12922
+	 *
+	 * @covers ::_wp_preview_post_thumbnail_filter
 	 */
 	public function test__wp_preview_post_thumbnail_filter() {
 		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
@@ -268,6 +297,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37697
+	 *
+	 * @covers ::_wp_preview_post_thumbnail_filter
 	 */
 	public function test__wp_preview_post_thumbnail_filter_secondary_post() {
 		$old_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
@@ -294,6 +325,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12922
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	public function test_insert_post_with_post_thumbnail() {
 		$post_id = wp_insert_post(
@@ -325,6 +358,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37658
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	public function test_insert_attachment_with_post_thumbnail() {
 		// Audio files support featured images.
@@ -364,6 +399,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39030
+	 *
+	 * @covers ::get_the_post_thumbnail
 	 */
 	public function test_post_thumbnail_size_filter_simple() {
 		$this->current_size_filter_data = 'medium';
@@ -385,6 +422,8 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	/**
 	 * @ticket 39030
 	 * @dataProvider data_post_thumbnail_size_filter_complex
+	 *
+	 * @covers ::get_the_post_thumbnail
 	 */
 	public function test_post_thumbnail_size_filter_complex( $which_post, $expected ) {
 		$this->current_size_filter_data = array(

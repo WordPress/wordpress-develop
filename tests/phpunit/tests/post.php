@@ -49,6 +49,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( array( 'Page 0' ), $pages );
 	}
 
+	/**
+	 * @covers ::setup_postdata
+	 */
 	public function test_parse_post_content_multi_page() {
 		global $multipage, $pages, $numpages;
 
@@ -66,6 +69,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( array( 'Page 0', 'Page 1', 'Page 2', 'Page 3' ), $pages );
 	}
 
+	/**
+	 * @covers ::setup_postdata
+	 */
 	public function test_parse_post_content_remaining_single_page() {
 		global $multipage, $pages, $numpages;
 
@@ -83,6 +89,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( array( 'Page 0' ), $pages );
 	}
 
+	/**
+	 * @covers ::setup_postdata
+	 */
 	public function test_parse_post_content_remaining_multi_page() {
 		global $multipage, $pages, $numpages;
 
@@ -102,6 +111,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16746
+	 *
+	 * @covers ::setup_postdata
 	 */
 	public function test_parse_post_content_starting_with_nextpage() {
 		global $multipage, $pages, $numpages;
@@ -122,6 +133,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16746
+	 *
+	 * @covers ::setup_postdata
 	 */
 	public function test_parse_post_content_starting_with_nextpage_multi() {
 		global $multipage, $pages, $numpages;
@@ -142,6 +155,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24803
+	 *
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts() {
 		$post_type = rand_str( 20 );
@@ -161,6 +176,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( new stdClass(), $count );
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_filtered() {
 		$post_type = rand_str( 20 );
 		register_post_type( $post_type );
@@ -186,6 +204,9 @@ class Tests_Post extends WP_UnitTestCase {
 		return $counts;
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_insert_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -206,6 +227,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_trash_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -226,6 +250,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49685
+	 *
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts_status_changes_visible() {
 		self::factory()->post->create_many( 3 );
@@ -242,6 +268,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25566
+	 *
+	 * @covers ::wp_tag_cloud
 	 */
 	public function test_wp_tag_cloud_link_with_post_type() {
 		$post_type = 'new_post_type';
@@ -277,6 +305,8 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
+	 *
+	 * @covers ::edit_post
 	 */
 	public function test_utf8mb3_post_saves_with_emoji() {
 		global $wpdb;
@@ -318,6 +348,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
+	 *
+	 * @covers ::stick_post
 	 */
 	public function test_user_without_publish_posts_cannot_affect_sticky() {
 		// Create a sticky post.
@@ -356,6 +388,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
+	 *
+	 * @covers ::stick_post
 	 */
 	public function test_user_without_publish_posts_cannot_affect_sticky_with_edit_post() {
 		// Create a sticky post.
@@ -396,6 +430,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Test that hooks are fired when post gets stuck and unstuck.
 	 *
 	 * @ticket 35600
+	 *
+	 * @covers ::stick_post
 	 */
 	public function test_hooks_fire_when_post_gets_stuck_and_unstuck() {
 		$post_id = self::factory()->post->create();
@@ -450,6 +486,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @see wp_unique_post_slug()
 	 * @ticket 21112
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	public function test_pre_wp_unique_post_slug_filter() {
 		add_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );

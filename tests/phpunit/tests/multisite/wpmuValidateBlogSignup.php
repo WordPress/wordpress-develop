@@ -4,6 +4,8 @@ if ( is_multisite() ) :
 
 	/**
 	 * @group multisite
+	 *
+	 * @covers ::wpmu_validate_blog_signup
 	 */
 	class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		protected static $super_admin_id;

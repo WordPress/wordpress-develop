@@ -139,6 +139,8 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 * Ensure wp_publish_post does not add default category in error.
 	 *
 	 * @ticket 51292
+	 *
+	 * @covers ::wp_publish_post
 	 */
 	public function test_wp_publish_post_respects_current_categories() {
 		$post_id     = self::$auto_draft_id;
@@ -157,9 +159,9 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * Ensure wp_publish_post adds default category.
+	 * @ticket 51292
 	 *
 	 * @covers ::wp_publish_post
-	 * @ticket 51292
 	 */
 	public function test_wp_publish_post_adds_default_category() {
 		$post_id = self::$auto_draft_id;
@@ -177,9 +179,9 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * Ensure wp_publish_post adds default category when tagged.
+	 * @ticket 51292
 	 *
 	 * @covers ::wp_publish_post
-	 * @ticket 51292
 	 */
 	public function test_wp_publish_post_adds_default_category_when_tagged() {
 		$post_id = self::$auto_draft_id;
@@ -198,9 +200,9 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * Ensure wp_publish_post does not add default term in error.
+	 * @ticket 51292
 	 *
 	 * @covers ::wp_publish_post
-	 * @ticket 51292
 	 */
 	public function test_wp_publish_post_respects_current_terms() {
 		// Create custom taxonomy to test with.
@@ -233,9 +235,9 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * Ensure wp_publish_post adds default term.
+	 * @ticket 51292
 	 *
 	 * @covers ::wp_publish_post
-	 * @ticket 51292
 	 */
 	public function test_wp_publish_post_adds_default_term() {
 		// Create custom taxonomy to test with.

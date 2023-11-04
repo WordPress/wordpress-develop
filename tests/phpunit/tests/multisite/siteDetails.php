@@ -12,6 +12,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
+		 *
+		 * @covers ::update_option
 		 */
 		public function test_update_allowed_option_deletes_site_details_cache( $allowed_option, $temporary_value ) {
 			$site = get_site();
@@ -31,6 +33,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
+		 *
+		 * @covers ::update_option
 		 */
 		public function test_update_allowed_option_deletes_blog_details_cache( $allowed_option, $temporary_value ) {
 			$blog_details = get_blog_details();
@@ -50,6 +54,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
+		 *
+		 * @covers ::update_option
 		 */
 		public function test_update_allowed_option_does_not_delete_site_cache( $allowed_option, $temporary_value ) {
 			$site = get_site();
@@ -69,6 +75,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
+		 *
+		 * @covers ::update_option
 		 */
 		public function test_update_allowed_option_does_not_delete_short_blog_details_cache( $allowed_option, $temporary_value ) {
 			$blog_details = get_blog_details( null, false );
@@ -88,6 +96,8 @@ if ( is_multisite() ) :
 		 * @dataProvider data_allowed_options
 		 *
 		 * @ticket 40063
+		 *
+		 * @covers ::update_option
 		 */
 		public function test_update_allowed_option_does_not_update_sites_last_changed( $allowed_option, $temporary_value ) {
 			$last_changed = wp_cache_get_last_changed( 'sites' );
@@ -114,6 +124,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 40063
+		 *
+		 * @covers ::update_option
 		 */
 		public function test_update_random_blog_option_does_not_delete_cache() {
 			$site = get_site();
@@ -128,6 +140,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 40247
+		 *
+		 * @covers WP_Site::post_count
 		 */
 		public function test_site_details_cached_including_false_values() {
 			$id = self::factory()->blog->create();
@@ -145,6 +159,9 @@ if ( is_multisite() ) :
 			$this->assertNotFalse( $cached_details );
 		}
 
+		/**
+		 * @covers ::get_site
+		 */
 		public function test_site_details_filter_with_blogname() {
 			add_filter( 'site_details', array( $this, '_filter_site_details_blogname' ) );
 			$site     = get_site();
@@ -161,6 +178,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 40458
+		 *
+		 * @covers ::get_site
 		 */
 		public function test_site_details_filter_with_custom_value_isetter() {
 			add_filter( 'site_details', array( $this, '_filter_site_details_custom_value' ) );
@@ -173,6 +192,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 40458
+		 *
+		 * @covers ::get_site
 		 */
 		public function test_site_details_filter_with_custom_value_getter() {
 			add_filter( 'site_details', array( $this, '_filter_site_details_custom_value' ) );

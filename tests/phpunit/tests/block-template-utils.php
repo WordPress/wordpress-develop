@@ -230,6 +230,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @ticket 54448
 	 * @ticket 59460
 	 *
+	 * @covers ::_remove_theme_attribute_in_block_template_content
+	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 *
 	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
@@ -286,6 +288,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should retrieve the template from the theme files.
+	 *
+	 * @covers ::get_block_template
 	 */
 	public function test_get_block_template_from_file() {
 		$id       = get_stylesheet() . '//' . 'index';
@@ -311,6 +315,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should retrieve the template from the CPT.
+	 *
+	 * @covers ::get_block_template
 	 */
 	public function test_get_block_template_from_post() {
 		$id       = get_stylesheet() . '//' . 'my_template';
@@ -336,6 +342,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * Should flatten nested blocks
+	 *
+	 * @covers ::_flatten_blocks
 	 */
 	public function test_flatten_blocks() {
 		$content_template_part_inside_group = '<!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group -->';
@@ -362,6 +370,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @ticket 54448
 	 * @requires extension zip
+	 *
+	 * @covers ::wp_generate_block_templates_export_file
 	 */
 	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();

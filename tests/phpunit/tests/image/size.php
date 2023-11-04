@@ -7,6 +7,9 @@
  */
 class Tests_Image_Size extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_constrain_dimensions
+	 */
 	public function test_constrain_dims_zero() {
 		// No constraint - should have no effect.
 		$out = wp_constrain_dimensions( 640, 480, 0, 0 );
@@ -22,6 +25,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$this->assertSame( array( 118, 177 ), $out );
 	}
 
+	/**
+	 * @covers ::wp_constrain_dimensions
+	 */
 	public function test_constrain_dims_smaller() {
 		// Image size is smaller than the constraint - no effect.
 		$out = wp_constrain_dimensions( 500, 600, 1024, 768 );
@@ -34,6 +40,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$this->assertSame( array( 500, 600 ), $out );
 	}
 
+	/**
+	 * @covers ::wp_constrain_dimensions
+	 */
 	public function test_constrain_dims_equal() {
 		// Image size is equal to the constraint - no effect.
 		$out = wp_constrain_dimensions( 1024, 768, 1024, 768 );
@@ -46,6 +55,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$this->assertSame( array( 1024, 768 ), $out );
 	}
 
+	/**
+	 * @covers ::wp_constrain_dimensions
+	 */
 	public function test_constrain_dims_larger() {
 		// Image size is larger than the constraint - result should be constrained.
 		$out = wp_constrain_dimensions( 1024, 768, 500, 600 );
@@ -68,6 +80,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$this->assertSame( array( 200, 533 ), $out );
 	}
 
+	/**
+	 * @covers ::wp_constrain_dimensions
+	 */
 	public function test_constrain_dims_boundary() {
 		// One dimension is larger than the constraint, one smaller - result should be constrained.
 		$out = wp_constrain_dimensions( 1024, 768, 500, 800 );
@@ -86,6 +101,8 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated wp_shrink_dimensions
+	 *
+	 * @covers ::wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_default() {
 		$out = wp_shrink_dimensions( 640, 480 );
@@ -97,6 +114,8 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated wp_shrink_dimensions
+	 *
+	 * @covers ::wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_smaller() {
 		// Image size is smaller than the constraint - no effect.
@@ -109,6 +128,8 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated wp_shrink_dimensions
+	 *
+	 * @covers ::wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_equal() {
 		// Image size is equal to the constraint - no effect.
@@ -121,6 +142,8 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated wp_shrink_dimensions
+	 *
+	 * @covers ::wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_larger() {
 		// Image size is larger than the constraint - result should be constrained.
@@ -133,6 +156,8 @@ class Tests_Image_Size extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated wp_shrink_dimensions
+	 *
+	 * @covers ::wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_boundary() {
 		// One dimension is larger than the constraint, one smaller - result should be constrained.
@@ -150,6 +175,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$this->assertSame( array( 525, 700 ), $out );
 	}
 
+	/**
+	 * @covers ::image_constrain_size_for_editor
+	 */
 	public function test_constrain_size_for_editor_thumb() {
 		$out = image_constrain_size_for_editor( 600, 400, 'thumb' );
 		$this->assertSame( array( 150, 100 ), $out );
@@ -158,6 +186,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$this->assertSame( array( 64, 64 ), $out );
 	}
 
+	/**
+	 * @covers ::image_constrain_size_for_editor
+	 */
 	public function test_constrain_size_for_editor_medium() {
 		// Default max width is 500, no constraint on height.
 		global $content_width;
@@ -185,6 +216,9 @@ class Tests_Image_Size extends WP_UnitTestCase {
 		$content_width = $_content_width;
 	}
 
+	/**
+	 * @covers ::image_constrain_size_for_editor
+	 */
 	public function test_constrain_size_for_editor_full() {
 		global $content_width;
 

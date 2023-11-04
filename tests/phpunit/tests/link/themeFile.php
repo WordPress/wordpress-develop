@@ -115,6 +115,8 @@ class Tests_Link_ThemeFile extends WP_UnitTestCase {
 	 * @ticket 18302
 	 *
 	 * @dataProvider data_theme_files
+	 *
+	 * @coversNothing
 	 */
 	public function test_theme_file_existance( $file, $expected_theme, $existence ) {
 
