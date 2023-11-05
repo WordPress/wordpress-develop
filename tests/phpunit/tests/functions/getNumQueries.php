@@ -1,6 +1,6 @@
 <?php
 /**
- * Test get_num_queries().
+ * Tests for get_num_queries().
  *
  * @group functions
  * @group wpdb
@@ -9,7 +9,7 @@
  */
 class Tests_Functions_getNumQueries extends WP_UnitTestCase {
 	/**
-	 * Ensure making a database query increases the number of queries.
+	 * Tests that making a database query increases the number of queries.
 	 *
 	 * @ticket 54490
 	 */

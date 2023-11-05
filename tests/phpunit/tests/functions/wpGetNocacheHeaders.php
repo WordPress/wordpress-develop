@@ -15,7 +15,7 @@ class Tests_Functions_wpGetNocacheHeaders extends WP_UnitTestCase {
 	public static $user_id;
 
 	/**
-	 * Create user account for tests.
+	 * Creates a user account for tests.
 	 *
 	 * @param WP_UnitTest_Factory $factory
 	 */
