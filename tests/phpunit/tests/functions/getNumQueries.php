@@ -3,6 +3,7 @@
  * Test get_num_queries().
  *
  * @group functions
+ * @group wpdb
  *
  * @covers ::get_num_queries
  */
