@@ -73,5 +73,4 @@ class Tests_Functions_wpGetNocacheHeaders extends WP_UnitTestCase {
 			wp_get_nocache_headers()
 		);
 	}
-
 }
