@@ -13,6 +13,7 @@
  * @since 2.8.0
  * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader-skins.php.
  */
+#[AllowDynamicProperties]
 class WP_Upgrader_Skin {
 
 	/**
@@ -196,7 +197,7 @@ class WP_Upgrader_Skin {
 			$feedback = $this->upgrader->strings[ $feedback ];
 		}
 
-		if ( strpos( $feedback, '%' ) !== false ) {
+		if ( str_contains( $feedback, '%' ) ) {
 			if ( $args ) {
 				$args     = array_map( 'strip_tags', $args );
 				$args     = array_map( 'esc_html', $args );
@@ -210,21 +211,21 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before an update.
+	 * Performs an action before an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function before() {}
 
 	/**
-	 * Action to perform following an update.
+	 * Performs and action following an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function after() {}
 
 	/**
-	 * Output JavaScript that calls function to decrement the update counts.
+	 * Outputs JavaScript that calls function to decrement the update counts.
 	 *
 	 * @since 3.9.0
 	 *
@@ -269,7 +270,7 @@ class WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		return false;

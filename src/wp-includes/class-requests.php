@@ -8,7 +8,7 @@
  *
  * @package Requests
  *
- * @deprecated 5.9.0
+ * @deprecated 6.2.0
  */
 
 /*
@@ -19,7 +19,7 @@
 if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS') || REQUESTS_SILENCE_PSR0_DEPRECATIONS !== true) {
 	// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
 	trigger_error(
-		'The PSR-0 `Requests_...` class names in the Request library are deprecated.'
+		'The PSR-0 `Requests_...` class names in the Requests library are deprecated.'
 		. ' Switch to the PSR-4 `WpOrg\Requests\...` class names at your earliest convenience.',
 		E_USER_DEPRECATED
 	);
@@ -30,7 +30,7 @@ if (!defined('REQUESTS_SILENCE_PSR0_DEPRECATIONS') || REQUESTS_SILENCE_PSR0_DEPR
 	}
 }
 
-require_once __DIR__ . '/Requests/Requests.php';
+require_once __DIR__ . '/Requests/src/Requests.php';
 
 /**
  * Requests for PHP
@@ -41,7 +41,7 @@ require_once __DIR__ . '/Requests/Requests.php';
  *
  * @package Requests
  *
- * @deprecated 5.9.0 Use `WpOrg\Requests\Requests` instead for the actual functionality and
+ * @deprecated 6.2.0 Use `WpOrg\Requests\Requests` instead for the actual functionality and
  *                   use `WpOrg\Requests\Autoload` for the autoloading.
  */
 class Requests extends WpOrg\Requests\Requests {
@@ -49,7 +49,7 @@ class Requests extends WpOrg\Requests\Requests {
 	/**
 	 * Deprecated autoloader for Requests.
 	 *
-	 * @deprecated 5.9.0 Use the `WpOrg\Requests\Autoload::load()` method instead.
+	 * @deprecated 6.2.0 Use the `WpOrg\Requests\Autoload::load()` method instead.
 	 *
 	 * @codeCoverageIgnore
 	 *
@@ -57,7 +57,7 @@ class Requests extends WpOrg\Requests\Requests {
 	 */
 	public static function autoloader($class) {
 		if (class_exists('WpOrg\Requests\Autoload') === false) {
-			require_once __DIR__ . '/Requests/Autoload.php';
+			require_once __DIR__ . '/Requests/src/Autoload.php';
 		}
 
 		return WpOrg\Requests\Autoload::load($class);
@@ -66,13 +66,13 @@ class Requests extends WpOrg\Requests\Requests {
 	/**
 	 * Register the built-in autoloader
 	 *
-	 * @deprecated 5.9.0 Include the `WpOrg\Requests\Autoload` class and
+	 * @deprecated 6.2.0 Include the `WpOrg\Requests\Autoload` class and
 	 *                   call `WpOrg\Requests\Autoload::register()` instead.
 	 *
 	 * @codeCoverageIgnore
 	 */
 	public static function register_autoloader() {
-		require_once __DIR__ . '/Requests/Autoload.php';
+		require_once __DIR__ . '/Requests/src/Autoload.php';
 		WpOrg\Requests\Autoload::register();
 	}
 }

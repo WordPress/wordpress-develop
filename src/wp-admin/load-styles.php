@@ -1,13 +1,13 @@
 <?php
 
-/**
- * Disable error reporting
+/*
+ * Disable error reporting.
  *
- * Set this to error_reporting( -1 ) for debugging
+ * Set this to error_reporting( -1 ) for debugging.
  */
 error_reporting( 0 );
 
-/** Set ABSPATH for execution */
+// Set ABSPATH for execution.
 if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
@@ -73,7 +73,8 @@ foreach ( $load as $handle ) {
 
 	$content = get_file( $path ) . "\n";
 
-	if ( strpos( $style->src, '/' . WPINC . '/css/' ) === 0 ) {
+	// Note: str_starts_with() is not used here, as wp-includes/compat.php is not loaded in this file.
+	if ( 0 === strpos( $style->src, '/' . WPINC . '/css/' ) ) {
 		$content = str_replace( '../images/', '../' . WPINC . '/images/', $content );
 		$content = str_replace( '../js/tinymce/', '../' . WPINC . '/js/tinymce/', $content );
 		$content = str_replace( '../fonts/', '../' . WPINC . '/fonts/', $content );

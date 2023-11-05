@@ -32,6 +32,13 @@
 			showOrHideWeakPasswordCheckbox();
 		}
 
+		/*
+		 * This works around a race condition when zxcvbn loads quickly and
+		 * causes `generatePassword()` to run prior to the toggle button being
+		 * bound.
+		 */
+		bindToggleButton();
+
 		// Install screen.
 		if ( 1 !== parseInt( $toggleButton.data( 'start-masked' ), 10 ) ) {
 			// Show the password not masked if admin_password hasn't been posted yet.
@@ -45,7 +52,9 @@
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
 
 		// Focus the password field.
-		$( $pass1 ).trigger( 'focus' );
+		if ( 'mailserver_pass' !== $pass1.prop('id' ) ) {
+			$( $pass1 ).trigger( 'focus' );
+		}
 	}
 
 	function bindPass1() {
@@ -82,6 +91,10 @@
 	}
 
 	function bindToggleButton() {
+		if ( !! $toggleButton ) {
+			// Do not rebind.
+			return;
+		}
 		$toggleButton = $pass1Row.find('.wp-hide-pw');
 		$toggleButton.show().on( 'click', function () {
 			if ( 'password' === $pass1.attr( 'type' ) ) {
@@ -160,7 +173,7 @@
 		var $generateButton,
 			$cancelButton;
 
-		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .reset-pass-submit' );
+		$pass1Row = $( '.user-pass1-wrap, .user-pass-wrap, .mailserver-pass-wrap, .reset-pass-submit' );
 
 		// Hide the confirm password field when JavaScript support is enabled.
 		$('.user-pass2-wrap').hide();
@@ -177,7 +190,7 @@
 			$submitButtons.prop( 'disabled', ! $weakCheckbox.prop( 'checked' ) );
 		} );
 
-		$pass1 = $('#pass1');
+		$pass1 = $('#pass1, #mailserver_pass');
 		if ( $pass1.length ) {
 			bindPass1();
 		} else {
@@ -216,7 +229,7 @@
 			updateLock = true;
 
 			// Make sure the password fields are shown.
-			$generateButton.attr( 'aria-expanded', 'true' );
+			$generateButton.not( '.skip-aria-expanded' ).attr( 'aria-expanded', 'true' );
 			$passwordWrapper
 				.show()
 				.addClass( 'is-open' );
@@ -257,6 +270,8 @@
 
 			// Stop an empty password from being submitted as a change.
 			$submitButtons.prop( 'disabled', false );
+
+			$generateButton.attr( 'aria-expanded', 'false' );
 		} );
 
 		$pass1Row.closest( 'form' ).on( 'submit', function () {
@@ -301,23 +316,27 @@
 	}
 
 	function showOrHideWeakPasswordCheckbox() {
-		var passStrength = $('#pass-strength-result')[0];
+		var passStrengthResult = $('#pass-strength-result');
 
-		if ( passStrength.className ) {
-			$pass1.addClass( passStrength.className );
-			if ( $( passStrength ).is( '.short, .bad' ) ) {
-				if ( ! $weakCheckbox.prop( 'checked' ) ) {
-					$submitButtons.prop( 'disabled', true );
-				}
-				$weakRow.show();
-			} else {
-				if ( $( passStrength ).is( '.empty' ) ) {
-					$submitButtons.prop( 'disabled', true );
-					$weakCheckbox.prop( 'checked', false );
+		if ( passStrengthResult.length ) {
+			var passStrength = passStrengthResult[0];
+
+			if ( passStrength.className ) {
+				$pass1.addClass( passStrength.className );
+				if ( $( passStrength ).is( '.short, .bad' ) ) {
+					if ( ! $weakCheckbox.prop( 'checked' ) ) {
+						$submitButtons.prop( 'disabled', true );
+					}
+					$weakRow.show();
 				} else {
-					$submitButtons.prop( 'disabled', false );
+					if ( $( passStrength ).is( '.empty' ) ) {
+						$submitButtons.prop( 'disabled', true );
+						$weakCheckbox.prop( 'checked', false );
+					} else {
+						$submitButtons.prop( 'disabled', false );
+					}
+					$weakRow.hide();
 				}
-				$weakRow.hide();
 			}
 		}
 	}

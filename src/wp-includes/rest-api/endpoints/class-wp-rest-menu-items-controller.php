@@ -17,7 +17,7 @@
 class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 	/**
-	 * Get the nav menu item, if the ID is valid.
+	 * Gets the nav menu item, if the ID is valid.
 	 *
 	 * @since 5.9.0
 	 *
@@ -57,7 +57,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$permission_check = parent::get_item_permissions_check( $request );
@@ -77,7 +77,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error Whether the current user has permission.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	protected function check_has_read_only_access( $request ) {
 		if ( current_user_can( 'edit_theme_options' ) ) {
@@ -107,7 +107,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
@@ -122,7 +121,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 		$prepared_nav_item = (array) $prepared_nav_item;
 
-		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ) );
+		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ), false );
 		if ( is_wp_error( $nav_menu_item_id ) ) {
 			if ( 'db_insert_error' === $nav_menu_item_id->get_error_code() ) {
 				$nav_menu_item_id->add_data( array( 'status' => 500 ) );
@@ -181,7 +180,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		 */
 		do_action( 'rest_after_insert_nav_menu_item', $nav_menu_item, $request, true );
 
-		$response = $this->prepare_item_for_response( get_post( $nav_menu_item_id ), $request );
+		$post = get_post( $nav_menu_item_id );
+		wp_after_insert_post( $post, false, null );
+
+		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 
 		$response->set_status( 201 );
@@ -196,7 +198,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 *
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
@@ -204,7 +205,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		if ( is_wp_error( $valid_check ) ) {
 			return $valid_check;
 		}
-
+		$post_before       = get_post( $request['id'] );
 		$prepared_nav_item = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $prepared_nav_item ) ) {
@@ -213,7 +214,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		$prepared_nav_item = (array) $prepared_nav_item;
 
-		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ) );
+		$nav_menu_item_id = wp_update_nav_menu_item( $prepared_nav_item['menu-id'], $prepared_nav_item['menu-item-db-id'], wp_slash( $prepared_nav_item ), false );
 
 		if ( is_wp_error( $nav_menu_item_id ) ) {
 			if ( 'db_update_error' === $nav_menu_item_id->get_error_code() ) {
@@ -245,6 +246,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		$post          = get_post( $nav_menu_item_id );
 		$nav_menu_item = $this->get_nav_menu_item( $nav_menu_item_id );
 		$fields_update = $this->update_additional_fields_for_object( $nav_menu_item, $request );
 
@@ -256,6 +258,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php */
 		do_action( 'rest_after_insert_nav_menu_item', $nav_menu_item, $request, false );
+
+		wp_after_insert_post( $post, true, $post_before );
 
 		$response = $this->prepare_item_for_response( get_post( $nav_menu_item_id ), $request );
 
@@ -482,7 +486,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Post          $item   Post object.
+	 * @param WP_Post         $item    Post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
@@ -606,16 +610,18 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $item );
-		$response->add_links( $links );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$links = $this->prepare_links( $item );
+			$response->add_links( $links );
 
-		if ( ! empty( $links['self']['href'] ) ) {
-			$actions = $this->get_available_actions( $item, $request );
+			if ( ! empty( $links['self']['href'] ) ) {
+				$actions = $this->get_available_actions( $item, $request );
 
-			$self = $links['self']['href'];
+				$self = $links['self']['href'];
 
-			foreach ( $actions as $rel ) {
-				$response->add_link( $rel, $self );
+				foreach ( $actions as $rel ) {
+					$response->add_link( $rel, $self );
+				}
 			}
 		}
 
@@ -670,7 +676,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Retrieve Link Description Objects that should be added to the Schema for the posts collection.
+	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
 	 *
 	 * @since 5.9.0
 	 *
@@ -704,6 +710,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema' => 'http://json-schema.org/draft-04/schema#',
 			'title'   => $this->post_type,
@@ -739,7 +749,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		);
 
 		$schema['properties']['type_label'] = array(
-			'description' => __( 'Name of type.' ),
+			'description' => __( 'The singular label used to describe this type of menu item.' ),
 			'type'        => 'string',
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'readonly'    => true,
@@ -786,7 +796,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
-				'sanitize_callback' => function ( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
 				},
 			),
@@ -810,7 +820,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		);
 
 		$schema['properties']['object'] = array(
-			'description' => __( 'The type of object originally represented, such as "category," "post", or "attachment."' ),
+			'description' => __( 'The type of object originally represented, such as "category", "post", or "attachment".' ),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'type'        => 'string',
 			'arg_options' => array(
@@ -836,13 +846,6 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 		);
 
-		$schema['properties']['type_label'] = array(
-			'description' => __( 'The singular label used to describe this type of menu item.' ),
-			'context'     => array( 'view', 'edit', 'embed' ),
-			'type'        => 'string',
-			'readonly'    => true,
-		);
-
 		$schema['properties']['url'] = array(
 			'description' => __( 'The URL to which this menu item points.' ),
 			'type'        => 'string',
@@ -854,7 +857,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 						return true;
 					}
 
-					if ( esc_url_raw( $url ) ) {
+					if ( sanitize_url( $url ) ) {
 						return true;
 					}
 
@@ -874,7 +877,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			),
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
-				'sanitize_callback' => function ( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return array_map( 'sanitize_html_class', wp_parse_list( $value ) );
 				},
 			),
@@ -915,7 +918,9 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			$schema['links'] = $schema_links;
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -991,6 +996,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 				$query_args['orderby'] = $orderby_mappings[ $request['orderby'] ];
 			}
 		}
+
+		$query_args['update_menu_item_cache'] = true;
 
 		return $query_args;
 	}

@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ * @group category
+ *
  * @covers ::category_description
  */
 class Tests_Category_CategoryDescription extends WP_UnitTestCase {

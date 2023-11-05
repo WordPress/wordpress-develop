@@ -11,22 +11,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
+/*
+ * Load the actual index.php file if the assets were already built.
+ * Note: WPINC is not defined yet, it is defined later in wp-settings.php.
+ */
 if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
 	require_once ABSPATH . '_index.php';
 	return;
 }
 
 define( 'WPINC', 'wp-includes' );
+require_once ABSPATH . WPINC . '/version.php';
+require_once ABSPATH . WPINC . '/compat.php';
 require_once ABSPATH . WPINC . '/load.php';
+
+// Check for the required PHP version and for the MySQL extension or a database drop-in.
+wp_check_php_mysql_versions();
 
 // Standardize $_SERVER variables across setups.
 wp_fix_server_vars();
 
-require_once ABSPATH . WPINC . '/functions.php';
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
-require_once ABSPATH . WPINC . '/version.php';
+require_once ABSPATH . WPINC . '/functions.php';
 
-wp_check_php_mysql_versions();
 wp_load_translations_early();
 
 // Die with an error message.
@@ -51,8 +58,8 @@ $die .= '<code style="color: green;">npm run build</code></li>';
 $die .= '</ul>';
 
 $die .= '<p>' . sprintf(
-	/* translators: 1: NPM URL, 2: Handbook URL. */
-	__( 'This requires <a href="%1$s">NPM</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
+	/* translators: 1: npm URL, 2: Handbook URL. */
+	__( 'This requires <a href="%1$s">npm</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/get-npm',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
 ) . '</p>';

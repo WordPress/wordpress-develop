@@ -10,6 +10,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		global $wp_scripts;
 		$wp_scripts = null;
+
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
 
 	public function tear_down() {
@@ -47,7 +49,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
@@ -79,7 +81,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
@@ -96,7 +98,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	public function test_oembed_output_attachment() {
@@ -123,7 +125,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 		$this->assertStringContainsString( 'canola.jpg', $actual );
 	}
@@ -148,7 +150,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	public function test_oembed_output_scheduled_post() {
@@ -172,7 +174,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	public function test_oembed_output_private_post() {
@@ -195,7 +197,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringContainsString( 'That embed cannot be found.', $actual );
 	}
 
 	public function test_oembed_output_private_post_with_permissions() {
@@ -222,7 +224,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$doc = new DOMDocument();
 		$this->assertTrue( $doc->loadHTML( $actual ) );
-		$this->assertStringNotContainsString( 'That embed can&#8217;t be found.', $actual );
+		$this->assertStringNotContainsString( 'That embed cannot be found.', $actual );
 		$this->assertStringContainsString( 'Hello World', $actual );
 	}
 
@@ -309,13 +311,14 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	public function test_add_host_js() {
 		remove_all_filters( 'embed_oembed_html' );
 
+		// This function is now a no-op.
 		wp_oembed_add_host_js();
 
-		$this->assertEquals( 10, has_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' ) );
+		$this->assertFalse( has_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' ) );
 	}
 
 	/** @covers ::wp_maybe_enqueue_oembed_host_js() */
-	function test_wp_maybe_enqueue_oembed_host_js() {
+	public function test_wp_maybe_enqueue_oembed_host_js() {
 		$scripts = wp_scripts();
 
 		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
@@ -330,14 +333,16 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertTrue( $scripts->query( 'wp-embed', 'enqueued' ) );
 	}
 
-	/**
-	 * Confirms that no ampersands exist in src/wp-includes/js/wp-embed.js.
-	 *
-	 * See also the `verify:wp-embed` Grunt task for verifying the built file.
-	 *
-	 * @ticket 34698
-	 */
-	public function test_js_no_ampersands() {
-		$this->assertStringNotContainsString( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
+	/** @covers ::wp_maybe_enqueue_oembed_host_js() */
+	public function test_wp_maybe_enqueue_oembed_host_js_without_wp_head_action() {
+		$scripts = wp_scripts();
+
+		remove_action( 'wp_head', 'wp_oembed_add_host_js' );
+		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
+
+		$post_embed = '<blockquote class="wp-embedded-content" data-secret="S24AQCJW9i"><a href="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/">Embeds Changes in WordPress 4.5</a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);" title="&#8220;Embeds Changes in WordPress 4.5&#8221; &#8212; Make WordPress Core" src="https://make.wordpress.org/core/2016/03/11/embeds-changes-in-wordpress-4-5/embed/#?secret=S24AQCJW9i" data-secret="S24AQCJW9i" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>';
+
+		wp_maybe_enqueue_oembed_host_js( $post_embed );
+		$this->assertFalse( $scripts->query( 'wp-embed', 'enqueued' ) );
 	}
 }

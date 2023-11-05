@@ -28,8 +28,10 @@ function ms_upload_constants() {
 		define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
 	}
 
-	// Note, the main site in a post-MU network uses wp-content/uploads.
-	// This is handled in wp_upload_dir() by ignoring UPLOADS for this case.
+	/*
+	 * Note, the main site in a post-MU network uses wp-content/uploads.
+	 * This is handled in wp_upload_dir() by ignoring UPLOADS for this case.
+	 */
 	if ( ! defined( 'UPLOADS' ) ) {
 		$site_id = get_current_blog_id();
 
@@ -143,11 +145,21 @@ function ms_subdomain_constants() {
 			'<code>wp-config.php</code>',
 			'<code>is_subdomain_install()</code>'
 		);
+
 		if ( $subdomain_error_warn ) {
-			trigger_error( __( '<strong>Conflicting values for the constants VHOST and SUBDOMAIN_INSTALL.</strong> The value of SUBDOMAIN_INSTALL will be assumed to be your subdomain configuration setting.' ) . ' ' . $vhost_deprecated, E_USER_WARNING );
+			trigger_error(
+				sprintf(
+					/* translators: 1: VHOST, 2: SUBDOMAIN_INSTALL */
+					__( '<strong>Conflicting values for the constants %1$s and %2$s.</strong> The value of %2$s will be assumed to be your subdomain configuration setting.' ),
+					'<code>VHOST</code>',
+					'<code>SUBDOMAIN_INSTALL</code>'
+				) . ' ' . $vhost_deprecated,
+				E_USER_WARNING
+			);
 		} else {
 			_deprecated_argument( 'define()', '3.0.0', $vhost_deprecated );
 		}
+
 		return;
 	}
 

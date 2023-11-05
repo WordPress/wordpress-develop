@@ -106,7 +106,6 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	 */
 	updateSelection: function() {
 		var selection = this.get('selection'),
-			library = this.get('library'),
 			id = wp.media.view.settings.post.featuredImageId,
 			attachment;
 
@@ -116,10 +115,6 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 		}
 
 		selection.reset( attachment ? [ attachment ] : [] );
-
-		if ( library.hasMore() ) {
-			library.more();
-		}
 	}
 });
 

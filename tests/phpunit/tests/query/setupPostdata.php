@@ -33,7 +33,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	 * @ticket 30970
 	 */
 	public function test_setup_by_fake_post() {
-		$fake     = new stdClass;
+		$fake     = new stdClass();
 		$fake->ID = 98765;
 		setup_postdata( $fake->ID );
 

@@ -59,7 +59,7 @@ get_admin_page_parent();
  * @global string $parent_file
  * @global string $submenu_file
  * @global string $plugin_page
- * @global string $typenow
+ * @global string $typenow      The post type of the current screen.
  *
  * @param array $menu
  * @param array $submenu
@@ -112,7 +112,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		$img_style = '';
 		$img_class = ' dashicons-before';
 
-		if ( false !== strpos( $class, 'wp-menu-separator' ) ) {
+		if ( str_contains( $class, 'wp-menu-separator' ) ) {
 			$is_separator = true;
 		}
 
@@ -123,15 +123,16 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * as special cases.
 		 */
 		if ( ! empty( $item[6] ) ) {
-			$img = '<img src="' . $item[6] . '" alt="" />';
+			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';
-			} elseif ( 0 === strpos( $item[6], 'data:image/svg+xml;base64,' ) ) {
-				$img       = '<br />';
+			} elseif ( str_starts_with( $item[6], 'data:image/svg+xml;base64,' ) ) {
+				$img = '<br />';
+				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
-			} elseif ( 0 === strpos( $item[6], 'dashicons-' ) ) {
+			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
 			}
@@ -225,8 +226,10 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 						$class[]          = 'current';
 						$aria_attributes .= ' aria-current="page"';
 					}
-					// If plugin_page is set the parent must either match the current page or not physically exist.
-					// This allows plugin pages with the same hook to exist under different parents.
+					/*
+					 * If plugin_page is set the parent must either match the current page or not physically exist.
+					 * This allows plugin pages with the same hook to exist under different parents.
+					 */
 				} elseif (
 					( ! isset( $plugin_page ) && $self === $sub_item[2] )
 					|| ( isset( $plugin_page ) && $plugin_page === $sub_item[2]

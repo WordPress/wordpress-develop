@@ -272,8 +272,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$post_id = wp_insert_post(
 			array(
-				'post_content' => rand_str(),
-				'post_title'   => rand_str(),
+				'post_content' => 'content',
+				'post_title'   => 'title',
 			)
 		);
 

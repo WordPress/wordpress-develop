@@ -21,7 +21,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$post_id             = $factory->post->create(
 			array(
-				'post_content' => 1 . rand_str() . ' about',
+				'post_content' => '1 about',
 				'post_type'    => self::$post_type,
 			)
 		);
@@ -30,7 +30,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$post_id             = $factory->post->create(
 			array(
-				'post_content' => 1 . rand_str() . ' about',
+				'post_content' => '2 about',
 				'post_type'    => self::$post_type,
 			)
 		);
@@ -41,7 +41,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$post_id             = $factory->post->create(
 			array(
-				'post_content' => 1 . rand_str() . ' about',
+				'post_content' => '3 about',
 				'post_type'    => self::$post_type,
 			)
 		);
@@ -52,7 +52,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$post_id             = $factory->post->create(
 			array(
-				'post_content' => 1 . rand_str() . ' about',
+				'post_content' => '4 about',
 				'post_type'    => self::$post_type,
 			)
 		);
@@ -190,7 +190,6 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		}
 
 		$this->assertSameSets( $expected, $found_post_ids );
-
 	}
 	public function test_operator_equal_or_greater_than() {
 		$args = array(
@@ -371,4 +370,3 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
 }
-

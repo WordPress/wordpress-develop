@@ -14,9 +14,9 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->post_date_ts            = strtotime( '+1 day' );
 		$this->post_data               = array(
-			'post_title'   => rand_str(),
-			'post_content' => rand_str( 2000 ),
-			'post_excerpt' => rand_str( 100 ),
+			'post_title'   => 'Post Title',
+			'post_content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+			'post_excerpt' => 'Post Excerpt',
 			'post_author'  => $this->make_user_by_role( 'author' ),
 			'post_date'    => date_format( date_create( "@{$this->post_date_ts}" ), 'Y-m-d H:i:s' ),
 		);

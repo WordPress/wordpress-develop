@@ -14,6 +14,7 @@
  *
  * @see WpOrg\Requests\Hooks
  */
+#[AllowDynamicProperties]
 class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {
 	/**
 	 * Requested URL.

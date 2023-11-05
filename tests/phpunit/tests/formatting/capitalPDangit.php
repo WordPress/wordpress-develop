@@ -1,8 +1,10 @@
 <?php
-// phpcs:disable WordPress.WP.CapitalPDangit.Misspelled -- 🙃
+// phpcs:disable WordPress.WP.CapitalPDangit.MisspelledInText -- 🙃
 
 /**
  * @group formatting
+ *
+ * @covers ::capital_P_dangit
  */
 class Tests_Formatting_CapitalPDangit extends WP_UnitTestCase {
 	public function test_esc_attr_quotes() {

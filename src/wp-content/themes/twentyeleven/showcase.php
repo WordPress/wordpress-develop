@@ -16,7 +16,16 @@
  */
 
 // Enqueue showcase script for the slider.
-wp_enqueue_script( 'twentyeleven-showcase', get_template_directory_uri() . '/js/showcase.js', array( 'jquery' ), '20110429' );
+wp_enqueue_script(
+	'twentyeleven-showcase',
+	get_template_directory_uri() . '/js/showcase.js',
+	array( 'jquery' ),
+	'20211130',
+	array(
+		'in_footer' => false, // Because involves header.
+		'strategy'  => 'defer',
+	)
+);
 
 get_header(); ?>
 
@@ -88,7 +97,7 @@ get_header(); ?>
 							$featured->the_post();
 
 							// Increase the counter.
-							$counter_slider++;
+							++$counter_slider;
 
 							/*
 							* We're going to add a class to our featured post for featured images.
@@ -153,8 +162,8 @@ get_header(); ?>
 							// Let's roll again.
 							while ( $featured->have_posts() ) :
 								$featured->the_post();
-								$counter_slider++;
-								if ( 1 == $counter_slider ) {
+								++$counter_slider;
+								if ( 1 === $counter_slider ) {
 									$class = ' class="active"';
 								} else {
 									$class = '';
@@ -163,7 +172,7 @@ get_header(); ?>
 								/* translators: %s: Post title. */
 								$title = sprintf( __( 'Featuring: %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) );
 								?>
-					<li><a href="#featured-post-<?php echo esc_attr( $counter_slider ); ?>" title="<?php echo esc_attr( $title ); ?>"<?php echo $class; ?>></a></li>
+					<li><a href="#featured-post-<?php echo esc_attr( $counter_slider ); ?>"<?php echo $class; ?>><span class="feature-slider-tooltip" aria-hidden="true" title="<?php echo esc_attr( $title ); ?>"></span><span class="screen-reader-text"><?php echo esc_html( $title ); ?></span></a></li>
 						<?php endwhile; ?>
 					</ul>
 					</nav>

@@ -29,7 +29,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test ability to filter object subtypes.
+	 * Tests ability to filter object subtypes.
 	 */
 	public function test_filter_sitemaps_post_types() {
 		$posts_provider = new WP_Sitemaps_Posts();
@@ -42,7 +42,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test `wp_sitemaps_posts_show_on_front_entry` filter.
+	 * Tests `wp_sitemaps_posts_show_on_front_entry` filter.
 	 */
 	public function test_posts_show_on_front_entry() {
 		$posts_provider = new WP_Sitemaps_Posts();
@@ -59,15 +59,53 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$url_list      = $posts_provider->get_url_list( 1, 'page' );
 		$sitemap_entry = array_shift( $url_list );
 
-		$this->assertArrayHasKey( 'lastmod', $sitemap_entry );
+		$this->assertEqualSetsWithIndex(
+			array(
+				'loc'     => home_url( '/' ),
+				'lastmod' => '2000-01-01',
+			),
+			$sitemap_entry
+		);
 	}
 
 	/**
 	 * Callback for 'wp_sitemaps_posts_show_on_front_entry' filter.
 	 */
 	public function _show_on_front_entry( $sitemap_entry ) {
-		$sitemap_entry['lastmod'] = wp_date( DATE_W3C, time() );
+		$sitemap_entry['lastmod'] = '2000-01-01';
 
 		return $sitemap_entry;
+	}
+
+	/**
+	 * Tests that sticky posts are not moved to the front of the first page of the post sitemap.
+	 *
+	 * @ticket 55633
+	 */
+	public function test_posts_sticky_posts_not_moved_to_front() {
+		$factory = self::factory();
+
+		// Create 4 posts, and stick the last one.
+		$post_ids     = $factory->post->create_many( 4 );
+		$last_post_id = end( $post_ids );
+		stick_post( $last_post_id );
+
+		$posts_provider = new WP_Sitemaps_Posts();
+
+		$url_list = $posts_provider->get_url_list( 1, 'post' );
+
+		$this->assertCount( count( $post_ids ), $url_list, 'The post count did not match.' );
+
+		$expected = array();
+
+		foreach ( $post_ids as $post_id ) {
+			$expected[] = array(
+				'loc'     => home_url( "?p={$post_id}" ),
+				'lastmod' => get_post_modified_time( DATE_W3C, true, $post_id ),
+			);
+		}
+
+		// Check that the URL list is still in the order of the post IDs (i.e., sticky post wasn't moved to the front).
+		$this->assertSame( $expected, $url_list, 'The post order did not match.' );
 	}
 }

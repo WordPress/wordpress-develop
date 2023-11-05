@@ -39,15 +39,18 @@
  *
  * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_HTTP_Proxy {
 
 	/**
 	 * Whether proxy connection should be used.
 	 *
-	 * @since 2.8.0
+	 * Constants which control this behavior:
 	 *
-	 * @use WP_PROXY_HOST
-	 * @use WP_PROXY_PORT
+	 * - `WP_PROXY_HOST`
+	 * - `WP_PROXY_PORT`
+	 *
+	 * @since 2.8.0
 	 *
 	 * @return bool
 	 */
@@ -58,10 +61,12 @@ class WP_HTTP_Proxy {
 	/**
 	 * Whether authentication should be used.
 	 *
-	 * @since 2.8.0
+	 * Constants which control this behavior:
 	 *
-	 * @use WP_PROXY_USERNAME
-	 * @use WP_PROXY_PASSWORD
+	 * - `WP_PROXY_USERNAME`
+	 * - `WP_PROXY_PASSWORD`
+	 *
+	 * @since 2.8.0
 	 *
 	 * @return bool
 	 */
@@ -204,7 +209,7 @@ class WP_HTTP_Proxy {
 		if ( null === $bypass_hosts ) {
 			$bypass_hosts = preg_split( '|,\s*|', WP_PROXY_BYPASS_HOSTS );
 
-			if ( false !== strpos( WP_PROXY_BYPASS_HOSTS, '*' ) ) {
+			if ( str_contains( WP_PROXY_BYPASS_HOSTS, '*' ) ) {
 				$wildcard_regex = array();
 				foreach ( $bypass_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );

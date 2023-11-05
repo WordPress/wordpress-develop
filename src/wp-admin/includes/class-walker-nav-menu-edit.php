@@ -61,7 +61,8 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		global $_wp_nav_menu_max_depth;
 
 		// Restores the more descriptive, specific name for use within this method.
-		$menu_item              = $data_object;
+		$menu_item = $data_object;
+
 		$_wp_nav_menu_max_depth = $depth > $_wp_nav_menu_max_depth ? $depth : $_wp_nav_menu_max_depth;
 
 		ob_start();
@@ -180,8 +181,9 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						printf(
 							'<a class="item-edit" id="edit-%s" href="%s" aria-label="%s"><span class="screen-reader-text">%s</span></a>',
 							$item_id,
-							$edit_url,
+							esc_url( $edit_url ),
 							esc_attr__( 'Edit menu item' ),
+							/* translators: Hidden accessibility text. */
 							__( 'Edit' )
 						);
 						?>
@@ -232,7 +234,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<label for="edit-menu-item-description-<?php echo $item_id; ?>">
 						<?php _e( 'Description' ); ?><br />
 						<textarea id="edit-menu-item-description-<?php echo $item_id; ?>" class="widefat edit-menu-item-description" rows="3" cols="20" name="menu-item-description[<?php echo $item_id; ?>]"><?php echo esc_html( $menu_item->description ); // textarea_escaped ?></textarea>
-						<span class="description"><?php _e( 'The description will be displayed in the menu if the current theme supports it.' ); ?></span>
+						<span class="description"><?php _e( 'The description will be displayed in the menu if the active theme supports it.' ); ?></span>
 					</label>
 				</p>
 
@@ -265,7 +267,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						<p class="link-to-original">
 							<?php
 							/* translators: %s: Link to menu item's original object. */
-							printf( __( 'Original: %s' ), '<a href="' . esc_attr( $menu_item->url ) . '">' . esc_html( $original_title ) . '</a>' );
+							printf( __( 'Original: %s' ), '<a href="' . esc_url( $menu_item->url ) . '">' . esc_html( $original_title ) . '</a>' );
 							?>
 						</p>
 					<?php endif; ?>
@@ -318,5 +320,4 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		<?php
 		$output .= ob_get_clean();
 	}
-
 }

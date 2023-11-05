@@ -20,8 +20,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$this->assertIsArray( $response );
 
-		$this->assertSame( 'image/jpeg', $headers['content-type'] );
-		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -65,8 +65,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['content-type'] );
-		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -86,8 +86,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$headers = wp_remote_retrieve_headers( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['content-type'] );
-		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -147,7 +147,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookie
 	 */
 	public function test_get_response_cookies_with_wp_http_cookie_object() {
-		$url = 'http://example.org';
+		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
 			$url,
@@ -183,7 +183,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookie
 	 */
 	public function test_get_response_cookies_with_name_value_array() {
-		$url = 'http://example.org';
+		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
 			$url,

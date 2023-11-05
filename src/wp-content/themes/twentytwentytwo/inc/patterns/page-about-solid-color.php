@@ -4,14 +4,14 @@
  */
 return array(
 	'title'      => __( 'About page on solid color background', 'twentytwentytwo' ),
-	'categories' => array( 'twentytwentytwo-pages' ),
+	'categories' => array( 'pages' ),
 	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"1.25rem","right":"1.25rem","bottom":"1.25rem","left":"1.25rem"}}}} -->
 					<div class="wp-block-group alignfull" style="padding-top:1.25rem;padding-right:1.25rem;padding-bottom:1.25rem;padding-left:1.25rem"><!-- wp:cover {"overlayColor":"secondary","minHeight":80,"minHeightUnit":"vh","isDark":false,"align":"full"} -->
 					<div class="wp-block-cover alignfull is-light" style="min-height:80vh"><span aria-hidden="true" class="has-secondary-background-color has-background-dim-100 wp-block-cover__gradient-background has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:group {"layout":{"inherit":false,"contentSize":"400px"}} -->
 					<div class="wp-block-group"><!-- wp:spacer {"height":64} -->
 					<div style="height:64px" aria-hidden="true" class="wp-block-spacer"></div>
-					<!-- /wp:spacer --><!-- wp:heading {"style":{"typography":{"lineHeight":"1","textTransform":"uppercase","fontSize":"clamp(3rem, 6vw, 4rem)"}}} -->
-					<h2 id="edvard-smith" style="font-size:clamp(3rem, 6vw, 4rem);line-height:1;text-transform:uppercase">' . wp_kses_post( __( 'Edvard<br>Smith', 'twentytwentytwo' ) ) . '</h2>
+					<!-- /wp:spacer --><!-- wp:heading {"style":{"typography":{"lineHeight":"1","textTransform":"uppercase","fontSize":"clamp(2.75rem, 6vw, 3.25rem)"}}} -->
+					<h2 id="edvard-smith" style="font-size:clamp(2.75rem, 6vw, 3.25rem);line-height:1;text-transform:uppercase">' . wp_kses_post( __( 'Edvard<br>Smith', 'twentytwentytwo' ) ) . '</h2>
 					<!-- /wp:heading -->
 
 					<!-- wp:spacer {"height":8} -->

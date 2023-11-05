@@ -21,15 +21,25 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwenty',
 		'twentytwentyone',
 		'twentytwentytwo',
+		'twentytwentythree',
+		'twentytwentyfour',
 	);
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string[]
+	 */
+	private $orig_theme_dir;
 
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
 
-		$backup_wp_theme_directories = $wp_theme_directories;
-		$wp_theme_directories        = array( WP_CONTENT_DIR . '/themes' );
+		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
+		$this->orig_theme_dir = $wp_theme_directories;
+		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -39,7 +49,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wp_theme_directories;
 
-		$wp_theme_directories = $this->wp_theme_directories;
+		$wp_theme_directories = $this->orig_theme_dir;
 
 		remove_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -213,7 +223,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @ticket 48566
 	 */
 	public function test_year_in_readme() {
-		// This test is designed to only run on trunk/master.
+		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
 		foreach ( $this->default_themes as $theme ) {
@@ -221,17 +231,22 @@ class Tests_Theme extends WP_UnitTestCase {
 
 			$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
 			$this->assertFileExists( $path_to_readme_txt );
+
 			$readme    = file_get_contents( $path_to_readme_txt );
 			$this_year = gmdate( 'Y' );
 
 			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$readme_year = trim( $matches[1] );
+
+				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 
 			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
 			if ( $matches ) {
-				$this->assertSame( $this_year, trim( $matches[1] ), "Bundled themes readme.txt's year needs to be updated to $this_year." );
+				$readme_year = trim( $matches[1] );
+
+				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
 			}
 		}
 	}
@@ -269,6 +284,11 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			foreach ( $themes as $name => $theme ) {
+				// Skip invalid theme directory names (such as `block_theme-[0.4.0]`).
+				if ( ! preg_match( '/^[a-z0-9-]+$/', $theme['Stylesheet'] ) ) {
+					continue;
+				}
+
 				// Switch to this theme.
 				if ( 2 === $i ) {
 					switch_theme( $theme['Template'], $theme['Stylesheet'] );
@@ -276,16 +296,16 @@ class Tests_Theme extends WP_UnitTestCase {
 					switch_theme( $theme['Stylesheet'] );
 				}
 
-				$this->assertSame( $name, get_current_theme() );
+				$this->assertSame( $theme['Name'], get_current_theme() );
 
 				// Make sure the various get_* functions return the correct values.
 				$this->assertSame( $theme['Template'], get_template() );
 				$this->assertSame( $theme['Stylesheet'], get_stylesheet() );
 
-				$root_fs = get_theme_root();
+				$root_fs = $theme->get_theme_root();
 				$this->assertTrue( is_dir( $root_fs ) );
 
-				$root_uri = get_theme_root_uri();
+				$root_uri = $theme->get_theme_root_uri();
 				$this->assertNotEmpty( $root_uri );
 
 				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
@@ -296,19 +316,38 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $root_fs . '/' . get_template(), get_template_directory() );
 				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
-				// get_query_template()
+				// Skip block themes for get_query_template() tests since this test is focused on classic templates.
+				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+					continue;
+				}
 
 				// Template file that doesn't exist.
-				$this->assertSame( '', get_query_template( rand_str() ) );
+				$this->assertSame( '', get_query_template( 'nonexistant' ) );
 
 				// Template files that do exist.
-				/*
 				foreach ( $theme['Template Files'] as $path ) {
-					$file = basename($path, '.php');
-					FIXME: untestable because get_query_template() uses TEMPLATEPATH.
-					$this->assertSame('', get_query_template($file));
+					$file = basename( $path, '.php' );
+
+					// The functions.php file is not a template.
+					if ( 'functions' === $file ) {
+						continue;
+					}
+
+					// Underscores are not supported by `locate_template()`.
+					if ( 'taxonomy-post_format' === $file ) {
+						$file = 'taxonomy';
+					}
+
+					$child_theme_file  = get_stylesheet_directory() . '/' . $file . '.php';
+					$parent_theme_file = get_template_directory() . '/' . $file . '.php';
+					if ( file_exists( $child_theme_file ) ) {
+						$this->assertSame( $child_theme_file, get_query_template( $file ) );
+					} elseif ( file_exists( $parent_theme_file ) ) {
+						$this->assertSame( $parent_theme_file, get_query_template( $file ) );
+					} else {
+						$this->assertSame( '', get_query_template( $file ) );
+					}
 				}
-				*/
 
 				// These are kind of tautologies but at least exercise the code.
 				$this->assertSame( get_404_template(), get_query_template( '404' ) );
@@ -333,8 +372,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	public function test_switch_theme_bogus() {
 		// Try switching to a theme that doesn't exist.
-		$template = rand_str();
-		$style    = rand_str();
+		$template = 'some_template';
+		$style    = 'some_style';
 		update_option( 'template', $template );
 		update_option( 'stylesheet', $style );
 
@@ -343,7 +382,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertNotFalse( $theme->errors() );
 		$this->assertFalse( $theme->exists() );
 
-		// These return the bogus name - perhaps not ideal behaviour?
+		// These return the bogus name - perhaps not ideal behavior?
 		$this->assertSame( $template, get_template() );
 		$this->assertSame( $style, get_stylesheet() );
 	}
@@ -354,7 +393,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @covers ::_wp_keep_alive_customize_changeset_dependent_auto_drafts
 	 */
 	public function test_wp_keep_alive_customize_changeset_dependent_auto_drafts() {
-		$nav_created_post_ids = $this->factory()->post->create_many(
+		$nav_created_post_ids = self::factory()->post->create_many(
 			2,
 			array(
 				'post_status' => 'auto-draft',
@@ -699,5 +738,445 @@ class Tests_Theme extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+
+	/**
+	 * Tests that block themes support a feature by default.
+	 *
+	 * @ticket 54597
+	 * @ticket 54731
+	 * @ticket 59732
+	 *
+	 * @dataProvider data_block_theme_has_default_support
+	 *
+	 * @covers ::_add_default_theme_supports
+	 *
+	 * @param array $support {
+	 *     The feature to check.
+	 *
+	 *     @type string $feature     The feature to check.
+	 *     @type string $sub_feature Optional. The sub-feature to check.
+	 * }
+	 */
+	public function test_block_theme_has_default_support( $support ) {
+		$this->helper_requires_block_theme();
+
+		$support_data     = array_values( $support );
+		$support_data_str = implode( ': ', $support_data );
+
+		// Remove existing support.
+		if ( current_theme_supports( ...$support_data ) ) {
+			remove_theme_support( ...$support_data );
+		}
+
+		$this->assertFalse(
+			current_theme_supports( ...$support_data ),
+			"Could not remove support for $support_data_str."
+		);
+
+		do_action( 'after_setup_theme' );
+
+		$this->assertTrue(
+			current_theme_supports( ...$support_data ),
+			"Does not have default support for $support_data_str."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_block_theme_has_default_support() {
+		return array(
+			'post-thumbnails'      => array(
+				'support' => array(
+					'feature' => 'post-thumbnails',
+				),
+			),
+			'responsive-embeds'    => array(
+				'support' => array(
+					'feature' => 'responsive-embeds',
+				),
+			),
+			'editor-styles'        => array(
+				'support' => array(
+					'feature' => 'editor-styles',
+				),
+			),
+			'html5: comment-list'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-list',
+				),
+			),
+			'html5: comment-form'  => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'comment-form',
+				),
+			),
+			'html5: search-form'   => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'search-form',
+				),
+			),
+			'html5: gallery'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'gallery',
+				),
+			),
+			'html5: caption'       => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'caption',
+				),
+			),
+			'html5: style'         => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'style',
+				),
+			),
+			'html5: script'        => array(
+				'support' => array(
+					'feature'     => 'html5',
+					'sub_feature' => 'script',
+				),
+			),
+			'automatic-feed-links' => array(
+				'support' => array(
+					'feature' => 'automatic-feed-links',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that block themes load separate core block assets by default.
+	 *
+	 * @ticket 54597
+	 * @ticket 59732
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_separate_core_block_assets
+	 */
+	public function test_block_theme_should_load_separate_core_block_assets_by_default() {
+		$this->helper_requires_block_theme();
+
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertFalse(
+			wp_should_load_separate_core_block_assets(),
+			'Could not disable loading separate core block assets.'
+		);
+
+		do_action( 'after_setup_theme' );
+
+		$this->assertTrue(
+			wp_should_load_separate_core_block_assets(),
+			'Block themes do not load separate core block assets by default.'
+		);
+	}
+
+	/**
+	 * Tests that a theme in the custom test data theme directory is recognized.
+	 *
+	 * @ticket 18298
+	 */
+	public function test_theme_in_custom_theme_dir_is_valid() {
+		switch_theme( 'block-theme' );
+		$this->assertTrue( wp_get_theme()->exists() );
+	}
+
+	/**
+	 * Tests that `is_child_theme()` returns true for child theme.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_true() {
+		switch_theme( 'block-theme-child' );
+		$this->assertTrue( is_child_theme() );
+	}
+
+	/**
+	 * Tests that `is_child_theme()` returns false for parent theme.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::is_child_theme
+	 */
+	public function test_is_child_theme_false() {
+		switch_theme( 'block-theme' );
+		$this->assertFalse( is_child_theme() );
+	}
+
+	/**
+	 * Tests that the child theme directory is correctly detected.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory() {
+		switch_theme( 'block-theme-child' );
+		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme-child', get_stylesheet_directory() );
+	}
+
+	/**
+	 * Tests that the parent theme directory is correctly detected.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory() {
+		switch_theme( 'block-theme-child' );
+		$this->assertSame( realpath( DIR_TESTDATA ) . '/themedir1/block-theme', get_template_directory() );
+	}
+
+	/**
+	 * Tests that get_stylesheet_directory() behaves correctly with filters.
+	 *
+	 * @ticket 18298
+	 * @dataProvider data_get_stylesheet_directory_with_filter
+	 *
+	 * @covers ::get_stylesheet_directory
+	 *
+	 * @param string   $theme     Theme slug / directory name.
+	 * @param string   $hook_name Filter hook name.
+	 * @param callable $callback  Filter callback.
+	 * @param string   $expected  Expected stylesheet directory with the filter active.
+	 */
+	public function test_get_stylesheet_directory_with_filter( $theme, $hook_name, $callback, $expected ) {
+		switch_theme( $theme );
+
+		// Add filter, then call get_stylesheet_directory() to compute value.
+		add_filter( $hook_name, $callback );
+		$this->assertSame( $expected, get_stylesheet_directory(), 'Stylesheet directory returned incorrect result not considering filters' );
+
+		// Remove filter again, then ensure result is recalculated and not the same as before.
+		remove_filter( $hook_name, $callback );
+		$this->assertNotSame( $expected, get_stylesheet_directory(), 'Stylesheet directory returned previous value even though filters were removed' );
+	}
+
+	/**
+	 * Data provider for `test_get_stylesheet_directory_with_filter()`.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_stylesheet_directory_with_filter() {
+		return array(
+			'with stylesheet_directory filter' => array(
+				'block-theme',
+				'stylesheet_directory',
+				static function ( $dir ) {
+					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with theme_root filter'           => array(
+				'block-theme',
+				'theme_root',
+				static function () {
+					return '/fantasy-dir';
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with stylesheet filter'           => array(
+				'block-theme',
+				'stylesheet',
+				static function () {
+					return 'another-theme';
+				},
+				// Because the theme does not exist, `get_theme_root()` returns the default themes directory.
+				WP_CONTENT_DIR . '/themes/another-theme',
+			),
+		);
+	}
+
+	/**
+	 * Tests that get_template_directory() behaves correctly with filters.
+	 *
+	 * @ticket 18298
+	 * @dataProvider data_get_template_directory_with_filter
+	 *
+	 * @covers ::get_template_directory
+	 *
+	 * @param string   $theme     Theme slug / directory name.
+	 * @param string   $hook_name Filter hook name.
+	 * @param callable $callback  Filter callback.
+	 * @param string   $expected  Expected template directory with the filter active.
+	 */
+	public function test_get_template_directory_with_filter( $theme, $hook_name, $callback, $expected ) {
+		switch_theme( $theme );
+
+		// Add filter, then call get_template_directory() to compute value.
+		add_filter( $hook_name, $callback );
+		$this->assertSame( $expected, get_template_directory(), 'Template directory returned incorrect result not considering filters' );
+
+		// Remove filter again, then ensure result is recalculated and not the same as before.
+		remove_filter( $hook_name, $callback );
+		$this->assertNotSame( $expected, get_template_directory(), 'Template directory returned previous value even though filters were removed' );
+	}
+
+	/**
+	 * Data provider for `test_get_template_directory_with_filter()`.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_template_directory_with_filter() {
+		return array(
+			'with template_directory filter' => array(
+				'block-theme',
+				'template_directory',
+				static function ( $dir ) {
+					return str_replace( realpath( DIR_TESTDATA ) . '/themedir1', '/fantasy-dir', $dir );
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with theme_root filter'         => array(
+				'block-theme',
+				'theme_root',
+				static function () {
+					return '/fantasy-dir';
+				},
+				'/fantasy-dir/block-theme',
+			),
+			'with template filter'           => array(
+				'block-theme',
+				'template',
+				static function () {
+					return 'another-theme';
+				},
+				// Because the theme does not exist, `get_theme_root()` returns the default themes directory.
+				WP_CONTENT_DIR . '/themes/another-theme',
+			),
+		);
+	}
+
+	/**
+	 * Tests whether a switched site retrieves the correct stylesheet directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_with_switched_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
+
+		// Prime global storage with the current site's data.
+		get_stylesheet_directory();
+
+		switch_to_blog( $blog_id );
+		$switched_stylesheet = get_stylesheet_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/switched_stylesheet', $switched_stylesheet );
+	}
+
+	/**
+	 * Tests whether a switched site retrieves the correct template directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_with_switched_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_blog_option( $blog_id, 'template', 'switched_template' );
+
+		// Prime global storage with the current site's data.
+		get_template_directory();
+
+		switch_to_blog( $blog_id );
+		$switched_template = get_template_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/switched_template', $switched_template );
+	}
+
+	/**
+	 * Tests whether a restored site retrieves the correct stylesheet directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_with_restored_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_option( 'stylesheet', 'original_stylesheet' );
+		update_blog_option( $blog_id, 'stylesheet', 'switched_stylesheet' );
+
+		$stylesheet = get_stylesheet_directory();
+
+		switch_to_blog( $blog_id );
+
+		// Prime global storage with the restored site's data.
+		get_stylesheet_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/original_stylesheet', $stylesheet );
+	}
+
+	/**
+	 * Tests whether a restored site retrieves the correct template directory.
+	 *
+	 * @ticket 59677
+	 * @group ms-required
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_with_restored_site() {
+		$blog_id = self::factory()->blog->create();
+
+		update_option( 'template', 'original_template' );
+		update_blog_option( $blog_id, 'template', 'switched_template' );
+
+		$template = get_template_directory();
+
+		switch_to_blog( $blog_id );
+
+		// Prime global storage with the switched site's data.
+		get_template_directory();
+		restore_current_blog();
+
+		$this->assertSame( WP_CONTENT_DIR . '/themes/original_template', $template );
+	}
+
+	/**
+	 * Helper function to ensure that a block theme is available and active.
+	 */
+	private function helper_requires_block_theme() {
+		// No need to switch if we're already on a block theme.
+		if ( wp_is_block_theme() ) {
+			return;
+		}
+
+		$block_theme = 'twentytwentytwo';
+
+		// Skip if the block theme is not available.
+		if ( ! wp_get_theme( $block_theme )->exists() ) {
+			$this->markTestSkipped( "$block_theme must be available." );
+		}
+
+		switch_theme( $block_theme );
+
+		// Skip if we could not switch to the block theme.
+		if ( wp_get_theme()->stylesheet !== $block_theme ) {
+			$this->markTestSkipped( "Could not switch to $block_theme." );
+		}
 	}
 }

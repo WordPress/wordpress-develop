@@ -14,6 +14,7 @@
  *
  * @since 2.8.0
  */
+#[AllowDynamicProperties]
 class WP_Http_Encoding {
 
 	/**
@@ -88,7 +89,7 @@ class WP_Http_Encoding {
 	 *
 	 * Warning: Magic numbers within. Due to the potential different formats that the compressed
 	 * data may be returned in, some "magic offsets" are needed to ensure proper decompression
-	 * takes place. For a simple progmatic way to determine the magic offset in use, see:
+	 * takes place. For a simple pragmatic way to determine the magic offset in use, see:
 	 * https://core.trac.wordpress.org/ticket/18273
 	 *
 	 * @since 2.8.1
@@ -103,7 +104,7 @@ class WP_Http_Encoding {
 	public static function compatible_gzinflate( $gz_data ) {
 
 		// Compressed data might contain a full header, if so strip it for gzinflate().
-		if ( "\x1f\x8b\x08" === substr( $gz_data, 0, 3 ) ) {
+		if ( str_starts_with( $gz_data, "\x1f\x8b\x08" ) ) {
 			$i   = 10;
 			$flg = ord( substr( $gz_data, 3, 1 ) );
 			if ( $flg > 0 ) {

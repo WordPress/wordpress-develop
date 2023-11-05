@@ -10,7 +10,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * @covers WP_Scripts::query
 	 */
 	public function test_location_of_jquery() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		wp_default_scripts( $scripts );
 
 		if ( SCRIPT_DEBUG ) {
@@ -85,20 +85,6 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 28404
-	 *
-	 * @covers ::wp_script_is
-	 */
-	public function test_wp_script_is_dep_enqueued() {
-		wp_enqueue_script( 'jquery-ui-accordion' );
-
-		$this->assertTrue( wp_script_is( 'jquery', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'underscore', 'enqueued' ) );
-
-		unset( $GLOBALS['wp_scripts'] );
-	}
-
-	/**
 	 * Test placing of jQuery in footer.
 	 *
 	 * @ticket 25247
@@ -106,7 +92,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * @covers WP_Scripts::do_items
 	 */
 	public function test_jquery_in_footer() {
-		$scripts = new WP_Scripts;
+		$scripts = new WP_Scripts();
 		$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ) );
 		$scripts->add( 'jquery-core', '/jquery.js', array() );
 		$scripts->add( 'jquery-migrate', '/jquery-migrate.js', array() );

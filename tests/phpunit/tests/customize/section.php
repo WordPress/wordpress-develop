@@ -24,7 +24,6 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
-		$this->undefined         = new stdClass();
 	}
 
 	public function tear_down() {
@@ -240,5 +239,4 @@ class Custom_Section_Test extends WP_Customize_Section {
 		</li>
 		<?php
 	}
-
 }

@@ -8,7 +8,7 @@
  */
 
 if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
-	require ABSPATH . WPINC . '/Requests/Autoload.php';
+	require ABSPATH . WPINC . '/Requests/src/Autoload.php';
 
 	WpOrg\Requests\Autoload::register();
 	WpOrg\Requests\Requests::set_certificate_path( ABSPATH . WPINC . '/certificates/ca-bundle.crt' );
@@ -25,6 +25,7 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  *
  * @since 2.7.0
  */
+#[AllowDynamicProperties]
 class WP_Http {
 
 	// Aliases for HTTP response codes.
@@ -136,7 +137,7 @@ class WP_Http {
 	 *     @type string       $sslcertificates     Absolute path to an SSL certificate .crt file.
 	 *                                             Default ABSPATH . WPINC . '/certificates/ca-bundle.crt'.
 	 *     @type bool         $stream              Whether to stream to a file. If set to true and no filename was
-	 *                                             given, it will be droped it in the WP temp dir and its name will
+	 *                                             given, it will be dropped it in the WP temp dir and its name will
 	 *                                             be set using the basename of the URL. Default false.
 	 *     @type string       $filename            Filename of the file to write to when streaming. $stream must be
 	 *                                             set to true. Default null.
@@ -246,11 +247,11 @@ class WP_Http {
 		 *  - A WP_Error instance
 		 *  - boolean false to avoid short-circuiting the response
 		 *
-		 * Returning any other value may result in unexpected behaviour.
+		 * Returning any other value may result in unexpected behavior.
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param false|array|WP_Error $preempt     A preemptive return value of an HTTP request. Default false.
+		 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
 		 */
@@ -324,12 +325,12 @@ class WP_Http {
 			'hooks'     => new WP_HTTP_Requests_Hooks( $url, $parsed_args ),
 		);
 
-		// Ensure redirects follow browser behaviour.
-		$options['hooks']->register( 'requests.before_redirect', array( get_class(), 'browser_redirect_compatibility' ) );
+		// Ensure redirects follow browser behavior.
+		$options['hooks']->register( 'requests.before_redirect', array( static::class, 'browser_redirect_compatibility' ) );
 
 		// Validate redirected URLs.
 		if ( function_exists( 'wp_kses_bad_protocol' ) && $parsed_args['reject_unsafe_urls'] ) {
-			$options['hooks']->register( 'requests.before_redirect', array( get_class(), 'validate_redirects' ) );
+			$options['hooks']->register( 'requests.before_redirect', array( static::class, 'validate_redirects' ) );
 		}
 
 		if ( $parsed_args['stream'] ) {
@@ -370,15 +371,16 @@ class WP_Http {
 		 * @since 2.8.0
 		 * @since 5.1.0 The `$url` parameter was added.
 		 *
-		 * @param bool   $ssl_verify Whether to verify the SSL connection. Default true.
-		 * @param string $url        The request URL.
+		 * @param bool|string $ssl_verify Boolean to control whether to verify the SSL connection
+		 *                                or path to an SSL certificate.
+		 * @param string      $url        The request URL.
 		 */
 		$options['verify'] = apply_filters( 'https_ssl_verify', $options['verify'], $url );
 
 		// Check for proxies.
 		$proxy = new WP_HTTP_Proxy();
 		if ( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) ) {
-			$options['proxy'] = new WpOrg\Requests\Proxy\HTTP( $proxy->host() . ':' . $proxy->port() );
+			$options['proxy'] = new WpOrg\Requests\Proxy\Http( $proxy->host() . ':' . $proxy->port() );
 
 			if ( $proxy->use_authentication() ) {
 				$options['proxy']->use_authentication = true;
@@ -435,7 +437,7 @@ class WP_Http {
 		}
 
 		/**
-		 * Filters the HTTP API response immediately before the response is returned.
+		 * Filters a successful HTTP API response immediately before the response is returned.
 		 *
 		 * @since 2.9.0
 		 *
@@ -461,7 +463,7 @@ class WP_Http {
 			if ( $value instanceof WP_Http_Cookie ) {
 				$attributes                 = array_filter(
 					$value->get_attributes(),
-					static function( $attr ) {
+					static function ( $attr ) {
 						return null !== $attr;
 					}
 				);
@@ -475,7 +477,7 @@ class WP_Http {
 	}
 
 	/**
-	 * Match redirect behaviour to browser handling.
+	 * Match redirect behavior to browser handling.
 	 *
 	 * Changes 302 redirects from POST to GET to match browser handling. Per
 	 * RFC 7231, user agents can deviate from the strict reading of the
@@ -514,6 +516,8 @@ class WP_Http {
 	 * Tests which transports are capable of supporting the request.
 	 *
 	 * @since 3.2.0
+	 * @deprecated 6.4.0 Use WpOrg\Requests\Requests::get_transport_class()
+	 * @see WpOrg\Requests\Requests::get_transport_class()
 	 *
 	 * @param array  $args Request arguments.
 	 * @param string $url  URL to request.
@@ -527,13 +531,14 @@ class WP_Http {
 		 * Filters which HTTP transports are available and in what order.
 		 *
 		 * @since 3.7.0
+		 * @deprecated 6.4.0 Use WpOrg\Requests\Requests::get_transport_class()
 		 *
 		 * @param string[] $transports Array of HTTP transports to check. Default array contains
 		 *                             'curl' and 'streams', in that order.
 		 * @param array    $args       HTTP request arguments.
 		 * @param string   $url        The URL to request.
 		 */
-		$request_order = apply_filters( 'http_api_transports', $transports, $args, $url );
+		$request_order = apply_filters_deprecated( 'http_api_transports', array( $transports, $args, $url ), '6.4.0' );
 
 		// Loop over each transport on each HTTP request looking for one which will serve this request's needs.
 		foreach ( $request_order as $transport ) {
@@ -580,7 +585,7 @@ class WP_Http {
 
 		// Transport claims to support request, instantiate it and give it a whirl.
 		if ( empty( $transports[ $class ] ) ) {
-			$transports[ $class ] = new $class;
+			$transports[ $class ] = new $class();
 		}
 
 		$response = $transports[ $class ]->request( $url, $args );
@@ -655,7 +660,7 @@ class WP_Http {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $str_response The full response string.
+	 * @param string $response The full response string.
 	 * @return array {
 	 *     Array with response headers and body.
 	 *
@@ -663,8 +668,8 @@ class WP_Http {
 	 *     @type string $body    HTTP response body.
 	 * }
 	 */
-	public static function processResponse( $str_response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		$response = explode( "\r\n\r\n", $str_response, 2 );
+	public static function processResponse( $response ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$response = explode( "\r\n\r\n", $response, 2 );
 
 		return array(
 			'headers' => $response[0],
@@ -687,8 +692,8 @@ class WP_Http {
 	 *     then a numbered array is returned as the value of that header-key.
 	 *
 	 *     @type array            $response {
-	 *          @type int    $code    The response status code. Default 0.
-	 *          @type string $message The response message. Default empty.
+	 *         @type int    $code    The response status code. Default 0.
+	 *         @type string $message The response message. Default empty.
 	 *     }
 	 *     @type array            $newheaders The processed header data as a multidimensional array.
 	 *     @type WP_Http_Cookie[] $cookies    If the original headers contain the 'Set-Cookie' key,
@@ -719,7 +724,7 @@ class WP_Http {
 		 * In this case, determine the final HTTP header and parse from there.
 		 */
 		for ( $i = count( $headers ) - 1; $i >= 0; $i-- ) {
-			if ( ! empty( $headers[ $i ] ) && false === strpos( $headers[ $i ], ':' ) ) {
+			if ( ! empty( $headers[ $i ] ) && ! str_contains( $headers[ $i ], ':' ) ) {
 				$headers = array_splice( $headers, $i );
 				break;
 			}
@@ -732,7 +737,7 @@ class WP_Http {
 				continue;
 			}
 
-			if ( false === strpos( $tempheader, ':' ) ) {
+			if ( ! str_contains( $tempheader, ':' ) ) {
 				$stack   = explode( ' ', $tempheader, 3 );
 				$stack[] = '';
 				list( , $response['code'], $response['message']) = $stack;
@@ -903,7 +908,7 @@ class WP_Http {
 		if ( null === $accessible_hosts ) {
 			$accessible_hosts = preg_split( '|,\s*|', WP_ACCESSIBLE_HOSTS );
 
-			if ( false !== strpos( WP_ACCESSIBLE_HOSTS, '*' ) ) {
+			if ( str_contains( WP_ACCESSIBLE_HOSTS, '*' ) ) {
 				$wildcard_regex = array();
 				foreach ( $accessible_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
@@ -917,7 +922,6 @@ class WP_Http {
 		} else {
 			return ! in_array( $check['host'], $accessible_hosts, true ); // Inverse logic, if it's in the array, then don't block it.
 		}
-
 	}
 
 	/**
@@ -1011,6 +1015,11 @@ class WP_Http {
 			$path .= '?' . $relative_url_parts['query'];
 		}
 
+		// Add the fragment.
+		if ( ! empty( $relative_url_parts['fragment'] ) ) {
+			$path .= '#' . $relative_url_parts['fragment'];
+		}
+
 		return $absolute_path . '/' . ltrim( $path, '/' );
 	}
 
@@ -1073,7 +1082,7 @@ class WP_Http {
 	 * Determines if a specified string represents an IP address or not.
 	 *
 	 * This function also detects the type of the IP address, returning either
-	 * '4' or '6' to represent a IPv4 and IPv6 address respectively.
+	 * '4' or '6' to represent an IPv4 and IPv6 address respectively.
 	 * This does not verify if the IP is a valid IP, only that it appears to be
 	 * an IP address.
 	 *
@@ -1082,18 +1091,17 @@ class WP_Http {
 	 * @since 3.7.0
 	 *
 	 * @param string $maybe_ip A suspected IP address.
-	 * @return int|false Upon success, '4' or '6' to represent a IPv4 or IPv6 address, false upon failure
+	 * @return int|false Upon success, '4' or '6' to represent an IPv4 or IPv6 address, false upon failure.
 	 */
 	public static function is_ip_address( $maybe_ip ) {
 		if ( preg_match( '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $maybe_ip ) ) {
 			return 4;
 		}
 
-		if ( false !== strpos( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
+		if ( str_contains( $maybe_ip, ':' ) && preg_match( '/^(((?=.*(::))(?!.*\3.+\3))\3?|([\dA-F]{1,4}(\3|:\b|$)|\2))(?4){5}((?4){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i', trim( $maybe_ip, ' []' ) ) ) {
 			return 6;
 		}
 
 		return false;
 	}
-
 }

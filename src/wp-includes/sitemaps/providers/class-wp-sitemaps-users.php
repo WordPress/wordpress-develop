@@ -40,7 +40,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 		/**
 		 * Filters the users URL list before it is generated.
 		 *
-		 * Passing a non-null value will effectively short-circuit the generation,
+		 * Returning a non-null value will effectively short-circuit the generation,
 		 * returning that value instead.
 		 *
 		 * @since 5.5.0
@@ -101,7 +101,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 		/**
 		 * Filters the max number of pages for a user sitemap before it is generated.
 		 *
-		 * Passing a non-null value will effectively short-circuit the generation,
+		 * Returning a non-null value will effectively short-circuit the generation,
 		 * returning that value instead.
 		 *
 		 * @since 5.5.0
@@ -136,8 +136,9 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 			)
 		);
 
-		// We're not supporting sitemaps for author pages for attachments.
+		// We're not supporting sitemaps for author pages for attachments and pages.
 		unset( $public_post_types['attachment'] );
+		unset( $public_post_types['page'] );
 
 		/**
 		 * Filters the query arguments for authors with public posts.

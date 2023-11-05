@@ -9,14 +9,16 @@
  * Registers block patterns and categories.
  *
  * @since Twenty Twenty-Two 1.0
+ *
+ * @return void
  */
 function twentytwentytwo_register_block_patterns() {
 	$block_pattern_categories = array(
-		'twentytwentytwo-general' => array( 'label' => __( 'Twenty Twenty-Two General', 'twentytwentytwo' ) ),
-		'twentytwentytwo-footers' => array( 'label' => __( 'Twenty Twenty-Two Footers', 'twentytwentytwo' ) ),
-		'twentytwentytwo-headers' => array( 'label' => __( 'Twenty Twenty-Two Headers', 'twentytwentytwo' ) ),
-		'twentytwentytwo-query'   => array( 'label' => __( 'Twenty Twenty-Two Posts', 'twentytwentytwo' ) ),
-		'twentytwentytwo-pages'   => array( 'label' => __( 'Twenty Twenty-Two Pages', 'twentytwentytwo' ) ),
+		'featured' => array( 'label' => __( 'Featured', 'twentytwentytwo' ) ),
+		'footer'   => array( 'label' => __( 'Footers', 'twentytwentytwo' ) ),
+		'header'   => array( 'label' => __( 'Headers', 'twentytwentytwo' ) ),
+		'query'    => array( 'label' => __( 'Query', 'twentytwentytwo' ) ),
+		'pages'    => array( 'label' => __( 'Pages', 'twentytwentytwo' ) ),
 	);
 
 	/**
@@ -37,7 +39,9 @@ function twentytwentytwo_register_block_patterns() {
 	$block_pattern_categories = apply_filters( 'twentytwentytwo_block_pattern_categories', $block_pattern_categories );
 
 	foreach ( $block_pattern_categories as $name => $properties ) {
-		register_block_pattern_category( $name, $properties );
+		if ( ! WP_Block_Pattern_Categories_Registry::get_instance()->is_registered( $name ) ) {
+			register_block_pattern_category( $name, $properties );
+		}
 	}
 
 	$block_patterns = array(
@@ -115,14 +119,16 @@ function twentytwentytwo_register_block_patterns() {
 	 *
 	 * @since Twenty Twenty-Two 1.0
 	 *
-	 * @param $block_patterns array List of block patterns by name.
+	 * @param array $block_patterns List of block patterns by name.
 	 */
 	$block_patterns = apply_filters( 'twentytwentytwo_block_patterns', $block_patterns );
 
 	foreach ( $block_patterns as $block_pattern ) {
+		$pattern_file = get_theme_file_path( '/inc/patterns/' . $block_pattern . '.php' );
+
 		register_block_pattern(
 			'twentytwentytwo/' . $block_pattern,
-			require __DIR__ . '/patterns/' . $block_pattern . '.php'
+			require $pattern_file
 		);
 	}
 }
