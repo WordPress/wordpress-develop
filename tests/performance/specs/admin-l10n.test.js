@@ -13,10 +13,6 @@ const results = {
 };
 
 test.describe( 'Admin (L10N)', () => {
-	test.use( {
-		storageState: {}, // User will be logged out.
-	} );
-
 	test.beforeAll( async ( { requestUtils } ) => {
 		await requestUtils.activateTheme( 'twentytwentyone' );
 		await requestUtils.updateSiteSettings( {
