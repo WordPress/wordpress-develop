@@ -135,6 +135,19 @@ console.log( 'Performance Test Results\n' );
 
 console.log( 'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n' );
 
+/**
+ * Nicely format a given metric's value.
+ * @param {string} metric Metric.
+ * @param {number} value
+ */
+function formatValue( metric, value) {
+	if ( 'wpMemoryUsage' === metric ) {
+		return `${ ( value / Math.pow( 10, 6 ) ).toFixed( 2 ) } MB`;
+	}
+
+	return `${ value.toFixed( 2 ) } ms`;
+}
+
 for ( const key of testSuites ) {
 	const current = testResults[ key ] || {};
 	const prev = prevResults[ key ] || {};
@@ -154,9 +167,9 @@ for ( const key of testSuites ) {
 		const percentage = ( delta / value ) * 100;
 		rows.push( {
 			Metric: metric,
-			Before: `${ prevValue.toFixed( 2 ) } ms`,
-			After: `${ value.toFixed( 2 ) } ms`,
-			'Diff abs.': `${ delta.toFixed( 2 ) } ms`,
+			Before: formatValue( metric, prevValue ),
+			After: formatValue( metric, value ),
+			'Diff abs.': formatValue( metric, delta ),
 			'Diff %': `${ percentage.toFixed( 2 ) } %`,
 		} );
 	}
