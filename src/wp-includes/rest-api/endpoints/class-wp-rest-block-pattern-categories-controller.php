@@ -76,7 +76,7 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	 * Retrieves all block pattern categories.
 	 *
 	 * @since 6.0.0
-	 * @since 6.5.0 Includes user categories in the response if sepecified in the request `source` param.
+	 * @since 6.5.0 Includes user categories from the wp_pattern_category taxonomy in the response if `user` sepecified in the request `source` param.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
