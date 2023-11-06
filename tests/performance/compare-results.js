@@ -141,6 +141,9 @@ console.log( 'Note: Due to the nature of how GitHub Actions work, some variance 
  * @param {number} value
  */
 function formatValue( metric, value) {
+	if ( null === value ) {
+		return 'N/A';
+	}
 	if ( 'wpMemoryUsage' === metric ) {
 		return `${ ( value / Math.pow( 10, 6 ) ).toFixed( 2 ) } MB`;
 	}
@@ -161,9 +164,9 @@ for ( const key of testSuites ) {
 
 	for ( const [ metric, values ] of Object.entries( current ) ) {
 		const value = median( values );
-		const prevValue = median( prev[ metric ] );
+		const prevValue = prev[ metric ] ? median( prev[ metric ] ) : null;
 
-		const delta = value - prevValue;
+		const delta = null !== prevValue ? value - prevValue : 0
 		const percentage = ( delta / value ) * 100;
 		rows.push( {
 			Metric: metric,

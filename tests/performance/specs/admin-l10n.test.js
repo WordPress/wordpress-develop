@@ -10,8 +10,6 @@ import { camelCaseDashes } from '../utils';
 
 const results = {
 	timeToFirstByte: [],
-	largestContentfulPaint: [],
-	lcpMinusTtfb: [],
 };
 
 test.describe( 'Admin (L10N)', () => {
@@ -39,10 +37,10 @@ test.describe( 'Admin (L10N)', () => {
 	const iterations = Number( process.env.TEST_RUNS );
 	for ( let i = 1; i <= iterations; i++ ) {
 		test( `Measure load time metrics (${ i } of ${ iterations })`, async ( {
-			page,
+			admin,
 			metrics,
 		} ) => {
-			await page.goto( '/' );
+			await admin.visitAdminPage( '/' );
 
 			const serverTiming = await metrics.getServerTiming();
 
