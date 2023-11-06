@@ -26,7 +26,7 @@ test.describe( 'Front End - Twenty Twenty One (L10N)', () => {
 		} );
 	} );
 
-	test.afterAll( async ( {}, testInfo ) => {
+	test.afterAll( async ( { requestUtils }, testInfo ) => {
 		await testInfo.attach( 'results', {
 			body: JSON.stringify( results, null, 2 ),
 			contentType: 'application/json',
