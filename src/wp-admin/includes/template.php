@@ -2660,7 +2660,7 @@ function _wp_admin_html_begin() {
 	?>
 >
 <head>
-<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
+<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>">
 	<?php
 }
 
