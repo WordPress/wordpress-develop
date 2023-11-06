@@ -764,6 +764,8 @@ function get_hooked_blocks() {
  * where it will inject the `theme` attribute into all Template Part blocks, and prepend the markup for
  * any blocks hooked `before` the given block and as its parent's `first_child`, respectively.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
  * @access private
  *
@@ -837,6 +839,8 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
  * The returned function can be used as `$post_callback` argument to `traverse_and_serialize_block(s)`,
  * where it will append the markup for any blocks hooked `after` the given block and as its parent's
  * `last_child`, respectively.
+ *
+ * This function is meant for internal use only.
  *
  * @since 6.4.0
  * @access private
