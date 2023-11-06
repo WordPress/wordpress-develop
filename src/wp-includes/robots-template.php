@@ -45,8 +45,8 @@ function wp_robots() {
 	if ( empty( $robots_strings ) ) {
 		return;
 	}
-
-	echo "<meta name='robots' content='" . esc_attr( implode( ', ', $robots_strings ) ) . "' />\n";
+	$closure = current_theme_supports( 'html5', 'meta' ) ? '>' : ' />';
+	echo "<meta name='robots' content='" . esc_attr( implode( ', ', $robots_strings ) ) . "'" . $closure . "\n";
 }
 
 /**
