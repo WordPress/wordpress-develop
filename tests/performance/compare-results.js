@@ -23,7 +23,14 @@ const parseFile = ( fileName ) =>
 	);
 
 // The list of test suites to log.
-const testSuites = [ 'home-block-theme', 'home-classic-theme' ];
+const testSuites = [
+	'admin',
+	'admin-l10n',
+	'home-block-theme',
+	'home-block-theme-l10n',
+	'home-classic-theme',
+	'home-classic-theme-l10n',
+];
 
 // The current commit's results.
 const testResults = Object.fromEntries(
