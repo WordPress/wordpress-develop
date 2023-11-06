@@ -25,6 +25,8 @@ add_filter(
 
 				$server_timing_values['total'] = $server_timing_values['before-template'] + $server_timing_values['template'];
 
+				$server_timing_values['memory-usage'] = memory_get_usage();
+
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
 					if ( is_float( $value ) ) {

@@ -9,7 +9,9 @@ const { median, getResultsFilename } = require( './utils' );
 
 const testSuites = [
     'home-classic-theme',
+    'home-classic-theme-l10n',
     'home-block-theme',
+    'home-block-theme-l10n',
 ];
 
 console.log( '\n>> 🎉 Results 🎉 \n' );
