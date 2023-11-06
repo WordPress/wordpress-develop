@@ -153,6 +153,8 @@ class WP_Styles extends WP_Dependencies {
 			return false;
 		}
 
+		$closure = current_theme_supports( 'html5', 'style' ) ? '>' : ' />';
+
 		$obj = $this->registered[ $handle ];
 
 		if ( null === $obj->ver ) {
@@ -227,13 +229,14 @@ class WP_Styles extends WP_Dependencies {
 		$title = isset( $obj->extra['title'] ) ? sprintf( " title='%s'", esc_attr( $obj->extra['title'] ) ) : '';
 
 		$tag = sprintf(
-			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s' />\n",
+			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s'%s\n",
 			$rel,
 			$handle,
 			$title,
 			$href,
 			$this->type_attr,
-			$media
+			$media,
+			$closure
 		);
 
 		/**
@@ -259,13 +262,14 @@ class WP_Styles extends WP_Dependencies {
 			}
 
 			$rtl_tag = sprintf(
-				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s' />\n",
+				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s'%s\n",
 				$rel,
 				$handle,
 				$title,
 				$rtl_href,
 				$this->type_attr,
-				$media
+				$media,
+				$closure
 			);
 
 			/** This filter is documented in wp-includes/class-wp-styles.php */
