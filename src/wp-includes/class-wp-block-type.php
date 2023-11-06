@@ -242,7 +242,7 @@ class WP_Block_Type {
 	/**
 	 * Attributes supported by every block.
 	 *
-	 * @since 6.0.0
+	 * @since 6.0.0 Added lock global attribute.
 	 * @since 6.5.0 Added metadata global attribute.
 	 * @var array
 	 */
