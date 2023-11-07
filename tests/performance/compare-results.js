@@ -136,7 +136,8 @@ console.log( 'Performance Test Results\n' );
 console.log( 'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n' );
 
 /**
- * Nicely format a given metric's value.
+ * Nicely formats a given value.
+ *
  * @param {string} metric Metric.
  * @param {number} value
  */

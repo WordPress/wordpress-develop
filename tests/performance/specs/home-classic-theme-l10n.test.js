@@ -46,7 +46,7 @@ test.describe( 'Front End - Twenty Twenty One (L10N)', () => {
 
 			const serverTiming = await metrics.getServerTiming();
 
-			for (const [key, value] of Object.entries( serverTiming ) ) {
+			for ( const [ key, value ] of Object.entries( serverTiming ) ) {
 				results[ camelCaseDashes( key ) ] ??= [];
 				results[ camelCaseDashes( key ) ].push( value );
 			}
