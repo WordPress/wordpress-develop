@@ -778,11 +778,13 @@ function insert_hooked_blocks( $relative_position, &$anchor_block, $hooked_block
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 	foreach ( $hooked_block_types as $hooked_block_type ) {
 		if (
-			! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
-			! in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
+			isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) &&
+			in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
 		) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			continue;
 		}
+
+		$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
 
 		// TODO: The following is only needed for the REST API endpoint.
 		// Ideally, the code should thus be moved into the controller.
@@ -790,7 +792,6 @@ function insert_hooked_blocks( $relative_position, &$anchor_block, $hooked_block
 			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 		}
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
-
 	}
 	return $markup;
 }
