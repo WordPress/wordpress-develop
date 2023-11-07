@@ -10,7 +10,7 @@
 class Tests_functions_wpAuthCheckLoad extends WP_UnitTestCase {
 
 	/**
-	 * Check that the function add both actions
+	 * Check that the function add both actions.
 	 *
 	 * @ticket 59820
 	 */
@@ -36,6 +36,8 @@ class Tests_functions_wpAuthCheckLoad extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Check that adction are not add for not loged in user.
+	 *
 	 * @ticket 59820
 	 */
 	public function test_wp_auth_check_load_not_loged_in() {
@@ -51,7 +53,7 @@ class Tests_functions_wpAuthCheckLoad extends WP_UnitTestCase {
 	}
 
 	/**
-	 * check that the function returns early in not an admin page
+	 * Check that the function returns early in not an admin page.
 	 *
 	 * @ticket 59820
 	 */
@@ -73,7 +75,7 @@ class Tests_functions_wpAuthCheckLoad extends WP_UnitTestCase {
 	}
 
 	/**
-	 * check that function returns ealy if not a disabled admin page
+	 * Check that function returns ealy if not a disabled admin page.
 	 *
 	 * @ticket 59820
 	 */
