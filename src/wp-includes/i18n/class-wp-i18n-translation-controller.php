@@ -143,9 +143,9 @@ class WP_I18n_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string                            $textdomain Text domain.
+	 * @param string                          $textdomain Text domain.
 	 * @param WP_I18n_Translation_File|string $mo         Translation file instance or file name.
-	 * @param string                            $locale     Optional. Locale. Default all locales.
+	 * @param string                          $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
 	public function unload( string $textdomain = 'default', $mo = null, string $locale = null ) {
