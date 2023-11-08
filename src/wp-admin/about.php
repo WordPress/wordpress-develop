@@ -56,7 +56,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 							10
 						),
 						'6.4.1',
-						'3'
+						'4'
 					);
 					?>
 					<?php
