@@ -133,8 +133,7 @@ class WP_I18n_Translation_Controller {
 			$this->loaded_translations[ $locale ][ $textdomain ] = array();
 		}
 
-		// Ensure that last-loaded translation takes precedence.
-		array_unshift( $this->loaded_translations[ $locale ][ $textdomain ], $moe );
+		$this->loaded_translations[ $locale ][ $textdomain ][] = $moe;
 
 		return true;
 	}
