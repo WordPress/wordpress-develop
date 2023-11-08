@@ -3104,14 +3104,7 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		$old_request = "
-			SELECT $found_rows $distinct $fields
-			FROM {$wpdb->posts} $join
-			WHERE 1=1 $where
-			$groupby
-			$orderby
-			$limits
-		";
+		$old_request = "SELECT $found_rows $distinct $fields FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits";
 
 		$this->request = $old_request;
 
@@ -3307,13 +3300,7 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
-					FROM {$wpdb->posts} $join
-					WHERE 1=1 $where
-					$groupby
-					$orderby
-					$limits
+				$this->request = "SELECT $found_rows $distinct {$wpdb->posts}.ID FROM {$wpdb->posts} $join WHERE 1=1 $where $groupby $orderby $limits
 				";
 
 				/**
