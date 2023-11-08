@@ -65,17 +65,7 @@ class WP_I18n_Translations {
 	}
 
 	/**
-	 * Magic setter.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param string $name Property name.
-	 * @param mixed  $value Property value.
-	 */
-	public function __set( string $name, $value ) {}
-
-	/**
-	 * Build a Translation_Entry from original string and translation strings.
+	 * Builds a Translation_Entry from original string and translation strings.
 	 *
 	 * @see MO::make_entry()
 	 *
@@ -144,7 +134,7 @@ class WP_I18n_Translations {
 	 */
 	public function translate( $singular, $context = '' ) {
 		if ( null === $singular ) {
-			return $singular;
+			return null;
 		}
 
 		$translation = WP_I18n_Translation_Controller::instance()->translate( $singular, (string) $context, $this->textdomain );

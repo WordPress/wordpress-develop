@@ -139,11 +139,11 @@ class WP_I18n_Translation_Controller {
 	}
 
 	/**
-	 * Unload all translation files or a specific one for a given text domain.
+	 * Unloads all translation files or a specific one for a given text domain.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string                          $textdomain Text domain.
+	 * @param string                          $textdomain Optional. Text domain. Default 'default'.
 	 * @param WP_I18n_Translation_File|string $mo         Translation file instance or file name.
 	 * @param string                          $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
@@ -213,7 +213,7 @@ class WP_I18n_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $textdomain Text domain.
+	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return bool True if there are any loaded translations, false otherwise.
 	 */
@@ -259,7 +259,7 @@ class WP_I18n_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array{0: string, 1: string} $plurals    Pair of singular and plural translation.
+	 * @param array{0: string, 1: string} $plurals    Pair of singular and plural translations.
 	 * @param int                         $number     Number of items.
 	 * @param string                      $context    Optional. Context for the string.
 	 * @param string                      $textdomain Text domain.

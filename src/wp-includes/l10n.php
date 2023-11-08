@@ -788,8 +788,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$locale = determine_locale();
 	}
 
+	$i18n_controller = WP_I18n_Translation_Controller::instance();
+
 	// Ensures the correct locale is set as the current one, in case it was filtered.
-	WP_I18n_Translation_Controller::instance()->set_locale( $locale );
+	$i18n_controller->set_locale( $locale );
 
 	/**
 	 * Filters the preferred file format for translation files.
@@ -803,12 +805,8 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$preferred_format = 'php';
 	}
 
-	$mofile_preferred = str_replace( '.mo', ".mo.$preferred_format", $mofile );
-
-	if ( 'mo' !== $preferred_format || str_ends_with( $mofile, $preferred_format ) ) {
-
-		/** This filter is documented in wp-includes/l10n.php */
-		$mofile_preferred = apply_filters( 'load_textdomain_mofile', $mofile_preferred, $domain );
+	if ( 'mo' !== $preferred_format ) {
+		$mofile_preferred = str_replace( '.mo', ".mo.$preferred_format", $mofile );
 
 		/**
 		 * Filters the file path for loading translations for the given text domain.
@@ -822,11 +820,11 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		 */
 		$mofile_preferred = apply_filters( 'load_translation_file', $mofile_preferred, $domain );
 
-		$success = WP_I18n_Translation_Controller::instance()->load( $mofile_preferred, $domain, $locale );
+		$success = $i18n_controller->load( $mofile_preferred, $domain, $locale );
 
 		if ( $success ) {
 			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
-				WP_I18n_Translation_Controller::instance()->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
+				$i18n_controller->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
 			}
 
 			// Unset Noop_Translations reference in get_translations_for_domain.
@@ -840,20 +838,14 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		}
 	}
 
-	/** This action is documented in wp-includes/l10n.php */
-	do_action( 'load_textdomain', $domain, $mofile );
-
-	/** This filter is documented in wp-includes/l10n.php */
-	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
-
 	/** This filter is documented in wp-includes/l10n.php */
 	$mofile = apply_filters( 'load_translation_file', $mofile, $domain );
 
-	$success = WP_I18n_Translation_Controller::instance()->load( $mofile, $domain, $locale );
+	$success = $i18n_controller->load( $mofile, $domain, $locale );
 
 	if ( $success ) {
 		if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
-			WP_I18n_Translation_Controller::instance()->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
+			$i18n_controller->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
 		}
 
 		// Unset Noop_Translations reference in get_translations_for_domain.
