@@ -56,6 +56,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	 *
 	 * @return string
 	 */
+	#[ReturnTypeWillChange]
 	public function jsonSerialize() {
 		return $this->get_modified_or_result();
 	}
@@ -78,6 +79,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	 *
 	 * @return bool
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
 		return mb_strlen( $this->get_modified_or_result() ) > $offset;
 	}
@@ -91,6 +93,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	 *
 	 * @return mixed
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
 		$result = $this->get_modified_or_result();
 
@@ -105,6 +108,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	 * @param mixed $offset The offset to assign the value to.
 	 * @param mixed $value  The value to set the offset to.
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
 
 		if ( null === $this->modified ) {
@@ -121,6 +125,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	 *
 	 * @param mixed $offset The offset to unset.
 	 */
+	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
 		trigger_error( 'Cannot unset string offset', E_USER_ERROR );
 	}
