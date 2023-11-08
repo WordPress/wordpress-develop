@@ -132,9 +132,9 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		// Expected menu item array.
 		$expected = array(
 			'id'         => 'home',
-			'title'      => _x( 'Home', 'nav menu home label' ),
+			'title'      => (string) _x( 'Home', 'nav menu home label' ),
 			'type'       => 'custom',
-			'type_label' => __( 'Custom Link' ),
+			'type_label' => (string) __( 'Custom Link' ),
 			'object'     => '',
 			'url'        => home_url(),
 		);

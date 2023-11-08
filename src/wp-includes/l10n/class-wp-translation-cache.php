@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage L10n
- * @since 6.3.0
+ * @since 6.5.0
  */
 
 /**
  * Class WP_Translation_Cache.
  *
- * @since 6.3.0
+ * @since 6.5.0
  */
 class WP_Translation_Cache {
 
@@ -21,7 +21,7 @@ class WP_Translation_Cache {
 	 *
 	 * Keyed by locale then cache ID.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 * @var array
 	 */
 	private $cache = array();
@@ -31,7 +31,7 @@ class WP_Translation_Cache {
 	 *
 	 * This locale will never be pruned from the cache.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 * @var string
 	 */
 	private $original_locale;
@@ -39,7 +39,7 @@ class WP_Translation_Cache {
 	/**
 	 * The current locale. Determines the current cache key.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 * @var string
 	 */
 	private $current_locale;
@@ -47,7 +47,7 @@ class WP_Translation_Cache {
 	/**
 	 * WP_Translation_Cache constructor.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 */
 	public function __construct() {
 		$locale                = determine_locale();
@@ -58,7 +58,7 @@ class WP_Translation_Cache {
 	/**
 	 * Initialize the translation cache.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 */
 	public function init() {
 		add_action( 'change_locale', array( $this, 'on_change_locale' ) );
@@ -67,7 +67,7 @@ class WP_Translation_Cache {
 	/**
 	 * When the locale is changed, update the current cache key.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param string $locale
 	 */
@@ -79,7 +79,7 @@ class WP_Translation_Cache {
 	/**
 	 * Lazily translate the given text.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param int    $cache_id The cache ID identifying this translation.
 	 * @param string $text     The untranslated text.
@@ -89,7 +89,7 @@ class WP_Translation_Cache {
 	 */
 	public function translate( $cache_id, $text, $domain, $context = null ) {
 		if ( ! isset( $this->cache[ $this->current_locale ][ $cache_id ] ) ) {
-			$translation = null === $context ? translate( $text, $domain ) : translate_with_gettext_context( $text, $context, $domain );
+			$translation                                       = null === $context ? translate( $text, $domain ) : translate_with_gettext_context( $text, $context, $domain );
 			$this->cache[ $this->current_locale ][ $cache_id ] = $translation;
 		}
 
@@ -99,7 +99,7 @@ class WP_Translation_Cache {
 	/**
 	 * Lazily translate the given text.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param int    $cache_id The cache ID identifying this translation.
 	 * @param string $single   The text to be used if the number is singular.
@@ -185,7 +185,7 @@ class WP_Translation_Cache {
 	/**
 	 * Lazily translate the given text with context.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param int    $cache_id The cache ID identifying this translation.
 	 * @param string $text     The untranslated text.
@@ -205,7 +205,7 @@ class WP_Translation_Cache {
 	/**
 	 * Remove the entry from the cache.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param int $cache_id
 	 */
@@ -218,7 +218,7 @@ class WP_Translation_Cache {
 	/**
 	 * Completely clear the translation cache.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 */
 	public function clear() {
 		$this->cache = array();
@@ -227,13 +227,13 @@ class WP_Translation_Cache {
 	/**
 	 * Prune the translation cache.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 */
 	private function prune_cache() {
 		$i = 0;
 
 		foreach ( array_reverse( $this->cache ) as $locale => $items ) {
-			$i ++;
+			++$i;
 
 			if ( $locale === $this->original_locale ) {
 				continue;

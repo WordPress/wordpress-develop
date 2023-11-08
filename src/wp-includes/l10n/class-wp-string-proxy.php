@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage L10n
- * @since 6.3.0
+ * @since 6.5.0
  */
 
 /**
@@ -16,7 +16,7 @@
  * Implements the `ArrayAccess` interface so that you can directly access
  * individual characters in the translated string.
  *
- * @since 6.3.0
+ * @since 6.5.0
  */
 abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 
@@ -41,7 +41,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Return the string representation of the proxy object.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @return string
 	 */
@@ -52,7 +52,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Return the JSON representation of the proxy object.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @return string
 	 */
@@ -64,7 +64,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Lazily evaluate the result the first time it is being requested.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @return string
 	 */
@@ -73,7 +73,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Check whether an offset into the array exists.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param mixed $offset Offset to check for.
 	 *
@@ -87,7 +87,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Retrieve a specific offset into the array.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param mixed $offset The offset to retrieve.
 	 *
@@ -103,7 +103,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Set a specific offset in the array.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param mixed $offset The offset to assign the value to.
 	 * @param mixed $value  The value to set the offset to.
@@ -121,7 +121,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Unset a specific offset in the array.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param mixed $offset The offset to unset.
 	 */
@@ -133,7 +133,7 @@ abstract class WP_String_Proxy implements JsonSerializable, ArrayAccess {
 	/**
 	 * Get the modified string or call the result function.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @return string
 	 */

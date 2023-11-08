@@ -1660,7 +1660,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Resolve proxies in arrays to be tested.
 	 *
-	 * @since 5.2.0
+	 * @since 6.5.0
 	 *
 	 * @param mixed  $value Reference to the array value to be checked.
 	 * @param string $key   Index key of the array value to be checked.
@@ -1693,7 +1693,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * Override to handle special cases for equality checks.
 	 *
-	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 * @since 6.5.0 Added WP_String_Proxy object <=> string equality.
 	 *
 	 * @param mixed  $expected
 	 * @param mixed  $actual
@@ -1703,7 +1703,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param bool   $canonicalize
 	 * @param bool   $ignoreCase
 	 */
-	public static function assertEquals( $expected, $actual, string $message = '', float $delta = 0, int $maxDepth = 10, bool $canonicalize = false, bool $ignoreCase = false ): void {
+	public static function assertEquals( $expected, $actual, $message = '', $delta = 0, $maxDepth = 10, $canonicalize = false, $ignoreCase = false ) {
 		if ( is_array( $actual ) ) {
 			array_walk( $actual, 'WP_UnitTestCase_Base::resolve_proxies', $expected );
 		}
@@ -1719,13 +1719,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * Override to handle special cases for equality checks.
 	 *
-	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 * @since 6.5.0 Added WP_String_Proxy object <=> string equality.
 	 *
 	 * @param mixed  $expected
 	 * @param mixed  $actual
 	 * @param string $message
 	 */
-	public static function assertSame( $expected, $actual, string $message = '' ): void {
+	public static function assertSame( $expected, $actual, $message = '' ) {
 		if ( is_array( $actual ) ) {
 			array_walk( $actual, 'WP_UnitTestCase_Base::resolve_proxies' );
 		}
@@ -1742,13 +1742,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * Override to handle special cases for equality checks.
 	 *
-	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 * @since 6.5.0 Added WP_String_Proxy object <=> string equality.
 	 *
 	 * @param string $expected
 	 * @param mixed  $actual
 	 * @param string $message
 	 */
-	public static function assertInternalType( string $expected, $actual, string $message = '' ): void {
+	public static function assertInternalType( $expected, $actual, $message = '' ) {
 		if ( 'string' === $expected ) {
 			$actual = self::resolve_proxy( $actual );
 		}
@@ -1758,9 +1758,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Asserts that a haystack contains a needle.
 	 *
-	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 * @since 6.5.0 Added WP_String_Proxy object <=> string equality.
 	 */
-	public static function assertContains( $needle, $haystack, string $message = '', bool $ignoreCase = false, bool $checkForObjectIdentity = true, bool $checkForNonObjectIdentity = false ): void {
+	public static function assertContains( $needle, $haystack, $message = '', $ignoreCase = false, bool $checkForObjectIdentity = true, $checkForNonObjectIdentity = false ) {
 		if ( is_array( $haystack ) ) {
 			array_walk( $haystack, 'WP_UnitTestCase_Base::resolve_proxies' );
 		}

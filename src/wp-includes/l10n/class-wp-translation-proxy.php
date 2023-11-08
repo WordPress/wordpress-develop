@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage L10n
- * @since 6.3.0
+ * @since 6.5.0
  */
 
 /**
  * Class WP_Translation_Proxy.
  *
- * @since 6.3.0
+ * @since 6.5.0
  */
 final class WP_Translation_Proxy extends WP_String_Proxy {
 
@@ -21,7 +21,7 @@ final class WP_Translation_Proxy extends WP_String_Proxy {
 	/**
 	 * Instantiate a WP_Translation_Proxy object.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param string $single  Text to translate.
 	 * @param string $domain  Optional. Text domain to use for the translation. Default "default".
@@ -38,7 +38,7 @@ final class WP_Translation_Proxy extends WP_String_Proxy {
 	/**
 	 * Lazily evaluate the result the first time it is being requested.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @return string
 	 */
@@ -49,7 +49,7 @@ final class WP_Translation_Proxy extends WP_String_Proxy {
 	/**
 	 * When the proxy object leaves memory, clear the cache entry.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 */
 	public function __destruct() {
 		wp_translation_cache()->clear_translation( $this->cache_id );
