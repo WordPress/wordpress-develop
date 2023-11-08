@@ -344,6 +344,8 @@ class Tests_Theme extends WP_UnitTestCase {
 						$this->assertSame( $child_theme_file, get_query_template( $file ) );
 					} elseif ( file_exists( $parent_theme_file ) ) {
 						$this->assertSame( $parent_theme_file, get_query_template( $file ) );
+					} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $file . '.php' ) ) {
+						$this->assertSame( ABSPATH . WPINC . '/theme-compat/' . $file . '.php', get_query_template( $file ) );
 					} else {
 						$this->assertSame( '', get_query_template( $file ) );
 					}
