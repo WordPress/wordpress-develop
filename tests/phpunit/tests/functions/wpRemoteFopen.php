@@ -2,7 +2,8 @@
 /**
  * @group http
  * @group external-http
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_remote_fopen
  */
 class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {

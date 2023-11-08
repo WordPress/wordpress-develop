@@ -5,7 +5,8 @@
  *
  * @since 5.6.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_wp_array_get
  */
 class Tests_Functions_wpArrayGet extends WP_UnitTestCase {

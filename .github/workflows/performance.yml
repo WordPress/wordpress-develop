@@ -30,6 +30,8 @@ concurrency:
 permissions: {}
 
 env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
   # Performance testing should be performed in an environment reflecting a standard production environment.
   LOCAL_WP_DEBUG: false
   LOCAL_SCRIPT_DEBUG: false
@@ -90,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
 
     steps:
       - name: Configure environment variables
@@ -159,6 +161,12 @@ jobs:
       - name: Update permalink structure
         run: |
           npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Install additional languages
+        run: |
+          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install MU plugin
         run: |

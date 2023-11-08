@@ -2031,8 +2031,8 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * @see https://html.spec.whatwg.org/#attributes-2
 		 *
-		 * @TODO as the only regex pattern maybe we should take it out? are
-		 *       Unicode patterns available broadly in Core?
+		 * @todo As the only regex pattern maybe we should take it out?
+		 *       Are Unicode patterns available broadly in Core?
 		 */
 		if ( preg_match(
 			'~[' .
@@ -2323,6 +2323,10 @@ class WP_HTML_Tag_Processor {
 		while ( $this->parse_next_attribute() ) {
 			continue;
 		}
+
+		$tag_ends_at                = strpos( $this->html, '>', $this->bytes_already_parsed );
+		$this->tag_ends_at          = $tag_ends_at;
+		$this->bytes_already_parsed = $tag_ends_at;
 
 		return $this->html;
 	}

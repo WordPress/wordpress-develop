@@ -250,27 +250,35 @@ function get_option( $option, $default_value = false ) {
 /**
  * Primes specific options into the cache with a single database query.
  *
- * Only options that do not already exist in cache will be primed.
+ * Only options that do not already exist in cache will be loaded.
  *
  * @since 6.4.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $options An array of option names to be primed.
+ * @param array $options An array of option names to be loaded.
  */
-function prime_options( $options ) {
+function wp_prime_option_caches( $options ) {
 	$alloptions     = wp_load_alloptions();
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
+	$notoptions     = wp_cache_get( 'notoptions', 'options' );
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
 
 	// Filter options that are not in the cache.
 	$options_to_prime = array();
 	foreach ( $options as $option ) {
-		if ( ( ! isset( $cached_options[ $option ] ) || ! $cached_options[ $option ] ) && ! isset( $alloptions[ $option ] ) ) {
+		if (
+			( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] )
+			&& ! isset( $alloptions[ $option ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
 			$options_to_prime[] = $option;
 		}
 	}
 
-	// Bail early if there are no options to be primed.
+	// Bail early if there are no options to be loaded.
 	if ( empty( $options_to_prime ) ) {
 		return;
 	}
@@ -288,7 +296,12 @@ function prime_options( $options ) {
 
 	$options_found = array();
 	foreach ( $results as $result ) {
-		$options_found[ $result->option_name ] = maybe_unserialize( $result->option_value );
+		/*
+		 * The cache is primed with the raw value (i.e. not maybe_unserialized).
+		 *
+		 * `get_option()` will handle unserializing the value as needed.
+		 */
+		$options_found[ $result->option_name ] = $result->option_value;
 	}
 	wp_cache_set_multiple( $options_found, 'options' );
 
@@ -298,12 +311,6 @@ function prime_options( $options ) {
 	}
 
 	$options_not_found = array_diff( $options_to_prime, array_keys( $options_found ) );
-
-	$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
-	}
 
 	// Add the options that were not found to the cache.
 	$update_notoptions = false;
@@ -321,26 +328,26 @@ function prime_options( $options ) {
 }
 
 /**
- * Primes all options registered with a specific option group.
+ * Primes the cache of all options registered with a specific option group.
  *
  * @since 6.4.0
  *
  * @global array $new_allowed_options
  *
- * @param string $option_group The option group to prime options for.
+ * @param string $option_group The option group to load options for.
  */
-function prime_options_by_group( $option_group ) {
+function wp_prime_option_caches_by_group( $option_group ) {
 	global $new_allowed_options;
 
 	if ( isset( $new_allowed_options[ $option_group ] ) ) {
-		prime_options( $new_allowed_options[ $option_group ] );
+		wp_prime_option_caches( $new_allowed_options[ $option_group ] );
 	}
 }
 
 /**
  * Retrieves multiple options.
  *
- * Options are primed as necessary first in order to use a single database query at most.
+ * Options are loaded as necessary first in order to use a single database query at most.
  *
  * @since 6.4.0
  *
@@ -348,7 +355,7 @@ function prime_options_by_group( $option_group ) {
  * @return array An array of key-value pairs for the requested options.
  */
 function get_options( $options ) {
-	prime_options( $options );
+	wp_prime_option_caches( $options );
 
 	$result = array();
 	foreach ( $options as $option ) {
@@ -468,11 +475,13 @@ function wp_set_option_autoload_values( array $options ) {
 		wp_cache_delete( 'alloptions', 'options' );
 	} elseif ( $grouped_options['no'] ) {
 		$alloptions = wp_load_alloptions( true );
+
 		foreach ( $grouped_options['no'] as $option ) {
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 			}
 		}
+
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
 	}
 
@@ -777,46 +786,20 @@ function update_option( $option, $value, $autoload = null ) {
 	$value = apply_filters( 'pre_update_option', $value, $option, $old_value );
 
 	/*
-	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
-	 * Immediately after getting the raw value, they are reinstated.
-	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
-	 * else, and is not passed to any of the hooks either.
-	 */
-	if ( has_filter( "pre_option_{$option}" ) ) {
-		global $wp_filter;
-
-		$old_filters = $wp_filter[ "pre_option_{$option}" ];
-		unset( $wp_filter[ "pre_option_{$option}" ] );
-
-		$raw_old_value                       = get_option( $option );
-		$wp_filter[ "pre_option_{$option}" ] = $old_filters;
-	} else {
-		$raw_old_value = $old_value;
-	}
-
-	/** This filter is documented in wp-includes/option.php */
-	$default_value = apply_filters( "default_option_{$option}", false, $option, false );
-
-	/*
 	 * If the new and old values are the same, no need to update.
 	 *
-	 * An exception applies when no value is set in the database, i.e. the old value is the default.
-	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
 	 *
-	 * See https://core.trac.wordpress.org/ticket/38903 and https://core.trac.wordpress.org/ticket/22192.
+	 * See https://core.trac.wordpress.org/ticket/38903
 	 */
-	if (
-		$value === $raw_old_value ||
-		(
-			$raw_old_value !== $default_value &&
-			_is_equal_database_value( $raw_old_value, $value )
-		)
-	) {
+	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
 
-	if ( $raw_old_value === $default_value ) {
-
+	/** This filter is documented in wp-includes/option.php */
+	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
 		// Default setting for new options is 'yes'.
 		if ( null === $autoload ) {
 			$autoload = 'yes';
@@ -862,6 +845,7 @@ function update_option( $option, $value, $autoload = null ) {
 		if ( ! isset( $update_args['autoload'] ) ) {
 			// Update the cached value based on where it is currently cached.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				$alloptions[ $option ] = $serialized_value;
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -873,11 +857,13 @@ function update_option( $option, $value, $autoload = null ) {
 			wp_cache_delete( $option, 'options' );
 
 			$alloptions = wp_load_alloptions( true );
+
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
 			// Delete the alloptions cache, then set the individual cache.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1108,6 +1094,7 @@ function delete_option( $option ) {
 	if ( ! wp_installing() ) {
 		if ( 'yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
+
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1235,6 +1222,7 @@ function get_transient( $transient ) {
 		if ( ! wp_installing() ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
+
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				$timeout           = get_option( $transient_timeout );
@@ -2145,79 +2133,19 @@ function update_network_option( $network_id, $option, $value ) {
 	$value = apply_filters( "pre_update_site_option_{$option}", $value, $old_value, $option, $network_id );
 
 	/*
-	 * To get the actual raw old value from the database, any existing pre filters need to be temporarily disabled.
-	 * Immediately after getting the raw value, they are reinstated.
-	 * The raw value is only used to determine whether a value is present in the database. It is not used anywhere
-	 * else, and is not passed to any of the hooks either.
-	 */
-	global $wp_filter;
-
-	/** This filter is documented in wp-includes/option.php */
-	$default_value = apply_filters( "default_site_option_{$option}", false, $option, $network_id );
-
-	$has_site_filter   = has_filter( "pre_site_option_{$option}" );
-	$has_option_filter = has_filter( "pre_option_{$option}" );
-	if ( $has_site_filter || $has_option_filter ) {
-		if ( $has_site_filter ) {
-			$old_ms_filters = $wp_filter[ "pre_site_option_{$option}" ];
-			unset( $wp_filter[ "pre_site_option_{$option}" ] );
-		}
-
-		if ( $has_option_filter ) {
-			$old_single_site_filters = $wp_filter[ "pre_option_{$option}" ];
-			unset( $wp_filter[ "pre_option_{$option}" ] );
-		}
-
-		if ( is_multisite() ) {
-			$raw_old_value = get_network_option( $network_id, $option );
-		} else {
-			$raw_old_value = get_option( $option, $default_value );
-		}
-
-		if ( $has_site_filter ) {
-			$wp_filter[ "pre_site_option_{$option}" ] = $old_ms_filters;
-		}
-		if ( $has_option_filter ) {
-			$wp_filter[ "pre_option_{$option}" ] = $old_single_site_filters;
-		}
-	} else {
-		$raw_old_value = $old_value;
-	}
-
-	if ( ! is_multisite() ) {
-		/** This filter is documented in wp-includes/option.php */
-		$default_value = apply_filters( "default_option_{$option}", $default_value, $option, true );
-	}
-
-	/*
 	 * If the new and old values are the same, no need to update.
 	 *
-	 * An exception applies when no value is set in the database, i.e. the old value is the default.
-	 * In that case, the new value should always be added as it may be intentional to store it rather than relying on the default.
+	 * Unserialized values will be adequate in most cases. If the unserialized
+	 * data differs, the (maybe) serialized data is checked to avoid
+	 * unnecessary database calls for otherwise identical object instances.
 	 *
-	 * See https://core.trac.wordpress.org/ticket/44956 and https://core.trac.wordpress.org/ticket/22192 and https://core.trac.wordpress.org/ticket/59360
+	 * See https://core.trac.wordpress.org/ticket/44956
 	 */
-	if (
-		$value === $raw_old_value ||
-		(
-			false !== $raw_old_value &&
-			/*
-			 * Single site stores values in the `option_value` field, which cannot be set to NULL.
-			 * This means a PHP `null` value will be cast to an empty string, which can be considered
-			 * equal to values such as an empty string, or false when cast to string.
-			 *
-			 * However, Multisite stores values in the `meta_value` field, which can be set to NULL.
-			 * As NULL is unique in the database, skip checking an old or new value of NULL
-			 * against any other value.
-			 */
-			( ! is_multisite() || ! ( null === $raw_old_value || null === $value ) ) &&
-			_is_equal_database_value( $raw_old_value, $value )
-		)
-	) {
+	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
 
-	if ( $default_value === $raw_old_value ) {
+	if ( false === $old_value ) {
 		return add_network_option( $network_id, $option, $value );
 	}
 
@@ -2994,41 +2922,4 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
-}
-
-/**
- * Determines whether two values will be equal when stored in the database.
- *
- * @since 6.4.0
- * @access private
- *
- * @param mixed $old_value The old value to compare.
- * @param mixed $new_value The new value to compare.
- * @return bool True if the values are equal, false otherwise.
- */
-function _is_equal_database_value( $old_value, $new_value ) {
-	$values = array(
-		'old' => $old_value,
-		'new' => $new_value,
-	);
-
-	foreach ( $values as $_key => &$_value ) {
-		// Cast scalars or null to a string so type discrepancies don't result in cache misses.
-		if ( null === $_value || is_scalar( $_value ) ) {
-			$_value = (string) $_value;
-		}
-	}
-
-	if ( $values['old'] === $values['new'] ) {
-		return true;
-	}
-
-	/*
-	 * Unserialized values will be adequate in most cases. If the unserialized
-	 * data differs, the (maybe) serialized data is checked to avoid
-	 * unnecessary database calls for otherwise identical object instances.
-	 *
-	 * See https://core.trac.wordpress.org/ticket/38903
-	 */
-	return maybe_serialize( $old_value ) === maybe_serialize( $new_value );
 }
