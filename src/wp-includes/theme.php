@@ -217,7 +217,14 @@ function get_stylesheet_directory() {
 			return $stylesheet_dir;
 		}
 
-		$wp_stylesheet_path = $stylesheet_dir;
+		/*
+		 * Only memoize the directory after plugins are loaded so
+		 * early calls to this function don't create stale values.
+		 * @see https://core.trac.wordpress.org/ticket/59847
+		 */
+		if ( did_action( 'plugins_loaded' ) ) {
+			$wp_stylesheet_path = $stylesheet_dir;
+		}
 	}
 
 	return $wp_stylesheet_path;
@@ -367,7 +374,14 @@ function get_template_directory() {
 			return $template_dir;
 		}
 
-		$wp_template_path = $template_dir;
+		/*
+		 * Only memoize the directory after plugins are loaded so
+		 * early calls to this function don't create stale values.
+		 * @see https://core.trac.wordpress.org/ticket/59847
+		 */
+		if ( did_action( 'plugins_loaded' ) ) {
+			$wp_template_path = $template_dir;
+		}
 	}
 
 	return $wp_template_path;
