@@ -1656,4 +1656,114 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		touch( $file );
 	}
+
+	/**
+	 * Resolve proxies in arrays to be tested.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param mixed  $value Reference to the array value to be checked.
+	 * @param string $key   Index key of the array value to be checked.
+	 */
+	protected static function resolve_proxies( &$value, $key ) {
+		if ( is_array( $value ) ) {
+			array_walk( $value, 'WP_UnitTestCase_Base::resolve_proxies' );
+		}
+		$value = self::resolve_proxy( $value );
+	}
+
+	/**
+	 * Resolve an individual proxy.
+	 *
+	 * @since 0.1.0
+	 *
+	 * @param $value
+	 *
+	 * @return string
+	 */
+	protected static function resolve_proxy( $value ) {
+		if ( $value instanceof WP_String_Proxy ) {
+			return (string) $value;
+		}
+		return $value;
+	}
+
+	/**
+	 * Assert that two elements are equal.
+	 *
+	 * Override to handle special cases for equality checks.
+	 *
+	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 *
+	 * @param mixed  $expected
+	 * @param mixed  $actual
+	 * @param string $message
+	 * @param int    $delta
+	 * @param int    $maxDepth
+	 * @param bool   $canonicalize
+	 * @param bool   $ignoreCase
+	 */
+	public static function assertEquals( $expected, $actual, string $message = '', float $delta = 0, int $maxDepth = 10, bool $canonicalize = false, bool $ignoreCase = false ): void {
+		if ( is_array( $actual ) ) {
+			array_walk( $actual, 'WP_UnitTestCase_Base::resolve_proxies', $expected );
+		}
+		$actual   = self::resolve_proxy( $actual );
+		$expected = self::resolve_proxy( $expected );
+		parent::assertEquals( $expected, $actual, $message, $delta, $maxDepth, $canonicalize, $ignoreCase );
+	}
+
+	/**
+	 * Asserts that two variables have the same type and value.
+	 * Used on objects, it asserts that two variables reference
+	 * the same object.
+	 *
+	 * Override to handle special cases for equality checks.
+	 *
+	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 *
+	 * @param mixed  $expected
+	 * @param mixed  $actual
+	 * @param string $message
+	 */
+	public static function assertSame( $expected, $actual, string $message = '' ): void {
+		if ( is_array( $actual ) ) {
+			array_walk( $actual, 'WP_UnitTestCase_Base::resolve_proxies' );
+		}
+		if ( is_array( $expected ) ) {
+			array_walk( $expected, 'WP_UnitTestCase_Base::resolve_proxies' );
+		}
+		$actual   = self::resolve_proxy( $actual );
+		$expected = self::resolve_proxy( $expected );
+		parent::assertSame( $expected, $actual, $message );
+	}
+
+	/**
+	 * Asserts that a variable is of a given type.
+	 *
+	 * Override to handle special cases for equality checks.
+	 *
+	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 *
+	 * @param string $expected
+	 * @param mixed  $actual
+	 * @param string $message
+	 */
+	public static function assertInternalType( string $expected, $actual, string $message = '' ): void {
+		if ( 'string' === $expected ) {
+			$actual = self::resolve_proxy( $actual );
+		}
+		parent::assertInternalType( $expected, $actual, $message );
+	}
+
+	/**
+	 * Asserts that a haystack contains a needle.
+	 *
+	 * @since 5.2.0 Added WP_String_Proxy object <=> string equality.
+	 */
+	public static function assertContains( $needle, $haystack, string $message = '', bool $ignoreCase = false, bool $checkForObjectIdentity = true, bool $checkForNonObjectIdentity = false ): void {
+		if ( is_array( $haystack ) ) {
+			array_walk( $haystack, 'WP_UnitTestCase_Base::resolve_proxies' );
+		}
+		parent::assertContains( $needle, $haystack, $message, $ignoreCase, $checkForObjectIdentity, $checkForNonObjectIdentity );
+	}
 }
