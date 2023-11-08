@@ -1,7 +1,7 @@
 <?php
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
  *
  * @covers ::get_cat_name
  */
@@ -24,6 +24,5 @@ class Tests_Category_GetCatName extends WP_UnitTestCase {
 		$this->assertSame( $testcat->name, get_cat_name( $testcat->term_id ) );
 		$this->assertSame( '', get_cat_name( -1 ) );
 		$this->assertSame( '', get_cat_name( $testcat->term_id + 100 ) );
-
 	}
 }

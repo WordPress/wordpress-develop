@@ -867,6 +867,10 @@ $_old_files = array(
 	'wp-includes/images/wlw',
 	'wp-includes/wlwmanifest.xml',
 	'wp-includes/random_compat',
+	// 6.4
+	'wp-includes/navigation-fallback.php',
+	'wp-includes/blocks/navigation/view-modal.min.js',
+	'wp-includes/blocks/navigation/view-modal.js',
 );
 
 /**
@@ -997,6 +1001,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentyone/'   => '5.6',
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
+	'themes/twentytwentyfour/'  => '6.4',
 );
 
 /**
@@ -1805,7 +1810,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
 	$dirs = array_filter(
 		$dirs,
-		static function( $dir ) {
+		static function ( $dir ) {
 			/*
 			 * Skip any node_modules directories.
 			 *
@@ -1842,13 +1847,14 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 5.8.0
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
+ * @since 6.4.0 The minimum compatible version of Gutenberg is 16.5.
  */
 function _upgrade_core_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '16.5', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '14.1',
+			'version_compatible'  => '16.5',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );

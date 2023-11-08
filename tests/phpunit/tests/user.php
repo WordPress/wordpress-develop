@@ -140,7 +140,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
 		$this->assertSame( '', get_user_meta( self::$author_id, $key, true ) );
-
 	}
 
 	/**
@@ -1940,7 +1939,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Contains location longitude.
 		$this->assertSame( 'Longitude', (string) $actual['data'][1]['data'][3]['name'] );
 		$this->assertSame( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
-
 	}
 
 	/**
@@ -2085,15 +2083,13 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);
@@ -2117,28 +2113,24 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the duplicate 'name' => 'User ID' was stripped.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name' => 'User ID',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name' => 'User ID',
 				)
 			)
 		);
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);

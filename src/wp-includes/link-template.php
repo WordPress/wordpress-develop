@@ -2431,6 +2431,9 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$qs_regex = '|\?.*?$|';
 		preg_match( $qs_regex, $request, $qs_match );
 
+		$parts   = array();
+		$parts[] = untrailingslashit( get_bloginfo( 'url' ) );
+
 		if ( ! empty( $qs_match[0] ) ) {
 			$query_string = $qs_match[0];
 			$request      = preg_replace( $qs_regex, '', $request );
@@ -2442,17 +2445,21 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$request = preg_replace( '|^' . preg_quote( $wp_rewrite->index, '|' ) . '|i', '', $request );
 		$request = ltrim( $request, '/' );
 
-		$base = trailingslashit( get_bloginfo( 'url' ) );
-
 		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' !== $request ) ) {
-			$base .= $wp_rewrite->index . '/';
+			$parts[] = $wp_rewrite->index;
 		}
+
+		$parts[] = untrailingslashit( $request );
 
 		if ( $pagenum > 1 ) {
-			$request = ( ( ! empty( $request ) ) ? trailingslashit( $request ) : $request ) . user_trailingslashit( $wp_rewrite->pagination_base . '/' . $pagenum, 'paged' );
+			$parts[] = $wp_rewrite->pagination_base;
+			$parts[] = $pagenum;
 		}
 
-		$result = $base . $request . $query_string;
+		$result = user_trailingslashit( implode( '/', array_filter( $parts ) ), 'paged' );
+		if ( ! empty( $query_string ) ) {
+			$result .= $query_string;
+		}
 	}
 
 	/**
@@ -2511,7 +2518,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
  * @return string|void The link URL for next posts page if `$display = false`.
  */
 function next_posts( $max_page = 0, $display = true ) {
-	$output = esc_url( get_next_posts_page_link( $max_page ) );
+	$link   = get_next_posts_page_link( $max_page );
+	$output = $link ? esc_url( $link ) : '';
 
 	if ( $display ) {
 		echo $output;
@@ -2718,7 +2726,6 @@ function get_posts_nav_link( $args = array() ) {
 		}
 	}
 	return $return;
-
 }
 
 /**
@@ -4250,27 +4257,37 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 	}
 }
 
-
 /**
  * Retrieves the avatar URL.
  *
  * @since 4.2.0
  *
- * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
+ * @param mixed $id_or_email The avatar to retrieve a URL for. Accepts a user ID, Gravatar MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
  *     Optional. Arguments to use instead of the default arguments.
  *
  *     @type int    $size           Height and width of the avatar in pixels. Default 96.
- *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'RoboHash' (robohash),
- *                                  'monsterid' (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
- *                                  'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
- *                                  or 'gravatar_default' (the Gravatar logo). Default is the value of the
- *                                  'avatar_default' option, with a fallback of 'mystery'.
- *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
- *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
- *                                  judged in that order. Default is the value of the 'avatar_rating' option.
+ *     @type string $default        URL for the default image or a default type. Accepts:
+ *                                  - '404' (return a 404 instead of a default image)
+ *                                  - 'retro' (a 8-bit arcade-style pixelated face)
+ *                                  - 'robohash' (a robot)
+ *                                  - 'monsterid' (a monster)
+ *                                  - 'wavatar' (a cartoon face)
+ *                                  - 'identicon' (the "quilt", a geometric pattern)
+ *                                  - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
+ *                                  - 'blank' (transparent GIF)
+ *                                  - 'gravatar_default' (the Gravatar logo)
+ *                                  Default is the value of the 'avatar_default' option,
+ *                                  with a fallback of 'mystery'.
+ *     @type bool   $force_default  Whether to always show the default image, never the Gravatar.
+ *                                  Default false.
+ *     @type string $rating         What rating to display avatars up to. Accepts:
+ *                                  - 'G' (suitable for all audiences)
+ *                                  - 'PG' (possibly offensive, usually for audiences 13 and above)
+ *                                  - 'R' (intended for adult audiences above 17)
+ *                                  - 'X' (even more mature than above)
+ *                                  Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
  *                                  Default null.
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
@@ -4282,7 +4299,6 @@ function get_avatar_url( $id_or_email, $args = null ) {
 	$args = get_avatar_data( $id_or_email, $args );
 	return $args['url'];
 }
-
 
 /**
  * Check if this comment type allows avatars to be retrieved.
@@ -4305,7 +4321,6 @@ function is_avatar_comment_type( $comment_type ) {
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }
 
-
 /**
  * Retrieves default data about the avatar.
  *
@@ -4316,23 +4331,35 @@ function is_avatar_comment_type( $comment_type ) {
  * @param array $args {
  *     Optional. Arguments to use instead of the default arguments.
  *
- *     @type int    $size           Height and width of the avatar image file in pixels. Default 96.
+ *     @type int    $size           Height and width of the avatar in pixels. Default 96.
  *     @type int    $height         Display height of the avatar in pixels. Defaults to $size.
  *     @type int    $width          Display width of the avatar in pixels. Defaults to $size.
- *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'monsterid' (monster),
- *                                  'wavatar' (cartoon face), 'indenticon' (the "quilt"), 'mystery', 'mm',
- *                                  or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF), or
- *                                  'gravatar_default' (the Gravatar logo). Default is the value of the
- *                                  'avatar_default' option, with a fallback of 'mystery'.
- *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
- *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
- *                                  judged in that order. Default is the value of the 'avatar_rating' option.
+ *     @type string $default        URL for the default image or a default type. Accepts:
+ *                                  - '404' (return a 404 instead of a default image)
+ *                                  - 'retro' (a 8-bit arcade-style pixelated face)
+ *                                  - 'robohash' (a robot)
+ *                                  - 'monsterid' (a monster)
+ *                                  - 'wavatar' (a cartoon face)
+ *                                  - 'identicon' (the "quilt", a geometric pattern)
+ *                                  - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
+ *                                  - 'blank' (transparent GIF)
+ *                                  - 'gravatar_default' (the Gravatar logo)
+ *                                  Default is the value of the 'avatar_default' option,
+ *                                  with a fallback of 'mystery'.
+ *     @type bool   $force_default  Whether to always show the default image, never the Gravatar.
+ *                                  Default false.
+ *     @type string $rating         What rating to display avatars up to. Accepts:
+ *                                  - 'G' (suitable for all audiences)
+ *                                  - 'PG' (possibly offensive, usually for audiences 13 and above)
+ *                                  - 'R' (intended for adult audiences above 17)
+ *                                  - 'X' (even more mature than above)
+ *                                  Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
  *                                  Default null.
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
  *                                  plus a "found_avatar" guess. Pass as a reference. Default null.
- *     @type string $extra_attr     HTML attributes to insert in the IMG element. Is not sanitized. Default empty.
+ *     @type string $extra_attr     HTML attributes to insert in the IMG element. Is not sanitized.
+ *                                  Default empty.
  * }
  * @return array {
  *     Along with the arguments passed in `$args`, this will contain a couple of extra arguments.
@@ -4539,9 +4566,11 @@ function get_avatar_data( $id_or_email, $args = null ) {
 function get_theme_file_uri( $file = '' ) {
 	$file = ltrim( $file, '/' );
 
+	$stylesheet_directory = get_stylesheet_directory();
+
 	if ( empty( $file ) ) {
 		$url = get_stylesheet_directory_uri();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+	} elseif ( get_template_directory() !== $stylesheet_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
 		$url = get_stylesheet_directory_uri() . '/' . $file;
 	} else {
 		$url = get_template_directory_uri() . '/' . $file;
@@ -4600,12 +4629,15 @@ function get_parent_theme_file_uri( $file = '' ) {
 function get_theme_file_path( $file = '' ) {
 	$file = ltrim( $file, '/' );
 
+	$stylesheet_directory = get_stylesheet_directory();
+	$template_directory   = get_template_directory();
+
 	if ( empty( $file ) ) {
-		$path = get_stylesheet_directory();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
-		$path = get_stylesheet_directory() . '/' . $file;
+		$path = $stylesheet_directory;
+	} elseif ( $stylesheet_directory !== $template_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
+		$path = $stylesheet_directory . '/' . $file;
 	} else {
-		$path = get_template_directory() . '/' . $file;
+		$path = $template_directory . '/' . $file;
 	}
 
 	/**

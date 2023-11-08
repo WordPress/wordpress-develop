@@ -270,6 +270,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$result   = register_block_script_handle( $metadata, 'script' );
 
 		$this->assertSame( 'unit-tests-test-block-script', $result );
+
+		// Test the behavior directly within the unit test
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['script'] ) ),
+				trailingslashit( wp_normalize_path( get_template_directory() ) )
+			) === 0
+		);
+
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['script'] ) ),
+				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
+			) === 0
+		);
 	}
 
 	/**
@@ -438,6 +453,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
 		);
+
+		// Test the behavior directly within the unit test
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
+				trailingslashit( wp_normalize_path( get_template_directory() ) )
+			) === 0
+		);
+
+		$this->assertFalse(
+			strpos(
+				wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $metadata['style'] ) ),
+				trailingslashit( wp_normalize_path( get_stylesheet_directory() ) )
+			) === 0
+		);
 	}
 
 	/**
@@ -570,12 +600,133 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests registering a block using arguments instead of a block.json file.
+	 *
+	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_register_block_type_from_metadata_with_arguments() {
+		$result = register_block_type_from_metadata(
+			'',
+			array(
+				'api_version' => 2,
+				'name'        => 'tests/notice-from-array',
+				'title'       => 'Notice from array',
+				'category'    => 'common',
+				'icon'        => 'star',
+				'description' => 'Shows warning, error or success notices… (registered from an array)',
+				'keywords'    => array(
+					'alert',
+					'message',
+				),
+				'textdomain'  => 'notice-from-array',
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
+		$this->assertSame( 'tests/notice-from-array', $result->name, 'The block name is incorrect' );
+		$this->assertSame( 'Notice from array', $result->title, 'The block title is incorrect' );
+		$this->assertSame( 'common', $result->category, 'The block category is incorrect' );
+		$this->assertSame( 'star', $result->icon, 'The block icon is incorrect' );
+		$this->assertSame(
+			'Shows warning, error or success notices… (registered from an array)',
+			$result->description,
+			'The block description is incorrect'
+		);
+		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords, 'The block keywords are incorrect' );
+	}
+
+	/**
+	 * Tests that defined $args can properly override the block.json file.
+	 *
+	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 */
+	public function test_block_registers_with_args_override() {
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice',
+			array(
+				'name'  => 'tests/notice-with-overrides',
+				'title' => 'Overriden title',
+				'style' => array( 'tests-notice-style-overridden' ),
+			)
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result, 'The block was not registered' );
+		$this->assertSame( 2, $result->api_version, 'The API version is incorrect' );
+		$this->assertSame( 'tests/notice-with-overrides', $result->name, 'The block name was not overridden' );
+		$this->assertSame( 'Overriden title', $result->title, 'The block title was not overridden' );
+		$this->assertSameSets(
+			array( 'tests-notice-editor-script' ),
+			$result->editor_script_handles,
+			'The block editor script is incorrect'
+		);
+		$this->assertSameSets(
+			array( 'tests-notice-style-overridden' ),
+			$result->style_handles,
+			'The block style was not overridden'
+		);
+		$this->assertIsCallable( $result->render_callback );
+	}
+
+	/**
+	 * Tests that when the `name` is missing, `register_block_type_from_metadata()`
+	 * will return `false`.
+	 *
+	 * @ticket 56865
+	 *
+	 * @covers ::register_block_type_from_metadata
+	 *
+	 * @dataProvider data_register_block_registers_with_args_override_returns_false_when_name_is_missing
+	 *
+	 * @param string $file The metadata file.
+	 * @param array  $args Array of block type arguments.
+	 */
+	public function test_block_registers_with_args_override_returns_false_when_name_is_missing( $file, $args ) {
+		$this->assertFalse( register_block_type_from_metadata( $file, $args ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_register_block_registers_with_args_override_returns_false_when_name_is_missing() {
+		return array(
+			'no block.json file and no name argument' => array(
+				'file' => '', // No block.json file.
+				'args' => array(
+					'title' => 'Overriden title',
+					'style' => array( 'tests-notice-style-overridden' ),
+				),
+			),
+			'existing file and args not an array'     => array(
+				// A file that exists but is empty. This will bypass the file_exists() check.
+				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
+				'args' => false,
+			),
+			'existing file and args[name] missing'    => array(
+				// A file that exists but is empty. This will bypass the file_exists() check.
+				'file' => DIR_TESTDATA . '/blocks/notice/block.js',
+				'args' => array(
+					'title' => 'Overriden title',
+					'style' => array( 'tests-notice-style-overridden' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that the function returns the registered block when the `block.json`
 	 * is found in the fixtures directory.
 	 *
 	 * @ticket 50263
 	 * @ticket 50328
 	 * @ticket 57585
+	 * @ticket 59797
 	 */
 	public function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
@@ -594,10 +745,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
 		$this->assertSame(
 			array(
-				'message' => array(
+				'message'  => array(
 					'type' => 'string',
 				),
-				'lock'    => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$result->attributes
 		);
@@ -613,6 +765,17 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			array( 'root' => '.wp-block-notice' ),
 			$result->selectors,
 			'Block type should contain selectors from metadata.'
+		);
+		// @ticket 59346
+		$this->assertSameSets(
+			array(
+				'tests/before'      => 'before',
+				'tests/after'       => 'after',
+				'tests/first-child' => 'first_child',
+				'tests/last-child'  => 'last_child',
+			),
+			$result->block_hooks,
+			'Block type should contain block hooks from metadata.'
 		);
 		$this->assertSame(
 			array(
@@ -927,7 +1090,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 49615
 	 */
 	public function test_filter_block_registration() {
-		$filter_registration = static function( $args, $name ) {
+		$filter_registration = static function ( $args, $name ) {
 			$args['attributes'] = array( $name => array( 'type' => 'boolean' ) );
 			return $args;
 		};
@@ -945,7 +1108,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 52138
 	 */
 	public function test_filter_block_registration_metadata() {
-		$filter_metadata_registration = static function( $metadata ) {
+		$filter_metadata_registration = static function ( $metadata ) {
 			$metadata['apiVersion'] = 3;
 			return $metadata;
 		};
@@ -963,7 +1126,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 52138
 	 */
 	public function test_filter_block_registration_metadata_settings() {
-		$filter_metadata_registration = static function( $settings, $metadata ) {
+		$filter_metadata_registration = static function ( $settings, $metadata ) {
 			$settings['api_version'] = $metadata['apiVersion'] + 1;
 			return $settings;
 		};
@@ -1032,5 +1195,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$actual = register_block_style( 'core/query', $block_styles );
 		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @ticket 59346
+	 *
+	 * @covers ::register_block_type
+	 *
+	 * @expectedIncorrectUsage register_block_type_from_metadata
+	 */
+	public function test_register_block_hooks_targeting_itself() {
+		$block_type = register_block_type(
+			DIR_TESTDATA . '/blocks/hooked-block-error'
+		);
+
+		$this->assertSame(
+			array( 'tests/other-block' => 'after' ),
+			$block_type->block_hooks
+		);
 	}
 }

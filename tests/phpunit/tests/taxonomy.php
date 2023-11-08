@@ -12,6 +12,10 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( array( 'link_category' ), get_object_taxonomies( 'link' ) );
 	}
 
+	public function test_get_block_taxonomies() {
+		$this->assertSame( array( 'wp_pattern_category' ), get_object_taxonomies( 'wp_block' ) );
+	}
+
 	/**
 	 * @ticket 5417
 	 */
@@ -119,6 +123,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( taxonomy_exists( 'category' ) );
 		$this->assertTrue( taxonomy_exists( 'post_tag' ) );
 		$this->assertTrue( taxonomy_exists( 'link_category' ) );
+		$this->assertTrue( taxonomy_exists( 'wp_pattern_category' ) );
 	}
 
 	public function test_taxonomy_exists_unknown() {
@@ -318,7 +323,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		unset( $GLOBALS['wp_taxonomies'][ $tax ] );
 		_unregister_post_type( $post_type );
-
 	}
 
 	/**

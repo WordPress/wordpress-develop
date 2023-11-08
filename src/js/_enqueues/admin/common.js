@@ -1702,24 +1702,45 @@ $( function() {
 				}
 			} );
 
-			// Close sidebar when focus moves outside of toggle and sidebar.
-			$( '#wp-admin-bar-menu-toggle, #adminmenumain' ).on( 'focusout', function() {
-				var focusIsInToggle, focusIsInSidebar;
-
+			// Close sidebar when target moves outside of toggle and sidebar.
+			$( document ).on( 'click', function( event ) {
 				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) || ! document.hasFocus() ) {
 					return;
 				}
-				// A brief delay is required to allow focus to switch to another element.
-				setTimeout( function() {
-					focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], $( ':focus' )[0] );
-					focusIsInSidebar = $.contains( $( '#adminmenumain' )[0], $( ':focus' )[0] );
 
-					if ( ! focusIsInToggle && ! focusIsInSidebar ) {
-						$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
-					}
-				}, 10 );
+				var focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], event.target );
+				var focusIsInSidebar = $.contains( $( '#adminmenuwrap' )[0], event.target );
+
+				if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+					$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+				}
 			} );
 
+			// Close sidebar when a keypress completes outside of toggle and sidebar.
+			$( document ).on( 'keyup', function( event ) {
+				var toggleButton   = $( '#wp-admin-bar-menu-toggle' )[0];
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
+				    return;
+				}
+				if ( 27 === event.keyCode ) {
+					$( toggleButton ).trigger( 'click.wp-responsive' );
+					$( toggleButton ).find( 'a' ).trigger( 'focus' );
+				} else {
+					if ( 9 === event.keyCode ) {
+						var sidebar        = $( '#adminmenuwrap' )[0];
+						var focusedElement = event.relatedTarget || document.activeElement;
+						// A brief delay is required to allow focus to switch to another element.
+						setTimeout( function() {
+							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
+							var focusIsInSidebar = $.contains( sidebar, focusedElement );
+							
+							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+								$( toggleButton ).trigger( 'click.wp-responsive' );
+							}
+						}, 10 );
+					}
+				}
+			});
 
 			// Add menu events.
 			$adminmenu.on( 'click.wp-responsive', 'li.wp-has-submenu > a', function( event ) {
@@ -2104,3 +2125,123 @@ $( function( $ ) {
 })();
 
 }( jQuery, window ));
+
+/**
+ * Freeze animated plugin icons when reduced motion is enabled.
+ *
+ * When the user has enabled the 'prefers-reduced-motion' setting, this module
+ * stops animations for all GIFs on the page with the class 'plugin-icon' or
+ * plugin icon images in the update plugins table.
+ *
+ * @since 6.4.0
+ */
+(function() {
+	// Private variables and methods.
+	var priv = {},
+		pub = {},
+		mediaQuery;
+
+	// Initialize pauseAll to false; it will be set to true if reduced motion is preferred.
+	priv.pauseAll = false;
+	if ( window.matchMedia ) {
+		mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+		if ( ! mediaQuery || mediaQuery.matches ) {
+			priv.pauseAll = true;
+		}
+	}
+
+	// Method to replace animated GIFs with a static frame.
+	priv.freezeAnimatedPluginIcons = function( img ) {
+		var coverImage = function() {
+			var width = img.width;
+			var height = img.height;
+			var canvas = document.createElement( 'canvas' );
+
+			// Set canvas dimensions.
+			canvas.width = width;
+			canvas.height = height;
+
+			// Copy classes from the image to the canvas.
+			canvas.className = img.className;
+
+			// Check if the image is inside a specific table.
+			var isInsideUpdateTable = img.closest( '#update-plugins-table' );
+
+			if ( isInsideUpdateTable ) {
+				// Transfer computed styles from image to canvas.
+				var computedStyles = window.getComputedStyle( img ),
+					i, max;
+				for ( i = 0, max = computedStyles.length; i < max; i++ ) {
+					var propName = computedStyles[ i ];
+					var propValue = computedStyles.getPropertyValue( propName );
+					canvas.style[ propName ] = propValue;
+				}
+			}
+
+			// Draw the image onto the canvas.
+			canvas.getContext( '2d' ).drawImage( img, 0, 0, width, height );
+
+			// Set accessibility attributes on canvas.
+			canvas.setAttribute( 'aria-hidden', 'true' );
+			canvas.setAttribute( 'role', 'presentation' );
+
+			// Insert canvas before the image and set the image to be near-invisible.
+			var parent = img.parentNode;
+			parent.insertBefore( canvas, img );
+			img.style.opacity = 0.01;
+			img.style.width = '0px';
+			img.style.height = '0px';
+		};
+
+		// If the image is already loaded, apply the coverImage function.
+		if ( img.complete ) {
+			coverImage();
+		} else {
+			// Otherwise, wait for the image to load.
+			img.addEventListener( 'load', coverImage, true );
+		}
+	};
+
+	// Public method to freeze all relevant GIFs on the page.
+	pub.freezeAll = function() {
+		var images = document.querySelectorAll( '.plugin-icon, #update-plugins-table img' );
+		for ( var x = 0; x < images.length; x++ ) {
+			if ( /\.gif(?:\?|$)/i.test( images[ x ].src ) ) {
+				priv.freezeAnimatedPluginIcons( images[ x ] );
+			}
+		}
+	};
+
+	// Only run the freezeAll method if the user prefers reduced motion.
+	if ( true === priv.pauseAll ) {
+		pub.freezeAll();
+	}
+
+	// Listen for jQuery AJAX events.
+	( function( $ ) {
+		if ( window.pagenow === 'plugin-install' ) {
+			// Only listen for ajaxComplete if this is the plugin-install.php page.
+			$( document ).ajaxComplete( function( event, xhr, settings ) {
+
+				// Check if this is the 'search-install-plugins' request.
+				if ( settings.data && typeof settings.data === 'string' && settings.data.includes( 'action=search-install-plugins' ) ) {
+					// Recheck if the user prefers reduced motion.
+					if ( window.matchMedia ) {
+						var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+						if ( mediaQuery.matches ) {
+							pub.freezeAll();
+						}
+					} else {
+						// Fallback for browsers that don't support matchMedia.
+						if ( true === priv.pauseAll ) {
+							pub.freezeAll();
+						}
+					}
+				}
+			} );
+		}
+	} )( jQuery );
+
+	// Expose public methods.
+	return pub;
+})();

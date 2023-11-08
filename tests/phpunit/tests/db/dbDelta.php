@@ -3,8 +3,9 @@
 /**
  * Test dbDelta()
  *
- * @group upgrade
+ * @group wpdb
  * @group dbdelta
+ * @group upgrade
  *
  * @covers ::dbDelta
  */
@@ -68,7 +69,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			$wpdb->prepare(
 				"
 				CREATE TABLE {$wpdb->prefix}dbdelta_test (" .
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					'id bigint(20) NOT NULL AUTO_INCREMENT,
 					column_1 varchar(255) NOT NULL,
 					column_2 text,
@@ -311,7 +311,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 		);
 
 		$this->assertTableRowHasValue( 'column_1', 'wcphilly2015', $wpdb->prefix . 'dbdelta_test' );
-
 	}
 
 	/**
