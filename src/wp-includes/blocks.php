@@ -352,13 +352,14 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$file_or_folder;
 
 	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-
-	if ( ! $is_core_block && ! file_exists( $metadata_file ) ) {
+	// If the block is not a core block, the metadata file must exist.
+	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
+	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
 		return false;
 	}
 
 	// Try to get metadata from the static cache for core blocks.
-	$metadata = false;
+	$metadata = array();
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
@@ -367,14 +368,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// If metadata is not found in the static cache, read it from the file.
-	if ( ! $metadata ) {
+	if ( $metadata_file_exists && empty( $metadata ) ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
 
-	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
+	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
 		return false;
 	}
-	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+
+	$metadata['file'] = $metadata_file_exists ? wp_normalize_path( realpath( $metadata_file ) ) : null;
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -404,6 +406,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$settings          = array();
 	$property_mappings = array(
 		'apiVersion'      => 'api_version',
+		'name'            => 'name',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -426,11 +429,40 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
 			$settings[ $mapped_key ] = $metadata[ $key ];
-			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+			if ( $metadata_file_exists && $textdomain && isset( $i18n_schema->$key ) ) {
 				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
+
+	if ( ! empty( $metadata['render'] ) ) {
+		$template_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['render'] )
+			)
+		);
+		if ( $template_path ) {
+			/**
+			 * Renders the block on the server.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array    $attributes Block attributes.
+			 * @param string   $content    Block default content.
+			 * @param WP_Block $block      Block instance.
+			 *
+			 * @return string Returns the block content.
+			 */
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
+				ob_start();
+				require $template_path;
+				return ob_get_clean();
+			};
+		}
+	}
+
+	$settings = array_merge( $settings, $args );
 
 	$script_fields = array(
 		'editorScript' => 'editor_script_handles',
@@ -438,6 +470,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'viewScript'   => 'view_script_handles',
 	);
 	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$scripts           = $metadata[ $metadata_field_name ];
 			$processed_scripts = array();
@@ -470,6 +505,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'style'       => 'style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
@@ -530,33 +568,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	if ( ! empty( $metadata['render'] ) ) {
-		$template_path = wp_normalize_path(
-			realpath(
-				dirname( $metadata['file'] ) . '/' .
-				remove_block_asset_path_prefix( $metadata['render'] )
-			)
-		);
-		if ( $template_path ) {
-			/**
-			 * Renders the block on the server.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param array    $attributes Block attributes.
-			 * @param string   $content    Block default content.
-			 * @param WP_Block $block      Block instance.
-			 *
-			 * @return string Returns the block content.
-			 */
-			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
-				ob_start();
-				require $template_path;
-				return ob_get_clean();
-			};
-		}
-	}
-
 	/**
 	 * Filters the settings determined from the block type metadata.
 	 *
@@ -565,14 +576,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * @param array $settings Array of determined settings for registering a block type.
 	 * @param array $metadata Metadata provided for registering a block type.
 	 */
-	$settings = apply_filters(
-		'block_type_metadata_settings',
-		array_merge(
-			$settings,
-			$args
-		),
-		$metadata
-	);
+	$settings = apply_filters( 'block_type_metadata_settings', $settings, $metadata );
+
+	$metadata['name'] = ! empty( $settings['name'] ) ? $settings['name'] : $metadata['name'];
 
 	return WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
@@ -653,7 +659,8 @@ function has_blocks( $post = null ) {
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * whether the block type exists but not validating its structure and not checking
- * reusable blocks. For strict accuracy, you should use the block parser on post content.
+ * synced patterns (formerly called reusable blocks). For strict accuracy,
+ * you should use the block parser on post content.
  *
  * @since 5.0.0
  *
@@ -757,6 +764,8 @@ function get_hooked_blocks() {
  * where it will inject the `theme` attribute into all Template Part blocks, and prepend the markup for
  * any blocks hooked `before` the given block and as its parent's `first_child`, respectively.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
  * @access private
  *
@@ -773,12 +782,12 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * Furthermore, prepend the markup for any blocks hooked `before` the given block and as its parent's
 	 * `first_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before.
-	 * @param array $parent_block The parent block of the given block.
-	 * @param array $prev         The previous sibling block of the given block.
+	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before. Passed by reference.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, $parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
@@ -831,6 +840,8 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
  * where it will append the markup for any blocks hooked `after` the given block and as its parent's
  * `last_child`, respectively.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
  * @access private
  *
@@ -846,12 +857,12 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * Append the markup for any blocks hooked `after` the given block and as its parent's
 	 * `last_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block        The block to inject the hooked blocks after.
-	 * @param array $parent_block The parent block of the given block.
-	 * @param array $next         The next sibling block of the given block.
+	 * @param array $block        The block to inject the hooked blocks after. Passed by reference.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, $parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
 		$markup = '';
 
 		$relative_position  = 'after';
@@ -1028,7 +1039,10 @@ function serialize_blocks( $blocks ) {
  * This function should be used when there is a need to modify the saved block, or to inject markup
  * into the return value. Prefer `serialize_block` when preparing a block to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_block()
  *
@@ -1058,7 +1072,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 
 				$block_content .= call_user_func_array(
 					$pre_callback,
-					array( &$inner_block, $block, $prev )
+					array( &$inner_block, &$block, $prev )
 				);
 			}
 
@@ -1069,7 +1083,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 
 				$post_markup = call_user_func_array(
 					$post_callback,
-					array( &$inner_block, $block, $next )
+					array( &$inner_block, &$block, $next )
 				);
 			}
 
@@ -1110,7 +1124,10 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * This function should be used when there is a need to modify the saved blocks, or to inject markup
  * into the return value. Prefer `serialize_blocks` when preparing blocks to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_blocks()
  *
@@ -1124,7 +1141,9 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @return string Serialized block markup.
  */
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
-	$result = '';
+	$result       = '';
+	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
 			$prev = 0 === $index
@@ -1133,7 +1152,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$result .= call_user_func_array(
 				$pre_callback,
-				array( &$block, null, $prev ) // At the top level, there is no parent block to pass to the callback.
+				array( &$block, &$parent_block, $prev )
 			);
 		}
 
@@ -1144,7 +1163,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$post_markup = call_user_func_array(
 				$post_callback,
-				array( &$block, null, $next ) // At the top level, there is no parent block to pass to the callback.
+				array( &$block, &$parent_block, $next )
 			);
 		}
 
@@ -1188,8 +1207,8 @@ function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols
 /**
  * Callback used for regular expression replacement in filter_block_content().
  *
- * @private
  * @since 6.2.1
+ * @access private
  *
  * @param array $matches Array of preg_replace_callback matches.
  * @return string Replacement string.
@@ -1961,7 +1980,7 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
  * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
  */
 function _wp_filter_post_meta_footnotes( $footnotes ) {
-	$footnotes_decoded   = json_decode( $footnotes, true );
+	$footnotes_decoded = json_decode( $footnotes, true );
 	if ( ! is_array( $footnotes_decoded ) ) {
 		return '';
 	}
