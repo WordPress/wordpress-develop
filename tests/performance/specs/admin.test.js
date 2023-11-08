@@ -10,34 +10,27 @@ import { camelCaseDashes } from '../utils';
 
 const results = {
 	timeToFirstByte: [],
-	largestContentfulPaint: [],
-	lcpMinusTtfb: [],
 };
 
-test.describe( 'Front End - Twenty Twenty Three', () => {
-	test.use( {
-		storageState: {}, // User will be logged out.
-	} );
-
+test.describe( 'Admin', () => {
 	test.beforeAll( async ( { requestUtils } ) => {
-		await requestUtils.activateTheme( 'twentytwentythree' );
+		await requestUtils.activateTheme( 'twentytwentyone' );
 	} );
 
-	test.afterAll( async ( { requestUtils }, testInfo ) => {
+	test.afterAll( async ( {}, testInfo ) => {
 		await testInfo.attach( 'results', {
 			body: JSON.stringify( results, null, 2 ),
 			contentType: 'application/json',
 		} );
-		await requestUtils.activateTheme( 'twentytwentyone' );
 	} );
 
 	const iterations = Number( process.env.TEST_RUNS );
 	for ( let i = 1; i <= iterations; i++ ) {
 		test( `Measure load time metrics (${ i } of ${ iterations })`, async ( {
-			page,
+			admin,
 			metrics,
 		} ) => {
-			await page.goto( '/' );
+			await admin.visitAdminPage( '/' );
 
 			const serverTiming = await metrics.getServerTiming();
 
@@ -47,11 +40,7 @@ test.describe( 'Front End - Twenty Twenty Three', () => {
 			}
 
 			const ttfb = await metrics.getTimeToFirstByte();
-			const lcp = await metrics.getLargestContentfulPaint();
-
-			results.largestContentfulPaint.push( lcp );
 			results.timeToFirstByte.push( ttfb );
-			results.lcpMinusTtfb.push( lcp - ttfb );
 		} );
 	}
 } );
