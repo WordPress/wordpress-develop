@@ -43,13 +43,15 @@ class Tests_Functions_wpCheckdate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Check that the results of the filter is returned.
-	 *
+	 * Check that the filter overrides the return value.
 	 */
-	public function test_wp_checkdate_passes_source_date_to_filter() {
+	public function test_wp_checkdate_filter() {
 		add_filter( 'wp_checkdate', array( $this, 'wp_checkdate_filter' ), 10, 2 );
 
-		$this->assertsame( 'filtered', wp_checkdate( '1', '1', '1', 'source_date' ) );
+		// Test with an invalid date that the filter will return as valid.
+		$this->assertTrue( wp_checkdate( '2', '29', '2023', '2/29/2023' ) );
+
+		remove_filter( 'wp_checkdate', array( $this, 'wp_checkdate_filter' ) );
 	}
 
 	/**
