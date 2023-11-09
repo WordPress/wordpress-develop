@@ -3,7 +3,7 @@
  * I18N: WP_I18n_Translation_File_MO class.
  *
  * @package WordPress
- * @subpackage WP_I18n_Translation_Controller
+ * @subpackage I18N
  * @since 6.5.0
  */
 
