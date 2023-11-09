@@ -192,6 +192,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private $last_error = null;
 
 	/**
+	 * Called when inserting an HTML element, given the opening tag that created it.
+	 *
+	 * @var callable|null
+	 */
+	private $on_insert = null;
+
+	/**
+	 * Called when ignoring a token, given the current token.
+	 *
+	 * @var callable|null
+	 */
+	private $on_ignore = null;
+
+	/**
 	 * Releases a bookmark when PHP garbage-collects its wrapping WP_HTML_Token instance.
 	 *
 	 * This function is created inside the class constructor so that it can be passed to
@@ -474,6 +488,86 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Balances tags
+	 *
+	 * @throws Exception When bookmarks can't be created.
+	 *
+	 * @param string $html HTML to balance.
+	 *
+	 * @return string
+	 */
+	public static function balance_tags( $html ) {
+		$processor = self::create_fragment( $html );
+		$output    = '';
+		$at        = 0;
+
+		/**
+		 * Adds opening tags.
+		 *
+		 * @param WP_HTML_Token $token
+		 */
+		$open_tag = function ( $token ) use ( &$at, $html, &$output, $processor ) {
+			$span    = $processor->bookmarks[ $token->bookmark_name ];
+			$output .= substr( $html, $at, $span->start - $at );
+			if ( ! $processor->is_tag_closer() ) {
+				$output .= substr( $html, $span->start, $span->end + 1 - $at );
+			}
+			$at = $span->end + 1;
+		};
+
+		/**
+		 * Adds closing tags.
+		 *
+		 * @param WP_HTML_Token $item Item popped off of stack.
+		 */
+		$close_tag = function ( $item ) use ( &$at, $html, &$output, $processor ) {
+			if ( $processor->is_tag_closer() || $processor->get_last_error() ) {
+				return;
+			}
+
+			$token    = $processor->bookmarks[ $processor->state->current_token->bookmark_name ];
+			$output  .= substr( $html, $at, $token->start - $at );
+			$tag_name = substr( $html, $processor->bookmarks[ $item->bookmark_name ]->start + 1, strlen( $item->node_name ) );
+			$output  .= "</{$tag_name}>";
+			$at       = $token->start;
+		};
+
+		/**
+		 * Skips printing an ignored token into the output.
+		 *
+		 * @param WP_HTML_Token $token
+		 */
+		$ignore_tag = function ( $token ) use ( &$at, $html, &$output, $processor ) {
+			$span    = $processor->bookmarks[ $token->bookmark_name ];
+			$output .= substr( $html, $at, $span->start - $at );
+			$at      = $span->end + 1;
+		};
+
+		$processor->on_insert                             = $open_tag;
+		$processor->on_ignore                             = $ignore_tag;
+		$processor->state->stack_of_open_elements->on_pop = $close_tag;
+		while ( $processor->next_tag() ) {
+			continue;
+		}
+
+		$output .= substr( $html, $at );
+
+		if ( $processor->get_last_error() ) {
+			return $output;
+		}
+
+		foreach ( $processor->state->stack_of_open_elements->walk_up() as $item ) {
+			if ( 'context-node' === $item->bookmark_name ) {
+				break;
+			}
+			$tag_name = substr( $html, $processor->bookmarks[ $item->bookmark_name ]->start + 1, strlen( $item->node_name ) );
+			$output  .= "</{$tag_name}>";
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Steps through the HTML document and stop at the next tag, if any.
 	 *
 	 * @since 6.4.0
@@ -543,6 +637,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return false;
 		}
+	}
+
+	/**
+	 * Ignores the current token.
+	 *
+	 * @throws Exception When unable to acquire bookmarks.
+	 *
+	 * @return bool
+	 */
+	private function ignore_token() {
+		if ( $this->on_ignore ) {
+			call_user_func( $this->on_ignore, $this->state->current_token );
+		}
+		return $this->step();
 	}
 
 	/**
@@ -647,7 +755,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $tag_name ) ) {
 					// @TODO: Report parse error.
 					// Ignore the token.
-					return $this->step();
+					return $this->ignore_token();
 				}
 
 				$this->generate_implied_end_tags();
@@ -762,7 +870,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					// > Otherwise, if node is in the special category, then this is a parse error; ignore the token, and return.
 					if ( self::is_special( $item->node_name ) ) {
-						return $this->step();
+						return $this->ignore_token();
 					}
 				}
 				// Execution should not reach here; if it does then something went wrong.
@@ -1235,6 +1343,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param WP_HTML_Token $token Name of bookmark pointing to element in original input HTML.
 	 */
 	private function insert_html_element( $token ) {
+		if ( $this->on_insert ) {
+			call_user_func( $this->on_insert, $token );
+		}
 		$this->state->stack_of_open_elements->push( $token );
 	}
 
