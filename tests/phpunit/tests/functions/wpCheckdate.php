@@ -13,28 +13,33 @@
 class Tests_Functions_wpCheckdate extends WP_UnitTestCase {
 
 	/**
-	 * Does it work.
+	 * @dataProvider data_wp_checkdate
 	 *
+	 * @param int|string $month   The month to check.
+	 * @param int|string $day     The day to check.
+	 * @param int|string $year    The year to check.
+	 * @param string $source_date The date to pass to the wp_checkdate filter.
+	 * @param bool $expected      The expected result.
 	 */
-	public function test_wp_checkdate() {
-
-		$a1 = new MockAction();
-		add_filter( 'wp_checkdate', array( $a1, 'filter' ) );
-		$this->assertTrue( wp_checkdate( 1, 1, 1, 1 - 1 - 1 ) );
-		$this->assertSame( 1, $a1->get_call_count() );
+	public function test_wp_checkdate( $month, $day, $year, $source_date, $expected ) {
+		$this->assertSame( $expected, wp_checkdate( $month, $day, $year, $source_date ) );
 	}
 
 	/**
-	 * Will it take stings.
+	 * Data provider for test_wp_checkdate().
 	 *
+	 * @return array
 	 */
-	public function test_wp_checkdate_strings() {
-
-		$a1 = new MockAction();
-		add_filter( 'wp_checkdate', array( $a1, 'filter' ) );
-
-		$this->assertTrue( wp_checkdate( '1', '1', '1', '1-1-1' ) );
-		$this->assertSame( 1, $a1->get_call_count() );
+	public function data_wp_checkdate() {
+		return array(
+			'integers'              => array( 1, 1, 1, '1-1-1', true ),
+			'strings'               => array( '1', '1', '1', '1-1-1', true ),
+			'arbitrary source_date' => array( 1, 1, 1, 'arbitrary source_date', true ), // source_date is only used by filter.
+			'valid day'             => array( 2, 29, 2024, '2/29/2024', true ), // 2024 is a leap year.
+			'invalid day'           => array( 2, 29, 2023, '2/29/2023', false ), // 2023 is not a leap year.
+			'invalid month'         => array( 99, 1, 1, '1-1-1', false ), // Month must be between 1 and 12.
+			'invalid year'          => array( 1, 1, 0, '1-1-0', false ), // Year must be between 1 and 32767.
+		);
 	}
 
 	/**
