@@ -53,30 +53,19 @@ class Tests_Functions_wpCheckdate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Filter for test test_wp_checkdate_passes_source_date_to_filter().
+	 * Filter for test_wp_checkdate_filter().
 	 *
-	 *
-	 * @param $is_date
+	 * @param $is_valid_date
 	 * @param $source_date
 	 *
-	 * @return string
+	 * @return bool
 	 */
-	public function wp_checkdate_filter( $is_date, $source_date ) {
-		$this->assertSame( $source_date, 'source_date' );
+	public function wp_checkdate_filter( $is_valid_date, $source_date ) {
+		if ( '2/29/2023' === $source_date ) {
+			// Date is invalid, but return true anyway.
+			return true;
+		}
 
-		return 'filtered';
-	}
-
-	/**
-	 * Check a bad date returns false.
-	 *
-	 */
-	public function test_wp_checkdate_bad_date() {
-
-		$a1 = new MockAction();
-		add_filter( 'wp_checkdate', array( $a1, 'filter' ) );
-
-		$this->assertFalse( wp_checkdate( '99', '1', '1', '1-1-1' ) );
-		$this->assertSame( 1, $a1->get_call_count() );
+		return $is_valid_date;
 	}
 }
