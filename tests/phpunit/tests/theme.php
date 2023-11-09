@@ -275,7 +275,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * @expectedDeprecated get_themes
 	 * @expectedDeprecated get_current_theme
 	 */
-	public function switch_theme() {
+	public function test_switch_theme() {
 		$themes = get_themes();
 
 		// Switch to each theme in sequence.
