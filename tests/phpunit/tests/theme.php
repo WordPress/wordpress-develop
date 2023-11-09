@@ -370,7 +370,22 @@ class Tests_Theme extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_switch_theme_bogus() {
+	public function test_switch_theme_behaviour_with_theme_supports() {
+		foreach ( $this->default_themes as $theme ) {
+			if ( wp_get_theme( $theme )->exists() ) {
+				switch_theme( $theme );
+				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+					$this->assertTrue( wp_is_block_theme(), "$theme is block theme." );
+					$this->assertTrue( current_theme_supports( 'block-templates' ), "$theme support block templates." );
+				} else {
+					$this->assertFalse( wp_is_block_theme(), "$theme is classic theme." );
+					$this->assertFalse( current_theme_supports( 'block-templates' ), "$theme did not support block templates." );
+				}
+			}
+		}
+	}
+
+	public function test_switchsss_theme_bogus() {
 		// Try switching to a theme that doesn't exist.
 		$template = 'some_template';
 		$style    = 'some_style';
