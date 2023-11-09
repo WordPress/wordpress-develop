@@ -180,7 +180,7 @@ jobs:
         run: node ./tests/performance/results.js
 
       - name: Check out target commit (target branch or previous commit)
-        if: ${{ ! contains( '00000000', env.TARGET_SHA ) }}
+        if: ${{ ! contains( env.TARGET_SHA, '00000000' ) }}
         run: |
           if [[ -z "$TARGET_REF" ]]; then
             git fetch -n origin $TARGET_SHA
@@ -190,21 +190,21 @@ jobs:
           git reset --hard $TARGET_SHA
 
       - name: Install npm dependencies
-        if: ${{ ! contains( '00000000', env.TARGET_SHA ) }}
+        if: ${{ ! contains( env.TARGET_SHA, '00000000' ) }}
         run: npm ci
 
       - name: Build WordPress
-        if: ${{ ! contains( '00000000', env.TARGET_SHA ) }}
+        if: ${{ ! contains( env.TARGET_SHA, '00000000' ) }}
         run: npm run build
 
       - name: Run target performance tests (base/previous commit)
-        if: ${{ ! contains( '00000000', env.TARGET_SHA ) }}
+        if: ${{ ! contains( env.TARGET_SHA, '00000000' ) }}
         env:
           TEST_RESULTS_PREFIX: before
         run: npm run test:performance
 
       - name: Print target performance tests results
-        if: ${{ ! contains( '00000000', env.TARGET_SHA ) }}
+        if: ${{ ! contains( env.TARGET_SHA, '00000000' ) }}
         env:
           TEST_RESULTS_PREFIX: before
         run: node ./tests/performance/results.js
