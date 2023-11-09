@@ -3,7 +3,8 @@
 /**
  * Tests for the wp_checkdate function.
  *
- * @group functions.php
+ * @group date
+ * @group functions
  *
  * @covers ::wp_checkdate
  */
