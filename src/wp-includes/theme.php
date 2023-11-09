@@ -328,8 +328,6 @@ function get_template() {
  * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
  * @since 6.4.1 Memoization removed.
  *
- * @global string $wp_template_path Current theme template directory path.
- *
  * @return string Path to active theme's template directory.
  */
 function get_template_directory() {
@@ -752,13 +750,11 @@ function locale_stylesheet() {
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
  * @global array                $wp_registered_sidebars
- * @global string               $wp_stylesheet_path
- * @global string               $wp_template_path
  *
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars, $wp_stylesheet_path, $wp_template_path;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -841,13 +837,6 @@ function switch_theme( $stylesheet ) {
 	}
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
-
-	/*
-	 * Reset globals to force refresh the next time these directories are
-	 * accessed via `get_stylesheet_directory()` / `get_template_directory()`.
-	 */
-	$wp_stylesheet_path = null;
-	$wp_template_path   = null;
 
 	// Clear pattern caches.
 	$new_theme->delete_pattern_cache();
