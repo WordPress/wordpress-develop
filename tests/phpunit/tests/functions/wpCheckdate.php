@@ -10,7 +10,7 @@
  *
  * @covers ::wp_checkdate
  */
-class Tests_functions_wpCheckdate extends WP_UnitTestCase {
+class Tests_Functions_wpCheckdate extends WP_UnitTestCase {
 
 	/**
 	 * Does it work.
