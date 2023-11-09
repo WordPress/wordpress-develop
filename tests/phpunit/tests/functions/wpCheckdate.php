@@ -3,6 +3,8 @@
 /**
  * Tests for the wp_checkdate function.
  *
+ * @ticket 59825
+ *
  * @group date
  * @group functions
  *
@@ -13,7 +15,6 @@ class Tests_functions_wpCheckdate extends WP_UnitTestCase {
 	/**
 	 * Does it work.
 	 *
-	 * @ticket 59825
 	 */
 	public function test_wp_checkdate() {
 
@@ -26,7 +27,6 @@ class Tests_functions_wpCheckdate extends WP_UnitTestCase {
 	/**
 	 * Will it take stings.
 	 *
-	 * @ticket 59825
 	 */
 	public function test_wp_checkdate_strings() {
 
@@ -40,7 +40,6 @@ class Tests_functions_wpCheckdate extends WP_UnitTestCase {
 	/**
 	 * Check that the results of the filter is returned.
 	 *
-	 * @ticket 59825
 	 */
 	public function test_wp_checkdate_passes_source_date_to_filter() {
 		add_filter( 'wp_checkdate', array( $this, 'wp_checkdate_filter' ), 10, 2 );
@@ -51,7 +50,6 @@ class Tests_functions_wpCheckdate extends WP_UnitTestCase {
 	/**
 	 * Filter for test test_wp_checkdate_passes_source_date_to_filter().
 	 *
-	 * @ticket 59825
 	 *
 	 * @param $is_date
 	 * @param $source_date
@@ -67,7 +65,6 @@ class Tests_functions_wpCheckdate extends WP_UnitTestCase {
 	/**
 	 * Check a bad date returns false.
 	 *
-	 * @ticket 59825
 	 */
 	public function test_wp_checkdate_bad_date() {
 
