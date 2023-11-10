@@ -317,7 +317,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
 				// Skip block themes for get_query_template() tests since this test is focused on classic templates.
-				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+				if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
 					continue;
 				}
 
