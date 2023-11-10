@@ -908,7 +908,7 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 		unset( $l10n[ $domain ] );
 
-		// Since multiple locales are supported,reloadable text domains don't actually need to be unloaded.
+		// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
 		if ( ! $reloadable ) {
 			$l10n_unloaded[ $domain ] = true;
 

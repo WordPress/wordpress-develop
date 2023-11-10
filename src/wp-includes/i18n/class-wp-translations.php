@@ -40,7 +40,7 @@ class WP_Translations {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Translation_Controller $controller I18N controller.
-	 * @param string                         $textdomain Text domain.
+	 * @param string                    $textdomain Text domain.
 	 */
 	public function __construct( WP_Translation_Controller $controller, string $textdomain = 'default' ) {
 		$this->controller = $controller;
