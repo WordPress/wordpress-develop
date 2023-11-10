@@ -26,13 +26,24 @@ class WP_I18n_Translations {
 	protected $textdomain = 'default';
 
 	/**
+	 * Translation controller instance.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var WP_I18n_Translation_Controller
+	 */
+	protected $controller;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $textdomain Text domain.
+	 * @param WP_I18n_Translation_Controller $controller I18N controller.
+	 * @param string                         $textdomain Text domain.
 	 */
-	public function __construct( string $textdomain = 'default' ) {
+	public function __construct( WP_I18n_Translation_Controller $controller, string $textdomain = 'default' ) {
+		$this->controller = $controller;
 		$this->textdomain = $textdomain;
 	}
 
@@ -46,7 +57,7 @@ class WP_I18n_Translations {
 	 */
 	public function __get( string $name ) {
 		if ( 'entries' === $name ) {
-			$entries = WP_I18n_Translation_Controller::instance()->get_entries( $this->textdomain );
+			$entries = $this->controller->get_entries( $this->textdomain );
 
 			$result = array();
 
@@ -58,7 +69,7 @@ class WP_I18n_Translations {
 		}
 
 		if ( 'headers' === $name ) {
-			return WP_I18n_Translation_Controller::instance()->get_headers( $this->textdomain );
+			return $this->controller->get_headers( $this->textdomain );
 		}
 
 		return null;
@@ -114,7 +125,7 @@ class WP_I18n_Translations {
 			return $singular;
 		}
 
-		$translation = WP_I18n_Translation_Controller::instance()->translate_plural( array( $singular, $plural ), (int) $count, (string) $context, $this->textdomain );
+		$translation = $this->controller->translate_plural( array( $singular, $plural ), (int) $count, (string) $context, $this->textdomain );
 		if ( false !== $translation ) {
 			return $translation;
 		}
@@ -137,7 +148,7 @@ class WP_I18n_Translations {
 			return null;
 		}
 
-		$translation = WP_I18n_Translation_Controller::instance()->translate( $singular, (string) $context, $this->textdomain );
+		$translation = $this->controller->translate( $singular, (string) $context, $this->textdomain );
 		if ( false !== $translation ) {
 			return $translation;
 		}

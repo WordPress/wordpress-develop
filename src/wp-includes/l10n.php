@@ -839,7 +839,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 			// Unset Noop_Translations reference in get_translations_for_domain.
 			unset( $l10n[ $domain ] );
 
-			$l10n[ $domain ] = new WP_I18n_Translations( $domain );
+			$l10n[ $domain ] = new WP_I18n_Translations( $i18n_controller, $domain );
 
 			$wp_textdomain_registry->set( $domain, $locale, dirname( $file ) );
 
