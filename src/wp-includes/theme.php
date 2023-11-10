@@ -188,7 +188,7 @@ function get_stylesheet() {
  *
  * @since 1.5.0
  * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
- * @since 6.4.1 Memoization removed.
+ * @since 6.4.2 Memoization removed.
  *
  * @global string $wp_stylesheet_path Current theme stylesheet directory path.
  *
