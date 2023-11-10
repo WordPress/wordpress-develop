@@ -788,7 +788,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$locale = determine_locale();
 	}
 
-	$i18n_controller = WP_I18n_Translation_Controller::instance();
+	$i18n_controller = WP_Translation_Controller::instance();
 
 	// Ensures the correct locale is set as the current one, in case it was filtered.
 	$i18n_controller->set_locale( $locale );
@@ -839,7 +839,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 			// Unset Noop_Translations reference in get_translations_for_domain.
 			unset( $l10n[ $domain ] );
 
-			$l10n[ $domain ] = new WP_I18n_Translations( $i18n_controller, $domain );
+			$l10n[ $domain ] = new WP_Translations( $i18n_controller, $domain );
 
 			$wp_textdomain_registry->set( $domain, $locale, dirname( $file ) );
 
@@ -912,7 +912,7 @@ function unload_textdomain( $domain, $reloadable = false ) {
 		if ( ! $reloadable ) {
 			$l10n_unloaded[ $domain ] = true;
 
-			return WP_I18n_Translation_Controller::instance()->unload( $domain );
+			return WP_Translation_Controller::instance()->unload( $domain );
 		}
 
 		return true;

@@ -2917,7 +2917,7 @@ HTML
 	 *
 	 * @covers ::wp_set_script_translations
 	 */
-	public function test_wp_external_wp_i18n_print_order() {
+	public function test_wp_external_WP_print_order() {
 		global $wp_scripts, $wp_version;
 
 		$wp_scripts->do_concat    = true;

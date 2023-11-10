@@ -1,6 +1,6 @@
 <?php
 /**
- * I18N: WP_I18n_Translation_Controller class.
+ * I18N: WP_Translation_Controller class.
  *
  * @package WordPress
  * @subpackage I18N
@@ -8,11 +8,11 @@
  */
 
 /**
- * Class WP_I18n_Translation_Controller.
+ * Class WP_Translation_Controller.
  *
  * @since 6.5.0
  */
-class WP_I18n_Translation_Controller {
+class WP_Translation_Controller {
 	/**
 	 * Current locale.
 	 *
@@ -29,33 +29,33 @@ class WP_I18n_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array<string, array<string, WP_I18n_Translation_File[]>>
+	 * @var array<string, array<string, WP_Translation_File[]>>
 	 */
 	protected $loaded_translations = array();
 
 	/**
 	 * List of loaded translation files.
 	 *
-	 * [ Filename => [ Locale => [ Textdomain => WP_I18n_Translation_File ] ] ]
+	 * [ Filename => [ Locale => [ Textdomain => WP_Translation_File ] ] ]
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array<string,array<string, array<string, WP_I18n_Translation_File|false>>>
+	 * @var array<string,array<string, array<string, WP_Translation_File|false>>>
 	 */
 	protected $loaded_files = array();
 
 	/**
-	 * Returns the WP_I18n_Translation_Controller singleton.
+	 * Returns the WP_Translation_Controller singleton.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return WP_I18n_Translation_Controller
+	 * @return WP_Translation_Controller
 	 */
 	public static function instance() {
 		static $instance;
 
 		if ( ! $instance ) {
-			$instance = new WP_I18n_Translation_Controller();
+			$instance = new WP_Translation_Controller();
 		}
 
 		return $instance;
@@ -117,7 +117,7 @@ class WP_I18n_Translation_Controller {
 		) {
 			$moe = reset( $this->loaded_files[ $translation_file ][ $locale ] );
 		} else {
-			$moe = WP_I18n_Translation_File::create( $translation_file );
+			$moe = WP_Translation_File::create( $translation_file );
 			if ( false === $moe || false !== $moe->error() ) {
 				$moe = false;
 			}
@@ -125,7 +125,7 @@ class WP_I18n_Translation_Controller {
 
 		$this->loaded_files[ $translation_file ][ $locale ][ $textdomain ] = $moe;
 
-		if ( ! $moe instanceof WP_I18n_Translation_File ) {
+		if ( ! $moe instanceof WP_Translation_File ) {
 			return false;
 		}
 
@@ -144,7 +144,7 @@ class WP_I18n_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string                          $textdomain Optional. Text domain. Default 'default'.
-	 * @param WP_I18n_Translation_File|string $mo         Translation file instance or file name.
+	 * @param WP_Translation_File|string $mo         Translation file instance or file name.
 	 * @param string                          $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
@@ -283,7 +283,7 @@ class WP_I18n_Translation_Controller {
 			}
 		}
 
-		/* @var WP_I18n_Translation_File $source */
+		/* @var WP_Translation_File $source */
 		$source = $translation['source'];
 		$num    = $source->get_plural_form( $number );
 
@@ -359,7 +359,7 @@ class WP_I18n_Translation_Controller {
 	 * @param string $singular   Singular translation.
 	 * @param string $textdomain Text domain.
 	 * @param string $locale     Optional. Locale. Default current locale.
-	 * @return array{source: WP_I18n_Translation_File, entries: string[]}|false Translations on success, false otherwise.
+	 * @return array{source: WP_Translation_File, entries: string[]}|false Translations on success, false otherwise.
 	 */
 	protected function locate_translation( string $singular, string $textdomain = 'default', string $locale = null ) {
 		if ( array() === $this->loaded_translations ) {
@@ -392,7 +392,7 @@ class WP_I18n_Translation_Controller {
 	 *
 	 * @param string $textdomain Text domain.
 	 * @param string $locale     Optional. Locale. Default current locale.
-	 * @return WP_I18n_Translation_File[] List of translation files.
+	 * @return WP_Translation_File[] List of translation files.
 	 */
 	protected function get_files( string $textdomain = 'default', string $locale = null ) {
 		if ( null === $locale ) {

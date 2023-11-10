@@ -1,6 +1,6 @@
 <?php
 /**
- * I18N: WP_I18n_Translation_File_MO class.
+ * I18N: WP_Translation_File_MO class.
  *
  * @package WordPress
  * @subpackage I18N
@@ -8,11 +8,11 @@
  */
 
 /**
- * Class WP_I18n_Translation_File_MO.
+ * Class WP_Translation_File_MO.
  *
  * @since 6.5.0
  */
-class WP_I18n_Translation_File_MO extends WP_I18n_Translation_File {
+class WP_Translation_File_MO extends WP_Translation_File {
 	/**
 	 * Endian value.
 	 *

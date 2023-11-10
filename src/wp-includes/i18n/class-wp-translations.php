@@ -1,6 +1,6 @@
 <?php
 /**
- * I18N: WP_I18n_Translations class.
+ * I18N: WP_Translations class.
  *
  * @package WordPress
  * @subpackage I18N
@@ -8,14 +8,14 @@
  */
 
 /**
- * Class WP_I18n_Translations.
+ * Class WP_Translations.
  *
  * @since 6.5.0
  *
  * @property-read array<string, string> $headers
  * @property-read array<string, string[]> $entries
  */
-class WP_I18n_Translations {
+class WP_Translations {
 	/**
 	 * Text domain.
 	 *
@@ -30,7 +30,7 @@ class WP_I18n_Translations {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var WP_I18n_Translation_Controller
+	 * @var WP_Translation_Controller
 	 */
 	protected $controller;
 
@@ -39,10 +39,10 @@ class WP_I18n_Translations {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param WP_I18n_Translation_Controller $controller I18N controller.
+	 * @param WP_Translation_Controller $controller I18N controller.
 	 * @param string                         $textdomain Text domain.
 	 */
-	public function __construct( WP_I18n_Translation_Controller $controller, string $textdomain = 'default' ) {
+	public function __construct( WP_Translation_Controller $controller, string $textdomain = 'default' ) {
 		$this->controller = $controller;
 		$this->textdomain = $textdomain;
 	}
