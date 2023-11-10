@@ -3,77 +3,71 @@
 /**
  * Tests for the wp_checkdate function.
  *
- * @group functions.php
+ * @ticket 59825
+ *
+ * @group date
+ * @group functions
  *
  * @covers ::wp_checkdate
  */
-class Tests_functions_wpCheckdate extends WP_UnitTestCase {
+class Tests_Functions_wpCheckdate extends WP_UnitTestCase {
 
 	/**
-	 * Does it work.
+	 * @dataProvider data_wp_checkdate
 	 *
-	 * @ticket 59825
+	 * @param int|string $month   The month to check.
+	 * @param int|string $day     The day to check.
+	 * @param int|string $year    The year to check.
+	 * @param string $source_date The date to pass to the wp_checkdate filter.
+	 * @param bool $expected      The expected result.
 	 */
-	public function test_wp_checkdate() {
-
-		$a1 = new MockAction();
-		add_filter( 'wp_checkdate', array( $a1, 'filter' ) );
-		$this->assertTrue( wp_checkdate( 1, 1, 1, 1 - 1 - 1 ) );
-		$this->assertSame( 1, $a1->get_call_count() );
+	public function test_wp_checkdate( $month, $day, $year, $source_date, $expected ) {
+		$this->assertSame( $expected, wp_checkdate( $month, $day, $year, $source_date ) );
 	}
 
 	/**
-	 * Will it take stings.
+	 * Data provider for test_wp_checkdate().
 	 *
-	 * @ticket 59825
+	 * @return array
 	 */
-	public function test_wp_checkdate_strings() {
-
-		$a1 = new MockAction();
-		add_filter( 'wp_checkdate', array( $a1, 'filter' ) );
-
-		$this->assertTrue( wp_checkdate( '1', '1', '1', '1-1-1' ) );
-		$this->assertSame( 1, $a1->get_call_count() );
+	public function data_wp_checkdate() {
+		return array(
+			'integers'              => array( 1, 1, 1, '1-1-1', true ),
+			'strings'               => array( '1', '1', '1', '1-1-1', true ),
+			'arbitrary source_date' => array( 1, 1, 1, 'arbitrary source_date', true ), // source_date is only used by filter.
+			'valid day'             => array( 2, 29, 2024, '2/29/2024', true ), // 2024 is a leap year.
+			'invalid day'           => array( 2, 29, 2023, '2/29/2023', false ), // 2023 is not a leap year.
+			'invalid month'         => array( 99, 1, 1, '1-1-1', false ), // Month must be between 1 and 12.
+			'invalid year'          => array( 1, 1, 0, '1-1-0', false ), // Year must be between 1 and 32767.
+		);
 	}
 
 	/**
-	 * Check that the results of the filter is returned.
-	 *
-	 * @ticket 59825
+	 * Check that the filter overrides the return value.
 	 */
-	public function test_wp_checkdate_passes_source_date_to_filter() {
+	public function test_wp_checkdate_filter() {
 		add_filter( 'wp_checkdate', array( $this, 'wp_checkdate_filter' ), 10, 2 );
 
-		$this->assertsame( 'filtered', wp_checkdate( '1', '1', '1', 'source_date' ) );
+		// Test with an invalid date that the filter will return as valid.
+		$this->assertTrue( wp_checkdate( '2', '29', '2023', '2/29/2023' ) );
+
+		remove_filter( 'wp_checkdate', array( $this, 'wp_checkdate_filter' ) );
 	}
 
 	/**
-	 * Filter for test test_wp_checkdate_passes_source_date_to_filter().
+	 * Filter for test_wp_checkdate_filter().
 	 *
-	 * @ticket 59825
-	 *
-	 * @param $is_date
+	 * @param $is_valid_date
 	 * @param $source_date
 	 *
-	 * @return string
+	 * @return bool
 	 */
-	public function wp_checkdate_filter( $is_date, $source_date ) {
-		$this->assertSame( $source_date, 'source_date' );
+	public function wp_checkdate_filter( $is_valid_date, $source_date ) {
+		if ( '2/29/2023' === $source_date ) {
+			// Date is invalid, but return true anyway.
+			return true;
+		}
 
-		return 'filtered';
-	}
-
-	/**
-	 * Check a bad date returns false.
-	 *
-	 * @ticket 59825
-	 */
-	public function test_wp_checkdate_bad_date() {
-
-		$a1 = new MockAction();
-		add_filter( 'wp_checkdate', array( $a1, 'filter' ) );
-
-		$this->assertFalse( wp_checkdate( '99', '1', '1', '1-1-1' ) );
-		$this->assertSame( 1, $a1->get_call_count() );
+		return $is_valid_date;
 	}
 }
