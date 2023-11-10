@@ -190,8 +190,6 @@ function get_stylesheet() {
  * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
  * @since 6.4.2 Memoization removed.
  *
- * @global string $wp_stylesheet_path Current theme stylesheet directory path.
- *
  * @return string Path to active theme's stylesheet directory.
  */
 function get_stylesheet_directory() {
