@@ -796,6 +796,8 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	/**
 	 * Filters the preferred file format for translation files.
 	 *
+	 * Can be used to disable the use of PHP files for translations.
+	 *
 	 * @since 6.5.0
 	 *
 	 * @param string $preferred_format Preferred file format. Possible values: 'php', 'mo'. Default: 'php'.
@@ -805,22 +807,29 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$preferred_format = 'php';
 	}
 
+	$translation_files = array( $mofile );
 	if ( 'mo' !== $preferred_format ) {
-		$mofile_preferred = str_replace( '.mo', ".mo.$preferred_format", $mofile );
+		array_unshift(
+			$translation_files,
+			str_replace( '.mo', ".mo.$preferred_format", $mofile )
+		);
+	}
 
+	foreach ( $translation_files as $file ) {
 		/**
 		 * Filters the file path for loading translations for the given text domain.
 		 *
-		 * The file could be an MO or PHP file.
+		 * Similar to the {@see 'load_textdomain_mofile'} filter with the difference that
+		 * the file path could be for an MO or PHP file.
 		 *
 		 * @since 6.5.0
 		 *
 		 * @param string $file   Path to the translation file to load.
 		 * @param string $domain The text domain.
 		 */
-		$mofile_preferred = apply_filters( 'load_translation_file', $mofile_preferred, $domain );
+		$file = apply_filters( 'load_translation_file', $file, $domain );
 
-		$success = $i18n_controller->load( $mofile_preferred, $domain, $locale );
+		$success = $i18n_controller->load( $file, $domain, $locale );
 
 		if ( $success ) {
 			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
@@ -832,28 +841,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 			$l10n[ $domain ] = new WP_I18n_Translations( $domain );
 
-			$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
+			$wp_textdomain_registry->set( $domain, $locale, dirname( $file ) );
 
 			return true;
 		}
-	}
-
-	/** This filter is documented in wp-includes/l10n.php */
-	$mofile = apply_filters( 'load_translation_file', $mofile, $domain );
-
-	$success = $i18n_controller->load( $mofile, $domain, $locale );
-
-	if ( $success ) {
-		if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
-			$i18n_controller->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
-		}
-
-		// Unset Noop_Translations reference in get_translations_for_domain.
-		unset( $l10n[ $domain ] );
-
-		$l10n[ $domain ] = new WP_I18n_Translations( $domain );
-
-		$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
 	}
 
 	return true;
@@ -917,8 +908,10 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 		unset( $l10n[ $domain ] );
 
-		// Since we support multiple locales, we don't actually need to unload reloadable text domains.
+		// Since multiple locales are supported,reloadable text domains don't actually need to be unloaded.
 		if ( ! $reloadable ) {
+			$l10n_unloaded[ $domain ] = true;
+
 			return WP_I18n_Translation_Controller::instance()->unload( $domain );
 		}
 
