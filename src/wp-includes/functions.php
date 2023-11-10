@@ -4702,26 +4702,14 @@ function _mce_set_direction( $mce_init ) {
  * being made. It does not return true when a REST endpoint is hit as part of another request, e.g. for preloading a
  * REST response. See {@see wp_is_rest_endpoint()} for that purpose.
  *
- * This function must not be called until the {@see 'parse_request'} action.
+ * This function should not be called until the {@see 'parse_request'} action, as the constant is only defined then,
+ * even for an actual REST request.
  *
  * @since 6.5.0
  *
  * @return bool True if it's a WordPress REST API request, false otherwise.
  */
 function wp_is_rest_request(): bool {
-	if ( ! defined( 'REST_REQUEST' ) && ! did_action( 'parse_request' ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: %s: parse_request */
-				__( 'Detecting whether the current request is a REST API request is not possible until the %s hook.' ),
-				'parse_request'
-			),
-			'6.5.0'
-		);
-		return false;
-	}
-
 	return defined( 'REST_REQUEST' ) && REST_REQUEST;
 }
 

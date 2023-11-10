@@ -3405,13 +3405,8 @@ function wp_is_rest_endpoint(): bool {
 	/* @var WP_REST_Server $wp_rest_server */
 	global $wp_rest_server;
 
-	/*
-	 * Check whether this is a standalone REST request.
-	 * This check is not using the `wp_is_rest_request()` function as it may be called before the constant is actually
-	 * available. Since this is only one way of determining whether a REST endpoint is being handled, there is no need
-	 * to be as strict here as in the check for whether this is an actual standalone REST request.
-	 */
-	$is_rest_endpoint = defined( 'REST_REQUEST' ) && REST_REQUEST;
+	// Check whether this is a standalone REST request.
+	$is_rest_endpoint = wp_is_rest_request();
 	if ( ! $is_rest_endpoint ) {
 		// Otherwise, check whether an internal REST request is currently being handled.
 		$is_rest_endpoint = isset( $wp_rest_server )
