@@ -11,6 +11,8 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		unload_textdomain( 'wp-tests-domain' );
+
+		parent::tear_down();
 	}
 
 	/**

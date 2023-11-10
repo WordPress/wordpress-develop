@@ -5,13 +5,15 @@
  * @group i18n
  */
 class WP_Translation_Controller_Tests extends WP_UnitTestCase {
-
 	/**
 	 * @return void
 	 */
 	public function tear_down() {
 		remove_all_filters( 'translation_file_format' );
 		unload_textdomain( 'wp-tests-domain' );
+		unload_textdomain( 'internationalized-plugin' );
+
+		parent::tear_down();
 	}
 
 	/**
