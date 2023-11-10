@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class WP_Translation_Controller_Integration_Tests extends WP_UnitTestCase {
+class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @return void
