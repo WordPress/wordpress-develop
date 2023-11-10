@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  */
 class Tests_Term extends WP_UnitTestCase {
 	protected $taxonomy        = 'category';
@@ -127,9 +128,6 @@ class Tests_Term extends WP_UnitTestCase {
 		}
 	}
 
-	/**
-	 * @group category.php
-	 */
 	public function test_term_is_ancestor_of() {
 		$term  = rand_str();
 		$term2 = rand_str();
@@ -307,5 +305,75 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$cat_id2 = self::factory()->category->create( array( 'parent' => $cat_id1 ) );
 		$this->assertWPError( $cat_id2 );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
+	 * @covers ::get_term
+	 *
+	 */
+	public function test_get_term_sanitize_once() {
+		$cat_id1 = self::factory()->category->create();
+		$_term   = get_term( $cat_id1, '', OBJECT, 'edit' );
+
+		$filter = new MockAction();
+		add_filter( 'edit_term_slug', array( $filter, 'filter' ) );
+
+		$term = get_term( $_term, '', OBJECT, 'edit' );
+
+		$this->assertSame( 0, $filter->get_call_count(), 'The term was filtered more than once' );
+		$this->assertSame( $_term, $term, 'Both terms should match' );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
+	 * @covers ::get_term
+	 *
+	 * @dataProvider data_get_term_filter
+	 *
+	 * @param string $filter How to sanitize term fields.
+	 */
+	public function test_get_term_should_set_term_filter_property_to_filter_argument( $filter ) {
+		$cat_id1 = self::factory()->category->create();
+
+		$term = get_term( $cat_id1, '', OBJECT, $filter );
+
+		$this->assertSame( $filter, $term->filter, "The term's 'filter' property should be set to '$filter'." );
+	}
+
+	/**
+	 * @ticket 58329
+	 *
+	 * @covers ::get_term
+	 *
+	 * @dataProvider data_get_term_filter
+	 *
+	 * @param string $filter How to sanitize term fields.
+	 */
+	public function test_get_term_filtered( $filter ) {
+		$cat_id1 = self::factory()->category->create();
+		$cat     = self::factory()->category->create_and_get();
+		add_filter(
+			'get_term',
+			static function () use ( $cat ) {
+				return $cat;
+			}
+		);
+
+		$term = get_term( $cat_id1, '', OBJECT, $filter );
+
+		$this->assertSame( $filter, $term->filter, "The term's 'filter' property should be set to '$filter'." );
+		$this->assertSame( $term, $cat, 'The returned term should match the filtered term' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_term_filter() {
+		return self::text_array_to_dataprovider( array( 'edit', 'db', 'display', 'attribute', 'js', 'rss', 'raw' ) );
 	}
 }

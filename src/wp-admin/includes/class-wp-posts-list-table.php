@@ -1019,6 +1019,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
+
 		$show = current_user_can( 'edit_post', $post->ID );
 
 		/**
@@ -1033,7 +1034,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
 			?>
-			<label class="label-covers-full-cell" for="cb-select-<?php the_ID(); ?>">
+			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
+			<label for="cb-select-<?php the_ID(); ?>">
 				<span class="screen-reader-text">
 				<?php
 					/* translators: %s: Post title. */
@@ -1041,7 +1043,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 				?>
 				</span>
 			</label>
-			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
 			<div class="locked-indicator">
 				<span class="locked-indicator-icon" aria-hidden="true"></span>
 				<span class="screen-reader-text">
@@ -1167,7 +1168,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
-		get_inline_data( $post );
+		/** This filter is documented in wp-admin/includes/class-wp-posts-list-table.php */
+		$quick_edit_enabled = apply_filters( 'quick_edit_enabled_for_post_type', true, $post->post_type );
+
+		if ( $quick_edit_enabled ) {
+			get_inline_data( $post );
+		}
 	}
 
 	/**
@@ -1458,7 +1464,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$post             = $item;
+		$post = $item;
+
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
 		$actions          = array();
@@ -1473,7 +1480,17 @@ class WP_Posts_List_Table extends WP_List_Table {
 				__( 'Edit' )
 			);
 
-			if ( 'wp_block' !== $post->post_type ) {
+			/**
+			 * Filters whether Quick Edit should be enabled for the given post type.
+			 *
+			 * @since 6.4.0
+			 *
+			 * @param bool   $enable    Whether to enable the Quick Edit functionality. Default true.
+			 * @param string $post_type Post type name.
+			 */
+			$quick_edit_enabled = apply_filters( 'quick_edit_enabled_for_post_type', true, $post->post_type );
+
+			if ( $quick_edit_enabled && 'wp_block' !== $post->post_type ) {
 				$actions['inline hide-if-no-js'] = sprintf(
 					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
 					/* translators: %s: Post title. */

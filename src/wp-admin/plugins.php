@@ -339,15 +339,31 @@ if ( $action ) {
 				?>
 				<?php if ( 1 === $plugins_to_delete ) : ?>
 					<h1><?php _e( 'Delete Plugin' ); ?></h1>
-					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
-						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This plugin may be active on other sites in the network.' ); ?></p></div>
-					<?php endif; ?>
+					<?php
+					if ( $have_non_network_plugins && is_network_admin() ) :
+						$maybe_active_plugin = '<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'This plugin may be active on other sites in the network.' );
+						wp_admin_notice(
+							$maybe_active_plugin,
+							array(
+								'additional_classes' => array( 'error' ),
+							)
+						);
+					endif;
+					?>
 					<p><?php _e( 'You are about to remove the following plugin:' ); ?></p>
 				<?php else : ?>
 					<h1><?php _e( 'Delete Plugins' ); ?></h1>
-					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
-						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'These plugins may be active on other sites in the network.' ); ?></p></div>
-					<?php endif; ?>
+					<?php
+					if ( $have_non_network_plugins && is_network_admin() ) :
+						$maybe_active_plugins = '<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'These plugins may be active on other sites in the network.' );
+						wp_admin_notice(
+							$maybe_active_plugins,
+							array(
+								'additional_classes' => array( 'error' ),
+							)
+						);
+					endif;
+					?>
 					<p><?php _e( 'You are about to remove the following plugins:' ); ?></p>
 				<?php endif; ?>
 					<ul class="ul-disc">
@@ -495,7 +511,7 @@ if ( $action ) {
 
 				// Return early if all selected plugins already have auto-updates enabled or disabled.
 				// Must use non-strict comparison, so that array order is not treated as significant.
-				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 					wp_redirect( $redirect );
 					exit;
 				}
@@ -607,17 +623,28 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 $invalid = validate_active_plugins();
 if ( ! empty( $invalid ) ) {
 	foreach ( $invalid as $plugin_file => $error ) {
-		echo '<div id="message" class="error"><p>';
-		printf(
+		$deactivated_message = sprintf(
 			/* translators: 1: Plugin file, 2: Error message. */
 			__( 'The plugin %1$s has been deactivated due to an error: %2$s' ),
 			'<code>' . esc_html( $plugin_file ) . '</code>',
 			esc_html( $error->get_error_message() )
 		);
-		echo '</p></div>';
+		wp_admin_notice(
+			$deactivated_message,
+			array(
+				'id'                 => 'message',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
+// Used by wp_admin_notice() updated notices.
+$updated_notice_args = array(
+	'id'                 => 'message',
+	'additional_classes' => array( 'updated' ),
+	'dismissible'        => true,
+);
 if ( isset( $_GET['error'] ) ) {
 
 	if ( isset( $_GET['main'] ) ) {
@@ -682,38 +709,33 @@ if ( isset( $_GET['error'] ) ) {
 			)
 		);
 	} else {
-		$updated_args = array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
-		);
 		if ( 1 === (int) $_GET['deleted'] ) {
 			$plugins_deleted_message = __( 'The selected plugin has been deleted.' );
 		} else {
 			$plugins_deleted_message = __( 'The selected plugins have been deleted.' );
 		}
-		wp_admin_notice( $plugins_deleted_message, $updated_args );
+		wp_admin_notice( $plugins_deleted_message, $updated_notice_args );
 	}
 } elseif ( isset( $_GET['activate'] ) ) {
-	wp_admin_notice( __( 'Plugin activated.' ), $updated_args );
+	wp_admin_notice( __( 'Plugin activated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['activate-multi'] ) ) {
-	wp_admin_notice( __( 'Selected plugins activated.' ), $updated_args );
+	wp_admin_notice( __( 'Selected plugins activated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['deactivate'] ) ) {
-	wp_admin_notice( __( 'Plugin deactivated.' ), $updated_args );
+	wp_admin_notice( __( 'Plugin deactivated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['deactivate-multi'] ) ) {
-	wp_admin_notice( __( 'Selected plugins deactivated.' ), $updated_args );
+	wp_admin_notice( __( 'Selected plugins deactivated.' ), $updated_notice_args );
 } elseif ( 'update-selected' === $action ) {
-	wp_admin_notice( __( 'All selected plugins are up to date.' ), $updated_args );
+	wp_admin_notice( __( 'All selected plugins are up to date.' ), $updated_notice_args );
 } elseif ( isset( $_GET['resume'] ) ) {
-	wp_admin_notice( __( 'Plugin resumed.' ), $updated_args );
+	wp_admin_notice( __( 'Plugin resumed.' ), $updated_notice_args );
 } elseif ( isset( $_GET['enabled-auto-update'] ) ) {
-	wp_admin_notice( __( 'Plugin will be auto-updated.' ), $updated_args );
+	wp_admin_notice( __( 'Plugin will be auto-updated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['disabled-auto-update'] ) ) {
-	wp_admin_notice( __( 'Plugin will no longer be auto-updated.' ), $updated_args );
+	wp_admin_notice( __( 'Plugin will no longer be auto-updated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['enabled-auto-update-multi'] ) ) {
-	wp_admin_notice( __( 'Selected plugins will be auto-updated.' ), $updated_args );
+	wp_admin_notice( __( 'Selected plugins will be auto-updated.' ), $updated_notice_args );
 } elseif ( isset( $_GET['disabled-auto-update-multi'] ) ) {
-	wp_admin_notice( __( 'Selected plugins will no longer be auto-updated.' ), $updated_args );
+	wp_admin_notice( __( 'Selected plugins will no longer be auto-updated.' ), $updated_notice_args );
 }
 ?>
 

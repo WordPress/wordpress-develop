@@ -524,18 +524,22 @@ class Custom_Image_Header {
 				)
 			);
 		}
-		?>
 
-		<?php if ( ! empty( $this->updated ) ) { ?>
-<div id="message" class="updated">
-	<p>
-			<?php
-			/* translators: %s: Home URL. */
-			printf( __( 'Header updated. <a href="%s">Visit your site</a> to see how it looks.' ), esc_url( home_url( '/' ) ) );
-			?>
-	</p>
-</div>
-		<?php } ?>
+		if ( ! empty( $this->updated ) ) {
+			$updated_message = sprintf(
+				/* translators: %s: Home URL. */
+				__( 'Header updated. <a href="%s">Visit your site</a> to see how it looks.' ),
+				esc_url( home_url( '/' ) )
+			);
+			wp_admin_notice(
+				$updated_message,
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+				)
+			);
+		}
+		?>
 
 <h2><?php _e( 'Header Image' ); ?></h2>
 
@@ -878,14 +882,16 @@ endif;
 			$this->set_header_image( compact( 'url', 'attachment_id', 'width', 'height' ) );
 
 			/**
-			 * Fires after the header image is set or an error is returned.
+			 * Filters the attachment file path after the custom header or background image is set.
+			 *
+			 * Used for file replication.
 			 *
 			 * @since 2.1.0
 			 *
 			 * @param string $file          Path to the file.
 			 * @param int    $attachment_id Attachment ID.
 			 */
-			do_action( 'wp_create_file_in_uploads', $file, $attachment_id ); // For replication.
+			$file = apply_filters( 'wp_create_file_in_uploads', $file, $attachment_id ); // For replication.
 
 			return $this->finished();
 		} elseif ( $width > $max_width ) {

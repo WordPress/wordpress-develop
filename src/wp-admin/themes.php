@@ -271,7 +271,7 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 } elseif ( isset( $_GET['activated'] ) ) {
 	if ( isset( $_GET['previewed'] ) ) {
 		wp_admin_notice(
-			__( 'Settings saved and theme activated.' ) . '<a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
+			__( 'Settings saved and theme activated.' ) . ' <a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
 			array(
 				'id'                 => 'message2',
 				'additional_classes' => array( 'updated' ),
@@ -280,7 +280,7 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 		);
 	} else {
 		wp_admin_notice(
-			__( 'New theme activated.' ) . '<a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
+			__( 'New theme activated.' ) . ' <a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Visit site' ) . '</a>',
 			array(
 				'id'                 => 'message2',
 				'additional_classes' => array( 'updated' ),
@@ -345,7 +345,12 @@ if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
 $current_theme = wp_get_theme();
 
 if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
-	echo '<div class="error"><p>' . __( 'Error:' ) . ' ' . $current_theme->errors()->get_error_message() . '</p></div>';
+	wp_admin_notice(
+		__( 'Error:' ) . ' ' . $current_theme->errors()->get_error_message(),
+		array(
+			'additional_classes' => array( 'error' ),
+		)
+	);
 }
 
 $current_theme_actions = array();
@@ -438,79 +443,88 @@ foreach ( $themes as $theme ) :
 	<?php } ?>
 
 	<?php if ( $theme['hasUpdate'] ) : ?>
-		<?php if ( $theme['updateResponse']['compatibleWP'] && $theme['updateResponse']['compatiblePHP'] ) : ?>
-			<div class="update-message notice inline notice-warning notice-alt"><p>
-				<?php if ( $theme['hasPackage'] ) : ?>
-					<?php _e( 'New version available. <button class="button-link" type="button">Update now</button>' ); ?>
-				<?php else : ?>
-					<?php _e( 'New version available.' ); ?>
-				<?php endif; ?>
-			</p></div>
-		<?php else : ?>
-			<div class="update-message notice inline notice-error notice-alt"><p>
-				<?php
-				if ( ! $theme['updateResponse']['compatibleWP'] && ! $theme['updateResponse']['compatiblePHP'] ) {
-					printf(
-						/* translators: %s: Theme name. */
-						__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
-						$theme['name']
+		<?php
+		if ( $theme['updateResponse']['compatibleWP'] && $theme['updateResponse']['compatiblePHP'] ) :
+			if ( $theme['hasPackage'] ) {
+				$new_version_available = __( 'New version available. <button class="button-link" type="button">Update now</button>' );
+			} else {
+				$new_version_available = __( 'New version available.' );
+			}
+			wp_admin_notice(
+				$new_version_available,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'notice-alt', 'inline', 'update-message' ),
+				)
+			);
+		else :
+			$theme_update_error = '';
+			if ( ! $theme['updateResponse']['compatibleWP'] && ! $theme['updateResponse']['compatiblePHP'] ) {
+				$theme_update_error .= sprintf(
+					/* translators: %s: Theme name. */
+					__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
+					$theme['name']
+				);
+				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+					$theme_update_error .= sprintf(
+						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+						' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+						self_admin_url( 'update-core.php' ),
+						esc_url( wp_get_update_php_url() )
 					);
-					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
-						printf(
-							/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
-							' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
-							self_admin_url( 'update-core.php' ),
-							esc_url( wp_get_update_php_url() )
-						);
-						wp_update_php_annotation( '</p><p><em>', '</em>' );
-					} elseif ( current_user_can( 'update_core' ) ) {
-						printf(
-							/* translators: %s: URL to WordPress Updates screen. */
-							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
-							self_admin_url( 'update-core.php' )
-						);
-					} elseif ( current_user_can( 'update_php' ) ) {
-						printf(
-							/* translators: %s: URL to Update PHP page. */
-							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
-							esc_url( wp_get_update_php_url() )
-						);
-						wp_update_php_annotation( '</p><p><em>', '</em>' );
-					}
-				} elseif ( ! $theme['updateResponse']['compatibleWP'] ) {
-					printf(
-						/* translators: %s: Theme name. */
-						__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
-						$theme['name']
+					wp_update_php_annotation( '</p><p><em>', '</em>', false );
+				} elseif ( current_user_can( 'update_core' ) ) {
+					$theme_update_error .= sprintf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
 					);
-					if ( current_user_can( 'update_core' ) ) {
-						printf(
-							/* translators: %s: URL to WordPress Updates screen. */
-							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
-							self_admin_url( 'update-core.php' )
-						);
-					}
-				} elseif ( ! $theme['updateResponse']['compatiblePHP'] ) {
-					printf(
-						/* translators: %s: Theme name. */
-						__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
-						$theme['name']
+				} elseif ( current_user_can( 'update_php' ) ) {
+					$theme_update_error .= sprintf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
 					);
-					if ( current_user_can( 'update_php' ) ) {
-						printf(
-							/* translators: %s: URL to Update PHP page. */
-							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
-							esc_url( wp_get_update_php_url() )
-						);
-						wp_update_php_annotation( '</p><p><em>', '</em>' );
-					}
+					wp_update_php_annotation( '</p><p><em>', '</em>', false );
 				}
-				?>
-			</p></div>
-		<?php endif; ?>
-	<?php endif; ?>
+			} elseif ( ! $theme['updateResponse']['compatibleWP'] ) {
+				$theme_update_error .= sprintf(
+					/* translators: %s: Theme name. */
+					__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
+					$theme['name']
+				);
+				if ( current_user_can( 'update_core' ) ) {
+					$theme_update_error .= sprintf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				}
+			} elseif ( ! $theme['updateResponse']['compatiblePHP'] ) {
+				$theme_update_error .= sprintf(
+					/* translators: %s: Theme name. */
+					__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
+					$theme['name']
+				);
+				if ( current_user_can( 'update_php' ) ) {
+					$theme_update_error .= sprintf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>', false );
+				}
+			}
+			wp_admin_notice(
+				$theme_update_error,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'notice-alt', 'inline', 'update-message' ),
+				)
+			);
+		endif;
+	endif;
 
-	<?php
 	if ( ! $theme['compatibleWP'] || ! $theme['compatiblePHP'] ) {
 		$message = '';
 		if ( ! $theme['compatibleWP'] && ! $theme['compatiblePHP'] ) {
@@ -566,9 +580,7 @@ foreach ( $themes as $theme ) :
 			)
 		);
 	}
-	?>
 
-	<?php
 	/* translators: %s: Theme name. */
 	$details_aria_label = sprintf( _x( 'View Theme Details for %s', 'theme' ), $theme['name'] );
 	?>
@@ -662,7 +674,9 @@ if ( ! is_multisite() && $broken_themes ) {
 			<td></td>
 		<?php } ?>
 	</tr>
-	<?php foreach ( $broken_themes as $broken_theme ) : ?>
+	<?php
+	foreach ( $broken_themes as $broken_theme ) :
+		?>
 		<tr>
 			<td><?php echo $broken_theme->get( 'Name' ) ? $broken_theme->display( 'Name' ) : esc_html( $broken_theme->get_stylesheet() ); ?></td>
 			<td><?php echo $broken_theme->errors()->get_error_message(); ?></td>
@@ -723,7 +737,9 @@ if ( ! is_multisite() && $broken_themes ) {
 			}
 			?>
 		</tr>
-	<?php endforeach; ?>
+		<?php
+	endforeach;
+	?>
 </table>
 </div>
 
@@ -1205,22 +1221,22 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<# if ( data.actions.activate ) { #>
-						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
-					<# } #>
 					<# if ( ! data.blockTheme ) { #>
 						<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
+					<# if ( data.actions.activate ) { #>
+						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 					<# } #>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
 					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<# if ( data.actions.activate ) { #>
-						<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
-					<# } #>
 					<# if ( ! data.blockTheme ) { #>
 						<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+					<# } #>
+					<# if ( data.actions.activate ) { #>
+						<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<# } #>
 				<# } #>
 			</div>

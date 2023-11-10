@@ -1,13 +1,21 @@
 <?php
 
 /**
- * @group comment
- *
  * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ *
+ * @group comment
  *
  * @covers ::comments_template
  */
 class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
+
+	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
 
 	/**
 	 * @ticket 8071
