@@ -899,6 +899,11 @@ function unload_textdomain( $domain, $reloadable = false ) {
 	 */
 	do_action( 'unload_textdomain', $domain, $reloadable );
 
+	// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
+	if ( ! $reloadable ) {
+		WP_Translation_Controller::instance()->unload( $domain );
+	}
+
 	if ( isset( $l10n[ $domain ] ) ) {
 		if ( $l10n[ $domain ] instanceof NOOP_Translations ) {
 			unset( $l10n[ $domain ] );
@@ -908,11 +913,8 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 		unset( $l10n[ $domain ] );
 
-		// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
 		if ( ! $reloadable ) {
 			$l10n_unloaded[ $domain ] = true;
-
-			return WP_Translation_Controller::instance()->unload( $domain );
 		}
 
 		return true;
