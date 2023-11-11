@@ -144,19 +144,19 @@ class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string                     $textdomain Optional. Text domain. Default 'default'.
-	 * @param WP_Translation_File|string $mo         Translation file instance or file name.
+	 * @param WP_Translation_File|string $file       Optional. Translation file instance or file name. Default all files.
 	 * @param string                     $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
-	public function unload( string $textdomain = 'default', $mo = null, string $locale = null ) {
-		if ( null !== $mo ) {
-			if ( is_string( $mo ) ) {
-				$mo = realpath( $mo );
+	public function unload( string $textdomain = 'default', $file = null, string $locale = null ) {
+		if ( null !== $file ) {
+			if ( is_string( $file ) ) {
+				$file = realpath( $file );
 			}
 
 			if ( null !== $locale ) {
 				foreach ( $this->loaded_translations[ $locale ][ $textdomain ] as $i => $moe ) {
-					if ( $mo === $moe || $mo === $moe->get_file() ) {
+					if ( $file === $moe || $file === $moe->get_file() ) {
 						unset( $this->loaded_translations[ $locale ][ $textdomain ][ $i ] );
 						unset( $this->loaded_files[ $moe->get_file() ][ $locale ][ $textdomain ] );
 						return true;
@@ -168,7 +168,7 @@ class WP_Translation_Controller {
 
 			foreach ( $this->loaded_translations as $l => $domains ) {
 				foreach ( $domains[ $textdomain ] as $i => $moe ) {
-					if ( $mo === $moe || $mo === $moe->get_file() ) {
+					if ( $file === $moe || $file === $moe->get_file() ) {
 						unset( $this->loaded_translations[ $l ][ $textdomain ][ $i ] );
 						unset( $this->loaded_files[ $moe->get_file() ][ $l ][ $textdomain ] );
 						return true;
