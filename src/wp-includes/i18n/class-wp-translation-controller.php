@@ -149,10 +149,6 @@ class WP_Translation_Controller {
 	 * @return bool True on success, false otherwise.
 	 */
 	public function unload( string $textdomain = 'default', $mo = null, string $locale = null ) {
-		if ( ! $this->is_loaded( $textdomain, $locale ) ) {
-			return false;
-		}
-
 		if ( null !== $mo ) {
 			if ( is_string( $mo ) ) {
 				$mo = realpath( $mo );
@@ -193,10 +189,14 @@ class WP_Translation_Controller {
 			return true;
 		}
 
+		$unloaded = false;
+
 		foreach ( $this->loaded_translations as $l => $domains ) {
 			if ( ! isset( $domains[ $textdomain ] ) ) {
 				continue;
 			}
+
+			$unloaded = true;
 
 			foreach ( $domains[ $textdomain ] as $moe ) {
 				unset( $this->loaded_files[ $moe->get_file() ][ $l ][ $textdomain ] );
@@ -205,7 +205,7 @@ class WP_Translation_Controller {
 			unset( $this->loaded_translations[ $l ][ $textdomain ] );
 		}
 
-		return true;
+		return $unloaded;
 	}
 
 	/**
