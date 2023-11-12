@@ -330,6 +330,42 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::unload
+	 *
+	 * @return void
+	 */
+	public function test_unload_with_multiple_locales() {
+		$ginger_mo = new WP_Translation_Controller();
+
+		$ginger_mo->set_locale( 'de_DE' );
+
+		$this->assertSame( 'de_DE', $ginger_mo->get_locale() );
+		$this->assertTrue( $ginger_mo->load( DIR_TESTDATA . '/i18n/example-simple.mo', 'unittest' ) );
+		$ginger_mo->set_locale( 'es_ES' );
+		$this->assertTrue( $ginger_mo->load( DIR_TESTDATA . '/i18n/simple.mo', 'unittest' ) );
+		$ginger_mo->set_locale( 'pl_PL' );
+		$this->assertTrue( $ginger_mo->load( DIR_TESTDATA . '/i18n/plural.mo', 'unittest' ) );
+		$this->assertSame( 'pl_PL', $ginger_mo->get_locale() );
+
+		$this->assertTrue( $ginger_mo->is_loaded( 'unittest' ) );
+
+		$ginger_mo->set_locale( 'en_US' );
+		$this->assertSame( 'en_US', $ginger_mo->get_locale() );
+
+		$this->assertFalse( $ginger_mo->is_loaded( 'unittest' ) );
+		$this->assertTrue( $ginger_mo->is_loaded( 'unittest', 'pl_PL' ) );
+		$this->assertTrue( $ginger_mo->is_loaded( 'unittest', 'es_ES' ) );
+		$this->assertTrue( $ginger_mo->is_loaded( 'unittest', 'de_DE' ) );
+
+		$this->assertTrue( $ginger_mo->unload( 'unittest' ) );
+
+		$this->assertFalse( $ginger_mo->is_loaded( 'unittest' ) );
+		$this->assertFalse( $ginger_mo->is_loaded( 'unittest', 'pl_PL' ) );
+		$this->assertFalse( $ginger_mo->is_loaded( 'unittest', 'es_ES' ) );
+		$this->assertFalse( $ginger_mo->is_loaded( 'unittest', 'de_DE' ) );
+	}
+
+	/**
 	 * @covers ::load
 	 * @covers ::locate_translation
 	 *
