@@ -811,7 +811,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	if ( 'mo' !== $preferred_format ) {
 		array_unshift(
 			$translation_files,
-			str_replace( '.mo', ".mo.$preferred_format", $mofile )
+			str_replace( '.mo', ".l10n.$preferred_format", $mofile )
 		);
 	}
 
