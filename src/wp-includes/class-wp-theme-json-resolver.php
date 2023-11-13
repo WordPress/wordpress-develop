@@ -80,7 +80,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added caching.
-	 * @since 6.4.0 Added persistent caching using object cache.
+	 * @since 6.5.0 Added persistent caching using object cache.
 	 *
 	 * @param string $file_path Path to file. Empty if no file.
 	 * @param string $cache_key Optional. Key to cache the result under. Omitting the parameter results in no caching
@@ -392,7 +392,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * Data will be cached for the theme that the theme.json file belongs to.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param WP_Theme $wp_theme Theme instance.
 	 * @return array Raw array of data read from theme.json, or empty array if not readable.
