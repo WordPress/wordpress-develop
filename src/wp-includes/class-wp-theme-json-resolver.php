@@ -408,8 +408,7 @@ class WP_Theme_JSON_Resolver {
 		if ( $wp_theme->parent() ) {
 			$parent_theme_json_file = $wp_theme->parent()->get_file_path( 'theme.json' );
 			if ( $theme_json_file === $parent_theme_json_file ) {
-				$theme_json_file = $parent_theme_json_file;
-				$wp_theme        = $wp_theme->parent();
+				$wp_theme = $wp_theme->parent();
 			}
 		}
 
