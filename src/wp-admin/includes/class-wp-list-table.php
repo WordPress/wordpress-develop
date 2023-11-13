@@ -851,6 +851,20 @@ class WP_List_Table {
 			$pending_comments_number
 		);
 
+		$post_object   = get_post( $post_id );
+		$edit_post_cap = $post_object ? 'edit_post' : 'edit_posts';
+		if (
+			current_user_can( $edit_post_cap, $post_id ) ||
+			(
+				empty( $post_object->post_password ) &&
+				current_user_can( 'read_post', $post_id )
+			)
+		) {
+			// The user has access to the post and thus can see comments
+		} else {
+			return false;
+		}
+
 		if ( ! $approved_comments && ! $pending_comments ) {
 			// No comments at all.
 			printf(
@@ -1403,13 +1417,13 @@ class WP_List_Table {
 
 		if ( ! empty( $columns['cb'] ) ) {
 			static $cb_counter = 1;
-			$columns['cb']     = '<label class="label-covers-full-cell" for="cb-select-all-' . $cb_counter . '">' .
+			$columns['cb']     = '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />
+			<label for="cb-select-all-' . $cb_counter . '">' .
 				'<span class="screen-reader-text">' .
 					/* translators: Hidden accessibility text. */
 					__( 'Select All' ) .
 				'</span>' .
-				'</label>' .
-				'<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
+				'</label>';
 			++$cb_counter;
 		}
 

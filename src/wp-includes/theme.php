@@ -873,6 +873,10 @@ function switch_theme( $stylesheet ) {
 	$wp_stylesheet_path = null;
 	$wp_template_path   = null;
 
+	// Clear pattern caches.
+	$new_theme->delete_pattern_cache();
+	$old_theme->delete_pattern_cache();
+
 	/**
 	 * Fires after the theme is switched.
 	 *
@@ -1288,11 +1292,10 @@ function get_header_image_tag( $attr = array() ) {
 	$attr = wp_parse_args(
 		$attr,
 		array(
-			'src'      => $header->url,
-			'width'    => $width,
-			'height'   => $height,
-			'alt'      => $alt,
-			'decoding' => 'async',
+			'src'    => $header->url,
+			'width'  => $width,
+			'height' => $height,
+			'alt'    => $alt,
 		)
 	);
 
@@ -3783,9 +3786,9 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
-	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+	ob_start();
 	?>
-	<script<?php echo $type_attr; ?>>
+	<script>
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
@@ -3801,6 +3804,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
@@ -4331,9 +4335,9 @@ function wp_theme_get_element_class_name( $element ) {
 }
 
 /**
- * Adds default theme supports for block themes when the 'setup_theme' action fires.
+ * Adds default theme supports for block themes when the 'after_setup_theme' action fires.
  *
- * See {@see 'setup_theme'}.
+ * See {@see 'after_setup_theme'}.
  *
  * @since 5.9.0
  * @access private

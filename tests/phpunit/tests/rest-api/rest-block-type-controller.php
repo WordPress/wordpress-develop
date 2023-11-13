@@ -62,6 +62,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$admin_id );
 		self::delete_user( self::$subscriber_id );
 		unregister_block_type( 'fake/test' );
+		unregister_block_type( 'fake/invalid' );
+		unregister_block_type( 'fake/false' );
 	}
 
 	/**
@@ -196,6 +198,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 * @ticket 57585
 	 * @ticket 59346
+	 * @ticket 59797
 	 */
 	public function test_get_item_invalid() {
 		$block_type = 'fake/invalid';
@@ -240,7 +243,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$data['attributes']
 		);
@@ -270,6 +274,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 * @ticket 57585
 	 * @ticket 59346
+	 * @ticket 59797
 	 */
 	public function test_get_item_defaults() {
 		$block_type = 'fake/false';
@@ -314,7 +319,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$data['attributes']
 		);
