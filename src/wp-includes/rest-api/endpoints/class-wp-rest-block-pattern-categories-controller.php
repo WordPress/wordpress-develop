@@ -114,7 +114,7 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 		if ( ! isset( $query_args['source'] ) || in_array( 'core', $query_args['source'], true ) ) {
 			$categories        = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered();
 			foreach ( $categories as $category ) {
-				if ( in_array( $category['label'], $unique_categories, true ) || 'query' === $category['name'] ) {
+				if ( in_array( $category['label'], $unique_categories, true ) ) {
 					continue;
 				}
 				$prepared_category = $this->prepare_item_for_response( $category, $request );
