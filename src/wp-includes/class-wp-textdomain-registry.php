@@ -48,6 +48,17 @@ class WP_Textdomain_Registry {
 	protected $custom_paths = array();
 
 	/**
+	 * Unused. Holds a cached list of available .mo files to improve performance.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @var array
+	 *
+	 * @deprecated
+	 */
+	protected $cached_mo_files = array();
+
+	/**
 	 * Holds a cached list of domains with translations to improve performance.
 	 *
 	 * @since 6.2.0

@@ -24,15 +24,6 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	 * @covers ::set_custom_path
 	 */
 	public function test_set_custom_path() {
-		$reflection          = new ReflectionClass( $this->instance );
-		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
-		$reflection_property->setAccessible( true );
-
-		$this->assertEmpty(
-			$reflection_property->getValue( $this->instance ),
-			'Cache not empty by default'
-		);
-
 		$this->instance->set_custom_path( 'foo', WP_LANG_DIR . '/bar' );
 
 		$this->assertTrue(
@@ -48,11 +39,6 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			$this->instance->get( 'foo', 'de_DE' ),
 			'Custom path for textdomain not returned'
 		);
-		$this->assertArrayHasKey(
-			WP_LANG_DIR . '/bar',
-			$reflection_property->getValue( $this->instance ),
-			'Custom path missing from cache'
-		);
 	}
 
 	/**
@@ -60,21 +46,11 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	 * @dataProvider data_domains_locales
 	 */
 	public function test_get( $domain, $locale, $expected ) {
-		$reflection          = new ReflectionClass( $this->instance );
-		$reflection_property = $reflection->getProperty( 'cached_mo_files' );
-		$reflection_property->setAccessible( true );
-
 		$actual = $this->instance->get( $domain, $locale );
 		$this->assertSame(
 			$expected,
 			$actual,
 			'Expected languages directory path not matching actual one'
-		);
-
-		$this->assertArrayHasKey(
-			WP_LANG_DIR . '/plugins',
-			$reflection_property->getValue( $this->instance ),
-			'Default plugins path missing from cache'
 		);
 	}
 
