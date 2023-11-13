@@ -403,7 +403,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $revision;
 		}
 
-		if ( $parent->ID !== $revision->post_parent ) {
+		if ( (int) $parent->ID !== (int) $revision->post_parent ) {
 			return new WP_Error(
 				'rest_post_invalid_parent',
 				/* translators: %s: A post revision id. */
