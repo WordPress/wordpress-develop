@@ -248,7 +248,7 @@ function get_option( $option, $default_value = false ) {
 }
 
 /**
- * Loads specific options into the cache with a single database query.
+ * Primes specific options into the cache with a single database query.
  *
  * Only options that do not already exist in cache will be loaded.
  *
@@ -258,14 +258,22 @@ function get_option( $option, $default_value = false ) {
  *
  * @param array $options An array of option names to be loaded.
  */
-function wp_load_options( $options ) {
+function wp_prime_option_caches( $options ) {
 	$alloptions     = wp_load_alloptions();
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
+	$notoptions     = wp_cache_get( 'notoptions', 'options' );
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
 
 	// Filter options that are not in the cache.
 	$options_to_prime = array();
 	foreach ( $options as $option ) {
-		if ( ( ! isset( $cached_options[ $option ] ) || ! $cached_options[ $option ] ) && ! isset( $alloptions[ $option ] ) ) {
+		if (
+			( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] )
+			&& ! isset( $alloptions[ $option ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
 			$options_to_prime[] = $option;
 		}
 	}
@@ -288,7 +296,12 @@ function wp_load_options( $options ) {
 
 	$options_found = array();
 	foreach ( $results as $result ) {
-		$options_found[ $result->option_name ] = maybe_unserialize( $result->option_value );
+		/*
+		 * The cache is primed with the raw value (i.e. not maybe_unserialized).
+		 *
+		 * `get_option()` will handle unserializing the value as needed.
+		 */
+		$options_found[ $result->option_name ] = $result->option_value;
 	}
 	wp_cache_set_multiple( $options_found, 'options' );
 
@@ -298,12 +311,6 @@ function wp_load_options( $options ) {
 	}
 
 	$options_not_found = array_diff( $options_to_prime, array_keys( $options_found ) );
-
-	$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
-	}
 
 	// Add the options that were not found to the cache.
 	$update_notoptions = false;
@@ -321,7 +328,7 @@ function wp_load_options( $options ) {
 }
 
 /**
- * Loads all options registered with a specific option group.
+ * Primes the cache of all options registered with a specific option group.
  *
  * @since 6.4.0
  *
@@ -329,11 +336,11 @@ function wp_load_options( $options ) {
  *
  * @param string $option_group The option group to load options for.
  */
-function wp_load_options_by_group( $option_group ) {
+function wp_prime_option_caches_by_group( $option_group ) {
 	global $new_allowed_options;
 
 	if ( isset( $new_allowed_options[ $option_group ] ) ) {
-		wp_load_options( $new_allowed_options[ $option_group ] );
+		wp_prime_option_caches( $new_allowed_options[ $option_group ] );
 	}
 }
 
@@ -348,7 +355,7 @@ function wp_load_options_by_group( $option_group ) {
  * @return array An array of key-value pairs for the requested options.
  */
 function get_options( $options ) {
-	wp_load_options( $options );
+	wp_prime_option_caches( $options );
 
 	$result = array();
 	foreach ( $options as $option ) {
@@ -468,11 +475,13 @@ function wp_set_option_autoload_values( array $options ) {
 		wp_cache_delete( 'alloptions', 'options' );
 	} elseif ( $grouped_options['no'] ) {
 		$alloptions = wp_load_alloptions( true );
+
 		foreach ( $grouped_options['no'] as $option ) {
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 			}
 		}
+
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
 	}
 
@@ -836,6 +845,7 @@ function update_option( $option, $value, $autoload = null ) {
 		if ( ! isset( $update_args['autoload'] ) ) {
 			// Update the cached value based on where it is currently cached.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				$alloptions[ $option ] = $serialized_value;
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -847,11 +857,13 @@ function update_option( $option, $value, $autoload = null ) {
 			wp_cache_delete( $option, 'options' );
 
 			$alloptions = wp_load_alloptions( true );
+
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
 			// Delete the alloptions cache, then set the individual cache.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1082,6 +1094,7 @@ function delete_option( $option ) {
 	if ( ! wp_installing() ) {
 		if ( 'yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
+
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1209,6 +1222,7 @@ function get_transient( $transient ) {
 		if ( ! wp_installing() ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
+
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				$timeout           = get_option( $transient_timeout );

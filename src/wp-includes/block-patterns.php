@@ -324,10 +324,21 @@ function _register_remote_theme_patterns() {
  * @since 6.0.0
  * @since 6.1.0 The `postTypes` property was added.
  * @since 6.2.0 The `templateTypes` property was added.
- * @since 6.4.0 Uses the `_wp_get_block_patterns` function.
+ * @since 6.4.0 Uses the `WP_Theme::get_block_patterns` method.
  * @access private
  */
 function _register_theme_block_patterns() {
+
+	/*
+	 * During the bootstrap process, a check for active and valid themes is run.
+	 * If no themes are returned, the theme's functions.php file will not be loaded,
+	 * which can lead to errors if patterns expect some variables or constants to
+	 * already be set at this point, so bail early if that is the case.
+	 */
+	if ( empty( wp_get_active_and_valid_themes() ) ) {
+		return;
+	}
+
 	/*
 	 * Register patterns for the active theme. If the theme is a child theme,
 	 * let it override any patterns from the parent theme that shares the same slug.
