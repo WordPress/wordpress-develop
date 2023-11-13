@@ -518,7 +518,6 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
-	$template_content       = file_get_contents( $template_file['path'] );
 	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();
@@ -532,7 +531,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->has_theme_file = true;
 	$template->is_custom      = true;
 	$template->modified       = null;
-	$template->content        = $template_content;
+	$template->content        = file_get_contents( $template_file['path'] );
 
 	if ( 'wp_template' === $template_type && isset( $default_template_types[ $template_file['slug'] ] ) ) {
 		$template->description = $default_template_types[ $template_file['slug'] ]['description'];
@@ -555,7 +554,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
 	}
-	$blocks            = parse_blocks( $template_content );
+	$blocks            = parse_blocks( $template->content );
 	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
