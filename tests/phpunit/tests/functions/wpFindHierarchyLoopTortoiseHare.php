@@ -41,7 +41,7 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 	 */
 	public function test_wp_find_hierarchy_loop_tortoise_hare_return_loop() {
 
-		$result = wp_find_hierarchy_loop_tortoise_hare(
+		$result   = wp_find_hierarchy_loop_tortoise_hare(
 			static function ( $id ) {
 				return 2;
 			},
