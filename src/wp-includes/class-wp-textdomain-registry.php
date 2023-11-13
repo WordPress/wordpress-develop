@@ -186,7 +186,7 @@ class WP_Textdomain_Registry {
 		$mo_files  = wp_cache_get( $cache_key, 'translations' );
 
 		if ( false === $mo_files ) {
-			$mo_files = glob( $path . '/*.mo' );
+			$mo_files = glob( $path . '*.mo' );
 			wp_cache_set( $cache_key, $mo_files, 'translations' );
 		}
 
