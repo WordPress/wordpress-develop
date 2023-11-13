@@ -756,11 +756,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
 
-		// Force-unset $i18n_schema property to "unload" translation schema.
-		$property = new ReflectionProperty( $theme_json_resolver, 'i18n_schema' );
-		$property->setAccessible( true );
-		$property->setValue( null, null );
-
 		// A completely empty theme.json data set still has the 'version' key when parsed.
 		$empty_theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 
