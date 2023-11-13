@@ -482,4 +482,68 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$result = $this->registry->is_registered( 'test/one' );
 		$this->assertTrue( $result );
 	}
+
+	/**
+	 * Ensures theme patterns are registered on init.
+	 *
+	 * @ticket 59723
+	 *
+	 * @covers ::_register_theme_block_patterns
+	 */
+	public function test_register_theme_block_patterns_on_init() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		$theme          = wp_get_theme();
+		$theme_patterns = array_values( wp_list_pluck( $theme->get_block_patterns(), 'slug' ) );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		$registered = wp_list_pluck( $registry->get_all_registered(), 'name' );
+
+		// Cleanup patterns registry.
+		foreach ( $theme_patterns as $pattern ) {
+			$registry->unregister( $pattern );
+		}
+
+		$this->assertSameSets( $theme_patterns, array_intersect( $theme_patterns, $registered ), 'Could not confirm theme patterns were registered.' );
+	}
+
+	/**
+	 * Ensures theme patterns are not registered when no themes are active and valid.
+	 *
+	 * @ticket 59723
+	 *
+	 * @covers ::_register_theme_block_patterns
+	 */
+	public function test_register_theme_block_patterns_on_init_skipped_during_install() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		$theme          = wp_get_theme();
+		$theme_patterns = array_values( wp_list_pluck( $theme->get_block_patterns(), 'slug' ) );
+
+		/*
+		 * This will short-circuit theme activation.
+		 * @see wp_get_active_and_valid_themes().
+		 */
+		wp_installing( true );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		$registered = wp_list_pluck( $registry->get_all_registered(), 'name' );
+
+		// Cleanup.
+		wp_installing( false );
+
+		$this->assertEmpty( array_intersect( $theme_patterns, $registered ), 'Theme patterns were were incorrectly registered.' );
+	}
 }
