@@ -1,6 +1,6 @@
 <?php
 /**
- * Title: Portfolio Archive Template
+ * Title: Portfolio archive template
  * Slug: twentytwentyfour/template-archive-portfolio
  * Template Types: archive
  * Viewport width: 1400
@@ -8,20 +8,16 @@
  */
 ?>
 
-<!-- wp:group {"style":{"position":{"type":"sticky","top":"0px"}},"layout":{"type":"default"}} -->
-<div class="wp-block-group">
-	<!-- wp:template-part {"slug":"header","theme":"twentytwentyfour"} /-->
-</div>
-<!-- /wp:group -->
+<!-- wp:template-part {"slug":"header","area":"header","tagName":"header"} /-->
 
 <!-- wp:group {"tagName":"main","align":"full","layout":{"type":"constrained"}} -->
 <main class="wp-block-group alignfull">
 
 	<!-- wp:query-title {"type":"archive","align":"wide","style":{"typography":{"lineHeight":"1"},"spacing":{"padding":{"top":"var:preset|spacing|50"}}}} /-->
 
-	<!-- wp:pattern {"slug":"twentytwentyfour/posts-three-columns-images"} /-->
+	<!-- wp:pattern {"slug":"twentytwentyfour/posts-images-only-3-col"} /-->
 
 </main>
 <!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer","area":"footer","tagName":"footer","theme":"twentytwentyfour"} /-->
+<!-- wp:template-part {"slug":"footer","area":"footer","tagName":"footer"} /-->

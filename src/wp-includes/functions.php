@@ -5079,7 +5079,7 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
 		) {
 			$input_array[ $path_element ] = array();
 		}
-		$input_array = &$input_array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
+		$input_array = &$input_array[ $path_element ];
 	}
 
 	$input_array[ $path[ $i ] ] = $value;
@@ -7169,7 +7169,7 @@ function _get_non_cached_ids( $object_ids, $cache_group ) {
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $value ) {
-		if ( ! $value ) {
+		if ( false === $value ) {
 			$non_cached_ids[] = (int) $id;
 		}
 	}
@@ -7585,7 +7585,7 @@ function wp_delete_file_from_directory( $file, $directory ) {
 }
 
 /**
- * Outputs a small JS snippet on preview tabs/windows to remove `window.name` on unload.
+ * Outputs a small JS snippet on preview tabs/windows to remove `window.name` when a user is navigating to another page.
  *
  * This prevents reusing the same tab for a preview when the user has navigated away.
  *
@@ -7614,12 +7614,12 @@ function wp_post_preview_js() {
 		}
 
 		if ( window.addEventListener ) {
-			window.addEventListener( 'unload', function() { window.name = ''; }, false );
+			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
@@ -7828,6 +7828,40 @@ function wp_is_uuid( $uuid, $version = null ) {
 function wp_unique_id( $prefix = '' ) {
 	static $id_counter = 0;
 	return $prefix . (string) ++$id_counter;
+}
+
+/**
+ * Generates an incremental ID that is independent per each different prefix.
+ *
+ * It is similar to `wp_unique_id`, but each prefix has its own internal ID
+ * counter to make each prefix independent from each other. The ID starts at 1
+ * and increments on each call. The returned value is not universally unique,
+ * but it is unique across the life of the PHP process and it's stable per
+ * prefix.
+ *
+ * @since 6.4.0
+ *
+ * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
+ * @return string Incremental ID per prefix.
+ */
+function wp_unique_prefixed_id( $prefix = '' ) {
+	static $id_counters = array();
+
+	if ( ! is_string( $prefix ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			sprintf( 'The prefix must be a string. "%s" data type given.', gettype( $prefix ) )
+		);
+		$prefix = '';
+	}
+
+	if ( ! isset( $id_counters[ $prefix ] ) ) {
+		$id_counters[ $prefix ] = 0;
+	}
+
+	$id = ++$id_counters[ $prefix ];
+
+	return $prefix . (string) $id;
 }
 
 /**

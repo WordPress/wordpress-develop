@@ -171,6 +171,7 @@
 				<element value="lastChild"/>
 				<element value="nodeName"/>
 				<element value="nodeType"/>
+				<element value="nodeValue"/>
 				<element value="parentNode"/>
 				<element value="preserveWhiteSpace"/>
 				<element value="textContent"/>
@@ -335,18 +336,6 @@
 	<!-- Translator comments aren't needed in unit tests. -->
 	<rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
 		<exclude-pattern>/tests/*</exclude-pattern>
-	</rule>
-
-	<!-- Allow non-snake-case vars & properties for block-related classes. -->
-	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
 	</rule>
 
 </ruleset>

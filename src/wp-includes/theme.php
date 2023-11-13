@@ -873,6 +873,10 @@ function switch_theme( $stylesheet ) {
 	$wp_stylesheet_path = null;
 	$wp_template_path   = null;
 
+	// Clear pattern caches.
+	$new_theme->delete_pattern_cache();
+	$old_theme->delete_pattern_cache();
+
 	/**
 	 * Fires after the theme is switched.
 	 *
@@ -3800,7 +3804,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
@@ -4331,9 +4335,9 @@ function wp_theme_get_element_class_name( $element ) {
 }
 
 /**
- * Adds default theme supports for block themes when the 'setup_theme' action fires.
+ * Adds default theme supports for block themes when the 'after_setup_theme' action fires.
  *
- * See {@see 'setup_theme'}.
+ * See {@see 'after_setup_theme'}.
  *
  * @since 5.9.0
  * @access private
