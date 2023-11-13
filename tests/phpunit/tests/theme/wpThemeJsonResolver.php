@@ -766,8 +766,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		// Include an unmodified $wp_version.
 		require ABSPATH . WPINC . '/version.php';
-		$cache_group    = 'theme_json_files';
-		$cache_key      = "i18n_schema_{$wp_version}";
+		$cache_group = 'theme_json_files';
+		$cache_key   = "i18n_schema_{$wp_version}";
 		$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), 'Theme i18n schema should not have been loaded without theme support.' );
 	}
 
