@@ -1895,14 +1895,14 @@ class WP_Query {
 		}
 
 		$q['cache_early'] = $q['cache_results'] && $q['cache_early'];
-		if( $q['cache_early'] ) {
-			$q = $this->get_get_posts_filter_pattern( $q );
-			$early_hash = md5( serialize( $q ) );
-			$last_changed = wp_cache_get_last_changed( 'posts' );
+		if ( $q['cache_early'] ) {
+			$q               = $this->get_get_posts_filter_pattern( $q );
+			$early_hash      = md5( serialize( $q ) );
+			$last_changed    = wp_cache_get_last_changed( 'posts' );
 			$early_cache_key = "get_posts:$early_hash:$last_changed";
-			$cache_key = wp_cache_get( $early_cache_key, 'post-cache-keys', true );
-			$cache_found = false;
-			if ( !empty( $cache_key ) && null === $this->posts ) {
+			$cache_key       = wp_cache_get( $early_cache_key, 'post-cache-keys', true );
+			$cache_found     = false;
+			if ( ! empty( $cache_key ) && null === $this->posts ) {
 				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
 
 				if ( $cached_results ) {
@@ -3228,7 +3228,7 @@ class WP_Query {
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 			$cache_key   = $this->generate_cache_key( $q, $new_request );
-			if( $q['cache_early'] ) {
+			if ( $q['cache_early'] ) {
 				wp_cache_add( $early_cache_key, $cache_key, 'posts-cache-keys' );
 			}
 
@@ -3628,11 +3628,11 @@ class WP_Query {
 
 	/**
 	 * Capture signature of filter from get_posts in $args.
-	 * 
+	 *
 	 * @param array $args query args.
 	 * @return array $args
 	 */
-	public function get_get_posts_filter_pattern( $args ){
+	public function get_get_posts_filter_pattern( $args ) {
 		global $wp_filter;
 		$filters = array(
 			'wp_allow_query_attachment_by_filename',
@@ -3670,8 +3670,8 @@ class WP_Query {
 			'the_posts',
 		);
 
-		foreach( $filters as $filter ){
-			if( has_filter( $filter ) ){
+		foreach ( $filters as $filter ) {
+			if ( has_filter( $filter ) ) {
 				$args['args_filters'][ $filter ] = $wp_filter[ $filter ];
 			}
 		}
