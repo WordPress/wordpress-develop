@@ -17,7 +17,7 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 		$result = wp_find_hierarchy_loop_tortoise_hare(
 			static function ( $id ) {
 				return 1;
-		  	},
+			},
 			1
 		);
 		$this->assertEquals( 1, $result );
