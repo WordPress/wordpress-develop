@@ -101,6 +101,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$actual   = array_keys( $data );
 
 		$expected = array(
+			'admin_language',
 			'title',
 			'description',
 			'timezone',
