@@ -23,7 +23,6 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	private $revision_id2;
 	private $revision_3;
 	private $revision_id3;
-	private $revision_2_1;
 	private $revision_2_1_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
