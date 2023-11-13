@@ -5627,7 +5627,6 @@ function wp_get_avif_info( $filename ) {
 		return $features;
 
 	}
-
 }
 
 /**
