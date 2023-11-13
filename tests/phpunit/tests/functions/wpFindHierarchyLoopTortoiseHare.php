@@ -14,11 +14,11 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 	 */
 	public function test_wp_find_hierarchy_loop_tortoise_hare() {
 
-		$result = wp_find_hierarchy_loop_tortoise_hare( 
+		$result = wp_find_hierarchy_loop_tortoise_hare(
 			static function ( $id ) {
-			return 1;
+				return 1;
 		  	},
-			1 
+			1
 		);
 		$this->assertEquals( 1, $result );
 	}
@@ -28,11 +28,11 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 	 */
 	public function test_wp_find_hierarchy_loop_tortoise_hare_2() {
 
-		$result = wp_find_hierarchy_loop_tortoise_hare( 
+		$result = wp_find_hierarchy_loop_tortoise_hare(
 			static function ( $id ) {
 				return 2;
 			},
-			1 
+			1
 		);
 		$this->assertEquals( 2, $result );
 	}
@@ -41,14 +41,14 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 	 */
 	public function test_wp_find_hierarchy_loop_tortoise_hare_return_loop() {
 
-		$result = wp_find_hierarchy_loop_tortoise_hare( 
+		$result = wp_find_hierarchy_loop_tortoise_hare(
 			static function ( $id ) {
 				return 2;
 			},
 			1,
 			array(),
 			array(),
-			true 
+			true
 		);
 		$expected = array(  
 			1 => true,
@@ -62,7 +62,7 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 	 */
 	public function test_wp_find_hierarchy_loop_tortoise_hare_return_loop_2() {
 
-		$result = wp_find_hierarchy_loop_tortoise_hare( 
+		$result = wp_find_hierarchy_loop_tortoise_hare(
 			static function ( $id ) {
 				return 1;
 			},
