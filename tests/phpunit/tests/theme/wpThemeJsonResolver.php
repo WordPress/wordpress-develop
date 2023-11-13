@@ -763,7 +763,12 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$theme_data = $theme_json_resolver->get_theme_data( array(), array( 'with_supports' => false ) );
 		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
 		$this->assertSame( $empty_theme_json, $theme_data->get_raw_data(), 'Theme data should be empty without theme support.' );
-		$this->assertNull( $property->getValue(), 'Theme i18n schema should not have been loaded without theme support.' );
+
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
+		$cache_group    = 'theme_json_files';
+		$cache_key      = "i18n_schema_{$wp_version}";
+		$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), 'Theme i18n schema should not have been loaded without theme support.' );
 	}
 
 	/**
