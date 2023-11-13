@@ -137,7 +137,7 @@ function get_user_locale( $user = 0 ) {
  * The process to get the locale should only be done once, but the locale will
  * always be filtered using the {@see 'locale'} hook.
  *
- * @since 6.3.0
+ * @since 6.5.0
  *
  * @global string $locale           The current locale.
  * @global string $wp_local_package Locale code of the package.
@@ -169,7 +169,7 @@ function get_admin_locale() {
 	/**
 	 * Filters the admin locale.
 	 *
-	 * @since 6.3.0
+	 * @since 6.5.0
 	 *
 	 * @param string $locale The admin locale.
 	 */

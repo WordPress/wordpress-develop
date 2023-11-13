@@ -2559,7 +2559,7 @@ function register_initial_settings() {
 		'admin_locale',
 		array(
 			'show_in_rest' => array(
-				'name' => 'language',
+				'name' => 'admin_language',
 			),
 			'type'         => 'string',
 			'description'  => __( 'WordPress admin locale code.' ),
