@@ -75,23 +75,6 @@ class WP_Theme_JSON_Resolver {
 	protected static $user_custom_post_type_id = null;
 
 	/**
-	 * Container to keep loaded i18n schema for `theme.json`.
-	 *
-	 * @since 5.8.0 As `$theme_json_i18n`.
-	 * @since 5.9.0 Renamed from `$theme_json_i18n` to `$i18n_schema`.
-	 * @var array
-	 */
-	protected static $i18n_schema = null;
-
-	/**
-	 * `theme.json` file cache.
-	 *
-	 * @since 6.1.0
-	 * @var array
-	 */
-	protected static $theme_json_file_cache = array();
-
-	/**
 	 * Processes a file that adheres to the theme.json schema
 	 * and returns an array with its contents, or a void array if none found.
 	 *
@@ -106,30 +89,20 @@ class WP_Theme_JSON_Resolver {
 	 */
 	protected static function read_json_file( $file_path, $cache_key = '' ) {
 		if ( $file_path ) {
-			if ( array_key_exists( $file_path, static::$theme_json_file_cache ) ) {
-				return static::$theme_json_file_cache[ $file_path ];
-			}
-
 			$cache_group = 'theme_json_files';
 			if ( $cache_key ) {
 				$decoded_file = wp_cache_get( $cache_key, $cache_group );
 				if ( false !== $decoded_file ) {
-					static::$theme_json_file_cache[ $file_path ] = $decoded_file;
-					return static::$theme_json_file_cache[ $file_path ];
+					return $decoded_file;
 				}
 			}
 
-			if ( ! isset( static::$theme_json_file_cache[ $file_path ] ) ) {
-				$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
-				if ( is_array( $decoded_file ) ) {
-					static::$theme_json_file_cache[ $file_path ] = $decoded_file;
-
-					if ( $cache_key ) {
-						wp_cache_set( $cache_key, static::$theme_json_file_cache[ $file_path ], $cache_group );
-					}
-
-					return static::$theme_json_file_cache[ $file_path ];
+			$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
+			if ( is_array( $decoded_file ) ) {
+				if ( $cache_key ) {
+					wp_cache_set( $cache_key, $decoded_file, $cache_group );
 				}
+				return $decoded_file;
 			}
 		}
 
@@ -161,33 +134,22 @@ class WP_Theme_JSON_Resolver {
 	 * @return array Returns the modified $theme_json_structure.
 	 */
 	protected static function translate( $theme_json, $domain = 'default' ) {
-		if ( null === static::$i18n_schema ) {
-			// Only use cache when not currently developing for core.
-			$can_use_cached = ! wp_is_development_mode( 'core' );
-			if ( $can_use_cached ) {
-				// Include an unmodified $wp_version.
-				require ABSPATH . WPINC . '/version.php';
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
 
-				$cache_group    = 'theme_json_files';
-				$cache_key      = "i18n_schema_{$wp_version}";
+		$cache_group    = 'theme_json_files';
+		$cache_key      = "i18n_schema_{$wp_version}";
 
-				$i18n_schema = wp_cache_get( $cache_key, $cache_group );
-				if ( false !== $i18n_schema ) {
-					static::$i18n_schema = $i18n_schema;
-				}
-			}
+		$i18n_schema = wp_cache_get( $cache_key, $cache_group );
 
-			if ( null === static::$i18n_schema ) {
-				$i18n_schema         = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
-				static::$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
+		if ( false === $i18n_schema ) {
+			$i18n_schema = wp_json_file_decode( __DIR__ . '/theme-i18n.json' );
+			$i18n_schema = null === $i18n_schema ? array() : $i18n_schema;
 
-				if ( $can_use_cached ) {
-					wp_cache_set( $cache_key, static::$i18n_schema, $cache_group );
-				}
-			}
+			wp_cache_set( $cache_key, $i18n_schema, $cache_group );
 		}
 
-		return translate_settings_using_i18n_schema( static::$i18n_schema, $theme_json, $domain );
+		return translate_settings_using_i18n_schema( $i18n_schema, $theme_json, $domain );
 	}
 
 	/**
@@ -747,6 +709,8 @@ class WP_Theme_JSON_Resolver {
 	 *              and `$i18n_schema` variables to reset.
 	 * @since 6.1.0 Added the `$blocks` and `$blocks_cache` variables
 	 *              to reset.
+	 * @since 6.5.0 Modified resetting of i18n schema to use cache
+	 *              instead of variable.
 	 */
 	public static function clean_cached_data() {
 		static::$core                     = null;
@@ -760,7 +724,13 @@ class WP_Theme_JSON_Resolver {
 		static::$theme                    = null;
 		static::$user                     = null;
 		static::$user_custom_post_type_id = null;
-		static::$i18n_schema              = null;
+
+		// Include an unmodified $wp_version.
+		require ABSPATH . WPINC . '/version.php';
+
+		$cache_group    = 'theme_json_files';
+		$cache_key      = "i18n_schema_{$wp_version}";
+		wp_cache_delete( $cache_key, $cache_group );
 	}
 
 	/**
