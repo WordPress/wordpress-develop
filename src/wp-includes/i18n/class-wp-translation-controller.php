@@ -89,7 +89,7 @@ class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string $translation_file Translation file.
-	 * @param string $textdomain       Text domain.
+	 * @param string $textdomain       Optional. Text domain. Default 'default'.
 	 * @param string $locale           Optional. Locale. Default current locale.
 	 * @return bool True on success, false otherwise.
 	 */
@@ -232,8 +232,8 @@ class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string $text       Text to translate.
-	 * @param string $context    Optional. Context for the string.
-	 * @param string $textdomain Text domain.
+	 * @param string $context    Optional. Context for the string. Default empty string.
+	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return string|false Translation on success, false otherwise.
 	 */
@@ -261,8 +261,8 @@ class WP_Translation_Controller {
 	 *
 	 * @param array{0: string, 1: string} $plurals    Pair of singular and plural translations.
 	 * @param int                         $number     Number of items.
-	 * @param string                      $context    Optional. Context for the string.
-	 * @param string                      $textdomain Text domain.
+	 * @param string                      $context    Optional. Context for the string. Default empty string.
+	 * @param string                      $textdomain Optional. Text domain. Default 'default'.
 	 * @param string                      $locale     Optional. Locale. Default current locale.
 	 * @return string|false Translation on success, false otherwise.
 	 */
@@ -296,7 +296,7 @@ class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $textdomain Text domain.
+	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @return array<string, string> Headers.
 	 */
 	public function get_headers( string $textdomain = 'default' ) {
@@ -334,7 +334,7 @@ class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $textdomain Text domain.
+	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @return array<string, string> Entries.
 	 */
 	public function get_entries( string $textdomain = 'default' ) {
@@ -357,7 +357,7 @@ class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string $singular   Singular translation.
-	 * @param string $textdomain Text domain.
+	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return array{source: WP_Translation_File, entries: string[]}|false Translations on success, false otherwise.
 	 */
@@ -390,7 +390,7 @@ class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $textdomain Text domain.
+	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return WP_Translation_File[] List of translation files.
 	 */
