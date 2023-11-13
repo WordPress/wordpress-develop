@@ -50,7 +50,7 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 			array(),
 			true
 		);
-		$expected = array(  
+		$expected = array(
 			1 => true,
 			2 => true,
 		);
@@ -71,7 +71,7 @@ class Tests_Functions_wpFindHierarchyLoopTortoiseHare extends WP_UnitTestCase {
 			array(),
 			true
 		);
-		$expected = array(  1 => true );
+		$expected = array( 1 => true );
 		$this->assertSame( $expected, $result );
 	}
 }
