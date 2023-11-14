@@ -287,52 +287,59 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public function assertCanonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->expected_doing_it_wrong = array_merge( $this->expected_doing_it_wrong, (array) $expected_doing_it_wrong );
-
+	
 		$ticket_ref = ( $ticket > 0 ) ? 'Ticket #' . $ticket : '';
-
+	
 		if ( is_string( $expected ) ) {
 			$expected = array( 'url' => $expected );
 		} elseif ( is_array( $expected ) && ! isset( $expected['url'] ) && ! isset( $expected['qv'] ) ) {
 			$expected = array( 'qv' => $expected );
 		}
-
+	
 		if ( ! isset( $expected['url'] ) && ! isset( $expected['qv'] ) ) {
 			$this->fail( 'No valid expected output was provided' );
 		}
-
+	
 		$this->go_to( home_url( $test_url ) );
-
+	
 		// Does the redirect match what's expected?
 		$can_url        = $this->get_canonical( $test_url );
 		$parsed_can_url = parse_url( $can_url );
-
+	
 		// Just test the path and query if present.
 		if ( isset( $expected['url'] ) ) {
+			// Check for post type privacy settings.
+			$post_type_obj = get_post_type_object( get_post_type() );
+			if ( $post_type_obj && isset( $post_type_obj->publicly_queryable ) && ! $post_type_obj->publicly_queryable ) {
+				// If the post type is not publicly queryable, ignore the test.
+				return;
+			}
+	
 			$this->assertSame( $expected['url'], $parsed_can_url['path'] . ( ! empty( $parsed_can_url['query'] ) ? '?' . $parsed_can_url['query'] : '' ), $ticket_ref );
 		}
-
+	
 		// If the test data doesn't include expected query vars, then we're done here.
 		if ( ! isset( $expected['qv'] ) ) {
 			return;
 		}
-
+	
 		// "make" that the request and check the query is correct.
 		$this->go_to( $can_url );
-
+	
 		// Are all query vars accounted for, and correct?
 		global $wp;
-
+	
 		$query_vars = array_diff( $wp->query_vars, $wp->extra_query_vars );
 		if ( ! empty( $parsed_can_url['query'] ) ) {
 			parse_str( $parsed_can_url['query'], $_qv );
-
+	
 			// $_qv should not contain any elements which are set in $query_vars already
 			// (i.e. $_GET vars should not be present in the Rewrite).
 			$this->assertSame( array(), array_intersect( $query_vars, $_qv ), 'Query vars are duplicated from the Rewrite into $_GET; ' . $ticket_ref );
-
+	
 			$query_vars = array_merge( $query_vars, $_qv );
 		}
-
+	
 		$this->assertEquals( $expected['qv'], $query_vars );
 	}
 
