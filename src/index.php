@@ -42,6 +42,7 @@ $die = sprintf(
 	__( 'You are running WordPress without JavaScript and CSS files. These need to be built.' )
 );
 
+
 $die .= '<p>' . sprintf(
 	/* translators: %s: npm install */
 	__( 'Before running any build tasks you need to make sure the dependencies are installed. You can install these by running %s.' ),
