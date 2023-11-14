@@ -27,7 +27,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@playground-comment
+    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@test/playground-comment
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -50,7 +50,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@playground-comment
+    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@test/playground-comment
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
