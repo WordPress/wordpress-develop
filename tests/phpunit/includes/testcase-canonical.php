@@ -354,4 +354,39 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 
 		return $can_url;
 	}
+
+	public function test_private_post_type_404_redirect() {
+        // Create a custom post type with the specified settings
+        register_post_type('private_type', array(
+            'public' => true,
+            'publicly_queryable' => false,
+            'labels' => array(
+                'name' => 'Private Type',
+                'singular_name' => 'Private Type',
+            ),
+        ));
+
+        // Create a post in the custom post type
+        $post_id = $this->factory->post->create(array(
+            'post_title' => 'info@...',
+            'post_type' => 'private_type',
+        ));
+
+        // Set up the permalink structure
+        $this->set_permalink_structure($this->structure);
+
+        // Visit a 404 URL that matches the post slug
+        $url = home_url('/info');
+        $response = $this->wp_remote_get($url);
+
+        // Ensure that the response status code is 404 (not found)
+        $this->assertEquals(404, wp_remote_retrieve_response_code($response));
+
+        // Get the redirected URL
+        $redirected_url = wp_remote_retrieve_header($response, 'location');
+
+        // Ensure that the redirected URL is correct
+        $expected_url = get_permalink($post_id);
+        $this->assertEquals($expected_url, $redirected_url);
+    }
 }
