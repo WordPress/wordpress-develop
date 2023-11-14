@@ -250,32 +250,41 @@ function get_option( $option, $default_value = false ) {
 /**
  * Primes specific options into the cache with a single database query.
  *
- * Only options that do not already exist in cache will be primed.
+ * Only options that do not already exist in cache will be loaded.
  *
  * @since 6.4.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $options An array of option names to be primed.
+ * @param string[] $options An array of option names to be loaded.
  */
-function prime_options( $options ) {
+function wp_prime_option_caches( $options ) {
+	global $wpdb;
+
 	$alloptions     = wp_load_alloptions();
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
+	$notoptions     = wp_cache_get( 'notoptions', 'options' );
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
 
 	// Filter options that are not in the cache.
 	$options_to_prime = array();
 	foreach ( $options as $option ) {
-		if ( ( ! isset( $cached_options[ $option ] ) || ! $cached_options[ $option ] ) && ! isset( $alloptions[ $option ] ) ) {
+		if (
+			( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] )
+			&& ! isset( $alloptions[ $option ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
 			$options_to_prime[] = $option;
 		}
 	}
 
-	// Bail early if there are no options to be primed.
+	// Bail early if there are no options to be loaded.
 	if ( empty( $options_to_prime ) ) {
 		return;
 	}
 
-	global $wpdb;
 	$results = $wpdb->get_results(
 		$wpdb->prepare(
 			sprintf(
@@ -288,7 +297,12 @@ function prime_options( $options ) {
 
 	$options_found = array();
 	foreach ( $results as $result ) {
-		$options_found[ $result->option_name ] = maybe_unserialize( $result->option_value );
+		/*
+		 * The cache is primed with the raw value (i.e. not maybe_unserialized).
+		 *
+		 * `get_option()` will handle unserializing the value as needed.
+		 */
+		$options_found[ $result->option_name ] = $result->option_value;
 	}
 	wp_cache_set_multiple( $options_found, 'options' );
 
@@ -298,12 +312,6 @@ function prime_options( $options ) {
 	}
 
 	$options_not_found = array_diff( $options_to_prime, array_keys( $options_found ) );
-
-	$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
-	}
 
 	// Add the options that were not found to the cache.
 	$update_notoptions = false;
@@ -321,34 +329,34 @@ function prime_options( $options ) {
 }
 
 /**
- * Primes all options registered with a specific option group.
+ * Primes the cache of all options registered with a specific option group.
  *
  * @since 6.4.0
  *
  * @global array $new_allowed_options
  *
- * @param string $option_group The option group to prime options for.
+ * @param string $option_group The option group to load options for.
  */
-function prime_options_by_group( $option_group ) {
+function wp_prime_option_caches_by_group( $option_group ) {
 	global $new_allowed_options;
 
 	if ( isset( $new_allowed_options[ $option_group ] ) ) {
-		prime_options( $new_allowed_options[ $option_group ] );
+		wp_prime_option_caches( $new_allowed_options[ $option_group ] );
 	}
 }
 
 /**
  * Retrieves multiple options.
  *
- * Options are primed as necessary first in order to use a single database query at most.
+ * Options are loaded as necessary first in order to use a single database query at most.
  *
  * @since 6.4.0
  *
- * @param array $options An array of option names to retrieve.
+ * @param string[] $options An array of option names to retrieve.
  * @return array An array of key-value pairs for the requested options.
  */
 function get_options( $options ) {
-	prime_options( $options );
+	wp_prime_option_caches( $options );
 
 	$result = array();
 	foreach ( $options as $option ) {
@@ -468,11 +476,13 @@ function wp_set_option_autoload_values( array $options ) {
 		wp_cache_delete( 'alloptions', 'options' );
 	} elseif ( $grouped_options['no'] ) {
 		$alloptions = wp_load_alloptions( true );
+
 		foreach ( $grouped_options['no'] as $option ) {
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 			}
 		}
+
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
 	}
 
@@ -489,7 +499,7 @@ function wp_set_option_autoload_values( array $options ) {
  *
  * @see wp_set_option_autoload_values()
  *
- * @param array       $options  List of option names. Expected to not be SQL-escaped.
+ * @param string[]    $options  List of option names. Expected to not be SQL-escaped.
  * @param string|bool $autoload Autoload value to control whether to load the options when WordPress starts up.
  *                              Accepts 'yes'|true to enable or 'no'|false to disable.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
@@ -836,11 +846,33 @@ function update_option( $option, $value, $autoload = null ) {
 	}
 
 	if ( ! wp_installing() ) {
-		$alloptions = wp_load_alloptions( true );
-		if ( isset( $alloptions[ $option ] ) ) {
+		if ( ! isset( $update_args['autoload'] ) ) {
+			// Update the cached value based on where it is currently cached.
+			$alloptions = wp_load_alloptions( true );
+
+			if ( isset( $alloptions[ $option ] ) ) {
+				$alloptions[ $option ] = $serialized_value;
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			} else {
+				wp_cache_set( $option, $serialized_value, 'options' );
+			}
+		} elseif ( 'yes' === $update_args['autoload'] ) {
+			// Delete the individual cache, then set in alloptions cache.
+			wp_cache_delete( $option, 'options' );
+
+			$alloptions = wp_load_alloptions( true );
+
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
+			// Delete the alloptions cache, then set the individual cache.
+			$alloptions = wp_load_alloptions( true );
+
+			if ( isset( $alloptions[ $option ] ) ) {
+				unset( $alloptions[ $option ] );
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			}
+
 			wp_cache_set( $option, $serialized_value, 'options' );
 		}
 	}
@@ -1071,6 +1103,7 @@ function delete_option( $option ) {
 	if ( ! wp_installing() ) {
 		if ( 'yes' === $row->autoload || 'default-yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
+
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1262,6 +1295,7 @@ function get_transient( $transient ) {
 		if ( ! wp_installing() ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
+
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				$timeout           = get_option( $transient_timeout );
@@ -2152,7 +2186,7 @@ function update_network_option( $network_id, $option, $value ) {
 
 	wp_protect_special_option( $option );
 
-	$old_value = get_network_option( $network_id, $option, false );
+	$old_value = get_network_option( $network_id, $option );
 
 	/**
 	 * Filters a specific network option before its value is updated.
@@ -2870,7 +2904,10 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 		$option_group = 'reading';
 	}
 
-	$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
+	$pos = false;
+	if ( isset( $new_allowed_options[ $option_group ] ) ) {
+		$pos = array_search( $option_name, (array) $new_allowed_options[ $option_group ], true );
+	}
 
 	if ( false !== $pos ) {
 		unset( $new_allowed_options[ $option_group ][ $pos ] );

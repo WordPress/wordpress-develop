@@ -74,6 +74,54 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 }
 
 /**
+ * Gets the URL to a block asset.
+ *
+ * @since 6.4.0
+ *
+ * @param string $path A normalized path to a block asset.
+ * @return string|false The URL to the block asset or false on failure.
+ */
+function get_block_asset_url( $path ) {
+	if ( empty( $path ) ) {
+		return false;
+	}
+
+	// Path needs to be normalized to work in Windows env.
+	static $wpinc_path_norm = '';
+	if ( ! $wpinc_path_norm ) {
+		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
+	}
+
+	if ( str_starts_with( $path, $wpinc_path_norm ) ) {
+		return includes_url( str_replace( $wpinc_path_norm, '', $path ) );
+	}
+
+	static $template_paths_norm = array();
+
+	$template = get_template();
+	if ( ! isset( $template_paths_norm[ $template ] ) ) {
+		$template_paths_norm[ $template ] = wp_normalize_path( get_template_directory() );
+	}
+
+	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
+		return get_theme_file_uri( str_replace( $template_paths_norm[ $template ], '', $path ) );
+	}
+
+	if ( is_child_theme() ) {
+		$stylesheet = get_stylesheet();
+		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
+			$template_paths_norm[ $stylesheet ] = wp_normalize_path( get_stylesheet_directory() );
+		}
+
+		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
+			return get_theme_file_uri( str_replace( $template_paths_norm[ $stylesheet ], '', $path ) );
+		}
+	}
+
+	return plugins_url( basename( $path ), $path );
+}
+
+/**
  * Finds a script handle for the selected block metadata field. It detects
  * when a path to file was provided and finds a corresponding asset file
  * with details necessary to register the script under automatically
@@ -107,7 +155,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return $script_handle;
 	}
 
-	$script_asset_raw_path = dirname( $metadata['file'] ) . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
+	$path                  = dirname( $metadata['file'] );
+	$script_asset_raw_path = $path . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
 	$script_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path     = wp_normalize_path(
 		realpath( $script_asset_raw_path )
@@ -128,47 +177,11 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	// Path needs to be normalized to work in Windows env.
-	static $wpinc_path_norm = '';
-	if ( ! $wpinc_path_norm ) {
-		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
-	}
-
-	// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
-	static $template_path_norm   = '';
-	static $stylesheet_path_norm = '';
-	if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
-		$template_path_norm   = wp_normalize_path( get_template_directory() );
-		$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
-	}
-
-	$script_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $script_path ) );
-
-	$is_core_block = isset( $metadata['file'] ) && str_starts_with( $metadata['file'], $wpinc_path_norm );
-
-	/*
-	 * Determine if the block script was registered in a theme, by checking if the script path starts with either
-	 * the parent (template) or child (stylesheet) directory path.
-	 */
-	$is_parent_theme_block = str_starts_with( $script_path_norm, trailingslashit( $template_path_norm ) );
-	$is_child_theme_block  = str_starts_with( $script_path_norm, trailingslashit( $stylesheet_path_norm ) );
-	$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
-
-	$script_uri = '';
-	if ( $is_core_block ) {
-		$script_uri = includes_url( str_replace( $wpinc_path_norm, '', $script_path_norm ) );
-	} elseif ( $is_theme_block ) {
-		// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
-		$script_uri = $is_parent_theme_block
-			? get_theme_file_uri( str_replace( $template_path_norm, '', $script_path_norm ) )
-			: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $script_path_norm ) );
-	} else {
-		// Fallback to plugins_url().
-		$script_uri = plugins_url( $script_path, $metadata['file'] );
-	}
+	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
+	$script_uri       = get_block_asset_url( $script_path_norm );
 
 	$script_args = array();
-	if ( 'viewScript' === $field_name ) {
+	if ( 'viewScript' === $field_name && $script_uri ) {
 		$script_args['strategy'] = 'defer';
 	}
 
@@ -255,37 +268,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$has_style_file  = '' !== $style_path_norm;
-
-	if ( $has_style_file ) {
-		$style_uri = plugins_url( $style_path, $metadata['file'] );
-
-		// Cache $template_path_norm and $stylesheet_path_norm to avoid unnecessary additional calls.
-		static $template_path_norm   = '';
-		static $stylesheet_path_norm = '';
-		if ( ! $template_path_norm || ! $stylesheet_path_norm ) {
-			$template_path_norm   = wp_normalize_path( get_template_directory() );
-			$stylesheet_path_norm = wp_normalize_path( get_stylesheet_directory() );
-		}
-
-		// Determine if the block style was registered in a theme, by checking if the script path starts with either
-		// the parent (template) or child (stylesheet) directory path.
-		$is_parent_theme_block = str_starts_with( $style_path_norm, trailingslashit( $template_path_norm ) );
-		$is_child_theme_block  = str_starts_with( $style_path_norm, trailingslashit( $stylesheet_path_norm ) );
-		$is_theme_block        = ( $is_parent_theme_block || $is_child_theme_block );
-
-		if ( $is_core_block ) {
-			// All possible $style_path variants for core blocks are hard-coded above.
-			$style_uri = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . '/' . $style_path );
-		} elseif ( $is_theme_block ) {
-			// Get the script path deterministically based on whether or not it was registered in a parent or child theme.
-			$style_uri = $is_parent_theme_block
-				? get_theme_file_uri( str_replace( $template_path_norm, '', $style_path_norm ) )
-				: get_theme_file_uri( str_replace( $stylesheet_path_norm, '', $style_path_norm ) );
-		}
-	} else {
-		$style_uri = false;
-	}
+	$style_uri       = get_block_asset_url( $style_path_norm );
 
 	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$result  = wp_register_style(
@@ -298,7 +281,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	if ( $has_style_file ) {
+	if ( $style_uri ) {
 		wp_style_add_data( $style_handle_name, 'path', $style_path_norm );
 
 		if ( $is_core_block ) {
@@ -369,13 +352,14 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$file_or_folder;
 
 	$is_core_block = str_starts_with( $file_or_folder, ABSPATH . WPINC );
-
-	if ( ! $is_core_block && ! file_exists( $metadata_file ) ) {
+	// If the block is not a core block, the metadata file must exist.
+	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
+	if ( ! $metadata_file_exists && empty( $args['name'] ) ) {
 		return false;
 	}
 
 	// Try to get metadata from the static cache for core blocks.
-	$metadata = false;
+	$metadata = array();
 	if ( $is_core_block ) {
 		$core_block_name = str_replace( ABSPATH . WPINC . '/blocks/', '', $file_or_folder );
 		if ( ! empty( $core_blocks_meta[ $core_block_name ] ) ) {
@@ -384,14 +368,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	// If metadata is not found in the static cache, read it from the file.
-	if ( ! $metadata ) {
+	if ( $metadata_file_exists && empty( $metadata ) ) {
 		$metadata = wp_json_file_decode( $metadata_file, array( 'associative' => true ) );
 	}
 
-	if ( ! is_array( $metadata ) || empty( $metadata['name'] ) ) {
+	if ( ! is_array( $metadata ) || ( empty( $metadata['name'] ) && empty( $args['name'] ) ) ) {
 		return false;
 	}
-	$metadata['file'] = wp_normalize_path( realpath( $metadata_file ) );
+
+	$metadata['file'] = $metadata_file_exists ? wp_normalize_path( realpath( $metadata_file ) ) : null;
 
 	/**
 	 * Filters the metadata provided for registering a block type.
@@ -421,6 +406,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	$settings          = array();
 	$property_mappings = array(
 		'apiVersion'      => 'api_version',
+		'name'            => 'name',
 		'title'           => 'title',
 		'category'        => 'category',
 		'parent'          => 'parent',
@@ -443,11 +429,40 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
 			$settings[ $mapped_key ] = $metadata[ $key ];
-			if ( $textdomain && isset( $i18n_schema->$key ) ) {
+			if ( $metadata_file_exists && $textdomain && isset( $i18n_schema->$key ) ) {
 				$settings[ $mapped_key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $settings[ $key ], $textdomain );
 			}
 		}
 	}
+
+	if ( ! empty( $metadata['render'] ) ) {
+		$template_path = wp_normalize_path(
+			realpath(
+				dirname( $metadata['file'] ) . '/' .
+				remove_block_asset_path_prefix( $metadata['render'] )
+			)
+		);
+		if ( $template_path ) {
+			/**
+			 * Renders the block on the server.
+			 *
+			 * @since 6.1.0
+			 *
+			 * @param array    $attributes Block attributes.
+			 * @param string   $content    Block default content.
+			 * @param WP_Block $block      Block instance.
+			 *
+			 * @return string Returns the block content.
+			 */
+			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) {
+				ob_start();
+				require $template_path;
+				return ob_get_clean();
+			};
+		}
+	}
+
+	$settings = array_merge( $settings, $args );
 
 	$script_fields = array(
 		'editorScript' => 'editor_script_handles',
@@ -455,6 +470,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'viewScript'   => 'view_script_handles',
 	);
 	foreach ( $script_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$scripts           = $metadata[ $metadata_field_name ];
 			$processed_scripts = array();
@@ -487,6 +505,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'style'       => 'style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
 		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
 			$styles           = $metadata[ $metadata_field_name ];
 			$processed_styles = array();
@@ -547,33 +568,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	if ( ! empty( $metadata['render'] ) ) {
-		$template_path = wp_normalize_path(
-			realpath(
-				dirname( $metadata['file'] ) . '/' .
-				remove_block_asset_path_prefix( $metadata['render'] )
-			)
-		);
-		if ( $template_path ) {
-			/**
-			 * Renders the block on the server.
-			 *
-			 * @since 6.1.0
-			 *
-			 * @param array    $attributes Block attributes.
-			 * @param string   $content    Block default content.
-			 * @param WP_Block $block      Block instance.
-			 *
-			 * @return string Returns the block content.
-			 */
-			$settings['render_callback'] = static function ( $attributes, $content, $block ) use ( $template_path ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-				ob_start();
-				require $template_path;
-				return ob_get_clean();
-			};
-		}
-	}
-
 	/**
 	 * Filters the settings determined from the block type metadata.
 	 *
@@ -582,14 +576,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * @param array $settings Array of determined settings for registering a block type.
 	 * @param array $metadata Metadata provided for registering a block type.
 	 */
-	$settings = apply_filters(
-		'block_type_metadata_settings',
-		array_merge(
-			$settings,
-			$args
-		),
-		$metadata
-	);
+	$settings = apply_filters( 'block_type_metadata_settings', $settings, $metadata );
+
+	$metadata['name'] = ! empty( $settings['name'] ) ? $settings['name'] : $metadata['name'];
 
 	return WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
@@ -670,7 +659,8 @@ function has_blocks( $post = null ) {
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * whether the block type exists but not validating its structure and not checking
- * reusable blocks. For strict accuracy, you should use the block parser on post content.
+ * synced patterns (formerly called reusable blocks). For strict accuracy,
+ * you should use the block parser on post content.
  *
  * @since 5.0.0
  *
@@ -740,26 +730,30 @@ function get_dynamic_block_names() {
 }
 
 /**
- * Retrieves block types (and positions) hooked into the given block.
+ * Retrieves block types hooked into the given block, grouped by anchor block type and the relative position.
  *
  * @since 6.4.0
  *
- * @param string $name Block type name including namespace.
- * @return array Associative array of `$block_type_name => $position` pairs.
+ * @return array[] Array of block types grouped by anchor block type and the relative position.
  */
-function get_hooked_blocks( $name ) {
-	$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+function get_hooked_blocks() {
+	$block_types   = WP_Block_Type_Registry::get_instance()->get_all_registered();
 	$hooked_blocks = array();
 	foreach ( $block_types as $block_type ) {
-		if ( ! property_exists( $block_type, 'block_hooks' ) || ! is_array( $block_type->block_hooks ) ) {
+		if ( ! ( $block_type instanceof WP_Block_Type ) || ! is_array( $block_type->block_hooks ) ) {
 			continue;
 		}
 		foreach ( $block_type->block_hooks as $anchor_block_type => $relative_position ) {
-			if ( $anchor_block_type === $name ) {
-				$hooked_blocks[ $block_type->name ] = $relative_position;
+			if ( ! isset( $hooked_blocks[ $anchor_block_type ] ) ) {
+				$hooked_blocks[ $anchor_block_type ] = array();
 			}
+			if ( ! isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] ) ) {
+				$hooked_blocks[ $anchor_block_type ][ $relative_position ] = array();
+			}
+			$hooked_blocks[ $anchor_block_type ][ $relative_position ][] = $block_type->name;
 		}
 	}
+
 	return $hooked_blocks;
 }
 
@@ -770,14 +764,17 @@ function get_hooked_blocks( $name ) {
  * where it will inject the `theme` attribute into all Template Part blocks, and prepend the markup for
  * any blocks hooked `before` the given block and as its parent's `first_child`, respectively.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
  * @access private
  *
- * @param WP_Block_Template|array $context A block template, template part, or pattern that the blocks belong to.
+ * @param array                   $hooked_blocks An array of blocks hooked to another given block.
+ * @param WP_Block_Template|array $context       A block template, template part, or pattern that the blocks belong to.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $context ) {
+function make_before_block_visitor( $hooked_blocks, $context ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -785,46 +782,51 @@ function make_before_block_visitor( $context ) {
 	 * Furthermore, prepend the markup for any blocks hooked `before` the given block and as its parent's
 	 * `first_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block  The block to inject the theme attribute into, and hooked blocks before.
-	 * @param array $parent The parent block of the given block.
-	 * @param array $prev   The previous sibling block of the given block.
+	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before. Passed by reference.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function( &$block, $parent = null, $prev = null ) use ( $context ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
 
-		if ( $parent && ! $prev ) {
+		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
-			$hooked_blocks_for_parent = get_hooked_blocks( $parent['blockName'] );
-			foreach ( $hooked_blocks_for_parent as $hooked_block_type => $relative_position ) {
-				if ( 'first_child' === $relative_position ) {
-					$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
-					/** This filter is documented in wp-includes/blocks.php */
-					$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $parent, $context );
-				}
+			$relative_position  = 'first_child';
+			$anchor_block_type  = $parent_block['blockName'];
+			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+				: array();
+
+			/**
+			 * Filters the list of hooked block types for a given anchor block type and relative position.
+			 *
+			 * @since 6.4.0
+			 *
+			 * @param string[]                $hooked_block_types  The list of hooked block types.
+			 * @param string                  $relative_position   The relative position of the hooked blocks.
+			 *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+			 * @param string                  $anchor_block_type   The anchor block type.
+			 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+			 */
+			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+			foreach ( $hooked_block_types as $hooked_block_type ) {
+				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
 			}
 		}
 
-		$hooked_blocks = get_hooked_blocks( $block['blockName'] );
-		foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
-			if ( 'before' === $relative_position ) {
-				$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
-				/**
-				 * Filters the serialized markup of a hooked block.
-				 *
-				 * @since 6.4.0
-				 *
-				 * @param string                  $hooked_block_markup The serialized markup of the hooked block.
-				 * @param string                  $hooked_block_type   The type of the hooked block.
-				 * @param string                  $relative_position   The relative position of the hooked block.
-				 *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
-				 * @param array                   $block               The anchor block.
-				 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
-				 */
-				$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $block, $context );
-			}
+		$relative_position  = 'before';
+		$anchor_block_type  = $block['blockName'];
+		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+			? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+			: array();
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+		foreach ( $hooked_block_types as $hooked_block_type ) {
+			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
 		}
 
 		return $markup;
@@ -838,46 +840,55 @@ function make_before_block_visitor( $context ) {
  * where it will append the markup for any blocks hooked `after` the given block and as its parent's
  * `last_child`, respectively.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
  * @access private
  *
- * @param WP_Block_Template|array $context A block template, template part, or pattern that the blocks belong to.
+ * @param array                   $hooked_blocks An array of blocks hooked to another block.
+ * @param WP_Block_Template|array $context       A block template, template part, or pattern that the blocks belong to.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $context ) {
+function make_after_block_visitor( $hooked_blocks, $context ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
 	 * Append the markup for any blocks hooked `after` the given block and as its parent's
 	 * `last_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block  The block to inject the hooked blocks after.
-	 * @param array $parent The parent block of the given block.
-	 * @param array $next   The next sibling block of the given block.
+	 * @param array $block        The block to inject the hooked blocks after. Passed by reference.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function( &$block, $parent = null, $next = null ) use ( $context ) {
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
 		$markup = '';
 
-		$hooked_blocks = get_hooked_blocks( $block['blockName'] );
-		foreach ( $hooked_blocks as $hooked_block_type => $relative_position ) {
-			if ( 'after' === $relative_position ) {
-				$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
-				/** This filter is documented in wp-includes/blocks.php */
-				$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $block, $context );
-			}
+		$relative_position  = 'after';
+		$anchor_block_type  = $block['blockName'];
+		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+				: array();
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+		foreach ( $hooked_block_types as $hooked_block_type ) {
+			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
 		}
 
-		if ( $parent && ! $next ) {
+		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
-			$hooked_blocks_for_parent = get_hooked_blocks( $parent['blockName'] );
-			foreach ( $hooked_blocks_for_parent as $hooked_block_type => $relative_position ) {
-				if ( 'last_child' === $relative_position ) {
-					$hooked_block_markup = get_comment_delimited_block_content( $hooked_block_type, array(), '' );
-					/** This filter is documented in wp-includes/blocks.php */
-					$markup .= apply_filters( 'inject_hooked_block_markup', $hooked_block_markup, $hooked_block_type, $relative_position, $parent, $context );
-				}
+			$relative_position  = 'last_child';
+			$anchor_block_type  = $parent_block['blockName'];
+			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+				: array();
+
+			/** This filter is documented in wp-includes/blocks.php */
+			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+			foreach ( $hooked_block_types as $hooked_block_type ) {
+				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
 			}
 		}
 
@@ -1028,7 +1039,10 @@ function serialize_blocks( $blocks ) {
  * This function should be used when there is a need to modify the saved block, or to inject markup
  * into the return value. Prefer `serialize_block` when preparing a block to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_block()
  *
@@ -1055,24 +1069,28 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 				$prev = 0 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index - 1 ];
+
 				$block_content .= call_user_func_array(
 					$pre_callback,
-					array( &$inner_block, $block, $prev )
+					array( &$inner_block, &$block, $prev )
 				);
 			}
-
-			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
 
 			if ( is_callable( $post_callback ) ) {
 				$next = count( $block['innerBlocks'] ) - 1 === $block_index
 					? null
 					: $block['innerBlocks'][ $block_index + 1 ];
-				$block_content .= call_user_func_array(
+
+				$post_markup = call_user_func_array(
 					$post_callback,
-					array( &$inner_block, $block, $next )
+					array( &$inner_block, &$block, $next )
 				);
 			}
-			$block_index++;
+
+			$block_content .= traverse_and_serialize_block( $inner_block, $pre_callback, $post_callback );
+			$block_content .= isset( $post_markup ) ? $post_markup : '';
+
+			++$block_index;
 		}
 	}
 
@@ -1106,7 +1124,10 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * This function should be used when there is a need to modify the saved blocks, or to inject markup
  * into the return value. Prefer `serialize_blocks` when preparing blocks to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_blocks()
  *
@@ -1120,28 +1141,36 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @return string Serialized block markup.
  */
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
-	$result = '';
+	$result       = '';
+	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
 			$prev = 0 === $index
 				? null
 				: $blocks[ $index - 1 ];
+
 			$result .= call_user_func_array(
 				$pre_callback,
-				array( &$block, null, $prev ) // At the top level, there is no parent block to pass to the callback.
+				array( &$block, &$parent_block, $prev )
 			);
 		}
-		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
+
 		if ( is_callable( $post_callback ) ) {
 			$next = count( $blocks ) - 1 === $index
 				? null
 				: $blocks[ $index + 1 ];
-			$result .= call_user_func_array(
+
+			$post_markup = call_user_func_array(
 				$post_callback,
-				array( &$block, null, $next ) // At the top level, there is no parent block to pass to the callback.
+				array( &$block, &$parent_block, $next )
 			);
 		}
+
+		$result .= traverse_and_serialize_block( $block, $pre_callback, $post_callback );
+		$result .= isset( $post_markup ) ? $post_markup : '';
 	}
+
 	return $result;
 }
 
@@ -1178,8 +1207,8 @@ function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols
 /**
  * Callback used for regular expression replacement in filter_block_content().
  *
- * @private
  * @since 6.2.1
+ * @access private
  *
  * @param array $matches Array of preg_replace_callback matches.
  * @return string Replacement string.
@@ -1585,7 +1614,7 @@ function unregister_block_style( $block_name, $block_style_name ) {
  */
 function block_has_support( $block_type, $feature, $default_value = false ) {
 	$block_support = $default_value;
-	if ( $block_type && property_exists( $block_type, 'supports' ) ) {
+	if ( $block_type instanceof WP_Block_Type ) {
 		if ( is_array( $feature ) && count( $feature ) === 1 ) {
 			$feature = $feature[0];
 		}
@@ -1627,7 +1656,7 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	);
 
 	foreach ( $typography_keys as $typography_key ) {
-		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
+		$support_for_key = isset( $metadata['supports'][ $typography_key ] ) ? $metadata['supports'][ $typography_key ] : null;
 
 		if ( null !== $support_for_key ) {
 			_doing_it_wrong(
@@ -1938,4 +1967,86 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 		return "<span class='$arrow_classes' aria-hidden='true'>$arrow</span>";
 	}
 	return null;
+}
+
+/**
+ * Strips all HTML from the content of footnotes, and sanitizes the ID.
+ * This function expects slashed data on the footnotes content.
+ *
+ * @access private
+ * @since 6.3.2
+ *
+ * @param string $footnotes JSON encoded string of an array containing the content and ID of each footnote.
+ * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
+ */
+function _wp_filter_post_meta_footnotes( $footnotes ) {
+	$footnotes_decoded = json_decode( $footnotes, true );
+	if ( ! is_array( $footnotes_decoded ) ) {
+		return '';
+	}
+	$footnotes_sanitized = array();
+	foreach ( $footnotes_decoded as $footnote ) {
+		if ( ! empty( $footnote['content'] ) && ! empty( $footnote['id'] ) ) {
+			$footnotes_sanitized[] = array(
+				'id'      => sanitize_key( $footnote['id'] ),
+				'content' => wp_unslash( wp_filter_post_kses( wp_slash( $footnote['content'] ) ) ),
+			);
+		}
+	}
+	return wp_json_encode( $footnotes_sanitized );
+}
+
+/**
+ * Adds the filters to filter footnotes meta field.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_kses_init_filters() {
+	add_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
+}
+
+/**
+ * Removes the filters that filter footnotes meta field.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_remove_filters() {
+	remove_filter( 'sanitize_post_meta_footnotes', '_wp_filter_post_meta_footnotes' );
+}
+
+/**
+ * Registers the filter of footnotes meta field if the user does not have unfiltered_html capability.
+ *
+ * @access private
+ * @since 6.3.2
+ */
+function _wp_footnotes_kses_init() {
+	_wp_footnotes_remove_filters();
+	if ( ! current_user_can( 'unfiltered_html' ) ) {
+		_wp_footnotes_kses_init_filters();
+	}
+}
+
+/**
+ * Initializes footnotes meta field filters when imported data should be filtered.
+ *
+ * This filter is the last being executed on force_filtered_html_on_import.
+ * If the input of the filter is true it means we are in an import situation and should
+ * enable kses, independently of the user capabilities.
+ * So in that case we call _wp_footnotes_kses_init_filters;
+ *
+ * @access private
+ * @since 6.3.2
+ *
+ * @param string $arg Input argument of the filter.
+ * @return string Input argument of the filter.
+ */
+function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
+	// force_filtered_html_on_import is true we need to init the global styles kses filters.
+	if ( $arg ) {
+		_wp_footnotes_kses_init_filters();
+	}
+	return $arg;
 }

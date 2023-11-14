@@ -123,17 +123,6 @@ class WP_Scripts extends WP_Dependencies {
 	public $default_dirs;
 
 	/**
-	 * Holds a string which contains the type attribute for script tag.
-	 *
-	 * If the active theme does not declare HTML5 support for 'script',
-	 * then it initializes as `type='text/javascript'`.
-	 *
-	 * @since 5.3.0
-	 * @var string
-	 */
-	private $type_attr = '';
-
-	/**
 	 * Holds a mapping of dependents (as handles) for a given script handle.
 	 * Used to optimize recursive dependency tree checks.
 	 *
@@ -167,14 +156,6 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 3.4.0
 	 */
 	public function init() {
-		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-		&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'script' )
-		) {
-			$this->type_attr = " type='text/javascript'";
-		}
-
 		/**
 		 * Fires when the WP_Scripts instance is initialized.
 		 *
@@ -245,21 +226,27 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		printf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
+		wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-extra" ) );
 
-		// CDATA is not needed for HTML 5.
-		if ( $this->type_attr ) {
-			echo "/* <![CDATA[ */\n";
+		return true;
+	}
+
+	/**
+	 * Checks whether all dependents of a given handle are in the footer.
+	 *
+	 * If there are no dependents, this is considered the same as if all dependents were in the footer.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $handle Script handle.
+	 * @return bool Whether all dependents are in the footer.
+	 */
+	private function are_all_dependents_in_footer( $handle ) {
+		foreach ( $this->get_dependents( $handle ) as $dep ) {
+			if ( isset( $this->groups[ $dep ] ) && 0 === $this->groups[ $dep ] ) {
+				return false;
+			}
 		}
-
-		echo "$output\n";
-
-		if ( $this->type_attr ) {
-			echo "/* ]]> */\n";
-		}
-
-		echo "</script>\n";
-
 		return true;
 	}
 
@@ -313,6 +300,25 @@ class WP_Scripts extends WP_Dependencies {
 			$intended_strategy = '';
 		}
 
+		/*
+		 * Move this script to the footer if:
+		 * 1. The script is in the header group.
+		 * 2. The current output is the header.
+		 * 3. The intended strategy is delayed.
+		 * 4. The actual strategy is not delayed.
+		 * 5. All dependent scripts are in the footer.
+		 */
+		if (
+			0 === $group &&
+			0 === $this->groups[ $handle ] &&
+			$intended_strategy &&
+			! $this->is_delayed_strategy( $strategy ) &&
+			$this->are_all_dependents_in_footer( $handle )
+		) {
+			$this->in_footer[] = $handle;
+			return false;
+		}
+
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
 			$cond_after  = "<![endif]-->\n";
@@ -335,7 +341,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = sprintf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $translations );
+			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		if ( $this->do_concat ) {
@@ -403,21 +409,24 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
-		$src = esc_url( apply_filters( 'script_loader_src', $src, $handle ) );
+		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
 
 		if ( ! $src ) {
 			return true;
 		}
 
-		$tag  = $translations . $cond_before . $before_script;
-		$tag .= sprintf(
-			"<script%s src='%s' id='%s-js'%s%s></script>\n",
-			$this->type_attr,
-			$src, // Value is escaped above.
-			esc_attr( $handle ),
-			$strategy ? " {$strategy}" : '',
-			$intended_strategy ? " data-wp-strategy='{$intended_strategy}'" : ''
+		$attr = array(
+			'src' => $src,
+			'id'  => "{$handle}-js",
 		);
+		if ( $strategy ) {
+			$attr[ $strategy ] = true;
+		}
+		if ( $intended_strategy ) {
+			$attr['data-wp-strategy'] = $intended_strategy;
+		}
+		$tag  = $translations . $cond_before . $before_script;
+		$tag .= wp_get_script_tag( $attr );
 		$tag .= $after_script . $cond_after;
 
 		/**
@@ -720,7 +729,7 @@ class WP_Scripts extends WP_Dependencies {
 JS;
 
 		if ( $display ) {
-			printf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
+			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		return $output;

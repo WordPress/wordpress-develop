@@ -407,6 +407,16 @@ class WP_HTML_Tag_Processor {
 	private $attributes = array();
 
 	/**
+	 * Tracks spans of duplicate attributes on a given tag, used for removing
+	 * all copies of an attribute when calling `remove_attribute()`.
+	 *
+	 * @since 6.3.2
+	 *
+	 * @var (WP_HTML_Span[])[]|null
+	 */
+	private $duplicate_attributes = null;
+
+	/**
 	 * Which class names to add or remove from a tag.
 	 *
 	 * These are tracked separately from attribute updates because they are
@@ -613,6 +623,94 @@ class WP_HTML_Tag_Processor {
 		} while ( $already_found < $this->sought_match_offset );
 
 		return true;
+	}
+
+
+	/**
+	 * Generator for a foreach loop to step through each class name for the matched tag.
+	 *
+	 * This generator function is designed to be used inside a "foreach" loop.
+	 *
+	 * Example:
+	 *
+	 *     $p = new WP_HTML_Tag_Processor( "<div class='free &lt;egg&lt;\tlang-en'>" );
+	 *     $p->next_tag();
+	 *     foreach ( $p->class_list() as $class_name ) {
+	 *         echo "{$class_name} ";
+	 *     }
+	 *     // Outputs: "free <egg> lang-en "
+	 *
+	 * @since 6.4.0
+	 */
+	public function class_list() {
+		/** @var string $class contains the string value of the class attribute, with character references decoded. */
+		$class = $this->get_attribute( 'class' );
+
+		if ( ! is_string( $class ) ) {
+			return;
+		}
+
+		$seen = array();
+
+		$at = 0;
+		while ( $at < strlen( $class ) ) {
+			// Skip past any initial boundary characters.
+			$at += strspn( $class, " \t\f\r\n", $at );
+			if ( $at >= strlen( $class ) ) {
+				return;
+			}
+
+			// Find the byte length until the next boundary.
+			$length = strcspn( $class, " \t\f\r\n", $at );
+			if ( 0 === $length ) {
+				return;
+			}
+
+			/*
+			 * CSS class names are case-insensitive in the ASCII range.
+			 *
+			 * @see https://www.w3.org/TR/CSS2/syndata.html#x1
+			 */
+			$name = strtolower( substr( $class, $at, $length ) );
+			$at  += $length;
+
+			/*
+			 * It's expected that the number of class names for a given tag is relatively small.
+			 * Given this, it is probably faster overall to scan an array for a value rather
+			 * than to use the class name as a key and check if it's a key of $seen.
+			 */
+			if ( in_array( $name, $seen, true ) ) {
+				continue;
+			}
+
+			$seen[] = $name;
+			yield $name;
+		}
+	}
+
+
+	/**
+	 * Returns if a matched tag contains the given ASCII case-insensitive class name.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $wanted_class Look for this CSS class name, ASCII case-insensitive.
+	 * @return bool|null Whether the matched tag contains the given class name, or null if not matched.
+	 */
+	public function has_class( $wanted_class ) {
+		if ( ! $this->tag_name_starts_at ) {
+			return null;
+		}
+
+		$wanted_class = strtolower( $wanted_class );
+
+		foreach ( $this->class_list() as $class_name ) {
+			if ( $class_name === $wanted_class ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 
@@ -1286,6 +1384,25 @@ class WP_HTML_Tag_Processor {
 				$attribute_end,
 				! $has_value
 			);
+
+			return true;
+		}
+
+		/*
+		 * Track the duplicate attributes so if we remove it, all disappear together.
+		 *
+		 * While `$this->duplicated_attributes` could always be stored as an `array()`,
+		 * which would simplify the logic here, storing a `null` and only allocating
+		 * an array when encountering duplicates avoids needless allocations in the
+		 * normative case of parsing tags with no duplicate attributes.
+		 */
+		$duplicate_span = new WP_HTML_Span( $attribute_start, $attribute_end );
+		if ( null === $this->duplicate_attributes ) {
+			$this->duplicate_attributes = array( $comparable_name => array( $duplicate_span ) );
+		} elseif ( ! array_key_exists( $comparable_name, $this->duplicate_attributes ) ) {
+			$this->duplicate_attributes[ $comparable_name ] = array( $duplicate_span );
+		} else {
+			$this->duplicate_attributes[ $comparable_name ][] = $duplicate_span;
 		}
 
 		return true;
@@ -1307,11 +1424,12 @@ class WP_HTML_Tag_Processor {
 	 */
 	private function after_tag() {
 		$this->get_updated_html();
-		$this->tag_name_starts_at = null;
-		$this->tag_name_length    = null;
-		$this->tag_ends_at        = null;
-		$this->is_closing_tag     = null;
-		$this->attributes         = array();
+		$this->tag_name_starts_at   = null;
+		$this->tag_name_length      = null;
+		$this->tag_ends_at          = null;
+		$this->is_closing_tag       = null;
+		$this->attributes           = array();
+		$this->duplicate_attributes = null;
 	}
 
 	/**
@@ -1913,8 +2031,8 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * @see https://html.spec.whatwg.org/#attributes-2
 		 *
-		 * @TODO as the only regex pattern maybe we should take it out? are
-		 *       Unicode patterns available broadly in Core?
+		 * @todo As the only regex pattern maybe we should take it out?
+		 *       Are Unicode patterns available broadly in Core?
 		 */
 		if ( preg_match(
 			'~[' .
@@ -2080,6 +2198,17 @@ class WP_HTML_Tag_Processor {
 			''
 		);
 
+		// Removes any duplicated attributes if they were also present.
+		if ( null !== $this->duplicate_attributes && array_key_exists( $name, $this->duplicate_attributes ) ) {
+			foreach ( $this->duplicate_attributes[ $name ] as $attribute_token ) {
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$attribute_token->start,
+					$attribute_token->end,
+					''
+				);
+			}
+		}
+
 		return true;
 	}
 
@@ -2141,6 +2270,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Shifts the internal cursor corresponding to the applied updates.
+	 * @since 6.4.0 No longer calls subclass method `next_tag()` after updating HTML.
 	 *
 	 * @return string The processed HTML.
 	 */
@@ -2174,24 +2304,29 @@ class WP_HTML_Tag_Processor {
 		 * Rewind before the tag name starts so that it's as if the cursor didn't
 		 * move; a call to `next_tag()` will reparse the recently-updated attributes
 		 * and additional calls to modify the attributes will apply at this same
-		 * location.
+		 * location, but in order to avoid issues with subclasses that might add
+		 * behaviors to `next_tag()`, the internal methods should be called here
+		 * instead.
+		 *
+		 * It's important to note that in this specific place there will be no change
+		 * because the processor was already at a tag when this was called and it's
+		 * rewinding only to the beginning of this very tag before reprocessing it
+		 * and its attributes.
 		 *
 		 * <p>Previous HTML<em>More HTML</em></p>
-		 *                 ^  | back up by the length of the tag name plus the opening <
-		 *                 \<-/ back up by strlen("em") + 1 ==> 3
+		 *                 ↑  │ back up by the length of the tag name plus the opening <
+		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
-
-		// Store existing state so it can be restored after reparsing.
-		$previous_parsed_byte_count = $this->bytes_already_parsed;
-		$previous_query             = $this->last_query;
-
-		// Reparse attributes.
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->next_tag();
+		$this->parse_next_tag();
+		// Reparse the attributes.
+		while ( $this->parse_next_attribute() ) {
+			continue;
+		}
 
-		// Restore previous state.
-		$this->bytes_already_parsed = $previous_parsed_byte_count;
-		$this->parse_query( $previous_query );
+		$tag_ends_at                = strpos( $this->html, '>', $this->bytes_already_parsed );
+		$this->tag_ends_at          = $tag_ends_at;
+		$this->bytes_already_parsed = $tag_ends_at;
 
 		return $this->html;
 	}
@@ -2306,64 +2441,7 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		$needs_class_name = null !== $this->sought_class_name;
-
-		if ( $needs_class_name && ! isset( $this->attributes['class'] ) ) {
-			return false;
-		}
-
-		/*
-		 * Match byte-for-byte (case-sensitive and encoding-form-sensitive) on the class name.
-		 *
-		 * This will overlook certain classes that exist in other lexical variations
-		 * than was supplied to the search query, but requires more complicated searching.
-		 */
-		if ( $needs_class_name ) {
-			$class_start = $this->attributes['class']->value_starts_at;
-			$class_end   = $class_start + $this->attributes['class']->value_length;
-			$class_at    = $class_start;
-
-			/*
-			 * Ensure that boundaries surround the class name to avoid matching on
-			 * substrings of a longer name. For example, the sequence "not-odd"
-			 * should not match for the class "odd" even though "odd" is found
-			 * within the class attribute text.
-			 *
-			 * See https://html.spec.whatwg.org/#attributes-3
-			 * See https://html.spec.whatwg.org/#space-separated-tokens
-			 */
-			while (
-				// phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition
-				false !== ( $class_at = strpos( $this->html, $this->sought_class_name, $class_at ) ) &&
-				$class_at < $class_end
-			) {
-				/*
-				 * Verify this class starts at a boundary.
-				 */
-				if ( $class_at > $class_start ) {
-					$character = $this->html[ $class_at - 1 ];
-
-					if ( ' ' !== $character && "\t" !== $character && "\f" !== $character && "\r" !== $character && "\n" !== $character ) {
-						$class_at += strlen( $this->sought_class_name );
-						continue;
-					}
-				}
-
-				/*
-				 * Verify this class ends at a boundary as well.
-				 */
-				if ( $class_at + strlen( $this->sought_class_name ) < $class_end ) {
-					$character = $this->html[ $class_at + strlen( $this->sought_class_name ) ];
-
-					if ( ' ' !== $character && "\t" !== $character && "\f" !== $character && "\r" !== $character && "\n" !== $character ) {
-						$class_at += strlen( $this->sought_class_name );
-						continue;
-					}
-				}
-
-				return true;
-			}
-
+		if ( null !== $this->sought_class_name && ! $this->has_class( $this->sought_class_name ) ) {
 			return false;
 		}
 

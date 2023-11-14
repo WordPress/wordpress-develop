@@ -18,13 +18,10 @@ function render_block_core_template_part( $attributes ) {
 	$template_part_id = null;
 	$content          = null;
 	$area             = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
+	$theme            = isset( $attributes['theme'] ) ? $attributes['theme'] : get_stylesheet();
 
-	if (
-		isset( $attributes['slug'] ) &&
-		isset( $attributes['theme'] ) &&
-		get_stylesheet() === $attributes['theme']
-	) {
-		$template_part_id    = $attributes['theme'] . '//' . $attributes['slug'];
+	if ( isset( $attributes['slug'] ) && get_stylesheet() === $theme ) {
+		$template_part_id    = $theme . '//' . $attributes['slug'];
 		$template_part_query = new WP_Query(
 			array(
 				'post_type'           => 'wp_template_part',
@@ -34,7 +31,7 @@ function render_block_core_template_part( $attributes ) {
 					array(
 						'taxonomy' => 'wp_theme',
 						'field'    => 'name',
-						'terms'    => $attributes['theme'],
+						'terms'    => $theme,
 					),
 				),
 				'posts_per_page'      => 1,
@@ -67,14 +64,11 @@ function render_block_core_template_part( $attributes ) {
 			// Else, if the template part was provided by the active theme,
 			// render the corresponding file content.
 			if ( 0 === validate_file( $attributes['slug'] ) ) {
-				$block_template_file = _get_block_template_file( 'wp_template_part', $attributes['slug'] );
-				if ( $block_template_file ) {
-					$template_part_file_path = $block_template_file['path'];
-					$content                 = (string) file_get_contents( $template_part_file_path );
-					$content                 = '' !== $content ? _inject_theme_attribute_in_block_template_content( $content ) : '';
-					if ( isset( $block_template_file['area'] ) ) {
-						$area = $block_template_file['area'];
-					}
+				$block_template = get_block_file_template( $template_part_id, 'wp_template_part' );
+
+				$content = $block_template->content;
+				if ( isset( $block_template->area ) ) {
+					$area = $block_template->area;
 				}
 			}
 

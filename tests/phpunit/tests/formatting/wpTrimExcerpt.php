@@ -129,7 +129,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 
 		wp_trim_excerpt( '', $post );
 
-		$this->assertSame( 10, has_filter( 'the_content', 'wp_filter_content_tags' ), 'wp_filter_content_tags() was not restored in wp_trim_excerpt()' );
+		$this->assertSame( 12, has_filter( 'the_content', 'wp_filter_content_tags' ), 'wp_filter_content_tags() was not restored in wp_trim_excerpt()' );
 	}
 
 	/**
@@ -141,7 +141,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		$post = self::factory()->post->create();
 
 		// Remove wp_filter_content_tags() from 'the_content' filter generally.
-		remove_filter( 'the_content', 'wp_filter_content_tags' );
+		remove_filter( 'the_content', 'wp_filter_content_tags', 12 );
 
 		wp_trim_excerpt( '', $post );
 
