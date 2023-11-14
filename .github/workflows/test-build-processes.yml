@@ -137,7 +137,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'pull-request-comments.yml',
-              ref: 'playground-test-trunk',
+              ref: 'test/playground-comment',
               inputs: {
                 pr_number: '${{ github.event.number }}'
               }
