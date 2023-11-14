@@ -10,6 +10,10 @@ on:
       - '[0-9]+.[0-9]'
       - '[0-9]+.[0-9].[0-9]+'
   pull_request:
+    branches:
+      - 'trunk'
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -27,7 +31,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@test/playground-comment
+    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -50,7 +54,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@test/playground-comment
+    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -102,29 +106,14 @@ jobs:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
 
-  slack-notifications:
-    name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
-    permissions:
-      actions: read
-      contents: read
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
-    with:
-      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
-    secrets:
-      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
-      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
-      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
-      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
-
   # Calls the Pull Request Commenting workflow to leave a comment detailing how to test the PR within WordPress Playground.
   playground-comment:
     name: Leave WordPress Playground details
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
 
     steps:
       - name: Dispatch workflow run
@@ -137,11 +126,27 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'pull-request-comments.yml',
-              ref: 'test/playground-comment',
+              ref: 'trunk',
               inputs: {
                 pr_number: '${{ github.event.number }}'
               }
             });
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
+    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos, playground-comment ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
