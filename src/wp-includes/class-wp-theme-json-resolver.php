@@ -137,8 +137,8 @@ class WP_Theme_JSON_Resolver {
 		// Include an unmodified $wp_version.
 		require ABSPATH . WPINC . '/version.php';
 
-		$cache_group    = 'theme_json_files';
-		$cache_key      = "i18n_schema_{$wp_version}";
+		$cache_group = 'theme_json_files';
+		$cache_key   = "i18n_schema_{$wp_version}";
 
 		$i18n_schema = wp_cache_get( $cache_key, $cache_group );
 
@@ -727,8 +727,8 @@ class WP_Theme_JSON_Resolver {
 		// Include an unmodified $wp_version.
 		require ABSPATH . WPINC . '/version.php';
 
-		$cache_group    = 'theme_json_files';
-		$cache_key      = "i18n_schema_{$wp_version}";
+		$cache_group = 'theme_json_files';
+		$cache_key   = "i18n_schema_{$wp_version}";
 		wp_cache_delete( $cache_key, $cache_group );
 	}
 
