@@ -15,7 +15,7 @@ class Tests_Sanitize_Option_Size extends WP_UnitTestCase {
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
-		$test  = sanitize_option_size( 'foo', 'bar' );
+		$test = sanitize_option_size( 'foo', 'bar' );
 		$this->assertSame( 'default-yes', $test );
 	}
 
