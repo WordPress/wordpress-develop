@@ -517,11 +517,19 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  * @return WP_Block_Template Template.
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
-	$default_template_types = get_default_block_template_types();
-	$template_content       = file_get_contents( $template_file['path'] );
-	$theme                  = get_stylesheet();
+	$template  = new WP_Block_Template();
+	$cache_key = md5( serialize( $template_file ) );
+	$cache     = wp_cache_get( $cache_key, 'block_template' );
+	if ( is_object( $cache ) ) {
+		foreach ( get_object_vars( $cache ) as $key => $value ) {
+			$template->$key = $value;
+		}
 
-	$template                 = new WP_Block_Template();
+		return $template;
+	}
+
+	$theme                    = isset( $template_file['theme'] ) ? $template_file['theme'] : get_stylesheet();
+	$template->content        = file_get_contents( $template_file['path'] );
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
 	$template->slug           = $template_file['slug'];
@@ -533,6 +541,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->is_custom      = true;
 	$template->modified       = null;
 
+	$default_template_types = get_default_block_template_types();
 	if ( 'wp_template' === $template_type && isset( $default_template_types[ $template_file['slug'] ] ) ) {
 		$template->description = $default_template_types[ $template_file['slug'] ]['description'];
 		$template->title       = $default_template_types[ $template_file['slug'] ]['title'];
@@ -554,8 +563,10 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
 	}
-	$blocks            = parse_blocks( $template_content );
+	$blocks            = parse_blocks( $template->content );
 	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+
+	wp_cache_add( $cache_key, $template, 'block_template' );
 
 	return $template;
 }
