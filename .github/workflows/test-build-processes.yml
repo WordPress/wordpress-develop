@@ -3,34 +3,20 @@ name: Test Build Processes
 on:
   push:
     branches:
-      - trunk
+      - playground-test-trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
       - '[0-9]+.[0-9]'
       - '[0-9]+.[0-9].[0-9]+'
   pull_request:
-    branches:
-      - trunk
-      - '3.[7-9]'
-      - '[4-9].[0-9]'
-    paths:
-      # These files configure npm. Changes could affect the outcome.
-      - 'package*.json'
-      # JavaScript files are built using npm.
-      - '**.js'
-      # CSS and SCSS files are built using npm.
-      - '**.scss'
-      - '**.css'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/**.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}2
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -41,7 +27,7 @@ jobs:
   # Tests the WordPress Core build process on multiple operating systems.
   test-core-build-process:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@playground-test-trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -64,7 +50,7 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-core-build-process-macos:
     name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@playground-test-trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -132,12 +118,37 @@ jobs:
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
 
+  # Calls the Pull Request Commenting workflow to leave a comment detailing how to test the PR within WordPress Playground.
+  playground-comment:
+    name: Leave WordPress Playground details
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    if: ${{ github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'pull-request-comments.yml',
+              ref: 'playground-test-trunk',
+              inputs: {
+                pr_number: '${{ github.event.number }}'
+              }
+            });
+
   failed-workflow:
     name: Failed workflow tasks
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ slack-notifications ]
+    needs: [ playground-comment ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
