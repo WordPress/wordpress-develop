@@ -287,7 +287,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * @covers ::redirect_guess_404_permalink
 	 */
 	public function test_redirect_guess_404_permalink_with_custom_statuses( $status_args, $redirects ) {
-		register_post_status('custom', $status_args);
+		register_post_status( 'custom', $status_args );
 
 		$post = self::factory()->post->create(
 			array(
@@ -296,12 +296,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		$this->go_to('custom-status-public-guess-404-permalink');
+		$this->go_to( 'custom-status-public-guess-404-permalink' );
 
-		// Modify the expected value to match the behavior after the patch
-		$expected = $redirects ? get_permalink($post) : false;
+		$expected = $redirects ? get_permalink( $post ) : false;
 
-		$this->assertSame($expected, redirect_guess_404_permalink());
+		$this->assertSame( $expected, redirect_guess_404_permalink() );
 	}
 
 	/**

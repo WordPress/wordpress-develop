@@ -307,8 +307,8 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		$parsed_can_url = parse_url( $can_url );
 
 		// Skip the test if it's a 404 response
-		if (is_404()) {
-			$this->markTestSkipped('Skipped due to 404 response.');
+		if ( is_404() ) {
+			$this->markTestSkipped( 'Skipped due to 404 response.' );
 		}
 
 		// Just test the path and query if present.
