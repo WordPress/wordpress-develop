@@ -104,7 +104,7 @@ jobs:
   # - Runs the theme build script.
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
-    name: Test ${{ matrix.theme }} build script
+    name: Test ${{ matrix.theme }} build script on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
