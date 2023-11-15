@@ -1613,8 +1613,6 @@ pre.wp-block-preformatted {
 		padding-right: 0;
 	}
 }
-@media only screen and (max-width: 481px) {
-}
 @media only screen and (min-width: 482px) {
 
 	.wp-block-quote {

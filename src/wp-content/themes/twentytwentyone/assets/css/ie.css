@@ -3328,8 +3328,6 @@ pre.wp-block-preformatted {
 		padding-right: 0;
 	}
 }
-@media only screen and (max-width: 481px) {
-}
 
 .wp-block-rss {
 	padding-left: 0;
@@ -5127,8 +5125,6 @@ h1.page-title {
 		position: fixed;
 		z-index: 2;
 	}
-}
-@media only screen and (max-width: 481px) {
 }
 
 .primary-navigation-open .primary-navigation > .primary-menu-container {
