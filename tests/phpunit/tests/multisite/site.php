@@ -1384,7 +1384,15 @@ if ( is_multisite() ) :
 						'domain' => '<yet>/another-invalid-domain.com',
 					),
 					array(
-						'domain' => 'another-invalid-domain.com',
+						'domain' => 'yetanother-invalid-domain.com',
+					),
+				),
+				array(
+					array(
+						'domain' => 'with-port.com:8888',
+					),
+					array(
+						'domain' => 'with-port.com:8888',
 					),
 				),
 				array(
