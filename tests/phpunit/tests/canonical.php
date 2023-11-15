@@ -313,29 +313,28 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 */
 	public function data_redirect_guess_404_permalink_with_custom_statuses() {
 		return array(
-			'public status' => array(
-				'status_args' => array('public' => true),
-				// Modify the expected value to match the behavior after the patch
-				'redirects' => false,
+			'public status'                      => array(
+				'status_args' => array( 'public' => true ),
+				'redirects'   => false,
 			),
-			'private status' => array(
-				'status_args' => array('public' => false),
-				'redirects' => false,
+			'private status'                     => array(
+				'status_args' => array( 'public' => false ),
+				'redirects'   => false,
 			),
-			'internal status' => array(
-				'status_args' => array('internal' => true),
-				'redirects' => false,
+			'internal status'                    => array(
+				'status_args' => array( 'internal' => true ),
+				'redirects'   => false,
 			),
-			'protected status' => array(
-				'status_args' => array('protected' => true),
-				'redirects' => false,
+			'protected status'                   => array(
+				'status_args' => array( 'protected' => true ),
+				'redirects'   => false,
 			),
 			'protected status flagged as public' => array(
 				'status_args' => array(
 					'protected' => true,
-					'public' => true,
+					'public'    => true,
 				),
-				'redirects' => false,
+				'redirects'   => false,
 			),
 		);
 	}
