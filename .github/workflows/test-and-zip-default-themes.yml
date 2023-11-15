@@ -129,6 +129,10 @@ jobs:
         working-directory: src/wp-content/themes/${{ matrix.theme }}
 
     steps:
+      - name: Configure Git
+        if: ${{ 'windows-latest' == matrix.os }}
+        run: git config core.autocrlf true
+
       - name: Checkout repository
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
