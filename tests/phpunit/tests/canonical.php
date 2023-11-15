@@ -267,15 +267,15 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		$this->go_to('strict-redirect');
+		$this->go_to( 'strict-redirect' );
 
 		// Test default 'non-strict' redirect guess.
-		$this->assertFalse(redirect_guess_404_permalink());
+		$this->assertFalse( redirect_guess_404_permalink() );
 
 		// Test 'strict' redirect guess.
-		add_filter('strict_redirect_guess_404_permalink', '__return_true');
+		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
 		// Modify the following line to expect false due to the patch
-		$this->assertFalse(redirect_guess_404_permalink());
+		$this->assertFalse( redirect_guess_404_permalink() );
 	}
 
 	/**
@@ -286,7 +286,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @covers ::redirect_guess_404_permalink
 	 */
-	public function test_redirect_guess_404_permalink_with_custom_statuses($status_args, $redirects) {
+	public function test_redirect_guess_404_permalink_with_custom_statuses( $status_args, $redirects ) {
 		register_post_status('custom', $status_args);
 
 		$post = self::factory()->post->create(
