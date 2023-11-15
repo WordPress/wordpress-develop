@@ -149,7 +149,7 @@ function network_step1( $errors = false ) {
 	}
 
 	// Strip standard port from hostname.
-	$hostname  = preg_replace( '/(?::80|:443)$/', '', get_clean_basedomain() );
+	$hostname = preg_replace( '/(?::80|:443)$/', '', get_clean_basedomain() );
 
 	echo '<form method="post">';
 

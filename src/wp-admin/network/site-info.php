@@ -73,7 +73,7 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 			$blog_data['domain'] .= ':' . $update_parsed_url['port'];
 		}
 
-		$blog_data['path']   = $update_parsed_url['path'];
+		$blog_data['path'] = $update_parsed_url['path'];
 	}
 
 	$existing_details     = get_site( $id );
