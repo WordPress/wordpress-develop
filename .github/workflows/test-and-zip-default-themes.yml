@@ -135,10 +135,6 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
-      - name: Configure Git
-        if: ${{ 'windows-latest' == matrix.os }}
-        run: git config core.autocrlf true
-
       - name: Set up Node.js
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
