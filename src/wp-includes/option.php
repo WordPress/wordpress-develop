@@ -828,7 +828,7 @@ function update_option( $option, $value, $autoload = null ) {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$allow_values = array( 'default-yes', 'default-no' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
-			$autoload                = sanitize_option_size( $option, $serialized_value );
+			$autoload                = determine_option_autoload_value( $option, $serialized_value );
 			$update_args['autoload'] = $autoload;
 		}
 	}
@@ -996,7 +996,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	$serialized_value = maybe_serialize( $value );
 
 	if ( null === $autoload ) {
-		$autoload = sanitize_option_size( $option, $serialized_value );
+		$autoload = determine_option_autoload_value( $option, $serialized_value );
 	} else {
 		$autoload = sanitize_autoload( $autoload );
 	}
@@ -1182,7 +1182,7 @@ function sanitize_autoload( $autoload ) {
  * @param mixed  $value  The value of the option to be checked.
  * @return string Returns 'default-no' if the size exceeds the maximum allowed size, or 'default-yes' otherwise.
  */
-function sanitize_option_size( $option, $value ) {
+function determine_option_autoload_value( $option, $value ) {
 	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
 	$size             = strlen( $serialized_value );

@@ -3,41 +3,41 @@
 /**
  * @group option
  */
-class Tests_Sanitize_Option_Size extends WP_UnitTestCase {
+class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	public function set_up() {
 		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		parent::set_up();
 	}
 
 	/**
-	 * @covers ::sanitize_option_size
+	 * @covers ::determine_option_autoload_value
 	 *
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
-		$test = sanitize_option_size( 'foo', 'bar' );
+		$test = determine_option_autoload_value( 'foo', 'bar' );
 		$this->assertSame( 'default-yes', $test );
 	}
 
 	/**
-	 * @covers ::sanitize_option_size
+	 * @covers ::determine_option_autoload_value
 	 *
 	 * @ticket 42441
 	 */
 	public function test_large_option() {
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$test  = sanitize_option_size( 'foo', $value );
+		$test  = determine_option_autoload_value( 'foo', $value );
 		$this->assertSame( 'default-no', $test );
 	}
 
 	/**
-	 * @covers ::sanitize_option_size
+	 * @covers ::determine_option_autoload_value
 	 *
 	 * @ticket 42441
 	 */
 	public function test_large_option_json() {
 		$value = file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' );
-		$test  = sanitize_option_size( 'foo', $value );
+		$test  = determine_option_autoload_value( 'foo', $value );
 		$this->assertSame( 'default-no', $test );
 	}
 
