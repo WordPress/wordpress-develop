@@ -291,7 +291,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$post = self::factory()->post->create(
 			array(
-				'post_title' => 'custom-status-public-guess-404-permalink',
+				'post_title'  => 'custom-status-public-guess-404-permalink',
 				'post_status' => 'custom',
 			)
 		);
