@@ -1140,6 +1140,22 @@ if ( is_multisite() ) :
 						'lang_id'  => 1,
 					),
 				),
+				array(
+					array(
+						'domain' => 'example.com:8888',
+					),
+					array(
+						'domain'     => 'example.com:8888',
+						'path'       => '/',
+						'network_id' => 1,
+						'public'     => 1,
+						'archived'   => 0,
+						'mature'     => 0,
+						'spam'       => 0,
+						'deleted'    => 0,
+						'lang_id'    => 0,
+					),
+				),
 			);
 		}
 
@@ -1240,6 +1256,16 @@ if ( is_multisite() ) :
 						'spam'     => 1,
 						'deleted'  => 1,
 						'lang_id'  => 1,
+					),
+				),
+				array(
+					array(
+						'domain'     => 'example.com:8888',
+						'network_id' => 2,
+					),
+					array(
+						'domain'  => 'example.com:8888',
+						'site_id' => 2,
 					),
 				),
 			);
