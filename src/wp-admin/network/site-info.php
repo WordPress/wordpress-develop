@@ -66,7 +66,13 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 		}
 
 		$blog_data['scheme'] = $update_parsed_url['scheme'];
+
+		// Make sure to not lose the port if it was provided.
 		$blog_data['domain'] = $update_parsed_url['host'];
+		if ( isset( $update_parsed_url['port'] ) ) {
+			$blog_data['domain'] .= ':' . $update_parsed_url['port'];
+		}
+
 		$blog_data['path']   = $update_parsed_url['path'];
 	}
 
