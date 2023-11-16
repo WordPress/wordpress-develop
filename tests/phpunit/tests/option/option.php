@@ -400,8 +400,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function test_update_option_autoloading_large_option( $autoload, $expected ) {
 		global $wpdb;
-		$name  = 'foo';
-		$added = add_option( $name, 'bar' );
+		$name = 'foo';
+		add_option( $name, 'bar' );
 		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$added = update_option( $name, $value, $autoload );
@@ -419,8 +419,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function test_update_option_autoloading_large_option_no() {
 		global $wpdb;
-		$name  = 'foo';
-		$added = add_option( $name, 'bar', '', 'no' );
+		$name = 'foo';
+		add_option( $name, 'bar', '', 'no' );
 		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$added = update_option( $name, $value );

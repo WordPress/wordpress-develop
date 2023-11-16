@@ -16,7 +16,7 @@ class Tests_Aanitize_Autoload extends WP_UnitTestCase {
 	 * @param $expected
 	 */
 	public function test_get_autoload_value_values( $autoload, $expected ) {
-		$test = sanitize_autoload( $autoload );
+		$test = determine_option_autoload_value( null, '', $autoload );
 		$this->assertSame( $expected, $test );
 	}
 
