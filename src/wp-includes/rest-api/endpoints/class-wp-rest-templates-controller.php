@@ -44,6 +44,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 * @since 6.1.0 Endpoint for fallback template content.
 	 */
+	#[\Override]
 	public function register_routes() {
 		// Lists all templates.
 		register_rest_route(
@@ -239,6 +240,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -251,6 +253,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 		$query = array();
 		if ( isset( $request['wp_id'] ) ) {
@@ -280,6 +283,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -292,6 +296,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
 			$template = get_block_file_template( $request['id'], $this->post_type );
@@ -314,6 +319,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function update_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -326,6 +332,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function update_item( $request ) {
 		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
@@ -395,6 +402,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function create_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -407,6 +415,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function create_item( $request ) {
 		$prepared_post = $this->prepare_item_for_database( $request );
 
@@ -459,6 +468,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has delete access for the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function delete_item_permissions_check( $request ) {
 		return $this->permissions_check( $request );
 	}
@@ -471,6 +481,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function delete_item( $request ) {
 		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
@@ -534,6 +545,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass Changes to pass to wp_update_post.
 	 */
+	#[\Override]
 	protected function prepare_item_for_database( $request ) {
 		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
 		$changes  = new stdClass();
@@ -633,6 +645,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request   $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		// Restores the more descriptive, specific name for use within this method.
 		$template = $item;
@@ -804,6 +817,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		return array(
 			'context'   => $this->get_context_param( array( 'default' => 'view' ) ),
@@ -830,6 +844,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
