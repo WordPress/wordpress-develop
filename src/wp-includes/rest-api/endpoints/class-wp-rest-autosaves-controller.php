@@ -79,6 +79,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -142,6 +143,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param int $parent_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
+	#[\Override]
 	protected function get_parent( $parent_id ) {
 		return $this->revisions_controller->get_parent( $parent_id );
 	}
@@ -154,6 +156,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		$parent = $this->get_parent( $request['id'] );
 		if ( is_wp_error( $parent ) ) {
@@ -182,6 +185,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function create_item_permissions_check( $request ) {
 		$id = $request->get_param( 'id' );
 
@@ -204,6 +208,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function create_item( $request ) {
 
 		if ( ! defined( 'DOING_AUTOSAVE' ) ) {
@@ -260,6 +265,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Post|WP_Error Revision post object if ID is valid, WP_Error otherwise.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$parent_id = (int) $request->get_param( 'parent' );
 
@@ -295,6 +301,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 		$parent = $this->get_parent( $request['id'] );
 		if ( is_wp_error( $parent ) ) {
@@ -323,6 +330,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -408,6 +416,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$post     = $item;
@@ -453,6 +462,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
