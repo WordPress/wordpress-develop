@@ -8716,6 +8716,16 @@ function is_wp_version_compatible( $required ) {
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );
 
+	if ( str_ends_with( $required, '.0' ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			"`{$required}` is not a valid WordPress version string.",
+			E_USER_DEPRECATED
+		);
+
+		$required = rtrim( $required, '.0' );
+	}
+
 	return empty( $required ) || version_compare( $version, $required, '>=' );
 }
 
