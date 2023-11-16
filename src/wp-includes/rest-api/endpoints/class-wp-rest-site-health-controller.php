@@ -47,6 +47,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -347,6 +348,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 *
 	 * @return array The test schema.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->schema;
