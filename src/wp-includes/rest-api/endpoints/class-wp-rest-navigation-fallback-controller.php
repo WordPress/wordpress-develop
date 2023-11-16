@@ -43,6 +43,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 *
 	 * @return void
 	 */
+	#[\Override]
 	public function register_routes() {
 
 		// Lists a single nav item based on the given id or slug.
@@ -69,6 +70,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 
 		$post_type = get_post_type_object( $this->post_type );
@@ -101,6 +103,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$post = WP_Navigation_Fallback::get_fallback();
 
@@ -120,6 +123,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -151,6 +155,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response $response The response data.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		$data = array();
 
