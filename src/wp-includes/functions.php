@@ -8717,8 +8717,8 @@ function is_wp_version_compatible( $required ) {
 	list( $version ) = explode( '-', $wp_version );
 
 	if ( is_string( $required ) && substr_count( $required, '.' ) > 1 && str_ends_with( $required, '.0' ) ) {
-		error_log(
-			__FUNCTION__ . '(): ' .
+		wp_trigger_error(
+			__FUNCTION__,
 			/* translators: s: version string sent to function */
 			sprintf( __( '`%s` Not a valid WordPress version string.' ), $required )
 		);
