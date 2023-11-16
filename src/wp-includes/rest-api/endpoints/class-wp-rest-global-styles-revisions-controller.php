@@ -48,6 +48,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.3.0
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -80,6 +81,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		$collection_params                       = parent::get_collection_params();
 		$collection_params['context']['default'] = 'view';
@@ -127,6 +129,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
 
@@ -274,6 +277,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error Response object.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $post, $request ) {
 		$parent               = $this->get_parent( $request['parent'] );
 		$global_styles_config = $this->get_decoded_global_styles_json( $post->post_content );
@@ -337,6 +341,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -420,6 +425,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_parent( $request['parent'] );
 		if ( is_wp_error( $post ) ) {
