@@ -33,6 +33,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -132,6 +133,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		return $this->check_read_permission();
 	}
@@ -144,6 +146,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 		$data = array();
 		foreach ( $this->get_widgets() as $widget ) {
@@ -162,6 +165,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		$check = $this->check_read_permission();
 		if ( is_wp_error( $check ) ) {
@@ -273,6 +277,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$widget_id   = $request['id'];
 		$widget_type = $this->get_widget( $widget_id );
@@ -294,6 +299,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Widget type data.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$widget_type = $item;
@@ -377,6 +383,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -665,6 +672,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
