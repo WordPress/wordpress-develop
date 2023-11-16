@@ -87,15 +87,14 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 			),
 
 			// Improper WP version.
-			'improper trailing x.x.0'            => array(
+			'improper trailing x.x.0'   => array(
 				'required' => '5.2.0',
 				'expected' => true,
 			),
-			'correct version'            => array(
+			'correct version'           => array(
 				'required' => '5.2',
 				'expected' => true,
 			),
-
 		);
 	}
 
