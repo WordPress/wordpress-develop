@@ -8716,7 +8716,7 @@ function is_wp_version_compatible( $required ) {
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );
 
-	if ( str_ends_with( $required, '.0' ) ) {
+	if ( is_string( $required ) && str_ends_with( $required, '.0' ) ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			"`{$required}` is not a valid WordPress version string.",
