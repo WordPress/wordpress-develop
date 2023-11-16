@@ -25,9 +25,10 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
+	 * @param string $required The minimum required WordPress version.
 	 * @return array
 	 */
-	public function data_is_wp_version_compatible() {
+	public function data_is_wp_version_compatible( $required ) {
 		global $wp_version;
 
 		$version_parts  = explode( '.', $wp_version );
@@ -88,8 +89,8 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 
 			// Improper WP version.
 			'improper trailing x.x.0'   => array(
-				'required' => '5.2.0',
-				'expected' => true,
+				'required' => $required,
+				'expected' => "is_wp_version_compatible(): `$required` is not a valid WordPress version string.",
 			),
 			'correct version'           => array(
 				'required' => '5.2',
