@@ -8720,7 +8720,7 @@ function is_wp_version_compatible( $required ) {
 		wp_trigger_error(
 			__FUNCTION__,
 			"`{$required}` is not a valid WordPress version string.",
-			E_USER_DEPRECATED
+			E_USER_NOTICE
 		);
 
 		$required = rtrim( $required, '.0' );
