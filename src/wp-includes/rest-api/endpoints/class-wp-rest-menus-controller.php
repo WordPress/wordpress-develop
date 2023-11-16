@@ -24,6 +24,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		$has_permission = parent::get_items_permissions_check( $request );
 
@@ -42,6 +43,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		$has_permission = parent::get_item_permissions_check( $request );
 
@@ -60,6 +62,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param int $id Supplied ID.
 	 * @return WP_Term|WP_Error Term object if ID is valid, WP_Error otherwise.
 	 */
+	#[\Override]
 	protected function get_term( $id ) {
 		$term = parent::get_term( $id );
 
@@ -114,6 +117,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $term, $request ) {
 		$nav_menu = wp_get_nav_menu_object( $term );
 		$response = parent::prepare_item_for_response( $nav_menu, $request );
@@ -151,6 +155,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_Term $term Term object.
 	 * @return array Links for the given term.
 	 */
+	#[\Override]
 	protected function prepare_links( $term ) {
 		$links = parent::prepare_links( $term );
 
@@ -175,6 +180,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return object Prepared term data.
 	 */
+	#[\Override]
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = parent::prepare_item_for_database( $request );
 
@@ -195,6 +201,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function create_item( $request ) {
 		if ( isset( $request['parent'] ) ) {
 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
@@ -284,6 +291,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function update_item( $request ) {
 		$term = $this->get_term( $request['id'] );
 		if ( is_wp_error( $term ) ) {
@@ -364,6 +372,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function delete_item( $request ) {
 		$term = $this->get_term( $request['id'] );
 		if ( is_wp_error( $term ) ) {
@@ -522,6 +531,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
