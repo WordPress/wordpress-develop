@@ -33,6 +33,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
@@ -79,6 +80,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
@@ -99,6 +101,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 		$data = array();
 
@@ -122,6 +125,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
@@ -142,6 +146,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$registered_menus = get_registered_nav_menus();
 		if ( ! array_key_exists( $request['location'], $registered_menus ) ) {
@@ -166,6 +171,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Menu location data.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$location  = $item;
@@ -254,6 +260,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -295,6 +302,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
