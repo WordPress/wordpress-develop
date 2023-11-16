@@ -8919,6 +8919,6 @@ function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' )
 	 * @since 6.5.0
 	 *
 	 */
-    wp_enqueue_style( 'tooltip-style', includes_url( '/css/wp-tooltip.css' ), array(), '1.0' );
+	wp_enqueue_style( 'tooltip-style', includes_url( '/css/wp-tooltip.css' ), array(), '1.0' );
 	wp_enqueue_script( 'tooltip-script', includes_url( '/js/wp-tooltip.js' ), array( 'jquery' ), '1.0', true );
 }
