@@ -8902,16 +8902,16 @@ function wp_admin_notice( $message, $args = array() ) {
  */
 function add_tooltip( $field_id, $tooltip_text, $tooltip_button_label = 'Help' ) {
 	?>
-    <div class="tooltip-container <?php echo esc_attr( $field_id ); ?>">
-        <button type="button" class="tooltip-button" aria-describedby="<?php echo esc_attr( $field_id ); ?>-tooltip" aria-label="<?php echo esc_attr( $tooltip_button_label ); ?>">
-            <span class="dashicons dashicons-editor-help"></span>
-        </button>
-        <div id="<?php echo esc_attr( $field_id ); ?>-tooltip" class="tooltip-content">
-            <div class="tooltip-arrow"></div>
-            <p><?php echo esc_html( $tooltip_text ); ?></p>
-        </div>
-    </div>
-    <?php
+	<div class="tooltip-container <?php echo esc_attr( $field_id ); ?>">
+		<button type="button" class="tooltip-button" aria-describedby="<?php echo esc_attr( $field_id ); ?>-tooltip" aria-label="<?php echo esc_attr( $tooltip_button_label ); ?>">
+			<span class="dashicons dashicons-editor-help"></span>
+		</button>
+		<div id="<?php echo esc_attr( $field_id ); ?>-tooltip" class="tooltip-content">
+			<div class="tooltip-arrow"></div>
+			<p><?php echo esc_html( $tooltip_text ); ?></p>
+		</div>
+	</div>
+	<?php
 
 	/**
 	 * Enqueues the Styles and Scripts for the Tooltip.
