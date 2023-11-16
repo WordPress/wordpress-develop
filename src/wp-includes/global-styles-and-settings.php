@@ -21,9 +21,12 @@
  *                              Valid values are 'all' (core, theme, and user) or 'base' (core and theme).
  *                              If empty or unknown, 'all' is used.
  * }
- * @return mixed The settings array or individual setting value to retrieve.
+ * @param bool $strict   Optional. Return null if the setting is not found, otherwise return all settings.
+ *                       Default false.
+ * @return mixed The settings array or individual setting value to retrieve. Returns null if the setting is not
+ *               found and the $strict parameter is true.
  */
-function wp_get_global_settings( $path = array(), $context = array() ) {
+function wp_get_global_settings( $path = array(), $context = array(), $strict = false ) {
 	if ( ! empty( $context['block_name'] ) ) {
 		$new_path = array( 'blocks', $context['block_name'] );
 		foreach ( $path as $subpath ) {
@@ -83,7 +86,9 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 		}
 	}
 
-	return _wp_array_get( $settings, $path, $settings );
+	$default = $strict ? null : $settings;
+
+	return _wp_array_get( $settings, $path, $default );
 }
 
 /**
