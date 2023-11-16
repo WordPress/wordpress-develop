@@ -95,12 +95,20 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 				'required' => '5.2',
 				'expected' => true,
 			),
+			'incorrect trailing x.0.0'  => array(
+				'required' => '5.0.0',
+				'expected' => true,
+			),
 			'correct version x.0'       => array(
 				'required' => '5.0',
 				'expected' => true,
 			),
-			'corrrect version x.x.1'    => array(
-				'required' => '3.0.1',
+			'correct version x.0.1'     => array(
+				'required' => '5.0.1',
+				'expected' => true,
+			),
+			'correct version x.1.1'     => array(
+				'required' => '5.1.1',
 				'expected' => true,
 			),
 		);
