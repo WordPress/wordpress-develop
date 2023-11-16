@@ -372,7 +372,6 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
-	#[\Override]
 	public function delete_items_permissions_check( $request ) {
 		$user = $this->get_user( $request );
 
