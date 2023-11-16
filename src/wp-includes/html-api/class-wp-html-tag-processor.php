@@ -2434,6 +2434,7 @@ class WP_HTML_Tag_Processor {
 	 * Checks whether a given tag and its attributes match the search criteria.
 	 *
 	 * @since 6.2.0
+	 * @since 6.5.0 Allows matching any of the H1 - H6 tag names with the WP_HTML_Tag_Processor::H1_H6_ELEMENTS constant.
 	 *
 	 * @return bool Whether the given tag and its attribute match the search criteria.
 	 */
@@ -2442,8 +2443,31 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
+
 		// Does the tag name match the requested tag name in a case-insensitive manner?
-		if ( null !== $this->sought_tag_name ) {
+		if ( self::H1_H6_ELEMENTS === $this->sought_tag_name ) {
+			/*
+			 * H1 through H6 are special because they act like one tag
+			 * name but are distinct. It's common enough to want to stop
+			 * at any of them without knowing in advance which one to
+			 * look for; the class constant aids this by representing
+			 * the entire set of six elements: H1, H2, H3, H4, H5, H6.
+			 */
+
+			if ( 2 !== $this->tag_name_length ) {
+				return false;
+			}
+
+			$c = $this->html[ $this->tag_name_starts_at ];
+			if ( 'h' !== $c && 'H' !== $c ) {
+				return false;
+			}
+
+			$c = $this->html[ $this->tag_name_starts_at + 1 ];
+			if ( '1' !== $c && '2' !== $c && '3' !== $c && '4' !== $c && '5' !== $c && '6' !== $c ) {
+				return false;
+			}
+		} elseif ( null !== $this->sought_tag_name ) {
 			/*
 			 * String (byte) length lookup is fast. If they aren't the
 			 * same length then they can't be the same string values.
@@ -2480,4 +2504,17 @@ class WP_HTML_Tag_Processor {
 
 		return true;
 	}
+
+	// Class constants that would otherwise be distracting if found at the top of the document.
+
+	/**
+	 * Represents the collection of H1-H6 elements.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @see has_element_in_scope()
+	 *
+	 * @var string
+	 */
+	const H1_H6_ELEMENTS = 'Match on any of H1, H2, H3, H4, H5, H6';
 }

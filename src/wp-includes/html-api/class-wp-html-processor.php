@@ -733,11 +733,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-H4':
 			case '-H5':
 			case '-H6':
-				if (
-					! $this->state->stack_of_open_elements->has_element_in_scope(
-						WP_HTML_Open_Elements::HEADING_ELEMENTS
-					)
-				) {
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( WP_HTML_Tag_Processor::H1_H6_ELEMENTS ) ) {
 					/*
 					 * This is a parse error; ignore the token.
 					 *
@@ -752,7 +748,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// @TODO: Record parse error: this error doesn't impact parsing.
 				}
 
-				$this->state->stack_of_open_elements->pop_until( WP_HTML_Open_Elements::HEADING_ELEMENTS );
+				$this->state->stack_of_open_elements->pop_until( WP_HTML_Tag_Processor::H1_H6_ELEMENTS );
 				return true;
 
 			/*

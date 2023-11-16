@@ -510,6 +510,77 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the H1_H6_ELEMENTS constant leads to matches for H1 through H6 elements.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_h_tag_names
+	 *
+	 * @param string $h_tag_name One of H1 through H6, case-insensitive.
+	 */
+	public function test_next_tag_matches_h1_through_h6_with_the_class_constant( $h_tag_name ) {
+		$p = new WP_HTML_Tag_Processor( "<div><img><{$h_tag_name}></div>" );
+
+		$this->assertTrue( $p->next_tag( WP_HTML_Tag_Processor::H1_H6_ELEMENTS ), "Failed to find {$h_tag_name} tag opener." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_h_tag_names() {
+		return array(
+			'H1' => array( 'H1' ),
+			'H2' => array( 'H2' ),
+			'H3' => array( 'H3' ),
+			'H4' => array( 'H4' ),
+			'H5' => array( 'H5' ),
+			'H6' => array( 'H6' ),
+		);
+	}
+
+	/**
+	 * Ensures that the H1_H6_ELEMENTS constant doesn't lead to matches on
+	 * tag names that look similar to H1 - H6 but aren't those elements.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 *
+	 * @dataProvider data_invalid_h_tag_names
+	 *
+	 * @param string $invalid_h_tag_name Tag names that look like H1 through H6 but are not those tag names.
+	 */
+	public function test_next_tag_does_not_match_invalid_h_elements_with_the_class_constant( $invalid_h_tag_name ) {
+		$p = new WP_HTML_Tag_Processor( "<div><img><{$invalid_h_tag_name}></div>" );
+
+		$this->assertFalse( $p->next_tag( WP_HTML_Tag_Processor::H1_H6_ELEMENTS ), "Found {$p->get_tag()} when looking for {$invalid_h_tag_name} element and should have found nothing." );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_invalid_h_tag_names() {
+		return array(
+			'H0'        => array( 'H0' ),
+			'H7'        => array( 'H7' ),
+			'H13'       => array( 'H13' ),
+
+			/*
+			 * Preserve the FULLWIDTH DIGIT SIX key because PHPUnit interprets '6' as
+			 * a numeric array item and reports "data set 0" instead of "6".
+			 */
+			'６'         => array( '6' ),
+			'H4-CUSTOM' => array( 'H4-CUSTOM' ),
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 * @ticket 57852
 	 *
