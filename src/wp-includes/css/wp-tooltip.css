@@ -1,0 +1,41 @@
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.tooltip-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    width: 150px;
+    text-align: center;
+    top: auto;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: -10px;
+}
+
+.tooltip-arrow {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #fff;
+    transform: rotate(180deg) scaleX(-1);
+}
