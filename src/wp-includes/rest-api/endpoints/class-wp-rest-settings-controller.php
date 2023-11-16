@@ -33,6 +33,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[\Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -65,6 +66,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool True if the request has read access for the item, otherwise false.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		return current_user_can( 'manage_options' );
 	}
@@ -77,6 +79,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array|WP_Error Array on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$options  = $this->get_registered_options();
 		$response = array();
@@ -143,6 +146,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array|WP_Error Array on success, or error object on failure.
 	 */
+	#[\Override]
 	public function update_item( $request ) {
 		$options = $this->get_registered_options();
 
@@ -273,6 +277,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
