@@ -430,7 +430,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		if ( ! is_main_site( $blog['blog_id'] ) ) :
 			$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 			?>
-			<label class="label-covers-full-cell" for="blog_<?php echo $blog['blog_id']; ?>">
+			<input type="checkbox" id="blog_<?php echo $blog['blog_id']; ?>" name="allblogs[]" value="<?php echo esc_attr( $blog['blog_id'] ); ?>" />
+			<label for="blog_<?php echo $blog['blog_id']; ?>">
 				<span class="screen-reader-text">
 				<?php
 				/* translators: %s: Site URL. */
@@ -438,8 +439,6 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 				?>
 				</span>
 			</label>
-			<input type="checkbox" id="blog_<?php echo $blog['blog_id']; ?>" name="allblogs[]"
-				value="<?php echo esc_attr( $blog['blog_id'] ); ?>" />
 			<?php
 		endif;
 	}
@@ -608,6 +607,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 */
 	#[\Override]
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$blog = $item;
+
 		/**
 		 * Fires for each registered custom column in the Sites list table.
 		 *
@@ -616,7 +618,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 * @param string $column_name The name of the column to display.
 		 * @param int    $blog_id     The site ID.
 		 */
-		do_action( 'manage_sites_custom_column', $column_name, $item['blog_id'] );
+		do_action( 'manage_sites_custom_column', $column_name, $blog['blog_id'] );
 	}
 
 	/**
@@ -728,7 +730,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$blog     = $item;
+		$blog = $item;
+
 		$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 
 		// Preordered.

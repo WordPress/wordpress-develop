@@ -81,6 +81,8 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 	 */
 	do_action( 'delete_theme', $stylesheet );
 
+	$theme = wp_get_theme( $stylesheet );
+
 	$themes_dir = trailingslashit( $themes_dir );
 	$theme_dir  = trailingslashit( $themes_dir . $stylesheet );
 	$deleted    = $wp_filesystem->delete( $theme_dir, true );
@@ -125,6 +127,9 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		WP_Theme::network_disable_theme( $stylesheet );
 	}
 
+	// Clear theme caches.
+	$theme->cache_delete();
+
 	// Force refresh of theme update information.
 	delete_site_transient( 'update_themes' );
 
@@ -156,7 +161,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @return string
  */
 function _get_template_edit_filename( $fullpath, $containingfolder ) {
-	return str_replace( dirname( dirname( $containingfolder ) ), '', $fullpath );
+	return str_replace( dirname( $containingfolder, 2 ), '', $fullpath );
 }
 
 /**
@@ -1058,12 +1063,7 @@ function customize_themes_print_templates() {
 				<# if ( data.active ) { #>
 					<button type="button" class="button button-primary customize-theme"><?php _e( 'Customize' ); ?></button>
 				<# } else if ( 'installed' === data.type ) { #>
-					<?php if ( current_user_can( 'delete_themes' ) ) { ?>
-						<# if ( data.actions && data.actions['delete'] ) { #>
-							<a href="{{{ data.actions['delete'] }}}" data-slug="{{ data.id }}" class="button button-secondary delete-theme"><?php _e( 'Delete' ); ?></a>
-						<# } #>
-					<?php } ?>
-
+					<div class="theme-inactive-actions">
 					<# if ( data.blockTheme ) { #>
 						<?php
 							/* translators: %s: Theme name. */
@@ -1079,6 +1079,12 @@ function customize_themes_print_templates() {
 							<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
 						<# } #>
 					<# } #>
+					</div>
+					<?php if ( current_user_can( 'delete_themes' ) ) { ?>
+						<# if ( data.actions && data.actions['delete'] ) { #>
+							<a href="{{{ data.actions['delete'] }}}" data-slug="{{ data.id }}" class="button button-secondary delete-theme"><?php _e( 'Delete' ); ?></a>
+						<# } #>
+					<?php } ?>
 				<# } else { #>
 					<# if ( data.compatibleWP && data.compatiblePHP ) { #>
 						<button type="button" class="button theme-install" data-slug="{{ data.id }}"><?php _e( 'Install' ); ?></button>
@@ -1166,11 +1172,14 @@ function resume_theme( $theme, $redirect = '' ) {
 	 * creating a fatal error.
 	 */
 	if ( ! empty( $redirect ) ) {
+		$stylesheet_path = get_stylesheet_directory();
+		$template_path   = get_template_directory();
+
 		$functions_path = '';
-		if ( str_contains( STYLESHEETPATH, $extension ) ) {
-			$functions_path = STYLESHEETPATH . '/functions.php';
-		} elseif ( str_contains( TEMPLATEPATH, $extension ) ) {
-			$functions_path = TEMPLATEPATH . '/functions.php';
+		if ( str_contains( $stylesheet_path, $extension ) ) {
+			$functions_path = $stylesheet_path . '/functions.php';
+		} elseif ( str_contains( $template_path, $extension ) ) {
+			$functions_path = $template_path . '/functions.php';
 		}
 
 		if ( ! empty( $functions_path ) ) {
@@ -1224,11 +1233,18 @@ function paused_themes_notice() {
 		return;
 	}
 
-	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+	$message = sprintf(
+		'<p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p>',
 		__( 'One or more themes failed to load properly.' ),
 		__( 'You can find more details and make changes on the Themes screen.' ),
 		esc_url( admin_url( 'themes.php' ) ),
 		__( 'Go to the Themes screen' )
+	);
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => 'error',
+			'paragraph_wrap' => false,
+		)
 	);
 }

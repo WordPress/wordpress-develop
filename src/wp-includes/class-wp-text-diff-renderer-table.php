@@ -31,6 +31,30 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public $_trailing_context_lines = 10000;
 
 	/**
+	 * Title of the item being compared.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title;
+
+	/**
+	 * Title for the left column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_left;
+
+	/**
+	 * Title for the right column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_right;
+
+	/**
 	 * Threshold for when a diff should be saved or omitted.
 	 *
 	 * @var float
@@ -120,7 +144,6 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			/* translators: Hidden accessibility text. */
 			__( 'Added:' ) .
 		" </span>{$line}</td>";
-
 	}
 
 	/**
@@ -527,7 +550,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			return $this->$name;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Getting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -550,7 +574,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Setting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -571,7 +596,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			return isset( $this->$name );
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -593,7 +619,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED

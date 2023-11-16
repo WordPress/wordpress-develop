@@ -23,7 +23,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $tag_name Name of first tag in HTML (because HTML treats IMAGE as IMG this may not match the HTML).
 	 */
 	public function test_navigates_into_normative_html_for_supported_elements( $html, $tag_name ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		$this->assertTrue( $p->step(), "Failed to step into supported {$tag_name} element." );
 		$this->assertSame( $tag_name, $p->get_tag(), "Misread {$tag_name} as a {$p->get_tag()} element." );
@@ -85,7 +85,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html HTML string containing unsupported elements.
 	 */
 	public function test_fails_when_encountering_unsupported_tag( $html ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		$this->assertFalse( $p->step(), "Should not have stepped into unsupported {$p->get_tag()} element." );
 	}
@@ -236,7 +236,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html HTML containing unsupported markup.
 	 */
 	public function test_fails_when_encountering_unsupported_markup( $html, $description ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		while ( $p->step() && null === $p->get_attribute( 'supported' ) ) {
 			continue;
@@ -277,7 +277,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param int    $n           How many breadcrumb matches to scan through in order to find "target" element.
 	 */
 	public function test_finds_correct_tag_given_breadcrumbs( $html, $breadcrumbs, $n ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		$p->next_tag(
 			array(
@@ -300,10 +300,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html        HTML string with tags in it, one of which contains the "target" attribute.
 	 * @param array  $breadcrumbs Breadcrumbs of element with "target" attribute set.
 	 * @param int    $ignored_n   Not used in this test but provided in the dataset for other tests.
-	 * @return void
 	 */
 	public function test_reports_correct_breadcrumbs_for_html( $html, $breadcrumbs, $ignored_n ) {
-		$p = WP_HTML_Processor::createFragment( $html );
+		$p = WP_HTML_Processor::create_fragment( $html );
 
 		while ( $p->next_tag() && null === $p->get_attribute( 'target' ) ) {
 			continue;
@@ -353,16 +352,121 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59400
+	 *
+	 * @dataProvider data_html_with_breadcrumbs_of_various_specificity
+	 *
+	 * @param string   $html_with_target_node HTML with a node containing a "target" attribute.
+	 * @param string[] $breadcrumbs           Breadcrumbs to test at the target node.
+	 * @param bool     $should_match          Whether the target node should match the breadcrumbs.
+	 */
+	public function test_reports_if_tag_matches_breadcrumbs_of_various_specificity( $html_with_target_node, $breadcrumbs, $should_match ) {
+		$processor = WP_HTML_Processor::create_fragment( $html_with_target_node );
+		while ( $processor->next_tag() && null === $processor->get_attribute( 'target' ) ) {
+			continue;
+		}
+
+		$matches = $processor->matches_breadcrumbs( $breadcrumbs );
+		$path    = implode( ', ', $breadcrumbs );
+		if ( $should_match ) {
+			$this->assertTrue( $matches, "HTML tag {$processor->get_tag()} should have matched breadcrumbs but didn't: {$path}." );
+		} else {
+			$this->assertFalse( $matches, "HTML tag {$processor->get_tag()} should not have matched breadcrumbs but did: {$path}." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_html_with_breadcrumbs_of_various_specificity() {
+		return array(
+			// Test with void elements.
+			'Inner IMG'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
+			'Inner IMG wildcard'             => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
+			'Inner IMG no wildcard'          => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
+			'Full specification'             => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
+			'Invalid Full specification'     => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
+
+			// Test also with non-void elements that open and close.
+			'Inner P'                        => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'figure', 'p' ), true ),
+			'Inner P wildcard'               => array( '<div><span><figure><p target></figure></span></div>', array( 'span', '*', 'p' ), true ),
+			'Inner P no wildcard'            => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P)'         => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), true ),
+			'Invalid Full specification (P)' => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+
+			// Ensure that matches aren't on tag closers.
+			'Inner P'                        => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'figure', 'p' ), false ),
+			'Inner P wildcard'               => array( '<div><span><figure></p target></figure></span></div>', array( 'span', '*', 'p' ), false ),
+			'Inner P no wildcard'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
+			'Invalid Full specification (P)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+
+			// Test wildcard behaviors.
+			'Single wildcard element'        => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( '*' ), true ),
+			'Child of wildcard element'      => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( 'SPAN', '*' ), true ),
+		);
+	}
+
+	/**
+	 * Ensures that updating tag's attributes doesn't shift the current position
+	 * in the input HTML document.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @ticket 59607
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 */
+	public function test_remains_stable_when_editing_attributes() {
+		$p = WP_HTML_Processor::create_fragment( '<div><button>First<button><b here>Second' );
+		$p->next_tag( array( 'breadcrumbs' => array( 'BUTTON', 'B' ) ) );
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->set_attribute( 'a-name', 'a-value' );
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have found the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->get_updated_html();
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have stayed at the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag after updating attributes.'
+		);
+	}
+
+	/**
 	 * Ensures that the ability to set attributes isn't broken by the HTML Processor.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::set_attribute
+	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_can_modify_attributes_after_finding_tag() {
-		$p = WP_HTML_Processor::createFragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
 
 		$this->assertTrue( $p->next_tag( array( 'breadcrumbs' => array( 'figcaption' ) ) ), 'Unable to find given tag.' );
 
@@ -380,7 +484,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::next_tag
 	 */
 	public function test_can_query_an_element_by_tag_name() {
-		$p = WP_HTML_Processor::createFragment( '<div><DIV><strong><img></strong></DIV>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><DIV><strong><img></strong></DIV>' );
 		$p->next_tag( 'IMG' );
 		$p->set_attribute( 'loading', 'lazy' );
 
@@ -397,7 +501,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::seek
 	 */
 	public function test_can_seek_back_and_forth() {
-		$p = WP_HTML_Processor::createFragment( '<div><p one><div><p><div two><p><div><p><div><p three>' );
+		$p = WP_HTML_Processor::create_fragment( '<div><p one><div><p><div two><p><div><p><div><p three>' );
 
 		// Find first tag of interest.
 		while ( $p->next_tag() && null === $p->get_attribute( 'one' ) ) {

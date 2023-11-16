@@ -738,7 +738,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post     = $item;
+		$post = $item;
+
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
 		$data     = $response->get_data();
@@ -1460,5 +1461,4 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 		);
 	}
-
 }

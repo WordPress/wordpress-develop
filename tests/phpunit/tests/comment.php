@@ -121,14 +121,14 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
+		wp_set_current_user( 0 );
+
 		$comment          = get_comment( $comment_id );
 		$expected_content = is_multisite()
 			? 'new comment '
 			: 'new comment <img onerror=demo src=x>';
 
 		$this->assertSame( $expected_content, $comment->comment_content );
-
-		wp_set_current_user( 0 );
 	}
 
 	public function test_update_comment_from_unprivileged_user_by_privileged_user() {
@@ -165,9 +165,10 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
+		wp_set_current_user( 0 );
+
 		$comment = get_comment( $comment_id );
 		$this->assertSame( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
-		wp_set_current_user( 0 );
 	}
 
 	/**
@@ -1012,7 +1013,6 @@ class Tests_Comment extends WP_UnitTestCase {
 			),
 			$this->preprocess_comment_data
 		);
-
 	}
 
 	public function filter_preprocess_comment( $commentdata ) {

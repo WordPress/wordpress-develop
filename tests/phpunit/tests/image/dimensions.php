@@ -181,5 +181,4 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		// dst_x, dst_y, src_x, src_y, dst_w, dst_h, src_w, src_h.
 		$this->assertSame( array( 0, 0, 0, 40, 400, 500, 480, 600 ), $out );
 	}
-
 }

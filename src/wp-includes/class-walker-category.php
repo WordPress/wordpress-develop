@@ -279,5 +279,4 @@ class Walker_Category extends Walker {
 
 		$output .= "</li>\n";
 	}
-
 }
