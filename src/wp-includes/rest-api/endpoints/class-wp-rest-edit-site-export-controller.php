@@ -31,6 +31,7 @@ class WP_REST_Edit_Site_Export_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 */
+	#[\Override]
 	public function register_routes() {
 		register_rest_route(
 			$this->namespace,
