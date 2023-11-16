@@ -43,6 +43,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @see register_rest_route()
 	 */
+	#[\Override]
 	public function register_routes() {
 
 		register_rest_route(
@@ -188,6 +189,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, otherwise WP_Error object.
 	 */
+	#[\Override]
 	public function get_items_permissions_check( $request ) {
 		// Check if roles is specified in GET request and if user can list users.
 		if ( ! empty( $request['roles'] ) && ! current_user_can( 'list_users' ) ) {
@@ -251,6 +253,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_items( $request ) {
 
 		// Retrieve the list of registered collection query parameters.
@@ -424,6 +427,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
+	#[\Override]
 	public function get_item_permissions_check( $request ) {
 		$user = $this->get_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
@@ -461,6 +465,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function get_item( $request ) {
 		$user = $this->get_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
@@ -507,6 +512,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function create_item_permissions_check( $request ) {
 
 		if ( ! current_user_can( 'create_users' ) ) {
@@ -528,6 +534,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error(
@@ -666,6 +673,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function update_item_permissions_check( $request ) {
 		$user = $this->get_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
@@ -711,6 +719,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function update_item( $request ) {
 		$user = $this->get_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
@@ -840,6 +849,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
+	#[\Override]
 	public function delete_item_permissions_check( $request ) {
 		$user = $this->get_user( $request['id'] );
 		if ( is_wp_error( $user ) ) {
@@ -865,6 +875,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
+	#[\Override]
 	public function delete_item( $request ) {
 		// We don't support delete requests in multisite.
 		if ( is_multisite() ) {
@@ -982,6 +993,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
+	#[\Override]
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$user   = $item;
@@ -1114,6 +1126,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return object User object.
 	 */
+	#[\Override]
 	protected function prepare_item_for_database( $request ) {
 		$prepared_user = new stdClass();
 
@@ -1329,6 +1342,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Item schema data.
 	 */
+	#[\Override]
 	public function get_item_schema() {
 		if ( $this->schema ) {
 			return $this->add_additional_fields_schema( $this->schema );
@@ -1502,6 +1516,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @return array Collection parameters.
 	 */
+	#[\Override]
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 
