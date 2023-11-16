@@ -8716,7 +8716,7 @@ function is_wp_version_compatible( $required ) {
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );
 
-	if ( is_string( $required ) && substr_count( $required, '.' ) > 2 && str_ends_with( $required, '.0' ) ) {
+	if ( is_string( $required ) && substr_count( $required, '.' ) > 1 && str_ends_with( $required, '.0' ) ) {
 		$required = rtrim( $required, '.0' );
 
 		wp_trigger_error(
@@ -8724,7 +8724,6 @@ function is_wp_version_compatible( $required ) {
 			'Not a valid WordPress version string.',
 			E_USER_NOTICE
 		);
-
 	}
 
 	return empty( $required ) || version_compare( $version, $required, '>=' );
