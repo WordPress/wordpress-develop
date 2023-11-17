@@ -739,10 +739,13 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		);
 
 		// Add the meta value to `_wp_post_revision_fields` which triggers it being compared for save consideration.
-		add_filter( '_wp_post_revision_fields', function( $fields ) {
-			$fields[ 'meta_revision_test' ] = 'Meta Revisions Test';
-			return $fields;
-		} );
+		add_filter(
+			'_wp_post_revision_fields',
+			function ( $fields ) {
+				$fields['meta_revision_test'] = 'Meta Revisions Test';
+				return $fields;
+			}
+		);
 
 		// Set up a new post.
 		$post_id = $this->factory->post->create(
@@ -762,13 +765,13 @@ class MetaRevisionTests extends WP_UnitTestCase {
 
 		// Check that the meta is stored correctly.
 		$stored_data = get_post_meta( $post_id, 'meta_revision_test', true );
-		$this->assertEquals( array( 'test' ) , $stored_data );
+		$this->assertEquals( array( 'test' ), $stored_data );
 
 		// Also verify that the latest revision has stored the meta.
 		$revisions     = wp_get_post_revisions( $post_id );
 		$last_revision = array_shift( $revisions );
 		$stored_data   = get_post_meta( $last_revision->ID, 'meta_revision_test', true );
-		$this->assertEquals( array( 'test' ) , $stored_data );
+		$this->assertEquals( array( 'test' ), $stored_data );
 
 		// Update the meta.
 		update_post_meta( $post_id, 'meta_revision_test', array( 'changed' ) );
@@ -799,6 +802,5 @@ class MetaRevisionTests extends WP_UnitTestCase {
 
 		// Verify the correct meta value is still returned.
 		$this->assertEquals( array( 'changed' ), get_post_meta( $post_id, 'meta_revision_test', true ) );
-
 	}
 }
