@@ -30,7 +30,7 @@ const parseFile = ( fileName ) =>
 const testResults = {};
 const prevResults = {};
 
-for ( const { name } of readdirSync( process.env.WP_ARTIFACTS_PATH ) ) {
+for ( const name of readdirSync( process.env.WP_ARTIFACTS_PATH ) ) {
 	if ( ! name.endsWith( '.results.json' ) ) {
 		continue;
 	}
@@ -144,8 +144,7 @@ function formatValue( metric, value) {
 	return `${ value.toFixed( 2 ) } ms`;
 }
 
-for ( const key of testSuites ) {
-	const current = testResults[ key ] || {};
+for ( const [ key, current ] of Object.entries( testResults ) ) {
 	const prev = prevResults[ key ] || {};
 
 	const title = ( key.charAt( 0 ).toUpperCase() + key.slice( 1 ) ).replace(
