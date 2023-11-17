@@ -183,7 +183,6 @@ class WP_Textdomain_Registry {
 			return $mo_files;
 		}
 
-
 		$cache_key = 'cached_mo_files_' . md5( $path );
 		$mo_files  = wp_cache_get( $cache_key, 'translations' );
 
