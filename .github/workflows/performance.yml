@@ -183,7 +183,7 @@ jobs:
           npm run env:cli -- language core install ${{ matrix.locale }} --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language plugin install ${{ matrix.locale }} --all --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language theme install ${{ matrix.locale }} --all --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- site switch-language ${{ matrix.locale }}
+          npm run env:cli -- site switch-language ${{ matrix.locale }} --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install MU plugin
         run: |
