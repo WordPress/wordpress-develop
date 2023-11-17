@@ -99,7 +99,8 @@ jobs:
         theme: [ 'twentytwentyone', 'twentytwentythree' ]
         memcached: [ true, false ]
         locale: [ 'en_US', 'de_DE' ]
-
+    env:
+      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
     steps:
       - name: Configure environment variables
         run: |
@@ -137,8 +138,6 @@ jobs:
 
       - name: Start Docker environment
         run: npm run env:start
-        env:
-          LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
 
       - name: Install object cache drop-in
         if: ${{ matrix.memcached }}
