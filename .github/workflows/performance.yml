@@ -88,11 +88,17 @@ jobs:
   # - Ensure version-controlled files are not modified or deleted.
   # - Dispatch workflow run.
   performance:
-    name: Run performance tests
+    name: Run performance tests / ${{ matrix.locale }}) / ${{ matrix.theme }} ${{ matrix.memcached && ' with memcached' || '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [ 'twentytwentyone', 'twentytwentythree' ]
+        memcached: [ true, false ]
+        locale: [ 'en_US', 'de_DE' ]
 
     steps:
       - name: Configure environment variables
@@ -130,8 +136,9 @@ jobs:
         run: npm run build
 
       - name: Start Docker environment
-        run: |
-          npm run env:start
+        run: npm run env:start
+        env:
+          LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -162,11 +169,17 @@ jobs:
         run: |
           npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
 
-      - name: Install additional languages
+      - name: Configure theme
         run: |
-          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
-          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme activate ${{ matrix.theme }} --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Configure language
+        if: ${{ matrix.locale != 'en_US }}
+        run: |
+          npm run env:cli -- language core install ${{ matrix.locale }} --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language plugin install ${{ matrix.locale }} --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language theme install ${{ matrix.locale }} --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- site switch-language ${{ matrix.locale }}
 
       - name: Install MU plugin
         run: |
@@ -175,9 +188,6 @@ jobs:
 
       - name: Run performance tests (current commit)
         run: npm run test:performance
-
-      - name: Print performance tests results
-        run: node ./tests/performance/results.js
 
       - name: Check out target commit (target branch or previous commit)
         run: |
@@ -194,15 +204,13 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Flush cache
+        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run target performance tests (base/previous commit)
         env:
           TEST_RESULTS_PREFIX: before
         run: npm run test:performance
-
-      - name: Print target performance tests results
-        env:
-          TEST_RESULTS_PREFIX: before
-        run: node ./tests/performance/results.js
 
       - name: Reset to original commit
         run: git reset --hard $GITHUB_SHA
@@ -215,21 +223,16 @@ jobs:
           npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
+      - name: Flush cache
+        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run baseline performance tests
         env:
           TEST_RESULTS_PREFIX: base
         run: npm run test:performance
 
-      - name: Print baseline performance tests results
-        env:
-          TEST_RESULTS_PREFIX: base
-        run: node ./tests/performance/results.js
-
       - name: Compare results with base
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
-
-      - name: Add workflow summary
-        run: cat ${{ runner.temp }}/summary.md >> $GITHUB_STEP_SUMMARY
 
       - name: Set the base sha
         # Only needed when publishing results.
