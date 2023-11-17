@@ -3,7 +3,7 @@
 /**
  * External dependencies.
  */
-const { readFileSync, readDirSync } = require( 'node:fs' );
+const { readFileSync, readdirSync } = require( 'node:fs' );
 const { join, basename } = require( 'node:path' );
 
 /**
@@ -30,7 +30,7 @@ const parseFile = ( fileName ) =>
 const testResults = {};
 const prevResults = {};
 
-for ( const { name } of readDirSync( process.env.WP_ARTIFACTS_PATH ) ) {
+for ( const { name } of readdirSync( process.env.WP_ARTIFACTS_PATH ) ) {
 	if ( ! name.endsWith( '.results.json' ) ) {
 		continue;
 	}
