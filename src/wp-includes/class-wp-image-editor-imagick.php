@@ -21,7 +21,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected $image;
 
-public function __destruct() { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.MethodDoubleUnderscore
+public function __destruct() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore
 	if ( $this->image instanceof Imagick ) {
 		// We don't need the original in memory anymore.
 		$this->image->clear();
