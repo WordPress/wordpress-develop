@@ -140,6 +140,10 @@ jobs:
         env:
           LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
 
+      - name: Install object cache drop-in
+        if: ${{ matrix.memcached }}
+        run: cp src/wp-content/object-cache.php build/wp-content/object-cache.php
+
       - name: Log running Docker containers
         run: docker ps -a
 
