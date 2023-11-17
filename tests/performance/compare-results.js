@@ -31,7 +31,7 @@ const testResults = {};
 const prevResults = {};
 
 for ( const name of readdirSync( process.env.WP_ARTIFACTS_PATH ) ) {
-	if ( ! name.endsWith( '.results.json' ) ) {
+	if ( ! name.endsWith( '.results.json' ) || ! name.startsWith( 'base-' ) ) {
 		continue;
 	}
 
