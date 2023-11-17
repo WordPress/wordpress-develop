@@ -48,9 +48,10 @@ class WP_Textdomain_Registry {
 	protected $custom_paths = array();
 
 	/**
-	 * Unused. Holds a cached list of available .mo files to improve performance.
+	 * Holds a cached list of available .mo files to improve performance.
 	 *
 	 * @since 6.1.0
+	 * @since 6.5.0 This property is no longer used.
 	 *
 	 * @var array
 	 *
@@ -182,11 +183,15 @@ class WP_Textdomain_Registry {
 			return $mo_files;
 		}
 
+
 		$cache_key = 'cached_mo_files_' . md5( $path );
 		$mo_files  = wp_cache_get( $cache_key, 'translations' );
 
 		if ( false === $mo_files ) {
 			$mo_files = glob( $path . '*.mo' );
+			if ( false === $mo_files ) {
+				$mo_files = array();
+			}
 			wp_cache_set( $cache_key, $mo_files, 'translations' );
 		}
 

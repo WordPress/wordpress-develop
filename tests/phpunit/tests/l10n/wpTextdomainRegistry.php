@@ -18,6 +18,15 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$this->instance = new WP_Textdomain_Registry();
 	}
 
+	public function tear_down() {
+		wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/foobar/' ), 'translations' );
+		wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/plugins/' ), 'translations' );
+		wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/themes/' ), 'translations' );
+		wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) ), 'translations' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * @covers ::has
 	 * @covers ::get
@@ -38,6 +47,10 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			WP_LANG_DIR . '/bar/',
 			$this->instance->get( 'foo', 'de_DE' ),
 			'Custom path for textdomain not returned'
+		);
+		$this->assertNotFalse(
+			wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . 'bar/' ), 'translations' ),
+			'List of files in custom path not cached'
 		);
 	}
 
@@ -65,6 +78,75 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			'/foo/bar/',
 			$this->instance->get( 'foo-plugin', 'de_DE' )
 		);
+	}
+
+	/**
+	 * @covers ::get_language_files_from_path
+	 */
+	public function test_get_language_files_from_path_caches_results() {
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) . '/foobar/' );
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) . '/plugins/' );
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) . '/themes/' );
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) );
+
+		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/plugins/' ), 'translations' ) );
+		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/themes/' ), 'translations' ) );
+		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/foobar/' ), 'translations' ) );
+		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) ), 'translations' ) );
+	}
+
+	/**
+	 * @covers ::get_language_files_from_path
+	 */
+	public function test_get_language_files_from_path_short_circuit() {
+		add_filter( 'pre_get_language_files_from_path', '__return_empty_array' );
+		$result = $this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) . '/plugins/' );
+		remove_filter( 'pre_get_language_files_from_path', '__return_empty_array' );
+
+		$cache = wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/plugins/' ), 'translations' );
+
+		$this->assertEmpty( $result );
+		$this->assertFalse( $cache );
+	}
+
+	/**
+	 * @covers ::invalidate_mo_files_cache
+	 */
+	public function test_invalidate_mo_files_cache() {
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) . '/plugins/' );
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) . '/themes/' );
+		$this->instance->get_language_files_from_path( trailingslashit( WP_LANG_DIR ) );
+
+		$this->instance->invalidate_mo_files_cache(
+			null,
+			array(
+				'type'         => 'translation',
+				'translations' => array(
+					(object) array(
+						'type'     => 'plugin',
+						'slug'     => 'internationalized-plugin',
+						'language' => 'de_DE',
+						'version'  => '99.9.9',
+					),
+					(object) array(
+						'type'     => 'theme',
+						'slug'     => 'internationalized-theme',
+						'language' => 'de_DE',
+						'version'  => '99.9.9',
+					),
+					(object) array(
+						'type'     => 'core',
+						'slug'     => 'default',
+						'language' => 'es_ES',
+						'version'  => '99.9.9',
+					),
+				),
+			)
+		);
+
+		$this->assertFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/plugins/' ), 'translations' ) );
+		$this->assertFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/themes/' ), 'translations' ) );
+		$this->assertFalse( wp_cache_get( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) ), 'translations' ) );
 	}
 
 	public function data_domains_locales() {
