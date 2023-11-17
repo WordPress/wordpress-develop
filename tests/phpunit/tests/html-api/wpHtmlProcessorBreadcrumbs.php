@@ -37,22 +37,40 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_single_tag_of_supported_elements() {
 		$supported_elements = array(
 			'A',
+			'ADDRESS',
+			'ARTICLE',
+			'ASIDE',
 			'B',
 			'BIG',
 			'BUTTON',
+			'CENTER', // Neutralized
 			'CODE',
+			'DETAILS',
+			'DIALOG',
+			'DIR',
 			'DIV',
+			'DL',
 			'EM',
+			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
 			'FONT',
+			'FOOTER',
+			'HEADER',
+			'HGROUP',
 			'I',
 			'IMG',
+			'MAIN',
+			'MENU',
+			'NAV',
 			'P',
+			'SEARCH',
+			'SECTION',
 			'SMALL',
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'SUMMARY',
 			'TT',
 			'U',
 		);
@@ -99,11 +117,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 		$unsupported_elements = array(
 			'ABBR',
 			'ACRONYM', // Neutralized
-			'ADDRESS',
 			'APPLET', // Deprecated
 			'AREA',
-			'ARTICLE',
-			'ASIDE',
 			'AUDIO',
 			'BASE',
 			'BDI',
@@ -114,7 +129,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BR',
 			'CANVAS',
 			'CAPTION',
-			'CENTER', // Neutralized
 			'CITE',
 			'COL',
 			'COLGROUP',
@@ -122,14 +136,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'DATALIST',
 			'DD',
 			'DEL',
-			'DETAILS',
 			'DEFN',
-			'DIALOG',
-			'DL',
 			'DT',
 			'EMBED',
-			'FIELDSET',
-			'FOOTER',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
@@ -140,8 +149,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H5',
 			'H6',
 			'HEAD',
-			'HEADER',
-			'HGROUP',
 			'HR',
 			'HTML',
 			'IFRAME',
@@ -155,16 +162,13 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'LI',
 			'LINK',
 			'LISTING', // Deprecated, use PRE instead.
-			'MAIN',
 			'MAP',
 			'MARK',
 			'MARQUEE', // Deprecated
 			'MATH',
-			'MENU',
 			'META',
 			'METER',
 			'MULTICOL', // Deprecated
-			'NAV',
 			'NEXTID', // Deprecated
 			'NOBR', // Neutralized
 			'NOEMBED', // Neutralized
@@ -187,14 +191,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'RUBY',
 			'SAMP',
 			'SCRIPT',
-			'SECTION',
 			'SELECT',
 			'SLOT',
 			'SOURCE',
 			'SPACER', // Deprecated
 			'STYLE',
 			'SUB',
-			'SUMMARY',
 			'SUP',
 			'SVG',
 			'TABLE',
@@ -348,6 +350,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 				array( 'HTML', 'BODY', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'STRONG', 'EM', 'CODE' ),
 				2,
 			),
+			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
+			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
 		);
 	}
 
