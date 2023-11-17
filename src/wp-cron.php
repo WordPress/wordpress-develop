@@ -42,6 +42,7 @@ if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
 define( 'DOING_CRON', true );
 
 
+
 if ( ! defined( 'ABSPATH' ) ) {
 	/** Set up WordPress environment */
 	require_once __DIR__ . '/wp-load.php';
