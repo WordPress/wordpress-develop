@@ -1158,6 +1158,20 @@ function delete_option( $option ) {
  *
  */
 function determine_option_autoload_value( $option, $value, $autoload ) {
+
+	// Check if autoload is a boolean.
+	if ( is_bool( $autoload ) ) {
+		return $autoload ? 'yes' : 'no';
+	}
+
+	switch ( $autoload ) {
+		case 'no':
+		case 'yes':
+		case 'default-yes':
+		case 'default-no':
+			return $autoload;
+
+	}
 	// Serialize the value and check its size against the maximum allowed option size.
 	$serialized_value = maybe_serialize( $value );
 	$size             = strlen( $serialized_value );
@@ -1177,20 +1191,7 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 		return 'default-no';
 	}
 
-	// Check if autoload is a boolean.
-	if ( is_bool( $autoload ) ) {
-		return $autoload ? 'yes' : 'no';
-	}
-
-	switch ( $autoload ) {
-		case 'no':
-		case 'yes':
-		case 'default-yes':
-		case 'default-no':
-			return $autoload;
-		default:
-			return 'default-yes';
-	}
+	return 'default-yes';
 }
 
 /**
