@@ -174,7 +174,7 @@ jobs:
           npm run env:cli -- theme activate ${{ matrix.theme }} --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Configure language
-        if: ${{ matrix.locale != 'en_US }}
+        if: ${{ matrix.locale != 'en_US' }}
         run: |
           npm run env:cli -- language core install ${{ matrix.locale }} --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language plugin install ${{ matrix.locale }} --all --path=/var/www/${{ env.LOCAL_DIR }}
