@@ -952,8 +952,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
@@ -1614,8 +1614,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
