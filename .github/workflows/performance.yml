@@ -88,7 +88,7 @@ jobs:
   # - Ensure version-controlled files are not modified or deleted.
   # - Dispatch workflow run.
   performance:
-    name: Run performance tests / ${{ matrix.locale }}) / ${{ matrix.theme }} ${{ matrix.memcached && ' with memcached' || '' }}
+    name: ${{ matrix.locale }} / ${{ matrix.theme }} ${{ matrix.memcached && ' with memcached' || '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
