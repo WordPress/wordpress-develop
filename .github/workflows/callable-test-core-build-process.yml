@@ -32,6 +32,8 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   # - Cleans up after building WordPress.
   # - Ensures version-controlled files are not modified or deleted.
+  # - Creates a ZIP of the built WordPress files (when building to the build directory).
+  # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
   build-process-tests:
     name: Core running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
     runs-on: ${{ inputs.os }}
@@ -71,3 +73,15 @@ jobs:
 
       - name: Ensure version-controlled files are not modified or deleted during cleaning
         run: git diff --exit-code
+
+      - name: Create ZIP of built files
+        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        run: zip -r wordpress.zip build/.
+
+      - name: Upload ZIP as a GitHub Actions artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        with:
+          name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
+          path: wordpress.zip
+          if-no-files-found: error
