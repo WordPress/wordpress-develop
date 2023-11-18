@@ -2556,7 +2556,7 @@ function compression_test() {
  *                                       Default ''.
  */
 function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = '' ) {
-    echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
+	echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
 }
 
 /**
