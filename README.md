@@ -1,4 +1,5 @@
 This is my second PR and should get a comment from the bot.
+Test indeed.
 
 # WordPress
 
