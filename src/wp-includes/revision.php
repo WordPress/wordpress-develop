@@ -184,31 +184,44 @@ function wp_save_post_revision( $post_id ) {
 		 * @param WP_Post $post              The post object.
 		 */
 		if ( isset( $latest_revision ) && apply_filters( 'wp_save_post_revision_check_for_changes', true, $latest_revision, $post ) ) {
-			$post_has_changed = false;
 
-			foreach ( array_keys( _wp_post_revision_fields( $post ) ) as $field ) {
-				if ( normalize_whitespace( $post->$field ) !== normalize_whitespace( $latest_revision->$field ) ) {
-					$post_has_changed = true;
-					break;
+			$post_has_changed = apply_filters( 'pre_wp_save_post_revision_post_has_changed', null, $latest_revision, $post );
+
+			if ( null === $post_has_changed ) {
+
+				$post_has_changed = false;
+
+				foreach ( array_keys( _wp_post_revision_fields( $post ) ) as $field ) {
+
+					$compare_from = is_string( $post->$field ) ? normalize_whitespace( $post->$field ) : $post->$field;
+					$compare_to   = is_string( $latest_revision->$field ) ? normalize_whitespace( $latest_revision->$field ) : $latest_revision->$field;
+
+					if ( $compare_from !== $compare_to ) {
+
+						$post_has_changed = true;
+
+						break;
+					}
 				}
-			}
 
-			/**
-			 * Filters whether a post has changed.
-			 *
-			 * By default a revision is saved only if one of the revisioned fields has changed.
-			 * This filter allows for additional checks to determine if there were changes.
-			 *
-			 * @since 4.1.0
-			 *
-			 * @param bool    $post_has_changed Whether the post has changed.
-			 * @param WP_Post $latest_revision  The latest revision post object.
-			 * @param WP_Post $post             The post object.
-			 */
-			$post_has_changed = (bool) apply_filters( 'wp_save_post_revision_post_has_changed', $post_has_changed, $latest_revision, $post );
+				/**
+				 * Filters whether a post has changed.
+				 *
+				 * By default a revision is saved only if one of the revisioned fields has changed.
+				 * This filter allows for additional checks to determine if there were changes.
+				 *
+				 * @since 4.1.0
+				 *
+				 * @param bool    $post_has_changed Whether the post has changed.
+				 * @param WP_Post $latest_revision  The latest revision post object.
+				 * @param WP_Post $post             The post object.
+				 */
+				$post_has_changed = (bool) apply_filters( 'wp_save_post_revision_post_has_changed', $post_has_changed, $latest_revision, $post );
+			}
 
 			// Don't save revision if post unchanged.
 			if ( ! $post_has_changed ) {
+
 				return;
 			}
 		}

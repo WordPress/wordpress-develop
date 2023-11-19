@@ -552,7 +552,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$revisions     = wp_get_post_revisions( $post_id );
 		$last_revision = array_shift( $revisions );
 
-		// No ,eta data should be stored in the revision.
+		// No meta data should be stored in the revision.
 		$this->assertEquals( array(), get_post_meta( $last_revision->ID ) );
 
 		// Set the test meta again.
@@ -718,5 +718,89 @@ class MetaRevisionTests extends WP_UnitTestCase {
 				true,
 			),
 		);
+	}
+
+	/**
+	 * Test that a revision with an array in meta saves correctly even when included in `_wp_post_revision_fields`.
+	 *
+	 * @ticket 59827
+	 */
+	public function test_wp_save_post_revision_with_array_meta() {
+
+		// Add a meta field to revision that includes a default value.
+		register_post_meta(
+			'post',
+			'meta_revision_test',
+			array(
+				'single'            => true,
+				'type'              => 'array',
+				'revisions_enabled' => true,
+			)
+		);
+
+		// Add the meta value to `_wp_post_revision_fields` which triggers it being compared for save consideration.
+		add_filter(
+			'_wp_post_revision_fields',
+			function ( $fields ) {
+				$fields['meta_revision_test'] = 'Meta Revisions Test';
+				return $fields;
+			}
+		);
+
+		// Set up a new post.
+		$post_id = $this->factory->post->create(
+			array(
+				'post_content' => 'initial content',
+				'meta_input'   => array(
+					'meta_revision_test' => 'foo',
+				),
+			)
+		);
+
+		// Set the test meta to an array.
+		update_post_meta( $post_id, 'meta_revision_test', array( 'test' ) );
+
+		// Update to save.
+		wp_update_post( array( 'ID' => $post_id ) );
+
+		// Check that the meta is stored correctly.
+		$stored_data = get_post_meta( $post_id, 'meta_revision_test', true );
+		$this->assertEquals( array( 'test' ), $stored_data );
+
+		// Also verify that the latest revision has stored the meta.
+		$revisions     = wp_get_post_revisions( $post_id );
+		$last_revision = array_shift( $revisions );
+		$stored_data   = get_post_meta( $last_revision->ID, 'meta_revision_test', true );
+		$this->assertEquals( array( 'test' ), $stored_data );
+
+		// Update the meta.
+		update_post_meta( $post_id, 'meta_revision_test', array( 'changed' ) );
+
+		// Update to save.
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => 'content update 1',
+			)
+		);
+
+		// Check that the correct meta value is returned.
+		$this->assertEquals( array( 'changed' ), get_post_meta( $post_id, 'meta_revision_test', true ) );
+
+		// Also verify that the latest revision has the correct meta value.
+		$revisions     = wp_get_post_revisions( $post_id );
+		$last_revision = array_shift( $revisions );
+
+		// Set the test meta again.
+		update_post_meta( $post_id, 'meta_revision_test', 'test' );
+
+		// Update to save.
+		wp_update_post( array( 'ID' => $post_id ) );
+
+		// Now restore the previous revision.
+		wp_restore_post_revision( $last_revision->ID );
+
+		// Verify the correct meta value is still returned.
+		$this->assertEquals( array( 'changed' ), get_post_meta( $post_id, 'meta_revision_test', true ) );
 	}
 }
