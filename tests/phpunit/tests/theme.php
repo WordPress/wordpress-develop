@@ -1184,6 +1184,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Make sure filters added after the initial call are fired.
 	 *
 	 * @ticket 59847
+	 *
+	 * @covers ::get_stylesheet_directory
 	 */
 	public function test_get_stylesheet_directory_filters_apply() {
 		// Call the function prior to the filter being added.
@@ -1206,6 +1208,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Make sure filters added after the initial call are fired.
 	 *
 	 * @ticket 59847
+	 *
+	 * @covers ::get_template_directory
 	 */
 	public function test_get_template_directory_filters_apply() {
 		// Call the function prior to the filter being added.
@@ -1225,7 +1229,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Make sure get_stylesheet_directory uses the correct path when the root theme dir changes.
+	 *
 	 * @ticket 59847
+	 *
+	 * @covers ::get_stylesheet_directory
 	 */
 	public function test_get_stylesheet_directory_uses_registered_theme_dir() {
 		$old_theme = wp_get_theme();
@@ -1256,7 +1264,11 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Make sure get_template_directory uses the correct path when the root theme dir changes.
+	 *
 	 * @ticket 59847
+	 *
+	 * @covers ::get_template_directory
 	 */
 	public function test_get_template_directory_uses_registered_theme_dir() {
 		$old_theme = wp_get_theme();
