@@ -1291,10 +1291,22 @@ class WP_REST_Server {
 			$fields[] = '_embedded';
 		}
 
-		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+		$links_or_embedded_included = rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields );
+
+		$site_logo_included     = rest_is_field_included( 'site_logo', $fields );
+		$site_icon_included     = rest_is_field_included( 'site_icon', $fields );
+		$site_icon_url_included = rest_is_field_included( 'site_icon_url', $fields );
+
+		if ( $links_or_embedded_included ) {
 			$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
 			$this->add_active_theme_link_to_index( $response );
+		}
+
+		if ( $links_or_embedded_included || $site_logo_included ) {
 			$this->add_site_logo_to_index( $response );
+		}
+
+		if ( $links_or_embedded_included || $site_icon_included || $site_icon_url_included ) {
 			$this->add_site_icon_to_index( $response );
 		}
 
