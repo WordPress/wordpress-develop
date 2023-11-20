@@ -873,9 +873,6 @@ function switch_theme( $stylesheet ) {
 	// Set autoload=yes for the switched theme if not already set
 	wp_set_option_autoload( "theme_mods_$stylesheet", 'yes' );
 
-	// Reload autoload options
-	wp_load_alloptions();
-
 	/*
 	 * Reset globals to force refresh the next time these directories are
 	 * accessed via `get_stylesheet_directory()` / `get_template_directory()`.
