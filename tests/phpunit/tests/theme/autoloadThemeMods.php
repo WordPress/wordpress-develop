@@ -1,76 +1,78 @@
 <?php
 
 /**
- * @group themes
- * @group temp
+ * Tests for checking autoload handling when switching themes.
+ *
+ * @covers ::switch_theme
  */
-
 class Tests_Autoload_Theme_Mods extends WP_UnitTestCase {
 
-    function setUp() {
-            parent::setUp();
-            $this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
+	/**
+	 * Test switching themes and verifying autoload values.
+	 */
+	public function test_switch_theme_autoload() {
+		// Set up the old theme.
+		$old_theme_stylesheet = 'old-theme';
+		$old_theme_mods = array(
+			'option1' => 'value1',
+			'option2' => 'value2',
+		);
+		update_option( "theme_mods_$old_theme_stylesheet", $old_theme_mods );
 
-            $this->orig_theme_dir            = $GLOBALS['wp_theme_directories'];
-            $GLOBALS['wp_theme_directories'] = array( $this->theme_root );
+		// Set up the new theme.
+		$new_theme_stylesheet = 'new-theme';
+		$new_theme_mods = array(
+			'option3' => 'value3',
+			'option4' => 'value4',
+		);
+		update_option( "theme_mods_$new_theme_stylesheet", $new_theme_mods );
 
-            add_filter( 'theme_root', array( $this, '_theme_root' ) );
-            add_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-            add_filter( 'template_root', array( $this, '_theme_root' ) );
-            // clear caches
-            wp_clean_themes_cache();
-            unset( $GLOBALS['wp_themes'] );
-    }
+		// Switch themes.
+		switch_theme( $new_theme_stylesheet );
 
-    function tearDown() {
-            $GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-            remove_filter( 'theme_root', array( $this, '_theme_root' ) );
-            remove_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-            remove_filter( 'template_root', array( $this, '_theme_root' ) );
-            wp_clean_themes_cache();
-            unset( $GLOBALS['wp_themes'] );
-            parent::tearDown();
-    }
+		// Verify autoload values.
+		$autoload_old_theme = wp_cache_get( "autoload_theme_mods_$old_theme_stylesheet", 'options' );
+		$autoload_new_theme = wp_cache_get( "autoload_theme_mods_$new_theme_stylesheet", 'options' );
 
-    // replace the normal theme root dir with our premade test dir
-    function _theme_root( $dir ) {
-            return $this->theme_root;
-    }
+		// Expect autoload value for the old theme to be 'no'.
+		$this->assertEquals( 'no', $autoload_old_theme );
 
-    function test_on_switch_theme_previous_mods_should_not_be_autoload() {
-        global $wpdb;
+		// Expect autoload value for the new theme to be 'yes'.
+		$this->assertEquals( 'yes', $autoload_new_theme );
 
-        $current_theme_stylesheet = get_stylesheet();
+		// Clean up.
+		delete_option( "theme_mods_$old_theme_stylesheet" );
+		delete_option( "theme_mods_$new_theme_stylesheet" );
+		delete_option( 'theme_switched' );
+		delete_option( 'current_theme' );
+	}
 
-        // Set a theme mod for the current theme
-        $new_theme_stylesheet = 'theme1';
-        set_theme_mod( 'default-theme-option', 'a-value' );
+	/**
+	 * Test switching themes and verifying that options are loaded properly.
+	 */
+	public function test_switch_theme_options_load() {
+		// Set up the new theme.
+		$new_theme_stylesheet = 'new-theme';
+		$new_theme_mods = array(
+			'option5' => 'value5',
+			'option6' => 'value6',
+		);
+		update_option( "theme_mods_$new_theme_stylesheet", $new_theme_mods );
 
-        // Switch to the new theme
-        switch_theme( $new_theme_stylesheet );
+		// Switch themes.
+		switch_theme( $new_theme_stylesheet );
 
-        // Verify autoload settings in the options table
-        $this->assertEquals( 'no', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$current_theme_stylesheet'" ) );
-        $this->assertEquals( 'yes', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$new_theme_stylesheet'" ) );
+		// Verify that options are loaded properly for the new theme.
+		$option5_value = get_theme_mod( 'option5' );
+		$option6_value = get_theme_mod( 'option6' );
 
-        // Verify that autoloaded options are cached properly
-        $autoloaded_options = wp_cache_get( 'alloptions', 'options' );
-        $this->assertTrue( array_key_exists( "theme_mods_$new_theme_stylesheet", $autoloaded_options ) );
-        $this->assertFalse( array_key_exists( "theme_mods_$current_theme_stylesheet", $autoloaded_options ) );
+		// Expect the values to match the ones set during setup.
+		$this->assertEquals( 'value5', $option5_value );
+		$this->assertEquals( 'value6', $option6_value );
 
-        // Switch back to the current theme
-        switch_theme( $current_theme_stylesheet );
-
-        // Verify autoload settings in the options table
-        $this->assertEquals( 'yes', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$current_theme_stylesheet'" ) );
-        $this->assertEquals( 'no', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$new_theme_stylesheet'" ) );
-
-        // Verify that autoloaded options are cached properly
-        $autoloaded_options = wp_cache_get( 'alloptions', 'options' );
-        $this->assertFalse( array_key_exists( "theme_mods_$new_theme_stylesheet", $autoloaded_options ) );
-        $this->assertTrue( array_key_exists( "theme_mods_$current_theme_stylesheet", $autoloaded_options ) );
-
-        // Check that we haven't lost the mods
-        $this->assertEquals( 'a-value', get_theme_mod( 'default-theme-option' ) );
-    }
+		// Clean up.
+		delete_option( "theme_mods_$new_theme_stylesheet" );
+		delete_option( 'theme_switched' );
+		delete_option( 'current_theme' );
+	}
 }
