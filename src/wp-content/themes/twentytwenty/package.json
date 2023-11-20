@@ -13,6 +13,10 @@
 	"bugs": {
 		"url": "https://core.trac.wordpress.org/"
 	},
+	"engines": {
+		"node": ">=18.18.0",
+		"npm": ">=9.8.1"
+	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^5.24.0",
 		"@wordpress/scripts": "^24.6.0",

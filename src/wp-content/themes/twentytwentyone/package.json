@@ -12,6 +12,10 @@
 		"url": "https://core.trac.wordpress.org/"
 	},
 	"homepage": "https://wordpress.org/themes/twentytwentyone/",
+	"engines": {
+		"node": ">=18.18.0",
+		"npm": ">=9.8.1"
+	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^5.29.0",
 		"@wordpress/eslint-plugin": "^17.3.0",
