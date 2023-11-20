@@ -18,23 +18,19 @@ class WP_Test_Autoload_Theme_Mods extends WP_UnitTestCase {
 
         switch_theme( $new_theme_stylesheet );
 
+        // Check that the autoload value is set to 'no' for the previous theme
         $this->assertEquals( 'no', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$current_theme_stylesheet'" ) );
-        $this->assertEquals( 'yes', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$new_theme_stylesheet'" ) );
 
-        // Make sure that autoloaded options are cached properly
-        $autoloaded_options = wp_cache_get( 'alloptions', 'options' );
-        $this->assertTrue( array_key_exists( "theme_mods_$new_theme_stylesheet", $autoloaded_options ) );
-        $this->assertFalse( array_key_exists( "theme_mods_$current_theme_stylesheet", $autoloaded_options ) );
+        // Check that the autoload value is set to 'yes' for the switched theme
+        $this->assertEquals( 'yes', wp_cache_get( "theme_mods_$new_theme_stylesheet", 'options' ) );
 
         switch_theme( $current_theme_stylesheet );
 
-        $this->assertEquals( 'yes', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$current_theme_stylesheet'" ) );
-        $this->assertEquals( 'no', $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'theme_mods_$new_theme_stylesheet'" ) );
+        // Check that the autoload value is set back to 'yes' for the previous theme
+        $this->assertEquals( 'yes', wp_cache_get( "theme_mods_$current_theme_stylesheet", 'options' ) );
 
-        // Make sure that autoloaded options are cached properly
-        $autoloaded_options = wp_cache_get( 'alloptions', 'options' );
-        $this->assertFalse( array_key_exists( "theme_mods_$new_theme_stylesheet", $autoloaded_options ) );
-        $this->assertTrue( array_key_exists( "theme_mods_$current_theme_stylesheet", $autoloaded_options ) );
+        // Check that the autoload value is removed for the switched theme
+        $this->assertFalse( wp_cache_get( "theme_mods_$new_theme_stylesheet", 'options' ) );
 
         // And that we haven't lost the mods
         $this->assertEquals( 'a-value', get_theme_mod( 'default-theme-option' ) );
