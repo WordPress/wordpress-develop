@@ -65,9 +65,11 @@ jobs:
       matrix:
         os: [ macos-latest ]
         directory: [ 'src', 'build' ]
+        node: [ '18', '20' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      node: ${{ matrix.node }}
 
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
   test-gutenberg-build-process:

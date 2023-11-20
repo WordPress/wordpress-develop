@@ -40,7 +40,7 @@ jobs:
   # - Creates a ZIP of the built WordPress files (when building to the build directory).
   # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
   build-process-tests:
-    name: Core running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Core running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }} ${{ inputs.node && format( 'w/Node.js {0}', inputs.node ) || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
