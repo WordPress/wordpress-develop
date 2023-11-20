@@ -40,9 +40,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        node: [ '', '18', '20' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      node: ${{ matrix.node }}
 
   # Tests the WordPress Core build process on MacOS.
   #
@@ -63,9 +65,11 @@ jobs:
       matrix:
         os: [ macos-latest ]
         directory: [ 'src', 'build' ]
+        node: [ '18', '20' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      node: ${{ matrix.node }}
 
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
   test-gutenberg-build-process:
@@ -79,9 +83,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        node: [ '18', '20' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      node: ${{ matrix.node }}
 
   # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
   #
@@ -102,9 +108,11 @@ jobs:
       matrix:
         os: [ macos-latest ]
         directory: [ 'src', 'build' ]
+        node: [ '18', '20' ]
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      node: ${{ matrix.node }}
 
   # Calls the Pull Request Commenting workflow to leave a comment detailing how to test the PR within WordPress Playground.
   playground-comment:
