@@ -31,8 +31,8 @@ class Tests_Autoload_Theme_Mods extends WP_UnitTestCase {
 		switch_theme( $new_theme_stylesheet );
 
 		// Verify autoload values.
-		$autoload_old_theme = wp_cache_get( "autoload_theme_mods_$old_theme_stylesheet", 'options' );
-		$autoload_new_theme = wp_cache_get( "autoload_theme_mods_$new_theme_stylesheet", 'options' );
+		$autoload_old_theme = get_option( "theme_mods_$old_theme_stylesheet_autoload" );
+		$autoload_new_theme = get_option( "theme_mods_$new_theme_stylesheet_autoload" );
 
 		// Expect autoload value for the old theme to be 'no'.
 		$this->assertEquals( 'no', $autoload_old_theme );
