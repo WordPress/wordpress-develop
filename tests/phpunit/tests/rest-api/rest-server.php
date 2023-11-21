@@ -2399,6 +2399,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				'site_icon',
 				'site_icon,site_icon_url',
 				'site_logo',
+				false,
 			),
 			'site_icon_url field'              => array(
 				'site_icon_url',
