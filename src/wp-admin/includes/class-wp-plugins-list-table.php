@@ -816,7 +816,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 								$actions['activate'] .= '<span class="screen-reader-text">' . __( 'Cannot activate due to unmet dependencies' ) . '</span>';
 							} else {
 								$actions['activate'] = sprintf(
-									'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s %s</a>',
+									'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s</a>',
 									wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
