@@ -19,7 +19,7 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 		$page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
-				'post_status' => 'trash'
+				'post_status' => 'trash',
 			)
 		);
 		add_post_meta( $page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
