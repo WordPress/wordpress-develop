@@ -2330,6 +2330,86 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Test that the "get_index" method returns the expected site_icon*
+	 * and site_logo fields based on the specified request parameters.
+	 *
+	 * @ticket 59935
+	 *
+	 * @dataProvider data_get_index_should_return_site_icon_and_site_logo_fields
+	 *
+	 * @param string $fields              List of fields to use in the request.
+	 * @param string $expected_result     Expected fields.
+	 * @param string $not_expected_result Not expected fields.
+	 * @param bool   $is_embed            Whether to use the "_embed" request parameter.
+	 */
+	public function test_get_index_should_return_site_icon_and_site_logo_fields( $fields, $expected_fields, $not_expected_fields, $is_embed ) {
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/', array() );
+		$request->set_param( '_fields', $fields );
+		if ( $is_embed ) {
+			$request->set_param( '_embed', true );
+		}
+
+		$expected_fields     = wp_parse_list( $expected_fields );
+		$not_expected_fields = wp_parse_list( $not_expected_fields );
+
+		$response = $server->get_index( $request )->get_data();
+
+		foreach ( $expected_fields as $expected_field ) {
+			$this->assertArrayHasKey( $expected_field, $response, "Expected \"{$expected_field}\" field is missing in the response." );
+		}
+
+		foreach ( $not_expected_fields as $not_expected_field ) {
+			$this->assertArrayNotHasKey( $not_expected_field, $response, "Response must not contain the \"{$not_expected_field}\" field." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_index_should_return_site_icon_and_site_logo_fields() {
+		return array(
+			'no site_logo or site_icon fields' => array(
+				'name',
+				'',
+				'site_logo,site_icon,site_icon_url',
+				false,
+			),
+			'_links request parameter'         => array(
+				'_links',
+				'site_logo,site_icon,site_icon_url',
+				'',
+				false,
+			),
+			'_embed request parameter'         => array(
+				'_embed',
+				'site_logo,site_icon,site_icon_url',
+				'',
+				true,
+			),
+			'site_logo field'                  => array(
+				'site_logo',
+				'site_logo',
+				'site_icon,site_icon_url',
+				false,
+			),
+			'site_icon field'                  => array(
+				'site_icon',
+				'site_icon,site_icon_url',
+				'site_logo',
+			),
+			'site_icon_url field'              => array(
+				'site_icon_url',
+				'site_icon,site_icon_url',
+				'site_logo',
+				false,
+			),
+		);
+	}
+
+	/**
 	 * Helper to make the request and get the headers for the
 	 * rest_send_refreshed_nonce related tests.
 	 *
