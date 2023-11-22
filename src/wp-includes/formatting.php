@@ -657,13 +657,22 @@ function get_html_split_regex() {
 			.     $cdata
 			. ')';
 
+		$attribute =
+			'[^>"\']*'         // Match any character except >, ", or '
+			. '(?:(?:'         // Start of non-capturing group.
+			.     '"[^"]*"'    // Double-quoted attribute value.
+			. '|'              // or
+			.     '\'[^\']*\'' // Single-quoted attribute value.
+			. '))*';           // End of attribute value. Proceed to next regex.
+
 		$regex =
-			'/('                // Capture the entire match.
-			.     '<'           // Find start of element.
-			.     '(?'          // Conditional expression follows.
-			.         $escaped  // Find end of escaped element.
-			.     '|'           // ...else...
-			.         '[^>]*>?' // Find end of normal element.
+			'/('                 // Capture the entire match.
+			.     '<'            // Find start of element.
+			.     '(?'           // Conditional expression follows.
+			.         $escaped   // Find end of escaped element.
+			.     '|'            // ...else...
+			.         $attribute // Exclude matching within attribute values.
+			.         '[^>]*>?'  // Find end of normal element.
 			.     ')'
 			. ')/';
 		// phpcs:enable
@@ -700,17 +709,20 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
 		 */
 		$attribute_regex =
-			'[^>"\']*'                  // Find before end of element, or before start of attribute value.
-			. '(?:"[^"]*"[^>"]*)*'      // Double-quoted attribute value
-			. '(?:\'[^\']*\'[^>\']*)*'; // Single-quoted attribute value
+			'[^>"\']*'         // Match any character except >, ", or '
+			. '(?:(?:'         // Start of non-capturing group.
+			.     '"[^"]*"'    // Double-quoted attribute value.
+			. '|'              // or
+			.     '\'[^\']*\'' // Single-quoted attribute value.
+			. '))*';           // End of attribute value. Proceed to next regex.
 
 		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
-			'<'                  // Find start of element.
-			. '(?(?=!--)'        // Is this a comment?
-			.     $comment_regex // Find end of comment.
+			'<'                    // Find start of element.
+			. '(?(?=!--)'          // Is this a comment?
+			.     $comment_regex   // Find end of comment.
 			. '|'
 			.     $attribute_regex // Exclude matching within attribute values.
-			.     '[^>]*>?'      // Find end of element. If not found, match all input.
+			.     '[^>]*>?'        // Find end of element. If not found, match all input.
 			. ')';
 		// phpcs:enable
 	}
