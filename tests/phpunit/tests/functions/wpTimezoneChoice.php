@@ -109,8 +109,6 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 * @ticket 59941
 	 */
 	public function test_wp_timezone_choice_es_set() {
-//		global $locale;
-//		$old_locale = get_locale();
 
 		switch_to_locale( 'es_ES' );
 		// Test selecting a timezone from the list.
