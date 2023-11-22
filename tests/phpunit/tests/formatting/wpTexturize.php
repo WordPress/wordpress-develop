@@ -2115,4 +2115,37 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
+
+	/**
+	 * @ticket 57381
+	 * @dataProvider data_greater_than_in_attribute_value
+	 */
+	public function test_greater_than_in_attribute_value( $input, $output ) {
+		$this->assertSame( $output, wptexturize( $input ) );
+	}
+
+	public function data_greater_than_in_attribute_value() {
+		return array(
+			array(
+				'
+				<label class="[&>span]:font-bold">"foo" or "bar"</label>
+				<input placeholder="foo<->bar" />
+				',
+				'
+				<label class="[&#038;>span]:font-bold">&#8220;foo&#8221; or &#8220;bar&#8221;</label>
+				<input placeholder="foo<->bar" />
+				',
+			),
+			array(
+				'
+				<label class=\'[&>span]:font-bold\'>\'foo\' or \'bar\'</label>
+				<input placeholder=\'foo<->bar\' />
+				',
+				'
+				<label class=\'[&#038;>span]:font-bold\'>&#8216;foo&#8217; or &#8216;bar&#8217;</label>
+				<input placeholder=\'foo<->bar\' />
+				',
+			),
+		);
+	}
 }

@@ -34,6 +34,14 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 				'abcd <![CDATA[ <html> ]]> efgh',
 				array( 'abcd ', '<![CDATA[ <html> ]]>', ' efgh' ),
 			),
+			array(
+				'abcd <input placeholder="foo>bar" /> efgh',
+				array( 'abcd ', '<input placeholder="foo>bar" />', ' efgh' ),
+			),
+			array(
+				'abcd <input placeholder=\'foo>bar\' /> efgh',
+				array( 'abcd ', '<input placeholder=\'foo>bar\' />', ' efgh' ),
+			),
 		);
 	}
 
