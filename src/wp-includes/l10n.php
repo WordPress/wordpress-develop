@@ -801,8 +801,9 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 * @since 6.5.0
 	 *
 	 * @param string $preferred_format Preferred file format. Possible values: 'php', 'mo'. Default: 'php'.
+	 * @param string $domain           The text domain.
 	 */
-	$preferred_format = apply_filters( 'translation_file_format', 'php' );
+	$preferred_format = apply_filters( 'translation_file_format', 'php', $domain );
 	if ( ! in_array( $preferred_format, array( 'php', 'mo' ), true ) ) {
 		$preferred_format = 'php';
 	}
