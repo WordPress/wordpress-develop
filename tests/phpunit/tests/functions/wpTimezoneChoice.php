@@ -109,8 +109,8 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 * @ticket 59941
 	 */
 	public function test_wp_timezone_choice_es_set() {
-		global $locale;
-		$old_locale = get_locale();
+//		global $locale;
+//		$old_locale = get_locale();
 
 		switch_to_locale( 'es_ES' );
 		// Test selecting a timezone from the list.
@@ -124,6 +124,6 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 		$timezone_from_city_es = '<optgroup label="Compensaciones manuales">';
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
 
-		switch_to_locale( $old_locale );
+		restore_current_locale();
 	}
 }
