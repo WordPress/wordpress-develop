@@ -9,42 +9,6 @@
  */
 class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
-
-
-	public function set_up() {
-		parent::set_up();
-
-		$this->locale          = '';
-		$this->previous_locale = '';
-
-		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
-
-		global $wp_textdomain_registry, $wp_locale_switcher;
-
-		$wp_textdomain_registry = new WP_Textdomain_Registry();
-
-		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
-		$wp_locale_switcher = new WP_Locale_Switcher();
-		$wp_locale_switcher->init();
-	}
-
-	public function tear_down() {
-		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
-
-		global $wp_textdomain_registry, $wp_locale_switcher;
-
-		$wp_textdomain_registry = new WP_Textdomain_Registry();
-
-		// Clean up after any tests that don't restore the locale afterwards,
-		// before resetting $wp_locale_switcher.
-		restore_current_locale();
-
-		remove_filter( 'locale', array( $wp_locale_switcher, 'filter_locale' ) );
-		$wp_locale_switcher = new WP_Locale_Switcher();
-		$wp_locale_switcher->init();
-
-		parent::tear_down();
-	}
 	/**
 	 * Default values
 	 *
@@ -135,6 +99,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 		$timezone_from_city_es = '<option value="Pacific/Port_Moresby">Puerto Moresby</option>';
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
 
+		$timezone_from_city_es = '<optgroup label="Ártico">';
+		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
+
 		$timezone_from_city_es = '<optgroup label="Manual Offsets">';
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
 	}
@@ -153,6 +120,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 		$this->assertStringContainsString( $selected_timezone_option, $timezone_list );
 
 		$timezone_from_city_es = '<option value="Pacific/Port_Moresby">Puerto Moresby</option>';
+		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
+
+		$timezone_from_city_es = '<optgroup label="Ártico">';
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
 
 		$timezone_from_city_es = '<optgroup label="Compensaciones manuales">';
