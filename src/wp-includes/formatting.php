@@ -696,11 +696,20 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 			. ')*+'         // Loop possessively.
 			. '(?:-->)?';   // End of comment. If not found, match all input.
 
+		/**
+		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+		 */
+		$attribute_regex =
+			'[^>"\']*'                  // Find before end of element, or before start of attribute value.
+			. '(?:"[^"]*"[^>"]*)*'      // Double-quoted attribute value
+			. '(?:\'[^\']*\'[^>\']*)*'; // Single-quoted attribute value
+
 		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
 			'<'                  // Find start of element.
 			. '(?(?=!--)'        // Is this a comment?
 			.     $comment_regex // Find end of comment.
 			. '|'
+			.     $attribute_regex // Exclude matching within attribute values.
 			.     '[^>]*>?'      // Find end of element. If not found, match all input.
 			. ')';
 		// phpcs:enable
