@@ -2117,6 +2117,8 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	}
 
 	/**
+	 * @ticket 43457
+	 * @ticket 45387
 	 * @ticket 57381
 	 * @dataProvider data_greater_than_in_attribute_value
 	 */
@@ -2145,6 +2147,14 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 				<label class=\'[&#038;>span]:font-bold\'>&#8216;foo&#8217; or &#8216;bar&#8217;</label>
 				<input placeholder=\'foo<->bar\' />
 				',
+			),
+			array(
+				'<span data-content="<p>abcd</p>">loading...</span>',
+				'<span data-content="<p>abcd</p>">loading&#8230;</span>',
+			),
+			array(
+				'<p>Go to <a href="https://wordpress.org" target="_blank" rel="noreferrer noopener" aria-label="WordPress ->">WordPress -></a></p>',
+				'<p>Go to <a href="https://wordpress.org" target="_blank" rel="noreferrer noopener" aria-label="WordPress ->">WordPress -></a></p>',
 			),
 		);
 	}

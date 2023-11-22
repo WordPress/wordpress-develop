@@ -42,6 +42,16 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 				'abcd <input placeholder=\'foo>bar\' /> efgh',
 				array( 'abcd ', '<input placeholder=\'foo>bar\' />', ' efgh' ),
 			),
+			array(
+				'<p foo="" bar="2 > 1">numbers</p>',
+				array(
+					'',
+					'<p foo="" bar="2 > 1">',
+					'numbers',
+					'</p>',
+					'',
+				),
+			),
 		);
 	}
 
