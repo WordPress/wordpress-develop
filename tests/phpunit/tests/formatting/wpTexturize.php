@@ -1278,11 +1278,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a> ]',
-				'[ photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a> ]',
+				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a> ]',
 			),
 			array(
 				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a>]',
-				'[photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a>]',
+				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a>]',
 			),
 			array(
 				'& <script>&&</script>',
@@ -2134,7 +2134,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 				<input placeholder="foo<->bar" />
 				',
 				'
-				<label class="[&#038;>span]:font-bold">&#8220;foo&#8221; or &#8220;bar&#8221;</label>
+				<label class="[&>span]:font-bold">&#8220;foo&#8221; or &#8220;bar&#8221;</label>
 				<input placeholder="foo<->bar" />
 				',
 			),
@@ -2144,7 +2144,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 				<input placeholder=\'foo<->bar\' />
 				',
 				'
-				<label class=\'[&#038;>span]:font-bold\'>&#8216;foo&#8217; or &#8216;bar&#8217;</label>
+				<label class=\'[&>span]:font-bold\'>&#8216;foo&#8217; or &#8216;bar&#8217;</label>
 				<input placeholder=\'foo<->bar\' />
 				',
 			),
