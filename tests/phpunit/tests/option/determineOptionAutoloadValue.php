@@ -10,8 +10,6 @@ class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::determine_option_autoload_value
-	 *
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
@@ -20,8 +18,6 @@ class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::determine_option_autoload_value
-	 *
 	 * @ticket 42441
 	 */
 	public function test_large_option() {
@@ -31,8 +27,6 @@ class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::determine_option_autoload_value
-	 *
 	 * @ticket 42441
 	 */
 	public function test_large_option_json() {
