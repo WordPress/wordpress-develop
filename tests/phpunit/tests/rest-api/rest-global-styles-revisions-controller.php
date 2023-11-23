@@ -406,9 +406,10 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 9, $properties, 'Schema properties array has exactly 9 elements.' );
+		$this->assertCount( 10, $properties, 'Schema properties array has exactly 9 elements.' );
 		$this->assertArrayHasKey( 'id', $properties, 'Schema properties array has "id" key.' );
 		$this->assertArrayHasKey( 'styles', $properties, 'Schema properties array has "styles" key.' );
+		$this->assertArrayHasKey( 'title', $properties, 'Schema properties array has "title" key.' );
 		$this->assertArrayHasKey( 'settings', $properties, 'Schema properties array has "settings" key.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Schema properties array has "parent" key.' );
 		$this->assertArrayHasKey( 'author', $properties, 'Schema properties array has "author" key.' );
