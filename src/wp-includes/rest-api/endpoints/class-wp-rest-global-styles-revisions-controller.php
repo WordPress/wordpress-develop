@@ -16,14 +16,6 @@
  */
 class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Controller {
 	/**
-	 * Parent post type.
-	 *
-	 * @since 6.3.0
-	 * @var string
-	 */
-	private $parent_post_type;
-
-	/**
 	 * Parent controller.
 	 *
 	 * @since 6.5.0
@@ -43,23 +35,13 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Constructor.
 	 *
 	 * @since 6.3.0
-	 *
-	 * @param string $parent_post_type Post type of the parent.
 	 */
-	public function __construct( $parent_post_type ) {
-		parent::__construct( $parent_post_type );
-		$this->parent_post_type = $parent_post_type;
-		$post_type_object       = get_post_type_object( $parent_post_type );
-		$parent_controller      = $post_type_object->get_rest_controller();
-
-		if ( ! $parent_controller ) {
-			$parent_controller = new WP_REST_Global_Styles_Controller();
-		}
-
-		$this->parent_controller = $parent_controller;
+	public function __construct() {
+		parent::__construct( 'wp_global_styles' );
+		$this->parent_controller = new WP_REST_Global_Styles_Controller();
 		$this->rest_base         = 'revisions';
-		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
-		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
+		$this->parent_base       = $this->parent_controller->rest_base;
+		$this->namespace         = $this->parent_controller->namespace;
 	}
 
 	/**
@@ -399,6 +381,8 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		unset( $schema['properties']['guid'] );
 		unset( $schema['properties']['slug'] );
 		unset( $schema['properties']['meta'] );
+		unset( $schema['properties']['content'] );
+		unset( $schema['properties']['excerpt'] );
 
 		$this->schema = $schema;
 
