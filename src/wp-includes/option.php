@@ -856,7 +856,7 @@ function update_option( $option, $value, $autoload = null ) {
 			} else {
 				wp_cache_set( $option, $serialized_value, 'options' );
 			}
-		} elseif ( 'yes' === $update_args['autoload'] || 'default-yes' === $autoload ) {
+		} elseif ( 'yes' === $update_args['autoload'] || 'default-yes' === $update_args['autoload'] ) {
 			// Delete the individual cache, then set in alloptions cache.
 			wp_cache_delete( $option, 'options' );
 
