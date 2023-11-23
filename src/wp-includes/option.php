@@ -1181,13 +1181,12 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	/**
 	 * Filters the maximum size of option value in bytes.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
 	 * @param string $option          The name of the option.
-	 * @param mixed  $value           The value of the option.
 	 */
-	$max_option_size = (int) apply_filters( 'max_option_size', 150000, $option, $value );
+	$max_option_size = (int) apply_filters( 'wp_max_autoloaded_option_size', 150000, $option );
 
 	if ( $size > $max_option_size ) {
 		return 'default-no';
