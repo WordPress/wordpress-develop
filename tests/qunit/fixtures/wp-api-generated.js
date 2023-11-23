@@ -10542,9 +10542,57 @@ mockedApiResponse.Schema = {
                             "maximum": 100,
                             "required": false
                         },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by object attribute.",
+                            "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
                             "required": false
                         }
                     }
