@@ -1140,24 +1140,27 @@ function delete_option( $option ) {
 }
 
 /**
- *  Determine the appropriate autoload value based on input.
- *  Checking the size of an option value and compare it to the maximum allowed size.
+ *  Determines the appropriate autoload value for an option based on input.
  *
  *  This function checks the provided autoload value and returns a standardized
  *  value ('yes', 'no', 'default-yes', or 'default-no') based on specific conditions.
  *
- * Check the size of an option value and compare it to the maximum allowed size.
+ * If no valid autoload value is provided, the function will check the size of the given option value
+ * and compare it to the maximum allowed size. If it ls larger, it will return 'default-no', otherwise
+ * it will return 'default-yes'.
  *
- * This function serializes the given value and checks its size against the maximum allowed
- * option size defined by the 'max_option_size' filter.
- *
- * @param string $option The name of the option.
- * @param mixed  $value  The value of the option to be checked.
- *
- * @return string Returns 'default-no' if the size exceeds the maximum allowed size, or 'default-yes' otherwise.
- *@since 6.5.0
+ * @since 6.5.0
  * @access private
  *
+ * @param string           $option   The name of the option.
+ * @param mixed            $value    The value of the option to check its autoload value.
+ * @param string|bool|null $autoload The autoload value to check.
+ *                                   Accepts 'yes'|true to enable or 'no'|false to disable, or
+ *                                   'default-yes' and 'default-no' for internal purposes.
+ *                                   Any other autoload value will be forced to either `default-yes`
+ *                                   or `default-no`.
+ * @return string Returns the original $autoload value if valid, or 'default-no' if the size exceeds
+ *                the maximum allowed size, or 'default-yes' otherwise.
  */
 function determine_option_autoload_value( $option, $value, $autoload ) {
 
