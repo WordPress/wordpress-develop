@@ -365,7 +365,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Retrieves the revision's schema, conforming to JSON Schema.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Merging parent and parent controller schemata.
+	 * @since 6.5.0 Merged parent and parent controller schemata.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -382,7 +382,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		unset( $schema['properties']['slug'] );
 		unset( $schema['properties']['meta'] );
 		unset( $schema['properties']['content'] );
-		unset( $schema['properties']['excerpt'] );
+		unset( $schema['properties']['title'] );
 
 		$this->schema = $schema;
 
