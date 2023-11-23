@@ -403,44 +403,4 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 
 		return $this->add_additional_fields_schema( $this->schema );
 	}
-
-	/**
-	 * Checks if a given request has access to get global styles revisions.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
-	 */
-	public function get_items_permissions_check( $request ) {
-		$post = $this->get_parent( $request['parent'] );
-		if ( is_wp_error( $post ) ) {
-			return $post;
-		}
-
-		/*
-		 * The same check as WP_REST_Global_Styles_Controller::get_item_permissions_check.
-		 */
-		if ( ! current_user_can( 'read_post', $post->ID ) ) {
-			return new WP_Error(
-				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view revisions for this global style.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
-	}
-
-	/**
-	 * Checks if a given request has access to read a single global style revision.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
-	 */
-	public function get_item_permissions_check( $request ) {
-		return $this->get_items_permissions_check( $request );
-	}
 }
