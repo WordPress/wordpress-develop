@@ -20,6 +20,8 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42441
+	 *
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_default_and_yes() {
@@ -31,6 +33,8 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 42441
+	 *
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_default_and_no() {
