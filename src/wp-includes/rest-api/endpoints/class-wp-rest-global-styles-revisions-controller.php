@@ -391,24 +391,13 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 			return $this->add_additional_fields_schema( $this->schema );
 		}
 
-		// Adds settings and styles from the WP_REST_Revisions_Controller item fields.
-		$schema = parent::get_item_schema();
-
-		// Adds settings and styles from the WP_REST_Global_Styles_Controller parent schema.
-		$schema['properties']['styles'] = array(
-			'description' => __( 'Global styles.' ),
-			'type'        => array( 'object' ),
-			'context'     => array( 'view', 'edit' ),
-		);
-
-		$schema['properties']['settings'] = array(
-			'description' => __( 'Global settings.' ),
-			'type'        => array( 'object' ),
-			'context'     => array( 'view', 'edit' ),
-		);
+		$schema               = parent::get_item_schema();
+		$parent_schema        = $this->parent_controller->get_item_schema();
+		$schema['properties'] = array_merge( $schema['properties'], $parent_schema['properties'] );
 
 		unset( $schema['properties']['guid'] );
 		unset( $schema['properties']['slug'] );
+		unset( $schema['properties']['meta'] );
 
 		$this->schema = $schema;
 
