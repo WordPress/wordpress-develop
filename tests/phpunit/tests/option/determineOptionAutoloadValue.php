@@ -2,6 +2,8 @@
 
 /**
  * @group option
+ *
+ * @covers ::determine_option_autoload_value
  */
 class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	public function set_up() {
