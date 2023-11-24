@@ -24,6 +24,14 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	const PARENT_POST_TYPE = 'wp_template';
 
+	const TEMPLATE_REGEXP = '/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves';
+
+	const TEMPLATE_ID_REGEXP = '/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)';
+
+	const TEMPLATE_PARTS_REGEXP = '/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves';
+
+	const TEMPLATE_PARTS_ID_REGEXP = '/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)';
+
 	/**
 	 * Admin user ID.
 	 *
@@ -95,22 +103,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves',
+			static::TEMPLATE_REGEXP,
 			$routes,
 			'Template autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)',
+			static::TEMPLATE_ID_REGEXP,
 			$routes,
 			'Single template autosave based on the given ID route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves',
+			static::TEMPLATE_PARTS_REGEXP,
 			$routes,
 			'Template part autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)',
+			static::TEMPLATE_PARTS_ID_REGEXP,
 			$routes,
 			'Single template part autosave based on the given ID route does not exist.'
 		);
@@ -409,5 +417,29 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 				WP_REST_Template_Autosaves_Controller::class
 			)
 		);
+	}
+
+	public function test_correct_regexp( $regexp, $url, $should_match, $error_message = "") {
+		if ($should_match) {
+			$this->assertMatchesRegularExpression( $regexp, $url, $error_message );
+			return;
+		}
+
+		$this->assertDoesNotMatchRegularExpression( $regexp, $url, $error_message );
+
+	}
+
+	public function data_correct_regexp() {
+		$data = array();
+		$regular_expressions = array(
+			static::TEMPLATE_REGEXP,
+			static::TEMPLATE_ID_REGEXP,
+			static::TEMPLATE_PARTS_REGEXP,
+			static::TEMPLATE_PARTS_ID_REGEXP,
+		);
+
+		foreach ($regular_expressions as $regular_expression) {
+
+		}
 	}
 }
