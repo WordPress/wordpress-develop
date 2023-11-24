@@ -425,4 +425,91 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->assertSame( $expected, $url );
 	}
+
+	/**
+	 * @ticket 59866
+	 *
+	 * Check if attachment page redirects work parent post's status.
+	 *
+	 */
+	public function test_canonical_attachment_page_redirect_with_option_disabled_by_draft_parent()
+	{
+		add_filter('pre_option_wp_attachment_pages_enabled', '__return_false');
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents($filename);
+		$upload   = wp_upload_bits(wp_basename($filename), null, $contents);
+
+		$author_id = self::factory()->user->create(array('role' => 'author'));
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'post',
+				'post_status' => 'draft',
+				'post_author' => $author_id,
+			)
+		);
+
+		$attachment_id   = $this->_make_attachment($upload, $p);
+		$attachment_page = get_permalink($attachment_id);
+
+		// assert based on status - draft.
+		// it should throw 404 for not logged in users/visitors.
+
+		$this->go_to($attachment_page);
+
+		$url      = redirect_canonical($attachment_page, false);
+		$expected = null;
+
+		$this->assertSame($expected, $url);
+
+		$this->assertQueryTrue('is_404');
+
+	}
+
+	/**
+	 * @ticket 59866
+	 *
+	 * Check if attachment page redirects work parent post's status and logged in user.
+	 *
+	 */
+	public function test_canonical_attachment_page_draft_parent_user_logged_in()
+	{
+		add_filter('pre_option_wp_attachment_pages_enabled', '__return_false');
+		$this->set_permalink_structure('/%postname%');
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents($filename);
+		$upload   = wp_upload_bits(wp_basename($filename), null, $contents);
+
+		$author_id = self::factory()->user->create(array('role' => 'author'));
+
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'post',
+				'post_status' => 'draft',
+				'post_author' => $author_id,
+			)
+		);
+
+		$attachment_id   = $this->_make_attachment($upload, $p);
+		$attachment_page = get_permalink($attachment_id);
+
+		$editor_id = self::factory()->user->create(array('role' => 'editor'));
+
+		wp_set_current_user($editor_id);
+
+		$this->assertTrue(current_user_can('read_post', $p));
+
+		// assert based on status - draft and logged in user.
+		// it should allow editor to view the attachment.
+
+		$this->go_to($attachment_page);
+
+		$url      = redirect_canonical($attachment_page, true);
+		$expected = home_url('/?attachment_id=' . $attachment_id);
+
+		$this->assertSame($expected, $url);
+
+	}
 }
