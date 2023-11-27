@@ -77,7 +77,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@4bd44f22a98a19e0950cbad5f31095157cc9621b # v2.25.4
         with:
-          php-version: '7.4'
+          php-version: 'latest'
           coverage: none
           tools: cs2pr
 
@@ -142,8 +142,6 @@ jobs:
       contents: read
     timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    env:
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
 
     steps:
       - name: Checkout repository
@@ -182,7 +180,7 @@ jobs:
     needs: [ phpcs, jshint ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
-      calling_status: ${{ needs.phpcs.result == 'success' && needs.jshint.result == 'success' && 'success' || ( needs.phpcs.result == 'cancelled' || needs.jshint.result == 'cancelled' ) && 'cancelled' || 'failure' }}
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
     secrets:
       SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
@@ -201,8 +199,8 @@ jobs:
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
-        needs.phpcs.result == 'cancelled' || needs.phpcs.result == 'failure' ||
-        needs.jshint.result == 'cancelled' || needs.jshint.result == 'failure'
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
       )
 
     steps:

@@ -22,6 +22,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentyone',
 		'twentytwentytwo',
 		'twentytwentythree',
+		'twentytwentyfour',
 	);
 
 	/**

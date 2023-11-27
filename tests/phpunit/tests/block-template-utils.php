@@ -162,64 +162,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 59325
-	 *
-	 * @covers ::_build_block_template_result_from_file
-	 *
-	 * @dataProvider data_build_block_template_result_from_file_injects_theme_attribute
-	 *
-	 * @param string $filename The template's filename.
-	 * @param string $expected The expected block markup.
-	 */
-	public function test_build_block_template_result_from_file_injects_theme_attribute( $filename, $expected ) {
-		$template = _build_block_template_result_from_file(
-			array(
-				'slug' => 'single',
-				'path' => DIR_TESTDATA . "/templates/$filename",
-			),
-			'wp_template'
-		);
-		$this->assertSame( $expected, $template->content );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public function data_build_block_template_result_from_file_injects_theme_attribute() {
-		$theme = 'block-theme';
-		return array(
-			'a template with a template part block'  => array(
-				'filename' => 'template-with-template-part.html',
-				'expected' => sprintf(
-					'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
-					$theme
-				),
-			),
-			'a template with a template part block nested inside another block' => array(
-				'filename' => 'template-with-nested-template-part.html',
-				'expected' => sprintf(
-					'<!-- wp:group -->
-<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->
-<!-- /wp:group -->',
-					$theme
-				),
-			),
-			'a template with a template part block with an existing theme attribute' => array(
-				'filename' => 'template-with-template-part-with-existing-theme-attribute.html',
-				'expected' => '<!-- wp:template-part {"slug":"header","theme":"fake-theme","align":"full","tagName":"header","className":"site-header"} /-->',
-			),
-			'a template with no template part block' => array(
-				'filename' => 'template.html',
-				'expected' => '<!-- wp:paragraph -->
-<p>Just a paragraph</p>
-<!-- /wp:paragraph -->',
-			),
-		);
-	}
-
-	/**
 	 * @ticket 59338
 	 *
 	 * @covers ::_inject_theme_attribute_in_template_part_block
@@ -311,6 +253,13 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 59452
+	 *
+	 * @covers ::_inject_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _inject_theme_attribute_in_block_template_content
+	 */
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
 		$content_without_theme_attribute = '<!-- wp:template-part {"slug":"header","align":"full", "tagName":"header","className":"site-header"} /-->';
@@ -354,11 +303,37 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54448
+	 * @ticket 59460
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
 	 */
 	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );
+	}
+
+	/**
+	 * @ticket 59460
+	 *
+	 * @covers ::_remove_theme_attribute_from_template_part_block
+	 * @covers ::traverse_and_serialize_blocks
+	 *
+	 * @dataProvider data_remove_theme_attribute_in_block_template_content
+	 *
+	 * @param string $template_content The template markup.
+	 * @param string $expected         The expected markup after removing the theme attribute from Template Part blocks.
+	 */
+	public function test_remove_theme_attribute_from_template_part_block( $template_content, $expected ) {
+		$template_content_parsed_blocks = parse_blocks( $template_content );
+
+		$this->assertSame(
+			$expected,
+			traverse_and_serialize_blocks(
+				$template_content_parsed_blocks,
+				'_remove_theme_attribute_from_template_part_block'
+			)
+		);
 	}
 
 	public function data_remove_theme_attribute_in_block_template_content() {
