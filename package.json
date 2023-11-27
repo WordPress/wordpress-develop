@@ -7,8 +7,8 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"engines": {
-		"node": ">=16.19.1",
-		"npm": ">=8.19.3 <9"
+		"node": ">=20.10.0",
+		"npm": ">=10.2.3 <11"
 	},
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
