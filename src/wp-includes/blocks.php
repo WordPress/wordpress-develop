@@ -758,18 +758,16 @@ function get_hooked_blocks() {
 }
 
 function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
-	if (
-		isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) &&
-		in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
-	) {
-		return '';
+	if ( isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+			return '';
+		}
+	} else {
+		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 	}
 
 	// The following is only needed for the REST API endpoint.
 	// However, its presence does not affect the frontend.
-	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
-		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
-	}
 	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
 
 	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
