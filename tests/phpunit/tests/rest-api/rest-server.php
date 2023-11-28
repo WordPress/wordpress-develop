@@ -2371,40 +2371,52 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function data_get_index_should_return_site_icon_and_site_logo_fields() {
 		return array(
-			'no site_logo or site_icon fields' => array(
+			'no site_logo or site_icon fields'   => array(
 				'name',
 				'',
 				'site_logo,site_icon,site_icon_url',
 				false,
 			),
-			'_links request parameter'         => array(
+			'_links request parameter'           => array(
 				'_links',
 				'site_logo,site_icon,site_icon_url',
 				'',
 				false,
 			),
-			'_embed request parameter'         => array(
+			'_embed request parameter'           => array(
 				'_embed',
 				'site_logo,site_icon,site_icon_url',
 				'',
 				true,
 			),
-			'site_logo field'                  => array(
+			'site_logo field'                    => array(
 				'site_logo',
 				'site_logo',
 				'site_icon,site_icon_url',
 				false,
 			),
-			'site_icon field'                  => array(
+			'site_icon field'                    => array(
 				'site_icon',
 				'site_icon,site_icon_url',
 				'site_logo',
 				false,
 			),
-			'site_icon_url field'              => array(
+			'site_icon_url field'                => array(
 				'site_icon_url',
 				'site_icon,site_icon_url',
 				'site_logo',
+				false,
+			),
+			'site_logo and site_icon fields'     => array(
+				'site_logo,site_icon',
+				'site_logo,site_icon,site_icon_url',
+				'',
+				false,
+			),
+			'site_logo and site_icon_url fields' => array(
+				'site_logo,site_icon_url',
+				'site_logo,site_icon,site_icon_url',
+				'',
 				false,
 			),
 		);
