@@ -757,6 +757,19 @@ function get_hooked_blocks() {
 	return $hooked_blocks;
 }
 
+/**
+ * Conditionally returns the markup for a given hooked block type.
+ *
+ * Accepts two arguments: A reference to an anchor block, and the name of a hooked block type.
+ * If the anchor block has already been processed, and the given hooked block type is in the list
+ * of ignored hooked blocks, an empty string is returned.
+ *
+ * @since 6.5.0
+ *
+ * @param array   $anchor_block 	 The anchor block. Passed by reference.
+ * @param string  $hooked_block_type The name of the hooked block type.
+ * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
+ */
 function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
 	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
