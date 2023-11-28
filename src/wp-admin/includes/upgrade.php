@@ -2366,7 +2366,6 @@ function upgrade_650() {
 	global $wp_current_db_version, $wpdb;
 
 	if ( $wp_current_db_version < 57200 ) {
-		
 		$stylesheet = get_stylesheet();
 
 		// Set autoload=no for the previous all themes.
