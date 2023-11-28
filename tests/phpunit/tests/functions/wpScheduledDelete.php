@@ -9,6 +9,20 @@
  */
 class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 
+	static $comment_id;
+	static $page_id;
+	public function tear_down() {
+		// Remove comment.
+		if ( self::$comment_id ) {
+			wp_delete_comment( self::$comment_id );
+		}
+		// Remove page.
+		if ( self::$page_id ) {
+			wp_delete_post( self::$page_id );
+		}
+		parent::tear_down();
+	}
+
 	/**
 	 * Delete old trashed post/pages.
 	 *
@@ -16,20 +30,20 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_wp_scheduled_delete() {
-		$page_id = self::factory()->post->create(
+		self::$page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'trash',
 			)
 		);
-		add_post_meta( $page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
-		add_post_meta( $page_id, '_wp_trash_meta_status', 'published' );
+		add_post_meta( self::$page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
+		add_post_meta( self::$page_id, '_wp_trash_meta_status', 'published' );
 
-		$this->assertNotEmpty( get_post( $page_id ) );
+		$this->assertNotEmpty( get_post( self::$page_id ) );
 
 		wp_scheduled_delete();
 
-		$this->assertEmpty( get_post( $page_id ) );
+		$this->assertEmpty( get_post( self::$page_id ) );
 	}
 
 	/**
@@ -40,24 +54,22 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_wp_scheduled_delete_not_trash() {
-		$page_id = self::factory()->post->create(
+		self::$page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'published',
 			)
 		);
-		add_post_meta( $page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
-		add_post_meta( $page_id, '_wp_trash_meta_status', 'published' );
+		add_post_meta( self::$page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
+		add_post_meta( self::$page_id, '_wp_trash_meta_status', 'published' );
 
-		$this->assertNotEmpty( get_post( $page_id ) );
+		$this->assertNotEmpty( get_post( self::$page_id ) );
 
 		wp_scheduled_delete();
 
-		$this->assertNotEmpty( get_post( $page_id ) );
-		$this->assertEmpty( get_post_meta( $page_id, '_wp_trash_meta_time', true ) );
-		$this->assertEmpty( get_post_meta( $page_id, '_wp_trash_meta_status', true ) );
-
-		wp_delete_post( $page_id );
+		$this->assertNotEmpty( get_post( self::$page_id ) );
+		$this->assertEmpty( get_post_meta( self::$page_id, '_wp_trash_meta_time', true ) );
+		$this->assertEmpty( get_post_meta( self::$page_id, '_wp_trash_meta_status', true ) );
 	}
 
 
@@ -68,24 +80,22 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_wp_scheduled_delete_not_old() {
-		$page_id = self::factory()->post->create(
+		self::$page_id = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'trash',
 			)
 		);
-		add_post_meta( $page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS ) );
-		add_post_meta( $page_id, '_wp_trash_meta_status', 'published' );
+		add_post_meta( self::$page_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS ) );
+		add_post_meta( self::$page_id, '_wp_trash_meta_status', 'published' );
 
-		$this->assertNotEmpty( get_post( $page_id ) );
+		$this->assertNotEmpty( get_post( self::$page_id ) );
 
 		wp_scheduled_delete();
 
-		$this->assertNotEmpty( get_post( $page_id ) );
-		$this->assertNotEmpty( get_post_meta( $page_id, '_wp_trash_meta_time', true ) );
-		$this->assertNotEmpty( get_post_meta( $page_id, '_wp_trash_meta_status', true ) );
-
-		wp_delete_post( $page_id );
+		$this->assertNotEmpty( get_post( self::$page_id ) );
+		$this->assertNotEmpty( get_post_meta( self::$page_id, '_wp_trash_meta_time', true ) );
+		$this->assertNotEmpty( get_post_meta( self::$page_id, '_wp_trash_meta_status', true ) );
 	}
 
 	/**
@@ -95,19 +105,19 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_wp_scheduled_delete_comment() {
-		$comment_id = self::factory()->comment->create(
+		self::$comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved' => 'trash',
 			)
 		);
-		add_comment_meta( $comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
-		add_post_meta( $comment_id, '_wp_trash_meta_status', 'published' );
+		add_comment_meta( self::$comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
+		add_post_meta( self::$comment_id, '_wp_trash_meta_status', 'published' );
 
-		$this->assertNotEmpty( get_comment( $comment_id ) );
+		$this->assertNotEmpty( get_comment( self::$comment_id ) );
 
 		wp_scheduled_delete();
 
-		$this->assertEmpty( get_comment( $comment_id ) );
+		$this->assertEmpty( get_comment( self::$comment_id ) );
 	}
 
 	/**
@@ -118,23 +128,21 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_wp_scheduled_delete_not_trash_comment() {
-		$comment_id = self::factory()->comment->create(
+		self::$comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved' => '1',
 			)
 		);
-		add_comment_meta( $comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
-		add_comment_meta( $comment_id, '_wp_trash_meta_status', 'published' );
+		add_comment_meta( self::$comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS + 1 ) );
+		add_comment_meta( self::$comment_id, '_wp_trash_meta_status', 'published' );
 
-		$this->assertNotEmpty( get_comment( $comment_id ) );
+		$this->assertNotEmpty( get_comment( self::$comment_id ) );
 
 		wp_scheduled_delete();
 
-		$this->assertNotEmpty( get_comment( $comment_id ) );
-		$this->assertEmpty( get_comment_meta( $comment_id, '_wp_trash_meta_time', true ) );
-		$this->assertEmpty( get_comment_meta( $comment_id, '_wp_trash_meta_status', true ) );
-
-		wp_delete_comment( $comment_id );
+		$this->assertNotEmpty( get_comment( self::$comment_id ) );
+		$this->assertEmpty( get_comment_meta( self::$comment_id, '_wp_trash_meta_time', true ) );
+		$this->assertEmpty( get_comment_meta( self::$comment_id, '_wp_trash_meta_status', true ) );
 	}
 
 
@@ -145,22 +153,20 @@ class Tests_Functions_wpScheduledDelete extends WP_UnitTestCase {
 	 *
 	 */
 	public function test_wp_scheduled_delete_not_old_comment() {
-		$comment_id = self::factory()->comment->create(
+		self::$comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved' => 'trash',
 			)
 		);
-		add_comment_meta( $comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS ) );
-		add_comment_meta( $comment_id, '_wp_trash_meta_status', 'published' );
+		add_comment_meta( self::$comment_id, '_wp_trash_meta_time', time() - ( DAY_IN_SECONDS * EMPTY_TRASH_DAYS ) );
+		add_comment_meta( self::$comment_id, '_wp_trash_meta_status', 'published' );
 
-		$this->assertNotEmpty( get_comment( $comment_id ) );
+		$this->assertNotEmpty( get_comment( self::$comment_id ) );
 
 		wp_scheduled_delete();
 
-		$this->assertNotEmpty( get_comment( $comment_id ) );
-		$this->assertNotEmpty( get_comment_meta( $comment_id, '_wp_trash_meta_time', true ) );
-		$this->assertNotEmpty( get_comment_meta( $comment_id, '_wp_trash_meta_status', true ) );
-
-		wp_delete_comment( $comment_id );
+		$this->assertNotEmpty( get_comment( self::$comment_id ) );
+		$this->assertNotEmpty( get_comment_meta( self::$comment_id, '_wp_trash_meta_time', true ) );
+		$this->assertNotEmpty( get_comment_meta( self::$comment_id, '_wp_trash_meta_status', true ) );
 	}
 }
