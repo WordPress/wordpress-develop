@@ -384,7 +384,9 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$registered = $this->registry->get_all_registered();
 		$this->assertCount( 3, $registered );
 		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $registered[1]['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $registered[1]['content'] );
 		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $registered[2]['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $registered[2]['content'] );
 	}
 
 	/**
@@ -442,6 +444,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 
 		$pattern = $this->registry->get_registered( 'test/one' );
 		$this->assertStringStartsWith( '<!-- wp:tests/my-block /-->', $pattern['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $pattern['content'] );
 	}
 
 	/**
