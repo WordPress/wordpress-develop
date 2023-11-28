@@ -1296,9 +1296,9 @@ class WP_REST_Server {
 			$this->add_active_theme_link_to_index( $response );
 			$this->add_site_logo_to_index( $response );
 			$this->add_site_icon_to_index( $response );
-		} else if ( rest_is_field_included( 'site_logo', $fields ) ) {
+		} elseif ( rest_is_field_included( 'site_logo', $fields ) ) {
 			$this->add_site_logo_to_index( $response );
-		} else if ( rest_is_field_included( 'site_icon', $fields ) || rest_is_field_included( 'site_icon_url', $fields ) ) {
+		} elseif ( rest_is_field_included( 'site_icon', $fields ) || rest_is_field_included( 'site_icon_url', $fields ) ) {
 			$this->add_site_icon_to_index( $response );
 		}
 
