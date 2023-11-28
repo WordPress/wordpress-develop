@@ -1726,7 +1726,7 @@ class Tests_User extends WP_UnitTestCase {
 			'eusp5' => 'eusp5',
 		) as $em_pre => $em_post ) {
 			$_POST['email'] = $em_pre;
-			$user_id = edit_user( $user->ID );
+			$user_id        = edit_user( $user->ID );
 
 			/** @type WP_Error $user_id */
 			$this->assertInstanceOf( 'WP_Error', $user_id );
