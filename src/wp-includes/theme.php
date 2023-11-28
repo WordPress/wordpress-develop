@@ -842,12 +842,12 @@ function switch_theme( $stylesheet ) {
 	$old_theme->delete_pattern_cache();
 
 	// Set autoload=no for the previous all themes.
-	$theme_mods_options = $wpdb->get_col( 
-		$wpdb->prepare( 
-			"SELECT option_name FROM $wpdb->options WHERE autoload = 'yes' AND option_name != %s AND option_name LIKE %s", 
-			"theme_mods_$stylesheet", 
-			$wpdb->esc_like( 'theme_mods_' ) . '%' 
-		) 
+	$theme_mods_options = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT option_name FROM $wpdb->options WHERE autoload = 'yes' AND option_name != %s AND option_name LIKE %s",
+			"theme_mods_$stylesheet",
+			$wpdb->esc_like( 'theme_mods_' ) . '%'
+		)
 	);
 
 	$autoload = array_fill_keys( $theme_mods_options, 'no' );
