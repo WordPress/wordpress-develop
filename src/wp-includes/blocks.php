@@ -758,12 +758,12 @@ function get_hooked_blocks() {
 }
 
 function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
-	if ( isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
-		if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
-			return '';
-		}
-	} else {
+	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
+	}
+
+	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		return '';
 	}
 
 	// The following is only needed for the REST API endpoint.
