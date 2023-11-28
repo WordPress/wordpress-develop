@@ -1712,7 +1712,7 @@ class Tests_User extends WP_UnitTestCase {
 
 			$user_id = edit_user( $user->ID );
 
-			$this->assertInternalType( 'int', $user_id );
+			$this->assertIsInt( $user_id );
 
 			$user = get_user_by( 'ID', $user_id );
 
