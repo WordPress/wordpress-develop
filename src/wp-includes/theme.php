@@ -748,12 +748,11 @@ function locale_stylesheet() {
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
  * @global array                $wp_registered_sidebars
- * @global wpdb                 $wpdb                   WordPress database abstraction object.
  *
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars, $wpdb;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -841,18 +840,12 @@ function switch_theme( $stylesheet ) {
 	$new_theme->delete_pattern_cache();
 	$old_theme->delete_pattern_cache();
 
-	// Set autoload=no for the previous all themes.
-	$theme_mods_options = $wpdb->get_col(
-		$wpdb->prepare(
-			"SELECT option_name FROM $wpdb->options WHERE autoload = 'yes' AND option_name != %s AND option_name LIKE %s",
-			"theme_mods_$stylesheet",
-			$wpdb->esc_like( 'theme_mods_' ) . '%'
-		)
+	// Set autoload=no for the old theme, autoload=yes for the switched theme.
+	$theme_mods_options = array(
+		'theme_mods_' . $stylesheet                  => 'yes',
+		'theme_mods_' . $old_theme->get_stylesheet() => 'no',
 	);
-
-	$autoload = array_fill_keys( $theme_mods_options, 'no' );
-	$autoload[ "theme_mods_$stylesheet" ] = 'yes';
-	wp_set_option_autoload_values( $autoload );
+	wp_set_option_autoload_values( $theme_mods_options );
 
 	// Reload autoload options.
 	wp_load_alloptions();
