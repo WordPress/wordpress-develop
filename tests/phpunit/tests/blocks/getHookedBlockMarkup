@@ -1,0 +1,26 @@
+<?php
+/**
+ * Tests for the get_hooked_block_markup function.
+ *
+ * @package WordPress
+ * @subpackage Blocks
+ *
+ * @since 6.5.0
+ *
+ * @group blocks
+ * @group block-hooks
+ */
+class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase
+{
+	/**
+	 * @covers ::get_hooked_block_markup
+	 */
+	public function test_get_hooked_block_markup() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+		);
+
+		$actual = get_hooked_block_markup( $anchor_block, 'tests/hooked-block' );
+		$this->assertSame( '<!-- wp:tests/hooked-block /-->', $actual );
+	}
+}

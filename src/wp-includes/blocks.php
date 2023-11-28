@@ -757,6 +757,10 @@ function get_hooked_blocks() {
 	return $hooked_blocks;
 }
 
+function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
+	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+}
+
 /**
  * Returns a function that injects the theme attribute into, and hooked blocks before, a given block.
  *
@@ -813,7 +817,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 			 */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 		}
 
@@ -826,7 +830,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
 		}
 
 		return $markup;
@@ -874,7 +878,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
 		}
 
 		if ( $parent_block && ! $next ) {
@@ -888,7 +892,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 			/** This filter is documented in wp-includes/blocks.php */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 		}
 
