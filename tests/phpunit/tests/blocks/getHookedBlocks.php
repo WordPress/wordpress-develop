@@ -176,7 +176,7 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			'<!-- wp:tests/hooked-before /-->'
-			. '<!-- wp:navigation ',
+			. '<!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"},"metadata":{"ignoredHookedBlocks":["tests/hooked-before"]}} /-->',
 			$template->content
 		);
 		$this->assertStringNotContainsString(
