@@ -757,6 +757,18 @@ function get_hooked_blocks() {
 	return $hooked_blocks;
 }
 
+/**
+ * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
+ *
+ * @since 6.5.0
+ *
+ * @param array                   $anchor_block      The anchor block.
+ * @param string                  $relative_position The relative position of the hooked blocks.
+ * 								                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks     An array of blocks hooked to the given anchor block.
+ * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
+ * @return string
+ */
 function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_blocks, $context ) {
 	$anchor_block_type  = $anchor_block['blockName'];
 	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
@@ -769,11 +781,11 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string[]                $hooked_block_types  The list of hooked block types.
-	 * @param string                  $relative_position   The relative position of the hooked blocks.
-	 *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
-	 * @param string                  $anchor_block_type   The anchor block type.
-	 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+	 * @param string[]                $hooked_block_types The list of hooked block types.
+	 * @param string                  $relative_position  The relative position of the hooked blocks.
+	 *                                                    Can be one of 'before', 'after', 'first_child', or 'last_child'.
+	 * @param string                  $anchor_block_type  The anchor block type.
+	 * @param WP_Block_Template|array $context            The block template, template part, or pattern that the anchor block belongs to.
 	 */
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 	foreach ( $hooked_block_types as $hooked_block_type ) {
