@@ -766,7 +766,7 @@ function get_hooked_blocks() {
  *
  * @since 6.5.0
  *
- * @param array   $anchor_block 	 The anchor block. Passed by reference.
+ * @param array   $anchor_block      The anchor block. Passed by reference.
  * @param string  $hooked_block_type The name of the hooked block type.
  * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
  */
