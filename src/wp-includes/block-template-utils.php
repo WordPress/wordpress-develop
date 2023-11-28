@@ -229,10 +229,14 @@ function _get_block_templates_paths( $base_directory ) {
 		return $wp_path_list[ $base_directory ];
 	}
 	$path_list = array();
-	$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
-	$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
-	foreach ( $nested_html_files as $path => $file ) {
-		$path_list[] = $path;
+	try {
+		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
+		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
+		foreach ( $nested_html_files as $path => $file ) {
+			$path_list[] = $path;
+		}
+	} catch ( Exception $e ) {
+		// Do nothing.
 	}
 	$wp_path_list[ $base_directory ] = $path_list;
 	return $path_list;
