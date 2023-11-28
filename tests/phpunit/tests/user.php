@@ -1682,10 +1682,10 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Checks that edit_user() correctly sanitizes the supplied email address
-	*
-	* @ticket 45714
-	*/
+	 * Checks that edit_user() correctly sanitizes the supplied email address.
+	 *
+	 * @ticket 45714
+	 */
 	public function test_edit_user_sanitize_password() {
 		$_POST    = array();
 		$_GET     = array();
@@ -1700,7 +1700,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST['nickname']   = 'eusp1';
 		$_POST['user_login'] = $user->user_login;
 
-		// Success cases
+		// Success cases.
 		foreach ( array(
 			'eusp2@example.com'       => 'eusp2@example.com',
 			'eusp3%4@example.com'     => 'eusp3%4@example.com',
@@ -1720,7 +1720,7 @@ class Tests_User extends WP_UnitTestCase {
 			$this->assertEquals( $em_post, $user->user_email );
 		}
 
-		// Failure cases (resulting in an invalid email address)
+		// Failure cases (resulting in an invalid email address).
 		foreach ( array(
 			''      => '',
 			'eusp5' => 'eusp5',
@@ -1728,7 +1728,6 @@ class Tests_User extends WP_UnitTestCase {
 			$_POST['email'] = $em_pre;
 			$user_id        = edit_user( $user->ID );
 
-			/** @type WP_Error $user_id */
 			$this->assertInstanceOf( 'WP_Error', $user_id );
 			$this->assertEquals( 'empty_email', $user_id->get_error_code() );
 		}
