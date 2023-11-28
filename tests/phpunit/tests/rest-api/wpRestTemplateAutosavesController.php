@@ -419,7 +419,43 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
-	public function test_correct_regexp( $regexp, $url, $should_match, $error_message = "") {
+	public function test_2324() {
+		wp_set_current_user( self::$admin_id );
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
 
+		$request   = new WP_REST_Request(
+			'GET',
+			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
+		);
+		$response  = rest_get_server()->dispatch( $request );
+		$autosaves = $response->get_data();
+
+		$this->assertCount(
+			1,
+			$autosaves,
+			'Failed asserting that the response data contains exactly 1 item.'
+		);
+
+		$this->assertSame(
+			$autosave_post_id,
+			$autosaves[0]['wp_id'],
+			'Failed asserting that the ID of the autosave matches the expected autosave post ID.'
+		);
+		$this->assertSame(
+			self::$template_post->ID,
+			$autosaves[0]['parent'],
+			'Failed asserting that the parent ID of the autosave matches the template post ID.'
+		);
+		$this->assertSame(
+			'Autosave content.',
+			$autosaves[0]['content']['raw'],
+			'Failed asserting that the content of the autosave is "Autosave content.".'
+		);
 	}
 }
