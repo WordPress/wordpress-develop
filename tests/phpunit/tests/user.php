@@ -1687,11 +1687,15 @@ class Tests_User extends WP_UnitTestCase {
 	* @ticket 45714
 	*/
 	function test_edit_user_sanitize_password() {
-		$_POST = $_GET = $_REQUEST = array();
+		$_POST    = array();
+		$_GET     = array();
+		$_REQUEST = array();
 
-		$user = $this->factory()->user->create_and_get( array(
-			'email' => 'eusp1@example.com',
-		) );
+		$user = $this->factory()->user->create_and_get(
+			array(
+				'email' => 'eusp1@example.com',
+			)
+		);
 
 		$_POST['nickname']   = 'eusp1';
 		$_POST['user_login'] = $user->user_login;
@@ -1726,7 +1730,7 @@ class Tests_User extends WP_UnitTestCase {
 
 			/** @type WP_Error $user_id */
 			$this->assertInstanceOf( 'WP_Error', $user_id );
-			$this->assertEquals('empty_email', $user_id->get_error_code());
+			$this->assertEquals( 'empty_email', $user_id->get_error_code() );
 		}
 	}
 
