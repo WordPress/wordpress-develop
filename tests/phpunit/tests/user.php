@@ -1686,7 +1686,7 @@ class Tests_User extends WP_UnitTestCase {
 	*
 	* @ticket 45714
 	*/
-	function test_edit_user_sanitize_password() {
+	public function test_edit_user_sanitize_password() {
 		$_POST    = array();
 		$_GET     = array();
 		$_REQUEST = array();
