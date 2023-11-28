@@ -17,7 +17,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase
 	 *
 	 * @covers ::get_hooked_block_markup
 	 */
-	public function test_get_hooked_block_markup() {
+	public function test_get_hooked_block_markup_adds_metadata() {
 		$anchor_block = array(
 			'blockName' => 'tests/anchor-block',
 		);
