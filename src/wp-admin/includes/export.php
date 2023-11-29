@@ -144,6 +144,40 @@ function export_wp( $args = array() ) {
 	// Grab a snapshot of post IDs, just in case it changes during the export.
 	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} $join WHERE $where" );
 
+	// Get IDs for the attachments of each post, unless all content is already being exported.
+	if ( 'all' !== $args['content'] ) {
+		foreach ( array_chunk( $post_ids, 20 ) as $chunk ) {
+			$posts_in     = array_map( 'absint', $chunk );
+			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
+
+			// Prepare the SQL statement for attachment ids
+			$attachment_ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"
+				SELECT ID
+				FROM $wpdb->posts
+				WHERE post_parent IN (" . implode( ',', $placeholders ) . ") AND post_type = 'attachment'
+					",
+					$posts_in
+				)
+			);
+
+			$thumbnails_ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"
+				SELECT meta_value
+				FROM {$wpdb->postmeta}
+				WHERE {$wpdb->postmeta}.post_id IN (" . implode( ',', $placeholders ) . ")
+				AND {$wpdb->postmeta}.meta_key = '_thumbnail_id'
+					",
+					$posts_in
+				)
+			);
+
+			$post_ids = array_unique( array_merge( $post_ids, $attachment_ids, $thumbnails_ids ) );
+		}
+	}
+
 	/*
 	 * Get the requested terms ready, empty unless posts filtered by category
 	 * or all content.
