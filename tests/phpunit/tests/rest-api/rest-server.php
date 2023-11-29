@@ -1253,8 +1253,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $expected_field, $response, "Expected \"{$expected_field}\" field is missing in the response." );
 		}
 
-		foreach ( $unexpected_fields as $not_expected_field ) {
-			$this->assertArrayNotHasKey( $not_expected_field, $response, "Response must not contain the \"{$not_expected_field}\" field." );
+		foreach ( $unexpected_fields as $unexpected_field ) {
+			$this->assertArrayNotHasKey( $unexpected_field, $response, "Response must not contain the \"{$unexpected_field}\" field." );
 		}
 	}
 
