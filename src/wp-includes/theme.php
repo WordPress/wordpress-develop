@@ -847,9 +847,6 @@ function switch_theme( $stylesheet ) {
 	);
 	wp_set_option_autoload_values( $theme_mods_options );
 
-	// Reload autoload options.
-	wp_load_alloptions();
-
 	/**
 	 * Fires after the theme is switched.
 	 *
