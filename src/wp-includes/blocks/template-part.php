@@ -272,12 +272,12 @@ function build_template_part_block_variations() {
  * Registers the `core/template-part` block on the server.
  */
 function register_block_core_template_part() {
-	register_block_type_from_metadata(
-		__DIR__ . '/template-part',
-		array(
-			'render_callback' => 'render_block_core_template_part',
-			'variations'      => build_template_part_block_variations(),
-		)
+	$args = array(
+		'render_callback' => 'render_block_core_template_part',
 	);
+	if ( current_user_can( 'edit_theme_options' ) ) {
+			$args['variations'] = build_template_part_block_variations();
+	}
+	register_block_type_from_metadata( __DIR__ . '/template-part', $args );
 }
 add_action( 'init', 'register_block_core_template_part' );
