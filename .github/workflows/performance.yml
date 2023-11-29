@@ -73,11 +73,13 @@ jobs:
   # - Check out target commit (target branch or previous commit).
   # - Install npm dependencies.
   # - Build WordPress.
+  # - Run any database upgrades.
   # - Run performance tests (previous/target commit).
   # - Print target performance tests results.
   # - Reset to original commit.
   # - Install npm dependencies.
   # - Set the environment to the baseline version.
+  # - Run any database upgrades.
   # - Run baseline performance tests.
   # - Print baseline performance tests results.
   # - Compare results with base.
@@ -194,6 +196,9 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Run any database upgrades
+        run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run target performance tests (base/previous commit)
         env:
           TEST_RESULTS_PREFIX: before
@@ -214,6 +219,9 @@ jobs:
         run: |
           npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Run any database upgrades
+        run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run baseline performance tests
         env:
