@@ -1206,6 +1206,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 *
 	 * @ticket 59935
 	 *
+	 * @covers WP_REST_Server::get_index
+	 *
 	 * @dataProvider data_get_index_should_return_site_icon_and_site_logo_fields
 	 *
 	 * @param string $fields            List of fields to use in the request.
