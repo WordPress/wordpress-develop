@@ -2378,7 +2378,6 @@ function upgrade_650() {
 		);
 
 		$autoload = array_fill_keys( $theme_mods_options, 'no' );
-		$autoload[ "theme_mods_$stylesheet" ] = 'yes';
 		wp_set_option_autoload_values( $autoload );
 	}
 }
