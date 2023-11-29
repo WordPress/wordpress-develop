@@ -46,4 +46,24 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase
 		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 		$this->assertSame( '', $actual );
 	}
+
+	/**
+	 * @ticket 59646
+	 *
+	 * @covers ::get_hooked_block_markup
+	 */
+	public function test_get_hooked_block_markup_adds_to_ignored_hooked_blocks() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+			'attrs'     => array(
+				'metadata' => array(
+					'ignoredHookedBlocks' => array( 'tests/hooked-block' ),
+				),
+			)
+		);
+
+		$actual = get_hooked_block_markup( $anchor_block, 'tests/other-hooked-block' );
+		$this->assertSame( array( 'tests/hooked-block', 'tests/other-hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
+		$this->assertSame( '<!-- wp:tests/other-hooked-block /-->', $actual );
+	}
 }
