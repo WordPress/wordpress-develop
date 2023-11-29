@@ -1200,6 +1200,95 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( self::$icon_id, $data['site_icon'] );
 	}
 
+	/**
+	 * Test that the "get_index" method returns the expected site_icon*
+	 * and site_logo fields based on the specified request parameters.
+	 *
+	 * @ticket 59935
+	 *
+	 * @dataProvider data_get_index_should_return_site_icon_and_site_logo_fields
+	 *
+	 * @param string $fields            List of fields to use in the request.
+	 * @param array  $expected_fields   Expected fields.
+	 * @param array  $unexpected_fields Optional. Fields that should not be in the results. Default array().
+	 * @param bool   $is_embed          Optional. Whether to use the "_embed" request parameter. Default false.
+	 */
+	public function test_get_index_should_return_site_icon_and_site_logo_fields( $fields, $expected_fields, $unexpected_fields = array(), $is_embed = false ) {
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/', array() );
+		$request->set_param( '_fields', $fields );
+		if ( $is_embed ) {
+			$request->set_param( '_embed', true );
+		}
+
+		$response = $server->get_index( $request )->get_data();
+
+		foreach ( $expected_fields as $expected_field ) {
+			$this->assertArrayHasKey( $expected_field, $response, "Expected \"{$expected_field}\" field is missing in the response." );
+		}
+
+		foreach ( $unexpected_fields as $not_expected_field ) {
+			$this->assertArrayNotHasKey( $not_expected_field, $response, "Response must not contain the \"{$not_expected_field}\" field." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_index_should_return_site_icon_and_site_logo_fields() {
+		return array(
+			'no site_logo or site_icon fields'   => array(
+				'fields'            => 'name',
+				'expected_fields'   => array(),
+				'unexpected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+			),
+			'_links request parameter'           => array(
+				'fields'          => '_links',
+				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+			),
+			'_embed request parameter'           => array(
+				'field'             => '_embed',
+				'expected_fields'   => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+				'unexpected_fields' => array(),
+				'is_embed'          => true,
+			),
+			'site_logo field'                    => array(
+				'fields'            => 'site_logo',
+				'expected_fields'   => array( 'site_logo' ),
+				'unexpected_fields' => array( 'site_icon', 'site_icon_url' ),
+			),
+			'site_icon field'                    => array(
+				'fields'            => 'site_icon',
+				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
+				'unexpected_fields' => array( 'site_logo' ),
+			),
+			'site_icon_url field'                => array(
+				'fields'            => 'site_icon_url',
+				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
+				'unexpected_fields' => array( 'site_logo' ),
+			),
+			'site_icon and site_icon_url field'  => array(
+				'fields'            => 'site_icon_url',
+				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
+				'unexpected_fields' => array( 'site_logo' ),
+			),
+			'site_logo and site_icon fields'     => array(
+				'fields'          => 'site_logo,site_icon',
+				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+			),
+			'site_logo and site_icon_url fields' => array(
+				'fields'          => 'site_logo,site_icon_url',
+				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+			),
+			'site_logo, site_icon, and site_icon_url fields' => array(
+				'fields'          => 'site_logo,site_icon,site_icon_url',
+				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+			),
+		);
+	}
+
 	public function test_get_namespace_index() {
 		$server = new WP_REST_Server();
 		$server->register_route(
@@ -2354,95 +2443,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array( false ),
 			array( 'alternate' ),
 			array( array( 'alternate' ) ),
-		);
-	}
-
-	/**
-	 * Test that the "get_index" method returns the expected site_icon*
-	 * and site_logo fields based on the specified request parameters.
-	 *
-	 * @ticket 59935
-	 *
-	 * @dataProvider data_get_index_should_return_site_icon_and_site_logo_fields
-	 *
-	 * @param string $fields            List of fields to use in the request.
-	 * @param array  $expected_fields   Expected fields.
-	 * @param array  $unexpected_fields Optional. Fields that should not be in the results. Default array().
-	 * @param bool   $is_embed          Optional. Whether to use the "_embed" request parameter. Default false.
-	 */
-	public function test_get_index_should_return_site_icon_and_site_logo_fields( $fields, $expected_fields, $unexpected_fields = array(), $is_embed = false ) {
-		$server  = new WP_REST_Server();
-		$request = new WP_REST_Request( 'GET', '/', array() );
-		$request->set_param( '_fields', $fields );
-		if ( $is_embed ) {
-			$request->set_param( '_embed', true );
-		}
-
-		$response = $server->get_index( $request )->get_data();
-
-		foreach ( $expected_fields as $expected_field ) {
-			$this->assertArrayHasKey( $expected_field, $response, "Expected \"{$expected_field}\" field is missing in the response." );
-		}
-
-		foreach ( $unexpected_fields as $not_expected_field ) {
-			$this->assertArrayNotHasKey( $not_expected_field, $response, "Response must not contain the \"{$not_expected_field}\" field." );
-		}
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_get_index_should_return_site_icon_and_site_logo_fields() {
-		return array(
-			'no site_logo or site_icon fields'   => array(
-				'fields'            => 'name',
-				'expected_fields'   => array(),
-				'unexpected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
-			),
-			'_links request parameter'           => array(
-				'fields'          => '_links',
-				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
-			),
-			'_embed request parameter'           => array(
-				'field'             => '_embed',
-				'expected_fields'   => array( 'site_logo', 'site_icon', 'site_icon_url' ),
-				'unexpected_fields' => array(),
-				'is_embed'          => true,
-			),
-			'site_logo field'                    => array(
-				'fields'            => 'site_logo',
-				'expected_fields'   => array( 'site_logo' ),
-				'unexpected_fields' => array( 'site_icon', 'site_icon_url' ),
-			),
-			'site_icon field'                    => array(
-				'fields'            => 'site_icon',
-				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
-				'unexpected_fields' => array( 'site_logo' ),
-			),
-			'site_icon_url field'                => array(
-				'fields'            => 'site_icon_url',
-				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
-				'unexpected_fields' => array( 'site_logo' ),
-			),
-			'site_icon and site_icon_url field'  => array(
-				'fields'            => 'site_icon_url',
-				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
-				'unexpected_fields' => array( 'site_logo' ),
-			),
-			'site_logo and site_icon fields'     => array(
-				'fields'          => 'site_logo,site_icon',
-				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
-			),
-			'site_logo and site_icon_url fields' => array(
-				'fields'          => 'site_logo,site_icon_url',
-				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
-			),
-			'site_logo, site_icon, and site_icon_url fields' => array(
-				'fields'          => 'site_logo,site_icon,site_icon_url',
-				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
-			),
 		);
 	}
 }
