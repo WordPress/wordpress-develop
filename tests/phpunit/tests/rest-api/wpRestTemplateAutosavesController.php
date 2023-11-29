@@ -394,6 +394,66 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * Test that the routes defined in WP_REST_Template_Autosaves_Controller::register_routes method
+	 * doesn't match requests containing parent theme, e.g. /parent_theme/child_theme/template_name.
+	 *
+	 * @ticket 59635
+	 *
+	 * @covers WP_REST_Template_Autosaves_Controller::register_routes
+	 *
+	 * @dataProvider data_template_autosaves_controller_isnt_matched_for_requests_with_parent_theme
+	 *
+	 * @param $route string Route to be tested.
+	 */
+	public function test_template_autosaves_controller_is_not_matched_for_requests_with_parent_theme( $route ) {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', $route );
+
+		$response = rest_get_server()->dispatch( $request );
+		$handler  = $response->get_matched_handler();
+		$this->assertIsArray( $handler, 'The matched handler is not an array.' );
+		$this->assertArrayHasKey( 'callback', $handler, 'The handler array does not contain a "callback" key.' );
+		$this->assertIsArray( $handler['callback'], 'The "callback" value in the handler array is not an array.' );
+
+		$this->assertArrayHasKey( 0, $handler['callback'], 'The "callback" array does not contain the expected index 0.' );
+		$this->assertNotInstanceOf(
+			WP_REST_Template_Autosaves_Controller::class,
+			$handler['callback'][0],
+			'The WP_REST_Template_Autosaves_Controller controller should not be matched for this request.'
+		);
+	}
+
+	public function data_template_autosaves_controller_isnt_matched_for_requests_with_parent_theme() {
+		return array(
+			'get all autosaves for a template'          => array(
+				'/wp/v2/templates/parent_theme/child_theme/template_name/autosaves',
+			),
+			'get all autosaves for a template (double slash)' => array(
+				'/wp/v2/templates/parent_theme/child_theme//template_name/autosaves',
+			),
+			'get a single autosave for a template'      => array(
+				'/wp/v2/templates/theme_name/parent_theme_name/template_name/autosaves/1',
+			),
+			'get a single autosave for a template (double slash)' => array(
+				'/wp/v2/templates/parent_theme/child_theme//template_name/autosaves/1',
+			),
+			'get all autosaves for a template part'     => array(
+				'/wp/v2/template-parts/theme_name/parent_theme_name/template_name/autosaves',
+			),
+			'get all autosaves for a template part (double slash)' => array(
+				'/wp/v2/template-parts/parent_theme/child_theme//template_name/autosaves',
+			),
+			'get a single autosave for a template part' => array(
+				'/wp/v2/template-parts/theme_name/parent_theme_name/template_name/autosaves/1',
+			),
+			'get a single autosave for a template part (double slash)' => array(
+				'/wp/v2/template-parts/parent_theme/child_theme//template_name/autosaves/1',
+			),
+		);
+	}
+
+	/**
 	 * @coversNothing
 	 * @ticket 56922
 	 */
@@ -416,46 +476,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 				"The '%s' controller doesn't currently support the ability to delete template autosaves.",
 				WP_REST_Template_Autosaves_Controller::class
 			)
-		);
-	}
-
-	public function test_2324() {
-		wp_set_current_user( self::$admin_id );
-		$autosave_post_id = wp_create_post_autosave(
-			array(
-				'post_content' => 'Autosave content.',
-				'post_ID'      => self::$template_post->ID,
-				'post_type'    => self::PARENT_POST_TYPE,
-			)
-		);
-
-		$request   = new WP_REST_Request(
-			'GET',
-			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
-		);
-		$response  = rest_get_server()->dispatch( $request );
-		$autosaves = $response->get_data();
-
-		$this->assertCount(
-			1,
-			$autosaves,
-			'Failed asserting that the response data contains exactly 1 item.'
-		);
-
-		$this->assertSame(
-			$autosave_post_id,
-			$autosaves[0]['wp_id'],
-			'Failed asserting that the ID of the autosave matches the expected autosave post ID.'
-		);
-		$this->assertSame(
-			self::$template_post->ID,
-			$autosaves[0]['parent'],
-			'Failed asserting that the parent ID of the autosave matches the template post ID.'
-		);
-		$this->assertSame(
-			'Autosave content.',
-			$autosaves[0]['content']['raw'],
-			'Failed asserting that the content of the autosave is "Autosave content.".'
 		);
 	}
 }
