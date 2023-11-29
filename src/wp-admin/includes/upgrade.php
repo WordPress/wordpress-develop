@@ -2368,7 +2368,7 @@ function upgrade_650() {
 	if ( $wp_current_db_version < 57200 ) {
 		$stylesheet = get_stylesheet();
 
-		// Set autoload=no for the previous all themes.
+		// Set autoload=no for all themes except the current one.
 		$theme_mods_options = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM $wpdb->options WHERE autoload = 'yes' AND option_name != %s AND option_name LIKE %s",
