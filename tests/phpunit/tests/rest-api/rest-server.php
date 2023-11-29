@@ -2426,12 +2426,21 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
 				'unexpected_fields' => array( 'site_logo' ),
 			),
+			'site_icon and site_icon_url field'  => array(
+				'fields'            => 'site_icon_url',
+				'expected_fields'   => array( 'site_icon', 'site_icon_url' ),
+				'unexpected_fields' => array( 'site_logo' ),
+			),
 			'site_logo and site_icon fields'     => array(
 				'fields'          => 'site_logo,site_icon',
 				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
 			),
 			'site_logo and site_icon_url fields' => array(
 				'fields'          => 'site_logo,site_icon_url',
+				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
+			),
+			'site_logo, site_icon, and site_icon_url fields' => array(
+				'fields'          => 'site_logo,site_icon,site_icon_url',
 				'expected_fields' => array( 'site_logo', 'site_icon', 'site_icon_url' ),
 			),
 		);
