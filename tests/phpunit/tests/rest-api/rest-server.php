@@ -2330,6 +2330,34 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Helper to make the request and get the headers for the
+	 * rest_send_refreshed_nonce related tests.
+	 *
+	 * @return array
+	 */
+	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
+		$request = new WP_REST_Request( 'GET', '/', array() );
+		$result  = rest_get_server()->serve_request( '/' );
+
+		return rest_get_server()->sent_headers;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_envelope_params() {
+		return array(
+			array( '1' ),
+			array( 'true' ),
+			array( false ),
+			array( 'alternate' ),
+			array( array( 'alternate' ) ),
+		);
+	}
+
+	/**
 	 * Test that the "get_index" method returns the expected site_icon*
 	 * and site_logo fields based on the specified request parameters.
 	 *
@@ -2419,34 +2447,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				'',
 				false,
 			),
-		);
-	}
-
-	/**
-	 * Helper to make the request and get the headers for the
-	 * rest_send_refreshed_nonce related tests.
-	 *
-	 * @return array
-	 */
-	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
-		$request = new WP_REST_Request( 'GET', '/', array() );
-		$result  = rest_get_server()->serve_request( '/' );
-
-		return rest_get_server()->sent_headers;
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_envelope_params() {
-		return array(
-			array( '1' ),
-			array( 'true' ),
-			array( false ),
-			array( 'alternate' ),
-			array( array( 'alternate' ) ),
 		);
 	}
 }
