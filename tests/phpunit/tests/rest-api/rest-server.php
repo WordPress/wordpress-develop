@@ -1187,17 +1187,41 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 52321
+	 * @ticket 59935
+	 *
+	 * @covers WP_REST_Server::get_index
 	 */
-	public function test_index_includes_site_icon() {
-		$server = new WP_REST_Server();
+	public function test_get_index_should_include_site_icon() {
 		update_option( 'site_icon', self::$icon_id );
 
+		$server  = new WP_REST_Server();
 		$request = new WP_REST_Request( 'GET', '/' );
 		$index   = $server->dispatch( $request );
 		$data    = $index->get_data();
 
-		$this->assertArrayHasKey( 'site_icon', $data );
-		$this->assertSame( self::$icon_id, $data['site_icon'] );
+		$this->assertArrayHasKey( 'site_logo', $data, 'The "site_logo" field is missing in the response.' );
+		$this->assertArrayHasKey( 'site_icon', $data, 'The "site_icon" field is missing in the response.' );
+		$this->assertArrayHasKey( 'site_icon_url', $data, 'The "site_icon_url" field is missing in the response.' );
+		$this->assertSame( self::$icon_id, $data['site_icon'], 'The response "site_icon" ID does not match.' );
+		$this->assertStringContainsString( 'test-image-large', $data['site_icon_url'], 'The "site_icon_url" should contain the expected image.' );
+	}
+	/**
+	 * @ticket 52321
+	 * @ticket 59935
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_not_include_site_icon() {
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertArrayHasKey( 'site_logo', $data, 'The "site_logo" field is missing in the response.' );
+		$this->assertArrayHasKey( 'site_icon', $data, 'The "site_icon" field is missing in the response.' );
+		$this->assertArrayHasKey( 'site_icon_url', $data, 'The "site_icon_url" field is missing in the response.' );
+		$this->assertSame( 0, $data['site_icon'], 'Response "site_icon" should be 0.' );
+		$this->assertSame( '', $data['site_icon_url'], 'Response "site_icon_url" should be an empty string.' );
 	}
 
 	/**
