@@ -31,6 +31,7 @@ define( 'WPINC', 'wp-includes' );
  */
 global $wp_version, $wp_db_version, $tinymce_version, $required_php_version, $required_mysql_version, $wp_local_package;
 require ABSPATH . WPINC . '/version.php';
+require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/load.php';
 
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
@@ -104,7 +105,6 @@ if ( WP_CACHE && apply_filters( 'enable_loading_advanced_cache_dropin', true ) &
 wp_set_lang_dir();
 
 // Load early WordPress files.
-require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/class-wp-list-util.php';
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
@@ -175,11 +175,13 @@ require ABSPATH . WPINC . '/class-wp-theme-json-schema.php';
 require ABSPATH . WPINC . '/class-wp-theme-json-data.php';
 require ABSPATH . WPINC . '/class-wp-theme-json.php';
 require ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
+require ABSPATH . WPINC . '/class-wp-duotone.php';
 require ABSPATH . WPINC . '/global-styles-and-settings.php';
 require ABSPATH . WPINC . '/class-wp-block-template.php';
 require ABSPATH . WPINC . '/block-template-utils.php';
 require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
+require ABSPATH . WPINC . '/theme-previews.php';
 require ABSPATH . WPINC . '/template.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
@@ -188,7 +190,6 @@ require ABSPATH . WPINC . '/user.php';
 require ABSPATH . WPINC . '/class-wp-user-query.php';
 require ABSPATH . WPINC . '/class-wp-session-tokens.php';
 require ABSPATH . WPINC . '/class-wp-user-meta-session-tokens.php';
-require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
 require ABSPATH . WPINC . '/general-template.php';
 require ABSPATH . WPINC . '/link-template.php';
 require ABSPATH . WPINC . '/author-template.php';
@@ -234,6 +235,16 @@ require ABSPATH . WPINC . '/class-wp-oembed.php';
 require ABSPATH . WPINC . '/class-wp-oembed-controller.php';
 require ABSPATH . WPINC . '/media.php';
 require ABSPATH . WPINC . '/http.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-attribute-token.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-span.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-text-replacement.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-tag-processor.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-unsupported-exception.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-active-formatting-elements.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-open-elements.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-token.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-processor-state.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-processor.php';
 require ABSPATH . WPINC . '/class-wp-http.php';
 require ABSPATH . WPINC . '/class-wp-http-streams.php';
 require ABSPATH . WPINC . '/class-wp-http-curl.php';
@@ -258,10 +269,13 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-posts-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-attachments-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-types-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-statuses-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-revisions-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-autosaves-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-taxonomies-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-terms-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menu-items-controller.php';
@@ -288,6 +302,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widget-types-contro
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widgets-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-templates-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-url-details-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -315,7 +330,11 @@ require ABSPATH . WPINC . '/class-wp-block-styles-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-type-registry.php';
 require ABSPATH . WPINC . '/class-wp-block.php';
 require ABSPATH . WPINC . '/class-wp-block-list.php';
+require ABSPATH . WPINC . '/class-wp-block-parser-block.php';
+require ABSPATH . WPINC . '/class-wp-block-parser-frame.php';
 require ABSPATH . WPINC . '/class-wp-block-parser.php';
+require ABSPATH . WPINC . '/class-wp-classic-to-block-menu-converter.php';
+require ABSPATH . WPINC . '/class-wp-navigation-fallback.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
@@ -323,22 +342,29 @@ require ABSPATH . WPINC . '/block-patterns.php';
 require ABSPATH . WPINC . '/class-wp-block-supports.php';
 require ABSPATH . WPINC . '/block-supports/utils.php';
 require ABSPATH . WPINC . '/block-supports/align.php';
+require ABSPATH . WPINC . '/block-supports/background.php';
 require ABSPATH . WPINC . '/block-supports/border.php';
 require ABSPATH . WPINC . '/block-supports/colors.php';
 require ABSPATH . WPINC . '/block-supports/custom-classname.php';
 require ABSPATH . WPINC . '/block-supports/dimensions.php';
 require ABSPATH . WPINC . '/block-supports/duotone.php';
+require ABSPATH . WPINC . '/block-supports/shadow.php';
 require ABSPATH . WPINC . '/block-supports/elements.php';
 require ABSPATH . WPINC . '/block-supports/generated-classname.php';
 require ABSPATH . WPINC . '/block-supports/layout.php';
+require ABSPATH . WPINC . '/block-supports/position.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
+require ABSPATH . WPINC . '/block-supports/settings.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rule.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rules-store.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-face-resolver.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
+require ABSPATH . WPINC . '/fonts.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
@@ -434,7 +460,7 @@ wp_start_scraping_edited_file_errors();
 // Register the default theme directory root.
 register_theme_directory( get_theme_root() );
 
-if ( ! is_multisite() ) {
+if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 	// Handle users requesting a recovery mode link and initiating recovery mode.
 	wp_recovery_mode()->initialize();
 }
@@ -501,7 +527,7 @@ do_action( 'sanitize_comment_cookies' );
 $GLOBALS['wp_the_query'] = new WP_Query();
 
 /**
- * Holds the reference to @see $wp_the_query
+ * Holds the reference to {@see $wp_the_query}.
  * Use this global for WordPress queries
  *
  * @global WP_Query $wp_query WordPress Query object.

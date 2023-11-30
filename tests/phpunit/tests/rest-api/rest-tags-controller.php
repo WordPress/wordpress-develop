@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
@@ -417,7 +415,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$i = 0;
 		foreach ( $tags as $tag ) {
 			$this->assertSame( $tag['name'], "Tag {$i}" );
-			$i++;
+			++$i;
 		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -432,7 +430,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		foreach ( $tags as $tag ) {
 			$this->assertSame( $tag['name'], "Tag {$i}" );
-			$i++;
+			++$i;
 		}
 	}
 
@@ -601,8 +599,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// 3rd page.
 		self::factory()->tag->create();
-		$total_tags++;
-		$total_pages++;
+		++$total_tags;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -1324,12 +1322,20 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$wp_rest_additional_fields = array();
 	}
 
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return 123;
+	}
+
+	public function additional_field_update_callback( $value, $tag ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
+	}
+
 	/**
 	 * @ticket 38504
 	 */
 	public function test_object_term_queries_are_cached() {
-		global $wpdb;
-
 		$tags = self::factory()->tag->create_many( 2 );
 		$p    = self::factory()->post->create();
 		wp_set_object_terms( $p, $tags[0], 'post_tag' );
@@ -1341,7 +1347,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		unset( $request, $response );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'post', $p );
@@ -1349,7 +1355,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$found_2  = wp_list_pluck( $response->data, 'id' );
 
 		$this->assertSameSets( $found_1, $found_2 );
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
 	/**
@@ -1396,16 +1402,6 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayNotHasKey( $view_field, $data );
 	}
 
-	public function additional_field_get_callback( $object, $request ) {
-		return 123;
-	}
-
-	public function additional_field_update_callback( $value, $tag ) {
-		if ( 'returnError' === $value ) {
-			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
-		}
-	}
-
 	protected function check_get_taxonomy_terms_response( $response ) {
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -1413,7 +1409,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'hide_empty' => false,
 		);
 		$tags = get_terms( 'post_tag', $args );
-		$this->assertSame( count( $tags ), count( $data ) );
+		$this->assertCount( count( $tags ), $data );
 		$this->assertSame( $tags[0]->term_id, $data[0]['id'] );
 		$this->assertSame( $tags[0]->name, $data[0]['name'] );
 		$this->assertSame( $tags[0]->slug, $data[0]['slug'] );

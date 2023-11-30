@@ -195,6 +195,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$item_id = $item;
+
 		$handler = $this->get_search_handler( $request );
 		if ( is_wp_error( $handler ) ) {
 			return new WP_REST_Response();
@@ -360,7 +361,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * @param string|array    $subtypes  One or more subtypes.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @param string          $parameter Parameter name.
-	 * @return array|WP_Error List of valid subtypes, or WP_Error object on failure.
+	 * @return string[]|WP_Error List of valid subtypes, or WP_Error object on failure.
 	 */
 	public function sanitize_subtypes( $subtypes, $request, $parameter ) {
 		$subtypes = wp_parse_slug_list( $subtypes );

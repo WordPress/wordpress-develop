@@ -152,7 +152,7 @@ function get_archive_template() {
 
 	$templates = array();
 
-	if ( count( $post_types ) == 1 ) {
+	if ( count( $post_types ) === 1 ) {
 		$post_type   = reset( $post_types );
 		$templates[] = "archive-{$post_type}.php";
 	}
@@ -470,8 +470,10 @@ function get_page_template() {
 	$pagename = get_query_var( 'pagename' );
 
 	if ( ! $pagename && $id ) {
-		// If a static page is set as the front page, $pagename will not be set.
-		// Retrieve it from the queried object.
+		/*
+		 * If a static page is set as the front page, $pagename will not be set.
+		 * Retrieve it from the queried object.
+		 */
 		$post = get_queried_object();
 		if ( $post ) {
 			$pagename = $post->post_name;
@@ -662,7 +664,7 @@ function get_attachment_template() {
 	$templates = array();
 
 	if ( $attachment ) {
-		if ( false !== strpos( $attachment->post_mime_type, '/' ) ) {
+		if ( str_contains( $attachment->post_mime_type, '/' ) ) {
 			list( $type, $subtype ) = explode( '/', $attachment->post_mime_type );
 		} else {
 			list( $type, $subtype ) = array( $attachment->post_mime_type, '' );
@@ -682,8 +684,9 @@ function get_attachment_template() {
 /**
  * Retrieves the name of the highest priority template file that exists.
  *
- * Searches in the STYLESHEETPATH before TEMPLATEPATH and wp-includes/theme-compat
- * so that themes which inherit from a parent theme can just overload one file.
+ * Searches in the stylesheet directory before the template directory and
+ * wp-includes/theme-compat so that themes which inherit from a parent theme
+ * can just overload one file.
  *
  * @since 2.7.0
  * @since 5.5.0 The `$args` parameter was added.
@@ -697,16 +700,20 @@ function get_attachment_template() {
  * @return string The template filename if one is located.
  */
 function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
+	$stylesheet_path = get_stylesheet_directory();
+	$template_path   = get_template_directory();
+	$is_child_theme  = $stylesheet_path !== $template_path;
+
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( STYLESHEETPATH . '/' . $template_name ) ) {
-			$located = STYLESHEETPATH . '/' . $template_name;
+		if ( file_exists( $stylesheet_path . '/' . $template_name ) ) {
+			$located = $stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( TEMPLATEPATH . '/' . $template_name ) ) {
-			$located = TEMPLATEPATH . '/' . $template_name;
+		} elseif ( $is_child_theme && file_exists( $template_path . '/' . $template_name ) ) {
+			$located = $template_path . '/' . $template_name;
 			break;
 		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
 			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;

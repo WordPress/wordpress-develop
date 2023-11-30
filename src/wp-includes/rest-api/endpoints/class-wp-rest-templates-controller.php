@@ -101,11 +101,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			sprintf(
 				'/%s/(?P<id>%s%s)',
 				$this->rest_base,
-				// Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
-				// Excludes invalid directory name characters: `/:<>*?"|`.
+				/*
+				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				 * Excludes invalid directory name characters: `/:<>*?"|`.
+				 */
 				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
 				// Matches the template name.
-				'[\/\w-]+'
+				'[\/\w%-]+'
 			),
 			array(
 				'args'   => array(
@@ -150,14 +152,21 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Returns the fallback template for the given slug.
 	 *
 	 * @since 6.1.0
+	 * @since 6.3.0 Ignore empty templates.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_template_fallback( $request ) {
-		$hierarchy         = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
-		$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
-		$response          = $this->prepare_item_for_response( $fallback_template, $request );
+		$hierarchy = get_template_hierarchy( $request['slug'], $request['is_custom'], $request['template_prefix'] );
+
+		do {
+			$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
+			array_shift( $hierarchy );
+		} while ( ! empty( $hierarchy ) && empty( $fallback_template->content ) );
+
+		$response = $this->prepare_item_for_response( $fallback_template, $request );
+
 		return rest_ensure_response( $response );
 	}
 
@@ -170,8 +179,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	protected function permissions_check( $request ) {
-		// Verify if the current user has edit_theme_options capability.
-		// This capability is required to edit/view/delete templates.
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 * This capability is required to edit/view/delete templates.
+		 */
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_templates',
@@ -495,8 +506,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				);
 			}
 
-			// (Note that internally this falls through to `wp_delete_post()`
-			// if the Trash is disabled.)
+			/*
+			 * (Note that internally this falls through to `wp_delete_post()`
+			 * if the Trash is disabled.)
+			 */
 			$result           = wp_trash_post( $id );
 			$template->status = 'trash';
 			$response         = $this->prepare_item_for_response( $template, $request );
@@ -583,7 +596,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				$changes->tax_input['wp_template_part_area'] = _filter_block_template_part_area( $request['area'] );
 			} elseif ( null !== $template && 'custom' !== $template->source && $template->area ) {
 				$changes->tax_input['wp_template_part_area'] = _filter_block_template_part_area( $template->area );
-			} elseif ( ! $template->area ) {
+			} elseif ( empty( $template->area ) ) {
 				$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
 			}
 		}
@@ -614,12 +627,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 * @since 5.9.0 Renamed `$template` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 6.3.0 Added `modified` property to the response.
 	 *
 	 * @param WP_Block_Template $item    Template instance.
 	 * @param WP_REST_Request   $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $item, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$template = $item;
 
@@ -708,6 +722,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['area'] = $template->area;
 		}
 
+		if ( rest_is_field_included( 'modified', $fields ) ) {
+			$data['modified'] = mysql_to_rfc3339( $template->modified );
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -742,7 +760,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	protected function prepare_links( $id ) {
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( rest_get_route_for_post( $id ) ),
+				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->rest_base, $id ) ),
 			),
 			'collection' => array(
 				'href' => rest_url( rest_get_route_for_post_type_items( $this->post_type ) ),
@@ -751,6 +769,27 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 		);
+
+		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
+			$template = get_block_template( $id, $this->post_type );
+			if ( $template instanceof WP_Block_Template && ! empty( $template->wp_id ) ) {
+				$revisions       = wp_get_latest_revision_id_and_total_count( $template->wp_id );
+				$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+				$revisions_base  = sprintf( '/%s/%s/%s/revisions', $this->namespace, $this->rest_base, $id );
+
+				$links['version-history'] = array(
+					'href'  => rest_url( $revisions_base ),
+					'count' => $revisions_count,
+				);
+
+				if ( $revisions_count > 0 ) {
+					$links['predecessor-version'] = array(
+						'href' => rest_url( $revisions_base . '/' . $revisions['latest_id'] ),
+						'id'   => $revisions['latest_id'],
+					);
+				}
+			}
+		}
 
 		return $links;
 	}
@@ -834,7 +873,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'required'    => true,
 					'minLength'   => 1,
-					'pattern'     => '[a-zA-Z0-9_\-]+',
+					'pattern'     => '[a-zA-Z0-9_\%-]+',
 				),
 				'theme'          => array(
 					'description' => __( 'Theme identifier for the template.' ),
@@ -925,6 +964,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'modified'       => array(
+					'description' => __( "The date the template was last modified, in the site's timezone." ),
+					'type'        => 'string',
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);

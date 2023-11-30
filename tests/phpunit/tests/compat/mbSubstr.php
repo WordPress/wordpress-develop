@@ -17,14 +17,14 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
 	public function test_mb_substr( $input_string, $start, $length, $expected_character_substring ) {
 		$this->assertSame( $expected_character_substring, _mb_substr( $input_string, $start, $length, 'UTF-8' ) );
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
 	public function test_mb_substr_via_regex( $input_string, $start, $length, $expected_character_substring ) {
 		_wp_can_use_pcre_u( false );
@@ -33,7 +33,7 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
 	public function test_8bit_mb_substr( $input_string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
 		$this->assertSame( $expected_byte_substring, _mb_substr( $input_string, $start, $length, '8bit' ) );
@@ -44,7 +44,7 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function utf8_substrings() {
+	public function data_utf8_substrings() {
 		return array(
 			array(
 				'input_string'                 => 'баба',

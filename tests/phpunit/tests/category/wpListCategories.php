@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ * @group category
  *
  * @covers ::wp_list_categories
  */

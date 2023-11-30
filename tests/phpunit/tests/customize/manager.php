@@ -271,7 +271,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @ticket 41039
 	 */
 	public function test_fresh_site_flag_clearing() {
-		global $wp_customize, $wpdb;
+		global $wp_customize;
 
 		// Make sure fresh site flag is cleared when publishing a changeset.
 		update_option( 'fresh_site', '1' );
@@ -283,9 +283,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_load_alloptions();
 
 		// Make sure no DB write is done when publishing and a site is already non-fresh.
-		$query_count = $wpdb->num_queries;
+		$query_count = get_num_queries();
 		do_action( 'customize_save_after', $wp_customize );
-		$this->assertSame( $query_count, $wpdb->num_queries );
+		$this->assertSame( $query_count, get_num_queries() );
 	}
 
 	/**
@@ -764,7 +764,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		/*
 		 * Test that adding blogname starter content is ignored now that it is modified,
-		 * but updating a non-modified starter content blog description passes.
+		 * but updating a non-modified starter content site description passes.
 		 */
 		$previous_blogname        = $changeset_data['blogname']['value'];
 		$previous_blogdescription = $changeset_data['blogdescription']['value'];
@@ -1345,7 +1345,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who can bypass content_save_pre filter.
 		$this->assertStringContainsString( '<script>', get_option( 'custom_html_1' ) );
-		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
+		$this->assertStringContainsString( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
@@ -3135,8 +3135,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$manager = new WP_Customize_Manager( array( 'messenger_channel' => 'preview-0' ) );
 		ob_start();
 		$manager->remove_frameless_preview_messenger_channel();
-		$output = ob_get_clean();
-		$this->assertStringContainsString( '<script>', $output );
+		$processor = new WP_HTML_Tag_Processor( ob_get_clean() );
+		$this->assertTrue( $processor->next_tag( 'script' ), 'Failed to find expected SCRIPT element in output.' );
 	}
 
 	/**
@@ -3339,14 +3339,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$setting_id = 'dynamic';
 		$setting    = $manager->add_setting( $setting_id );
 		$this->assertSame( 'WP_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectNotHasAttribute( 'custom', $setting );
+		$this->assertObjectNotHasProperty( 'custom', $setting );
 		$manager->remove_setting( $setting_id );
 
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'return_dynamic_customize_setting_class' ), 10, 3 );
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'return_dynamic_customize_setting_args' ), 10, 2 );
 		$setting = $manager->add_setting( $setting_id );
 		$this->assertSame( 'Test_Dynamic_Customize_Setting', get_class( $setting ) );
-		$this->assertObjectHasAttribute( 'custom', $setting );
+		$this->assertObjectHasProperty( 'custom', $setting );
 		$this->assertSame( 'foo', $setting->custom );
 	}
 
@@ -3669,5 +3669,4 @@ class Test_Setting_Without_Applying_Validate_Filter extends WP_Customize_Setting
 		}
 		return true;
 	}
-
 }

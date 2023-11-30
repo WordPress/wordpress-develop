@@ -397,6 +397,54 @@ final class WP_Post_Type {
 	public $rest_controller;
 
 	/**
+	 * The controller for this post type's revisions REST API endpoints.
+	 *
+	 * Custom controllers must extend WP_REST_Controller.
+	 *
+	 * @since 6.4.0
+	 * @var string|bool $revisions_rest_controller_class
+	 */
+	public $revisions_rest_controller_class;
+
+	/**
+	 * The controller instance for this post type's revisions REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_revisions_rest_controller()}.
+	 *
+	 * @since 6.4.0
+	 * @var WP_REST_Controller $revisions_rest_controller
+	 */
+	public $revisions_rest_controller;
+
+	/**
+	 * The controller for this post type's autosave REST API endpoints.
+	 *
+	 * Custom controllers must extend WP_REST_Controller.
+	 *
+	 * @since 6.4.0
+	 * @var string|bool $autosave_rest_controller_class
+	 */
+	public $autosave_rest_controller_class;
+
+	/**
+	 * The controller instance for this post type's autosave REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_autosave_rest_controller()}.
+	 *
+	 * @since 6.4.0
+	 * @var WP_REST_Controller $autosave_rest_controller
+	 */
+	public $autosave_rest_controller;
+
+	/**
+	 * A flag to register the post type REST API controller after its associated autosave / revisions controllers, instead of before. Registration order affects route matching priority.
+	 *
+	 * @since 6.4.0
+	 * @var bool $late_route_registration
+	 */
+	public $late_route_registration;
+
+	/**
 	 * Constructor.
 	 *
 	 * See the register_post_type() function for accepted arguments for `$args`.
@@ -410,6 +458,7 @@ final class WP_Post_Type {
 	 *
 	 * @param string       $post_type Post type key.
 	 * @param array|string $args      Optional. Array or string of arguments for registering a post type.
+	 *                                See register_post_type() for information on accepted arguments.
 	 *                                Default empty array.
 	 */
 	public function __construct( $post_type, $args = array() ) {
@@ -454,6 +503,7 @@ final class WP_Post_Type {
 		 *  - `register_page_post_type_args`
 		 *
 		 * @since 6.0.0
+		 * @since 6.4.0 Added `late_route_registration`, `autosave_rest_controller_class` and `revisions_rest_controller_class` arguments.
 		 *
 		 * @param array  $args      Array of arguments for registering a post type.
 		 *                          See the register_post_type() function for accepted arguments.
@@ -465,37 +515,40 @@ final class WP_Post_Type {
 
 		// Args prefixed with an underscore are reserved for internal use.
 		$defaults = array(
-			'labels'                => array(),
-			'description'           => '',
-			'public'                => false,
-			'hierarchical'          => false,
-			'exclude_from_search'   => null,
-			'publicly_queryable'    => null,
-			'show_ui'               => null,
-			'show_in_menu'          => null,
-			'show_in_nav_menus'     => null,
-			'show_in_admin_bar'     => null,
-			'menu_position'         => null,
-			'menu_icon'             => null,
-			'capability_type'       => 'post',
-			'capabilities'          => array(),
-			'map_meta_cap'          => null,
-			'supports'              => array(),
-			'register_meta_box_cb'  => null,
-			'taxonomies'            => array(),
-			'has_archive'           => false,
-			'rewrite'               => true,
-			'query_var'             => true,
-			'can_export'            => true,
-			'delete_with_user'      => null,
-			'show_in_rest'          => false,
-			'rest_base'             => false,
-			'rest_namespace'        => false,
-			'rest_controller_class' => false,
-			'template'              => array(),
-			'template_lock'         => false,
-			'_builtin'              => false,
-			'_edit_link'            => 'post.php?post=%d',
+			'labels'                          => array(),
+			'description'                     => '',
+			'public'                          => false,
+			'hierarchical'                    => false,
+			'exclude_from_search'             => null,
+			'publicly_queryable'              => null,
+			'show_ui'                         => null,
+			'show_in_menu'                    => null,
+			'show_in_nav_menus'               => null,
+			'show_in_admin_bar'               => null,
+			'menu_position'                   => null,
+			'menu_icon'                       => null,
+			'capability_type'                 => 'post',
+			'capabilities'                    => array(),
+			'map_meta_cap'                    => null,
+			'supports'                        => array(),
+			'register_meta_box_cb'            => null,
+			'taxonomies'                      => array(),
+			'has_archive'                     => false,
+			'rewrite'                         => true,
+			'query_var'                       => true,
+			'can_export'                      => true,
+			'delete_with_user'                => null,
+			'show_in_rest'                    => false,
+			'rest_base'                       => false,
+			'rest_namespace'                  => false,
+			'rest_controller_class'           => false,
+			'autosave_rest_controller_class'  => false,
+			'revisions_rest_controller_class' => false,
+			'late_route_registration'         => false,
+			'template'                        => array(),
+			'template_lock'                   => false,
+			'_builtin'                        => false,
+			'_edit_link'                      => 'post.php?post=%d',
 		);
 
 		$args = array_merge( $defaults, $args );
@@ -736,7 +789,7 @@ final class WP_Post_Type {
 			remove_rewrite_tag( "%$this->name%" );
 			remove_permastruct( $this->name );
 			foreach ( $wp_rewrite->extra_rules_top as $regex => $query ) {
-				if ( false !== strpos( $query, "index.php?post_type=$this->name" ) ) {
+				if ( str_contains( $query, "index.php?post_type=$this->name" ) ) {
 					unset( $wp_rewrite->extra_rules_top[ $regex ] );
 				}
 			}
@@ -816,6 +869,85 @@ final class WP_Post_Type {
 	}
 
 	/**
+	 * Gets the REST API revisions controller for this post type.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+	 *                                 is set not to show in rest.
+	 */
+	public function get_revisions_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		if ( ! post_type_supports( $this->name, 'revisions' ) ) {
+			return null;
+		}
+
+		$class = $this->revisions_rest_controller_class ? $this->revisions_rest_controller_class : WP_REST_Revisions_Controller::class;
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->revisions_rest_controller ) {
+			$this->revisions_rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->revisions_rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->revisions_rest_controller;
+	}
+
+	/**
+	 * Gets the REST API autosave controller for this post type.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+	 *                                 is set not to show in rest.
+	 */
+	public function get_autosave_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		if ( 'attachment' === $this->name ) {
+			return null;
+		}
+
+		$class = $this->autosave_rest_controller_class ? $this->autosave_rest_controller_class : WP_REST_Autosaves_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->autosave_rest_controller ) {
+			$this->autosave_rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->autosave_rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->autosave_rest_controller;
+	}
+
+	/**
 	 * Returns the default labels for post types.
 	 *
 	 * @since 6.0.0
@@ -830,7 +962,7 @@ final class WP_Post_Type {
 		self::$default_labels = array(
 			'name'                     => array( _x( 'Posts', 'post type general name' ), _x( 'Pages', 'post type general name' ) ),
 			'singular_name'            => array( _x( 'Post', 'post type singular name' ), _x( 'Page', 'post type singular name' ) ),
-			'add_new'                  => array( _x( 'Add New', 'post' ), _x( 'Add New', 'page' ) ),
+			'add_new'                  => array( __( 'Add New Post' ), __( 'Add New Page' ) ),
 			'add_new_item'             => array( __( 'Add New Post' ), __( 'Add New Page' ) ),
 			'edit_item'                => array( __( 'Edit Post' ), __( 'Edit Page' ) ),
 			'new_item'                 => array( __( 'New Post' ), __( 'New Page' ) ),
@@ -856,6 +988,7 @@ final class WP_Post_Type {
 			'item_published'           => array( __( 'Post published.' ), __( 'Page published.' ) ),
 			'item_published_privately' => array( __( 'Post published privately.' ), __( 'Page published privately.' ) ),
 			'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
+			'item_trashed'             => array( __( 'Post trashed.' ), __( 'Page trashed.' ) ),
 			'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 			'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
 			'item_link'                => array(

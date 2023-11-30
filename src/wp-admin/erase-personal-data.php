@@ -13,6 +13,9 @@ if ( ! current_user_can( 'erase_others_personal_data' ) || ! current_user_can( '
 	wp_die( __( 'Sorry, you are not allowed to erase personal data on this site.' ) );
 }
 
+// Used in the HTML title tag.
+$title = __( 'Erase Personal Data' );
+
 // Contextual help - choose Help on the top right of admin panel to preview this.
 get_current_screen()->add_help_tab(
 	array(
@@ -31,7 +34,7 @@ get_current_screen()->add_help_tab(
 		'id'      => 'default-data',
 		'title'   => __( 'Default Data' ),
 		'content' =>
-					'<p>' . __( 'WordPress collects (but <em>never</em> publishes) a limited amount of data from logged-in users but then deletes it or anonymizes it. That data can include: ' ) . '</p>' .
+					'<p>' . __( 'WordPress collects (but <em>never</em> publishes) a limited amount of data from logged-in users but then deletes it or anonymizes it. That data can include:' ) . '</p>' .
 					'<p>' . __( '<strong>Profile Information</strong> &mdash; user email address, username, display name, nickname, first name, last name, description/bio, and registration date.' ) . '</p>' .
 					'<p>' . __( '<strong>Community Events Location</strong> &mdash; The IP Address of the user which is used for the Upcoming Community Events shown in the dashboard widget.' ) . '</p>' .
 					'<p>' . __( '<strong>Session Tokens</strong> &mdash; User login information, IP Addresses, Expiration Date, User Agent (Browser/OS), and Last Login.' ) . '</p>' .
@@ -59,8 +62,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-erase-personal-data-screen/">Documentation on Erase Personal Data</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-erase-personal-data-screen/">Documentation on Erase Personal Data</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 // Handle list table actions.

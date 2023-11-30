@@ -26,13 +26,6 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 	 * as indicating support for post thumbnails.
 	 */
 	function twentynineteen_setup() {
-		/*
-		 * Make theme available for translation.
-		 * Translations can be filed in the /languages/ directory.
-		 * If you're building a theme based on Twenty Nineteen, use a find and replace
-		 * to change 'twentynineteen' to the name of your theme in all the template files.
-		 */
-		load_theme_textdomain( 'twentynineteen', get_template_directory() . '/languages' );
 
 		// Add default posts and comments RSS feed links to head.
 		add_theme_support( 'automatic-feed-links' );
@@ -146,12 +139,12 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 			'editor-color-palette',
 			array(
 				array(
-					'name'  => 'default' === get_theme_mod( 'primary_color' ) ? __( 'Blue', 'twentynineteen' ) : null,
+					'name'  => 'default' === get_theme_mod( 'primary_color', 'default' ) ? __( 'Blue', 'twentynineteen' ) : null,
 					'slug'  => 'primary',
 					'color' => twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ),
 				),
 				array(
-					'name'  => 'default' === get_theme_mod( 'primary_color' ) ? __( 'Dark Blue', 'twentynineteen' ) : null,
+					'name'  => 'default' === get_theme_mod( 'primary_color', 'default' ) ? __( 'Dark Blue', 'twentynineteen' ) : null,
 					'slug'  => 'secondary',
 					'color' => twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 23 ),
 				),
@@ -214,7 +207,6 @@ function twentynineteen_widgets_init() {
 			'after_title'   => '</h2>',
 		)
 	);
-
 }
 add_action( 'widgets_init', 'twentynineteen_widgets_init' );
 
@@ -266,8 +258,26 @@ function twentynineteen_scripts() {
 	wp_style_add_data( 'twentynineteen-style', 'rtl', 'replace' );
 
 	if ( has_nav_menu( 'menu-1' ) ) {
-		wp_enqueue_script( 'twentynineteen-priority-menu', get_theme_file_uri( '/js/priority-menu.js' ), array(), '20200129', true );
-		wp_enqueue_script( 'twentynineteen-touch-navigation', get_theme_file_uri( '/js/touch-keyboard-navigation.js' ), array(), '20221101', true );
+		wp_enqueue_script(
+			'twentynineteen-priority-menu',
+			get_theme_file_uri( '/js/priority-menu.js' ),
+			array(),
+			'20200129',
+			array(
+				'in_footer' => false, // Because involves header.
+				'strategy'  => 'defer',
+			)
+		);
+		wp_enqueue_script(
+			'twentynineteen-touch-navigation',
+			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
+			array(),
+			'20230621',
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
 	}
 
 	wp_enqueue_style( 'twentynineteen-print-style', get_template_directory_uri() . '/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
@@ -284,6 +294,9 @@ add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
  *
+ * @since Twenty Nineteen 1.0
+ * @deprecated Twenty Nineteen 2.6 Removed from wp_print_footer_scripts action.
+ *
  * @link https://git.io/vWdr2
  */
 function twentynineteen_skip_link_focus_fix() {
@@ -294,14 +307,13 @@ function twentynineteen_skip_link_focus_fix() {
 	</script>
 	<?php
 }
-add_action( 'wp_print_footer_scripts', 'twentynineteen_skip_link_focus_fix' );
 
 /**
  * Enqueue supplemental block editor styles.
  */
 function twentynineteen_editor_customizer_styles() {
 
-	wp_enqueue_style( 'twentynineteen-editor-customizer-styles', get_theme_file_uri( '/style-editor-customizer.css' ), false, '1.1', 'all' );
+	wp_enqueue_style( 'twentynineteen-editor-customizer-styles', get_theme_file_uri( '/style-editor-customizer.css' ), false, '2.1', 'all' );
 
 	if ( 'custom' === get_theme_mod( 'primary_color' ) ) {
 		// Include color patterns.

@@ -30,7 +30,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1200, $dimensions['dst_width'] );
 		$this->assertSame( 230, $dimensions['dst_height'] );
-
 	}
 
 	public function test_header_image_has_correct_dimensions_with_fixed() {
@@ -50,7 +49,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1200, $dimensions['dst_width'] );
 		$this->assertSame( 230, $dimensions['dst_height'] );
-
 	}
 
 	public function test_header_image_has_correct_dimensions_with_flex_height() {
@@ -70,7 +68,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1200, $dimensions['dst_width'] );
 		$this->assertSame( 900, $dimensions['dst_height'] );
-
 	}
 
 	public function test_header_image_has_correct_dimensions_with_flex_width() {
@@ -90,7 +87,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1500, $dimensions['dst_width'] ); // Max width.
 		$this->assertSame( 230, $dimensions['dst_height'] );
-
 	}
 
 	public function test_header_image_has_correct_dimensions_with_flex_width_and_height() {
@@ -110,7 +106,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 		$this->assertSame( 1600, $dimensions['dst_width'] );
 		$this->assertSame( 1200, $dimensions['dst_height'] );
-
 	}
 
 	public function test_create_attachment_object() {

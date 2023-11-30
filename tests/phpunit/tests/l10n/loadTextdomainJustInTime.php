@@ -122,6 +122,27 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58321
+	 *
+	 * @covers ::get_translations_for_domain
+	 */
+	public function test_get_translations_for_domain_get_locale_is_called_only_once() {
+		$filter_locale = new MockAction();
+		add_filter( 'locale', array( $filter_locale, 'filter' ) );
+
+		get_translations_for_domain( 'internationalized-plugin' );
+		get_translations_for_domain( 'internationalized-plugin' );
+		get_translations_for_domain( 'internationalized-plugin' );
+		$translations = get_translations_for_domain( 'internationalized-plugin' );
+
+		remove_filter( 'locale', array( $filter_locale, 'filter' ) );
+
+		$this->assertSame( 1, $filter_locale->get_call_count() );
+		$this->assertInstanceOf( 'NOOP_Translations', $translations );
+		$this->assertFalse( is_textdomain_loaded( 'internationalized-plugin' ) );
+	}
+
+	/**
 	 * @ticket 37113
 	 *
 	 * @covers ::is_textdomain_loaded

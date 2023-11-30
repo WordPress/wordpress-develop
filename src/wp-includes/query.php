@@ -451,7 +451,7 @@ function is_comment_feed() {
  * If you set a static page for the front page of your site, this function will return
  * true when viewing that page.
  *
- * Otherwise the same as @see is_home()
+ * Otherwise the same as {@see is_home()}.
  *
  * For more information on this and similar theme functions, check out
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
@@ -1139,8 +1139,10 @@ function _find_post_by_old_slug( $post_type ) {
 
 	$query = $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s", $post_type, get_query_var( 'name' ) );
 
-	// If year, monthnum, or day have been specified, make our query more precise
-	// just in case there are multiple identical _wp_old_slug values.
+	/*
+	 * If year, monthnum, or day have been specified, make our query more precise
+	 * just in case there are multiple identical _wp_old_slug values.
+	 */
 	if ( get_query_var( 'year' ) ) {
 		$query .= $wpdb->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
 	}
@@ -1154,12 +1156,12 @@ function _find_post_by_old_slug( $post_type ) {
 	$key          = md5( $query );
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 	$cache_key    = "find_post_by_old_slug:$key:$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'posts' );
+	$cache        = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $cache ) {
 		$id = $cache;
 	} else {
 		$id = (int) $wpdb->get_var( $query );
-		wp_cache_set( $cache_key, $id, 'posts' );
+		wp_cache_set( $cache_key, $id, 'post-queries' );
 	}
 
 	return $id;
@@ -1197,7 +1199,7 @@ function _find_post_by_old_date( $post_type ) {
 		$key          = md5( $query );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		$cache_key    = "find_post_by_old_date:$key:$last_changed";
-		$cache        = wp_cache_get( $cache_key, 'posts' );
+		$cache        = wp_cache_get( $cache_key, 'post-queries' );
 		if ( false !== $cache ) {
 			$id = $cache;
 		} else {
@@ -1206,7 +1208,7 @@ function _find_post_by_old_date( $post_type ) {
 				// Check to see if an old slug matches the old date.
 				$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts, $wpdb->postmeta AS pm_slug, $wpdb->postmeta AS pm_date WHERE ID = pm_slug.post_id AND ID = pm_date.post_id AND post_type = %s AND pm_slug.meta_key = '_wp_old_slug' AND pm_slug.meta_value = %s AND pm_date.meta_key = '_wp_old_date'" . $date_query, $post_type, get_query_var( 'name' ) ) );
 			}
-			wp_cache_set( $cache_key, $id, 'posts' );
+			wp_cache_set( $cache_key, $id, 'post-queries' );
 		}
 	}
 

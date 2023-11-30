@@ -891,7 +891,12 @@ final class WP_Customize_Widgets {
 		<div id="available-widgets">
 			<div class="customize-section-title">
 				<button class="customize-section-back" tabindex="-1">
-					<span class="screen-reader-text"><?php _e( 'Back' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Back' );
+						?>
+					</span>
 				</button>
 				<h3>
 					<span class="customize-action">
@@ -904,11 +909,26 @@ final class WP_Customize_Widgets {
 				</h3>
 			</div>
 			<div id="available-widgets-filter">
-				<label class="screen-reader-text" for="widgets-search"><?php _e( 'Search Widgets' ); ?></label>
+				<label class="screen-reader-text" for="widgets-search">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Search Widgets' );
+					?>
+				</label>
 				<input type="text" id="widgets-search" placeholder="<?php esc_attr_e( 'Search widgets&hellip;' ); ?>" aria-describedby="widgets-search-desc" />
 				<div class="search-icon" aria-hidden="true"></div>
-				<button type="button" class="clear-results"><span class="screen-reader-text"><?php _e( 'Clear Results' ); ?></span></button>
-				<p class="screen-reader-text" id="widgets-search-desc"><?php _e( 'The search results will be updated as you type.' ); ?></p>
+				<button type="button" class="clear-results"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Clear Results' );
+					?>
+				</span></button>
+				<p class="screen-reader-text" id="widgets-search-desc">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'The search results will be updated as you type.' );
+					?>
+				</p>
 			</div>
 			<div id="available-widgets-list">
 			<?php foreach ( $this->get_available_widgets() as $available_widget ) : ?>
@@ -962,10 +982,10 @@ final class WP_Customize_Widgets {
 			$args['transport']            = current_theme_supports( 'customize-selective-refresh-widgets' ) ? 'postMessage' : 'refresh';
 		} elseif ( preg_match( $this->setting_id_patterns['widget_instance'], $id, $matches ) ) {
 			$id_base                      = $matches['id_base'];
-			$args['sanitize_callback']    = function( $value ) use ( $id_base ) {
+			$args['sanitize_callback']    = function ( $value ) use ( $id_base ) {
 				return $this->sanitize_widget_instance( $value, $id_base );
 			};
-			$args['sanitize_js_callback'] = function( $value ) use ( $id_base ) {
+			$args['sanitize_js_callback'] = function ( $value ) use ( $id_base ) {
 				return $this->sanitize_widget_js_instance( $value, $id_base );
 			};
 			$args['transport']            = $this->is_widget_selective_refreshable( $matches['id_base'] ) ? 'postMessage' : 'refresh';
@@ -1264,7 +1284,7 @@ final class WP_Customize_Widgets {
 	public function export_preview_data() {
 		global $wp_registered_sidebars, $wp_registered_widgets;
 
-		$switched_locale = switch_to_locale( get_user_locale() );
+		$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 		$l10n = array(
 			'widgetTooltip' => __( 'Shift-click to edit this widget.' ),
@@ -1290,12 +1310,9 @@ final class WP_Customize_Widgets {
 		foreach ( $settings['registeredWidgets'] as &$registered_widget ) {
 			unset( $registered_widget['callback'] ); // May not be JSON-serializeable.
 		}
-
-		?>
-		<script type="text/javascript">
-			var _wpWidgetCustomizerPreviewSettings = <?php echo wp_json_encode( $settings ); ?>;
-		</script>
-		<?php
+		wp_print_inline_script_tag(
+			sprintf( 'var _wpWidgetCustomizerPreviewSettings = %s;', wp_json_encode( $settings ) )
+		);
 	}
 
 	/**
@@ -2039,7 +2056,7 @@ final class WP_Customize_Widgets {
 	 * @return bool Whether the option capture is ignored.
 	 */
 	protected function is_option_capture_ignored( $option_name ) {
-		return ( 0 === strpos( $option_name, '_transient_' ) );
+		return ( str_starts_with( $option_name, '_transient_' ) );
 	}
 
 	/**

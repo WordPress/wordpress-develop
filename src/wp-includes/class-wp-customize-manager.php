@@ -271,8 +271,10 @@ final class WP_Customize_Manager {
 			$args['changeset_uuid'] = wp_generate_uuid4();
 		}
 
-		// The theme and messenger_channel should be supplied via $args,
-		// but they are also looked at in the $_REQUEST global here for back-compat.
+		/*
+		 * The theme and messenger_channel should be supplied via $args,
+		 * but they are also looked at in the $_REQUEST global here for back-compat.
+		 */
 		if ( ! isset( $args['theme'] ) ) {
 			if ( isset( $_REQUEST['customize_theme'] ) ) {
 				$args['theme'] = wp_unslash( $_REQUEST['customize_theme'] );
@@ -462,6 +464,8 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
+			$message .= ob_get_clean();
+			ob_start();
 			?>
 			<script>
 			( function( api, settings ) {
@@ -470,7 +474,7 @@ final class WP_Customize_Manager {
 			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
 			</script>
 			<?php
-			$message .= ob_get_clean();
+			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 		}
 
 		wp_die( $message );
@@ -565,8 +569,10 @@ final class WP_Customize_Manager {
 			// Once the theme is loaded, we'll validate it.
 			add_action( 'after_setup_theme', array( $this, 'after_setup_theme' ) );
 		} else {
-			// If the requested theme is not the active theme and the user doesn't have
-			// the switch_themes cap, bail.
+			/*
+			 * If the requested theme is not the active theme and the user doesn't have
+			 * the switch_themes cap, bail.
+			 */
 			if ( ! current_user_can( 'switch_themes' ) ) {
 				$this->wp_die( -1, __( 'Sorry, you are not allowed to edit theme options on this site.' ) );
 			}
@@ -905,8 +911,10 @@ final class WP_Customize_Manager {
 	 */
 	public function wp_loaded() {
 
-		// Unconditionally register core types for panels, sections, and controls
-		// in case plugin unhooks all customize_register actions.
+		/*
+		 * Unconditionally register core types for panels, sections, and controls
+		 * in case plugin unhooks all customize_register actions.
+		 */
 		$this->register_panel_type( 'WP_Customize_Panel' );
 		$this->register_panel_type( 'WP_Customize_Themes_Panel' );
 		$this->register_section_type( 'WP_Customize_Section' );
@@ -1071,7 +1079,7 @@ final class WP_Customize_Manager {
 				continue;
 			}
 			if ( update_post_meta( $autosave_autodraft_post->ID, '_customize_restore_dismissed', true ) ) {
-				$dismissed++;
+				++$dismissed;
 			}
 		}
 		return $dismissed;
@@ -1473,7 +1481,7 @@ final class WP_Customize_Manager {
 
 			if ( ! $nav_menu_term_id ) {
 				while ( isset( $changeset_data[ sprintf( 'nav_menu[%d]', $placeholder_id ) ] ) ) {
-					$placeholder_id--;
+					--$placeholder_id;
 				}
 				$nav_menu_term_id    = $placeholder_id;
 				$nav_menu_setting_id = sprintf( 'nav_menu[%d]', $placeholder_id );
@@ -1903,6 +1911,7 @@ final class WP_Customize_Manager {
 		if ( ! headers_sent() ) {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
+			header( 'X-Robots-Tag: noindex, nofollow, noarchive' );
 		}
 		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
@@ -1981,7 +1990,7 @@ final class WP_Customize_Manager {
 				&&
 				$parsed_allowed_url['host'] === $parsed_original_url['host']
 				&&
-				0 === strpos( $parsed_original_url['path'], $parsed_allowed_url['path'] )
+				str_starts_with( $parsed_original_url['path'], $parsed_allowed_url['path'] )
 			);
 			if ( $is_allowed ) {
 				break;
@@ -2076,29 +2085,22 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
+		ob_start();
 		?>
 		<script>
 		( function() {
-			var urlParser, oldQueryParams, newQueryParams, i;
 			if ( parent !== window ) {
 				return;
 			}
-			urlParser = document.createElement( 'a' );
-			urlParser.href = location.href;
-			oldQueryParams = urlParser.search.substr( 1 ).split( /&/ );
-			newQueryParams = [];
-			for ( i = 0; i < oldQueryParams.length; i += 1 ) {
-				if ( ! /^customize_messenger_channel=/.test( oldQueryParams[ i ] ) ) {
-					newQueryParams.push( oldQueryParams[ i ] );
-				}
-			}
-			urlParser.search = newQueryParams.join( '&' );
-			if ( urlParser.search !== location.search ) {
-				location.replace( urlParser.href );
+			const url = new URL( location.href );
+			if ( url.searchParams.has( 'customize_messenger_channel' ) ) {
+				url.searchParams.delete( 'customize_messenger_channel' );
+				location.replace( url );
 			}
 		} )();
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -2134,7 +2136,7 @@ final class WP_Customize_Manager {
 			$allowed_hosts[] = $host;
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale() );
+		$switched_locale = switch_to_user_locale( get_current_user_id() );
 		$l10n            = array(
 			'shiftClickToEdit'  => __( 'Shift-click to edit this element.' ),
 			'linkUnpreviewable' => __( 'This link is not live-previewable.' ),
@@ -2194,8 +2196,9 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
@@ -2218,6 +2221,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -3610,7 +3614,7 @@ final class WP_Customize_Manager {
 		 */
 		$revisions = wp_get_post_revisions( $changeset_post_id, array( 'check_enabled' => false ) );
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$changeset_post_id}-autosave" ) ) {
+			if ( str_contains( $revision->post_name, "{$changeset_post_id}-autosave" ) ) {
 				$wpdb->update(
 					$wpdb->posts,
 					array(
@@ -4285,7 +4289,12 @@ final class WP_Customize_Manager {
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.alt ? 'notice-alt' : '' }} {{ data.dismissible ? 'is-dismissible' : '' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message">{{{ data.message || data.code }}}</div>
 				<# if ( data.dismissible ) { #>
-					<button type="button" class="notice-dismiss"><span class="screen-reader-text"><?php _e( 'Dismiss' ); ?></span></button>
+					<button type="button" class="notice-dismiss"><span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Dismiss' );
+						?>
+					</span></button>
 				<# } #>
 			</li>
 		</script>
@@ -4352,10 +4361,20 @@ final class WP_Customize_Manager {
 			<p class="description customize-control-description"><?php esc_html_e( 'See how changes would look live on your website, and share the preview with people who can\'t access the Customizer.' ); ?></p>
 			<div class="customize-control-notifications-container"></div>
 			<div class="preview-link-wrapper">
-				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text"><?php esc_html_e( 'Preview Link' ); ?></label>
+				<label for="{{ elementPrefix }}customize-preview-link-input" class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					esc_html_e( 'Preview Link' );
+					?>
+				</label>
 				<a href="" target="">
 					<span class="preview-control-element" data-component="url"></span>
-					<span class="screen-reader-text"><?php _e( '(opens in a new tab)' ); ?></span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( '(opens in a new tab)' );
+						?>
+					</span>
 				</a>
 				<input id="{{ elementPrefix }}customize-preview-link-input" readonly tabindex="-1" class="preview-control-element" data-component="input">
 				<button class="customize-copy-preview-link preview-control-element button button-secondary" data-component="button" data-copy-text="<?php esc_attr_e( 'Copy' ); ?>" data-copied-text="<?php esc_attr_e( 'Copied' ); ?>" ><?php esc_html_e( 'Copy' ); ?></button>
@@ -4954,8 +4973,9 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
+		<script>
 			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
@@ -4990,6 +5010,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -5254,8 +5275,7 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		// Input type: checkbox.
-		// With custom value.
+		// Input type: checkbox, with custom value.
 		$this->add_control(
 			'display_header_text',
 			array(
@@ -5278,8 +5298,7 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		// Input type: color.
-		// With sanitize_callback.
+		// Input type: color, with sanitize_callback.
 		$this->add_setting(
 			'background_color',
 			array(
@@ -5587,8 +5606,10 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		// If the theme is using the default background callback, we can update
-		// the background CSS using postMessage.
+		/*
+		 * If the theme is using the default background callback, we can update
+		 * the background CSS using postMessage.
+		 */
 		if ( get_theme_support( 'custom-background', 'wp-head-callback' ) === '_custom_background_cb' ) {
 			foreach ( array( 'color', 'image', 'preset', 'position_x', 'position_y', 'size', 'repeat', 'attachment' ) as $prop ) {
 				$this->get_setting( 'background_' . $prop )->transport = 'postMessage';
@@ -5674,9 +5695,9 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/support/article/css/' ) ),
+			esc_url( __( 'https://wordpress.org/documentation/article/css/' ) ),
 			__( 'Learn more about CSS' ),
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		$section_description .= '</p>';
@@ -5697,7 +5718,7 @@ final class WP_Customize_Manager {
 				'class="external-link" target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: Accessibility text. */
+					/* translators: Hidden accessibility text. */
 					__( '(opens in a new tab)' )
 				)
 			);
@@ -6061,7 +6082,7 @@ final class WP_Customize_Manager {
 					__( 'This video file is too large to use as a header video. Try a shorter video or optimize the compression settings and re-upload a file that is less than 8MB. Or, upload your video to YouTube and link it with the option below.' )
 				);
 			}
-			if ( '.mp4' !== substr( $video, -4 ) && '.mov' !== substr( $video, -4 ) ) { // Check for .mp4 or .mov format, which (assuming h.264 encoding) are the only cross-browser-supported formats.
+			if ( ! str_ends_with( $video, '.mp4' ) && ! str_ends_with( $video, '.mov' ) ) { // Check for .mp4 or .mov format, which (assuming h.264 encoding) are the only cross-browser-supported formats.
 				$validity->add(
 					'invalid_file_type',
 					sprintf(

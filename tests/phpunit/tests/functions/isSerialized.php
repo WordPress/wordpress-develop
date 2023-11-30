@@ -5,7 +5,8 @@
  *
  * @ticket 53299
  *
- * @group functions.php
+ * @group function
+ *
  * @covers ::is_serialized
  */
 class Tests_Functions_IsSerialized extends WP_UnitTestCase {

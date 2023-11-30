@@ -15,6 +15,8 @@
  * Requires the Curl extension to be installed.
  *
  * @since 2.7.0
+ * @deprecated 6.4.0 Use WP_Http
+ * @see WP_Http
  */
 #[AllowDynamicProperties]
 class WP_Http_Curl {
@@ -78,6 +80,9 @@ class WP_Http_Curl {
 			'headers'     => array(),
 			'body'        => null,
 			'cookies'     => array(),
+			'decompress'  => false,
+			'stream'      => false,
+			'filename'    => null,
 		);
 
 		$parsed_args = wp_parse_args( $args, $defaults );
@@ -328,8 +333,8 @@ class WP_Http_Curl {
 	/**
 	 * Grabs the headers of the cURL request.
 	 *
-	 * Each header is sent individually to this callback, so we append to the `$header` property
-	 * for temporary storage
+	 * Each header is sent individually to this callback, and is appended to the `$header` property
+	 * for temporary storage.
 	 *
 	 * @since 3.2.0
 	 *
@@ -345,14 +350,14 @@ class WP_Http_Curl {
 	/**
 	 * Grabs the body of the cURL request.
 	 *
-	 * The contents of the document are passed in chunks, so we append to the `$body`
+	 * The contents of the document are passed in chunks, and are appended to the `$body`
 	 * property for temporary storage. Returning a length shorter than the length of
 	 * `$data` passed in will cause cURL to abort the request with `CURLE_WRITE_ERROR`.
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param resource $handle  cURL handle.
-	 * @param string   $data    cURL request body.
+	 * @param resource $handle cURL handle.
+	 * @param string   $data   cURL request body.
 	 * @return int Total bytes of data written.
 	 */
 	private function stream_body( $handle, $data ) {
