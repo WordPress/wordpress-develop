@@ -1638,12 +1638,11 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s" class="%4$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
-				__( 'Manage Uploads' ),
-				esc_attr( $icon_class )
+				__( 'Manage Uploads' )
 			);
 			?>
 		</li><li class="storage-count <?php echo $used_class; ?>">
