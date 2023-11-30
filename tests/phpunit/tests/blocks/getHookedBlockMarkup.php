@@ -10,8 +10,7 @@
  * @group blocks
  * @group block-hooks
  */
-class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase
-{
+class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	/**
 	 * @ticket 59646
 	 *
@@ -39,7 +38,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase
 				'metadata' => array(
 					'ignoredHookedBlocks' => array( 'tests/hooked-block' ),
 				),
-			)
+			),
 		);
 
 		$actual = get_hooked_block_markup( $anchor_block, 'tests/hooked-block' );
@@ -59,7 +58,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase
 				'metadata' => array(
 					'ignoredHookedBlocks' => array( 'tests/hooked-block' ),
 				),
-			)
+			),
 		);
 
 		$actual = get_hooked_block_markup( $anchor_block, 'tests/other-hooked-block' );
