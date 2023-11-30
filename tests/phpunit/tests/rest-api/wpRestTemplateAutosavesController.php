@@ -401,7 +401,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 *
 	 * @covers WP_REST_Template_Autosaves_Controller::register_routes
 	 *
-	 * @dataProvider data_template_autosaves_controller_isnt_matched_for_requests_with_parent_theme
+	 * @dataProvider data_template_autosaves_controller_is_not_matched_for_requests_with_parent_theme
 	 *
 	 * @param $route string Route to be tested.
 	 */
@@ -424,7 +424,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 	}
 
-	public function data_template_autosaves_controller_isnt_matched_for_requests_with_parent_theme() {
+	public function data_template_autosaves_controller_is_not_matched_for_requests_with_parent_theme() {
 		return array(
 			'get all autosaves for a template'          => array(
 				'/wp/v2/templates/parent_theme/child_theme/template_name/autosaves',
