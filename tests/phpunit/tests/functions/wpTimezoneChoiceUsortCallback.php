@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Tests for the _wp_timezone_choice_usort_callback function.
+ * Tests for the _wp_timezone_choice_usort_callback() function.
  *
- * @group Functions.php
+ * @group function
  *
  * @covers ::_wp_timezone_choice_usort_callback
  */
@@ -12,19 +12,17 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 	/**
 	 * @ticket 59953
 	 *
-	 * @dataProvider wp_timezone_choice_usort_callback_data
+	 * @dataProvider data_wp_timezone_choice_usort_callback
 	 */
-	public function test__wp_timezone_choice_usort_callback( $unsorted, $sorted, $info ) {
-
+	public function test_wp_timezone_choice_usort_callback( $unsorted, $sorted ) {
 		usort( $unsorted, '_wp_timezone_choice_usort_callback' );
 
-		$this->assertEquals( $sorted, $unsorted, $info );
+		$this->assertSame( $sorted, $unsorted );
 	}
 
-
-	public function wp_timezone_choice_usort_callback_data() {
+	public function data_wp_timezone_choice_usort_callback() {
 		return array(
-			array(
+			'just GMT+'                         => array(
 				'unsorted' => array(
 					array(
 						'continent'   => 'Etc',
@@ -99,10 +97,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: just GMT+',
 			),
 
-			array(
+			'mixed UTC and GMT'                 => array(
 				'unsorted' => array(
 					array(
 						'continent'   => 'Etc',
@@ -177,10 +174,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: MIXED utc and GMT',
 			),
 
-			array(
+			'just alpha city'                   => array(
 				'unsorted' => array(
 					array(
 						'continent'   => 'Etc',
@@ -255,10 +251,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: just alpha city',
 			),
 
-			array(
+			'not Etc continents are not sorted' => array(
 				'unsorted' => array(
 					array(
 						'continent'   => 'd',
@@ -333,9 +328,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: not Etc continent are not sorted',
 			),
-			array(
+
+			'not Etc just t_continent'          => array(
 				'unsorted' => array(
 					array(
 						'continent'   => '',
@@ -410,9 +405,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: not Etc just t_city',
 			),
-			array(
+
+			'not Etc just t_city'               => array(
 				'unsorted' => array(
 					array(
 						'continent'   => '',
@@ -487,9 +482,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: not Etc just t_city',
 			),
-			array(
+
+			'not Etc just t_subcity'            => array(
 				'unsorted' => array(
 					array(
 						'continent'   => '',
@@ -564,9 +559,9 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => 'e',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: just sub city',
 			),
-			array(
+
+			'just continent with Etc which pulls 1 to bottom' => array(
 				'unsorted' => array(
 					array(
 						'continent'   => '',
@@ -641,7 +636,6 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 						't_subcity'   => '',
 					),
 				),
-				'info'     => '_wp_timezone_choice_usort_callback: just continent with etc which pulls 1 to bottom',
 			),
 		);
 	}
