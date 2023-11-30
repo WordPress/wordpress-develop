@@ -395,7 +395,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 	/**
 	 * Test that the routes defined in WP_REST_Template_Autosaves_Controller::register_routes method
-	 * doesn't match requests containing parent theme, e.g. /parent_theme/child_theme/template_name.
+	 * don't match requests containing parent theme, e.g. /parent_theme/child_theme/template_name.
 	 *
 	 * @ticket 59635
 	 *
