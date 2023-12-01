@@ -317,7 +317,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertSame( $root_uri . '/' . get_template(), get_template_directory_uri() );
 
 				// Skip block themes for get_query_template() tests since this test is focused on classic templates.
-				if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
+				if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
 					continue;
 				}
 
@@ -1177,5 +1177,131 @@ class Tests_Theme extends WP_UnitTestCase {
 		if ( wp_get_theme()->stylesheet !== $block_theme ) {
 			$this->markTestSkipped( "Could not switch to $block_theme." );
 		}
+	}
+
+	/**
+	 * Make sure filters added after the initial call are fired.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_filters_apply() {
+		// Call the function prior to the filter being added.
+		get_stylesheet_directory();
+
+		$expected = 'test_root/dir';
+
+		// Add the filer.
+		add_filter(
+			'stylesheet_directory',
+			function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$this->assertSame( $expected, get_stylesheet_directory() );
+	}
+
+	/**
+	 * Make sure filters added after the initial call are fired.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_filters_apply() {
+		// Call the function prior to the filter being added.
+		get_template_directory();
+
+		$expected = 'test_root/dir';
+
+		// Add the filer.
+		add_filter(
+			'template_directory',
+			function () use ( $expected ) {
+				return $expected;
+			}
+		);
+
+		$this->assertSame( $expected, get_template_directory() );
+	}
+
+	/**
+	 * Make sure get_stylesheet_directory uses the correct path when the root theme dir changes.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_stylesheet_directory
+	 */
+	public function test_get_stylesheet_directory_uses_registered_theme_dir() {
+		$old_theme = wp_get_theme();
+
+		switch_theme( 'test' );
+
+		$old_root = get_theme_root( 'test' );
+		$path1    = get_stylesheet_directory();
+
+		$new_root = DIR_TESTDATA . '/themedir2';
+		register_theme_directory( $new_root );
+
+		// Mock the stylesheet root option to mimic that the active root has changed.
+		add_filter(
+			'pre_option_stylesheet_root',
+			function () use ( $new_root ) {
+				return $new_root;
+			}
+		);
+
+		$path2 = get_stylesheet_directory();
+
+		// Cleanup.
+		switch_theme( $old_theme->get_stylesheet() );
+
+		$this->assertEquals( $old_root . '/test', $path1, 'The original stylesheet path is not correct' );
+		$this->assertEquals( $new_root . '/test', $path2, 'The new stylesheet path is not correct' );
+	}
+
+	/**
+	 * Make sure get_template_directory uses the correct path when the root theme dir changes.
+	 *
+	 * @ticket 59847
+	 *
+	 * @covers ::get_template_directory
+	 */
+	public function test_get_template_directory_uses_registered_theme_dir() {
+		$old_theme = wp_get_theme();
+
+		switch_theme( 'test' );
+
+		// Mock parent theme to be returned as the template.
+		add_filter(
+			'pre_option_template',
+			function () {
+				return 'test-parent';
+			}
+		);
+
+		$old_root = get_theme_root( 'test' );
+		$path1    = get_template_directory();
+
+		$new_root = DIR_TESTDATA . '/themedir2';
+		register_theme_directory( $new_root );
+
+		// Mock the template root option to mimic that the active root has changed.
+		add_filter(
+			'pre_option_template_root',
+			function () use ( $new_root ) {
+				return $new_root;
+			}
+		);
+
+		$path2 = get_template_directory();
+
+		// Cleanup.
+		switch_theme( $old_theme->get_stylesheet() );
+
+		$this->assertEquals( $old_root . '/test-parent', $path1, 'The original template path is not correct' );
+		$this->assertEquals( $new_root . '/test-parent', $path2, 'The new template path is not correct' );
 	}
 }

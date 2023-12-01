@@ -343,9 +343,9 @@ function update_nag() {
 	wp_admin_notice(
 		$msg,
 		array(
-			'type'              => 'warning',
-			'additonal_classes' => array( 'update-nag', 'inline' ),
-			'paragraph_wrap'    => false,
+			'type'               => 'warning',
+			'additional_classes' => array( 'update-nag', 'inline' ),
+			'paragraph_wrap'     => false,
 		)
 	);
 }
