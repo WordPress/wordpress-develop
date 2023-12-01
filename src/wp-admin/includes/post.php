@@ -2329,7 +2329,7 @@ function get_block_editor_server_block_settings() {
 
 			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}
-		$blocks[ $block_name ][ 'variations' ] = $block_type->get_variations();
+		$blocks[ $block_name ]['variations'] = $block_type->get_variations();
 	}
 
 	return $blocks;
