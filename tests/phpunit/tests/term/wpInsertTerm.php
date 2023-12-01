@@ -895,6 +895,16 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertSame( '', $term_object->description );
 	}
 
+	public function test_wp_insert_term_with_empty_name_after_db_sanitization() {
+		$term = wp_insert_term(
+			'<script>Hello</script>',
+			'post_tag'
+		);
+
+		$this->assertWPError( $term );
+		$this->assertSame( 'invalid_term_name', $found->get_error_code() );
+	}
+
 	/** Helpers */
 
 	public function deleted_term_cb( $term, $tt_id, $taxonomy, $deleted_term, $object_ids ) {

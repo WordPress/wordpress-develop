@@ -2434,6 +2434,10 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$description = wp_unslash( $args['description'] );
 	$parent      = (int) $args['parent'];
 
+	if ( '' === $name ) {
+		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
 	$slug_provided = ! empty( $args['slug'] );
 	if ( ! $slug_provided ) {
 		$slug = sanitize_title( $name );
