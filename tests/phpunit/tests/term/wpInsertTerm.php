@@ -902,7 +902,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		);
 
 		$this->assertWPError( $term );
-		$this->assertSame( 'invalid_term_name', $found->get_error_code() );
+		$this->assertSame( 'invalid_term_name', $term->get_error_code() );
 	}
 
 	/** Helpers */
