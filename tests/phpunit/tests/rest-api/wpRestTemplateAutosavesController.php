@@ -24,14 +24,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	 */
 	const PARENT_POST_TYPE = 'wp_template';
 
-	const TEMPLATE_REGEXP = '/wp/v2/templates/(?P<id>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves';
-
-	const TEMPLATE_ID_REGEXP = '/wp/v2/templates/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves/(?P<id>[\d]+)';
-
-	const TEMPLATE_PARTS_REGEXP = '/wp/v2/template-parts/(?P<id>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves';
-
-	const TEMPLATE_PARTS_ID_REGEXP = '/wp/v2/template-parts/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves/(?P<id>[\d]+)';
-
 	/**
 	 * Admin user ID.
 	 *
@@ -103,22 +95,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			static::TEMPLATE_REGEXP,
+			'/wp/v2/templates/(?P<id>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves',
 			$routes,
 			'Template autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			static::TEMPLATE_ID_REGEXP,
+			'/wp/v2/templates/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves/(?P<id>[\d]+)',
 			$routes,
 			'Single template autosave based on the given ID route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			static::TEMPLATE_PARTS_REGEXP,
+			'/wp/v2/template-parts/(?P<id>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves',
 			$routes,
 			'Template part autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			static::TEMPLATE_PARTS_ID_REGEXP,
+			'/wp/v2/template-parts/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves/(?P<id>[\d]+)',
 			$routes,
 			'Single template part autosave based on the given ID route does not exist.'
 		);
