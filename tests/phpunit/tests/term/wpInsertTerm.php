@@ -897,7 +897,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 	public function test_wp_insert_term_with_empty_name_after_db_sanitization() {
 		$term = wp_insert_term(
-			'<script>alert("hello")</script>',
+			'<script>onclick=alert("hello")</script>',
 			'post_tag'
 		);
 
