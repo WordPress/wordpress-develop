@@ -244,9 +244,12 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		);
 		$this->registry->register( 'test/three', $pattern_three );
 
-		$pattern_one['name']   = 'test/one';
-		$pattern_two['name']   = 'test/two';
-		$pattern_three['name'] = 'test/three';
+		$pattern_one['name']     = 'test/one';
+		$pattern_one['parsed']   = true;
+		$pattern_two['name']     = 'test/two';
+		$pattern_two['parsed']   = true;
+		$pattern_three['name']   = 'test/three';
+		$pattern_three['parsed'] = true;
 
 		$expected = array(
 			$pattern_one,
@@ -276,6 +279,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$pattern_two = array(
 			'title'   => 'Pattern Two',
 			'content' => '<!-- wp:paragraph --><p>Two</p><!-- /wp:paragraph -->',
+			'parsed'  => true,
 		);
 		$this->registry->register( 'test/two', $pattern_two );
 
@@ -310,7 +314,8 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		);
 		$this->registry->register( 'test/three', $pattern_three );
 
-		$pattern_two['name'] = 'test/two';
+		$pattern_two['name']   = 'test/two';
+		$pattern_two['parsed'] = true;
 
 		$pattern = $this->registry->get_registered( 'test/two' );
 		$this->assertSame( $pattern_two, $pattern );
@@ -376,9 +381,12 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$this->registry->register( 'test/three', $pattern_three );
 
 		$pattern_one['name']       = 'test/one';
+		$pattern_one['parsed']     = true;
 		$pattern_two['name']       = 'test/two';
 		$pattern_two['content']   .= '<!-- wp:tests/my-block /-->';
+		$pattern_two['parsed']     = true;
 		$pattern_three['name']     = 'test/three';
+		$pattern_three['parsed']   = true;
 		$pattern_three['content'] .= '<!-- wp:tests/my-block /-->';
 
 		$expected = array(
@@ -445,6 +453,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$this->registry->register( 'test/two', $pattern_two );
 
 		$pattern_one['name']    = 'test/one';
+		$pattern_one['parsed']  = true;
 		$pattern_one['content'] = '<!-- wp:tests/my-block /-->' . $pattern_one['content'];
 
 		$pattern = $this->registry->get_registered( 'test/one' );

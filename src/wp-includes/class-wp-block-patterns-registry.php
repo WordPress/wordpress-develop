@@ -112,7 +112,10 @@ final class WP_Block_Patterns_Registry {
 
 		$pattern = array_merge(
 			$pattern_properties,
-			array( 'name' => $pattern_name )
+			array(
+				'name'   => $pattern_name,
+				'parsed' => false,
+			)
 		);
 
 		$this->registered_patterns[ $pattern_name ] = $pattern;
@@ -190,8 +193,12 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		$pattern            = $this->registered_patterns[ $pattern_name ];
-		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
+		$pattern = $this->registered_patterns[ $pattern_name ];
+		if ( ! $pattern['parsed'] ) {
+			$pattern['content']                         = $this->prepare_content( $pattern, get_hooked_blocks() );
+			$pattern['parsed']                          = true;
+			$this->registered_patterns[ $pattern_name ] = $pattern;
+		}
 
 		return $pattern;
 	}
@@ -206,16 +213,27 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns      = array_values(
-			$outside_init_only
+		$patterns = $outside_init_only
 				? $this->registered_patterns_outside_init
-				: $this->registered_patterns
-		);
+				: $this->registered_patterns;
+
 		$hooked_blocks = get_hooked_blocks();
-		foreach ( $patterns as $index => $pattern ) {
-			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
+
+		foreach ( $patterns as $pattern_name => $pattern ) {
+			if ( ! $pattern['parsed'] ) {
+				$pattern['content']        = $this->prepare_content( $pattern, $hooked_blocks );
+				$pattern['parsed']         = true;
+				$patterns[ $pattern_name ] = $pattern;
+			}
 		}
-		return $patterns;
+
+		if ( $outside_init_only ) {
+			$this->registered_patterns_outside_init = $patterns;
+		} else {
+			$this->registered_patterns = $patterns;
+		}
+
+		return array_values( $patterns );
 	}
 
 	/**
