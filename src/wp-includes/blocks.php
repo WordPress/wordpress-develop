@@ -764,7 +764,10 @@ function get_hooked_blocks() {
  * If the anchor block has already been processed, and the given hooked block type is in the list
  * of ignored hooked blocks, an empty string is returned.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.5.0
+ * @access private
  *
  * @param array   $anchor_block      The anchor block. Passed by reference.
  * @param string  $hooked_block_type The name of the hooked block type.
