@@ -2434,7 +2434,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$description = wp_unslash( $args['description'] );
 	$parent      = (int) $args['parent'];
 
-	// Santiziation could clean the name to an empty string that must be checked again. See https://core.trac.wordpress.org/ticket/59995
+	// Sanitization could clean the name to an empty string that must be checked again. See https://core.trac.wordpress.org/ticket/59995
 	if ( '' === $name ) {
 		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
 	}
