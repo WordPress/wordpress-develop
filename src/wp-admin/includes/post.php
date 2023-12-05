@@ -2315,6 +2315,7 @@ function get_block_editor_server_block_settings() {
 		'ancestor'         => 'ancestor',
 		'keywords'         => 'keywords',
 		'example'          => 'example',
+		'variations'       => 'variations',
 	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
@@ -2329,7 +2330,11 @@ function get_block_editor_server_block_settings() {
 
 			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}
-		$blocks[ $block_name ]['variations'] = $block_type->get_variations();
+
+		// If the block has a variations callback, call it and add the variations to the block.
+		if ( is_callable( $block_type->variations ) ) {
+			$blocks[ $block_name ]['variations'] = call_user_func( $block_type->variations );
+		}
 	}
 
 	return $blocks;

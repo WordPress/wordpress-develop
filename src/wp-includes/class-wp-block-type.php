@@ -113,7 +113,7 @@ class WP_Block_Type {
 	 * Block variations.
 	 *
 	 * @since 5.8.0
-	 * @var array[]
+	 * @var array[] | callable
 	 */
 	public $variations = array();
 
@@ -537,24 +537,5 @@ class WP_Block_Type {
 		return is_array( $this->attributes ) ?
 			$this->attributes :
 			array();
-	}
-
-	/**
-	 * Get all variations.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @return array Array of variations.
-	 */
-	public function get_variations() {
-		/**
-		 * Filters the arguments for registering a variations.
-		 *
-		 * @since 6.5.0
-		 *
-		 * @param array  $variations       Array of arguments for registering a block type.
-		 * @param string $block_type Block type name including namespace.
-		 */
-		return apply_filters( 'get_variations_block_' . $this->name, $this->variations, $this->name );
 	}
 }
