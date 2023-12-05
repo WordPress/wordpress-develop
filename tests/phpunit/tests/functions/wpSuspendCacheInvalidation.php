@@ -7,7 +7,7 @@
  *
  * @covers ::wp_suspend_cache_invalidation
  */
-class Tests_Functions_wpSuspendCacheInvalidation extends WP_UnitTestCase{
+class Tests_Functions_wpSuspendCacheInvalidation extends WP_UnitTestCase {
 	/**
 	 * @ticket 60015
 	 */
