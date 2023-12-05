@@ -381,14 +381,12 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$pattern_three['name']     = 'test/three';
 		$pattern_three['content'] .= '<!-- wp:tests/my-block /-->';
 
-		$expected = array(
-			$pattern_one,
-			$pattern_two,
-			$pattern_three,
-		);
-
 		$registered = $this->registry->get_all_registered();
-		$this->assertSame( $expected, $registered );
+		$this->assertCount( 3, $registered );
+		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $registered[1]['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $registered[1]['content'] );
+		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $registered[2]['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $registered[2]['content'] );
 	}
 
 	/**
@@ -444,11 +442,9 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		);
 		$this->registry->register( 'test/two', $pattern_two );
 
-		$pattern_one['name']    = 'test/one';
-		$pattern_one['content'] = '<!-- wp:tests/my-block /-->' . $pattern_one['content'];
-
 		$pattern = $this->registry->get_registered( 'test/one' );
-		$this->assertSame( $pattern_one, $pattern );
+		$this->assertStringStartsWith( '<!-- wp:tests/my-block /-->', $pattern['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $pattern['content'] );
 	}
 
 	/**
