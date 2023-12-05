@@ -7,7 +7,7 @@
  *
  * @covers ::wp_suspend_cache_invalidation
  */
-class Tests_Functions_wpSuspendCacheInvalidation extends WP_UnitTestCase{
+class Tests_Functions_wpSuspendCacheInvalidation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60015
@@ -37,7 +37,6 @@ class Tests_Functions_wpSuspendCacheInvalidation extends WP_UnitTestCase{
 		$this->assertNotEmpty( wp_suspend_cache_invalidation( '' ) );
 		$this->assertEmpty( $_wp_suspend_cache_invalidation );
 		$this->assertFalse( $_wp_suspend_cache_invalidation );
-
 
 		$this->assertEmpty( wp_suspend_cache_invalidation( 0 ) );
 		$this->assertEmpty( $_wp_suspend_cache_invalidation );
