@@ -188,6 +188,9 @@ jobs:
           fi
           git reset --hard $TARGET_SHA
 
+      - name: Check desired node version
+        run: nvm install
+
       - name: Install npm dependencies
         run: npm ci
 
