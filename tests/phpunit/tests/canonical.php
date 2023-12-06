@@ -425,4 +425,29 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->assertSame( $expected, $url );
 	}
+
+	/**
+	 * @ticket 59866
+	 */
+	public function test_canonical_attachment_page_redirect_with_option_disabled_for_visitors()
+	{
+		add_filter('pre_option_wp_attachment_pages_enabled', '__return_false');
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents($filename);
+		$upload   = wp_upload_bits(wp_basename($filename), null, $contents);
+
+		$attachment_id   = $this->_make_attachment($upload);
+		$attachment_page = get_permalink($attachment_id);
+
+		// Unset current user to test as visitor.
+		wp_set_current_user(0);
+
+		$this->go_to($attachment_page);
+
+		$url      = redirect_canonical($attachment_page, false);
+		$expected = wp_get_attachment_url($attachment_id);
+
+		$this->assertSame($expected, $url);
+	}
 }
