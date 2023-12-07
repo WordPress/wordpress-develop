@@ -3,6 +3,7 @@ name: Pull Request Comments
 
 on:
   pull_request:
+    types: [ 'opened' ]
   workflow_dispatch:
     inputs:
       pr_number:
