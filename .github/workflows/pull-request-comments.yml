@@ -26,7 +26,7 @@ jobs:
       issues: write
       pull-requests: write
     timeout-minutes: 5
-    # if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'adam/wordpress-develop' && github.event_name == 'pull_request' }}
     steps:
       - uses: wow-actions/welcome@72817eb31cda1de60f51893d80e2e82ce57f7e76 # v1.3.0
         with:
@@ -82,7 +82,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    # if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.repository == 'adam/wordpress-develop' && github.event_name == 'pull_request' }}
     steps:
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
