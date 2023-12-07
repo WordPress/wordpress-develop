@@ -89,7 +89,7 @@ jobs:
             const commentInfo = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.event.number
+              issue_number: ${{ github.event.number }}
             };
             const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
 
@@ -115,7 +115,7 @@ jobs:
 
             For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
 
-            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ context.payload.event.number }).
+            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${{ github.event.number }}).
             `;
 
             github.rest.issues.createComment( commentInfo );
