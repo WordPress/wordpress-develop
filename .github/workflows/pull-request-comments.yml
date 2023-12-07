@@ -3,7 +3,7 @@ name: Pull Request Comments
 
 on:
   pull_request:
-    types: [ 'opened' ]
+    types: [ 'opened', 'edited' ]
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
