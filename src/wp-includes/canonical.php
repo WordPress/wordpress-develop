@@ -555,7 +555,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		// If attachment is attached to a post, attachment page inherits parent post's private status,
 		// so fetch the post to have its private status checked later.
 		if ( $attachment_parent_id ) {
-			$redirect_obj = get_post ( $attachment_parent_id );
+			$redirect_obj = get_post( $attachment_parent_id );
 		}
 		$redirect_url = wp_get_attachment_url( $attachment_id );
 
