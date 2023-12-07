@@ -4,9 +4,10 @@ name: Pull Request Comments
 on:
   pull_request_target:
     types: [ 'opened' ]
-    branches:
-      - trunk
-    
+  workflow_run:
+    workflows: ["Test Build Processes"]
+    types:
+      - completed
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -82,17 +83,55 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
+<<<<<<< HEAD
     if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'pull_request_target' }}
+=======
+    if: >
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+>>>>>>> 07d277a3f9 (Leave PR comments without `workflow_dispatch`)
     steps:
+      - name: 'Download artifact'
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+
+      - run: unzip pr.zip
+
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           script: |
+            const issue_number = Number(fs.readFileSync('./NR'));
+
             // Comments are only added after the first successful build. Check for the presence of a comment and bail early.
             const commentInfo = {
               owner: context.repo.owner,
               repo: context.repo.repo,
+<<<<<<< HEAD
               issue_number: ${{ github.event.number }}
+=======
+              issue_number,
+>>>>>>> 07d277a3f9 (Leave PR comments without `workflow_dispatch`)
             };
+
             const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
 
             for ( const currentComment of comments ) {
