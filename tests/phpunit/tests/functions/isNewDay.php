@@ -4,7 +4,8 @@
  *
  * @since 5.2.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::is_new_day
  */
 class Tests_Functions_IsNewDate extends WP_UnitTestCase {

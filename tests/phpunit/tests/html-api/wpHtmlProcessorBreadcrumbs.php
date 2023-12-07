@@ -37,22 +37,40 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_single_tag_of_supported_elements() {
 		$supported_elements = array(
 			'A',
+			'ADDRESS',
+			'ARTICLE',
+			'ASIDE',
 			'B',
 			'BIG',
 			'BUTTON',
+			'CENTER', // Neutralized
 			'CODE',
+			'DETAILS',
+			'DIALOG',
+			'DIR',
 			'DIV',
+			'DL',
 			'EM',
+			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
 			'FONT',
+			'FOOTER',
+			'HEADER',
+			'HGROUP',
 			'I',
 			'IMG',
+			'MAIN',
+			'MENU',
+			'NAV',
 			'P',
+			'SEARCH',
+			'SECTION',
 			'SMALL',
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'SUMMARY',
 			'TT',
 			'U',
 		);
@@ -99,11 +117,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 		$unsupported_elements = array(
 			'ABBR',
 			'ACRONYM', // Neutralized
-			'ADDRESS',
 			'APPLET', // Deprecated
 			'AREA',
-			'ARTICLE',
-			'ASIDE',
 			'AUDIO',
 			'BASE',
 			'BDI',
@@ -114,7 +129,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BR',
 			'CANVAS',
 			'CAPTION',
-			'CENTER', // Neutralized
 			'CITE',
 			'COL',
 			'COLGROUP',
@@ -122,14 +136,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'DATALIST',
 			'DD',
 			'DEL',
-			'DETAILS',
 			'DEFN',
-			'DIALOG',
-			'DL',
 			'DT',
 			'EMBED',
-			'FIELDSET',
-			'FOOTER',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
@@ -140,8 +149,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H5',
 			'H6',
 			'HEAD',
-			'HEADER',
-			'HGROUP',
 			'HR',
 			'HTML',
 			'IFRAME',
@@ -155,16 +162,13 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'LI',
 			'LINK',
 			'LISTING', // Deprecated, use PRE instead.
-			'MAIN',
 			'MAP',
 			'MARK',
 			'MARQUEE', // Deprecated
 			'MATH',
-			'MENU',
 			'META',
 			'METER',
 			'MULTICOL', // Deprecated
-			'NAV',
 			'NEXTID', // Deprecated
 			'NOBR', // Neutralized
 			'NOEMBED', // Neutralized
@@ -187,14 +191,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'RUBY',
 			'SAMP',
 			'SCRIPT',
-			'SECTION',
 			'SELECT',
 			'SLOT',
 			'SOURCE',
 			'SPACER', // Deprecated
 			'STYLE',
 			'SUB',
-			'SUMMARY',
 			'SUP',
 			'SVG',
 			'TABLE',
@@ -300,7 +302,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html        HTML string with tags in it, one of which contains the "target" attribute.
 	 * @param array  $breadcrumbs Breadcrumbs of element with "target" attribute set.
 	 * @param int    $ignored_n   Not used in this test but provided in the dataset for other tests.
-	 * @return void
 	 */
 	public function test_reports_correct_breadcrumbs_for_html( $html, $breadcrumbs, $ignored_n ) {
 		$p = WP_HTML_Processor::create_fragment( $html );
@@ -349,6 +350,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 				array( 'HTML', 'BODY', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'STRONG', 'EM', 'CODE' ),
 				2,
 			),
+			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
+			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
 		);
 	}
 
@@ -411,13 +414,60 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that updating tag's attributes doesn't shift the current position
+	 * in the input HTML document.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @ticket 59607
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 */
+	public function test_remains_stable_when_editing_attributes() {
+		$p = WP_HTML_Processor::create_fragment( '<div><button>First<button><b here>Second' );
+		$p->next_tag( array( 'breadcrumbs' => array( 'BUTTON', 'B' ) ) );
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->set_attribute( 'a-name', 'a-value' );
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have found the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->get_updated_html();
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have stayed at the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag after updating attributes.'
+		);
+	}
+
+	/**
 	 * Ensures that the ability to set attributes isn't broken by the HTML Processor.
 	 *
 	 * @since 6.4.0
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::set_attribute
+	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_can_modify_attributes_after_finding_tag() {
 		$p = WP_HTML_Processor::create_fragment( '<div><figure><img><figcaption>test</figcaption></figure>' );

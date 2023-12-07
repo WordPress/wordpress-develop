@@ -478,7 +478,6 @@ function _flatten_blocks( &$blocks ) {
  * @access private
  *
  * @param array $block a parsed block.
- * @return void
  */
 function _inject_theme_attribute_in_template_part_block( &$block ) {
 	if (
@@ -496,7 +495,6 @@ function _inject_theme_attribute_in_template_part_block( &$block ) {
  * @access private
  *
  * @param array $block a parsed block.
- * @return void
  */
 function _remove_theme_attribute_from_template_part_block( &$block ) {
 	if (
@@ -520,12 +518,12 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
-	$template_content       = file_get_contents( $template_file['path'] );
 	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
+	$template->content        = file_get_contents( $template_file['path'] );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -549,18 +547,15 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
-	$before_block_visitor = ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ? '_inject_theme_attribute_in_template_part_block' : null;
+	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
 	$after_block_visitor  = null;
 	$hooked_blocks        = get_hooked_blocks();
 	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
 	}
-	if ( null !== $before_block_visitor || null !== $after_block_visitor ) {
-		$blocks           = parse_blocks( $template_content );
-		$template_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-	}
-	$template->content = $template_content;
+	$blocks            = parse_blocks( $template->content );
+	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
 }

@@ -317,6 +317,29 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should insert a theme attribute into Template Part blocks in registered patterns.
+	 *
+	 * @ticket 59583
+	 *
+	 * @covers WP_Block_Patterns_Registry::register
+	 * @covers WP_Block_Patterns_Registry::get_all_registered
+	 */
+	public function test_get_all_registered_includes_theme_attribute() {
+		$test_pattern = array(
+			'title'   => 'Test Pattern',
+			'content' => '<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+		);
+		$this->registry->register( 'test/pattern', $test_pattern );
+
+		$expected = sprintf(
+			'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
+			get_stylesheet()
+		);
+		$patterns = $this->registry->get_all_registered();
+		$this->assertSame( $expected, $patterns[0]['content'] );
+	}
+
+	/**
 	 * Should insert hooked blocks into registered patterns.
 	 *
 	 * @ticket 59476
@@ -358,14 +381,35 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		$pattern_three['name']     = 'test/three';
 		$pattern_three['content'] .= '<!-- wp:tests/my-block /-->';
 
-		$expected = array(
-			$pattern_one,
-			$pattern_two,
-			$pattern_three,
-		);
-
 		$registered = $this->registry->get_all_registered();
-		$this->assertSame( $expected, $registered );
+		$this->assertCount( 3, $registered );
+		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $registered[1]['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $registered[1]['content'] );
+		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $registered[2]['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $registered[2]['content'] );
+	}
+
+	/**
+	 * Should insert a theme attribute into Template Part blocks in registered patterns.
+	 *
+	 * @ticket 59583
+	 *
+	 * @covers WP_Block_Patterns_Registry::register
+	 * @covers WP_Block_Patterns_Registry::get_registered
+	 */
+	public function test_get_registered_includes_theme_attribute() {
+		$test_pattern = array(
+			'title'   => 'Test Pattern',
+			'content' => '<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header"} /-->',
+		);
+		$this->registry->register( 'test/pattern', $test_pattern );
+
+		$expected = sprintf(
+			'<!-- wp:template-part {"slug":"header","align":"full","tagName":"header","className":"site-header","theme":"%s"} /-->',
+			get_stylesheet()
+		);
+		$pattern  = $this->registry->get_registered( 'test/pattern' );
+		$this->assertSame( $expected, $pattern['content'] );
 	}
 
 	/**
@@ -398,11 +442,9 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		);
 		$this->registry->register( 'test/two', $pattern_two );
 
-		$pattern_one['name']    = 'test/one';
-		$pattern_one['content'] = '<!-- wp:tests/my-block /-->' . $pattern_one['content'];
-
 		$pattern = $this->registry->get_registered( 'test/one' );
-		$this->assertSame( $pattern_one, $pattern );
+		$this->assertStringStartsWith( '<!-- wp:tests/my-block /-->', $pattern['content'] );
+		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $pattern['content'] );
 	}
 
 	/**
@@ -435,5 +477,69 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 
 		$result = $this->registry->is_registered( 'test/one' );
 		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Ensures theme patterns are registered on init.
+	 *
+	 * @ticket 59723
+	 *
+	 * @covers ::_register_theme_block_patterns
+	 */
+	public function test_register_theme_block_patterns_on_init() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		$theme          = wp_get_theme();
+		$theme_patterns = array_values( wp_list_pluck( $theme->get_block_patterns(), 'slug' ) );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		$registered = wp_list_pluck( $registry->get_all_registered(), 'name' );
+
+		// Cleanup patterns registry.
+		foreach ( $theme_patterns as $pattern ) {
+			$registry->unregister( $pattern );
+		}
+
+		$this->assertSameSets( $theme_patterns, array_intersect( $theme_patterns, $registered ), 'Could not confirm theme patterns were registered.' );
+	}
+
+	/**
+	 * Ensures theme patterns are not registered when no themes are active and valid.
+	 *
+	 * @ticket 59723
+	 *
+	 * @covers ::_register_theme_block_patterns
+	 */
+	public function test_register_theme_block_patterns_on_init_skipped_during_install() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		$theme          = wp_get_theme();
+		$theme_patterns = array_values( wp_list_pluck( $theme->get_block_patterns(), 'slug' ) );
+
+		/*
+		 * This will short-circuit theme activation.
+		 * @see wp_get_active_and_valid_themes().
+		 */
+		wp_installing( true );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		$registered = wp_list_pluck( $registry->get_all_registered(), 'name' );
+
+		// Cleanup.
+		wp_installing( false );
+
+		$this->assertEmpty( array_intersect( $theme_patterns, $registered ), 'Theme patterns were were incorrectly registered.' );
 	}
 }

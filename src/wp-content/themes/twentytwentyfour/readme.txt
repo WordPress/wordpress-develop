@@ -3,6 +3,7 @@ Contributors: wordpressdotorg
 Requires at least: 6.4
 Tested up to: 6.4
 Requires PHP: 7.0
+Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +16,7 @@ Twenty Twenty-Four is designed to be flexible, versatile and applicable to any w
 = 1.0 =
 * Released: November 7, 2023
 
-https://wordpress.org/support/article/twenty-twenty-four-changelog#Version_1.0
+https://wordpress.org/documentation/article/twenty-twenty-four-changelog/#Version_1.0
 
 == Copyright ==
 
