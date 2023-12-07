@@ -822,8 +822,7 @@ function update_option( $option, $value, $autoload = null ) {
 	);
 
 	if ( null !== $autoload ) {
-		$autoload                = determine_option_autoload_value( $option, $serialized_value, $autoload );
-		$update_args['autoload'] = $autoload;
+		$update_args['autoload'] = determine_option_autoload_value( $option, $serialized_value, $autoload );
 	} else {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$allow_values = array( 'default-yes', 'default-no' );
