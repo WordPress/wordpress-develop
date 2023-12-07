@@ -2,8 +2,7 @@
 name: Pull Request Comments
 
 on:
-  pull_request_target:
-    types: [ 'opened' ]
+  pull_request:
   workflow_dispatch:
     inputs:
       pr_number:
@@ -15,8 +14,7 @@ on:
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.event_name == 'workflow_dispatch' && inputs.pr_number || github.sha }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.event_name == 'workflow_dispatch' && inputs.pr_number || github.sha }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -30,8 +28,7 @@ jobs:
       issues: write
       pull-requests: write
     timeout-minutes: 5
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' }}
-
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
     steps:
       - uses: wow-actions/welcome@72817eb31cda1de60f51893d80e2e82ce57f7e76 # v1.3.0
         with:
