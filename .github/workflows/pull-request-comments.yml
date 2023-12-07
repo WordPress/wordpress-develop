@@ -4,18 +4,12 @@ name: Pull Request Comments
 on:
   pull_request:
     types: [ 'opened' ]
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: 'The pull request number to process.'
-        required: true
-        type: string
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.event_name == 'workflow_dispatch' && inputs.pr_number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.event_name == 'workflow_dispatch' && github.event.number || github.sha }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -94,7 +88,7 @@ jobs:
             const commentInfo = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.inputs.pr_number
+              issue_number: context.payload.event.number
             };
             const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
 
@@ -120,7 +114,7 @@ jobs:
 
             For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
 
-            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ context.payload.inputs.pr_number }).
+            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ context.payload.event.number }).
             `;
 
             github.rest.issues.createComment( commentInfo );
