@@ -429,7 +429,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	/**
 	 * @ticket 59866
 	 */
-	public function test_canonical_attachment_page_redirect_with_option_disabled_for_visitors(){
+	public function test_canonical_attachment_page_redirect_with_option_disabled_for_visitors() {
 		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_false' );
 
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
