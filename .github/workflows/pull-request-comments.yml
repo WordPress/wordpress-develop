@@ -6,7 +6,7 @@ on:
   #   types: [ 'opened' ]
   workflow_run:
     workflows:
-      - Test Build Processes
+      - TestBuildProcesses
       - Leave WordPress Playground details
       - test-build-processes.yml
       - test-build-processes
