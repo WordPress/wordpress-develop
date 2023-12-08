@@ -2,15 +2,11 @@
 name: Pull Request Comments
 
 on:
-  # pull_request_target:
-  #   types: [ 'opened' ]
+  pull_request:
+    types: [ 'opened' ]
   workflow_run:
     workflows:
       - TestBuildProcesses
-      - Leave WordPress Playground details
-      - test-build-processes.yml
-      - test-build-processes
-      - test-core-build-process
     types:
       - completed
 
