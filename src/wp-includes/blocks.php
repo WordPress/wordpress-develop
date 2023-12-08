@@ -849,7 +849,11 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 
+			// See https://make.wordpress.org/core/2023/10/15/introducing-block-hooks-for-dynamic-blocks/
+			// > Blocks cannot be hooked into post content or patterns crafted by the user, such as
+			// > synced patterns or theme templates and template parts that the user has modified.
 			$problematic_anchor_blocks_for_child_insertion = array(
+				'core/pattern',
 				'core/post-content',
 				'core/template-part',
 			);
