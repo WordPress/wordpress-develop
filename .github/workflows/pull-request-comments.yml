@@ -5,7 +5,7 @@ on:
   pull_request_target:
     types: [ 'opened' ]
   workflow_run:
-    workflows: ["Test Build Processes"]
+    workflows: ["Test Build Processes", "Leave WordPress Playground details"]
     types:
       - completed
 
