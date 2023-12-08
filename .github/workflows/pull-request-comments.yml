@@ -85,9 +85,9 @@ jobs:
       pull-requests: write
     if: >
       github.repository == 'adamziel/wordpress-develop' &&
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event_name == 'workflow_run'
+    # github.event.workflow_run.event == 'pull_request' &&
+    # github.event.workflow_run.conclusion == 'success'
     steps:
       - name: 'Download artifact'
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
@@ -135,6 +135,12 @@ jobs:
             // No comment was found. Create one.
             commentInfo.body = `## Test using WordPress Playground
             The changes in this pull request can previewed and tested using a [WordPress Playground](https://developer.wordpress.org/playground/) instance.
+             
+            github.repository: ${{github.repository}}
+            github.event_name: ${{github.event_name}}
+            github.event.workflow_run.event: ${{github.event.workflow_run.event}}
+            github.event.workflow_run.conclusion: ${{github.event.workflow_run.conclusion}}
+
 
             [WordPress Playground](https://developer.wordpress.org/playground/) is an experimental project that creates a full WordPress instance entirely within the browser.
 
