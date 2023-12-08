@@ -333,13 +333,14 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	$template_files = array();
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths  = get_block_theme_folders( $theme_slug );
-		$theme_template_files = _get_block_templates_paths( $theme_dir . '/' . $template_base_paths[ $template_type ] );
+		$template_base_path = $template_base_paths[ $template_type ];
+		$theme_template_files = _get_block_templates_paths( $theme_dir . '/' . $template_base_path );
 		foreach ( $theme_template_files as $template_file ) {
-			$template_base_path = $template_base_paths[ $template_type ];
-			$template_slug      = substr(
-				$template_file,
-				// Starting position of slug.
-				strpos( $template_file, $template_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $template_base_path ),
+			$split = explode( DIRECTORY_SEPARATOR . $template_base_path . DIRECTORY_SEPARATOR, $template_file );
+			$template_file_name = end( $split );
+			$template_slug = substr(
+				$template_file_name,
+				0,
 				// Subtract ending '.html'.
 				-5
 			);
