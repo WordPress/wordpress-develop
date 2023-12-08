@@ -83,15 +83,11 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-<<<<<<< HEAD
-    if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'pull_request_target' }}
-=======
     if: >
       github.repository == 'WordPress/wordpress-develop' &&
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
->>>>>>> 07d277a3f9 (Leave PR comments without `workflow_dispatch`)
     steps:
       - name: 'Download artifact'
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
@@ -125,11 +121,7 @@ jobs:
             const commentInfo = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-<<<<<<< HEAD
               issue_number: ${{ github.event.number }}
-=======
-              issue_number,
->>>>>>> 07d277a3f9 (Leave PR comments without `workflow_dispatch`)
             };
 
             const comments = ( await github.rest.issues.listComments( commentInfo ) ).data;
