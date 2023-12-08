@@ -5,15 +5,7 @@ on:
   # pull_request_target:
   #   types: [ 'opened' ]
   workflow_run:
-    workflows: [Test Build Processes]
-    types:
-      - completed
-
-# Cancels all previous workflow runs for pull requests that have not completed.
-concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
-  # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.event_name == 'workflow_dispatch' && github.event.number || github.sha }}
+    workflows: ['Test Build Processes']
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
