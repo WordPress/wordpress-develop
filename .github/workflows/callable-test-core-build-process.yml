@@ -68,6 +68,10 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted during building
         run: git diff --exit-code
 
+      - name: Create ZIP of built files
+        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        run: zip -r wordpress.zip build/.
+
       - name: Clean after building to run from ${{ inputs.directory }}
         run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' || '' }}
 
