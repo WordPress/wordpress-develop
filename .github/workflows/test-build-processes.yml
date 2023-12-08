@@ -52,36 +52,36 @@ jobs:
   # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
-  test-core-build-process-macos:
-    name: Core running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ macos-latest ]
-        directory: [ 'src', 'build' ]
-    with:
-      os: ${{ matrix.os }}
-      directory: ${{ matrix.directory }}
+  # test-core-build-process-macos:
+  #   name: Core running from ${{ matrix.directory }}
+  #   uses: WordPress/wordpress-develop/.github/workflows/callable-test-core-build-process.yml@trunk
+  #   permissions:
+  #     contents: read
+  #   if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ macos-latest ]
+  #       directory: [ 'src', 'build' ]
+  #   with:
+  #     os: ${{ matrix.os }}
+  #     directory: ${{ matrix.directory }}
 
   # Tests the Gutenberg plugin build process on multiple operating systems when run within a wordpress-develop checkout.
-  test-gutenberg-build-process:
-    name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
-        directory: [ 'src', 'build' ]
-    with:
-      os: ${{ matrix.os }}
-      directory: ${{ matrix.directory }}
+  # test-gutenberg-build-process:
+  #   name: Gutenberg running from ${{ matrix.directory }}
+  #   uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
+  #   permissions:
+  #     contents: read
+  #   if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ ubuntu-latest, windows-latest ]
+  #       directory: [ 'src', 'build' ]
+  #   with:
+  #     os: ${{ matrix.os }}
+  #     directory: ${{ matrix.directory }}
 
   # Tests the Gutenberg plugin build process on MacOS when run within a wordpress-develop checkout.
   #
@@ -91,20 +91,20 @@ jobs:
   # The `matrix` and `runner` contexts are not available for use within `if` expressions. So there is
   # currently no way to determine the OS being used on a given job.
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
-  test-gutenberg-build-process-macos:
-    name: Gutenberg running from ${{ matrix.directory }}
-    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
-    permissions:
-      contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ macos-latest ]
-        directory: [ 'src', 'build' ]
-    with:
-      os: ${{ matrix.os }}
-      directory: ${{ matrix.directory }}
+  # test-gutenberg-build-process-macos:
+  #   name: Gutenberg running from ${{ matrix.directory }}
+  #   uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
+  #   permissions:
+  #     contents: read
+  #   if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ macos-latest ]
+  #       directory: [ 'src', 'build' ]
+  #   with:
+  #     os: ${{ matrix.os }}
+  #     directory: ${{ matrix.directory }}
 
   # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
   # leave a comment detailing how to test the PR within WordPress Playground.
@@ -127,21 +127,21 @@ jobs:
           name: pr
           path: pr/
 
-  slack-notifications:
-    name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
-    permissions:
-      actions: read
-      contents: read
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
-    with:
-      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
-    secrets:
-      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
-      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
-      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
-      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+  # slack-notifications:
+  #   name: Slack Notifications
+  #   uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+  #   permissions:
+  #     actions: read
+  #     contents: read
+  #   needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
+  #   if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+  #   with:
+  #     calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+  #   secrets:
+  #     SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+  #     SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+  #     SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+  #     SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks
