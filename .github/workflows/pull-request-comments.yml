@@ -7,6 +7,10 @@ on:
   workflow_run:
     workflows:
       - Test Build Processes
+      - Leave WordPress Playground details
+      - test-build-processes.yml
+      - test-build-processes
+      - test-core-build-process
     types:
       - completed
 
