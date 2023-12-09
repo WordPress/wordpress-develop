@@ -129,7 +129,8 @@ jobs:
               workflow_id: 'pull-request-comments.yml',
               ref: 'trunk',
               inputs: {
-                pr_number: '${{ github.event.number }}'
+                pr_number: '${{ github.event.number }}',
+                github_token: '${{ secrets.GITHUB_TOKEN }}'
               }
             });
 
@@ -157,7 +158,7 @@ jobs:
     needs: [ playground-comment ]
     if: |
       always() &&
-      github.repository == 'WordPress/wordpress-develop' &&
+      github.repository == 'adamziel/wordpress-develop' &&
       github.event_name != 'pull_request' &&
       github.run_attempt < 2 &&
       (
