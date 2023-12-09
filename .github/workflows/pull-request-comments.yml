@@ -10,10 +10,10 @@ on:
         description: 'The pull request number to process.'
         required: true
         type: string
-      its_a_token:
-        description: 'The GitHub token to use for authentication.'
-        required: true
-        type: string
+      # its_a_token:
+      #   description: 'The GitHub token to use for authentication.'
+      #   required: true
+      #   type: string
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -95,7 +95,7 @@ jobs:
     steps:
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         env:
-          GITHUB_TOKEN: ${{ inputs.its_a_token }}
+          # GITHUB_TOKEN: ${{ inputs.its_a_token }}
           ACTIONS_STEP_DEBUG: true
         with:
           script: |
