@@ -91,9 +91,12 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        env:
+          github-token: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ inputs.github_token }}
+          ACTIONS_STEP_DEBUG: true
         with:
           github-token: ${{ inputs.github_token }}
           script: |

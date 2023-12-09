@@ -114,12 +114,16 @@ jobs:
       actions: write
     continue-on-error: true
     # needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
-    if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'pull_request' }}
+    # if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'pull_request' }}
 
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTIONS_STEP_DEBUG: true
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           retries: 2
           retry-exempt-status-codes: 418
           script: |
