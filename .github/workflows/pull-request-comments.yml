@@ -88,6 +88,7 @@ jobs:
   playground-details:
     name: Comment on a pull request with Playground details
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'workflow_dispatch' }}
     permissions:
       issues: write
       pull-requests: write
