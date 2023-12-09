@@ -114,7 +114,7 @@ jobs:
       actions: write
     continue-on-error: true
     needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'adamziel/wordpress-develop' && github.event_name == 'pull_request' }}
 
     steps:
       - name: Dispatch workflow run
