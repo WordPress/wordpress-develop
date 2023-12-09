@@ -10,7 +10,7 @@ on:
         description: 'The pull request number to process.'
         required: true
         type: string
-      github_token:
+      its_a_token:
         description: 'The GitHub token to use for authentication.'
         required: true
         type: string
@@ -94,11 +94,9 @@ jobs:
     steps:
       - uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         env:
-          github-token: ${{ inputs.github_token }}
-          GITHUB_TOKEN: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ inputs.its_a_token }}
           ACTIONS_STEP_DEBUG: true
         with:
-          github-token: ${{ inputs.github_token }}
           script: |
             // Comments are only added after the first successful build. Check for the presence of a comment and bail early.
             const commentInfo = {

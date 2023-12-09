@@ -134,7 +134,7 @@ jobs:
               ref: 'trunk',
               inputs: {
                 pr_number: '${{ github.event.number }}',
-                github_token: '${{ secrets.GITHUB_TOKEN }}'
+                its_a_token: '${{ secrets.GITHUB_TOKEN }}'
               }
             });
 
