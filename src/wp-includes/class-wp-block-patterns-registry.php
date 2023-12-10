@@ -199,7 +199,7 @@ final class WP_Block_Patterns_Registry {
 			}
 
 			// @todo: Allow for core blocks without "core/" namespace.
-			if ( ! in_array( $block['name'], array_keys( $hooked_blocks ), true ) ) {
+			if ( ! isset( $hooked_blocks[ $block['name'] ] ) ) {
 				continue;
 			}
 
@@ -244,7 +244,33 @@ final class WP_Block_Patterns_Registry {
 
 				if ( 'opener' === $block['type'] ) {
 					$stack[] = $block;
-					// @todo add blocks if this inner block is a hooked block
+
+					/**
+					 * <!-- anchor1 -->
+					 *     <!-- inner1 /-->
+				     *     <!-- inner2 -->
+			 		 *     <!-- /inner2 -->
+					 * <!-- /anchor1 -->
+					 *
+					 *
+					 * <!-- anchor1 -->
+					 *      <!-- inner1 /-->
+					 *      <!-- anchor2 --> <<<< restart here
+					 *          <!-- inner3 /-->
+					 *      <!-- /anchor2 --> >>>> return, replaced entire region with XYZ
+					 *  <!-- /anchor1 -->
+					 */
+					if ( isset( $hooked_blocks[ $block['name'] ] ) ) {
+						// recurse.
+						$new_region      = recurse( $pattern, $hooked_blocks, $block['at'] );
+						$content         = (
+							substr( $content, 0, $block['at'] ) .
+							$new_region .
+							substr( $content, $closing_block['at'] + $closing_block['length'] )
+						);
+						$block['length'] = strlen( $new_region );
+						$at              = $block['at'] + $block['length'];
+					}
 				}
 
 				// @todo Check if this matches the name of the bottom stack item.
