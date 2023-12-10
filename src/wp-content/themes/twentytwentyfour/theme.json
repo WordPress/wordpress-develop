@@ -102,27 +102,27 @@
 			],
 			"palette": [
 				{
-					"color": "#f9f9f9",
+					"color": "#ffffff",
 					"name": "Base",
 					"slug": "base"
 				},
 				{
-					"color": "#ffffff",
+					"color": "#000000",
 					"name": "Base / Two",
 					"slug": "base-2"
 				},
 				{
-					"color": "#111111",
+					"color": "#ff0000",
 					"name": "Contrast",
 					"slug": "contrast"
 				},
 				{
-					"color": "#636363",
+					"color": "#00ff00",
 					"name": "Contrast / Two",
 					"slug": "contrast-2"
 				},
 				{
-					"color": "#A4A4A4",
+					"color": "#AAAAAA",
 					"name": "Contrast / Three",
 					"slug": "contrast-3"
 				},
