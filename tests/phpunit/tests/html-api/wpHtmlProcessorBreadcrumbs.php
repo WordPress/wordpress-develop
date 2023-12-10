@@ -514,7 +514,11 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::seek
 	 */
 	public function test_can_seek_back_and_forth() {
-		$p = WP_HTML_Processor::create_fragment( '<div><p one><div><p><div two><p><div><p><div><p three>' );
+		$p = WP_HTML_Processor::create_fragment(
+			<<<'HTML'
+<div>text<p one>more stuff<div><![CDATA[this is not real CDATA]]><p><!-- hi --><div two><p><div><p>three comes soon<div><p three>' );
+HTML
+		);
 
 		// Find first tag of interest.
 		while ( $p->next_tag() && null === $p->get_attribute( 'one' ) ) {
