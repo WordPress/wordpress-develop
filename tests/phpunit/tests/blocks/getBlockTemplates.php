@@ -245,6 +245,8 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 		);
 
 		$template_paths = _get_block_templates_paths( $theme_dir );
+		sort( $expected_template_paths );
+		sort( $template_paths );
 		$this->assertSame( $expected_template_paths, $template_paths );
 	}
 
@@ -256,6 +258,8 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 		$expected_template_paths = array();
 		// should return empty array for invalid path.
 		$template_paths = _get_block_templates_paths( $theme_dir );
+		sort( $expected_template_paths );
+		sort( $template_paths );
 		$this->assertSame( $expected_template_paths, $template_paths );
 	}
 }
