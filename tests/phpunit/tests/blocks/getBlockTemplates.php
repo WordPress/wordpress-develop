@@ -223,7 +223,10 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test _get_block_templates_paths() for a valid theme dir.
+	 *
 	 * @ticket 58196
+	 * @covers ::_get_block_templates_paths
 	 */
 	public function test_get_block_templates_paths_dir_exists() {
 		$theme_dir = get_template_directory();
@@ -251,7 +254,10 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test _get_block_templates_paths() for a invalid dir.
+	 *
 	 * @ticket 58196
+	 * @covers ::_get_block_templates_paths
 	 */
 	public function test_get_block_templates_paths_dir_doesnt_exists() {
 		$theme_dir               = '/tmp/random-invalid-theme-path';
