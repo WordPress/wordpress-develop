@@ -13,6 +13,7 @@
  * @since 2.8.0
  * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader-skins.php.
  */
+#[AllowDynamicProperties]
 class WP_Upgrader_Skin {
 
 	/**
@@ -81,6 +82,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
+	 *
 	 * @param WP_Upgrader $upgrader
 	 */
 	public function set_upgrader( &$upgrader ) {
@@ -91,6 +94,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 3.0.0
 	 */
 	public function add_strings() {
 	}
@@ -137,6 +141,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
 	 */
 	public function header() {
 		if ( $this->done_header ) {
@@ -148,6 +153,7 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 2.8.0
 	 */
 	public function footer() {
 		if ( $this->done_footer ) {
@@ -158,7 +164,9 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @param string|WP_Error $errors
+	 * @since 2.8.0
+	 *
+	 * @param string|WP_Error $errors Errors.
 	 */
 	public function error( $errors ) {
 		if ( ! $this->done_header ) {
@@ -178,43 +186,46 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @param string $string
-	 * @param mixed  ...$args Optional text replacements.
+	 * @since 2.8.0
+	 * @since 5.9.0 Renamed `$string` (a PHP reserved keyword) to `$feedback` for PHP 8 named parameter support.
+	 *
+	 * @param string $feedback Message data.
+	 * @param mixed  ...$args  Optional text replacements.
 	 */
-	public function feedback( $string, ...$args ) {
-		if ( isset( $this->upgrader->strings[ $string ] ) ) {
-			$string = $this->upgrader->strings[ $string ];
+	public function feedback( $feedback, ...$args ) {
+		if ( isset( $this->upgrader->strings[ $feedback ] ) ) {
+			$feedback = $this->upgrader->strings[ $feedback ];
 		}
 
-		if ( strpos( $string, '%' ) !== false ) {
+		if ( str_contains( $feedback, '%' ) ) {
 			if ( $args ) {
-				$args   = array_map( 'strip_tags', $args );
-				$args   = array_map( 'esc_html', $args );
-				$string = vsprintf( $string, $args );
+				$args     = array_map( 'strip_tags', $args );
+				$args     = array_map( 'esc_html', $args );
+				$feedback = vsprintf( $feedback, $args );
 			}
 		}
-		if ( empty( $string ) ) {
+		if ( empty( $feedback ) ) {
 			return;
 		}
-		show_message( $string );
+		show_message( $feedback );
 	}
 
 	/**
-	 * Action to perform before an update.
+	 * Performs an action before an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function before() {}
 
 	/**
-	 * Action to perform following an update.
+	 * Performs and action following an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function after() {}
 
 	/**
-	 * Output JavaScript that calls function to decrement the update counts.
+	 * Outputs JavaScript that calls function to decrement the update counts.
 	 *
 	 * @since 3.9.0
 	 *
@@ -229,7 +240,14 @@ class WP_Upgrader_Skin {
 		if ( defined( 'IFRAME_REQUEST' ) ) {
 			echo '<script type="text/javascript">
 					if ( window.postMessage && JSON ) {
-						window.parent.postMessage( JSON.stringify( { action: "decrementUpdateCount", upgradeType: "' . $type . '" } ), window.location.protocol + "//" + window.location.hostname );
+						window.parent.postMessage(
+							JSON.stringify( {
+								action: "decrementUpdateCount",
+								upgradeType: "' . $type . '"
+							} ),
+							window.location.protocol + "//" + window.location.hostname
+								+ ( "" !== window.location.port ? ":" + window.location.port : "" )
+						);
 					}
 				</script>';
 		} else {
@@ -244,10 +262,12 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * @since 3.0.0
 	 */
 	public function bulk_header() {}
 
 	/**
+	 * @since 3.0.0
 	 */
 	public function bulk_footer() {}
 
@@ -256,8 +276,8 @@ class WP_Upgrader_Skin {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Error $wp_error WP_Error
-	 * @return bool
+	 * @param WP_Error $wp_error WP_Error object.
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		return false;

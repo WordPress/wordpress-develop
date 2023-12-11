@@ -7,8 +7,8 @@
 class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 	protected $post_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->post_id = self::factory()->post->create();
 	}
 
@@ -257,5 +257,4 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->assertContains( 'page', $class );
 		$this->assertContains( "page-id-{$page_id}", $class );
 	}
-
 }

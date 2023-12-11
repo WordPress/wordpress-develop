@@ -14,6 +14,7 @@
  *
  * @since 4.8.0
  */
+#[AllowDynamicProperties]
 class WP_Community_Events {
 	/**
 	 * ID for a WordPress user account.
@@ -29,7 +30,7 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @var bool|array
+	 * @var false|array
 	 */
 	protected $user_location = false;
 
@@ -39,9 +40,9 @@ class WP_Community_Events {
 	 * @since 4.8.0
 	 *
 	 * @param int        $user_id       WP user ID.
-	 * @param bool|array $user_location Stored location data for the user.
-	 *                                  false to pass no location;
-	 *                                  array to pass a location {
+	 * @param false|array $user_location {
+	 *     Stored location data for the user. false to pass no location.
+	 *
 	 *     @type string $description The name of the location
 	 *     @type string $latitude    The latitude in decimal degrees notation, without the degree
 	 *                               symbol. e.g.: 47.615200.
@@ -306,7 +307,7 @@ class WP_Community_Events {
 	 * @since 4.8.0
 	 *
 	 * @param array $location Should contain 'latitude' and 'longitude' indexes.
-	 * @return bool|string false on failure, or a string on success.
+	 * @return string|false Transient key on success, false on failure.
 	 */
 	protected function get_events_transient_key( $location ) {
 		$key = false;
@@ -325,8 +326,8 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @param array    $events     Response body from the API request.
-	 * @param int|bool $expiration Optional. Amount of time to cache the events. Defaults to false.
+	 * @param array     $events     Response body from the API request.
+	 * @param int|false $expiration Optional. Amount of time to cache the events. Defaults to false.
 	 * @return bool true if events were cached; false if not.
 	 */
 	protected function cache_events( $events, $expiration = false ) {
@@ -352,8 +353,12 @@ class WP_Community_Events {
 	 *                     on success, false on failure.
 	 */
 	public function get_cached_events() {
-		$cached_response = get_site_transient( $this->get_events_transient_key( $this->user_location ) );
+		$transient_key = $this->get_events_transient_key( $this->user_location );
+		if ( ! $transient_key ) {
+			return false;
+		}
 
+		$cached_response = get_site_transient( $transient_key );
 		if ( isset( $cached_response['events'] ) ) {
 			$cached_response['events'] = $this->trim_events( $cached_response['events'] );
 		}
@@ -453,6 +458,7 @@ class WP_Community_Events {
 	 * @since 4.8.0
 	 * @since 4.9.7 Stick a WordCamp to the final list.
 	 * @since 5.5.2 Accepts and returns only the events, rather than an entire HTTP response.
+	 * @since 6.0.0 Decode HTML entities from the event title.
 	 *
 	 * @param array $events The events that will be prepared.
 	 * @return array The response body with events trimmed.
@@ -468,13 +474,16 @@ class WP_Community_Events {
 			$end_time = (int) $event['end_unix_timestamp'];
 
 			if ( time() < $end_time ) {
+				// Decode HTML entities from the event title.
+				$event['title'] = html_entity_decode( $event['title'], ENT_QUOTES, 'UTF-8' );
+
 				array_push( $future_events, $event );
 			}
 		}
 
 		$future_wordcamps = array_filter(
 			$future_events,
-			function( $wordcamp ) {
+			static function ( $wordcamp ) {
 				return 'wordcamp' === $wordcamp['type'];
 			}
 		);

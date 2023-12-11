@@ -3,7 +3,7 @@
 /**
  * @group admin
  */
-class Tests_Admin_Includes_Post extends WP_UnitTestCase {
+class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	protected static $contributor_id;
 	protected static $author_ids;
 	protected static $editor_id;
@@ -12,7 +12,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids   = $factory->user->create_many( 2, array( 'role' => 'author' ) );
 		self::$author_ids = self::$user_ids;
 
@@ -26,7 +26,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function test__wp_translate_postdata_cap_checks_contributor() {
+	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
 		// Create new draft post.
@@ -76,7 +76,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
 
-	function test__wp_translate_postdata_cap_checks_editor() {
+	public function test__wp_translate_postdata_cap_checks_editor() {
 		wp_set_current_user( self::$editor_id );
 
 		// Create new draft post.
@@ -131,7 +131,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 25272
 	 */
-	function test_edit_post_auto_draft() {
+	public function test_edit_post_auto_draft() {
 		wp_set_current_user( self::$editor_id );
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'auto-draft' ) );
 		$this->assertSame( 'auto-draft', $post->post_status );
@@ -294,6 +294,72 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31635
+	 */
+	public function test_bulk_edit_posts_should_publish_scheduled_post() {
+		wp_set_current_user( self::$admin_id );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_author'    => self::$author_ids[0],
+				'comment_status' => 'closed',
+				'ping_status'    => 'closed',
+				'post_status'    => 'future',
+				'post_date'      => gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) ),
+			)
+		);
+
+		$request = array(
+			'post_type'      => 'post',
+			'post_author'    => -1,
+			'ping_status'    => -1,
+			'comment_status' => -1,
+			'_status'        => 'publish',
+			'post'           => array( $post ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( 'publish', get_post_status( $post ) );
+		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
+	}
+	/**
+	 * @ticket 31635
+	 */
+	public function test_bulk_edit_posts_should_publish_draft_immediately() {
+		wp_set_current_user( self::$admin_id );
+
+		// Create draft last edited a month ago
+		$post = self::factory()->post->create(
+			array(
+				'post_author'    => self::$author_ids[0],
+				'comment_status' => 'closed',
+				'ping_status'    => 'closed',
+				'post_status'    => 'draft',
+				'post_date'      => gmdate( 'Y-m-d H:i:s', strtotime( '-1 month' ) ),
+			)
+		);
+
+		$request = array(
+			'post_type'      => 'post',
+			'post_author'    => -1,
+			'ping_status'    => -1,
+			'comment_status' => -1,
+			'_status'        => 'publish',
+			'post'           => array( $post ),
+		);
+
+		bulk_edit_posts( $request );
+
+		$this->assertSame( 'publish', get_post_status( $post ) );
+
+		// Expect to be published within the last minute (to consider slow testing environment).
+		$minute_before = gmdate( 'Y-m-d H:i:s', strtotime( '-1 minute' ) );
+		$this->assertGreaterThanOrEqual( $minute_before, get_post_time( 'Y-m-d H:i:s', false, $post ) );
+		$this->assertLessThanOrEqual( gmdate( 'Y-m-d H:i:s' ), get_post_time( 'Y-m-d H:i:s', false, $post ) );
+	}
+
+	/**
 	 * @ticket 41396
 	 */
 	public function test_bulk_edit_posts_should_set_post_format_before_wp_update_post_runs() {
@@ -316,6 +382,31 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		if ( self::$post_id === $post_id ) {
 			$this->assertSame( 'aside', get_post_format( $post_id ) );
 		}
+	}
+
+	/**
+	 * Tests that `bulk_edit_posts()` fires the 'bulk_edit_posts' action.
+	 *
+	 * @ticket 28112
+	 *
+	 * @covers ::bulk_edit_posts
+	 */
+	public function test_bulk_edit_posts_should_fire_bulk_edit_posts_action() {
+		wp_set_current_user( self::$admin_id );
+
+		$action = new MockAction();
+		add_action( 'bulk_edit_posts', array( $action, 'action' ) );
+
+		bulk_edit_posts(
+			array(
+				'post'      => self::$post_id,
+				'post_type' => 'post',
+				'_status'   => 1,
+
+			)
+		);
+
+		$this->assertSame( 1, $action->get_call_count() );
 	}
 
 	/**
@@ -391,8 +482,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		);
 
 		$found = get_sample_permalink_html( $p );
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/?p=' . $p . '"', $found );
-		$this->assertContains( '>' . get_option( 'home' ) . '/?p=' . $p . '<', $found );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/?p=' . $p . '"', $found );
+		$this->assertStringContainsString( '>' . get_option( 'home' ) . '/?p=' . $p . '<', $found );
 	}
 
 	/**
@@ -415,8 +506,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
-		$this->assertContains( '>' . urldecode( $post->post_name ) . '<', $found );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
+		$this->assertStringContainsString( '>' . urldecode( $post->post_name ) . '<', $found );
 	}
 
 	/**
@@ -440,8 +531,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
-		$this->assertContains( '>' . urldecode( get_permalink( $post ) ) . '<', $found );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found );
+		$this->assertStringContainsString( '>' . urldecode( get_permalink( $post ) ) . '<', $found );
 	}
 
 	/**
@@ -464,8 +555,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$found   = get_sample_permalink_html( $p, null, 'new_slug-صورة' );
 		$post    = get_post( $p );
 		$message = 'Published post';
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
-		$this->assertContains( '>new_slug-صورة<', $found, $message );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
+		$this->assertStringContainsString( '>new_slug-صورة<', $found, $message );
 
 		// Scheduled posts should use published permalink.
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + 100 );
@@ -480,8 +571,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$found   = get_sample_permalink_html( $p, null, 'new_slug-صورة' );
 		$post    = get_post( $p );
 		$message = 'Scheduled post';
-		$this->assertContains( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
-		$this->assertContains( '>new_slug-صورة<', $found, $message );
+		$this->assertStringContainsString( 'href="' . get_option( 'home' ) . '/' . $post->post_name . '/"', $found, $message );
+		$this->assertStringContainsString( '>new_slug-صورة<', $found, $message );
 
 		// Draft posts should use preview link.
 		$p = self::factory()->post->create(
@@ -498,8 +589,8 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$preview_link = get_permalink( $post->ID );
 		$preview_link = add_query_arg( 'preview', 'true', $preview_link );
 
-		$this->assertContains( 'href="' . esc_url( $preview_link ) . '"', $found, $message );
-		$this->assertContains( '>new_slug-صورة<', $found, $message );
+		$this->assertStringContainsString( 'href="' . esc_url( $preview_link ) . '"', $found, $message );
+		$this->assertStringContainsString( '>new_slug-صورة<', $found, $message );
 	}
 
 	/**
@@ -522,7 +613,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 		$found = get_sample_permalink_html( $p );
 		$post  = get_post( $p );
-		$this->assertContains( 'href="' . esc_url( get_preview_post_link( $post ) ), $found );
+		$this->assertStringContainsString( 'href="' . esc_url( get_preview_post_link( $post ) ), $found );
 	}
 
 	/**
@@ -686,6 +777,36 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertSame( 'child-page', $actual[1] );
 	}
 
+	/**
+	 * Tests that get_sample_permalink() preserves the original WP_Post properties.
+	 *
+	 * @ticket 54736
+	 *
+	 * @covers ::get_sample_permalink
+	 */
+	public function test_get_sample_permalink_should_preserve_the_original_post_properties() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+
+		$post_original = clone $post;
+
+		add_filter(
+			'get_sample_permalink',
+			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
+				return $permalink;
+			},
+			10,
+			5
+		);
+
+		get_sample_permalink( $post );
+		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
+	}
+
 	public function test_post_exists_should_match_title() {
 		$p = self::factory()->post->create(
 			array(
@@ -789,45 +910,15 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertSame( $p, post_exists( $title, $content, $date ) );
 	}
 
-	function test_use_block_editor_for_post() {
-		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'bogus',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $bogus_post_id ) );
-
-		register_post_type(
-			'restless',
-			array(
-				'show_in_rest' => false,
-			)
-		);
-		$restless_post_id = $this->factory()->post->create(
-			array(
-				'post_type' => 'restless',
-			)
-		);
-		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
-
-		$generic_post_id = $this->factory()->post->create();
-
-		add_filter( 'use_block_editor_for_post', '__return_false' );
-		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_false' );
-
-		add_filter( 'use_block_editor_for_post', '__return_true' );
-		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
-		remove_filter( 'use_block_editor_for_post', '__return_true' );
-	}
-
-	function test_get_block_editor_server_block_settings() {
+	public function test_get_block_editor_server_block_settings() {
 		$name     = 'core/test';
 		$settings = array(
 			'icon'            => 'text',
 			'category'        => 'common',
 			'render_callback' => 'foo',
+			'ancestor'        => array( 'core/test-ancestor' ),
+			'selectors'       => array( 'root' => '.wp-block-test' ),
+			'block_hooks'     => array( 'core/post-content' => 'before' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -839,13 +930,22 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $name, $blocks );
 		$this->assertSame(
 			array(
+				'apiVersion'  => 1,
 				'title'       => '',
 				'description' => '',
 				'icon'        => 'text',
-				'category'    => 'common',
-				'keywords'    => array(),
+				'attributes'  => array(
+					'lock'     => array( 'type' => 'object' ),
+					'metadata' => array( 'type' => 'object' ),
+				),
 				'usesContext' => array(),
+				'blockHooks'  => array( 'core/post-content' => 'before' ),
+				'selectors'   => array( 'root' => '.wp-block-test' ),
+				'category'    => 'common',
 				'styles'      => array(),
+				'ancestor'    => array( 'core/test-ancestor' ),
+				'keywords'    => array(),
+				'variations'  => array(),
 			),
 			$blocks[ $name ]
 		);
@@ -853,8 +953,10 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::add_meta
 	 */
-	public function test_post_add_meta_empty_is_allowed() {
+	public function test_add_meta_allows_empty_values() {
 		$p = self::factory()->post->create();
 
 		$_POST = array(
@@ -874,6 +976,16 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	 * @ticket 37406
 	 */
 	public function test_post_exists_should_support_post_type() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title     = 'Foo Bar';
 		$post_type = 'page';
 		$post_id   = self::factory()->post->create(
@@ -891,6 +1003,16 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	 * @ticket 37406
 	 */
 	public function test_post_exists_should_not_match_a_page_for_post() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
 		$title     = 'Foo Bar';
 		$post_type = 'page';
 		$post_id   = self::factory()->post->create(
@@ -900,5 +1022,160 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 0, post_exists( $title, null, null, 'post' ) );
+	}
+
+	/**
+	 * Test the status support in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_support_post_status() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( $post_id, post_exists( $title, null, null, null, $post_status ) );
+	}
+
+
+	/**
+	 * Test the type and status query in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_support_post_type_status_combined() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( $post_id, post_exists( $title, null, null, $post_type, $post_status ) );
+	}
+
+	/**
+	 * Test that post_exists() doesn't find an existing draft post when looking for publish
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_only_match_correct_post_status() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'draft';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( 0, post_exists( $title, null, null, null, 'publish' ) );
+	}
+
+	/**
+	 * Test the status support in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_not_match_invalid_post_type_and_status_combined() {
+		if ( PHP_VERSION_ID >= 80100 ) {
+			/*
+			 * For the time being, ignoring PHP 8.1 "null to non-nullable" deprecations coming in
+			 * via hooked in filter functions until a more structural solution to the
+			 * "missing input validation" conundrum has been architected and implemented.
+			 */
+			$this->expectDeprecation();
+			$this->expectDeprecationMessageMatches( '`Passing null to parameter \#[0-9]+ \(\$[^\)]+\) of type [^ ]+ is deprecated`' );
+		}
+
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+
+		$this->assertSame( 0, post_exists( $title, null, null, $post_type, 'draft' ) );
+		$this->assertSame( 0, post_exists( $title, null, null, 'wp_tests', $post_status ) );
+	}
+
+	/**
+	 * Test refreshed nonce for metabox loader.
+	 */
+	public function test_user_get_refreshed_metabox_nonce() {
+
+		// Create a post by the current user.
+		wp_set_current_user( self::$editor_id );
+
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+			'post_author'  => self::$editor_id,
+			'post_status'  => 'draft',
+		);
+		$post_id   = wp_insert_post( $post_data );
+
+		// Simulate the $_POST data from the heartbeat.
+		$data = array(
+			'wp-refresh-metabox-loader-nonces' => array(
+				'post_id' => (string) $post_id,
+			),
+			'wp-refresh-post-lock'             => array(
+				'lock'    => '1658203298:1',
+				'post_id' => (string) $post_id,
+			),
+		);
+
+		// Call the function we're testing.
+		$response = wp_refresh_metabox_loader_nonces( array(), $data );
+
+		// Ensure that both nonces were created.
+		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
+		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
 }

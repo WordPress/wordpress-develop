@@ -40,7 +40,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		// This class uses the timeout on a per-connection basis, others use it on a per-action basis.
 		if ( ! defined( 'FS_TIMEOUT' ) ) {
-			define( 'FS_TIMEOUT', 240 );
+			define( 'FS_TIMEOUT', 4 * MINUTE_IN_SECONDS );
 		}
 
 		if ( empty( $opt['port'] ) ) {
@@ -358,13 +358,20 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $source      Path to the source file.
-	 * @param string $destination Path to the destination file.
-	 * @param bool   $overwrite   Optional. Whether to overwrite the destination file if it exists.
+	 * @param string $source      Path to the source file or directory.
+	 * @param string $destination Path to the destination file or directory.
+	 * @param bool   $overwrite   Optional. Whether to overwrite the destination if it exists.
 	 *                            Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -412,14 +419,25 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
+	 * @since 6.3.0 Returns false for an empty path.
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file exists or not.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path exists or not.
 	 */
-	public function exists( $file ) {
-		$list = ftp_nlist( $this->link, $file );
+	public function exists( $path ) {
+		/*
+		 * Check for empty path. If ftp_nlist() receives an empty path,
+		 * it checks the current working directory and may return true.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/33058.
+		 */
+		if ( '' === $path ) {
+			return false;
+		}
 
-		if ( empty( $list ) && $this->is_dir( $file ) ) {
+		$list = ftp_nlist( $this->link, $path );
+
+		if ( empty( $list ) && $this->is_dir( $path ) ) {
 			return true; // File is an empty directory.
 		}
 
@@ -450,7 +468,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$cwd    = $this->cwd();
 		$result = @ftp_chdir( $this->link, trailingslashit( $path ) );
 
-		if ( $result && $path == $this->cwd() || $this->cwd() != $cwd ) {
+		if ( $result && $path === $this->cwd() || $this->cwd() !== $cwd ) {
 			@ftp_chdir( $this->link, $cwd );
 			return true;
 		}
@@ -475,10 +493,10 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $file Path to file or directory.
-	 * @return bool Whether $file is writable.
+	 * @param string $path Path to file or directory.
+	 * @return bool Whether $path is writable.
 	 */
-	public function is_writable( $file ) {
+	public function is_writable( $path ) {
 		return true;
 	}
 
@@ -515,7 +533,9 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return int|false Size of the file in bytes on success, false on failure.
 	 */
 	public function size( $file ) {
-		return ftp_size( $this->link, $file );
+		$size = ftp_size( $this->link, $file );
+
+		return ( $size > -1 ) ? $size : false;
 	}
 
 	/**
@@ -541,13 +561,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string     $path  Path for new directory.
-	 * @param int|false  $chmod Optional. The permissions as octal number (or false to skip chmod).
-	 *                          Default false.
-	 * @param string|int $chown Optional. A user name or number (or false to skip chown).
-	 *                          Default false.
-	 * @param string|int $chgrp Optional. A group name or number (or false to skip chgrp).
-	 *                          Default false.
+	 * @param string           $path  Path for new directory.
+	 * @param int|false        $chmod Optional. The permissions as octal number (or false to skip chmod).
+	 *                                Default false.
+	 * @param string|int|false $chown Optional. A user name or number (or false to skip chown).
+	 *                                Default false.
+	 * @param string|int|false $chgrp Optional. A group name or number (or false to skip chgrp).
+	 *                                Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
@@ -582,7 +602,24 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 	/**
 	 * @param string $line
-	 * @return array
+	 * @return array {
+	 *     Array of file information.
+	 *
+	 *     @type string       $name        Name of the file or directory.
+	 *     @type string       $perms       *nix representation of permissions.
+	 *     @type string       $permsn      Octal representation of permissions.
+	 *     @type string|false $number      File number as a string, or false if not available.
+	 *     @type string|false $owner       Owner name or ID, or false if not available.
+	 *     @type string|false $group       File permissions group, or false if not available.
+	 *     @type string|false $size        Size of file in bytes as a string, or false if not available.
+	 *     @type string|false $lastmodunix Last modified unix timestamp as a string, or false if not available.
+	 *     @type string|false $lastmod     Last modified month (3 letters) and day (without leading 0), or
+	 *                                     false if not available.
+	 *     @type string|false $time        Last modified time, or false if not available.
+	 *     @type string       $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
+	 *     @type array|false  $files       If a directory and `$recursive` is true, contains another array of files.
+	 *                                     False if unable to list directory contents.
+	 * }
 	 */
 	public function parselisting( $line ) {
 		static $is_windows = null;
@@ -614,7 +651,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$b['year']   = $lucifer[3];
 			$b['hour']   = $lucifer[4];
 			$b['minute'] = $lucifer[5];
-			$b['time']   = mktime( $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) == 0 ? 12 : 0 ), $lucifer[5], 0, $lucifer[1], $lucifer[2], $lucifer[3] );
+			$b['time']   = mktime( $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) === 0 ? 12 : 0 ), $lucifer[5], 0, $lucifer[1], $lucifer[2], $lucifer[3] );
 			$b['am/pm']  = $lucifer[6];
 			$b['name']   = $lucifer[8];
 		} elseif ( ! $is_windows ) {
@@ -647,7 +684,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['group']  = $lucifer[3];
 				$b['size']   = $lucifer[4];
 
-				if ( 8 == $lcount ) {
+				if ( 8 === $lcount ) {
 					sscanf( $lucifer[5], '%d-%d-%d', $b['year'], $b['month'], $b['day'] );
 					sscanf( $lucifer[6], '%d:%d', $b['hour'], $b['minute'] );
 
@@ -692,18 +729,28 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @param bool   $recursive      Optional. Whether to recursively include file details in nested directories.
 	 *                               Default false.
 	 * @return array|false {
-	 *     Array of files. False if unable to list directory contents.
+	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type string $name        Name of the file or directory.
-	 *     @type string $perms       *nix representation of permissions.
-	 *     @type int    $permsn      Octal representation of permissions.
-	 *     @type string $owner       Owner name or ID.
-	 *     @type int    $size        Size of file in bytes.
-	 *     @type int    $lastmodunix Last modified unix timestamp.
-	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
-	 *     @type int    $time        Last modified time.
-	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and $recursive is true, contains another array of files.
+	 *     @type array $0... {
+	 *         Array of file information. Note that some elements may not be available on all filesystems.
+	 *
+	 *         @type string           $name        Name of the file or directory.
+	 *         @type string           $perms       *nix representation of permissions.
+	 *         @type string           $permsn      Octal representation of permissions.
+	 *         @type int|string|false $number      File number. May be a numeric string. False if not available.
+	 *         @type string|false     $owner       Owner name or ID, or false if not available.
+	 *         @type string|false     $group       File permissions group, or false if not available.
+	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
+	 *                                             False if not available.
+	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string.
+	 *                                             False if not available.
+	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0), or
+	 *                                             false if not available.
+	 *         @type string|false     $time        Last modified time, or false if not available.
+	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
+	 *         @type array|false      $files       If a directory and `$recursive` is true, contains another array of
+	 *                                             files. False if unable to list directory contents.
+	 *     }
 	 * }
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
@@ -745,19 +792,20 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				continue;
 			}
 
-			if ( $limit_file && $entry['name'] != $limit_file ) {
+			if ( $limit_file && $entry['name'] !== $limit_file ) {
 				continue;
 			}
 
 			$dirlist[ $entry['name'] ] = $entry;
 		}
 
-		$ret = array();
+		$path = trailingslashit( $path );
+		$ret  = array();
 
 		foreach ( (array) $dirlist as $struc ) {
 			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
-					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
+					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
 					$struc['files'] = array();
 				}

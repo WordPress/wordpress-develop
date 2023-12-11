@@ -11,7 +11,6 @@
  * Class for displaying the list of application password items.
  *
  * @since 5.6.0
- * @access private
  *
  * @see WP_List_Table
  */
@@ -22,7 +21,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		return array(
@@ -68,7 +67,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		if ( empty( $item['created'] ) ) {
 			echo '&mdash;';
 		} else {
-			echo gmdate( get_option( 'date_format', 'r' ), $item['created'] );
+			echo date_i18n( __( 'F j, Y' ), $item['created'] );
 		}
 	}
 
@@ -83,7 +82,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		if ( empty( $item['last_used'] ) ) {
 			echo '&mdash;';
 		} else {
-			echo gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
+			echo date_i18n( __( 'F j, Y' ), $item['last_used'] );
 		}
 	}
 
@@ -110,15 +109,13 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * @param array $item The current application password item.
 	 */
 	public function column_revoke( $item ) {
-		submit_button(
-			__( 'Revoke' ),
-			'delete',
-			'revoke-application-password-' . $item['uuid'],
-			false,
-			array(
-				/* translators: %s: the application password's given name. */
-				'title' => sprintf( __( 'Revoke "%s"' ), $item['name'] ),
-			)
+		$name = 'revoke-application-password-' . $item['uuid'];
+		printf(
+			'<button type="button" name="%1$s" id="%1$s" class="button delete" aria-label="%2$s">%3$s</button>',
+			esc_attr( $name ),
+			/* translators: %s: the application password's given name. */
+			esc_attr( sprintf( __( 'Revoke "%s"' ), $item['name'] ) ),
+			__( 'Revoke' )
 		);
 	}
 
@@ -156,7 +153,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		<div class="tablenav <?php echo esc_attr( $which ); ?>">
 			<?php if ( 'bottom' === $which ) : ?>
 				<div class="alignright">
-					<?php submit_button( __( 'Revoke all application passwords' ), 'delete', 'revoke-all-application-passwords', false ); ?>
+					<button type="button" name="revoke-all-application-passwords" id="revoke-all-application-passwords" class="button delete"><?php _e( 'Revoke all application passwords' ); ?></button>
 				</div>
 			<?php endif; ?>
 			<div class="alignleft actions bulkactions">
@@ -224,20 +221,21 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					echo '{{ data.name }}';
 					break;
 				case 'created':
-					echo "<# print( wp.date.dateI18n( '" . esc_js( get_option( 'date_format' ) ) . "', data.created ) ) #>";
+					// JSON encoding automatically doubles backslashes to ensure they don't get lost when printing the inline JS.
+					echo '<# print( wp.date.dateI18n( ' . wp_json_encode( __( 'F j, Y' ) ) . ', data.created ) ) #>';
 					break;
 				case 'last_used':
-					echo "<# print( data.last_used !== null ? wp.date.dateI18n( '" . esc_js( get_option( 'date_format' ) ) . "', data.last_used ) : '—' ) #>";
+					echo '<# print( data.last_used !== null ? wp.date.dateI18n( ' . wp_json_encode( __( 'F j, Y' ) ) . ", data.last_used ) : '—' ) #>";
 					break;
 				case 'last_ip':
 					echo "{{ data.last_ip || '—' }}";
 					break;
 				case 'revoke':
 					printf(
-						'<input type="submit" class="button delete" value="%1$s" title="%2$s">',
-						esc_attr( __( 'Revoke' ) ),
+						'<button type="button" class="button delete" aria-label="%1$s">%2$s</button>',
 						/* translators: %s: the application password's given name. */
-						esc_attr( sprintf( __( 'Revoke "%s"' ), '{{ data.name }}' ) )
+						esc_attr( sprintf( __( 'Revoke "%s"' ), '{{ data.name }}' ) ),
+						esc_html__( 'Revoke' )
 					);
 					break;
 				default:
@@ -255,7 +253,10 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			}
 
 			if ( $is_primary ) {
-				echo '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
+				echo '<button type="button" class="toggle-row"><span class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					__( 'Show more details' ) .
+				'</span></button>';
 			}
 
 			echo '</td>';

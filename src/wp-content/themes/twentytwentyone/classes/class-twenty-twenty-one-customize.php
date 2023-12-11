@@ -4,23 +4,21 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 	/**
 	 * Customizer Settings.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 */
 	class Twenty_Twenty_One_Customize {
 
 		/**
 		 * Constructor. Instantiate the object.
 		 *
-		 * @access public
-		 *
-		 * @since 1.0.0
+		 * @since Twenty Twenty-One 1.0
 		 */
 		public function __construct() {
 			add_action( 'customize_register', array( $this, 'register' ) );
@@ -29,12 +27,9 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		/**
 		 * Register customizer options.
 		 *
-		 * @access public
-		 *
-		 * @since 1.0.0
+		 * @since Twenty Twenty-One 1.0
 		 *
 		 * @param WP_Customize_Manager $wp_customize Theme Customizer object.
-		 *
 		 * @return void
 		 */
 		public function register( $wp_customize ) {
@@ -97,7 +92,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 				array(
 					'capability'        => 'edit_theme_options',
 					'default'           => 'excerpt',
-					'sanitize_callback' => function( $value ) {
+					'sanitize_callback' => static function ( $value ) {
 						return 'excerpt' === $value || 'full' === $value ? $value : 'excerpt';
 					},
 				)
@@ -108,7 +103,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 				array(
 					'type'    => 'radio',
 					'section' => 'excerpt_settings',
-					'label'   => esc_html__( 'On archive pages, posts show:', 'twentytwentyone' ),
+					'label'   => esc_html__( 'On Archive Pages, posts show:', 'twentytwentyone' ),
 					'choices' => array(
 						'excerpt' => esc_html__( 'Summary', 'twentytwentyone' ),
 						'full'    => esc_html__( 'Full text', 'twentytwentyone' ),
@@ -118,7 +113,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 
 			// Background color.
 			// Include the custom control class.
-			include_once get_theme_file_path( 'classes/class-twenty-twenty-one-customize-color-control.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
+			require_once get_theme_file_path( 'classes/class-twenty-twenty-one-customize-color-control.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
 
 			// Register the custom control.
 			$wp_customize->register_control_type( 'Twenty_Twenty_One_Customize_Color_Control' );
@@ -140,7 +135,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 					$wp_customize,
 					'background_color',
 					array(
-						'label'   => esc_html__( 'Background Control', 'twentytwentyone' ),
+						'label'   => esc_html_x( 'Background color', 'Customizer control', 'twentytwentyone' ),
 						'section' => 'colors',
 						'palette' => $colors,
 					)
@@ -151,12 +146,9 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		/**
 		 * Sanitize boolean for checkbox.
 		 *
-		 * @access public
-		 *
-		 * @since 1.0.0
+		 * @since Twenty Twenty-One 1.0
 		 *
 		 * @param bool $checked Whether or not a box is checked.
-		 *
 		 * @return bool
 		 */
 		public static function sanitize_checkbox( $checked = null ) {
@@ -166,9 +158,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		/**
 		 * Render the site title for the selective refresh partial.
 		 *
-		 * @access public
-		 *
-		 * @since 1.0.0
+		 * @since Twenty Twenty-One 1.0
 		 *
 		 * @return void
 		 */
@@ -179,9 +169,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		/**
 		 * Render the site tagline for the selective refresh partial.
 		 *
-		 * @access public
-		 *
-		 * @since 1.0.0
+		 * @since Twenty Twenty-One 1.0
 		 *
 		 * @return void
 		 */

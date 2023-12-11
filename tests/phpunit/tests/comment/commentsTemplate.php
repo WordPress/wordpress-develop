@@ -1,11 +1,21 @@
 <?php
 
 /**
+ * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ *
  * @group comment
  *
- * Testing items that are only testable by grabbing the markup of `comments_template()` from the output buffer.
+ * @covers ::comments_template
  */
 class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
+
+	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
 
 	/**
 	 * @ticket 8071
@@ -558,7 +568,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// This is the main post page, so we don't expect any cpage param.
 		foreach ( $matches[1] as $m ) {
-			$this->assertNotContains( 'cpage', $m );
+			$this->assertStringNotContainsString( 'cpage', $m );
 		}
 
 		$link_p2 = add_query_arg(
@@ -578,7 +588,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// They should all be on page 2.
 		foreach ( $matches[1] as $m ) {
-			$this->assertContains( 'cpage=2', $m );
+			$this->assertStringContainsString( 'cpage=2', $m );
 		}
 	}
 
@@ -650,7 +660,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		preg_match_all( '|href="(.*?#comment-([0-9]+))|', $found_p0, $matches );
 
 		foreach ( $matches[1] as $m ) {
-			$this->assertContains( 'cpage=3', $m );
+			$this->assertStringContainsString( 'cpage=3', $m );
 		}
 
 		$link_p2 = add_query_arg(
@@ -670,7 +680,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// They should all be on page 2.
 		foreach ( $matches[1] as $m ) {
-			$this->assertContains( 'cpage=2', $m );
+			$this->assertStringContainsString( 'cpage=2', $m );
 		}
 
 		// p1 is the last page (neat!).
@@ -691,7 +701,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		// They should all be on page 2.
 		foreach ( $matches[1] as $m ) {
-			$this->assertContains( 'cpage=1', $m );
+			$this->assertStringContainsString( 'cpage=1', $m );
 		}
 	}
 
@@ -993,7 +1003,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 		add_filter(
 			'comments_template_query_args',
-			function ( $args ) use ( &$offset, $query_args ) {
+			static function ( $args ) use ( &$offset, $query_args ) {
 				$offset = $args['offset'];
 
 				return array_merge( $args, $query_args );
@@ -1003,7 +1013,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		if ( ! empty( $top_level_query_args ) ) {
 			add_filter(
 				'comments_template_top_level_query_args',
-				function ( $args ) use ( $top_level_query_args ) {
+				static function ( $args ) use ( $top_level_query_args ) {
 					return array_merge( $args, $top_level_query_args );
 				}
 			);

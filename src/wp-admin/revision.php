@@ -104,11 +104,12 @@ switch ( $action ) {
 		}
 
 		$post_edit_link = get_edit_post_link();
-		$post_title     = '<a href="' . $post_edit_link . '">' . _draft_or_post_title() . '</a>';
+		$post_title     = '<a href="' . esc_url( $post_edit_link ) . '">' . _draft_or_post_title() . '</a>';
 		/* translators: %s: Post title. */
 		$h1             = sprintf( __( 'Compare Revisions of &#8220;%s&#8221;' ), $post_title );
-		$return_to_post = '<a href="' . $post_edit_link . '">' . __( '&larr; Return to editor' ) . '</a>';
-		$title          = __( 'Revisions' );
+		$return_to_post = '<a href="' . esc_url( $post_edit_link ) . '">' . __( '&larr; Go to editor' ) . '</a>';
+		// Used in the HTML title tag.
+		$title = __( 'Revisions' );
 
 		$redirect = false;
 		break;
@@ -125,7 +126,7 @@ if ( ! empty( $redirect ) ) {
 }
 
 // This is so that the correct "Edit" menu item is selected.
-if ( ! empty( $post->post_type ) && 'post' != $post->post_type ) {
+if ( ! empty( $post->post_type ) && 'post' !== $post->post_type ) {
 	$parent_file = 'edit.php?post_type=' . $post->post_type;
 } else {
 	$parent_file = 'edit.php';
@@ -153,8 +154,8 @@ get_current_screen()->add_help_tab(
 );
 
 $revisions_sidebar  = '<p><strong>' . __( 'For more information:' ) . '</strong></p>';
-$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/article/revisions/">Revisions Management</a>' ) . '</p>';
-$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
+$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/documentation/article/revisions/">Revisions Management</a>' ) . '</p>';
+$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>';
 
 get_current_screen()->set_help_sidebar( $revisions_sidebar );
 

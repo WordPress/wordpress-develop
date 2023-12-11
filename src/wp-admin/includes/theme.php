@@ -7,7 +7,7 @@
  */
 
 /**
- * Remove a theme
+ * Removes a theme.
  *
  * @since 2.8.0
  *
@@ -72,9 +72,30 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		return new WP_Error( 'fs_no_themes_dir', __( 'Unable to locate WordPress theme directory.' ) );
 	}
 
+	/**
+	 * Fires immediately before a theme deletion attempt.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $stylesheet Stylesheet of the theme to delete.
+	 */
+	do_action( 'delete_theme', $stylesheet );
+
+	$theme = wp_get_theme( $stylesheet );
+
 	$themes_dir = trailingslashit( $themes_dir );
 	$theme_dir  = trailingslashit( $themes_dir . $stylesheet );
 	$deleted    = $wp_filesystem->delete( $theme_dir, true );
+
+	/**
+	 * Fires immediately after a theme deletion attempt.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $stylesheet Stylesheet of the theme to delete.
+	 * @param bool   $deleted    Whether the theme deletion was successful.
+	 */
+	do_action( 'deleted_theme', $stylesheet, $deleted );
 
 	if ( ! $deleted ) {
 		return new WP_Error(
@@ -106,6 +127,9 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 		WP_Theme::network_disable_theme( $stylesheet );
 	}
 
+	// Clear theme caches.
+	$theme->cache_delete();
+
 	// Force refresh of theme update information.
 	delete_site_transient( 'update_themes' );
 
@@ -127,7 +151,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
 }
 
 /**
- * Tidies a filename for url display by the theme editor.
+ * Tidies a filename for url display by the theme file editor.
  *
  * @since 2.9.0
  * @access private
@@ -137,7 +161,7 @@ function get_page_templates( $post = null, $post_type = 'page' ) {
  * @return string
  */
 function _get_template_edit_filename( $fullpath, $containingfolder ) {
-	return str_replace( dirname( dirname( $containingfolder ) ), '', $fullpath );
+	return str_replace( dirname( $containingfolder, 2 ), '', $fullpath );
 }
 
 /**
@@ -156,7 +180,7 @@ function theme_update_available( $theme ) {
 }
 
 /**
- * Retrieve the update link if there is a theme update available.
+ * Retrieves the update link if there is a theme update available.
  *
  * Will return a link if there is an update available.
  *
@@ -252,7 +276,7 @@ function get_theme_update_available( $theme ) {
 }
 
 /**
- * Retrieve list of WordPress theme features (aka theme tags).
+ * Retrieves list of WordPress theme features (aka theme tags).
  *
  * @since 3.1.0
  * @since 3.2.0 Added 'Gray' color and 'Featured Image Header', 'Featured Images',
@@ -279,6 +303,9 @@ function get_theme_update_available( $theme ) {
  * @since 5.5.0 Added 'Block Editor Patterns', 'Block Editor Styles',
  *              and 'Full Site Editing' features.
  * @since 5.5.0 Added 'Wide Blocks' layout option.
+ * @since 5.8.1 Added 'Template Editing' feature.
+ * @since 6.1.1 Replaced 'Full Site Editing' feature name with 'Site Editor'.
+ * @since 6.2.0 Added 'Style Variations' feature.
  *
  * @param bool $api Optional. Whether try to fetch tags from the WordPress.org API. Defaults to true.
  * @return array Array of features keyed by category with translations keyed by slug.
@@ -311,10 +338,12 @@ function get_theme_feature_list( $api = true ) {
 			'featured-image-header' => __( 'Featured Image Header' ),
 			'featured-images'       => __( 'Featured Images' ),
 			'footer-widgets'        => __( 'Footer Widgets' ),
-			'full-site-editing'     => __( 'Full Site Editing' ),
+			'full-site-editing'     => __( 'Site Editor' ),
 			'full-width-template'   => __( 'Full Width Template' ),
 			'post-formats'          => __( 'Post Formats' ),
 			'sticky-post'           => __( 'Sticky Post' ),
+			'style-variations'      => __( 'Style Variations' ),
+			'template-editing'      => __( 'Template Editing' ),
 			'theme-options'         => __( 'Theme Options' ),
 		),
 
@@ -421,7 +450,7 @@ function get_theme_feature_list( $api = true ) {
  * @param string       $action API action to perform: 'query_themes', 'theme_information',
  *                             'hot_tags' or 'feature_list'.
  * @param array|object $args   {
- *     Optional. Array or object of arguments to serialize for the Themes API.
+ *     Optional. Array or object of arguments to serialize for the Themes API. Default empty array.
  *
  *     @type string  $slug     The theme slug. Default empty.
  *     @type int     $per_page Number of themes per page. Default 24.
@@ -500,7 +529,7 @@ function themes_api( $action, $args = array() ) {
 	/**
 	 * Filters whether to override the WordPress.org Themes API.
 	 *
-	 * Passing a non-false value will effectively short-circuit the WordPress.org API request.
+	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_themes', 'theme_information', or 'feature_list', an object MUST
 	 * be passed. If `$action` is 'hot_tags', an array should be passed.
@@ -531,6 +560,7 @@ function themes_api( $action, $args = array() ) {
 		}
 
 		$http_args = array(
+			'timeout'    => 15,
 			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 		);
 		$request   = wp_remote_get( $url, $http_args );
@@ -581,15 +611,18 @@ function themes_api( $action, $args = array() ) {
 			}
 		}
 
-		// Back-compat for info/1.2 API, upgrade the theme objects in query_themes to objects.
-		if ( 'query_themes' === $action ) {
-			foreach ( $res->themes as $i => $theme ) {
-				$res->themes[ $i ] = (object) $theme;
+		if ( ! is_wp_error( $res ) ) {
+			// Back-compat for info/1.2 API, upgrade the theme objects in query_themes to objects.
+			if ( 'query_themes' === $action ) {
+				foreach ( $res->themes as $i => $theme ) {
+					$res->themes[ $i ] = (object) $theme;
+				}
 			}
-		}
-		// Back-compat for info/1.2 API, downgrade the feature_list result back to an array.
-		if ( 'feature_list' === $action ) {
-			$res = (array) $res;
+
+			// Back-compat for info/1.2 API, downgrade the feature_list result back to an array.
+			if ( 'feature_list' === $action ) {
+				$res = (array) $res;
+			}
 		}
 	}
 
@@ -598,16 +631,16 @@ function themes_api( $action, $args = array() ) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array|object|WP_Error $res    WordPress.org Themes API response.
-	 * @param string                $action Requested action. Likely values are 'theme_information',
-	 *                                      'feature_list', or 'query_themes'.
-	 * @param object                $args   Arguments used to query for installer pages from the WordPress.org Themes API.
+	 * @param array|stdClass|WP_Error $res    WordPress.org Themes API response.
+	 * @param string                  $action Requested action. Likely values are 'theme_information',
+	 *                                        'feature_list', or 'query_themes'.
+	 * @param stdClass                $args   Arguments used to query for installer pages from the WordPress.org Themes API.
 	 */
 	return apply_filters( 'themes_api_result', $res, $action, $args );
 }
 
 /**
- * Prepare themes for JavaScript.
+ * Prepares themes for JavaScript.
  *
  * @since 3.8.0
  *
@@ -629,7 +662,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 	 *
 	 * @param array           $prepared_themes An associative array of theme data. Default empty array.
 	 * @param WP_Theme[]|null $themes          An array of theme objects to prepare, if any.
-	 * @param string          $current_theme   The current theme slug.
+	 * @param string          $current_theme   The active theme slug.
 	 */
 	$prepared_themes = (array) apply_filters( 'pre_prepare_themes_for_js', array(), $themes, $current_theme );
 
@@ -637,7 +670,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		return $prepared_themes;
 	}
 
-	// Make sure the current theme is listed first.
+	// Make sure the active theme is listed first.
 	$prepared_themes[ $current_theme ] = array();
 
 	if ( null === $themes ) {
@@ -677,15 +710,27 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		}
 
 		$customize_action = null;
-		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
-			$customize_action = esc_url(
-				add_query_arg(
-					array(
-						'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
-					),
-					wp_customize_url( $slug )
-				)
+
+		$can_edit_theme_options = current_user_can( 'edit_theme_options' );
+		$can_customize          = current_user_can( 'customize' );
+		$is_block_theme         = $theme->is_block_theme();
+
+		if ( $is_block_theme && $can_edit_theme_options ) {
+			$customize_action = admin_url( 'site-editor.php' );
+			if ( $current_theme !== $slug ) {
+				$customize_action = add_query_arg( 'wp_theme_preview', $slug, $customize_action );
+			}
+		} elseif ( ! $is_block_theme && $can_customize && $can_edit_theme_options ) {
+			$customize_action = wp_customize_url( $slug );
+		}
+		if ( null !== $customize_action ) {
+			$customize_action = add_query_arg(
+				array(
+					'return' => urlencode( sanitize_url( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+				),
+				$customize_action
 			);
+			$customize_action = esc_url( $customize_action );
 		}
 
 		$update_requires_wp  = isset( $updates[ $slug ]['requires'] ) ? $updates[ $slug ]['requires'] : null;
@@ -751,6 +796,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
 			),
+			'blockTheme'     => $theme->is_block_theme(),
 		);
 	}
 
@@ -774,7 +820,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 }
 
 /**
- * Print JS templates for the theme-browsing UI in the Customizer.
+ * Prints JS templates for the theme-browsing UI in the Customizer.
  *
  * @since 4.2.0
  */
@@ -784,14 +830,29 @@ function customize_themes_print_templates() {
 		<div class="theme-backdrop"></div>
 		<div class="theme-wrap wp-clearfix" role="document">
 			<div class="theme-header">
-				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show previous theme' ); ?></span></button>
-				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show next theme' ); ?></span></button>
-				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Close details dialog' ); ?></span></button>
+				<button type="button" class="left dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Show previous theme' );
+					?>
+				</span></button>
+				<button type="button" class="right dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Show next theme' );
+					?>
+				</span></button>
+				<button type="button" class="close dashicons dashicons-no"><span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close details dialog' );
+					?>
+				</span></button>
 			</div>
 			<div class="theme-about wp-clearfix">
 				<div class="theme-screenshots">
 				<# if ( data.screenshot && data.screenshot[0] ) { #>
-					<div class="screenshot"><img src="{{ data.screenshot[0] }}" alt="" /></div>
+					<div class="screenshot"><img src="{{ data.screenshot[0] }}?ver={{ data.version }}" alt="" /></div>
 				<# } else { #>
 					<div class="screenshot blank"></div>
 				<# } #>
@@ -799,7 +860,7 @@ function customize_themes_print_templates() {
 
 				<div class="theme-info">
 					<# if ( data.active ) { #>
-						<span class="current-label"><?php _e( 'Current Theme' ); ?></span>
+						<span class="current-label"><?php _e( 'Active Theme' ); ?></span>
 					<# } #>
 					<h2 class="theme-name">{{{ data.name }}}<span class="theme-version">
 						<?php
@@ -823,7 +884,7 @@ function customize_themes_print_templates() {
 									'%1$s <span class="screen-reader-text">%2$s</span>',
 									/* translators: %s: Number of ratings. */
 									sprintf( __( '(%s ratings)' ), '{{ data.num_ratings }}' ),
-									/* translators: Accessibility text. */
+									/* translators: Hidden accessibility text. */
 									__( '(opens in a new tab)' )
 								);
 								?>
@@ -845,7 +906,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+											__( 'There is a new version of %s available, but it does not work with your versions of WordPress and PHP.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
@@ -875,7 +936,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+											__( 'There is a new version of %s available, but it does not work with your version of WordPress.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_core' ) ) {
@@ -890,7 +951,7 @@ function customize_themes_print_templates() {
 										<?php
 										printf(
 											/* translators: %s: Theme name. */
-											__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+											__( 'There is a new version of %s available, but it does not work with your version of PHP.' ),
 											'{{{ data.name }}}'
 										);
 										if ( current_user_can( 'update_php' ) ) {
@@ -924,7 +985,7 @@ function customize_themes_print_templates() {
 						<div class="notice notice-error notice-alt notice-large"><p>
 							<# if ( ! data.compatibleWP && ! data.compatiblePHP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+								_e( 'This theme does not work with your versions of WordPress and PHP.' );
 								if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 									printf(
 										/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -950,7 +1011,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } else if ( ! data.compatibleWP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+								_e( 'This theme does not work with your version of WordPress.' );
 								if ( current_user_can( 'update_core' ) ) {
 									printf(
 										/* translators: %s: URL to WordPress Updates screen. */
@@ -961,7 +1022,7 @@ function customize_themes_print_templates() {
 								?>
 							<# } else if ( ! data.compatiblePHP ) { #>
 								<?php
-								_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+								_e( 'This theme does not work with your version of PHP.' );
 								if ( current_user_can( 'update_php' ) ) {
 									printf(
 										/* translators: %s: URL to Update PHP page. */
@@ -972,6 +1033,21 @@ function customize_themes_print_templates() {
 								}
 								?>
 							<# } #>
+						</p></div>
+					<# } else if ( ! data.active && data.blockTheme ) { #>
+						<div class="notice notice-error notice-alt notice-large"><p>
+						<?php
+							_e( 'This theme doesn\'t support Customizer.' );
+						?>
+						<# if ( data.actions.activate ) { #>
+							<?php
+							printf(
+								/* translators: %s: URL to the themes page (also it activates the theme). */
+								' ' . __( 'However, you can still <a href="%s">activate this theme</a>, and use the Site Editor to customize it.' ),
+								'{{{ data.actions.activate }}}'
+							);
+							?>
+						<# } #>
 						</p></div>
 					<# } #>
 
@@ -987,17 +1063,28 @@ function customize_themes_print_templates() {
 				<# if ( data.active ) { #>
 					<button type="button" class="button button-primary customize-theme"><?php _e( 'Customize' ); ?></button>
 				<# } else if ( 'installed' === data.type ) { #>
+					<div class="theme-inactive-actions">
+					<# if ( data.blockTheme ) { #>
+						<?php
+							/* translators: %s: Theme name. */
+							$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+						?>
+						<# if ( data.compatibleWP && data.compatiblePHP && data.actions.activate ) { #>
+							<a href="{{{ data.actions.activate }}}" class="button button-primary activate" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
+						<# } #>
+					<# } else { #>
+						<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+							<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
+						<# } else { #>
+							<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
+						<# } #>
+					<# } #>
+					</div>
 					<?php if ( current_user_can( 'delete_themes' ) ) { ?>
 						<# if ( data.actions && data.actions['delete'] ) { #>
 							<a href="{{{ data.actions['delete'] }}}" data-slug="{{ data.id }}" class="button button-secondary delete-theme"><?php _e( 'Delete' ); ?></a>
 						<# } #>
 					<?php } ?>
-
-					<# if ( data.compatibleWP && data.compatiblePHP ) { #>
-						<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
-					<# } else { #>
-						<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
-					<# } #>
 				<# } else { #>
 					<# if ( data.compatibleWP && data.compatiblePHP ) { #>
 						<button type="button" class="button theme-install" data-slug="{{ data.id }}"><?php _e( 'Install' ); ?></button>
@@ -1085,11 +1172,14 @@ function resume_theme( $theme, $redirect = '' ) {
 	 * creating a fatal error.
 	 */
 	if ( ! empty( $redirect ) ) {
+		$stylesheet_path = get_stylesheet_directory();
+		$template_path   = get_template_directory();
+
 		$functions_path = '';
-		if ( strpos( STYLESHEETPATH, $extension ) ) {
-			$functions_path = STYLESHEETPATH . '/functions.php';
-		} elseif ( strpos( TEMPLATEPATH, $extension ) ) {
-			$functions_path = TEMPLATEPATH . '/functions.php';
+		if ( str_contains( $stylesheet_path, $extension ) ) {
+			$functions_path = $stylesheet_path . '/functions.php';
+		} elseif ( str_contains( $template_path, $extension ) ) {
+			$functions_path = $template_path . '/functions.php';
 		}
 
 		if ( ! empty( $functions_path ) ) {
@@ -1127,6 +1217,8 @@ function resume_theme( $theme, $redirect = '' ) {
  * Renders an admin notice in case some themes have been paused due to errors.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow The filename of the current screen.
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {
@@ -1141,11 +1233,18 @@ function paused_themes_notice() {
 		return;
 	}
 
-	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+	$message = sprintf(
+		'<p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p>',
 		__( 'One or more themes failed to load properly.' ),
 		__( 'You can find more details and make changes on the Themes screen.' ),
 		esc_url( admin_url( 'themes.php' ) ),
 		__( 'Go to the Themes screen' )
+	);
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => 'error',
+			'paragraph_wrap' => false,
+		)
 	);
 }

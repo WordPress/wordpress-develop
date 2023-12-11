@@ -18,6 +18,7 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+// Used in the HTML title tag.
 $title       = __( 'Settings' );
 $this_file   = 'options.php';
 $parent_file = 'options-general.php';
@@ -56,12 +57,17 @@ if ( ! current_user_can( $capability ) ) {
 if ( ! empty( $_GET['adminhash'] ) ) {
 	$new_admin_details = get_option( 'adminhash' );
 	$redirect          = 'options-general.php?updated=false';
-	if ( is_array( $new_admin_details ) && hash_equals( $new_admin_details['hash'], $_GET['adminhash'] ) && ! empty( $new_admin_details['newemail'] ) ) {
+
+	if ( is_array( $new_admin_details )
+		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
+		&& ! empty( $new_admin_details['newemail'] )
+	) {
 		update_option( 'admin_email', $new_admin_details['newemail'] );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
 		$redirect = 'options-general.php?updated=true';
 	}
+
 	wp_redirect( admin_url( $redirect ) );
 	exit;
 } elseif ( ! empty( $_GET['dismiss'] ) && 'new_admin_email' === $_GET['dismiss'] ) {
@@ -72,7 +78,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 	exit;
 }
 
-if ( is_multisite() && ! current_user_can( 'manage_network_options' ) && 'update' != $action ) {
+if ( is_multisite() && ! current_user_can( 'manage_network_options' ) && 'update' !== $action ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to delete these items.' ) . '</p>',
@@ -182,7 +188,9 @@ if ( ! is_multisite() ) {
 	 * or upload_path is not the default ('wp-content/uploads' or empty),
 	 * they can be edited, otherwise they're locked.
 	 */
-	if ( get_option( 'upload_url_path' ) || ( get_option( 'upload_path' ) != 'wp-content/uploads' && get_option( 'upload_path' ) ) ) {
+	if ( get_option( 'upload_url_path' )
+		|| get_option( 'upload_path' ) && 'wp-content/uploads' !== get_option( 'upload_path' )
+	) {
 		$allowed_options['media'][] = 'upload_path';
 		$allowed_options['media'][] = 'upload_url_path';
 	}
@@ -211,7 +219,7 @@ $allowed_options = apply_filters_deprecated(
 	'whitelist_options',
 	array( $allowed_options ),
 	'5.5.0',
-	'apply_filters_deprecated',
+	'allowed_options',
 	__( 'Please consider writing more inclusive code.' )
 );
 
@@ -237,7 +245,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		wp_die(
 			sprintf(
 				/* translators: %s: The options page name. */
-				__( '<strong>Error</strong>: Options page %s not found in the allowed options list.' ),
+				__( '<strong>Error:</strong> The %s options page is not in the allowed options list.' ),
 				'<code>' . esc_html( $option_page ) . '</code>'
 			)
 		);
@@ -247,7 +255,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ) );
 		}
-		$options = explode( ',', wp_unslash( $_POST['page_options'] ) );
+		$options = isset( $_POST['page_options'] ) ? explode( ',', wp_unslash( $_POST['page_options'] ) ) : null;
 	} else {
 		$options = $allowed_options[ $option_page ];
 	}
@@ -271,6 +279,23 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 			$_POST['gmt_offset']      = $_POST['timezone_string'];
 			$_POST['gmt_offset']      = preg_replace( '/UTC\+?/', '', $_POST['gmt_offset'] );
 			$_POST['timezone_string'] = '';
+		} elseif ( isset( $_POST['timezone_string'] ) && ! in_array( $_POST['timezone_string'], timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
+			// Reset to the current value.
+			$current_timezone_string = get_option( 'timezone_string' );
+
+			if ( ! empty( $current_timezone_string ) ) {
+				$_POST['timezone_string'] = $current_timezone_string;
+			} else {
+				$_POST['gmt_offset']      = get_option( 'gmt_offset' );
+				$_POST['timezone_string'] = '';
+			}
+
+			add_settings_error(
+				'general',
+				'settings_updated',
+				__( 'The timezone you have entered is not valid. Please select a valid timezone.' ),
+				'error'
+			);
 		}
 
 		// Handle translation installation.
@@ -324,6 +349,8 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 		if ( $user_language_old !== $user_language_new ) {
 			load_default_textdomain( $user_language_new );
 		}
+	} else {
+		add_settings_error( 'general', 'settings_updated', __( 'Settings save failed.' ), 'error' );
 	}
 
 	/*
@@ -334,7 +361,8 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 	if ( ! count( get_settings_errors() ) ) {
 		add_settings_error( 'general', 'settings_updated', __( 'Settings saved.' ), 'success' );
 	}
-	set_transient( 'settings_errors', get_settings_errors(), 30 );
+
+	set_transient( 'settings_errors', get_settings_errors(), 30 ); // 30 seconds.
 
 	// Redirect back to the settings page that was submitted.
 	$goback = add_query_arg( 'settings-updated', 'true', wp_get_referer() );
@@ -342,15 +370,20 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 	exit;
 }
 
-require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
+require_once ABSPATH . 'wp-admin/admin-header.php';
+?>
 
 <div class="wrap">
 	<h1><?php esc_html_e( 'All Settings' ); ?></h1>
 
-	<div class="notice notice-warning">
-		<p><strong><?php _e( 'Warning:' ); ?></strong> <?php _e( 'This page allows direct access to your site settings. You can break things here. Please be cautious!' ); ?></p>
-	</div>
-
+	<?php
+	wp_admin_notice(
+		'<strong>' . __( 'Warning:' ) . '</strong> ' . __( 'This page allows direct access to your site settings. You can break things here. Please be cautious!' ),
+		array(
+			'type' => 'warning',
+		)
+	);
+	?>
 	<form name="form" action="options.php" method="post" id="all-options">
 		<?php wp_nonce_field( 'options-options' ); ?>
 		<input type="hidden" name="action" value="update" />
@@ -388,11 +421,11 @@ foreach ( (array) $options as $option ) :
 <tr>
 	<th scope="row"><label for="<?php echo $name; ?>"><?php echo esc_html( $option->option_name ); ?></label></th>
 <td>
-	<?php if ( strpos( $value, "\n" ) !== false ) : ?>
+	<?php if ( str_contains( $value, "\n" ) ) : ?>
 		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
 		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
-	<?php endif ?></td>
+	<?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </table>

@@ -115,7 +115,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		}
 
 		// Set initial focus on the content instead of this view element, to avoid page scrolling.
-		this.$( '.media-modal' ).focus();
+		this.$( '.media-modal' ).trigger( 'focus' );
 
 		// Hide the page content from assistive technologies.
 		this.focusManager.setAriaHiddenOnBodyChildren( $el );
@@ -132,11 +132,14 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			return this;
 		}
 
+		// Pause current audio/video even after closing the modal.
+		$( '.mejs-pause button' ).trigger( 'click' );
+
 		// Enable page scrolling.
 		$( 'body' ).removeClass( 'modal-open' );
 
-		// Hide modal and remove restricted media modal tab focus once it's closed.
-		this.$el.hide().undelegate( 'keydown' );
+		// Hide the modal element by adding display:none.
+		this.$el.hide();
 
 		/*
 		 * Make visible again to assistive technologies all body children that
@@ -152,7 +155,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			// Fallback to the admin page main element.
 			$( '#wpbody-content' )
 				.attr( 'tabindex', '-1' )
-				.focus();
+				.trigger( 'focus' );
 		}
 
 		this.propagate('close');

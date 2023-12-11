@@ -48,6 +48,9 @@ class ParagonIE_Sodium_Core32_Curve25519_Fe implements ArrayAccess
             }
         } else {
             for ($i = 0; $i < $count; ++$i) {
+                if (!($array[$i] instanceof ParagonIE_Sodium_Core32_Int32)) {
+                    throw new TypeError('Expected ParagonIE_Sodium_Core32_Int32');
+                }
                 $array[$i]->overflow = 0;
                 $obj->offsetSet($i, $array[$i]);
             }
@@ -104,6 +107,7 @@ class ParagonIE_Sodium_Core32_Curve25519_Fe implements ArrayAccess
      * @throws SodiumException
      * @throws TypeError
      */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         if (!($value instanceof ParagonIE_Sodium_Core32_Int32)) {
@@ -124,6 +128,7 @@ class ParagonIE_Sodium_Core32_Curve25519_Fe implements ArrayAccess
      * @return bool
      * @psalm-suppress MixedArrayOffset
      */
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->container[$offset]);
@@ -136,6 +141,7 @@ class ParagonIE_Sodium_Core32_Curve25519_Fe implements ArrayAccess
      * @return void
      * @psalm-suppress MixedArrayOffset
      */
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->container[$offset]);
@@ -148,6 +154,7 @@ class ParagonIE_Sodium_Core32_Curve25519_Fe implements ArrayAccess
      * @return ParagonIE_Sodium_Core32_Int32
      * @psalm-suppress MixedArrayOffset
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         if (!isset($this->container[$offset])) {

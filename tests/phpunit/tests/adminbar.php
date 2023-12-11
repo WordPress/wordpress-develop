@@ -14,13 +14,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function setUpBeforeClass() {
-		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
 
-		parent::setUpBeforeClass();
+		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
 		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
@@ -32,12 +32,12 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	/**
 	 * @ticket 21117
 	 */
-	function test_content_post_type() {
+	public function test_content_post_type() {
 		wp_set_current_user( self::$editor_id );
 
 		register_post_type( 'content', array( 'show_in_admin_bar' => true ) );
 
-		$admin_bar = new WP_Admin_Bar;
+		$admin_bar = new WP_Admin_Bar();
 
 		wp_admin_bar_new_content_menu( $admin_bar );
 
@@ -51,10 +51,10 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	/**
 	 * @ticket 21117
 	 */
-	function test_merging_existing_meta_values() {
+	public function test_merging_existing_meta_values() {
 		wp_set_current_user( self::$editor_id );
 
-		$admin_bar = new WP_Admin_Bar;
+		$admin_bar = new WP_Admin_Bar();
 
 		$admin_bar->add_node(
 			array(
@@ -166,7 +166,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$editor_id );
-		$this->assertInternalType( 'object', $primary );
+		$this->assertIsObject( $primary );
 
 		// No Site menu as the user isn't a member of this blog.
 		$this->assertNull( $node_site_name );
@@ -264,7 +264,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$admin_bar = new WP_Admin_Bar();
 		$admin_bar->add_node( $node_data );
 		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
-		$this->assertContains( $expected_html, $admin_bar_html );
+		$this->assertStringContainsString( $expected_html, $admin_bar_html );
 	}
 
 	/**
@@ -400,8 +400,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNull( $node );
 	}
 
@@ -415,8 +413,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNotNull( $node );
 	}
 
@@ -428,8 +424,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
-
-		set_current_screen( 'front' );
 
 		$this->assertNull( $node );
 	}
@@ -475,7 +469,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_admin_bar_contains_correct_about_link_for_users_with_no_role_in_multisite() {
-		// User is not a member of a site.
+		// User is not a member of the site.
 		remove_user_from_blog( self::$no_role_id, get_current_blog_id() );
 
 		wp_set_current_user( self::$no_role_id );
@@ -488,6 +482,61 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertSame( user_admin_url( 'about.php' ), $wp_logo_node->href );
 		$this->assertArrayNotHasKey( 'tabindex', $wp_logo_node->meta );
 		$this->assertNotNull( $about_node );
+	}
+
+	/**
+	 * Tests that the 'contribute' node is added for users with a role in single site.
+	 *
+	 * @ticket 23348
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 */
+	public function test_admin_bar_contains_contribute_node_for_users_with_role() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'contribute' ) );
+	}
+
+	/**
+	 * Tests that the 'contribute' node is not added for users with no role in single site.
+	 *
+	 * @ticket 23348
+	 *
+	 * @group ms-excluded
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 */
+	public function test_admin_bar_does_not_contain_contribute_node_for_users_with_no_role() {
+		wp_set_current_user( self::$no_role_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNull( $wp_admin_bar->get_node( 'contribute' ) );
+	}
+
+	/**
+	 * Tests that the 'contribute' node is added for users with no role in multisite.
+	 *
+	 * @ticket 23348
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_admin_bar_wp_menu
+	 */
+	public function test_admin_bar_contains_contribute_node_for_users_with_no_role_in_multisite() {
+		// User is not a member of the site.
+		remove_user_from_blog( self::$no_role_id, get_current_blog_id() );
+
+		wp_set_current_user( self::$no_role_id );
+
+		$wp_admin_bar = $this->get_standard_admin_bar();
+
+		$this->assertNotNull( $wp_admin_bar->get_node( 'contribute' ) );
 	}
 
 	/**
@@ -508,7 +557,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -532,7 +580,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -556,7 +603,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -665,7 +711,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->go_to( home_url( "/?customize_changeset_uuid=$uuid" ) );
 		wp_set_current_user( self::$admin_id );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type'   => 'customize_changeset',
 				'post_status' => 'auto-draft',
@@ -679,7 +725,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$wp_customize->start_previewing_theme();
 
-		set_current_screen( 'front' );
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'customize' );
 		$this->assertNotEmpty( $node );
@@ -688,7 +733,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$query_params = array();
 		wp_parse_str( $parsed_url['query'], $query_params );
 		$this->assertSame( $uuid, $query_params['changeset_uuid'] );
-		$this->assertNotContains( 'changeset_uuid', $query_params['url'] );
+		$this->assertStringNotContainsString( 'changeset_uuid', $query_params['url'] );
 	}
 
 	/**
@@ -702,7 +747,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must not display for a regular user.', $id ) );
+			$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %s must not display for a regular user.', $id ) );
 		}
 	}
 
@@ -719,7 +764,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must display for a super admin.', $id ) );
+			$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
 		}
 	}
 
@@ -745,9 +790,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
 			if ( in_array( $cap, $network_user_caps, true ) ) {
-				$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
+				$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
 			} else {
-				$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
+				$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
 			}
 		}
 	}
@@ -763,5 +808,34 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			'network-admin-p'      => 'manage_network_plugins',
 			'network-admin-o'      => 'manage_network_options',
 		);
+	}
+
+	/**
+	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_proto_property_is_not_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertFalse( property_exists( $admin_bar, 'proto' ), 'WP_Admin_Bar::$proto should not be defined.' );
+		$this->assertFalse( isset( $admin_bar->proto ), 'WP_Admin_Bar::$proto should not be defined.' );
+	}
+
+	/**
+	 * This test ensures that WP_Admin_Bar::$menu is declared as a "regular" class property.
+	 *
+	 * @ticket 56876
+	 * @coversNothing
+	 */
+	public function test_menu_property_is_defined() {
+		$admin_bar = new WP_Admin_Bar();
+		$this->assertTrue( property_exists( $admin_bar, 'menu' ), 'WP_Admin_Bar::$proto property should be defined.' );
+
+		$menu_property = new ReflectionProperty( WP_Admin_Bar::class, 'menu' );
+		$this->assertTrue( $menu_property->isPublic(), 'WP_Admin_Bar::$menu should be public.' );
+
+		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
+		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
 }

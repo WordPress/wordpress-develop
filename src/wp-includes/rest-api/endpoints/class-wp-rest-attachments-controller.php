@@ -17,6 +17,14 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var false
+	 */
+	protected $allow_batch = false;
+
+	/**
 	 * Registers the routes for attachments.
 	 *
 	 * @since 5.3.0
@@ -34,7 +42,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'permission_callback' => array( $this, 'post_process_item_permissions_check' ),
 				'args'                => array(
 					'id'     => array(
-						'description' => __( 'Unique identifier for the object.' ),
+						'description' => __( 'Unique identifier for the attachment.' ),
 						'type'        => 'integer',
 					),
 					'action' => array(
@@ -89,7 +97,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// Filter query clauses to include filenames.
 		if ( isset( $query_args['s'] ) ) {
-			add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+			add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 		}
 
 		return $query_args;
@@ -191,11 +199,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		do_action( 'rest_after_insert_attachment', $attachment, $request, true );
 
-		wp_after_insert_post( $attachment, false );
+		wp_after_insert_post( $attachment, false, null );
 
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-			// Set a custom header with the attachment_id.
-			// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+			/*
+			 * Set a custom header with the attachment_id.
+			 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+			 */
 			header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
 		}
 
@@ -203,8 +213,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
 
-		// Post-process the upload (create image sub-sizes, make PDF thumbnails, etc.) and insert attachment meta.
-		// At this point the server may run out of resources and post-processing of uploaded images may fail.
+		/*
+		 * Post-process the upload (create image sub-sizes, make PDF thumbnails, etc.) and insert attachment meta.
+		 * At this point the server may run out of resources and post-processing of uploaded images may fail.
+		 */
 		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $file ) );
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
@@ -321,7 +333,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$response = parent::update_item( $request );
+		$attachment_before = get_post( $request['id'] );
+		$response          = parent::update_item( $request );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -347,7 +360,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_after_insert_attachment', $attachment, $request, false );
 
-		wp_after_insert_post( $attachment, true );
+		wp_after_insert_post( $attachment, true, $attachment_before );
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
@@ -437,7 +450,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif' );
+		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
 		$mime_type       = get_post_mime_type( $attachment_id );
 		if ( ! in_array( $mime_type, $supported_types, true ) ) {
 			return new WP_Error(
@@ -447,25 +460,40 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		// Check if we need to do anything.
-		$rotate = 0;
-		$crop   = false;
+		// The `modifiers` param takes precedence over the older format.
+		if ( isset( $request['modifiers'] ) ) {
+			$modifiers = $request['modifiers'];
+		} else {
+			$modifiers = array();
 
-		if ( ! empty( $request['rotation'] ) ) {
-			// Rotation direction: clockwise vs. counter clockwise.
-			$rotate = 0 - (int) $request['rotation'];
-		}
+			if ( ! empty( $request['rotation'] ) ) {
+				$modifiers[] = array(
+					'type' => 'rotate',
+					'args' => array(
+						'angle' => $request['rotation'],
+					),
+				);
+			}
 
-		if ( isset( $request['x'], $request['y'], $request['width'], $request['height'] ) ) {
-			$crop = true;
-		}
+			if ( isset( $request['x'], $request['y'], $request['width'], $request['height'] ) ) {
+				$modifiers[] = array(
+					'type' => 'crop',
+					'args' => array(
+						'left'   => $request['x'],
+						'top'    => $request['y'],
+						'width'  => $request['width'],
+						'height' => $request['height'],
+					),
+				);
+			}
 
-		if ( ! $rotate && ! $crop ) {
-			return new WP_Error(
-				'rest_image_not_edited',
-				__( 'The image was not edited. Edit the image before applying the changes.' ),
-				array( 'status' => 400 )
-			);
+			if ( 0 === count( $modifiers ) ) {
+				return new WP_Error(
+					'rest_image_not_edited',
+					__( 'The image was not edited. Edit the image before applying the changes.' ),
+					array( 'status' => 400 )
+				);
+			}
 		}
 
 		/*
@@ -488,34 +516,49 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		if ( 0 !== $rotate ) {
-			$result = $image_editor->rotate( $rotate );
+		foreach ( $modifiers as $modifier ) {
+			$args = $modifier['args'];
+			switch ( $modifier['type'] ) {
+				case 'rotate':
+					// Rotation direction: clockwise vs. counter clockwise.
+					$rotate = 0 - $args['angle'];
 
-			if ( is_wp_error( $result ) ) {
-				return new WP_Error(
-					'rest_image_rotation_failed',
-					__( 'Unable to rotate this image.' ),
-					array( 'status' => 500 )
-				);
-			}
-		}
+					if ( 0 !== $rotate ) {
+						$result = $image_editor->rotate( $rotate );
 
-		if ( $crop ) {
-			$size = $image_editor->get_size();
+						if ( is_wp_error( $result ) ) {
+							return new WP_Error(
+								'rest_image_rotation_failed',
+								__( 'Unable to rotate this image.' ),
+								array( 'status' => 500 )
+							);
+						}
+					}
 
-			$crop_x = round( ( $size['width'] * (float) $request['x'] ) / 100.0 );
-			$crop_y = round( ( $size['height'] * (float) $request['y'] ) / 100.0 );
-			$width  = round( ( $size['width'] * (float) $request['width'] ) / 100.0 );
-			$height = round( ( $size['height'] * (float) $request['height'] ) / 100.0 );
+					break;
 
-			$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
+				case 'crop':
+					$size = $image_editor->get_size();
 
-			if ( is_wp_error( $result ) ) {
-				return new WP_Error(
-					'rest_image_crop_failed',
-					__( 'Unable to crop this image.' ),
-					array( 'status' => 500 )
-				);
+					$crop_x = round( ( $size['width'] * $args['left'] ) / 100.0 );
+					$crop_y = round( ( $size['height'] * $args['top'] ) / 100.0 );
+					$width  = round( ( $size['width'] * $args['width'] ) / 100.0 );
+					$height = round( ( $size['height'] * $args['height'] ) / 100.0 );
+
+					if ( $size['width'] !== $width && $size['height'] !== $height ) {
+						$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
+
+						if ( is_wp_error( $result ) ) {
+							return new WP_Error(
+								'rest_image_crop_failed',
+								__( 'Unable to crop this image.' ),
+								array( 'status' => 500 )
+							);
+						}
+					}
+
+					break;
+
 			}
 		}
 
@@ -523,8 +566,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_ext  = pathinfo( $image_file, PATHINFO_EXTENSION );
 		$image_name = wp_basename( $image_file, ".{$image_ext}" );
 
-		// Do not append multiple `-edited` to the file name.
-		// The user may be editing a previously edited image.
+		/*
+		 * Do not append multiple `-edited` to the file name.
+		 * The user may be editing a previously edited image.
+		 */
 		if ( preg_match( '/-edited(-\d+)?$/', $image_name ) ) {
 			// Remove any `-1`, `-2`, etc. `wp_unique_filename()` will add the proper number.
 			$image_name = preg_replace( '/-edited(-\d+)?$/', '-edited', $image_name );
@@ -586,8 +631,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
-			// Set a custom header with the attachment_id.
-			// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+			/*
+			 * Set a custom header with the attachment_id.
+			 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+			 */
 			header( 'X-WP-Upload-Attachment-ID: ' . $new_attachment_id );
 		}
 
@@ -676,12 +723,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Prepares a single attachment output for response.
 	 *
 	 * @since 4.7.0
+	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Post         $post    Attachment object.
+	 * @param WP_Post         $item    Attachment object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$post = $item;
+
 		$response = parent::prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
 		$data     = $response->get_data();
@@ -724,7 +775,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			// Ensure empty details is an empty object.
 			if ( empty( $data['media_details'] ) ) {
-				$data['media_details'] = new stdClass;
+				$data['media_details'] = new stdClass();
 			} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
 
 				foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
@@ -755,7 +806,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					);
 				}
 			} else {
-				$data['media_details']['sizes'] = new stdClass;
+				$data['media_details']['sizes'] = new stdClass();
 			}
 		}
 
@@ -857,12 +908,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			'properties'  => array(
 				'raw'      => array(
-					'description' => __( 'Description for the object, as it exists in the database.' ),
+					'description' => __( 'Description for the attachment, as it exists in the database.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 				),
 				'rendered' => array(
-					'description' => __( 'HTML description for the object, transformed for display.' ),
+					'description' => __( 'HTML description for the attachment, transformed for display.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
@@ -926,8 +977,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param array $data    Supplied file data.
-	 * @param array $headers HTTP headers from the request.
+	 * @param string $data    Supplied file data.
+	 * @param array  $headers HTTP headers from the request.
 	 * @return array|WP_Error Data from wp_handle_sideload().
 	 */
 	protected function upload_from_data( $data, $headers ) {
@@ -1069,7 +1120,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $disposition_header as $value ) {
 			$value = trim( $value );
 
-			if ( strpos( $value, ';' ) === false ) {
+			if ( ! str_contains( $value, ';' ) ) {
 				continue;
 			}
 
@@ -1079,7 +1130,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$attributes = array();
 
 			foreach ( $attr_parts as $part ) {
-				if ( strpos( $part, '=' ) === false ) {
+				if ( ! str_contains( $part, '=' ) ) {
 					continue;
 				}
 
@@ -1095,7 +1146,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$filename = trim( $attributes['filename'] );
 
 			// Unquote quoted filename, but after trimming.
-			if ( substr( $filename, 0, 1 ) === '"' && substr( $filename, -1, 1 ) === '"' ) {
+			if ( str_starts_with( $filename, '"' ) && str_ends_with( $filename, '"' ) ) {
 				$filename = substr( $filename, 1, -1 );
 			}
 		}
@@ -1285,45 +1336,120 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function get_edit_media_item_args() {
 		return array(
-			'rotation' => array(
-				'description'      => __( 'The amount to rotate the image clockwise in degrees.' ),
+			'src'       => array(
+				'description' => __( 'URL to the edited image file.' ),
+				'type'        => 'string',
+				'format'      => 'uri',
+				'required'    => true,
+			),
+			'modifiers' => array(
+				'description' => __( 'Array of image edits.' ),
+				'type'        => 'array',
+				'minItems'    => 1,
+				'items'       => array(
+					'description' => __( 'Image edit.' ),
+					'type'        => 'object',
+					'required'    => array(
+						'type',
+						'args',
+					),
+					'oneOf'       => array(
+						array(
+							'title'      => __( 'Rotation' ),
+							'properties' => array(
+								'type' => array(
+									'description' => __( 'Rotation type.' ),
+									'type'        => 'string',
+									'enum'        => array( 'rotate' ),
+								),
+								'args' => array(
+									'description' => __( 'Rotation arguments.' ),
+									'type'        => 'object',
+									'required'    => array(
+										'angle',
+									),
+									'properties'  => array(
+										'angle' => array(
+											'description' => __( 'Angle to rotate clockwise in degrees.' ),
+											'type'        => 'number',
+										),
+									),
+								),
+							),
+						),
+						array(
+							'title'      => __( 'Crop' ),
+							'properties' => array(
+								'type' => array(
+									'description' => __( 'Crop type.' ),
+									'type'        => 'string',
+									'enum'        => array( 'crop' ),
+								),
+								'args' => array(
+									'description' => __( 'Crop arguments.' ),
+									'type'        => 'object',
+									'required'    => array(
+										'left',
+										'top',
+										'width',
+										'height',
+									),
+									'properties'  => array(
+										'left'   => array(
+											'description' => __( 'Horizontal position from the left to begin the crop as a percentage of the image width.' ),
+											'type'        => 'number',
+										),
+										'top'    => array(
+											'description' => __( 'Vertical position from the top to begin the crop as a percentage of the image height.' ),
+											'type'        => 'number',
+										),
+										'width'  => array(
+											'description' => __( 'Width of the crop as a percentage of the image width.' ),
+											'type'        => 'number',
+										),
+										'height' => array(
+											'description' => __( 'Height of the crop as a percentage of the image height.' ),
+											'type'        => 'number',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'rotation'  => array(
+				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.' ),
 				'type'             => 'integer',
 				'minimum'          => 0,
 				'exclusiveMinimum' => true,
 				'maximum'          => 360,
 				'exclusiveMaximum' => true,
 			),
-			'x'        => array(
-				'description' => __( 'As a percentage of the image, the x position to start the crop from.' ),
+			'x'         => array(
+				'description' => __( 'As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
-			'y'        => array(
-				'description' => __( 'As a percentage of the image, the y position to start the crop from.' ),
+			'y'         => array(
+				'description' => __( 'As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
-			'width'    => array(
-				'description' => __( 'As a percentage of the image, the width to crop the image to.' ),
+			'width'     => array(
+				'description' => __( 'As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
-			'height'   => array(
-				'description' => __( 'As a percentage of the image, the height to crop the image to.' ),
+			'height'    => array(
+				'description' => __( 'As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
-			),
-			'src'      => array(
-				'description' => __( 'URL to the edited image file.' ),
-				'type'        => 'string',
-				'format'      => 'uri',
-				'required'    => true,
 			),
 		);
 	}
-
 }

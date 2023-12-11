@@ -7,112 +7,115 @@
  */
 
 /**
- * Endpoint Mask for default, which is nothing.
+ * Endpoint mask that matches nothing.
  *
  * @since 2.1.0
  */
 define( 'EP_NONE', 0 );
 
 /**
- * Endpoint Mask for Permalink.
+ * Endpoint mask that matches post permalinks.
  *
  * @since 2.1.0
  */
 define( 'EP_PERMALINK', 1 );
 
 /**
- * Endpoint Mask for Attachment.
+ * Endpoint mask that matches attachment permalinks.
  *
  * @since 2.1.0
  */
 define( 'EP_ATTACHMENT', 2 );
 
 /**
- * Endpoint Mask for date.
+ * Endpoint mask that matches any date archives.
  *
  * @since 2.1.0
  */
 define( 'EP_DATE', 4 );
 
 /**
- * Endpoint Mask for year
+ * Endpoint mask that matches yearly archives.
  *
  * @since 2.1.0
  */
 define( 'EP_YEAR', 8 );
 
 /**
- * Endpoint Mask for month.
+ * Endpoint mask that matches monthly archives.
  *
  * @since 2.1.0
  */
 define( 'EP_MONTH', 16 );
 
 /**
- * Endpoint Mask for day.
+ * Endpoint mask that matches daily archives.
  *
  * @since 2.1.0
  */
 define( 'EP_DAY', 32 );
 
 /**
- * Endpoint Mask for root.
+ * Endpoint mask that matches the site root.
  *
  * @since 2.1.0
  */
 define( 'EP_ROOT', 64 );
 
 /**
- * Endpoint Mask for comments.
+ * Endpoint mask that matches comment feeds.
  *
  * @since 2.1.0
  */
 define( 'EP_COMMENTS', 128 );
 
 /**
- * Endpoint Mask for searches.
+ * Endpoint mask that matches searches.
+ *
+ * Note that this only matches a search at a "pretty" URL such as
+ * `/search/my-search-term`, not `?s=my-search-term`.
  *
  * @since 2.1.0
  */
 define( 'EP_SEARCH', 256 );
 
 /**
- * Endpoint Mask for categories.
+ * Endpoint mask that matches category archives.
  *
  * @since 2.1.0
  */
 define( 'EP_CATEGORIES', 512 );
 
 /**
- * Endpoint Mask for tags.
+ * Endpoint mask that matches tag archives.
  *
  * @since 2.3.0
  */
 define( 'EP_TAGS', 1024 );
 
 /**
- * Endpoint Mask for authors.
+ * Endpoint mask that matches author archives.
  *
  * @since 2.1.0
  */
 define( 'EP_AUTHORS', 2048 );
 
 /**
- * Endpoint Mask for pages.
+ * Endpoint mask that matches pages.
  *
  * @since 2.1.0
  */
 define( 'EP_PAGES', 4096 );
 
 /**
- * Endpoint Mask for all archive views.
+ * Endpoint mask that matches all archive views.
  *
  * @since 3.7.0
  */
 define( 'EP_ALL_ARCHIVES', EP_DATE | EP_YEAR | EP_MONTH | EP_DAY | EP_CATEGORIES | EP_TAGS | EP_AUTHORS );
 
 /**
- * Endpoint Mask for everything.
+ * Endpoint mask that matches everything.
  *
  * @since 2.1.0
  */
@@ -141,7 +144,7 @@ function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
 }
 
 /**
- * Add a new rewrite tag (like %postname%).
+ * Adds a new rewrite tag (like %postname%).
  *
  * The `$query` parameter is optional. If it is omitted you must ensure that you call
  * this on, or before, the {@see 'init'} hook. This is because `$query` defaults to
@@ -188,7 +191,7 @@ function remove_rewrite_tag( $tag ) {
 }
 
 /**
- * Add permalink structure.
+ * Adds a permalink structure.
  *
  * @since 3.0.0
  *
@@ -207,7 +210,8 @@ function add_permastruct( $name, $struct, $args = array() ) {
 	if ( ! is_array( $args ) ) {
 		$args = array( 'with_front' => $args );
 	}
-	if ( func_num_args() == 4 ) {
+
+	if ( func_num_args() === 4 ) {
 		$args['ep_mask'] = func_get_arg( 3 );
 	}
 
@@ -234,17 +238,17 @@ function remove_permastruct( $name ) {
 }
 
 /**
- * Add a new feed type like /atom1/.
+ * Adds a new feed type like /atom1/.
  *
  * @since 2.1.0
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string   $feedname Feed name.
- * @param callable $function Callback to run on feed display.
+ * @param callable $callback Callback to run on feed display.
  * @return string Feed action name.
  */
-function add_feed( $feedname, $function ) {
+function add_feed( $feedname, $callback ) {
 	global $wp_rewrite;
 
 	if ( ! in_array( $feedname, $wp_rewrite->feeds, true ) ) {
@@ -256,13 +260,13 @@ function add_feed( $feedname, $function ) {
 	// Remove default function hook.
 	remove_action( $hook, $hook );
 
-	add_action( $hook, $function, 10, 2 );
+	add_action( $hook, $callback, 10, 2 );
 
 	return $hook;
 }
 
 /**
- * Remove rewrite rules and then recreate rewrite rules.
+ * Removes rewrite rules and then recreate rewrite rules.
  *
  * @since 3.0.0
  *
@@ -280,7 +284,7 @@ function flush_rewrite_rules( $hard = true ) {
 }
 
 /**
- * Add an endpoint, like /trackback/.
+ * Adds an endpoint, like /trackback/.
  *
  * Adding an endpoint creates extra rewrite rules for each of the matching
  * places specified by the provided bitmask. For example:
@@ -308,6 +312,23 @@ function flush_rewrite_rules( $hard = true ) {
  *
  * @param string      $name      Name of the endpoint.
  * @param int         $places    Endpoint mask describing the places the endpoint should be added.
+ *                               Accepts a mask of:
+ *                               - `EP_ALL`
+ *                               - `EP_NONE`
+ *                               - `EP_ALL_ARCHIVES`
+ *                               - `EP_ATTACHMENT`
+ *                               - `EP_AUTHORS`
+ *                               - `EP_CATEGORIES`
+ *                               - `EP_COMMENTS`
+ *                               - `EP_DATE`
+ *                               - `EP_DAY`
+ *                               - `EP_MONTH`
+ *                               - `EP_PAGES`
+ *                               - `EP_PERMALINK`
+ *                               - `EP_ROOT`
+ *                               - `EP_SEARCH`
+ *                               - `EP_TAGS`
+ *                               - `EP_YEAR`
  * @param string|bool $query_var Name of the corresponding query variable. Pass `false` to skip registering a query_var
  *                               for this endpoint. Defaults to the value of `$name`.
  */
@@ -337,7 +358,7 @@ function _wp_filter_taxonomy_base( $base ) {
 
 
 /**
- * Resolve numeric slugs that collide with date permalinks.
+ * Resolves numeric slugs that collide with date permalinks.
  *
  * Permalinks of posts with numeric slugs can sometimes look to WP_Query::parse_query()
  * like a date archive, as when your permalink structure is `/%year%/%postname%/` and
@@ -390,7 +411,10 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	}
 
 	// This is the potentially clashing slug.
-	$value = $query_vars[ $compare ];
+	$value = '';
+	if ( $compare && array_key_exists( $compare, $query_vars ) ) {
+		$value = $query_vars[ $compare ];
+	}
 
 	$post = get_page_by_path( $value, OBJECT, 'post' );
 	if ( ! ( $post instanceof WP_Post ) ) {
@@ -453,7 +477,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 }
 
 /**
- * Examine a URL and try to determine the post ID it represents.
+ * Examines a URL and try to determine the post ID it represents.
  *
  * Checks are supposedly from the hosted site blog.
  *
@@ -477,8 +501,21 @@ function url_to_postid( $url ) {
 	 */
 	$url = apply_filters( 'url_to_postid', $url );
 
-	$url_host      = str_replace( 'www.', '', parse_url( $url, PHP_URL_HOST ) );
-	$home_url_host = str_replace( 'www.', '', parse_url( home_url(), PHP_URL_HOST ) );
+	$url_host = parse_url( $url, PHP_URL_HOST );
+
+	if ( is_string( $url_host ) ) {
+		$url_host = str_replace( 'www.', '', $url_host );
+	} else {
+		$url_host = '';
+	}
+
+	$home_url_host = parse_url( home_url(), PHP_URL_HOST );
+
+	if ( is_string( $home_url_host ) ) {
+		$home_url_host = str_replace( 'www.', '', $home_url_host );
+	} else {
+		$home_url_host = '';
+	}
 
 	// Bail early if the URL does not belong to this site.
 	if ( $url_host && $url_host !== $home_url_host ) {
@@ -506,12 +543,12 @@ function url_to_postid( $url ) {
 	$url    = set_url_scheme( $url, $scheme );
 
 	// Add 'www.' if it is absent and should be there.
-	if ( false !== strpos( home_url(), '://www.' ) && false === strpos( $url, '://www.' ) ) {
+	if ( str_contains( home_url(), '://www.' ) && ! str_contains( $url, '://www.' ) ) {
 		$url = str_replace( '://', '://www.', $url );
 	}
 
 	// Strip 'www.' if it is present and shouldn't be.
-	if ( false === strpos( home_url(), '://www.' ) ) {
+	if ( ! str_contains( home_url(), '://www.' ) ) {
 		$url = str_replace( '://www.', '://', $url );
 	}
 
@@ -536,7 +573,7 @@ function url_to_postid( $url ) {
 		$url = str_replace( $wp_rewrite->index . '/', '', $url );
 	}
 
-	if ( false !== strpos( trailingslashit( $url ), home_url( '/' ) ) ) {
+	if ( str_contains( trailingslashit( $url ), home_url( '/' ) ) ) {
 		// Chop off http://domain.com/[path].
 		$url = str_replace( home_url(), '', $url );
 	} else {
@@ -562,9 +599,11 @@ function url_to_postid( $url ) {
 	$request_match = $request;
 	foreach ( (array) $rewrite as $match => $query ) {
 
-		// If the requesting file is the anchor of the match,
-		// prepend it to the path info.
-		if ( ! empty( $url ) && ( $url != $request ) && ( strpos( $match, $url ) === 0 ) ) {
+		/*
+		 * If the requesting file is the anchor of the match,
+		 * prepend it to the path info.
+		 */
+		if ( ! empty( $url ) && ( $url !== $request ) && str_starts_with( $match, $url ) ) {
 			$request_match = $url . '/' . $request;
 		}
 
@@ -584,8 +623,10 @@ function url_to_postid( $url ) {
 				}
 			}
 
-			// Got a match.
-			// Trim the query of everything up to the '?'.
+			/*
+			 * Got a match.
+			 * Trim the query of everything up to the '?'.
+			 */
 			$query = preg_replace( '!^.+\?!', '', $query );
 
 			// Substitute the substring matches into the query.

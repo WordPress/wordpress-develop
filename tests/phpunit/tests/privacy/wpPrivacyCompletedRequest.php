@@ -1,21 +1,15 @@
 <?php
 /**
- * Test the `_wp_privacy_completed_request()` function.
+ * Test cases for the `_wp_privacy_completed_request()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Tests_WpPrivacyCompletedRequest class.
  *
  * @group privacy
  * @covers ::_wp_privacy_completed_request
- *
- * @since 4.9.6
  */
-class Tests_WpPrivacyCompletedRequest extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyCompletedRequest extends WP_UnitTestCase {
 	/**
 	 * Request ID
 	 *
@@ -30,7 +24,7 @@ class Tests_WpPrivacyCompletedRequest extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$request_id = wp_create_user_request( 'requester@example.com', 'export_personal_data' );
 	}
 

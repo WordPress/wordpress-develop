@@ -632,9 +632,9 @@
   //                newer_exist : the file was not extracted because a newer file exists
   //                path_creation_fail : the file is not extracted because the folder
   //                                     does not exist and can not be created
-  //                write_error : the file was not extracted because there was a
+  //                write_error : the file was not extracted because there was an
   //                              error while writing the file
-  //                read_error : the file was not extracted because there was a error
+  //                read_error : the file was not extracted because there was an error
   //                             while reading the file
   //                invalid_header : the file was not extracted because of an archive
   //                                 format error (bad file header)
@@ -1170,8 +1170,8 @@
     // ----- Reset the error handler
     $this->privErrorReset();
 
-    // ----- Look if the $p_archive is a PclZip object
-    if (is_object($p_archive) && $p_archive instanceof pclzip)
+    // ----- Look if the $p_archive is an instantiated PclZip object
+    if ($p_archive instanceof pclzip)
     {
 
       // ----- Duplicate the archive
@@ -1234,8 +1234,8 @@
       return(0);
     }
 
-    // ----- Look if the $p_archive_to_add is a PclZip object
-    if (is_object($p_archive_to_add) && $p_archive_to_add instanceof pclzip)
+    // ----- Look if the $p_archive_to_add is an instantiated PclZip object
+    if ($p_archive_to_add instanceof pclzip)
     {
 
       // ----- Merge the archive
@@ -2674,7 +2674,12 @@
         }
 
         // ----- Read the file content
-        $v_content = @fread($v_file, $p_header['size']);
+        if ($p_header['size'] > 0) {
+          $v_content = @fread($v_file, $p_header['size']);
+        }
+        else {
+          $v_content = '';
+        }
 
         // ----- Close the file
         @fclose($v_file);
@@ -3884,7 +3889,12 @@
 
 
             // ----- Read the compressed file in a buffer (one shot)
-            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+            if ($p_entry['compressed_size'] > 0) {
+              $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+            }
+            else {
+              $v_buffer = '';
+            }
 
             // ----- Decompress the file
             $v_file_content = @gzinflate($v_buffer);
@@ -4096,7 +4106,12 @@
         if ($p_entry['compressed_size'] == $p_entry['size']) {
 
           // ----- Read the file in a buffer (one shot)
-          $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $v_buffer = '';
+          }
 
           // ----- Send the file to the output
           echo $v_buffer;
@@ -4105,7 +4120,12 @@
         else {
 
           // ----- Read the compressed file in a buffer (one shot)
-          $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_buffer = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $v_buffer = '';
+          }
 
           // ----- Decompress the file
           $v_file_content = gzinflate($v_buffer);
@@ -4209,12 +4229,22 @@
         if ($p_entry['compression'] == 0) {
 
           // ----- Reading the file
-          $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $p_string = '';
+          }
         }
         else {
 
           // ----- Reading the file
-          $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
+          }
+          else {
+            $v_data = '';
+          }
 
           // ----- Decompress the file
           if (($p_string = @gzinflate($v_data)) === FALSE) {

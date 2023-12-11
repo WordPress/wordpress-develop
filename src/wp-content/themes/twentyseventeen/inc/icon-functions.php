@@ -130,7 +130,7 @@ function twentyseventeen_nav_menu_social_icons( $item_output, $item, $depth, $ar
 	// Change SVG icon inside social links menu if there is supported URL.
 	if ( 'social' === $args->theme_location ) {
 		foreach ( $social_icons as $attr => $value ) {
-			if ( false !== strpos( $item_output, $attr ) ) {
+			if ( str_contains( $item_output, $attr ) ) {
 				$item_output = str_replace( $args->link_after, '</span>' . twentyseventeen_get_svg( array( 'icon' => esc_attr( $value ) ) ), $item_output );
 			}
 		}
@@ -205,6 +205,7 @@ function twentyseventeen_social_links_icons() {
 		'vimeo.com'       => 'vimeo',
 		'vine.co'         => 'vine',
 		'vk.com'          => 'vk',
+		'wa.me'           => 'whatsapp',
 		'whatsapp.com'    => 'whatsapp',
 		'wordpress.org'   => 'wordpress',
 		'wordpress.com'   => 'wordpress',

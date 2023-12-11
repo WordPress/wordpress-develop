@@ -94,7 +94,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 				// Remove the keydown event.
 				$( 'body' ).off( 'keydown.media-modal' );
 				// Move focus back to the original item in the grid if possible.
-				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).focus();
+				$( 'li.attachment[data-id="' + this.model.get( 'id' ) +'"]' ).trigger( 'focus' );
 				this.resetRoute();
 			}, this ) );
 
@@ -232,7 +232,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * @param {string} which A CSS selector to target the button to focus.
 	 */
 	focusNavButton: function( which ) {
-		$( which ).focus();
+		$( which ).trigger( 'focus' );
 	},
 
 	getCurrentIndex: function() {
@@ -251,7 +251,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * focus is in a textarea or input field.
 	 */
 	keyEvent: function( event ) {
-		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName ) && ! ( event.target.readOnly || event.target.disabled ) ) {
+		if ( ( 'INPUT' === event.target.nodeName || 'TEXTAREA' === event.target.nodeName ) && ! event.target.disabled ) {
 			return;
 		}
 

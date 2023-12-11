@@ -7,10 +7,10 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_WP_Get_Sites extends WP_UnitTestCase {
+	class Tests_Multisite_wpGetSites extends WP_UnitTestCase {
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_ids = array(
 				'w.org/'      => array(
 					'domain'     => 'w.org',

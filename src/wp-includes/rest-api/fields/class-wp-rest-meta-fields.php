@@ -12,6 +12,7 @@
  *
  * @since 4.7.0
  */
+#[AllowDynamicProperties]
 abstract class WP_REST_Meta_Fields {
 
 	/**
@@ -94,8 +95,10 @@ abstract class WP_REST_Meta_Fields {
 			} else {
 				$value = array();
 
-				foreach ( $all_values as $row ) {
-					$value[] = $this->prepare_value_for_response( $row, $request, $args );
+				if ( is_array( $all_values ) ) {
+					foreach ( $all_values as $row ) {
+						$value[] = $this->prepare_value_for_response( $row, $request, $args );
+					}
 				}
 			}
 
@@ -145,11 +148,15 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
+			$value = $meta[ $name ];
+
 			/*
 			 * A null value means reset the field, which is essentially deleting it
 			 * from the database and then relying on the default value.
+			 *
+			 * Non-single meta can also be removed by passing an empty array.
 			 */
-			if ( is_null( $meta[ $name ] ) ) {
+			if ( is_null( $value ) || ( array() === $value && ! $args['single'] ) ) {
 				$args = $this->get_registered_fields()[ $meta_key ];
 
 				if ( $args['single'] ) {
@@ -171,8 +178,6 @@ abstract class WP_REST_Meta_Fields {
 				}
 				continue;
 			}
-
-			$value = $meta[ $name ];
 
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
 				return new WP_Error(
@@ -213,7 +218,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param int    $object_id Object ID the field belongs to.
 	 * @param string $meta_key  Key for the field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
-	 * @return bool|WP_Error True if meta field is deleted, WP_Error otherwise.
+	 * @return true|WP_Error True if meta field is deleted, WP_Error otherwise.
 	 */
 	protected function delete_meta_value( $object_id, $meta_key, $name ) {
 		$meta_type = $this->get_meta_type();
@@ -228,6 +233,10 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
+		}
+
+		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
+			return true;
 		}
 
 		if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
@@ -255,7 +264,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param string $meta_key  Key for the custom field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
 	 * @param array  $values    List of values to update to.
-	 * @return bool|WP_Error True if meta fields are updated, WP_Error otherwise.
+	 * @return true|WP_Error True if meta fields are updated, WP_Error otherwise.
 	 */
 	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {
 		$meta_type = $this->get_meta_type();
@@ -274,6 +283,10 @@ abstract class WP_REST_Meta_Fields {
 
 		$current_values = get_metadata( $meta_type, $object_id, $meta_key, false );
 		$subtype        = get_object_subtype( $meta_type, $object_id );
+
+		if ( ! is_array( $current_values ) ) {
+			$current_values = array();
+		}
 
 		$to_remove = $current_values;
 		$to_add    = $values;
@@ -350,10 +363,20 @@ abstract class WP_REST_Meta_Fields {
 	 * @param string $meta_key  Key for the custom field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
 	 * @param mixed  $value     Updated value.
-	 * @return bool|WP_Error True if the meta field was updated, WP_Error otherwise.
+	 * @return true|WP_Error True if the meta field was updated, WP_Error otherwise.
 	 */
 	protected function update_meta_value( $object_id, $meta_key, $name, $value ) {
 		$meta_type = $this->get_meta_type();
+
+		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
+		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
+		$subtype   = get_object_subtype( $meta_type, $object_id );
+
+		if ( is_array( $old_value ) && 1 === count( $old_value )
+			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
+		) {
+			return true;
+		}
 
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
@@ -365,14 +388,6 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
-		}
-
-		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
-		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
-		$subtype   = get_object_subtype( $meta_type, $object_id );
-
-		if ( 1 === count( $old_value ) && $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value ) ) {
-			return true;
 		}
 
 		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {

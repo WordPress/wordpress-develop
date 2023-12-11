@@ -35,8 +35,10 @@ if ( isset( $_GET['h'] ) && '' !== $_GET['h'] && false !== get_option( 'delete_b
 $blog = get_site();
 $user = wp_get_current_user();
 
+// Used in the HTML title tag.
 $title       = __( 'Delete Site' );
 $parent_file = 'tools.php';
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 echo '<div class="wrap">';
@@ -63,11 +65,10 @@ If you really want to delete your site, click the link below. You will not
 be asked to confirm again so only click this link if you are absolutely certain:
 ###URL_DELETE###
 
-If you delete your site, please consider opening a new site here
-some time in the future! (But remember your current site and username
-are gone forever.)
+If you delete your site, please consider opening a new site here some time in
+the future! (But remember that your current site and username are gone forever.)
 
-Thanks for using the site,
+Thank you for using the site,
 All at ###SITENAME###
 ###SITEURL###"
 	);

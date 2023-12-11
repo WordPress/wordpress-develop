@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 get_header();
@@ -34,4 +34,5 @@ $description = get_the_archive_description();
 	<?php get_template_part( 'template-parts/content/content-none' ); ?>
 <?php endif; ?>
 
-<?php get_footer(); ?>
+<?php
+get_footer();

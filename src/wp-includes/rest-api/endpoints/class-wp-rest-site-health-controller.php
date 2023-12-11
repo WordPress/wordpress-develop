@@ -43,6 +43,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * Registers API routes.
 	 *
 	 * @since 5.6.0
+	 * @since 6.1.0 Adds page-cache async test.
 	 *
 	 * @see register_rest_route()
 	 */
@@ -79,6 +80,25 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'test_loopback_requests' ),
 					'permission_callback' => function () {
 						return $this->validate_request_permission( 'loopback_requests' );
+					},
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			sprintf(
+				'/%s/%s',
+				$this->rest_base,
+				'https-status'
+			),
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_https_status' ),
+					'permission_callback' => function () {
+						return $this->validate_request_permission( 'https_status' );
 					},
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
@@ -132,9 +152,27 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_directory_sizes' ),
-				'permission_callback' => function() {
-					return $this->validate_request_permission( 'debug_enabled' ) && ! is_multisite();
+				'permission_callback' => function () {
+					return $this->validate_request_permission( 'directory_sizes' ) && ! is_multisite();
 				},
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			sprintf(
+				'/%s/%s',
+				$this->rest_base,
+				'page-cache'
+			),
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_page_cache' ),
+					'permission_callback' => function () {
+						return $this->validate_request_permission( 'page_cache' );
+					},
+				),
 			)
 		);
 	}
@@ -171,6 +209,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_background_updates() {
+		$this->load_admin_textdomain();
 		return $this->site_health->get_test_background_updates();
 	}
 
@@ -182,6 +221,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_dotorg_communication() {
+		$this->load_admin_textdomain();
 		return $this->site_health->get_test_dotorg_communication();
 	}
 
@@ -193,7 +233,20 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_loopback_requests() {
+		$this->load_admin_textdomain();
 		return $this->site_health->get_test_loopback_requests();
+	}
+
+	/**
+	 * Checks that the site's frontend can be accessed over HTTPS.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @return array
+	 */
+	public function test_https_status() {
+		$this->load_admin_textdomain();
+		return $this->site_health->get_test_https_status();
 	}
 
 	/**
@@ -204,7 +257,20 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_authorization_header() {
+		$this->load_admin_textdomain();
 		return $this->site_health->get_test_authorization_header();
+	}
+
+	/**
+	 * Checks that full page cache is active.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return array The test result.
+	 */
+	public function test_page_cache() {
+		$this->load_admin_textdomain();
+		return $this->site_health->get_test_page_cache();
 	}
 
 	/**
@@ -218,6 +284,8 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		if ( ! class_exists( 'WP_Debug_Data' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-debug-data.php';
 		}
+
+		$this->load_admin_textdomain();
 
 		$sizes_data = WP_Debug_Data::get_sizes();
 		$all_sizes  = array( 'raw' => 0 );
@@ -254,6 +322,22 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		}
 
 		return $all_sizes;
+	}
+
+	/**
+	 * Loads the admin textdomain for Site Health tests.
+	 *
+	 * The {@see WP_Site_Health} class is defined in WP-Admin, while the REST API operates in a front-end context.
+	 * This means that the translations for Site Health won't be loaded by default in {@see load_default_textdomain()}.
+	 *
+	 * @since 5.6.0
+	 */
+	protected function load_admin_textdomain() {
+		// Accounts for inner REST API requests in the admin.
+		if ( ! is_admin() ) {
+			$locale = determine_locale();
+			load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo", $locale );
+		}
 	}
 
 	/**

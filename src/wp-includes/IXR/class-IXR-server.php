@@ -129,6 +129,7 @@ EOD;
         if ($message && !is_object($error)) {
             $error = new IXR_Error($error, $message);
         }
+
         $this->output($error->getXml());
     }
 

@@ -10,15 +10,17 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		wp_set_current_user( self::$author_id );
+
+		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_true' );
 	}
 
 	/**
 	 * @dataProvider data_canonical
 	 */
-	function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 
 		if ( false !== strpos( $test_url, '%d' ) ) {
 			if ( false !== strpos( $test_url, '/?author=%d' ) ) {
@@ -32,7 +34,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data_canonical() {
+	public function data_canonical() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -247,7 +249,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test short-circuit filter.
 		add_filter(
 			'pre_redirect_guess_404_permalink',
-			function() {
+			static function () {
 				return 'wp';
 			}
 		);
@@ -273,6 +275,67 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test 'strict' redirect guess.
 		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
 		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Ensure public posts with custom public statuses are guessed.
+	 *
+	 * @ticket 47911
+	 * @dataProvider data_redirect_guess_404_permalink_with_custom_statuses
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_with_custom_statuses( $status_args, $redirects ) {
+		register_post_status( 'custom', $status_args );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title'  => 'custom-status-public-guess-404-permalink',
+				'post_status' => 'custom',
+			)
+		);
+
+		$this->go_to( 'custom-status-public-guess-404-permalink' );
+
+		$expected = $redirects ? get_permalink( $post ) : false;
+
+		$this->assertSame( $expected, redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_with_custom_statuses().
+	 *
+	 * return array[] {
+	 *    array Arguments used to register custom status
+	 *    bool  Whether the 404 link is expected to redirect
+	 * }
+	 */
+	public function data_redirect_guess_404_permalink_with_custom_statuses() {
+		return array(
+			'public status'                      => array(
+				'status_args' => array( 'public' => true ),
+				'redirects'   => true,
+			),
+			'private status'                     => array(
+				'status_args' => array( 'public' => false ),
+				'redirects'   => false,
+			),
+			'internal status'                    => array(
+				'status_args' => array( 'internal' => true ),
+				'redirects'   => false,
+			),
+			'protected status'                   => array(
+				'status_args' => array( 'protected' => true ),
+				'redirects'   => false,
+			),
+			'protected status flagged as public' => array(
+				'status_args' => array(
+					'protected' => true,
+					'public'    => true,
+				),
+				'redirects'   => false,
+			),
+		);
 	}
 
 	/**
@@ -313,5 +376,53 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertNull( $url );
 
 		delete_option( 'page_on_front' );
+	}
+
+	/**
+	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
+	 *
+	 * @ticket 55955
+	 */
+	public function test_feed_canonical_with_not_exists_query() {
+		// Set a NOT EXISTS tax_query on the global query.
+		$global_query        = $GLOBALS['wp_query'];
+		$GLOBALS['wp_query'] = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'post_format',
+						'operator' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+		// Restore original global.
+		$GLOBALS['wp_query'] = $global_query;
+
+		$this->assertNull( $url );
+	}
+
+	/**
+	 * @ticket 57913
+	 */
+	public function test_canonical_attachment_page_redirect_with_option_disabled() {
+		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_false' );
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+
+		$attachment_id   = $this->_make_attachment( $upload );
+		$attachment_page = get_permalink( $attachment_id );
+
+		$this->go_to( $attachment_page );
+
+		$url      = redirect_canonical( $attachment_page, false );
+		$expected = wp_get_attachment_url( $attachment_id );
+
+		$this->assertSame( $expected, $url );
 	}
 }

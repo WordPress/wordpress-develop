@@ -48,7 +48,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 			// Clear the selection and move focus back to the trigger.
 			event.clearSelection();
 			// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-			triggerElement.focus();
+			triggerElement.trigger( 'focus' );
 
 			// Show success visual feedback.
 			clearTimeout( successTimeout );
@@ -105,18 +105,18 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 */
 	moveFocus: function() {
 		if ( this.previousAttachment.length ) {
-			this.previousAttachment.focus();
+			this.previousAttachment.trigger( 'focus' );
 			return;
 		}
 
 		if ( this.nextAttachment.length ) {
-			this.nextAttachment.focus();
+			this.nextAttachment.trigger( 'focus' );
 			return;
 		}
 
 		// Fallback: move focus to the "Select Files" button in the media modal.
 		if ( this.controller.uploader && this.controller.uploader.$browser ) {
-			this.controller.uploader.$browser.focus();
+			this.controller.uploader.$browser.trigger( 'focus' );
 			return;
 		}
 
@@ -133,7 +133,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 		// Last fallback: make the frame focusable and move focus to it.
 		$( '.media-frame' )
 			.attr( 'tabindex', '-1' )
-			.focus();
+			.trigger( 'focus' );
 	},
 
 	/**
@@ -154,7 +154,13 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 		this.getFocusableElements();
 
 		if ( window.confirm( l10n.warnDelete ) ) {
-			this.model.destroy();
+			this.model.destroy( {
+				wait: true,
+				error: function() {
+					window.alert( l10n.errorDeleting );
+				}
+			} );
+
 			this.moveFocus();
 		}
 	},

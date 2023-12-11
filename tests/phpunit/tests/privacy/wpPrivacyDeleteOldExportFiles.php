@@ -1,21 +1,15 @@
 <?php
 /**
- * Define a class to test `wp_privacy_delete_old_export_files()`.
+ * Test cases for the `wp_privacy_delete_old_export_files()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.6
- */
-
-/**
- * Test cases for `wp_privacy_delete_old_export_files()`.
  *
  * @group privacy
  * @covers ::wp_privacy_delete_old_export_files
- *
- * @since 4.9.6
  */
-class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
 	 * Path to the index file that blocks directory listing on poorly-configured servers.
 	 *
@@ -48,14 +42,14 @@ class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$exports_dir = wp_privacy_exports_dir();
 
 		if ( ! is_dir( $exports_dir ) ) {
 			wp_mkdir_p( $exports_dir );
 		}
 
-		self::$index_path          = $exports_dir . 'index.html';
+		self::$index_path          = $exports_dir . 'index.php';
 		self::$expired_export_file = $exports_dir . 'wp-personal-data-file-0123456789abcdef.zip';
 		self::$active_export_file  = $exports_dir . 'wp-personal-data-file-fedcba9876543210.zip';
 	}
@@ -63,8 +57,8 @@ class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
 	 * Perform setup operations that are shared across all tests.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		touch( self::$index_path, time() - 30 * WEEK_IN_SECONDS );
 		touch( self::$expired_export_file, time() - 5 * DAY_IN_SECONDS );

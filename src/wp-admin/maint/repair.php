@@ -7,7 +7,7 @@
  */
 define( 'WP_REPAIRING', true );
 
-require_once dirname( dirname( __DIR__ ) ) . '/wp-load.php';
+require_once dirname( __DIR__, 2 ) . '/wp-load.php';
 
 header( 'Content-Type: text/html; charset=utf-8' );
 ?>
@@ -27,7 +27,10 @@ header( 'Content-Type: text/html; charset=utf-8' );
 
 if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 
-	echo '<h1 class="screen-reader-text">' . __( 'Allow automatic database repair' ) . '</h1>';
+	echo '<h1 class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Allow automatic database repair' ) .
+	'</h1>';
 
 	echo '<p>';
 	printf(
@@ -37,7 +40,17 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 	);
 	echo "</p><p><code>define('WP_ALLOW_REPAIR', true);</code></p>";
 
-	$default_key     = 'put your unique phrase here';
+	$default_keys    = array_unique(
+		array(
+			'put your unique phrase here',
+			/*
+			 * translators: This string should only be translated if wp-config-sample.php is localized.
+			 * You can check the localized release package or
+			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
+			 */
+			__( 'put your unique phrase here' ),
+		)
+	);
 	$missing_key     = false;
 	$duplicated_keys = array();
 
@@ -51,9 +64,11 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 		}
 	}
 
-	// If at least one key uses the default value, consider it duplicated.
-	if ( isset( $duplicated_keys[ $default_key ] ) ) {
-		$duplicated_keys[ $default_key ] = true;
+	// If at least one key uses a default value, consider it duplicated.
+	foreach ( $default_keys as $default_key ) {
+		if ( isset( $duplicated_keys[ $default_key ] ) ) {
+			$duplicated_keys[ $default_key ] = true;
+		}
 	}
 
 	// Weed out all unique, non-default values.
@@ -61,26 +76,26 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 
 	if ( $duplicated_keys || $missing_key ) {
 
-		echo '<h2 class="screen-reader-text">' . __( 'Check secret keys' ) . '</h2>';
+		echo '<h2 class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'Check secret keys' ) .
+		'</h2>';
 
 		/* translators: 1: wp-config.php, 2: Secret key service URL. */
 		echo '<p>' . sprintf( __( 'While you are editing your %1$s file, take a moment to make sure you have all 8 keys and that they are unique. You can generate these using the <a href="%2$s">WordPress.org secret key service</a>.' ), '<code>wp-config.php</code>', 'https://api.wordpress.org/secret-key/1.1/salt/' ) . '</p>';
 	}
 } elseif ( isset( $_GET['repair'] ) ) {
 
-	echo '<h1 class="screen-reader-text">' . __( 'Database repair results' ) . '</h1>';
+	echo '<h1 class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'Database repair results' ) .
+	'</h1>';
 
-	$optimize = 2 == $_GET['repair'];
+	$optimize = '2' === $_GET['repair'];
 	$okay     = true;
 	$problems = array();
 
 	$tables = $wpdb->tables();
-
-	// Sitecategories may not exist if global terms are disabled.
-	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->sitecategories ) );
-	if ( is_multisite() && ! $wpdb->get_var( $query ) ) {
-		unset( $tables['sitecategories'] );
-	}
 
 	/**
 	 * Filters additional database tables to repair.
@@ -106,34 +121,34 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 			$repair = $wpdb->get_row( "REPAIR TABLE $table" );
 
 			echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
-			if ( 'OK' === $check->Msg_text ) {
+			if ( 'OK' === $repair->Msg_text ) {
 				/* translators: %s: Table name. */
 				printf( __( 'Successfully repaired the %s table.' ), "<code>$table</code>" );
 			} else {
 				/* translators: 1: Table name, 2: Error message. */
-				printf( __( 'Failed to repair the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$check->Msg_text</code>" ) . '<br />';
-				$problems[ $table ] = $check->Msg_text;
+				printf( __( 'Failed to repair the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$repair->Msg_text</code>" ) . '<br />';
+				$problems[ $table ] = $repair->Msg_text;
 				$okay               = false;
 			}
 		}
 
 		if ( $okay && $optimize ) {
-			$check = $wpdb->get_row( "ANALYZE TABLE $table" );
+			$analyze = $wpdb->get_row( "ANALYZE TABLE $table" );
 
 			echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
-			if ( 'Table is already up to date' === $check->Msg_text ) {
+			if ( 'Table is already up to date' === $analyze->Msg_text ) {
 				/* translators: %s: Table name. */
 				printf( __( 'The %s table is already optimized.' ), "<code>$table</code>" );
 			} else {
-				$check = $wpdb->get_row( "OPTIMIZE TABLE $table" );
+				$optimize = $wpdb->get_row( "OPTIMIZE TABLE $table" );
 
 				echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
-				if ( 'OK' === $check->Msg_text || 'Table is already up to date' === $check->Msg_text ) {
+				if ( 'OK' === $optimize->Msg_text || 'Table is already up to date' === $optimize->Msg_text ) {
 					/* translators: %s: Table name. */
 					printf( __( 'Successfully optimized the %s table.' ), "<code>$table</code>" );
 				} else {
 					/* translators: 1: Table name. 2: Error message. */
-					printf( __( 'Failed to optimize the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$check->Msg_text</code>" );
+					printf( __( 'Failed to optimize the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$optimize->Msg_text</code>" );
 				}
 			}
 		}
@@ -156,7 +171,10 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 	}
 } else {
 
-	echo '<h1 class="screen-reader-text">' . __( 'WordPress database repair' ) . '</h1>';
+	echo '<h1 class="screen-reader-text">' .
+		/* translators: Hidden accessibility text. */
+		__( 'WordPress database repair' ) .
+	'</h1>';
 
 	if ( isset( $_GET['referrer'] ) && 'is_blog_installed' === $_GET['referrer'] ) {
 		echo '<p>' . __( 'One or more database tables are unavailable. To allow WordPress to attempt to repair these tables, press the &#8220;Repair Database&#8221; button. Repairing can take a while, so please be patient.' ) . '</p>';

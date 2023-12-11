@@ -1,28 +1,30 @@
 === Twenty Seventeen ===
 Contributors: wordpressdotorg
-Tested up to: 5.6
-Version: 2.4
+Requires at least: 4.7
+Tested up to: 6.4
+Requires PHP: 5.2.4
+Version: 3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-Tags: one-column, two-columns, right-sidebar, flexible-header, accessibility-ready, custom-colors, custom-header, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, post-formats, rtl-language-support, sticky-post, theme-options, threaded-comments, translation-ready
+Tags: one-column, two-columns, right-sidebar, flexible-header, accessibility-ready, custom-colors, custom-header, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, post-formats, rtl-language-support, sticky-post, theme-options, threaded-comments, translation-ready, block-patterns
 
 == Description ==
 
 Twenty Seventeen brings your site to life with header video and immersive featured images. With a focus on business sites, it features multiple sections on the front page as well as widgets, navigation and social menus, a logo, and more. Personalize its asymmetrical grid with a custom color scheme and showcase your multimedia content with post formats. Our default theme for 2017 works great in many languages, for any abilities, and on any device.
 
-For more information about Twenty Seventeen please go to https://wordpress.org/support/article/twenty-seventeen/.
+For more information about Twenty Seventeen please go to https://wordpress.org/documentation/article/twenty-seventeen/.
 
 == Installation ==
 
 1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
 2. Type in Twenty Seventeen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
-4. Go to https://wordpress.org/support/article/twenty-seventeen/ for a guide on how to customize this theme.
+4. Go to https://wordpress.org/documentation/article/twenty-seventeen/ for a guide on how to customize this theme.
 5. Navigate to Appearance > Customize in your admin panel and customize to taste.
 
 == Copyright ==
 
-Twenty Seventeen WordPress Theme, Copyright 2016-2020 WordPress.org
+Twenty Seventeen WordPress Theme, Copyright 2016-2023 WordPress.org
 Twenty Seventeen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -53,11 +55,75 @@ Font Awesome icons, Copyright Dave Gandy
 License: SIL Open Font License, version 1.1.
 Source: http://fontawesome.io/
 
+Libre Franklin Font
+Copyright 2020 The LibreFranklin Project Authors (https://github.com/impallari/Libre-Franklin)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://fontsource.org/fonts/libre-franklin
+
 Bundled header image, Copyright Alvin Engler
 License: CC0 1.0 Universal (CC0 1.0)
 Source: https://unsplash.com/@englr?photo=bIhpiQA009k
 
+Bundled block pattern images, Copyright Solo Shutter
+License: CC0 1.0 Universal (CC0 1.0)
+Source: https://stocksnap.io/photo/striped-lines-BTNYMDDCBW
+        https://stocksnap.io/photo/striped-lines-5XWOPSWPWX
+
+Bundled block pattern image, Copyright Seacoast Sage
+License: CC0 1.0 Universal (CC0 1.0)
+Source: https://stocksnap.io/photo/striped-fabric-9CBVWF2CDU
+
 == Changelog ==
+
+= 3.4 =
+* Released: November 7, 2023
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_3.4
+
+= 3.3 =
+* Released: August 8, 2023
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_3.3
+
+= 3.2 =
+* Released: March 28, 2023
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_3.2
+
+= 3.1 =
+* Released: November 1, 2022
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_3.1
+
+= 3.0 =
+* Released: May 24, 2022
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_3.0
+
+= 2.9 =
+* Released: January 25, 2022
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_2.9
+
+= 2.8 =
+* Released: July 20, 2021
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_2.8
+
+= 2.7 =
+* Released: April 14, 2021
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_2.7
+
+= 2.6 =
+* Released: March 9, 2021
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_2.6
+
+= 2.5 =
+* Released: December 8, 2020
+
+https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_2.5
 
 = 2.4 =
 * Released: August 11, 2020

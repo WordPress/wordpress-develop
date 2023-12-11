@@ -6,8 +6,11 @@
  */
 class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 
-	function test_location_of_jquery() {
-		$scripts = new WP_Scripts;
+	/**
+	 * @covers WP_Scripts::query
+	 */
+	public function test_location_of_jquery() {
+		$scripts = new WP_Scripts();
 		wp_default_scripts( $scripts );
 
 		if ( SCRIPT_DEBUG ) {
@@ -31,24 +34,19 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		foreach ( $object->deps as $dep ) {
 			$o = $scripts->query( $dep, 'registered' );
 			$this->assertInstanceOf( '_WP_Dependency', $object );
-			$this->assertTrue( isset( $jquery_scripts[ $dep ] ) );
+			$this->assertArrayHasKey( $dep, $jquery_scripts );
 			$this->assertSame( $jquery_scripts[ $dep ], $o->src );
 		}
-	}
-
-	function test_presence_of_jquery_no_conflict() {
-		$contents   = trim( file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.js' ) );
-		$noconflict = 'jQuery.noConflict();';
-		$end        = substr( $contents, - strlen( $noconflict ) );
-		$this->assertSame( $noconflict, $end );
 	}
 
 	/**
 	 * @ticket 22896
 	 *
 	 * @expectedIncorrectUsage wp_deregister_script
+	 *
+	 * @covers ::wp_script_is
 	 */
-	function test_dont_allow_deregister_core_scripts_in_admin() {
+	public function test_dont_allow_deregister_core_scripts_in_admin() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 		$libraries = array(
@@ -84,29 +82,17 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			wp_deregister_script( $library );
 			$this->assertTrue( wp_script_is( $library, 'registered' ) );
 		}
-
-		set_current_screen( 'front' );
-	}
-
-	/**
-	 * @ticket 28404
-	 */
-	function test_wp_script_is_dep_enqueued() {
-		wp_enqueue_script( 'jquery-ui-accordion' );
-
-		$this->assertTrue( wp_script_is( 'jquery', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'underscore', 'enqueued' ) );
-
-		unset( $GLOBALS['wp_scripts'] );
 	}
 
 	/**
 	 * Test placing of jQuery in footer.
 	 *
 	 * @ticket 25247
+	 *
+	 * @covers WP_Scripts::do_items
 	 */
-	function test_jquery_in_footer() {
-		$scripts = new WP_Scripts;
+	public function test_jquery_in_footer() {
+		$scripts = new WP_Scripts();
 		$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ) );
 		$scripts->add( 'jquery-core', '/jquery.js', array() );
 		$scripts->add( 'jquery-migrate', '/jquery-migrate.js', array() );

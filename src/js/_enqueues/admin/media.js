@@ -10,7 +10,7 @@
  * @requires jQuery
  */
 
-/* global ajaxurl, _wpMediaGridSettings, showNotice, findPosts */
+/* global ajaxurl, _wpMediaGridSettings, showNotice, findPosts, ClipboardJS */
 
 ( function( $ ){
 	window.findPosts = {
@@ -46,7 +46,7 @@
 			$( '#find-posts' ).show();
 
 			// Close the dialog when the escape key is pressed.
-			$('#find-posts-input').focus().keyup( function( event ){
+			$('#find-posts-input').trigger( 'focus' ).on( 'keyup', function( event ){
 				if ( event.which == 27 ) {
 					findPosts.close();
 				}
@@ -140,8 +140,11 @@
 	 *
 	 * @return {void}
 	 */
-	$( document ).ready( function() {
-		var settings, $mediaGridWrap = $( '#wp-media-grid' );
+	$( function() {
+		var settings,
+			$mediaGridWrap             = $( '#wp-media-grid' ),
+			copyAttachmentURLClipboard = new ClipboardJS( '.copy-attachment-url.media-library' ),
+			copyAttachmentURLSuccessTimeout;
 
 		// Opens a manage media frame into the grid.
 		if ( $mediaGridWrap.length && window.wp && window.wp.media ) {
@@ -158,13 +161,13 @@
 		}
 
 		// Prevents form submission if no post has been selected.
-		$( '#find-posts-submit' ).click( function( event ) {
+		$( '#find-posts-submit' ).on( 'click', function( event ) {
 			if ( ! $( '#find-posts-response input[type="radio"]:checked' ).length )
 				event.preventDefault();
 		});
 
 		// Submits the search query when hitting the enter key in the search input.
-		$( '#find-posts .find-box-search :input' ).keypress( function( event ) {
+		$( '#find-posts .find-box-search :input' ).on( 'keypress', function( event ) {
 			if ( 13 == event.which ) {
 				findPosts.send();
 				return false;
@@ -172,19 +175,18 @@
 		});
 
 		// Binds the click event to the search button.
-		$( '#find-posts-search' ).click( findPosts.send );
+		$( '#find-posts-search' ).on( 'click', findPosts.send );
 
 		// Binds the close dialog click event.
-		$( '#find-posts-close' ).click( findPosts.close );
+		$( '#find-posts-close' ).on( 'click', findPosts.close );
 
 		// Binds the bulk action events to the submit buttons.
-		$( '#doaction, #doaction2' ).click( function( event ) {
+		$( '#doaction' ).on( 'click', function( event ) {
 
 			/*
-			 * Retrieves all select elements for bulk actions that have a name starting with `action`
-			 * and handle its action based on its value.
+			 * Handle the bulk action based on its value.
 			 */
-			$( 'select[name^="action"]' ).each( function() {
+			$( 'select[name="action"]' ).each( function() {
 				var optionValue = $( this ).val();
 
 				if ( 'attach' === optionValue ) {
@@ -206,5 +208,35 @@
 		$( '.find-box-inside' ).on( 'click', 'tr', function() {
 			$( this ).find( '.found-radio input' ).prop( 'checked', true );
 		});
+
+		/**
+		 * Handles media list copy media URL button.
+		 *
+		 * @since 6.0.0
+		 *
+		 * @param {MouseEvent} event A click event.
+		 * @return {void}
+		 */
+		copyAttachmentURLClipboard.on( 'success', function( event ) {
+			var triggerElement = $( event.trigger ),
+				successElement = $( '.success', triggerElement.closest( '.copy-to-clipboard-container' ) );
+
+			// Clear the selection and move focus back to the trigger.
+			event.clearSelection();
+			// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680.
+			triggerElement.trigger( 'focus' );
+
+			// Show success visual feedback.
+			clearTimeout( copyAttachmentURLSuccessTimeout );
+			successElement.removeClass( 'hidden' );
+
+			// Hide success visual feedback after 3 seconds since last success and unfocus the trigger.
+			copyAttachmentURLSuccessTimeout = setTimeout( function() {
+				successElement.addClass( 'hidden' );
+			}, 3000 );
+
+			// Handle success audible feedback.
+			wp.a11y.speak( wp.i18n.__( 'The file URL has been copied to your clipboard' ) );
+		} );
 	});
 })( jQuery );

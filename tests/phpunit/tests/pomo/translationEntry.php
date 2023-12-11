@@ -5,7 +5,7 @@
  */
 class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 
-	function test_create_entry() {
+	public function test_create_entry() {
 		// No singular => empty object.
 		$entry = new Translation_Entry();
 		$this->assertNull( $entry->singular );
@@ -29,7 +29,7 @@ class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 		$this->assertSame( array(), $entry->flags );
 	}
 
-	function test_key() {
+	public function test_key() {
 		$entry_baba        = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry_dyado       = new Translation_Entry( array( 'singular' => 'dyado' ) );
 		$entry_baba_ctxt   = new Translation_Entry(

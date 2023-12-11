@@ -87,7 +87,6 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	 * @since 3.5.0
 	 */
 	activate: function() {
-		this.updateSelection();
 		this.frame.on( 'open', this.updateSelection, this );
 
 		Library.prototype.activate.apply( this, arguments );

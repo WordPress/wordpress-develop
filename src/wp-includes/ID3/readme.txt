@@ -20,7 +20,8 @@ GNU LGPL: https://gnu.org/licenses/lgpl.html                 (v3)
 
 Mozilla MPL: https://www.mozilla.org/MPL/2.0/                (v2)
 
-getID3 Commercial License: https://www.getid3.org/#gCL (payment required)
+getID3 Commercial License: https://www.getid3.org/#gCL
+(no longer available, existing licenses remain valid)
 
 *****************************************************************
 *****************************************************************
@@ -625,3 +626,4 @@ Reference material:
 * http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Nikon.html
 * http://www.codeproject.com/Articles/8295/MPEG-Audio-Frame-Header
 * http://dsd-guide.com/sites/default/files/white-papers/DSFFileFormatSpec_E.pdf
+* https://fileformats.fandom.com/wiki/Torrent_file

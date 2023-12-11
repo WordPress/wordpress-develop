@@ -2,11 +2,13 @@
 
 /**
  * @group comment
+ *
+ * @covers WP_Comment::get_instance
  */
-class Tests_Term_WpComment extends WP_UnitTestCase {
+class Tests_Comment_WpComment extends WP_UnitTestCase {
 	protected static $comment_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		// Ensure that there is a comment with ID 1.
@@ -22,7 +24,7 @@ class Tests_Term_WpComment extends WP_UnitTestCase {
 			clean_comment_cache( 1 );
 		}
 
-		self::$comment_id = self::factory()->comment->create();
+		self::$comment_id = $factory->comment->create();
 	}
 
 	/**

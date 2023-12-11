@@ -12,6 +12,7 @@
  *
  * @since 3.4.0
  */
+#[AllowDynamicProperties]
 class WP_Customize_Control {
 
 	/**
@@ -167,7 +168,7 @@ class WP_Customize_Control {
 	 *
 	 * Supplied `$args` override class property defaults.
 	 *
-	 * If `$args['settings']` is not defined, use the $id as the setting ID.
+	 * If `$args['settings']` is not defined, use the `$id` as the setting ID.
 	 *
 	 * @since 3.4.0
 	 *
@@ -397,7 +398,7 @@ class WP_Customize_Control {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( 'customize_render_control', $this );
 
@@ -409,7 +410,7 @@ class WP_Customize_Control {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param WP_Customize_Control $this WP_Customize_Control instance.
+		 * @param WP_Customize_Control $control WP_Customize_Control instance.
 		 */
 		do_action( "customize_render_control_{$this->id}", $this );
 
@@ -606,8 +607,11 @@ class WP_Customize_Control {
 				// Hackily add in the data link parameter.
 				$dropdown = str_replace( '<select', '<select ' . $this->get_link() . ' id="' . esc_attr( $input_id ) . '" ' . $describedby_attr, $dropdown );
 
-				// Even more hacikly add auto-draft page stubs.
-				// @todo Eventually this should be removed in favor of the pages being injected into the underlying get_pages() call. See <https://github.com/xwp/wp-customize-posts/pull/250>.
+				/*
+				 * Even more hacikly add auto-draft page stubs.
+				 * @todo Eventually this should be removed in favor of the pages being injected into the underlying get_pages() call.
+				 * See <https://github.com/xwp/wp-customize-posts/pull/250>.
+				 */
 				$nav_menus_created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
 				if ( $nav_menus_created_posts_setting && current_user_can( 'publish_pages' ) ) {
 					$auto_draft_page_options = '';
@@ -632,8 +636,13 @@ class WP_Customize_Control {
 						?>
 					</button>
 					<div class="new-content-item">
-						<label for="create-input-<?php echo $this->id; ?>"><span class="screen-reader-text"><?php _e( 'New page title' ); ?></span></label>
-						<input type="text" id="create-input-<?php echo $this->id; ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
+						<label for="create-input-<?php echo esc_attr( $this->id ); ?>"><span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'New page title' );
+							?>
+						</span></label>
+						<input type="text" id="create-input-<?php echo esc_attr( $this->id ); ?>" class="create-item-input" placeholder="<?php esc_attr_e( 'New page title&hellip;' ); ?>">
 						<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 					</div>
 				<?php endif; ?>
@@ -675,7 +684,7 @@ class WP_Customize_Control {
 	 */
 	final public function print_template() {
 		?>
-		<script type="text/html" id="tmpl-customize-control-<?php echo $this->type; ?>-content">
+		<script type="text/html" id="tmpl-customize-control-<?php echo esc_attr( $this->type ); ?>-content">
 			<?php $this->content_template(); ?>
 		</script>
 		<?php
@@ -692,7 +701,6 @@ class WP_Customize_Control {
 	 * @since 4.1.0
 	 */
 	protected function content_template() {}
-
 }
 
 /**
@@ -795,3 +803,8 @@ require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-auto-add-
  * WP_Customize_Date_Time_Control class.
  */
 require_once ABSPATH . WPINC . '/customize/class-wp-customize-date-time-control.php';
+
+/**
+ * WP_Sidebar_Block_Editor_Control class.
+ */
+require_once ABSPATH . WPINC . '/customize/class-wp-sidebar-block-editor-control.php';

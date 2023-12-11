@@ -52,11 +52,13 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @param string|WP_Error $error
+	 * @since 5.9.0 Renamed `$error` to `$errors` for PHP 8 named parameter support.
+	 *
+	 * @param string|WP_Error $errors Errors.
 	 */
-	public function error( $error ) {
+	public function error( $errors ) {
 		echo '<div class="lp-error">';
-		parent::error( $error );
+		parent::error( $errors );
 		echo '</div>';
 	}
 
@@ -75,7 +77,7 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 			'updates_page' => sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'update-core.php' ),
-				__( 'Return to WordPress Updates page' )
+				__( 'Go to WordPress Updates page' )
 			),
 		);
 

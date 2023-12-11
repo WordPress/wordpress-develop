@@ -17,7 +17,7 @@
 		container.find( '.current-menu-ancestor > button' ).addClass( 'toggle-on' );
 		container.find( '.current-menu-ancestor > .sub-menu' ).addClass( 'toggled-on' );
 
-		container.find( '.dropdown-toggle' ).click( function( e ) {
+		container.find( '.dropdown-toggle' ).on( 'click', function( e ) {
 			var _this = $( this );
 			e.preventDefault();
 			_this.toggleClass( 'toggle-on' );
@@ -99,9 +99,9 @@
 		var windowPos = $window.scrollTop(),
 			windowHeight = $window.height(),
 			sidebarHeight = $sidebar.height(),
-			bodyHeight = $body.height();
+			pageHeight = $( '#page' ).height();
 
-		if( 955 < $window.width() && bodyHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
+		if ( 955 < $window.width() && pageHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
 			$sidebar.css({
 				position: 'fixed',
 				bottom: sidebarHeight > windowHeight ? 0 : 'auto'
@@ -111,7 +111,7 @@
 		}
 	}
 
-	$( document ).ready( function() {
+	$( function() {
 		$body          = $( document.body );
 		$window        = $( window );
 		$sidebar       = $( '#sidebar' ).first();

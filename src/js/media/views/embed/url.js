@@ -48,7 +48,12 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 			return;
 		}
 
-		this.input.value = this.model.get('url') || 'http://';
+		if ( this.model.get( 'url' ) ) {
+			this.input.value = this.model.get('url');
+		} else {
+			this.input.setAttribute( 'placeholder', 'https://' );
+		}
+
 		/**
 		 * Call `render` directly on parent class with passed arguments
 		 */
@@ -57,7 +62,8 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 	},
 
 	url: function( event ) {
-		this.model.set( 'url', $.trim( event.target.value ) );
+		var url = event.target.value || '';
+		this.model.set( 'url', url.trim() );
 	}
 });
 

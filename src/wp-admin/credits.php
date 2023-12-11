@@ -10,6 +10,7 @@
 require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/includes/credits.php';
 
+// Used in the HTML title tag.
 $title = __( 'Credits' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
@@ -21,55 +22,45 @@ $credits = wp_credits();
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-text">
-			<?php _e( 'Speed. Search. Security.' ); ?>
-		</div>
-
 		<div class="about__header-title">
-			<p>
-				<?php _e( 'WordPress' ); ?>
-				<span><?php echo $display_version; ?></span>
-			</p>
+			<h1>
+				<?php _e( 'Contributors' ); ?>
+			</h1>
 		</div>
 
-		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-			<a href="about.php" class="nav-tab"><?php _e( 'What&#8217;s New' ); ?></a>
-			<a href="credits.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Credits' ); ?></a>
-			<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
-			<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
-		</nav>
+		<div class="about__header-text"></div>
 	</div>
 
-	<div class="about__section is-feature">
-		<div class="column">
-			<h1><?php _e( 'Credits' ); ?></h1>
+	<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+		<a href="about.php" class="nav-tab"><?php _e( 'What&#8217;s New' ); ?></a>
+		<a href="credits.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Credits' ); ?></a>
+		<a href="freedoms.php" class="nav-tab"><?php _e( 'Freedoms' ); ?></a>
+		<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
+		<a href="contribute.php" class="nav-tab"><?php _e( 'Get Involved' ); ?></a>
+	</nav>
 
+	<div class="about__section has-1-column has-gutters">
+		<div class="column aligncenter">
 			<?php if ( ! $credits ) : ?>
 
 			<p>
 				<?php
 				printf(
-					/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
-					__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
-					__( 'https://wordpress.org/about/' ),
-					__( 'https://make.wordpress.org/' )
+					/* translators: 1: https://wordpress.org/about/ */
+					__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals.' ),
+					__( 'https://wordpress.org/about/' )
 				);
 				?>
+				<br />
+				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php else : ?>
 
 			<p>
-				<?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?>
-			</p>
-			<p>
-				<?php
-				printf(
-					/* translators: %s: https://make.wordpress.org/ */
-					__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
-					__( 'https://make.wordpress.org/' )
-				);
-				?>
+				<?php _e( 'Want to see your name in lights on this page?' ); ?>
+				<br />
+				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php endif; ?>
@@ -84,10 +75,10 @@ if ( ! $credits ) {
 }
 ?>
 
-	<hr />
+	<hr class="is-large" />
 
 	<div class="about__section">
-		<div class="column has-subtle-background-color">
+		<div class="column is-edge-to-edge">
 			<?php wp_credits_section_title( $credits['groups']['core-developers'] ); ?>
 			<?php wp_credits_section_list( $credits, 'core-developers' ); ?>
 			<?php wp_credits_section_list( $credits, 'contributing-developers' ); ?>
