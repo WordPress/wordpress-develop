@@ -361,14 +361,14 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			array( 'autoload_yes', 'yes', 'yes' ),
 			array( 'autoload_true', true, 'yes' ),
-			array( 'autoload_string', 'foo', 'default-yes' ),
-			array( 'autoload_int', 123456, 'default-yes' ),
-			array( 'autoload_array', array(), 'default-yes' ),
+			array( 'autoload_string', 'foo', 'auto-yes' ),
+			array( 'autoload_int', 123456, 'auto-yes' ),
+			array( 'autoload_array', array(), 'auto-yes' ),
 			array( 'autoload_no', 'no', 'no' ),
 			array( 'autoload_false', false, 'no' ),
-			array( 'autoload_null', null, 'default-yes' ),
-			array( 'autoload_default_yes', 'default-yes', 'default-yes' ),
-			array( 'autoload_default_no', 'default-no', 'default-no' ),
+			array( 'autoload_null', null, 'auto-yes' ),
+			array( 'autoload_default_yes', 'auto-yes', 'auto-yes' ),
+			array( 'autoload_default_no', 'auto-no', 'auto-no' ),
 		);
 	}
 
@@ -448,17 +448,17 @@ class Tests_Option_Option extends WP_UnitTestCase {
 				'autoload' => false,
 				'expected' => 'no',
 			),
-			'default-yes' => array(
-				'autoload' => 'default-yes',
-				'expected' => 'default-yes',
+			'auto-yes' => array(
+				'autoload' => 'auto-yes',
+				'expected' => 'auto-yes',
 			),
-			'default-no'  => array(
-				'autoload' => 'default-no',
-				'expected' => 'default-no',
+			'auto-no'  => array(
+				'autoload' => 'auto-no',
+				'expected' => 'auto-no',
 			),
 			'null'        => array(
 				'autoload' => null,
-				'expected' => 'default-no',
+				'expected' => 'auto-no',
 			),
 		);
 	}

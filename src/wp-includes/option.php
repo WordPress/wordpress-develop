@@ -606,7 +606,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes' OR autoload = 'default-yes'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes' OR autoload = 'auto-yes'" );
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
 		}
@@ -825,7 +825,7 @@ function update_option( $option, $value, $autoload = null ) {
 		$update_args['autoload'] = determine_option_autoload_value( $option, $serialized_value, $autoload );
 	} else {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
-		$allow_values = array( 'default-yes', 'default-no' );
+		$allow_values = array( 'auto-yes', 'auto-no' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
 			$autoload = determine_option_autoload_value( $option, $serialized_value, $autoload );
 			if ( $autoload !== $raw_autoload ) {
@@ -857,7 +857,7 @@ function update_option( $option, $value, $autoload = null ) {
 			} else {
 				wp_cache_set( $option, $serialized_value, 'options' );
 			}
-		} elseif ( 'yes' === $update_args['autoload'] || 'default-yes' === $update_args['autoload'] ) {
+		} elseif ( 'yes' === $update_args['autoload'] || 'auto-yes' === $update_args['autoload'] ) {
 			// Delete the individual cache, then set in alloptions cache.
 			wp_cache_delete( $option, 'options' );
 
@@ -1015,7 +1015,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $autoload || 'default-yes' === $autoload ) {
+		if ( 'yes' === $autoload || 'auto-yes' === $autoload ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1099,7 +1099,7 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload || 'default-yes' === $row->autoload ) {
+		if ( 'yes' === $row->autoload || 'auto-yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
 
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
@@ -1143,11 +1143,11 @@ function delete_option( $option ) {
  *  Determines the appropriate autoload value for an option based on input.
  *
  *  This function checks the provided autoload value and returns a standardized
- *  value ('yes', 'no', 'default-yes', or 'default-no') based on specific conditions.
+ *  value ('yes', 'no', 'auto-yes', or 'auto-no') based on specific conditions.
  *
  * If no valid autoload value is provided, the function will check the size of the given option value
- * and compare it to the maximum allowed size. If it ls larger, it will return 'default-no', otherwise
- * it will return 'default-yes'.
+ * and compare it to the maximum allowed size. If it ls larger, it will return 'auto-no', otherwise
+ * it will return 'auto-yes'.
  *
  * @since 6.5.0
  * @access private
@@ -1156,11 +1156,11 @@ function delete_option( $option ) {
  * @param mixed            $value    The value of the option to check its autoload value.
  * @param string|bool|null $autoload The autoload value to check.
  *                                   Accepts 'yes'|true to enable or 'no'|false to disable, or
- *                                   'default-yes' and 'default-no' for internal purposes.
- *                                   Any other autoload value will be forced to either `default-yes`
- *                                   or `default-no`.
- * @return string Returns the original $autoload value if valid, or 'default-no' if the size exceeds
- *                the maximum allowed size, or 'default-yes' otherwise.
+ *                                   'auto-yes' and 'auto-no' for internal purposes.
+ *                                   Any other autoload value will be forced to either `auto-yes`
+ *                                   or `auto-no`.
+ * @return string Returns the original $autoload value if valid, or 'auto-no' if the size exceeds
+ *                the maximum allowed size, or 'auto-yes' otherwise.
  */
 function determine_option_autoload_value( $option, $value, $autoload ) {
 
@@ -1171,7 +1171,7 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	 * @param string $option name of the option.
 	 * @param string $value value of the option to check its autoload value.
 	 *
-	 * @return  string|bool|null $autoload autoload value to set. Accepted strings 'yes','no',default-yes','default-no' to enable
+	 * @return  string|bool|null $autoload autoload value to set. Accepted strings 'yes','no',auto-yes','auto-no' to enable
 	 *
 	 * @since 6.5.0
 	 */
@@ -1185,8 +1185,8 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	switch ( $autoload ) {
 		case 'no':
 		case 'yes':
-		case 'default-yes':
-		case 'default-no':
+		case 'auto-yes':
+		case 'auto-no':
 			return $autoload;
 
 	}
@@ -1205,10 +1205,10 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	$max_option_size = (int) apply_filters( 'wp_max_autoloaded_option_size', 150000, $option );
 
 	if ( $size > $max_option_size ) {
-		return 'default-no';
+		return 'auto-no';
 	}
 
-	return 'default-yes';
+	return 'auto-yes';
 }
 
 /**
