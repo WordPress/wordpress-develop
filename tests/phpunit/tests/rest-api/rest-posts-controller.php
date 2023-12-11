@@ -18,6 +18,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	protected static $supported_formats;
 	protected static $post_ids    = array();
+	protected static $terms       = array();
 	protected static $total_posts = 30;
 	protected static $per_page    = 50;
 
@@ -28,6 +29,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
+		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
+		wp_set_object_terms( self::$post_id, self::$terms, 'category' );
 
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -221,6 +224,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
+	}
+
+	public function test_registered_get_items_embed() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->response_to_data( $response, true );
+		$this->assertArrayHasKey( '_embedded', $response[0], 'The _embedded key must exist' );
+		$this->assertArrayHasKey( 'wp:term', $response[0]['_embedded'], 'The wp:term key must exist' );
+		$this->assertCount( 15, $response[0]['_embedded']['wp:term'][0], 'Should should be 15 terms and not the default 10' );
+		$i = 0;
+		foreach ( $response[0]['_embedded']['wp:term'][0] as $term ) {
+			$this->assertSame( self::$terms[ $i ], $term['id'], 'Check term id existing in response' );
+			++$i;
+		}
 	}
 
 	/**

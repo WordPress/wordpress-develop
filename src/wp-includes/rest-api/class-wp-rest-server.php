@@ -735,10 +735,11 @@ class WP_REST_Server {
 						continue;
 					}
 
-					$matched = $this->match_request_to_handler( $request );
-
-					if ( ! empty( $matched ) && ! is_wp_error( $matched ) && isset( $matched[1]['args']['per_page']['maximum'] ) ) {
-						$request['per_page'] = (int) $matched[1]['args']['per_page']['maximum'];
+					if ( empty( $request['per_page'] ) ) {
+						$matched = $this->match_request_to_handler( $request );
+						if ( ! empty( $matched ) && ! is_wp_error( $matched ) && isset( $matched[1]['args']['per_page']['maximum'] ) ) {
+							$request['per_page'] = (int) $matched[1]['args']['per_page']['maximum'];
+						}
 					}
 
 					// Embedded resources get passed context=embed.

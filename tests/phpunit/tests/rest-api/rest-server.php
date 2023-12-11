@@ -932,6 +932,37 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Ensure embedding is with links in the data.
+	 */
+	public function test_link_embedding_with_links() {
+		$data = array(
+			'_links' => array(
+				'wp:term' => array(
+					array(
+						'taxonomy'   => 'category',
+						'embeddable' => true,
+						'href'       => get_rest_url( 0, '/wp/v2/categories' ),
+					),
+					array(
+						'taxonomy'   => 'post_tag',
+						'embeddable' => true,
+						'href'       => get_rest_url( 0, '/wp/v2/tags' ),
+					),
+				),
+			),
+		);
+
+		$mock = new MockAction();
+		add_filter( 'rest_post_dispatch', array( $mock, 'filter' ), 10, 3 );
+
+		rest_get_server()->embed_links( $data, true );
+		$args = $mock->get_args();
+		foreach ( $args as $arg ) {
+			$this->assertSame( 100, $arg[2]['per_page'], 'Posts per page should be 100' );
+		}
+	}
+
+	/**
 	 * Ensure embed_links handles WP_Error objects returned by dispatch
 	 *
 	 * @ticket 56566
