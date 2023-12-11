@@ -113,7 +113,7 @@ class WP_Block_Type {
 	 * Block variations.
 	 *
 	 * @since 5.8.0
-	 * @since 6.5.0 Support callback.
+	 * @since 6.5.0 Added callback support.
 	 * @var callable|array[]
 	 */
 	public $variations = array();
