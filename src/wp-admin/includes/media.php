@@ -527,7 +527,7 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
  *
- * @global int $body_id
+ * @global string $body_id
  *
  * @param callable $content_func Function that outputs the content.
  * @param mixed    ...$args      Optional additional parameters to pass to the callback function when it's called.
