@@ -1164,7 +1164,20 @@ function delete_option( $option ) {
  */
 function determine_option_autoload_value( $option, $value, $autoload ) {
 
-	// Check if autoload is a boolean.
+	/**
+	 * Filters the maximum size of option value in bytes.
+	 *
+	 * @param string|bool|null $autoload autoload value to check.
+	 * @param string $option name of the option.
+	 * @param string $value value of the option to check its autoload value.
+	 *
+	 * @return  string|bool|null $autoload autoload value to set. Accepted strings 'yes','no',default-yes','default-no' to enable
+	 *
+	 * @since 6.5.0
+	 */
+	$autoload = apply_filters( 'option_autoload_value', $autoload, $option, $value );
+
+	//check if autoload is a boolean.
 	if ( is_bool( $autoload ) ) {
 		return $autoload ? 'yes' : 'no';
 	}
