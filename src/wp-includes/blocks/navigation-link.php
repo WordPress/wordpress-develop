@@ -327,7 +327,7 @@ function build_variation_for_navigation_link( $entity, $kind ) {
  *
  * @return array
  */
-function get_variations_core_navigation_link() {
+function build_navigation_link_block_variations() {
 	$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
 	$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'objects' );
 
@@ -372,7 +372,7 @@ function register_block_core_navigation_link() {
 		__DIR__ . '/navigation-link',
 		array(
 			'render_callback' => 'render_block_core_navigation_link',
-			'variations'      => 'get_variations_core_navigation_link',
+			'variations'      => 'build_navigation_link_block_variations',
 		)
 	);
 }

@@ -63,7 +63,7 @@ function render_block_core_post_terms( $attributes, $content, $block ) {
  *
  * @return array The available variations for the block.
  */
-function get_variations_core_post_terms() {
+function build_post_term_block_variations() {
 	$taxonomies = get_taxonomies(
 		array(
 			'publicly_queryable' => true,
@@ -115,7 +115,7 @@ function register_block_core_post_terms() {
 		__DIR__ . '/post-terms',
 		array(
 			'render_callback' => 'render_block_core_post_terms',
-			'variations'      => 'get_variations_core_post_terms',
+			'variations'      => 'build_post_term_block_variations',
 		)
 	);
 }
