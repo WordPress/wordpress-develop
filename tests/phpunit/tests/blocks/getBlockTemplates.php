@@ -221,4 +221,41 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 58196
+	 */
+	public function test_get_block_templates_paths_dir_exists() {
+		$theme_dir = get_template_directory();
+		// templates in the current theme.
+		$templates = array(
+			'parts/small-header.html',
+			'templates/custom-single-post-template.html',
+			'templates/index.html',
+			'templates/page-home.html',
+			'templates/page.html',
+			'templates/single.html',
+		);
+
+		$expected_template_paths = array_map(
+			static function ( $template ) use ( $theme_dir ) {
+				return $theme_dir . '/' . $template;
+			},
+			$templates
+		);
+
+		$template_paths = _get_block_templates_paths( $theme_dir );
+		$this->assertSame( $expected_template_paths, $template_paths );
+	}
+
+	/**
+	 * @ticket 58196
+	 */
+	public function test_get_block_templates_paths_dir_doesnt_exists() {
+		$theme_dir               = '/tmp/random-invalid-theme-path';
+		$expected_template_paths = array();
+		// should return empty array for invalid path.
+		$template_paths = _get_block_templates_paths( $theme_dir );
+		$this->assertSame( $expected_template_paths, $template_paths );
+	}
 }
