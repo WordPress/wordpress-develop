@@ -1190,9 +1190,6 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 			return $autoload;
 
 	}
-	// Serialize the value and check its size against the maximum allowed option size.
-	$serialized_value = maybe_serialize( $value );
-	$size             = strlen( $serialized_value );
 
 	/**
 	 * Filters the maximum size of option value in bytes.
@@ -1203,6 +1200,7 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	 * @param string $option          The name of the option.
 	 */
 	$max_option_size = (int) apply_filters( 'wp_max_autoloaded_option_size', 150000, $option );
+	$size            = strlen( $value );
 
 	if ( $size > $max_option_size ) {
 		return 'auto-no';
