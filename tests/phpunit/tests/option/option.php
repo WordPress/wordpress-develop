@@ -308,9 +308,9 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			'string 123'   => array( '123' ),
 			'integer 123'  => array( 123 ),
-			'integer -123' => array( -123 ),
+			'integer -123' => array( - 123 ),
 			'float 12.3'   => array( 12.3 ),
-			'float -1.23'  => array( -1.23 ),
+			'float -1.23'  => array( - 1.23 ),
 			'boolean true' => array( true ),
 		);
 	}
@@ -432,19 +432,19 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	public function data_option_autoloading_large_option() {
 		return array(
-			'yes'         => array(
+			'yes'      => array(
 				'autoload' => 'yes',
 				'expected' => 'yes',
 			),
-			'true'        => array(
+			'true'     => array(
 				'autoload' => true,
 				'expected' => 'yes',
 			),
-			'no'          => array(
+			'no'       => array(
 				'autoload' => 'no',
 				'expected' => 'no',
 			),
-			'false'       => array(
+			'false'    => array(
 				'autoload' => false,
 				'expected' => 'no',
 			),
@@ -456,7 +456,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 				'autoload' => 'auto-no',
 				'expected' => 'auto-no',
 			),
-			'null'        => array(
+			'null'     => array(
 				'autoload' => null,
 				'expected' => 'auto-no',
 			),
@@ -466,7 +466,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function filter_max_option_size( $current ) {
 		return 1000;
 	}
-
 
 
 	/**
