@@ -184,7 +184,7 @@ final class WP_Block_Patterns_Registry {
 		};
 
 		$at     = 0;
-		$bucket = 10000;
+		$budget = 10000;
 		$stack  = array();
 		while ( $budget-- ) {
 			$block = $next_block_boundary( $content, $at );
