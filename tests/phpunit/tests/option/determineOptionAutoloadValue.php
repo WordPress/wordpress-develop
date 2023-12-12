@@ -7,9 +7,8 @@
  */
 class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	public function set_up() {
-		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
+		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
 		parent::set_up();
-		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
 	}
 
 	/**
@@ -27,33 +26,33 @@ class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 
 	public function data_values() {
 		return array(
-			'yes'         => array(
+			'yes'      => array(
 				'autoload' => 'yes',
 				'expected' => 'yes',
 			),
-			'true'        => array(
+			'true'     => array(
 				'autoload' => true,
 				'expected' => 'yes',
 			),
-			'no'          => array(
+			'no'       => array(
 				'autoload' => 'no',
 				'expected' => 'no',
 			),
-			'false'       => array(
+			'false'    => array(
 				'autoload' => false,
 				'expected' => 'no',
 			),
-			'default-yes' => array(
-				'autoload' => 'default-yes',
-				'expected' => 'default-yes',
+			'auto-yes' => array(
+				'autoload' => 'auto-yes',
+				'expected' => 'auto-yes',
 			),
-			'default-no'  => array(
-				'autoload' => 'default-no',
-				'expected' => 'default-no',
+			'auto-no'  => array(
+				'autoload' => 'auto-no',
+				'expected' => 'auto-no',
 			),
-			'null'        => array(
+			'null'     => array(
 				'autoload' => null,
-				'expected' => 'default-yes',
+				'expected' => 'auto-yes',
 			),
 		);
 	}
@@ -64,25 +63,25 @@ class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 */
 	public function test_small_option() {
 		$test = determine_option_autoload_value( 'foo', 'bar', null );
-		$this->assertSame( 'default-yes', $test );
+		$this->assertSame( 'auto-yes', $test );
 	}
 
 	/**
 	 * @ticket 42441
 	 */
 	public function test_large_option() {
-		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$value = maybe_serialize( file( DIR_TESTDATA . '/formatting/entities.txt' ) );
 		$test  = determine_option_autoload_value( 'foo', $value, null );
-		$this->assertSame( 'default-no', $test );
+		$this->assertSame( 'auto-no', $test );
 	}
 
 	/**
 	 * @ticket 42441
 	 */
 	public function test_large_option_json() {
-		$value = file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' );
+		$value = maybe_serialize( file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' ) );
 		$test  = determine_option_autoload_value( 'foo', $value, null );
-		$this->assertSame( 'default-no', $test );
+		$this->assertSame( 'auto-no', $test );
 	}
 
 	public function filter_max_option_size( $current ) {
