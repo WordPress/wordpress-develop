@@ -1022,15 +1022,6 @@ function inject_hooked_blocks_into_content( $content, $hooked_blocks, $at = 0 ) 
 		return inject_hooked_blocks_into_content( $next_content, $hooked_blocks, $at );
 	}
 
-	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
-	$after_block_visitor  = null;
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $pattern );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $pattern );
-	}
-	$blocks  = parse_blocks( $content );
-	$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
 	return $content;
 }
 
