@@ -248,8 +248,8 @@ final class WP_Block_Patterns_Registry {
 					/**
 					 * <!-- anchor1 -->
 					 *     <!-- inner1 /-->
-				     *     <!-- inner2 -->
-			 		 *     <!-- /inner2 -->
+					 *     <!-- inner2 -->
+					 *     <!-- /inner2 -->
 					 * <!-- /anchor1 -->
 					 *
 					 *
