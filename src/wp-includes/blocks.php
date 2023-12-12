@@ -865,9 +865,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	};
 }
 
-private function inject_hooked_blocks_into_content( $pattern, $hooked_blocks, $at = 0 ) {
-	$content = $pattern['content'];
-
+function inject_hooked_blocks_into_content( $content, $hooked_blocks, $at = 0 ) {
 	$next_block_boundary = static function ( $text, $at ) {
 		$block_pattern = '/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s';
 
@@ -1021,7 +1019,7 @@ private function inject_hooked_blocks_into_content( $pattern, $hooked_blocks, $a
 	$next_content = substr( $content, 0, $point ) . $block_html . substr( $content, $point );
 	$at           = $first_inner_block['at'] + $first_inner_block['length'];
 	if ( $at < strlen( $content ) ) {
-		return $this->prepare_content( array_merge( $pattern, array( 'content' => $next_content ) ), $hooked_blocks, $at );
+		return inject_hooked_blocks_into_content( $next_content, $hooked_blocks, $at );
 	}
 
 	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
