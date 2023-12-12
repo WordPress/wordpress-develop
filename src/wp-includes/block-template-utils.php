@@ -547,16 +547,9 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
-	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
-	$after_block_visitor  = null;
-	$hooked_blocks        = get_hooked_blocks();
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
-	}
-	$blocks            = parse_blocks( $template->content );
-	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
+	// TODO: Apply _inject_theme_attribute_in_template_part_block.
+	$hooked_blocks     = get_hooked_blocks();
+	$template->content = inject_hooked_blocks_into_content( $template->content, $hooked_blocks );
 	return $template;
 }
 
