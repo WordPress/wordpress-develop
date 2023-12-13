@@ -13,8 +13,7 @@ on:
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.event_name == 'workflow_dispatch' && inputs.pr_number || github.sha }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.event_name == 'workflow_dispatch' && github.event.number || github.sha }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -29,7 +28,6 @@ jobs:
       pull-requests: write
     timeout-minutes: 5
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' }}
-
     steps:
       - uses: wow-actions/welcome@72817eb31cda1de60f51893d80e2e82ce57f7e76 # v1.3.0
         with:
@@ -150,7 +148,7 @@ jobs:
 
             For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
 
-            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ context.payload.inputs.pr_number }).
+            [Test this pull request with WordPress Playground](https://playground.wordpress.net/wordpress.html?pr=${ issue_number }).
             `;
 
             github.rest.issues.createComment( commentInfo );

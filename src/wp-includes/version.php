@@ -44,4 +44,4 @@ $required_php_version = '7.0.0';
  *
  * @global string $required_mysql_version
  */
-$required_mysql_version = '5.0';
+$required_mysql_version = '5.5.5';

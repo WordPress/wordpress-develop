@@ -133,7 +133,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos, playground-comment ]
+    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ playground-comment ]
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
