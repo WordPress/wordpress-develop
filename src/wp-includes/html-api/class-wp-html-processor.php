@@ -869,7 +869,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * that has not been implemented yet.
 		 *
 		 * As they're implemented, they should be removed from this list. An accompanying
-		 * test should help with this.
+		 * test should help ensure this list is maintained.
+		 *
+		 * @see Tests_HtmlApi_WpHtmlProcessor::test_step_in_body_fails_on_unsupported_tags
 		 *
 		 * We throw the WP_HTML_Unsupported_Exception so we're free to implememnt
 		 * the catch-all handling for any other start and end tag.
