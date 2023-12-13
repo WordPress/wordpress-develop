@@ -227,7 +227,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	/**
 	 * Verifies that H1 through H6 elements close an open P element.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 60060
 	 *
 	 * @dataProvider data_heading_elements
 	 *
