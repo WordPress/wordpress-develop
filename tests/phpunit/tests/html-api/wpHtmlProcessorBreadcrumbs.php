@@ -352,8 +352,14 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			),
 			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
 			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
+
+			// H1 - H6 close out _any_ H1 - H6 when encountering _any_ of H1 - H6, making this section surprising.
 			'EM inside H3 after unclosed P'         => array( '<p><h3><em target>Important Message</em></h3>', array( 'HTML', 'BODY', 'H3', 'EM' ), 1 ),
 			'H4 after H2'                           => array( '<h2>Major</h2><h4 target>Minor</h4>', array( 'HTML', 'BODY', 'H4' ), 1 ),
+			'H4 after unclosed H2'                  => array( '<h2>Major<h4 target>Minor</h3>', array( 'HTML', 'BODY', 'H4' ), 1 ),
+			'H4 inside H2'                          => array( '<h2><span>Major<h4 target>Minor</h3></span>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H4' ), 1 ),
+			'H5 after unclosed H4 inside H2'        => array( '<h2><span>Major<h4>Minor</span></h3><h5 target>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H5' ), 1 ),
+			'H5 after H4 inside H2'                 => array( '<h2><span>Major<h4>Minor</h4></span></h3><h5 target>', array( 'HTML', 'BODY', 'H5' ), 1 ),
 		);
 	}
 
