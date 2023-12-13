@@ -893,12 +893,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'FORM':
 			case 'FRAME':
 			case 'FRAMESET':
-			case 'H1':
-			case 'H2':
-			case 'H3':
-			case 'H4':
-			case 'H5':
-			case 'H6':
 			case 'HEAD':
 			case 'HR':
 			case 'HTML':
