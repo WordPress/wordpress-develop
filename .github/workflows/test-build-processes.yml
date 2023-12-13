@@ -36,7 +36,7 @@ jobs:
     permissions:
       actions: write
     continue-on-error: true
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+#    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
 
     steps:
       - name: Save PR number
