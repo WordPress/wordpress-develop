@@ -510,42 +510,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public function data_h_tag_names() {
-		return array(
-			'H1' => array( 'H1' ),
-			'H2' => array( 'H2' ),
-			'H3' => array( 'H3' ),
-			'H4' => array( 'H4' ),
-			'H5' => array( 'H5' ),
-			'H6' => array( 'H6' ),
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[].
-	 */
-	public function data_invalid_h_tag_names() {
-		return array(
-			'H0'        => array( 'H0' ),
-			'H7'        => array( 'H7' ),
-			'H13'       => array( 'H13' ),
-
-			/*
-			 * Preserve the FULLWIDTH DIGIT SIX key because PHPUnit interprets '6' as
-			 * a numeric array item and reports "data set 0" instead of "6".
-			 */
-			'６'         => array( '6' ),
-			'H4-CUSTOM' => array( 'H4-CUSTOM' ),
-		);
-	}
-
-	/**
 	 * @ticket 56299
 	 * @ticket 57852
 	 *
