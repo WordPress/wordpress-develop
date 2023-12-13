@@ -116,7 +116,7 @@ class WP_HTML_Open_Elements {
 			}
 
 			if (
-				'(internal: H1 - H6 - do not use)' === $tag_name &&
+				'(internal: H1 through H6 - do not use)' === $tag_name &&
 				in_array( $node->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;

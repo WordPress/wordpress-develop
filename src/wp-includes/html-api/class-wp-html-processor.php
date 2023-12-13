@@ -733,7 +733,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-H4':
 			case '-H5':
 			case '-H6':
-				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( '(internal: H1 - H6 - do not use)' ) ) {
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( '(internal: H1 through H6 - do not use)' ) ) {
 					/*
 					 * This is a parse error; ignore the token.
 					 *
