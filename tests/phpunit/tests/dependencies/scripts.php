@@ -3360,7 +3360,7 @@ HTML
 	 *
 	 * @dataProvider data_wp_default_packages_vendor
 	 */
-	public function test_wp_default_packages_vendor_lodash( $script ) {
+	public function test_wp_default_packages_vendor( $script ) {
 		global $wp_scripts;
 		$package_json = $this->_scripts_from_package_json();
 
