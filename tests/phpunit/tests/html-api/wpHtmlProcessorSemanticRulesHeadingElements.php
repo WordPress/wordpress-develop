@@ -67,6 +67,10 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesHeadingElements extends WP_UnitT
 	/**
 	 * Verifies that H1 through H6 elements close an open H1 through H6 element.
 	 *
+	 * @ticket 60060
+	 *
+	 * @covers WP_HTML_Processor::step
+	 *
 	 * @dataProvider data_heading_combinations
 	 *
 	 * @param string $first_heading  H1 - H6 element appearing (unclosed) before the second.
