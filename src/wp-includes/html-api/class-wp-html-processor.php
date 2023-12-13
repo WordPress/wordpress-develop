@@ -612,40 +612,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 *
 			 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
 			 */
-			case '+A':
-			case '+ADDRESS':
 			case '+APPLET':
 			case '+AREA':
-			case '+ARTICLE':
-			case '+ASIDE':
-			case '+B':
 			case '+BASE':
 			case '+BASEFONT':
 			case '+BGSOUND':
-			case '+BIG':
 			case '+BLOCKQUOTE':
 			case '+BODY':
 			case '+BR':
-			case '+BUTTON':
 			case '+CAPTION':
-			case '+CENTER':
-			case '+CODE':
 			case '+COL':
 			case '+COLGROUP':
 			case '+DD':
-			case '+DETAILS':
-			case '+DIALOG':
-			case '+DIR':
-			case '+DIV':
-			case '+DL':
 			case '+DT':
-			case '+EM':
 			case '+EMBED':
-			case '+FIELDSET':
-			case '+FIGCAPTION':
-			case '+FIGURE':
-			case '+FONT':
-			case '+FOOTER':
 			case '+FORM':
 			case '+FRAME':
 			case '+FRAMESET':
@@ -656,25 +636,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+H5':
 			case '+H6':
 			case '+HEAD':
-			case '+HEADER':
-			case '+HGROUP':
 			case '+HR':
 			case '+HTML':
-			case '+I':
 			case '+IFRAME':
 			case '+IMAGE':
-			case '+IMG':
 			case '+INPUT':
 			case '+KEYGEN':
 			case '+LI':
 			case '+LINK':
 			case '+LISTING':
-			case '+MAIN':
 			case '+MARQUEE':
 			case '+MATH':
-			case '+MENU':
 			case '+META':
-			case '+NAV':
 			case '+NOBR':
 			case '+NOEMBED':
 			case '+NOFRAMES':
@@ -683,7 +656,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+OL':
 			case '+OPTGROUP':
 			case '+OPTION':
-			case '+P':
 			case '+PARAM':
 			case '+PLAINTEXT':
 			case '+PRE':
@@ -691,17 +663,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+RP':
 			case '+RT':
 			case '+RTC':
-			case '+S':
 			case '+SCRIPT':
-			case '+SEARCH':
-			case '+SECTION':
 			case '+SELECT':
-			case '+SMALL':
 			case '+SOURCE':
-			case '+STRIKE':
-			case '+STRONG':
 			case '+STYLE':
-			case '+SUMMARY':
 			case '+SVG':
 			case '+TABLE':
 			case '+TBODY':
@@ -714,37 +679,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TITLE':
 			case '+TR':
 			case '+TRACK':
-			case '+TT':
-			case '+U':
 			case '+UL':
 			case '+WBR':
 			case '+XMP':
-			case '-A':
-			case '-ADDRESS':
 			case '-APPLET':
-			case '-ARTICLE':
-			case '-ASIDE':
-			case '-B':
-			case '-BIG':
 			case '-BLOCKQUOTE':
 			case '-BODY':
 			case '-BR':
-			case '-BUTTON':
-			case '-CENTER':
-			case '-CODE':
 			case '-DD':
-			case '-DETAILS':
-			case '-DIALOG':
-			case '-DIR':
-			case '-DIV':
-			case '-DL':
 			case '-DT':
-			case '-EM':
-			case '-FIELDSET':
-			case '-FIGCAPTION':
-			case '-FIGURE':
-			case '-FONT':
-			case '-FOOTER':
 			case '-FORM':
 			case '-H1':
 			case '-H2':
@@ -752,31 +695,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-H4':
 			case '-H5':
 			case '-H6':
-			case '-HEADER':
-			case '-HGROUP':
 			case '-HTML':
-			case '-I':
 			case '-LI':
 			case '-LISTING':
-			case '-MAIN':
 			case '-MARQUEE':
-			case '-MENU':
-			case '-NAV':
 			case '-NOBR':
 			case '-OBJECT':
 			case '-OL':
-			case '-P':
 			case '-PRE':
-			case '-S':
-			case '-SEARCH':
-			case '-SECTION':
-			case '-SMALL':
-			case '-STRIKE':
-			case '-STRONG':
-			case '-SUMMARY':
 			case '-TEMPLATE':
-			case '-TT':
-			case '-U':
 			case '-UL':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
