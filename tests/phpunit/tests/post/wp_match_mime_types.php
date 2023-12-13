@@ -15,7 +15,7 @@ class Tests_Post_wp_match_mime_type extends WP_UnitTestCase {
 	 * @dataProvider data_wp_match_mime_types
 	 */
 	public function test_wp_match_mime_types( $wildcard_mime_types, $real_mime_types, $expected ) {
-//		var_dump($real_mime_types);
+
 		$this->assertEqualSets( $expected, wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) );
 	}
 
