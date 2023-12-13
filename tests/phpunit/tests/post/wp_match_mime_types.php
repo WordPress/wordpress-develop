@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_match_mime_types function.
  *
- * @group Post.php
+ * @group post
  *
  * @covers ::wp_match_mime_types
  */
