@@ -604,112 +604,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $op ) {
 			/*
-			 * These tags require special handling in the 'in body' insertion mode
-			 * but do not have special handling implemented yet.
-			 *
-			 * We throw the WP_HTML_Unsupported_Exception so we're free to implememnt
-			 * the catch-all handling for any other start and end tag.
-			 *
-			 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
-			 */
-			case '+APPLET':
-			case '+AREA':
-			case '+BASE':
-			case '+BASEFONT':
-			case '+BGSOUND':
-			case '+BLOCKQUOTE':
-			case '+BODY':
-			case '+BR':
-			case '+CAPTION':
-			case '+COL':
-			case '+COLGROUP':
-			case '+DD':
-			case '+DT':
-			case '+EMBED':
-			case '+FORM':
-			case '+FRAME':
-			case '+FRAMESET':
-			case '+H1':
-			case '+H2':
-			case '+H3':
-			case '+H4':
-			case '+H5':
-			case '+H6':
-			case '+HEAD':
-			case '+HR':
-			case '+HTML':
-			case '+IFRAME':
-			case '+IMAGE':
-			case '+INPUT':
-			case '+KEYGEN':
-			case '+LI':
-			case '+LINK':
-			case '+LISTING':
-			case '+MARQUEE':
-			case '+MATH':
-			case '+META':
-			case '+NOBR':
-			case '+NOEMBED':
-			case '+NOFRAMES':
-			case '+NOSCRIPT': // scripting flag??
-			case '+OBJECT':
-			case '+OL':
-			case '+OPTGROUP':
-			case '+OPTION':
-			case '+PARAM':
-			case '+PLAINTEXT':
-			case '+PRE':
-			case '+RB':
-			case '+RP':
-			case '+RT':
-			case '+RTC':
-			case '+SCRIPT':
-			case '+SELECT':
-			case '+SOURCE':
-			case '+STYLE':
-			case '+SVG':
-			case '+TABLE':
-			case '+TBODY':
-			case '+TD':
-			case '+TEMPLATE':
-			case '+TEXTAREA':
-			case '+TFOOT':
-			case '+TH':
-			case '+THEAD':
-			case '+TITLE':
-			case '+TR':
-			case '+TRACK':
-			case '+UL':
-			case '+WBR':
-			case '+XMP':
-			case '-APPLET':
-			case '-BLOCKQUOTE':
-			case '-BODY':
-			case '-BR':
-			case '-DD':
-			case '-DT':
-			case '-FORM':
-			case '-H1':
-			case '-H2':
-			case '-H3':
-			case '-H4':
-			case '-H5':
-			case '-H6':
-			case '-HTML':
-			case '-LI':
-			case '-LISTING':
-			case '-MARQUEE':
-			case '-NOBR':
-			case '-OBJECT':
-			case '-OL':
-			case '-PRE':
-			case '-TEMPLATE':
-			case '-UL':
-				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
-
-
-			/*
 			 * > A start tag whose tag name is "button"
 			 */
 			case '+BUTTON':
@@ -968,10 +862,95 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				// Execution should not reach here; if it does then something went wrong.
 				return false;
 
-			default:
+		}
+
+		/*
+		 * These tags require special handling in the 'in body' insertion mode
+		 * that has not been implemented yet.
+		 *
+		 * As they're implemented, they should be removed from this list. An accompanying
+		 * test should help with this.
+		 *
+		 * We throw the WP_HTML_Unsupported_Exception so we're free to implememnt
+		 * the catch-all handling for any other start and end tag.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
+		 */
+		switch ( $tag_name ) {
+			case 'APPLET':
+			case 'AREA':
+			case 'BASE':
+			case 'BASEFONT':
+			case 'BGSOUND':
+			case 'BODY':
+			case 'BR':
+			case 'CAPTION':
+			case 'COL':
+			case 'COLGROUP':
+			case 'DD':
+			case 'DT':
+			case 'EMBED':
+			case 'FORM':
+			case 'FRAME':
+			case 'FRAMESET':
+			case 'H1':
+			case 'H2':
+			case 'H3':
+			case 'H4':
+			case 'H5':
+			case 'H6':
+			case 'HEAD':
+			case 'HR':
+			case 'HTML':
+			case 'IFRAME':
+			case 'INPUT':
+			case 'KEYGEN':
+			case 'LI':
+			case 'LINK':
+			case 'LISTING':
+			case 'MARQUEE':
+			case 'MATH':
+			case 'META':
+			case 'NOBR':
+			case 'NOEMBED':
+			case 'NOFRAMES':
+			case 'NOSCRIPT':
+			case 'OBJECT':
+			case 'OL':
+			case 'OPTGROUP':
+			case 'OPTION':
+			case 'PARAM':
+			case 'PLAINTEXT':
+			case 'PRE':
+			case 'RB':
+			case 'RP':
+			case 'RT':
+			case 'RTC':
+			case 'SCRIPT':
+			case 'SELECT':
+			case 'SOURCE':
+			case 'STYLE':
+			case 'SVG':
+			case 'TABLE':
+			case 'TBODY':
+			case 'TD':
+			case 'TEMPLATE':
+			case 'TEXTAREA':
+			case 'TFOOT':
+			case 'TH':
+			case 'THEAD':
+			case 'TITLE':
+			case 'TR':
+			case 'TRACK':
+			case 'UL':
+			case 'WBR':
+			case 'XMP':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 		}
+
+		$this->last_error = self::ERROR_UNSUPPORTED;
+		throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 	}
 
 	/*
