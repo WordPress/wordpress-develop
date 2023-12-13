@@ -18,9 +18,11 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesHeadingElements extends WP_UnitT
 	 *******************************************************************/
 
 	/**
-	 * Verifies that H1 through H6 elements close an open P element.
+	 * Verifies that H1 through H6 elements generate implied end tags.
 	 *
 	 * @ticket 60060
+	 *
+	 * @covers WP_HTML_Processor::step
 	 *
 	 * @dataProvider data_heading_elements
 	 *
