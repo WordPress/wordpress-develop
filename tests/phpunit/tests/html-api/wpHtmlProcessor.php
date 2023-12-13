@@ -147,4 +147,99 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $p->next_tag( 'EM' ), 'Could not find first EM.' );
 		$this->assertFalse( $p->next_tag( 'EM' ), 'Should have aborted before finding second EM as it required reconstructing the first EM.' );
 	}
+
+	/**
+	 * Ensures that special handling of unsupported tags is cleaned up
+	 * as handling is implemented. Otherwise there's risk of leaving special
+	 * handling (that is never reached) when tag handling is implemented.
+	 *
+	 * @dataProvider data_unsupported_special_in_body_tags
+	 *
+	 * @param string $tag_name Name of the tag to test.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 */
+	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
+		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '>' );
+		$this->assertFalse( $fragment->next_tag(), 'Should fail to find tag: ' . $tag_name . '.' );
+		$this->assertEquals( $fragment->get_last_error(), WP_HTML_Processor::ERROR_UNSUPPORTED, 'Should have unsupported last error.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unsupported_special_in_body_tags() {
+		return array(
+			array( 'APPLET' ),
+			array( 'AREA' ),
+			array( 'BASE' ),
+			array( 'BASEFONT' ),
+			array( 'BGSOUND' ),
+			array( 'BODY' ),
+			array( 'BR' ),
+			array( 'CAPTION' ),
+			array( 'COL' ),
+			array( 'COLGROUP' ),
+			array( 'DD' ),
+			array( 'DT' ),
+			array( 'EMBED' ),
+			array( 'FORM' ),
+			array( 'FRAME' ),
+			array( 'FRAMESET' ),
+			array( 'H1' ),
+			array( 'H2' ),
+			array( 'H3' ),
+			array( 'H4' ),
+			array( 'H5' ),
+			array( 'H6' ),
+			array( 'HEAD' ),
+			array( 'HR' ),
+			array( 'HTML' ),
+			array( 'IFRAME' ),
+			array( 'INPUT' ),
+			array( 'KEYGEN' ),
+			array( 'LI' ),
+			array( 'LINK' ),
+			array( 'LISTING' ),
+			array( 'MARQUEE' ),
+			array( 'MATH' ),
+			array( 'META' ),
+			array( 'NOBR' ),
+			array( 'NOEMBED' ),
+			array( 'NOFRAMES' ),
+			array( 'NOSCRIPT' ),
+			array( 'OBJECT' ),
+			array( 'OL' ),
+			array( 'OPTGROUP' ),
+			array( 'OPTION' ),
+			array( 'PARAM' ),
+			array( 'PLAINTEXT' ),
+			array( 'PRE' ),
+			array( 'RB' ),
+			array( 'RP' ),
+			array( 'RT' ),
+			array( 'RTC' ),
+			array( 'SCRIPT' ),
+			array( 'SELECT' ),
+			array( 'SOURCE' ),
+			array( 'STYLE' ),
+			array( 'SVG' ),
+			array( 'TABLE' ),
+			array( 'TBODY' ),
+			array( 'TD' ),
+			array( 'TEMPLATE' ),
+			array( 'TEXTAREA' ),
+			array( 'TFOOT' ),
+			array( 'TH' ),
+			array( 'THEAD' ),
+			array( 'TITLE' ),
+			array( 'TR' ),
+			array( 'TRACK' ),
+			array( 'UL' ),
+			array( 'WBR' ),
+			array( 'XMP' ),
+		);
+	}
 }
