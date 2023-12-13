@@ -106,7 +106,6 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-the-specific-scope
 	 *
-	 * @param string   $tag_name         Name of tag check, or WP_HTML_Tag_Processor::H1_H6_ELEMENTS for any H1 - H6.
 	 * @param string[] $termination_list List of elements that terminate the search.
 	 * @return bool Whether the element was found in a specific scope.
 	 */
@@ -117,7 +116,7 @@ class WP_HTML_Open_Elements {
 			}
 
 			if (
-				WP_HTML_Tag_Processor::H1_H6_ELEMENTS === $tag_name &&
+				'(internal: H1 - H6 - do not use)' === $tag_name &&
 				in_array( $node->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;
@@ -270,8 +269,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @see WP_HTML_Open_Elements::pop
 	 *
-	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements,
-	 *                         or WP_HTML_Tag_Processor::H1_H6_ELEMENTS to specify any of H1 - H6.
+	 * @param string $tag_name Name of tag that needs to be popped off of the stack of open elements.
 	 * @return bool Whether a tag of the given name was found and popped off of the stack of open elements.
 	 */
 	public function pop_until( $tag_name ) {
@@ -279,7 +277,7 @@ class WP_HTML_Open_Elements {
 			$this->pop();
 
 			if (
-				WP_HTML_Tag_Processor::H1_H6_ELEMENTS === $tag_name &&
+				'(internal: H1 through H6 - do not use)' === $tag_name &&
 				in_array( $item->node_name, array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ), true )
 			) {
 				return true;
