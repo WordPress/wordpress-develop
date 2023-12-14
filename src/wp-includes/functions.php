@@ -2082,10 +2082,10 @@ function wp_mkdir_p( $target ) {
 
 	/**
 	 * Fires before the directory creation
-	 * 
-	 * 
+	 *
+	 *
 	 * @since 6.5 The action was added.
-	 * 
+	 *
 	 * @param strin $target Full path to attempt to create
 	 * @param int $dir_perms Directory permissions
 	 */
@@ -2095,10 +2095,10 @@ function wp_mkdir_p( $target ) {
 
 		/**
 		 * Fires after the directory is created and the permissions are set.
-		 * 
-		 * 
+		 *
+		 *
 		 * @since 6.5 The action was added.
-		 * 
+		 *
 		 * @param strin $target Full path to created directory
 		 * @param int $dir_perms Directory permissions
 		 */
