@@ -116,7 +116,7 @@ if ( is_wp_error( $id ) ) {
 	$message = sprintf(
 		'%s <strong>%s</strong><br />%s',
 		sprintf(
-			'<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">%s</button>',
+			'<button type="button" class="dismiss button-link">%s</button>',
 			__( 'Dismiss' )
 		),
 		sprintf(
@@ -133,6 +133,7 @@ if ( is_wp_error( $id ) ) {
 			'paragraph_wrap'     => false,
 		)
 	);
+	echo "<script type=\"text/javascript\">jQuery( 'button.dismiss' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();})});</script>\n";
 	exit;
 }
 
