@@ -1741,13 +1741,15 @@ class WP_HTML_Tag_Processor {
 	 * @return WP_HTML_Attribute_Token|null Attribute token if found, otherwise null.
 	 */
 	private function get_parsed_attribute( $case_insensitive_name ) {
+		$name_length = strlen( $case_insensitive_name );
+
 		foreach ( $this->attributes as $token ) {
 			if ( strlen( $case_insensitive_name ) !== $token->name_length ) {
 				continue;
 			}
 
 			$at = $token->start;
-			for ( $i = 0; $i < strlen( $case_insensitive_name ); $i++ ) {
+			for ( $i = 0; $i < $name_length; $i++ ) {
 				$c = $case_insensitive_name[ $i ];
 				$h = $this->html[ $at++ ];
 
@@ -1927,12 +1929,14 @@ class WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$comparable = strtolower( $prefix );
+		$comparable    = strtolower( $prefix );
+		$prefix_length = strlen( $prefix );
+		$seen          = array();
 
 		$matches = array();
 		foreach ( $this->attributes as $token ) {
 			$at = $token->start;
-			for ( $i = 0; $i < strlen( $prefix ); $i++ ) {
+			for ( $i = 0; $i < $prefix_length; $i++ ) {
 				$c = $comparable[ $i ];
 				$h = $this->html[ $at++ ];
 
@@ -1941,7 +1945,13 @@ class WP_HTML_Tag_Processor {
 				}
 			}
 
-			$matches[] = strtolower( substr( $this->html, $token->start, $token->name_length ) );
+			$name = strtolower( substr( $this->html, $token->start, $token->name_length ) );
+			if ( in_array( $name, $seen, true ) ) {
+				continue;
+			}
+
+			$seen[]    = $name;
+			$matches[] = $name;
 		}
 		return $matches;
 	}
@@ -2178,7 +2188,8 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 		 */
-		$name = strtolower( $name );
+		$name        = strtolower( $name );
+		$name_length = strlen( $name );
 
 		/*
 		 * Any calls to update the `class` attribute directly should wipe out any
@@ -2202,7 +2213,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			$at = $token->start;
-			for ( $i = 0; $i < strlen( $name ); $i++ ) {
+			for ( $i = 0; $i < $name_length; $i++ ) {
 				$c = $name[ $i ];
 				$h = $this->html[ $at++ ];
 
@@ -2223,18 +2234,18 @@ class WP_HTML_Tag_Processor {
 			 *    Result: <div />
 			 */
 			$replacement = new WP_HTML_Text_Replacement(
-				 $token->start,
-				 $token->length,
-				 ''
+				$token->start,
+				$token->length,
+				''
 			);
 
 			// Found first occurrence of attribute.
 			if ( ! $had_the_attribute ) {
-				 $had_the_attribute              = true;
-				 $this->lexical_updates[ $name ] = $replacement;
+				$had_the_attribute              = true;
+				$this->lexical_updates[ $name ] = $replacement;
 			} else {
-				 // These are duplicates anyway and should be safe to _always_ remove.
-				 $this->lexical_updates[] = $replacement;
+				// These are duplicates anyway and should be safe to _always_ remove.
+				$this->lexical_updates[] = $replacement;
 			}
 		}
 
