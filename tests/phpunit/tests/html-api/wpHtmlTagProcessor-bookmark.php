@@ -349,6 +349,8 @@ HTML;
 		$p->set_bookmark( 'first' );
 		$p->next_tag();
 		$p->remove_attribute( 'disabled' );
+		var_dump( $p->attributes );
+		var_dump( $p->lexical_updates );
 
 		$p->seek( 'first' );
 		$p->set_attribute( 'untouched', true );

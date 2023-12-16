@@ -425,17 +425,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	private $attributes = array();
-
-	/**
-	 * Tracks spans of duplicate attributes on a given tag, used for removing
-	 * all copies of an attribute when calling `remove_attribute()`.
-	 *
-	 * @since 6.3.2
-	 *
-	 * @var (WP_HTML_Span[])[]|null
-	 */
-	private $duplicate_attributes = null;
+	public $attributes = array();
 
 	/**
 	 * Which class names to add or remove from a tag.
@@ -517,7 +507,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Text_Replacement[]
 	 */
-	protected $lexical_updates = array();
+	public $lexical_updates = array();
 
 	/**
 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
@@ -1335,7 +1325,6 @@ class WP_HTML_Tag_Processor {
 		}
 
 		$attribute_start             = $this->bytes_already_parsed;
-		$attribute_name              = substr( $this->html, $attribute_start, $name_length );
 		$this->bytes_already_parsed += $name_length;
 		if ( $this->bytes_already_parsed >= strlen( $this->html ) ) {
 			return false;
@@ -1384,46 +1373,15 @@ class WP_HTML_Tag_Processor {
 			return true;
 		}
 
-		/*
-		 * > There must never be two or more attributes on
-		 * > the same start tag whose names are an ASCII
-		 * > case-insensitive match for each other.
-		 *     - HTML 5 spec
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
-		 */
-		$comparable_name = strtolower( $attribute_name );
-
 		// If an attribute is listed many times, only use the first declaration and ignore the rest.
-		if ( ! array_key_exists( $comparable_name, $this->attributes ) ) {
-			$this->attributes[ $comparable_name ] = new WP_HTML_Attribute_Token(
-				$attribute_name,
-				$value_start,
-				$value_length,
-				$attribute_start,
-				$attribute_end - $attribute_start,
-				! $has_value
-			);
-
-			return true;
-		}
-
-		/*
-		 * Track the duplicate attributes so if we remove it, all disappear together.
-		 *
-		 * While `$this->duplicated_attributes` could always be stored as an `array()`,
-		 * which would simplify the logic here, storing a `null` and only allocating
-		 * an array when encountering duplicates avoids needless allocations in the
-		 * normative case of parsing tags with no duplicate attributes.
-		 */
-		$duplicate_span = new WP_HTML_Span( $attribute_start, $attribute_end - $attribute_start );
-		if ( null === $this->duplicate_attributes ) {
-			$this->duplicate_attributes = array( $comparable_name => array( $duplicate_span ) );
-		} elseif ( ! array_key_exists( $comparable_name, $this->duplicate_attributes ) ) {
-			$this->duplicate_attributes[ $comparable_name ] = array( $duplicate_span );
-		} else {
-			$this->duplicate_attributes[ $comparable_name ][] = $duplicate_span;
-		}
+		$this->attributes[] = new WP_HTML_Attribute_Token(
+			$name_length,
+			$value_start,
+			$value_length,
+			$attribute_start,
+			$attribute_end - $attribute_start,
+			! $has_value
+		);
 
 		return true;
 	}
@@ -1444,13 +1402,12 @@ class WP_HTML_Tag_Processor {
 	 */
 	private function after_tag() {
 		$this->get_updated_html();
-		$this->token_starts_at      = null;
-		$this->token_length         = null;
-		$this->tag_name_starts_at   = null;
-		$this->tag_name_length      = null;
-		$this->is_closing_tag       = null;
-		$this->attributes           = array();
-		$this->duplicate_attributes = null;
+		$this->token_starts_at    = null;
+		$this->token_length       = null;
+		$this->tag_name_starts_at = null;
+		$this->tag_name_length    = null;
+		$this->is_closing_tag     = null;
+		$this->attributes         = array();
 	}
 
 	/**
@@ -1472,12 +1429,15 @@ class WP_HTML_Tag_Processor {
 			$existing_class = '';
 		}
 
-		if ( false === $existing_class && isset( $this->attributes['class'] ) ) {
-			$existing_class = substr(
-				$this->html,
-				$this->attributes['class']->value_starts_at,
-				$this->attributes['class']->value_length
-			);
+		if ( false === $existing_class ) {
+			$parsed_class = $this->get_parsed_attribute( 'class' );
+			if ( isset( $parsed_class ) ) {
+				$existing_class = substr(
+					$this->html,
+					$parsed_class->value_starts_at,
+					$parsed_class->value_length
+				);
+			}
 		}
 
 		if ( false === $existing_class ) {
@@ -1651,7 +1611,7 @@ class WP_HTML_Tag_Processor {
 		 * replacements adjust offsets in the input document.
 		 */
 		foreach ( $this->bookmarks as $bookmark_name => $bookmark ) {
-			$bookmark_end   = $bookmark->start + $bookmark->length;
+			$bookmark_end = $bookmark->start + $bookmark->length;
 
 			/*
 			 * Each lexical update which appears before the bookmark's endpoints
@@ -1772,6 +1732,37 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Returns an attribute token for a requested attribute if it has been parsed.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $case_insensitive_name Name of the attribute to find.
+	 *
+	 * @return WP_HTML_Attribute_Token|null Attribute token if found, otherwise null.
+	 */
+	private function get_parsed_attribute( $case_insensitive_name ) {
+		foreach ( $this->attributes as $token ) {
+			if ( strlen( $case_insensitive_name ) !== $token->name_length ) {
+				continue;
+			}
+
+			$at = $token->start;
+			for ( $i = 0; $i < strlen( $case_insensitive_name ); $i++ ) {
+				$c = $case_insensitive_name[ $i ];
+				$h = $this->html[ $at++ ];
+
+				if ( $c !== $h && strtolower( $c ) !== strtolower( $h ) ) {
+					continue 2;
+				}
+			}
+
+			return $token;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Return the enqueued value for a given attribute, if one exists.
 	 *
 	 * Enqueued updates can take different data types:
@@ -1880,11 +1871,10 @@ class WP_HTML_Tag_Processor {
 			return $enqueued_value;
 		}
 
-		if ( ! isset( $this->attributes[ $comparable ] ) ) {
+		$attribute = $this->get_parsed_attribute( $comparable );
+		if ( null === $attribute ) {
 			return null;
 		}
-
-		$attribute = $this->attributes[ $comparable ];
 
 		/*
 		 * This flag distinguishes an attribute with no value
@@ -1940,10 +1930,18 @@ class WP_HTML_Tag_Processor {
 		$comparable = strtolower( $prefix );
 
 		$matches = array();
-		foreach ( array_keys( $this->attributes ) as $attr_name ) {
-			if ( str_starts_with( $attr_name, $comparable ) ) {
-				$matches[] = $attr_name;
+		foreach ( $this->attributes as $token ) {
+			$at = $token->start;
+			for ( $i = 0; $i < strlen( $prefix ); $i++ ) {
+				$c = $comparable[ $i ];
+				$h = $this->html[ $at++ ];
+
+				if ( $c !== $h && strtolower( $h ) !== $c ) {
+					continue 2;
+				}
 			}
+
+			$matches[] = strtolower( substr( $this->html, $token->start, $token->name_length ) );
 		}
 		return $matches;
 	}
@@ -2108,17 +2106,9 @@ class WP_HTML_Tag_Processor {
 			$updated_attribute = "{$name}=\"{$escaped_new_value}\"";
 		}
 
-		/*
-		 * > There must never be two or more attributes on
-		 * > the same start tag whose names are an ASCII
-		 * > case-insensitive match for each other.
-		 *     - HTML 5 spec
-		 *
-		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
-		 */
-		$comparable_name = strtolower( $name );
-
-		if ( isset( $this->attributes[ $comparable_name ] ) ) {
+		$comparable_name    = strtolower( $name );
+		$existing_attribute = $this->get_parsed_attribute( $comparable_name );
+		if ( null !== $existing_attribute ) {
 			/*
 			 * Update an existing attribute.
 			 *
@@ -2131,7 +2121,6 @@ class WP_HTML_Tag_Processor {
 			 *
 			 *     Result: <div id="new"/>
 			 */
-			$existing_attribute                        = $this->attributes[ $comparable_name ];
 			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
 				$existing_attribute->start,
 				$existing_attribute->length,
@@ -2199,50 +2188,57 @@ class WP_HTML_Tag_Processor {
 			$this->classname_updates = array();
 		}
 
-		/*
-		 * If updating an attribute that didn't exist in the input
-		 * document, then remove the enqueued update and move on.
-		 *
-		 * For example, this might occur when calling `remove_attribute()`
-		 * after calling `set_attribute()` for the same attribute
-		 * and when that attribute wasn't originally present.
-		 */
-		if ( ! isset( $this->attributes[ $name ] ) ) {
-			if ( isset( $this->lexical_updates[ $name ] ) ) {
-				unset( $this->lexical_updates[ $name ] );
-			}
-			return false;
+		// Remove any queued update to the attribute.
+		if ( isset( $this->lexical_updates[ $name ] ) ) {
+			unset( $this->lexical_updates[ $name ] );
 		}
 
-		/*
-		 * Removes an existing tag attribute.
-		 *
-		 * Example – remove the attribute id from <div id="main"/>:
-		 *    <div id="initial_id"/>
-		 *         ^-------------^
-		 *         start         end
-		 *    replacement: ``
-		 *
-		 *    Result: <div />
-		 */
-		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
-			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->length,
-			''
-		);
+		// Remove all copies of the attribute from the tag.
+		$had_the_attribute = false;
+		foreach ( $this->attributes as $token ) {
+			// Only process matching attributes.
+			if ( strlen( $name ) !== $token->name_length ) {
+				continue;
+			}
 
-		// Removes any duplicated attributes if they were also present.
-		if ( null !== $this->duplicate_attributes && array_key_exists( $name, $this->duplicate_attributes ) ) {
-			foreach ( $this->duplicate_attributes[ $name ] as $attribute_token ) {
-				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-					$attribute_token->start,
-					$attribute_token->length,
-					''
-				);
+			$at = $token->start;
+			for ( $i = 0; $i < strlen( $name ); $i++ ) {
+				$c = $name[ $i ];
+				$h = $this->html[ $at++ ];
+
+				if ( $c !== $h && strtolower( $h ) !== $c ) {
+					continue 2;
+				}
+			}
+
+			/*
+			 * Removes an existing tag attribute.
+			 *
+			 * Example – remove the attribute id from <div id="main"/>:
+			 *    <div id="initial_id"/>
+			 *         ^-------------^
+			 *         start         end
+			 *    replacement: ``
+			 *
+			 *    Result: <div />
+			 */
+			$replacement = new WP_HTML_Text_Replacement(
+				 $token->start,
+				 $token->length,
+				 ''
+			);
+
+			// Found first occurrence of attribute.
+			if ( ! $had_the_attribute ) {
+				 $had_the_attribute              = true;
+				 $this->lexical_updates[ $name ] = $replacement;
+			} else {
+				 // These are duplicates anyway and should be safe to _always_ remove.
+				 $this->lexical_updates[] = $replacement;
 			}
 		}
 
-		return true;
+		return $had_the_attribute;
 	}
 
 	/**
