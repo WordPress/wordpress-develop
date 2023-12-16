@@ -595,7 +595,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 35567
 	 */
 	public function test_register_post_type_is_embeddable_defaults_to_public_argument() {
-		$post_type = register_post_type( rand_str( 10) );
+		$post_type = register_post_type( rand_str( 10 ) );
 		$this->assertFalse( $post_type->is_embeddable );
 
 		$post_type = register_post_type( rand_str( 10 ), array( 'public' => true ) );
@@ -610,7 +610,13 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$post_type = register_post_type( rand_str( 10 ), array( 'is_embeddable' => true ) );
 		$this->assertTrue( $post_type->is_embeddable );
 
-		$post_type = register_post_type( rand_str( 10 ), array( 'public' => true, 'is_embeddable' => false ) );
+		$post_type = register_post_type(
+			rand_str( 10 ),
+			array(
+				'public'        => true,
+				'is_embeddable' => false,
+			)
+		);
 		$this->assertFalse( $post_type->is_embeddable );
 	}
 }

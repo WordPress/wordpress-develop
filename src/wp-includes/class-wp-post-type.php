@@ -521,7 +521,7 @@ final class WP_Post_Type {
 			'hierarchical'                    => false,
 			'exclude_from_search'             => null,
 			'publicly_queryable'              => null,
-			'is_embeddable'					  => null,
+			'is_embeddable'                   => null,
 			'show_ui'                         => null,
 			'show_in_menu'                    => null,
 			'show_in_nav_menus'               => null,

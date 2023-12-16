@@ -2386,11 +2386,11 @@ function is_post_publicly_viewable( $post = null ) {
 
 /**
  * Determines whether a post is "embeddable".
- * 
+ *
  * The "is_embeddable" value of the post's type will be evaluated.
- * 
+ *
  * @since x.x.x
- * 
+ *
  * @param int|WP_Post|null $post Optional. Post ID or `WP_Post` object. Defaults to global $post.
  * @return bool Whether the post should be considered embeddable.
  */
@@ -2403,15 +2403,16 @@ function is_post_embeddable( $post = null ) {
 
 	$is_embeddable = false;
 
-	if ( $post_type = get_post_type_object( $post->post_type ) ) {
+	$post_type = get_post_type_object( $post->post_type );
+	if ( $post_type ) {
 		$is_embeddable = $post_type->is_embeddable;
 	}
 
 	/**
 	 * Filter whether a post is embeddable.
-	 * 
+	 *
 	 * @since x.x.x
-	 * 
+	 *
 	 * $param bool $is_embeddable Whether the post is embeddable.
 	 * @param WP_Post $post Post object.
 	 */
