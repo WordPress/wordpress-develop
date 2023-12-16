@@ -1586,8 +1586,14 @@ class WP_HTML_Tag_Processor {
 
 		$bytes_already_copied = 0;
 		$output_buffer        = '';
+		$last_start           = null;
 		foreach ( $this->lexical_updates as $diff ) {
-			$shift = strlen( $diff->text ) - $diff->length;
+			if ( '' === $diff->text && $diff->start === $last_start ) {
+				continue;
+			}
+
+			$last_start = $diff->start;
+			$shift      = strlen( $diff->text ) - $diff->length;
 
 			// Adjust the cursor position by however much an update affects it.
 			if ( $diff->start <= $this->bytes_already_parsed ) {

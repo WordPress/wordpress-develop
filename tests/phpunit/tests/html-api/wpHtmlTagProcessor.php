@@ -1164,6 +1164,32 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that duplicate attributes are properly
+	 * removed even when queing updates.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_html_with_duplicated_attributes
+	 */
+	public function test_remove_attribute_several_times_with_duplicated_attributes_removes_all_of_them_safely( $html_with_duplicate_attributes, $attribute_to_remove ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
+		$p->next_tag();
+
+		$p->remove_attribute( $attribute_to_remove );
+		$p->set_attribute( $attribute_to_remove, 'test-value' );
+		$p->remove_attribute( $attribute_to_remove );
+		$p->remove_attribute( $attribute_to_remove );
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
+
+		// Recreate a tag processor with the updated HTML after removing the attribute.
+		$p = new WP_HTML_Tag_Processor( $p->get_updated_html() );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
+	}
+
+	/**
 	 * @ticket 58119
 	 *
 	 * @since 6.3.2 Removes all duplicated attributes as expected.
