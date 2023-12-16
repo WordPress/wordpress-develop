@@ -425,7 +425,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	public $attributes = array();
+	private $attributes = array();
 
 	/**
 	 * Which class names to add or remove from a tag.
@@ -507,7 +507,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Text_Replacement[]
 	 */
-	public $lexical_updates = array();
+	protected $lexical_updates = array();
 
 	/**
 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
