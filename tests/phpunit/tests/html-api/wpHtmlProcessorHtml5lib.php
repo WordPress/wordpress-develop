@@ -71,7 +71,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 * @param string $html             Given test HTML.
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
-	static function build_html5_treelike_string( $fragment_context, $html ) {
+	public static function build_html5_treelike_string( $fragment_context, $html ) {
 		$p = WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" );
 		if ( null === $p ) {
 			return null;
@@ -104,7 +104,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 * @return array|Generator Test triplets of HTML fragment context element,
 	 *                         HTML, and the DOM structure it represents.
 	 */
-	static function parse_html5_dat_testfile( $filename ) {
+	public static function parse_html5_dat_testfile( $filename ) {
 		$handle = fopen( $filename, 'r', false );
 
 		/**
@@ -195,4 +195,3 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		return array( $line_number, $test_context_element, $test_html, $test_dom );
 	}
 }
-
