@@ -50,8 +50,14 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 				continue;
 			}
 
+			// These tests contain no tags, which isn't yet
+			// supported by the HTML API.
+			if ( 'comments01.dat' === $entry ) {
+				continue;
+			}
+
 			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
-				yield "{$entry}/case {$k}" => $test;
+				yield "{$entry}/case {$k} - line {$test[0]}" => array_slice( $test, 1 );
 			}
 		}
 		closedir( $handle );
@@ -108,22 +114,27 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		 */
 		$state = null;
 
+		$line_number          = 0;
 		$test_html            = '';
 		$test_dom             = '';
 		$test_context_element = 'body';
+		$test_line_number     = 0;
 
 		while ( false !== ( $line = fgets( $handle ) ) ) {
+			++$line_number;
+
 			if ( '#' === $line[0] ) {
 				// Finish section.
 				if ( "#data\n" === $line ) {
 					// Yield when switching from a previous state.
 					if ( $state ) {
-						yield array( $test_context_element, $test_html, $test_dom );
+						yield array( $test_line_number, $test_context_element, $test_html, $test_dom );
 					}
 
 					// Finish previous test.
-					$test_html = '';
-					$test_dom  = '';
+					$test_line_number = $line_number;
+					$test_html        = '';
+					$test_dom         = '';
 				}
 
 				$state = trim( substr( $line, 1 ) );
@@ -181,7 +192,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		fclose( $handle );
 
 		// Return the last result when reaching the end of the file.
-		return array( $test_context_element, $test_html, $test_dom );
+		return array( $line_number, $test_context_element, $test_html, $test_dom );
 	}
 }
 
