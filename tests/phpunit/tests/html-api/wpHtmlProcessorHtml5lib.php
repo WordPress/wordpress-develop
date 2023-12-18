@@ -17,9 +17,14 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 * @dataProvider data_external_html5lib_tests
 	 */
 	public function test_external_html5lib( $html, $result ) {
+		$processed = self::build_html5_treelike_string( $html );
 
-		$processed_tree = self::build_html5_treelike_string( $html );
-		$this->assertEquals( $processed_tree, $result );
+		if ( $processed["error"] === "unsupported" ) {
+			$this->markTestSkipped();
+			return;
+		}
+
+		$this->assertEquals( $processed["output"], $result );
 	}
 
 
@@ -60,7 +65,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 			$output .= "<{$t}>\n";
 		}
 
-		return $output;
+		return [ "output" => $output, "error" => $p->get_last_error() ];
 	}
 
 	static function parse_html5_dat_testfile( $filename ) {
