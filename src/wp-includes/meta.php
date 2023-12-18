@@ -598,7 +598,11 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  *               Null if the value does not exist.
  */
 function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = false ) {
-	if ( ! $meta_type || ! is_numeric( $object_id ) ) {
+	$filter_options = array(
+		'options' => array( 'min_range' => 0 ),
+	);
+
+	if ( ! $meta_type || ! filter_var( $object_id, FILTER_VALIDATE_INT, $filter_options ) ) {
 		return false;
 	}
 
