@@ -216,10 +216,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'VIDEO',
 			'WBR',
 			'XMP', // Deprecated, use PRE instead.
-
-			// Made up elements, custom elements.
-			'X-NOT-AN-HTML-ELEMENT',
-			'HUMAN-TIME',
 		);
 
 		$data = array();
@@ -360,6 +356,10 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H4 inside H2'                          => array( '<h2><span>Major<h4 target>Minor</h3></span>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H4' ), 1 ),
 			'H5 after unclosed H4 inside H2'        => array( '<h2><span>Major<h4>Minor</span></h3><h5 target>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H5' ), 1 ),
 			'H5 after H4 inside H2'                 => array( '<h2><span>Major<h4>Minor</h4></span></h3><h5 target>', array( 'HTML', 'BODY', 'H5' ), 1 ),
+
+			// Custom elements.
+			'WP-EMOJI'                              => array( '<div><wp-emoji target></wp-emoji></div>', array( 'HTML', 'BODY', 'DIV', 'WP-EMOJI' ), 1 ),
+			'WP-EMOJI then IMG'                     => array( '<div><wp-emoji></wp-emoji><img target></div>', array( 'HTML', 'BODY', 'DIV', 'IMG' ), 1 ),
 		);
 	}
 

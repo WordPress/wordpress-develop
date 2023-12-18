@@ -879,6 +879,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
 		 */
 		switch ( $tag_name ) {
+			case 'ABBR':
+			case 'ACRONYM':
 			case 'APPLET':
 			case 'AREA':
 			case 'BASE':
@@ -943,6 +945,47 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'XMP':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
+		}
+
+		if ( ! $this->is_tag_closer() ) {
+			// > Any other start tag.
+			$this->reconstruct_active_formatting_elements();
+			$this->insert_html_element( $this->state->current_token );
+			return true;
+		} else {
+			// > Any other end tag
+			$node = $this->state->stack_of_open_elements->current_node();
+
+			in_body_any_other_end_tag_loop:
+			if ( $tag_name === $node->node_name ) {
+				$this->generate_implied_end_tags( $tag_name );
+				if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+					// @todo Record parse error: this error doesn't impact parsing.
+				}
+				$pop_count = 0;
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+					++$pop_count;
+					if ( $node === $item ) {
+						break;
+					}
+				}
+				while ( $pop_count-- > 0 ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+				return true;
+			} elseif ( self::is_special( $node->node_name ) ) {
+				// This is a parse error, ignore the token.
+				return $this->step();
+			}
+			$one_shot = false;
+			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+				if ( $one_shot ) {
+					$node = $item;
+					goto in_body_any_other_end_tag_loop;
+				}
+
+				$one_shot = true;
+			}
 		}
 
 		$this->last_error = self::ERROR_UNSUPPORTED;
