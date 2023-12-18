@@ -256,9 +256,11 @@ function get_option( $option, $default_value = false ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $options An array of option names to be loaded.
+ * @param string[] $options An array of option names to be loaded.
  */
 function wp_prime_option_caches( $options ) {
+	global $wpdb;
+
 	$alloptions     = wp_load_alloptions();
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
 	$notoptions     = wp_cache_get( 'notoptions', 'options' );
@@ -283,7 +285,6 @@ function wp_prime_option_caches( $options ) {
 		return;
 	}
 
-	global $wpdb;
 	$results = $wpdb->get_results(
 		$wpdb->prepare(
 			sprintf(
@@ -351,7 +352,7 @@ function wp_prime_option_caches_by_group( $option_group ) {
  *
  * @since 6.4.0
  *
- * @param array $options An array of option names to retrieve.
+ * @param string[] $options An array of option names to retrieve.
  * @return array An array of key-value pairs for the requested options.
  */
 function get_options( $options ) {
@@ -475,11 +476,13 @@ function wp_set_option_autoload_values( array $options ) {
 		wp_cache_delete( 'alloptions', 'options' );
 	} elseif ( $grouped_options['no'] ) {
 		$alloptions = wp_load_alloptions( true );
+
 		foreach ( $grouped_options['no'] as $option ) {
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 			}
 		}
+
 		wp_cache_set( 'alloptions', $alloptions, 'options' );
 	}
 
@@ -496,7 +499,7 @@ function wp_set_option_autoload_values( array $options ) {
  *
  * @see wp_set_option_autoload_values()
  *
- * @param array       $options  List of option names. Expected to not be SQL-escaped.
+ * @param string[]    $options  List of option names. Expected to not be SQL-escaped.
  * @param string|bool $autoload Autoload value to control whether to load the options when WordPress starts up.
  *                              Accepts 'yes'|true to enable or 'no'|false to disable.
  * @return array Associative array of all provided $options as keys and boolean values for whether their autoload value
@@ -843,6 +846,7 @@ function update_option( $option, $value, $autoload = null ) {
 		if ( ! isset( $update_args['autoload'] ) ) {
 			// Update the cached value based on where it is currently cached.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				$alloptions[ $option ] = $serialized_value;
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -854,11 +858,13 @@ function update_option( $option, $value, $autoload = null ) {
 			wp_cache_delete( $option, 'options' );
 
 			$alloptions = wp_load_alloptions( true );
+
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
 			// Delete the alloptions cache, then set the individual cache.
 			$alloptions = wp_load_alloptions( true );
+
 			if ( isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1089,6 +1095,7 @@ function delete_option( $option ) {
 	if ( ! wp_installing() ) {
 		if ( 'yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
+
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
@@ -1216,6 +1223,7 @@ function get_transient( $transient ) {
 		if ( ! wp_installing() ) {
 			// If option is not in alloptions, it is not autoloaded and thus has a timeout.
 			$alloptions = wp_load_alloptions();
+
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				$timeout           = get_option( $transient_timeout );

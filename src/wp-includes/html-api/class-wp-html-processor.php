@@ -99,12 +99,16 @@
  *
  * The following list specifies the HTML tags that _are_ supported:
  *
+ *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
+ *  - Form elements: BUTTON, FIELDSET, SEARCH.
+ *  - Formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U.
+ *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
- *  - The formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U.
- *  - Containers: DIV, FIGCAPTION, FIGURE, SPAN.
- *  - Form elements: BUTTON.
+ *  - Lists: DL.
+ *  - Media elements: FIGCAPTION, FIGURE, IMG.
  *  - Paragraph: P.
- *  - Void elements: IMG.
+ *  - Sectioning elements: ARTICLE, ASIDE, NAV, SECTION
+ *  - Deprecated elements: CENTER, DIR
  *
  * ### Supported markup
  *
@@ -342,7 +346,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Finds the next tag matching the $query.
 	 *
-	 * @TODO: Support matching the class name and tag name.
+	 * @todo Support matching the class name and tag name.
 	 *
 	 * @since 6.4.0
 	 *
@@ -551,9 +555,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Breadcrumbs start at the outermost parent and descend toward the matched element.
 	 * They always include the entire path from the root HTML node to the matched element.
 	 *
-	 * @TODO: It could be more efficient to expose a generator-based version of this function
-	 *        to avoid creating the array copy on tag iteration. If this is done, it would likely
-	 *        be more useful to walk up the stack when yielding instead of starting at the top.
+	 * @todo It could be more efficient to expose a generator-based version of this function
+	 *       to avoid creating the array copy on tag iteration. If this is done, it would likely
+	 *       be more useful to walk up the stack when yielding instead of starting at the top.
 	 *
 	 * Example
 	 *
@@ -621,11 +625,29 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > "fieldset", "figcaption", "figure", "footer", "header", "hgroup",
 			 * > "main", "menu", "nav", "ol", "p", "search", "section", "summary", "ul"
 			 */
+			case '+ADDRESS':
+			case '+ARTICLE':
+			case '+ASIDE':
 			case '+BLOCKQUOTE':
+			case '+CENTER':
+			case '+DETAILS':
+			case '+DIALOG':
+			case '+DIR':
 			case '+DIV':
+			case '+DL':
+			case '+FIELDSET':
 			case '+FIGCAPTION':
 			case '+FIGURE':
+			case '+FOOTER':
+			case '+HEADER':
+			case '+HGROUP':
+			case '+MAIN':
+			case '+MENU':
+			case '+NAV':
 			case '+P':
+			case '+SEARCH':
+			case '+SECTION':
+			case '+SUMMARY':
 				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
@@ -639,11 +661,29 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > "figcaption", "figure", "footer", "header", "hgroup", "listing", "main",
 			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
 			 */
+			case '-ADDRESS':
+			case '-ARTICLE':
+			case '-ASIDE':
 			case '-BLOCKQUOTE':
 			case '-BUTTON':
+			case '-CENTER':
+			case '-DETAILS':
+			case '-DIALOG':
+			case '-DIR':
 			case '-DIV':
+			case '-DL':
+			case '-FIELDSET':
 			case '-FIGCAPTION':
 			case '-FIGURE':
+			case '-FOOTER':
+			case '-HEADER':
+			case '-HGROUP':
+			case '-MAIN':
+			case '-MENU':
+			case '-NAV':
+			case '-SEARCH':
+			case '-SECTION':
+			case '-SUMMARY':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $tag_name ) ) {
 					// @TODO: Report parse error.
 					// Ignore the token.
@@ -655,6 +695,60 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					// @TODO: Record parse error: this error doesn't impact parsing.
 				}
 				$this->state->stack_of_open_elements->pop_until( $tag_name );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
+			 */
+			case '+H1':
+			case '+H2':
+			case '+H3':
+			case '+H4':
+			case '+H5':
+			case '+H6':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+
+				if (
+					in_array(
+						$this->state->stack_of_open_elements->current_node()->node_name,
+						array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' ),
+						true
+					)
+				) {
+					// @TODO: Indicate a parse error once it's possible.
+					$this->state->stack_of_open_elements->pop();
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is one of: "h1", "h2", "h3", "h4", "h5", "h6"
+			 */
+			case '-H1':
+			case '-H2':
+			case '-H3':
+			case '-H4':
+			case '-H5':
+			case '-H6':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( '(internal: H1 through H6 - do not use)' ) ) {
+					/*
+					 * This is a parse error; ignore the token.
+					 *
+					 * @TODO: Indicate a parse error once it's possible.
+					 */
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags();
+
+				if ( $this->state->stack_of_open_elements->current_node()->node_name !== $tag_name ) {
+					// @TODO: Record parse error: this error doesn't impact parsing.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( '(internal: H1 through H6 - do not use)' );
 				return true;
 
 			/*

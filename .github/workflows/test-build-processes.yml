@@ -14,16 +14,6 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
-    paths:
-      # These files configure npm. Changes could affect the outcome.
-      - 'package*.json'
-      # JavaScript files are built using npm.
-      - '**.js'
-      # CSS and SCSS files are built using npm.
-      - '**.scss'
-      - '**.css'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/**.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -116,6 +106,7 @@ jobs:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
 
+
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
@@ -150,7 +141,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
