@@ -1387,7 +1387,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
 			if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
-				$this->state->active_formatting_elements->remove_node( $formatting_element->bookmark_name );
+				$this->state->active_formatting_elements->remove_node( $formatting_element );
 				return;
 			}
 
