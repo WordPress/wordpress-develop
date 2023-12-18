@@ -37,14 +37,26 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_single_tag_of_supported_elements() {
 		$supported_elements = array(
 			'A',
+			'ABBR',
+			'ACRONYM', // Neutralized
 			'ADDRESS',
 			'ARTICLE',
 			'ASIDE',
+			'AUDIO',
 			'B',
+			'BDI',
+			'BDO',
 			'BIG',
+			'BLINK', // Deprecated
 			'BUTTON',
+			'CANVAS',
 			'CENTER', // Neutralized
+			'CITE',
 			'CODE',
+			'DATA',
+			'DATALIST',
+			'DEFN',
+			'DEL',
 			'DETAILS',
 			'DIALOG',
 			'DIR',
@@ -66,19 +78,42 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'HGROUP',
 			'I',
 			'IMG',
+			'INS',
+			'ISINDEX', // Deprecated
+			'KBD',
+			'LABEL',
+			'LEGEND',
 			'MAIN',
+			'MAP',
+			'MARK',
 			'MENU',
+			'METER',
+			'MULTICOL', // Deprecated
 			'NAV',
+			'NEXTID',// Deprecated
+			'OUTPUT',
 			'P',
+			'PICTURE',
+			'PROGRESS',
+			'Q',
+			'RUBY',
+			'SAMP',
 			'SEARCH',
 			'SECTION',
+			'SLOT',
 			'SMALL',
+			'SPACER', // Deprecated
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'SUB',
 			'SUMMARY',
+			'SUP',
+			'TIME',
 			'TT',
 			'U',
+			'VAR',
+			'VIDEO',
 		);
 
 		$data = array();
@@ -121,28 +156,16 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'ABBR',
-			'ACRONYM', // Neutralized
 			'APPLET', // Deprecated
 			'AREA',
-			'AUDIO',
 			'BASE',
-			'BDI',
-			'BDO',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
-			'BLINK', // Deprecated
 			'BODY',
 			'BR',
-			'CANVAS',
 			'CAPTION',
-			'CITE',
 			'COL',
 			'COLGROUP',
-			'DATA',
-			'DATALIST',
 			'DD',
-			'DEL',
-			'DEFN',
 			'DT',
 			'EMBED',
 			'FORM',
@@ -153,23 +176,13 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'HTML',
 			'IFRAME',
 			'INPUT',
-			'INS',
-			'ISINDEX', // Deprecated
-			'KBD',
 			'KEYGEN', // Deprecated; void
-			'LABEL',
-			'LEGEND',
 			'LI',
 			'LINK',
 			'LISTING', // Deprecated, use PRE instead.
-			'MAP',
-			'MARK',
 			'MARQUEE', // Deprecated
 			'MATH',
 			'META',
-			'METER',
-			'MULTICOL', // Deprecated
-			'NEXTID', // Deprecated
 			'NOBR', // Neutralized
 			'NOEMBED', // Neutralized
 			'NOFRAMES', // Neutralized
@@ -178,26 +191,16 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'OL',
 			'OPTGROUP',
 			'OPTION',
-			'OUTPUT',
-			'PICTURE',
 			'PLAINTEXT', // Neutralized
 			'PRE',
-			'PROGRESS',
-			'Q',
 			'RB', // Neutralized
 			'RP',
 			'RT',
 			'RTC', // Neutralized
-			'RUBY',
-			'SAMP',
 			'SCRIPT',
 			'SELECT',
-			'SLOT',
 			'SOURCE',
-			'SPACER', // Deprecated
 			'STYLE',
-			'SUB',
-			'SUP',
 			'SVG',
 			'TABLE',
 			'TBODY',
@@ -207,13 +210,10 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'TFOOT',
 			'TH',
 			'THEAD',
-			'TIME',
 			'TITLE',
 			'TR',
 			'TRACK',
 			'UL',
-			'VAR',
-			'VIDEO',
 			'WBR',
 			'XMP', // Deprecated, use PRE instead.
 		);

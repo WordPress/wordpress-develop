@@ -72,21 +72,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
 
 	/**
@@ -115,21 +108,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 
 		// These elements are specific to list item scope.
 		$this->ensure_support_is_added_everywhere( 'OL' );
@@ -161,21 +147,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
 
 	/**
@@ -201,21 +180,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
 
 	/**
@@ -241,21 +213,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
 
 	/**
@@ -280,21 +245,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 
 		// These elements are specific to TABLE scope.
 		$this->ensure_support_is_added_everywhere( 'HTML' );
@@ -335,21 +293,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements
-		$this->ensure_support_is_added_everywhere( 'MI' );
-		$this->ensure_support_is_added_everywhere( 'MO' );
-		$this->ensure_support_is_added_everywhere( 'MN' );
-		$this->ensure_support_is_added_everywhere( 'MS' );
-		$this->ensure_support_is_added_everywhere( 'MTEXT' );
-		$this->ensure_support_is_added_everywhere( 'ANNOTATION-XML' );
+		// MathML Elements.
+		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
 		 */
-		$this->ensure_support_is_added_everywhere( 'FOREIGNOBJECT' );
-		$this->ensure_support_is_added_everywhere( 'DESC' );
-		$this->ensure_support_is_added_everywhere( 'TITLE' );
+		$this->ensure_support_is_added_everywhere( 'SVG' );
 
 		// These elements are specific to SELECT scope.
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );

@@ -879,8 +879,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
 		 */
 		switch ( $tag_name ) {
-			case 'ABBR':
-			case 'ACRONYM':
 			case 'APPLET':
 			case 'AREA':
 			case 'BASE':
@@ -924,6 +922,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'RP':
 			case 'RT':
 			case 'RTC':
+			case 'SARCASM':
 			case 'SCRIPT':
 			case 'SELECT':
 			case 'SOURCE':

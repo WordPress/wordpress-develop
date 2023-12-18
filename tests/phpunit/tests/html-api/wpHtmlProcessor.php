@@ -199,6 +199,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			array( 'RP' ),
 			array( 'RT' ),
 			array( 'RTC' ),
+			array( 'SARCASM' ),
 			array( 'SCRIPT' ),
 			array( 'SELECT' ),
 			array( 'SOURCE' ),
