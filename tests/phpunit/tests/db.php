@@ -1439,10 +1439,6 @@ class Tests_DB extends WP_UnitTestCase {
 	public function test_charset_switched_to_utf8mb4() {
 		global $wpdb;
 
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support.' );
-		}
-
 		$charset = 'utf8';
 		$collate = 'utf8_general_ci';
 
@@ -1476,10 +1472,6 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	public function test_non_unicode_collations() {
 		global $wpdb;
-
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support.' );
-		}
 
 		$charset = 'utf8';
 		$collate = 'utf8_swedish_ci';
