@@ -33,11 +33,11 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
-			if ( !stripos( $entry, '.dat' ) ) {
+			if ( ! stripos( $entry, '.dat' ) ) {
 				continue;
 			}
 
-			foreach (self::parse_html5_dat_testfile($test_dir . $entry) as $k => $test) {
+			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
 				yield "{$entry}/case {$k}" => $test;
 			}
 		}
@@ -51,7 +51,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		$output = "<html>\n  <head>\n  <body>\n";
 		while ( $p->next_tag() ) {
 			// breadcrumbs include our tag, so skip 1 nesting level
-			foreach ( $p->get_breadcrumbs() as $index => $_) {
+			foreach ( $p->get_breadcrumbs() as $index => $_ ) {
 				if ( $index ) {
 					$output .= '  ';
 				}
