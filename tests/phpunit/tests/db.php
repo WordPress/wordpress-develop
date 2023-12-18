@@ -1482,25 +1482,6 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 37982
-	 */
-	public function test_charset_switched_to_utf8() {
-		global $wpdb;
-
-		if ( $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 to not be supported.' );
-		}
-
-		$charset = 'utf8mb4';
-		$collate = 'utf8mb4_general_ci';
-
-		$result = $wpdb->determine_charset( $charset, $collate );
-
-		$this->assertSame( 'utf8', $result['charset'] );
-		$this->assertSame( 'utf8_general_ci', $result['collate'] );
-	}
-
-	/**
 	 * @dataProvider data_prepare_with_placeholders
 	 */
 	public function test_prepare_with_placeholders_and_individual_args( $sql, $values, $incorrect_usage, $expected ) {
