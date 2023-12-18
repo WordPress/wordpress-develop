@@ -28,6 +28,7 @@ concurrency:
 
 env:
   LOCAL_DIR: build
+  LOCAL_PHP: 8.0-fpm
 
 jobs:
   # Runs the end-to-end test suite.
