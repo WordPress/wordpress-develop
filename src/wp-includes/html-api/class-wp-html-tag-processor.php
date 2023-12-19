@@ -1147,7 +1147,7 @@ class WP_HTML_Tag_Processor {
 			 * Abort if no tag is found before the end of
 			 * the document. There is nothing left to parse.
 			 */
-			if ( $at + 1 >= strlen( $html ) ) {
+			if ( $at + 1 >= $doc_length ) {
 				return false;
 			}
 
@@ -1161,13 +1161,13 @@ class WP_HTML_Tag_Processor {
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
-					strlen( $html ) > $at + 3 &&
+					$doc_length > $at + 3 &&
 					'-' === $html[ $at + 2 ] &&
 					'-' === $html[ $at + 3 ]
 				) {
 					$closer_at = $at + 4;
 					// If it's not possible to close the comment then there is nothing more to scan.
-					if ( strlen( $html ) <= $closer_at ) {
+					if ( $doc_length <= $closer_at ) {
 						return false;
 					}
 
@@ -1185,18 +1185,18 @@ class WP_HTML_Tag_Processor {
 					 * See https://html.spec.whatwg.org/#parse-error-incorrectly-closed-comment
 					 */
 					--$closer_at; // Pre-increment inside condition below reduces risk of accidental infinite looping.
-					while ( ++$closer_at < strlen( $html ) ) {
+					while ( ++$closer_at < $doc_length ) {
 						$closer_at = strpos( $html, '--', $closer_at );
 						if ( false === $closer_at ) {
 							return false;
 						}
 
-						if ( $closer_at + 2 < strlen( $html ) && '>' === $html[ $closer_at + 2 ] ) {
+						if ( $closer_at + 2 < $doc_length && '>' === $html[ $closer_at + 2 ] ) {
 							$at = $closer_at + 3;
 							continue 2;
 						}
 
-						if ( $closer_at + 3 < strlen( $html ) && '!' === $html[ $closer_at + 2 ] && '>' === $html[ $closer_at + 3 ] ) {
+						if ( $closer_at + 3 < $doc_length && '!' === $html[ $closer_at + 2 ] && '>' === $html[ $closer_at + 3 ] ) {
 							$at = $closer_at + 4;
 							continue 2;
 						}
@@ -1209,7 +1209,7 @@ class WP_HTML_Tag_Processor {
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
-					strlen( $html ) > $at + 8 &&
+					$doc_length > $at + 8 &&
 					'[' === $html[ $at + 2 ] &&
 					'C' === $html[ $at + 3 ] &&
 					'D' === $html[ $at + 4 ] &&
@@ -1233,7 +1233,7 @@ class WP_HTML_Tag_Processor {
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
-					strlen( $html ) > $at + 8 &&
+					$doc_length > $at + 8 &&
 					( 'D' === $html[ $at + 2 ] || 'd' === $html[ $at + 2 ] ) &&
 					( 'O' === $html[ $at + 3 ] || 'o' === $html[ $at + 3 ] ) &&
 					( 'C' === $html[ $at + 4 ] || 'c' === $html[ $at + 4 ] ) &&
