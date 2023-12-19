@@ -120,12 +120,14 @@ jobs:
     steps:
       - name: Save PR number
         run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+          mkdir -p ./pr-number
+          echo ${{ github.event.number }} > ./pr-number/NR
+
+      - name: Upload PR number as artifact
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: pr
-          path: pr/
+          name: pr-number
+          path: pr-number/
 
   slack-notifications:
     name: Slack Notifications
