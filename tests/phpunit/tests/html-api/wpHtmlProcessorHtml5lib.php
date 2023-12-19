@@ -185,8 +185,10 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 					if ( '|' === $line[0] ) {
 						$candidate = substr( $line, 2 );
 						$trimmed   = trim( $candidate );
-						// We ignore `<!` starters to skip `<!--` (comment opener) and `<!DOCTYPE`.
-						if ( '<' === $trimmed[0] && '<!' !== substr( $trimmed, 0, 2 ) ) {
+						// Only take lines that look like tags
+						// At least 3 chars (< + tag + >)
+						// Tag must start with ascii alphabetic
+						if ( strlen( $trimmed > 2 ) && '<' === $trimmed[0] && ctype_alpha( $trimmed[1] ) ) {
 							$test_dom .= $candidate;
 						}
 					}
