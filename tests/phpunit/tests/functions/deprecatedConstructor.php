@@ -27,7 +27,7 @@ class Tests_Functions_deprecatedConstructor extends WP_UnitTestCase {
 
 
 	/**
-	 * @ticket 60114
+	 * @ticket 60115
 	 *
 	 * test_deprecated_constructor_action_called() method tests the action being called when _deprecated_constructor()
 	 *
@@ -50,7 +50,7 @@ class Tests_Functions_deprecatedConstructor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60114
+	 * @ticket 60115
 	 *
 	 * This method tests if the '_deprecated_constructor_trigger_error' filter is called
 	 * when the _deprecated_constructor() function is invoked.
@@ -76,11 +76,7 @@ class Tests_Functions_deprecatedConstructor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60114
-	 *
-	 * Tests the _deprecated_constructorfunction when called without a version number.
-	 *
-	 * This method verifies that the _deprecated_constructorfunction throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60115
 	 *
 	 * @return void
 	 */
