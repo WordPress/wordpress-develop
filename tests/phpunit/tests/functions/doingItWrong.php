@@ -20,18 +20,8 @@ class Tests_Functions_doingItWrong extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-//		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ), 10, 3 );
-//		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ), 10, 3 );
-//		remove_action( 'deprecated_class_run', array( $this, 'deprecated_function_run' ), 10, 3 );
-//		remove_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ), 10, 4 );
-//		remove_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ), 10, 4 );
+		// remove ethe spherical handling for doing_it_wrong in the PHPUnint setup so we can test it
 		remove_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ), 10, 3 );
-
-//		remove_action( 'deprecated_function_trigger_error', '__return_false' );
-//		remove_action( 'deprecated_argument_trigger_error', '__return_false' );
-//		remove_action( 'deprecated_class_trigger_error', '__return_false' );
-//		remove_action( 'deprecated_file_trigger_error', '__return_false' );
-//		remove_action( 'deprecated_hook_trigger_error', '__return_false' );
 		remove_action( 'doing_it_wrong_trigger_error', '__return_false' );
 	}
 
