@@ -84,23 +84,7 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
-	public function test_deprecated_argument_no_replacement() {
-		$this->expectDeprecation();
-		$this->expectDeprecationMessage( 'Function function_name was called with an argument that is deprecated since version 1! message' );
-
-		_deprecated_argument( 'function_name', 1, 'message' );
-	}
-
-	/**
-	 * @ticket 60057
-	 *
-	 * Tests the _deprecated_argumentfunction when called without a version number.
-	 *
-	 * This method verifies that the _deprecated_argumentfunction throws a notice and displays the correct message when called without a version number.
-	 *
-	 * @return void
-	 */
-	public function test_deprecated_argument() {
+	public function test_deprecated_argument_no_message() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage( 'Function function_name was called with an argument that is deprecated since version 1 with no alternative available.' );
 
