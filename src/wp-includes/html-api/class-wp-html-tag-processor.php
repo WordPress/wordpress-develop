@@ -1113,7 +1113,7 @@ class WP_HTML_Tag_Processor {
 
 			$this->token_starts_at = $at;
 
-			if ( '/' === $this->html[ $at + 1 ] ) {
+			if ( $doc_length > $at + 1 && '/' === $this->html[ $at + 1 ] ) {
 				$this->is_closing_tag = true;
 				++$at;
 			} else {
