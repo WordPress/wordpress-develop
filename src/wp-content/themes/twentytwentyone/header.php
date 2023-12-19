@@ -20,7 +20,17 @@
 	<?php wp_head(); ?>
 </head>
 
-<body <?php body_class(); ?>>
+<body
+	<?php body_class(); ?>
+	data-wp-interactive='{"namespace": "twentytwentyone"}'
+	data-wp-class--primary-navigation-open="state.isPrimaryMenuOpen"
+	data-wp-class--lock-scrolling="state.isPrimaryMenuOpen"
+	data-wp-class--is-dark-theme="state.isDarkMode"
+	data-wp-init--iframes="callbacks.updateWindowWidthOnResize"
+	data-wp-watch--iframes="callbacks.makeIframesResponsive"
+	data-wp-init--darkmode="callbacks.initDarkMode"
+	data-wp-watch--darkmode="callbacks.refreshHtmlElementDarkMode"
+>
 <?php wp_body_open(); ?>
 <div id="page" class="site">
 	<a class="skip-link screen-reader-text" href="#content">

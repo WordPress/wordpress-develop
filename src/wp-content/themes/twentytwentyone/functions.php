@@ -442,6 +442,18 @@ function twenty_twenty_one_scripts() {
 		)
 	);
 
+	// Use WordPress Interactivity API if available.
+	if ( function_exists( 'gutenberg_register_module' ) ) {
+		gutenberg_register_module(
+			'@twentytwentyone/interactivity',
+			get_template_directory_uri() . '/assets/js/interactivity.js',
+			array( '@wordpress/interactivity' ),
+			wp_get_theme()->get( 'Version' )
+		);
+		gutenberg_enqueue_module( '@twentytwentyone/interactivity' );
+		return;
+	}
+
 	// Main navigation scripts.
 	if ( has_nav_menu( 'primary' ) ) {
 		wp_enqueue_script(
