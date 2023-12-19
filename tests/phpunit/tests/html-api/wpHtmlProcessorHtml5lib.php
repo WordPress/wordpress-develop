@@ -38,7 +38,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		$processed_tree = self::build_html5_treelike_string( $fragment_context, $html );
 
 		if ( array_key_exists( $this->dataName(), self::SKIP_TESTS ) ) {
-			$this->markTestSkipped( self::SKIP_TESTS[$this->dataName()] );
+			$this->markTestSkipped( self::SKIP_TESTS[ $this->dataName() ] );
 		}
 
 		if ( null === $processed_tree ) {
