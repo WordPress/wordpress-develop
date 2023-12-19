@@ -86,5 +86,4 @@ class Tests_Functions_deprecatedConstructor extends WP_UnitTestCase {
 
 		_deprecated_constructor( 'class_name', 1 );
 	}
-
 }
