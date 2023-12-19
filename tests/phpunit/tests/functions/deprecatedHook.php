@@ -27,7 +27,7 @@ class Tests_Functions_deprecatedHook extends WP_UnitTestCase {
 
 
 	/**
-	 * @ticket 60057
+	 * @ticket 60110
 	 *
 	 * test___deprecated_hook_action_called() method tests the action being called when _deprecated_hook()
 	 *
@@ -50,7 +50,7 @@ class Tests_Functions_deprecatedHook extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
+	 * @ticket 60110
 	 *
 	 * This method tests if the '_deprecated_hook_trigger_error' filter is called
 	 * when the __deprecated_hook() function is invoked.
@@ -76,11 +76,7 @@ class Tests_Functions_deprecatedHook extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the __deprecated_hook function when called without a version number.
-	 *
-	 * This method verifies that the __deprecated_hook function throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60110
 	 *
 	 * @return void
 	 */
@@ -92,11 +88,7 @@ class Tests_Functions_deprecatedHook extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the __deprecated_hook function when called without a version number.
-	 *
-	 * This method verifies that the __deprecated_hook function throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60110
 	 *
 	 * @return void
 	 */
@@ -108,11 +100,7 @@ class Tests_Functions_deprecatedHook extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the __deprecated_hook function when called without a version number.
-	 *
-	 * This method verifies that the __deprecated_hook function throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60110
 	 *
 	 * @return void
 	 */
