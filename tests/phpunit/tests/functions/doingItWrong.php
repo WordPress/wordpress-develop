@@ -7,7 +7,34 @@
  *
  * @covers ::_doing_it_wrong
  */
-class Tests_Functions_doingItWrong extends WP_UnitTestCase{
+class Tests_Functions_doingItWrong extends WP_UnitTestCase {
+
+	/**
+	 * Sets up the test case.
+	 *
+	 * This method is responsible for setting up the test case before each test method is executed.
+	 * It removes certain actions related to deprecated and doing_it_wrong functions.
+	 *
+	 * @return void
+	 */
+	public function set_up() {
+		parent::set_up();
+
+//		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+//		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+//		remove_action( 'deprecated_class_run', array( $this, 'deprecated_function_run' ), 10, 3 );
+//		remove_action( 'deprecated_file_included', array( $this, 'deprecated_function_run' ), 10, 4 );
+//		remove_action( 'deprecated_hook_run', array( $this, 'deprecated_function_run' ), 10, 4 );
+		remove_action( 'doing_it_wrong_run', array( $this, 'doing_it_wrong_run' ), 10, 3 );
+
+//		remove_action( 'deprecated_function_trigger_error', '__return_false' );
+//		remove_action( 'deprecated_argument_trigger_error', '__return_false' );
+//		remove_action( 'deprecated_class_trigger_error', '__return_false' );
+//		remove_action( 'deprecated_file_trigger_error', '__return_false' );
+//		remove_action( 'deprecated_hook_trigger_error', '__return_false' );
+		remove_action( 'doing_it_wrong_trigger_error', '__return_false' );
+	}
+
 
 	/**
 	 * @ticket 60057
@@ -21,8 +48,8 @@ class Tests_Functions_doingItWrong extends WP_UnitTestCase{
 	 * @return void
 	 */
 	public function test__doing_it_wrong_action_called() {
-		$this->expectError();
-//		$this->expectErrorMessage( 'function_name(): expected the function name and message' );
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Function function_name was called incorrectly. message Please see <a>Debugging in WordPress</a> for more information. (This message was added in version 1.)' );
 
 		$action = new MockAction();
 		add_filter( 'doing_it_wrong_run', array( $action, 'action' ) );
@@ -47,8 +74,8 @@ class Tests_Functions_doingItWrong extends WP_UnitTestCase{
 	 * @return void
 	 */
 	public function test__doing_it_wrong_filter_called() {
-//		$this->expectError();
-//		$this->expectErrorMessage( 'function_name(): expected the function name and message' );
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Function function_name was called incorrectly. message Please see <a>Debugging in WordPress</a> for more information. (This message was added in version 1.)' );
 
 		$filter = new MockAction();
 		add_filter( 'doing_it_wrong_trigger_error', array( $filter, 'filter' ) );
@@ -56,5 +83,21 @@ class Tests_Functions_doingItWrong extends WP_UnitTestCase{
 		_doing_it_wrong( 'function_name', 'message', 1 );
 
 		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * @ticket 60057
+	 *
+	 * Tests the _doing_it_wrong function when called without a version number.
+	 *
+	 * This method verifies that the _doing_it_wrong function throws a notice and displays the correct message when called without a version number.
+	 *
+	 * @return void
+	 */
+	public function test__doing_it_wrong_no_version() {
+		$this->expectNotice();
+		$this->expectNoticeMessage( 'Function function_name was called incorrectly. message Please see <a>Debugging in WordPress</a> for more information.' );
+
+		_doing_it_wrong( 'function_name', 'message', false );
 	}
 }
