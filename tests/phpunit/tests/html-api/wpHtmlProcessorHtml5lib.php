@@ -60,7 +60,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_external_html5lib_tests() {
-		$test_dir = __DIR__ . '/html5lib-tests/tree-construction/';
+		$test_dir = __DIR__ . '/../../data/html5lib-tests/tree-construction/';
 
 		$handle = opendir( $test_dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
