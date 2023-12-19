@@ -57,7 +57,8 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 			}
 
 			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
-				yield "{$entry}/case {$k} - line {$test[0]}" => array_slice( $test, 1 );
+				$case = $k + 1;
+				yield "{$entry}/case {$case} - line {$test[0]}" => array_slice( $test, 1 );
 			}
 		}
 		closedir( $handle );
