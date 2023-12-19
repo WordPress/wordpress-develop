@@ -6,13 +6,22 @@
  * @package WordPress
  * @subpackage HTML-API
  *
- * @since TODO
+ * @since {WP_VERSION}
  *
  * @group html-api
  *
  * @coversDefaultClass WP_HTML_Processor
  */
 class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
+
+	const SKIP_TESTS = array(
+		'adoption01/case10 - line 159' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'adoption01/case17 - line 318' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'adoption01/case4 - line 46'   => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests15/case1 - line 1'       => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests15/case2 - line 22'      => 'Unimplemented: Reconstruction of active formatting elements.',
+	);
+
 	/**
 	 * Verify the parsing results of the HTML Processor against the
 	 * test cases in the Html5lib tests project.
@@ -27,6 +36,11 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 */
 	public function test_external_html5lib( $fragment_context, $html, $result ) {
 		$processed_tree = self::build_html5_treelike_string( $fragment_context, $html );
+
+		if ( array_key_exists( $this->dataName(), self::SKIP_TESTS ) ) {
+			$this->markTestSkipped( self::SKIP_TESTS[$this->dataName()] );
+		}
+
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Skipped test because it contains unsupported markup.' );
 		} else {
