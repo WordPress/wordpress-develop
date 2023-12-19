@@ -61,7 +61,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 				$case = $k + 1;
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, strlen( $entry ) - 4 );
-				yield "{$test_suite}/case {$case} - line {$test[0]}" => array_slice( $test, 1 );
+				yield "{$test_suite}/case{$case} - line {$test[0]}" => array_slice( $test, 1 );
 			}
 		}
 		closedir( $handle );
