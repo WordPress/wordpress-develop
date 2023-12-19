@@ -27,7 +27,7 @@ class Tests_Functions_deprecatedFile extends WP_UnitTestCase {
 
 
 	/**
-	 * @ticket 60057
+	 * @ticket 60113
 	 *
 	 * test_deprecated_file_action_called() method tests the action being called when _deprecated_file()
 	 *
@@ -50,7 +50,7 @@ class Tests_Functions_deprecatedFile extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
+	 * @ticket 60113
 	 *
 	 * This method tests if the '_deprecated_file_trigger_error' filter is called
 	 * when the _deprecated_file() function is invoked.
@@ -76,11 +76,7 @@ class Tests_Functions_deprecatedFile extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the _deprecated_filefunction when called without a version number.
-	 *
-	 * This method verifies that the _deprecated_filefunction throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60113
 	 *
 	 * @return void
 	 */
@@ -92,11 +88,7 @@ class Tests_Functions_deprecatedFile extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the _deprecated_filefunction when called without a version number.
-	 *
-	 * This method verifies that the _deprecated_filefunction throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60113
 	 *
 	 * @return void
 	 */
@@ -107,11 +99,7 @@ class Tests_Functions_deprecatedFile extends WP_UnitTestCase {
 		_deprecated_file( 'file_name', 1, 'replacement_file' );
 	}
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the _deprecated_filefunction when called without a version number.
-	 *
-	 * This method verifies that the _deprecated_filefunction throws a notice and displays the correct message when called without a version number.
+	 * @ticket 60113
 	 *
 	 * @return void
 	 */
