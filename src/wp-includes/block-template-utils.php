@@ -224,9 +224,9 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
-	static $wp_path_list = array();
-	if ( isset( $wp_path_list[ $base_directory ] ) ) {
-		return $wp_path_list[ $base_directory ];
+	static $template_path_list = array();
+	if ( isset( $template_path_list[ $base_directory ] ) ) {
+		return $template_path_list[ $base_directory ];
 	}
 	$path_list = array();
 	try {
@@ -238,7 +238,7 @@ function _get_block_templates_paths( $base_directory ) {
 	} catch ( Exception $e ) {
 		// Do nothing.
 	}
-	$wp_path_list[ $base_directory ] = $path_list;
+	$template_path_list[ $base_directory ] = $path_list;
 	return $path_list;
 }
 
