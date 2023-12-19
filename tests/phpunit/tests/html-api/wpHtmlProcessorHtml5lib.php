@@ -182,7 +182,8 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 					if ( '|' === $line[0] ) {
 						$candidate = substr( $line, 2 );
 						$trimmed   = trim( $candidate );
-						if ( '<' === $trimmed[0] && '<!DOCTYPE' !== substr( $trimmed, 0, 9 ) ) {
+						// We ignore `<!` starters to skip `<!--` (comment opener) and `<!DOCTYPE`.
+						if ( '<' === $trimmed[0] && '<!' !== substr( $trimmed, 0, 2 ) ) {
 							$test_dom .= $candidate;
 						}
 					}
