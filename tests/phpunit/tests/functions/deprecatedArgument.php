@@ -27,7 +27,7 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 
 
 	/**
-	 * @ticket 60057
+	 * @ticket 60112
 	 *
 	 * test_deprecated_argument_action_called() method tests the action being called when _deprecated_argument()
 	 *
@@ -50,7 +50,7 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
+	 * @ticket 60112
 	 *
 	 * This method tests if the '_deprecated_argument_trigger_error' filter is called
 	 * when the _deprecated_argument() function is invoked.
@@ -76,12 +76,8 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60057
-	 *
-	 * Tests the _deprecated_argumentfunction when called without a version number.
-	 *
-	 * This method verifies that the _deprecated_argumentfunction throws a notice and displays the correct message when called without a version number.
-	 *
+	 * @ticket 60112
+  	 *
 	 * @return void
 	 */
 	public function test_deprecated_argument_no_message() {
