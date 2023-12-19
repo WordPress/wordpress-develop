@@ -90,7 +90,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'METER',
 			'MULTICOL', // Deprecated
 			'NAV',
-			'NEXTID',// Deprecated
+			'NEXTID', // Deprecated
 			'OUTPUT',
 			'P',
 			'PICTURE',
