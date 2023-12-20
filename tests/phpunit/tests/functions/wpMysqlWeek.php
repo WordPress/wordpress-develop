@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Tests for the _wp_mysql_week function.
+ * Tests for the _wp_mysql_week() function.
  *
- * @group Functons.php
+ * @group functions
  *
  * @covers ::_wp_mysql_week
  */
@@ -12,7 +12,7 @@ class Tests_Functons_WpMysqlWeek extends WP_UnitTestCase {
 	/**
 	 * @ticket 59931
 	 *
-	 * @dataProvider data_test_wp_mysql_week
+	 * @dataProvider data_wp_mysql_week
 	 */
 	public function test_wp_mysql_week( $date, $start_of_week, $expected_sql ) {
 
@@ -29,7 +29,7 @@ class Tests_Functons_WpMysqlWeek extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public function data_test_wp_mysql_week() {
+	public function data_wp_mysql_week() {
 		return array(
 			array( '1969-12-25', 0, 'WEEK( col_name, 0 )' ),
 			array( '1969-12-25', 1, 'WEEK( col_name, 1 )' ),
