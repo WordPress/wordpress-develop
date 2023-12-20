@@ -46,8 +46,6 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 60117
-	 *
 	 * This method tests if the '_deprecated_argument_trigger_error' filter is called
 	 * when the _deprecated_argument() function is invoked.
 	 *
@@ -57,7 +55,7 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	 * Finally, it asserts that the filter callback is called exactly once by checking
 	 * the call count of the mock action object.
 	 *
-	 * @return void
+	 * @ticket 60117
 	 */
 	public function test_deprecated_argument_filter_called() {
 		$this->expectDeprecation();
