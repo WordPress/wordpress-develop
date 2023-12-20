@@ -13,7 +13,7 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	 * Sets up the test case.
 	 *
 	 * This method is responsible for setting up the test case before each test method is executed.
-	 * It removes certain actions related to deprecated and _deprecated_argumentfunctions.
+	 * It removes certain actions related to deprecated and _deprecated_argument functions.
 	 */
 	public function set_up() {
 		parent::set_up();
