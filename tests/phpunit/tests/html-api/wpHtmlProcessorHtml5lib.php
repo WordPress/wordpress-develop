@@ -48,7 +48,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		if ( null === $processed_tree ) {
 			$this->markTestSkipped( 'Skipped test because it contains unsupported markup.' );
 		} else {
-			$this->assertEquals( $processed_tree, $result );
+			$this->assertEquals( $result, $processed_tree, "HTML {$html} was not processed correctly." );
 		}
 	}
 
