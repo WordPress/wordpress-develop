@@ -1267,6 +1267,12 @@ class WP_HTML_Tag_Processor {
 					continue;
 				}
 
+				if ( $this->bytes_already_parsed >= $doc_length ) {
+					$this->parser_state = self::STATE_INCOMPLETE;
+
+					return false;
+				}
+
 				if ( '>' === $html[ $this->bytes_already_parsed ] ) {
 					$this->bytes_already_parsed = $closer_potentially_starts_at;
 					return true;
@@ -1362,7 +1368,7 @@ class WP_HTML_Tag_Processor {
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 				 */
 				if (
-					strlen( $html ) > $at + 3 &&
+					$doc_length > $at + 3 &&
 					'-' === $html[ $at + 2 ] &&
 					'-' === $html[ $at + 3 ]
 				) {
