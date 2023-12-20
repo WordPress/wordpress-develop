@@ -545,6 +545,18 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
+	$is_attachment_redirect = false;
+
+	if ( is_attachment() && ! get_option( 'wp_attachment_pages_enabled' ) ) {
+		$attachment_id = get_query_var( 'attachment_id' );
+
+		if ( current_user_can( 'read_post', $attachment_id ) ) {
+			$redirect_url = wp_get_attachment_url( $attachment_id );
+
+			$is_attachment_redirect = true;
+		}
+	}
+
 	$redirect['query'] = preg_replace( '#^\??&*?#', '', $redirect['query'] );
 
 	// Tack on any additional query vars.
@@ -650,6 +662,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	// Trailing slashes.
 	if ( is_object( $wp_rewrite ) && $wp_rewrite->using_permalinks()
+		&& ! $is_attachment_redirect
 		&& ! is_404() && ( ! is_front_page() || is_front_page() && get_query_var( 'paged' ) > 1 )
 	) {
 		$user_ts_type = '';
@@ -944,7 +957,6 @@ function redirect_guess_404_permalink() {
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
 		if ( get_query_var( 'post_type' ) ) {
 			if ( is_array( get_query_var( 'post_type' ) ) ) {
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
 			} else {
 				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
@@ -1015,6 +1027,7 @@ function wp_redirect_admin_locations() {
 
 	$logins = array(
 		home_url( 'wp-login.php', 'relative' ),
+		home_url( 'login.php', 'relative' ),
 		home_url( 'login', 'relative' ),
 		site_url( 'login', 'relative' ),
 	);

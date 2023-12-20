@@ -51,7 +51,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 		$ret = wp_save_image( $id );
 
-		$this->assertObjectHasAttribute( 'error', $ret );
+		$this->assertObjectHasProperty( 'error', $ret );
 		$this->assertEquals( 'Images cannot be scaled to a size larger than the original.', $ret->error );
 	}
 

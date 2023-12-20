@@ -2,7 +2,8 @@
 
 /**
  * @group formatting
- * @group functions.php
+ * @group functions
+ *
  * @covers ::add_magic_quotes
  */
 class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
@@ -61,5 +62,4 @@ class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

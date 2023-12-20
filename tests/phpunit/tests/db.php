@@ -713,9 +713,6 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	public function test_mysqli_flush_sync() {
 		global $wpdb;
-		if ( ! $wpdb->use_mysqli ) {
-			$this->markTestSkipped( 'mysqli not being used.' );
-		}
 
 		$suppress = $wpdb->suppress_errors( true );
 
@@ -2471,5 +2468,18 @@ class Tests_DB extends WP_UnitTestCase {
 				false,
 			),
 		);
+	}
+
+	/**
+	 * This private property is no longer used but needs to be retained as it can be
+	 * accessed externally due to the `__get()` magic method.
+	 *
+	 * @ticket 59118
+	 * @ticket 59846
+	 */
+	public function test_use_mysqli_property_access() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->use_mysqli );
 	}
 }

@@ -22,7 +22,6 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 		}
 		$this->assertSame( $expected_oneline, sanitize_text_field( $str ) );
 		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $str ) );
-
 	}
 
 	public function data_sanitize_text_field() {

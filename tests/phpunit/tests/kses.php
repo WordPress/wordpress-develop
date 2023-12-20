@@ -952,8 +952,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
@@ -1341,6 +1341,11 @@ EOF;
 				'css'      => 'grid-template-columns: repeat(4, unsupported(0, 1fr)',
 				'expected' => '',
 			),
+			// `writing-mode` introduced in 6.4.
+			array(
+				'css'      => 'writing-mode: vertical-rl',
+				'expected' => 'writing-mode: vertical-rl',
+			),
 		);
 	}
 
@@ -1609,8 +1614,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */

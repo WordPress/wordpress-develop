@@ -35,7 +35,7 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only supports Node.js `14.x` and npm `6.x`.
+**Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
 You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
 
@@ -85,6 +85,13 @@ These commands run the PHP and end-to-end test suites, respectively:
 ```
 npm run test:php
 npm run test:e2e
+```
+
+You can pass extra parameters into the PHP tests by adding `--` and then the [command-line options](https://docs.phpunit.de/en/10.4/textui.html#command-line-options):
+
+```
+npm run test:php -- --filter <test name>
+npm run test:php -- --group <group name or ticket number>
 ```
 
 #### To restart the development environment

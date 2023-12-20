@@ -157,7 +157,7 @@ function wp_clean_themes_cache( $clear_update_cache = true ) {
  * @return bool True if a child theme is in use, false otherwise.
  */
 function is_child_theme() {
-	return ( TEMPLATEPATH !== STYLESHEETPATH );
+	return get_template_directory() !== get_stylesheet_directory();
 }
 
 /**
@@ -187,6 +187,8 @@ function get_stylesheet() {
  * Retrieves stylesheet directory path for the active theme.
  *
  * @since 1.5.0
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
+ * @since 6.4.2 Memoization removed.
  *
  * @return string Path to active theme's stylesheet directory.
  */
@@ -321,6 +323,8 @@ function get_template() {
  * Retrieves template directory path for the active theme.
  *
  * @since 1.5.0
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
+ * @since 6.4.1 Memoization removed.
  *
  * @return string Path to active theme's template directory.
  */
@@ -832,6 +836,17 @@ function switch_theme( $stylesheet ) {
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
+	// Clear pattern caches.
+	$new_theme->delete_pattern_cache();
+	$old_theme->delete_pattern_cache();
+
+	// Set autoload=no for the old theme, autoload=yes for the switched theme.
+	$theme_mods_options = array(
+		'theme_mods_' . $stylesheet                  => 'yes',
+		'theme_mods_' . $old_theme->get_stylesheet() => 'no',
+	);
+	wp_set_option_autoload_values( $theme_mods_options );
+
 	/**
 	 * Fires after the theme is switched.
 	 *
@@ -1247,11 +1262,10 @@ function get_header_image_tag( $attr = array() ) {
 	$attr = wp_parse_args(
 		$attr,
 		array(
-			'src'      => $header->url,
-			'width'    => $width,
-			'height'   => $height,
-			'alt'      => $alt,
-			'decoding' => 'async',
+			'src'    => $header->url,
+			'width'  => $width,
+			'height' => $height,
+			'alt'    => $alt,
 		)
 	);
 
@@ -1430,14 +1444,16 @@ function is_random_header_image( $type = 'any' ) {
 	if ( 'any' === $type ) {
 		if ( 'random-default-image' === $header_image_mod
 			|| 'random-uploaded-image' === $header_image_mod
-			|| ( '' !== get_random_header_image() && empty( $header_image_mod ) )
+			|| ( empty( $header_image_mod ) && '' !== get_random_header_image() )
 		) {
 			return true;
 		}
 	} else {
 		if ( "random-$type-image" === $header_image_mod ) {
 			return true;
-		} elseif ( 'default' === $type && empty( $header_image_mod ) && '' !== get_random_header_image() ) {
+		} elseif ( 'default' === $type
+			&& empty( $header_image_mod ) && '' !== get_random_header_image()
+		) {
 			return true;
 		}
 	}
@@ -3742,9 +3758,9 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
-	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+	ob_start();
 	?>
-	<script<?php echo $type_attr; ?>>
+	<script>
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
@@ -3760,6 +3776,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
@@ -4268,7 +4285,7 @@ function create_initial_theme_features() {
  *
  * @since 5.9.0
  *
- * @return boolean Whether the active theme is a block-based theme or not.
+ * @return bool Whether the active theme is a block-based theme or not.
  */
 function wp_is_block_theme() {
 	return wp_get_theme()->is_block_theme();
@@ -4290,9 +4307,9 @@ function wp_theme_get_element_class_name( $element ) {
 }
 
 /**
- * Adds default theme supports for block themes when the 'setup_theme' action fires.
+ * Adds default theme supports for block themes when the 'after_setup_theme' action fires.
  *
- * See {@see 'setup_theme'}.
+ * See {@see 'after_setup_theme'}.
  *
  * @since 5.9.0
  * @access private
