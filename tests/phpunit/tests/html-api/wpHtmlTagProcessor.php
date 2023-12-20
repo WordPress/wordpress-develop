@@ -2691,4 +2691,22 @@ HTML
 			),
 		);
 	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_open_short_html() {
+		$p      = new WP_HTML_Tag_Processor( '<' );
+		$result = $p->next_tag();
+		$this->assertFalse( $result, 'Did not handle "<" html properly.' );
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_close_short_html() {
+		$p      = new WP_HTML_Tag_Processor( '</ ' );
+		$result = $p->next_tag();
+		$this->assertFalse( $result, 'Did not handle "</ " html properly.' );
+	}
 }
