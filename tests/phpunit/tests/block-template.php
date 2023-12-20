@@ -351,7 +351,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		);
 	}
 
-
 	/**
 	 * Tests `_get_block_templates_paths()` for an invalid directory.
 	 *
