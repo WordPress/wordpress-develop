@@ -1052,7 +1052,7 @@ module.exports = function(grunt) {
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
 								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/trunk/assets/svg' ] );
+								files = spawn( 'svn', [ 'ls', 'https://github.com/jdecked/twemoji.git/trunk/assets/svg' ] );
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
 								}
