@@ -81,5 +81,4 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 
 		_deprecated_argument( 'function_name', 1 );
 	}
-
 }
