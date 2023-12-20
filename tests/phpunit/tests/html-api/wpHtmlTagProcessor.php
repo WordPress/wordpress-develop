@@ -1953,7 +1953,7 @@ HTML;
 	 * Were it not for this then the NOSCRIPT tag would be handled like the
 	 * other tags in the RAW TEXT special group, e.g. NOEMBED or STYLE.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 60122
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 */
@@ -2323,7 +2323,7 @@ HTML;
 	/**
 	 * Ensures that no tags are matched in a document containing only non-tag content.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 60122
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
