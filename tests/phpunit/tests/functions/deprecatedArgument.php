@@ -18,7 +18,7 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		// remove ethe spherical handling for _deprecated_argumentin the PHPUnint setup so we can test it
+		// Remove the spherical handling for _deprecated_argument in the PHPUnint setup so we can test it.
 		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_function_run' ), 10, 3 );
 		remove_action( 'deprecated_argument_trigger_error', '__return_false' );
 	}
