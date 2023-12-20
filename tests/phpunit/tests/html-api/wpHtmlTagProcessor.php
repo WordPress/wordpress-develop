@@ -1756,11 +1756,20 @@ HTML;
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 */
 	public function test_unclosed_script_tag_should_not_cause_an_infinite_loop() {
-		$p = new WP_HTML_Tag_Processor( '<script>' );
-		$p->next_tag();
-		$this->assertSame( 'SCRIPT', $p->get_tag(), 'Did not find script tag' );
+		$p = new WP_HTML_Tag_Processor( '<script><div>' );
+		$this->assertFalse(
+			$p->next_tag(),
+			'Should not have stopped on an opening SCRIPT tag without a proper closing tag in the document.'
+		);
+		$this->assertTrue(
+			$p->paused_at_incomplete_token(),
+			"Should have paused the parser because of the incomplete SCRIPT tag but didn't."
+		);
+
+		// Run this to ensure that the test ends (not in an infinite loop).
 		$p->next_tag();
 	}
 
@@ -1932,6 +1941,30 @@ HTML;
 	}
 
 	/**
+	 * Ensures matching elements inside NOSCRIPT elements.
+	 *
+	 * In a browser when the scripting flag is enabled, everything inside
+	 * the NOSCRIPT element will be ignored and treated at RAW TEXT. This
+	 * means that it's valid to send what looks like incomplete or partial
+	 * HTML syntax without impacting a rendered page. The Tag Processor is
+	 * a parser with the scripting flag disabled, however, and needs to
+	 * expose all the potential content that some code might want to modify.
+	 *
+	 * Were it not for this then the NOSCRIPT tag would be handled like the
+	 * other tags in the RAW TEXT special group, e.g. NOEMBED or STYLE.
+	 *
+	 * @ticket 60122
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_processes_inside_of_noscript_elements() {
+		$p = new WP_HTML_Tag_Processor( '<noscript><input type="submit"></noscript><div>' );
+
+		$this->assertTrue( $p->next_tag( 'INPUT' ), 'Failed to find INPUT element inside NOSCRIPT element.' );
+		$this->assertTrue( $p->next_tag( 'DIV' ), 'Failed to find DIV element after NOSCRIPT element.' );
+	}
+
+	/**
 	 * @ticket 59292
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -1962,7 +1995,6 @@ HTML;
 			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
 			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
 			'NOFRAMES'         => array( '<noframes><p>Check the rules here.</p></noframes><div target>' ),
-			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
 			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
 			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
 		);
@@ -2139,15 +2171,24 @@ HTML;
 	 * @ticket 58007
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 *
 	 * @dataProvider data_html_with_unclosed_comments
 	 *
-	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed
+	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed.
 	 */
 	public function test_documents_may_end_with_unclosed_comment( $html_ending_before_comment_close ) {
 		$p = new WP_HTML_Tag_Processor( $html_ending_before_comment_close );
 
-		$this->assertFalse( $p->next_tag() );
+		$this->assertFalse(
+			$p->next_tag(),
+			"Should not have found any tag, but found {$p->get_tag()}."
+		);
+
+		$this->assertTrue(
+			$p->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
 	}
 
 	/**
@@ -2280,17 +2321,71 @@ HTML;
 	}
 
 	/**
+	 * Ensures that no tags are matched in a document containing only non-tag content.
+	 *
+	 * @ticket 60122
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
+	 *
+	 * @dataProvider data_html_without_tags
+	 *
+	 * @param string $html_without_tags HTML without any tags in it.
+	 */
+	public function test_next_tag_returns_false_when_there_are_no_tags( $html_without_tags ) {
+		$processor = new WP_HTML_Tag_Processor( $html_without_tags );
+
+		$this->assertFalse(
+			$processor->next_tag(),
+			"Shouldn't have found any tags but found {$processor->get_tag()}."
+		);
+
+		$this->assertFalse(
+			$processor->paused_at_incomplete_token(),
+			'Should have indicated that end of document was reached without evidence that elements were truncated.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_without_tags() {
+		return array(
+			'DOCTYPE declaration'    => array( '<!DOCTYPE html>Just some HTML' ),
+			'No tags'                => array( 'this is nothing more than a text node' ),
+			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
+			'Empty tag closer'       => array( '</>' ),
+			'Processing instruction' => array( '<?xml version="1.0"?>' ),
+			'Combination XML-like'   => array( '<!DOCTYPE xml><?xml version=""?><!-- this is not a real document. --><![CDATA[it only serves as a test]]>' ),
+		);
+	}
+
+	/**
+	 * Ensures that the processor doesn't attempt to match an incomplete token.
+	 *
 	 * @ticket 58637
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 *
 	 * @dataProvider data_incomplete_syntax_elements
 	 *
 	 * @param string $incomplete_html HTML text containing some kind of incomplete syntax.
 	 */
-	public function test_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
+	public function test_next_tag_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
 		$p = new WP_HTML_Tag_Processor( $incomplete_html );
-		$this->assertFalse( $p->next_tag() );
+
+		$this->assertFalse(
+			$p->next_tag(),
+			"Shouldn't have found any tags but found {$p->get_tag()}."
+		);
+
+		$this->assertTrue(
+			$p->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
 	}
 
 	/**
@@ -2300,7 +2395,6 @@ HTML;
 	 */
 	public function data_incomplete_syntax_elements() {
 		return array(
-			'No tags'                              => array( 'this is nothing more than a text node' ),
 			'Incomplete tag name'                  => array( '<swit' ),
 			'Incomplete tag (no attributes)'       => array( '<div' ),
 			'Incomplete tag (attributes)'          => array( '<div inert title="test"' ),
@@ -2313,10 +2407,26 @@ HTML;
 			'Incomplete comment (bogus comment)'   => array( '</3 is not a tag' ),
 			'Incomplete DOCTYPE'                   => array( '<!DOCTYPE html' ),
 			'Partial DOCTYPE'                      => array( '<!DOCTY' ),
-			'Incomplete CDATA'                     => array( '<[CDATA[something inside of here needs to get out' ),
-			'Partial CDATA'                        => array( '<[CDA' ),
-			'Partially closed CDATA]'              => array( '<[CDATA[cannot escape]' ),
-			'Partially closed CDATA]>'             => array( '<[CDATA[cannot escape]>' ),
+			'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
+			'Partial CDATA'                        => array( '<![CDA' ),
+			'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
+			'Partially closed CDATA]>'             => array( '<![CDATA[cannot escape]>' ),
+			'Unclosed IFRAME'                      => array( '<iframe><div>' ),
+			'Unclosed NOEMBED'                     => array( '<noembed><div>' ),
+			'Unclosed NOFRAMES'                    => array( '<noframes><div>' ),
+			'Unclosed SCRIPT'                      => array( '<script><div>' ),
+			'Unclosed STYLE'                       => array( '<style><div>' ),
+			'Unclosed TEXTAREA'                    => array( '<textarea><div>' ),
+			'Unclosed TITLE'                       => array( '<title><div>' ),
+			'Unclosed XMP'                         => array( '<xmp><div>' ),
+			'Partially closed IFRAME'              => array( '<iframe><div></iframe' ),
+			'Partially closed NOEMBED'             => array( '<noembed><div></noembed' ),
+			'Partially closed NOFRAMES'            => array( '<noframes><div></noframes' ),
+			'Partially closed SCRIPT'              => array( '<script><div></script' ),
+			'Partially closed STYLE'               => array( '<style><div></style' ),
+			'Partially closed TEXTAREA'            => array( '<textarea><div></textarea' ),
+			'Partially closed TITLE'               => array( '<title><div></title' ),
+			'Partially closed XMP'                 => array( '<xmp><div></xmp' ),
 		);
 	}
 
@@ -2415,7 +2525,7 @@ HTML;
 	 */
 	public function test_updating_attributes_in_malformed_html( $html, $expected ) {
 		$p = new WP_HTML_Tag_Processor( $html );
-		$p->next_tag();
+		$this->assertTrue( $p->next_tag(), 'Could not find first tag.' );
 		$p->set_attribute( 'foo', 'bar' );
 		$p->add_class( 'firstTag' );
 		$p->next_tag();
@@ -2434,8 +2544,6 @@ HTML;
 	 * @return array[]
 	 */
 	public function data_updating_attributes_in_malformed_html() {
-		$null_byte = chr( 0 );
-
 		return array(
 			'Invalid entity inside attribute value'        => array(
 				'input'    => '<img src="https://s0.wp.com/i/atat.png" title="&; First &lt;title&gt; is &notit;" TITLE="second title" title="An Imperial &imperial; AT-AT"><span>test</span>',
@@ -2494,8 +2602,8 @@ HTML;
 				'expected' => '<hr class="firstTag" foo="bar" id"quo="test"><span class="secondTag">test</span>',
 			),
 			'id without double quotation marks around null byte' => array(
-				'input'    => '<hr id' . $null_byte . 'zero="test"><span>test</span>',
-				'expected' => '<hr class="firstTag" foo="bar" id' . $null_byte . 'zero="test"><span class="secondTag">test</span>',
+				'input'    => "<hr id\x00zero=\"test\"><span>test</span>",
+				'expected' => "<hr class=\"firstTag\" foo=\"bar\" id\x00zero=\"test\"><span class=\"secondTag\">test</span>",
 			),
 			'Unexpected > before an attribute'             => array(
 				'input'    => '<hr >id="test"><span>test</span>',
@@ -2582,5 +2690,23 @@ HTML
 				'expected' => '<hr class="firstTag" foo="bar" id a  =5><span class="secondTag">test</span>',
 			),
 		);
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_open_short_html() {
+		$p      = new WP_HTML_Tag_Processor( '<' );
+		$result = $p->next_tag();
+		$this->assertFalse( $result, 'Did not handle "<" html properly.' );
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_close_short_html() {
+		$p      = new WP_HTML_Tag_Processor( '</ ' );
+		$result = $p->next_tag();
+		$this->assertFalse( $result, 'Did not handle "</ " html properly.' );
 	}
 }
