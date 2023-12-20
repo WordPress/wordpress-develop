@@ -20,10 +20,13 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		'adoption01/case4 - line 46'   => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/case1 - line 1'       => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/case2 - line 22'      => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests20/case38 - line 483'    => 'XMP is a special token an needs a closer.',
+		'tests20/case39 - line 497'    => "Closing P tag implicitly creates opener, which we don't visit.",
 		'tests23/case1 - line 1'       => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/case2 - line 41'      => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/case3 - line 69'      => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/case4 - line 101'     => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests26/case10 - line 263'    => 'Newline at end of tag triggers reconstruction of active formatting elements.',
 	);
 
 	/**
