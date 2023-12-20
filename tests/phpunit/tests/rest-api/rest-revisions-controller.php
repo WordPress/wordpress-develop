@@ -275,7 +275,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_2_1_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
+		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
 	}
 
 	public function test_delete_item() {
