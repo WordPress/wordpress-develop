@@ -25,15 +25,13 @@ class Tests_Functions_deprecatedArgument extends WP_UnitTestCase {
 
 
 	/**
-	 * @ticket 60117
-	 *
 	 * test_deprecated_argument_action_called() method tests the action being called when _deprecated_argument()
 	 *
 	 * It creates a MockAction object and registers it as a filter for the '_deprecated_argument_run' action.
 	 * It then calls __deprecated_argument() function with the given 'argument_name', 'message', and 1 as arguments.
 	 * Finally, it asserts that the call count of the filter object is equal to 1.
 	 *
-	 * @return void
+	 * @ticket 60117
 	 */
 	public function test_deprecated_argument_action_called() {
 		$this->expectDeprecation();
