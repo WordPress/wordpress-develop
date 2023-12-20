@@ -758,6 +758,38 @@ function get_hooked_blocks() {
 }
 
 /**
+ * Conditionally returns the markup for a given hooked block type.
+ *
+ * Accepts two arguments: A reference to an anchor block, and the name of a hooked block type.
+ * If the anchor block has already been processed, and the given hooked block type is in the list
+ * of ignored hooked blocks, an empty string is returned.
+ *
+ * This function is meant for internal use only.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array   $anchor_block      The anchor block. Passed by reference.
+ * @param string  $hooked_block_type The name of the hooked block type.
+ * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
+ */
+function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
+	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
+	}
+
+	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		return '';
+	}
+
+	// The following is only needed for the REST API endpoint.
+	// However, its presence does not affect the frontend.
+	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
+
+	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+}
+
+/**
  * Returns a function that injects the theme attribute into, and hooked blocks before, a given block.
  *
  * The returned function can be used as `$pre_callback` argument to `traverse_and_serialize_block(s)`,
@@ -813,7 +845,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 			 */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 		}
 
@@ -826,7 +858,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
 		}
 
 		return $markup;
@@ -874,7 +906,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
 		}
 
 		if ( $parent_block && ! $next ) {
@@ -888,7 +920,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 			/** This filter is documented in wp-includes/blocks.php */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 		}
 
@@ -1971,13 +2003,14 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 
 /**
  * Strips all HTML from the content of footnotes, and sanitizes the ID.
+ *
  * This function expects slashed data on the footnotes content.
  *
  * @access private
  * @since 6.3.2
  *
- * @param string $footnotes JSON encoded string of an array containing the content and ID of each footnote.
- * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
+ * @param string $footnotes JSON-encoded string of an array containing the content and ID of each footnote.
+ * @return string Filtered content without any HTML on the footnote content and with the sanitized ID.
  */
 function _wp_filter_post_meta_footnotes( $footnotes ) {
 	$footnotes_decoded = json_decode( $footnotes, true );
@@ -1997,7 +2030,7 @@ function _wp_filter_post_meta_footnotes( $footnotes ) {
 }
 
 /**
- * Adds the filters to filter footnotes meta field.
+ * Adds the filters for footnotes meta field.
  *
  * @access private
  * @since 6.3.2
@@ -2007,7 +2040,7 @@ function _wp_footnotes_kses_init_filters() {
 }
 
 /**
- * Removes the filters that filter footnotes meta field.
+ * Removes the filters for footnotes meta field.
  *
  * @access private
  * @since 6.3.2
@@ -2017,7 +2050,7 @@ function _wp_footnotes_remove_filters() {
 }
 
 /**
- * Registers the filter of footnotes meta field if the user does not have unfiltered_html capability.
+ * Registers the filter of footnotes meta field if the user does not have `unfiltered_html` capability.
  *
  * @access private
  * @since 6.3.2
@@ -2030,12 +2063,12 @@ function _wp_footnotes_kses_init() {
 }
 
 /**
- * Initializes footnotes meta field filters when imported data should be filtered.
+ * Initializes the filters for footnotes meta field when imported data should be filtered.
  *
- * This filter is the last being executed on force_filtered_html_on_import.
- * If the input of the filter is true it means we are in an import situation and should
- * enable kses, independently of the user capabilities.
- * So in that case we call _wp_footnotes_kses_init_filters;
+ * This filter is the last one being executed on {@see 'force_filtered_html_on_import'}.
+ * If the input of the filter is true, it means we are in an import situation and should
+ * enable kses, independently of the user capabilities. So in that case we call
+ * _wp_footnotes_kses_init_filters().
  *
  * @access private
  * @since 6.3.2
@@ -2044,7 +2077,7 @@ function _wp_footnotes_kses_init() {
  * @return string Input argument of the filter.
  */
 function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
-	// force_filtered_html_on_import is true we need to init the global styles kses filters.
+	// If `force_filtered_html_on_import` is true, we need to init the global styles kses filters.
 	if ( $arg ) {
 		_wp_footnotes_kses_init_filters();
 	}

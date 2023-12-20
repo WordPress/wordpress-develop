@@ -87,6 +87,13 @@ npm run test:php
 npm run test:e2e
 ```
 
+You can pass extra parameters into the PHP tests by adding `--` and then the [command-line options](https://docs.phpunit.de/en/10.4/textui.html#command-line-options):
+
+```
+npm run test:php -- --filter <test name>
+npm run test:php -- --group <group name or ticket number>
+```
+
 #### To restart the development environment
 
 You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
