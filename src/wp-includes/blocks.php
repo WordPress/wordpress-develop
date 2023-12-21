@@ -771,9 +771,10 @@ function get_hooked_blocks() {
  *
  * @param array   $anchor_block      The anchor block. Passed by reference.
  * @param string  $hooked_block_type The name of the hooked block type.
+ * @param array   $attributes        Optional. Attributes to pass to the hooked block. Default empty array.
  * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
  */
-function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
+function get_hooked_block_markup( &$anchor_block, $hooked_block_type, $attributes = array() ) {
 	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 	}
@@ -786,7 +787,7 @@ function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
 	// However, its presence does not affect the frontend.
 	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
 
-	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+	return get_comment_delimited_block_content( $hooked_block_type, $attributes, '' );
 }
 
 /**
@@ -903,10 +904,28 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 				: array();
 
+		if ( isset( $block['attrs']['layout'] ) ) {
+			$layout = $block['attrs']['layout'];
+		}
+
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
+			$attributes = array();
+
+			// Does the anchor block have a layout attribute?
+			if ( isset( $layout ) ) {
+				// Has the hooked block type opted into layout block support?
+				$hooked_block_type_obj = WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
+				if ( $hooked_block_type_obj && $hooked_block_type_obj instanceof WP_Block_Type ) {
+					if( $hooked_block_type_obj->attributes && isset( $hooked_block_type_obj->attributes['layout'] ) ) {
+						// Copy the anchor block's layout attribute to the hooked block.
+						$attributes['layout'] = $layout;
+					}
+				}
+			}
+
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type, $attributes );
 		}
 
 		if ( $parent_block && ! $next ) {
