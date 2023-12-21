@@ -114,8 +114,12 @@ jobs:
         multisite: [ false, true ]
         memcached: [ false ]
 
+        # Exclude some PHP and MySQL versions that cannot currently be tested with Docker containers.
         exclude:
+          - php: '5.2'
           - php: '5.3'
+          - db-version: '5.0'
+          - db-version: '5.1'
           - db-version: '5.5'
 
     services:
