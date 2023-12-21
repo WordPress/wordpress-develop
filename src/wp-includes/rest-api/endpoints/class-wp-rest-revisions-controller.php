@@ -406,7 +406,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( (int) $parent->ID !== (int) $revision->post_parent ) {
 			return new WP_Error(
 				'rest_revision_parent_id_mismatch',
-				/* translators: %d: A post revision id. */
+				/* translators: %d: A post id. */
 				sprintf( __( 'The revision does not belong to the specified parent with id of "%d"' ), $parent->ID ),
 				array( 'status' => 404 )
 			);
