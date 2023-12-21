@@ -918,7 +918,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 				// Has the hooked block type opted into layout block support?
 				$hooked_block_type_obj = WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
 				if ( $hooked_block_type_obj && $hooked_block_type_obj instanceof WP_Block_Type ) {
-					if( $hooked_block_type_obj->attributes && isset( $hooked_block_type_obj->attributes['layout'] ) ) {
+					if ( $hooked_block_type_obj->attributes && isset( $hooked_block_type_obj->attributes['layout'] ) ) {
 						// Copy the anchor block's layout attribute to the hooked block.
 						$attributes['layout'] = $layout;
 					}
