@@ -382,6 +382,9 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
+
+		$expected_message = 'The revision does not belong to the specified parent with id of "' . self::$template_post_2->ID . '"';
+		$this->assertSame( $expected_message, $response->as_error()->get_error_messages()[0], 'The message must contain the correct parent ID.' );
 	}
 
 	/**
