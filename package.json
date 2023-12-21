@@ -53,7 +53,7 @@
 		"grunt-file-append": "0.0.7",
 		"grunt-jsdoc": "2.4.1",
 		"grunt-legacy-util": "^2.0.1",
-		"grunt-patch-wordpress": "~3.0.0",
+		"grunt-patch-wordpress": "~4.0.0",
 		"grunt-replace-lts": "~1.1.0",
 		"grunt-rtlcss": "~2.0.2",
 		"grunt-sass": "~3.1.0",
