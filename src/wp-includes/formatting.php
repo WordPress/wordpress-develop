@@ -5503,7 +5503,7 @@ function _links_add_target( $m ) {
  * @return string The normalized string.
  */
 function normalize_whitespace( $str ) {
-	if( !is_string( $str ) ) {
+	if ( ! is_string( $str ) ) {
 		return $str;
 	}
 
