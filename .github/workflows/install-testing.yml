@@ -73,9 +73,9 @@ jobs:
         id: php-versions
         run: |
           if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
+            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
           else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-php.json)" >> $GITHUB_OUTPUT
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-php.json)" >> $GITHUB_OUTPUT
           fi
 
       # Look up the major version's specific MySQL support policy when a version is provided.
@@ -84,9 +84,9 @@ jobs:
         id: mysql-versions
         run: |
           if [ "${{ steps.major-wp-version.outputs.version }}" != "latest" ] && [ "${{ steps.major-wp-version.outputs.version }}" != "nightly" ]; then
-            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
+            echo "versions=$(jq -r '.["${{ steps.major-wp-version.outputs.version }}"] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
           else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' version-support-mysql.json)" >> $GITHUB_OUTPUT
+            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> $GITHUB_OUTPUT
           fi
 
   # Test the WordPress installation process through WP-CLI.
