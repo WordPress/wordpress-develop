@@ -10,10 +10,12 @@ on:
     # Always test the workflow after it's updated.
     paths:
       - '.github/workflows/install-testing.yml'
+      - '.version-support-*.json'
   pull_request:
     # Always test the workflow when changes are suggested.
     paths:
       - '.github/workflows/install-testing.yml'
+      - '.version-support-*.json'
   schedule:
     - cron: '0 0 * * 1'
   workflow_dispatch:
