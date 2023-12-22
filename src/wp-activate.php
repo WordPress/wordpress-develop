@@ -87,7 +87,7 @@ do_action( 'activate_header' );
  */
 function do_activate_header() {
 	/**
-	 * Fires before the Site Activation page is loaded.
+	 * Fires within the `<head>` section of the Site Activation page.
 	 *
 	 * Fires on the {@see 'wp_head'} action.
 	 *
@@ -120,7 +120,7 @@ add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
 
 get_header( 'wp-activate' );
 
-$blog_details = get_blog_details();
+$blog_details = get_site();
 ?>
 
 <div id="signup-content" class="widecolumn">
@@ -128,7 +128,7 @@ $blog_details = get_blog_details();
 	<?php if ( ! $key ) { ?>
 
 		<h2><?php _e( 'Activation Key Required' ); ?></h2>
-		<form name="activateform" id="activateform" method="post" action="<?php echo network_site_url( $blog_details->path . 'wp-activate.php' ); ?>">
+		<form name="activateform" id="activateform" method="post" action="<?php echo esc_url( network_site_url( $blog_details->path . 'wp-activate.php' ) ); ?>">
 			<p>
 				<label for="key"><?php _e( 'Activation Key:' ); ?></label>
 				<br /><input type="text" name="key" id="key" value="" size="50" autofocus="autofocus" />

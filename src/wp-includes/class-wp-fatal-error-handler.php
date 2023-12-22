@@ -25,6 +25,8 @@ class WP_Fatal_Error_Handler {
 	 * This method is registered via `register_shutdown_function()`.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global WP_Locale $wp_locale WordPress date and time locale object.
 	 */
 	public function handle() {
 		if ( defined( 'WP_SANDBOX_SCRAPING' ) && WP_SANDBOX_SCRAPING ) {
@@ -198,7 +200,7 @@ class WP_Fatal_Error_Handler {
 			'<p>%s</p><p><a href="%s">%s</a></p>',
 			$message,
 			/* translators: Documentation about troubleshooting. */
-			__( 'https://wordpress.org/support/article/faq-troubleshooting/' ),
+			__( 'https://wordpress.org/documentation/article/faq-troubleshooting/' ),
 			__( 'Learn more about troubleshooting WordPress.' )
 		);
 

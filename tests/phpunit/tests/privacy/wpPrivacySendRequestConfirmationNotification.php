@@ -5,16 +5,10 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.8
- */
-
-/**
- * Tests_Privacy_wpPrivacySendRequestConfirmationNotification class.
  *
  * @group privacy
  * @group user
  * @covers ::_wp_privacy_send_request_confirmation_notification
- *
- * @since 4.9.8
  */
 class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
@@ -246,5 +240,4 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 
 		return $headers;
 	}
-
 }

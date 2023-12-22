@@ -246,7 +246,7 @@ class Tests_Block_Supports_WpGetLayoutStyle extends WP_UnitTestCase {
 						'verticalAlignment' => 'bottom',
 					),
 				),
-				'expected_output' => '.wp-layout{flex-wrap:nowrap;flex-direction:column;align-items:flex-start;}',
+				'expected_output' => '.wp-layout{flex-wrap:nowrap;flex-direction:column;align-items:flex-start;justify-content:flex-end;}',
 			),
 			'default layout with blockGap to verify converting gap value into valid CSS' => array(
 				'args'            => array(

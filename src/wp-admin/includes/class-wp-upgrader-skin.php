@@ -197,7 +197,7 @@ class WP_Upgrader_Skin {
 			$feedback = $this->upgrader->strings[ $feedback ];
 		}
 
-		if ( strpos( $feedback, '%' ) !== false ) {
+		if ( str_contains( $feedback, '%' ) ) {
 			if ( $args ) {
 				$args     = array_map( 'strip_tags', $args );
 				$args     = array_map( 'esc_html', $args );
@@ -211,21 +211,21 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before an update.
+	 * Performs an action before an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function before() {}
 
 	/**
-	 * Action to perform following an update.
+	 * Performs and action following an update.
 	 *
 	 * @since 2.8.0
 	 */
 	public function after() {}
 
 	/**
-	 * Output JavaScript that calls function to decrement the update counts.
+	 * Outputs JavaScript that calls function to decrement the update counts.
 	 *
 	 * @since 3.9.0
 	 *
@@ -240,7 +240,14 @@ class WP_Upgrader_Skin {
 		if ( defined( 'IFRAME_REQUEST' ) ) {
 			echo '<script type="text/javascript">
 					if ( window.postMessage && JSON ) {
-						window.parent.postMessage( JSON.stringify( { action: "decrementUpdateCount", upgradeType: "' . $type . '" } ), window.location.protocol + "//" + window.location.hostname );
+						window.parent.postMessage(
+							JSON.stringify( {
+								action: "decrementUpdateCount",
+								upgradeType: "' . $type . '"
+							} ),
+							window.location.protocol + "//" + window.location.hostname
+								+ ( "" !== window.location.port ? ":" + window.location.port : "" )
+						);
 					}
 				</script>';
 		} else {
@@ -270,7 +277,7 @@ class WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		return false;

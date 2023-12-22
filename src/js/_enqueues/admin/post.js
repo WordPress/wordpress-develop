@@ -511,7 +511,7 @@ jQuery( function($) {
 			// See https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event.
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
-	}).on( 'unload.edit-post', function( event ) {
+	}).on( 'pagehide.edit-post', function( event ) {
 		if ( ! releaseLock ) {
 			return;
 		}
@@ -789,7 +789,7 @@ jQuery( function($) {
 			}
 
 			// Determine what the publish should be depending on the date and post status.
-			if ( attemptedDate > currentDate && $('#original_post_status').val() != 'future' ) {
+			if ( attemptedDate > currentDate ) {
 				publishOn = __( 'Schedule for:' );
 				$('#publish').val( _x( 'Schedule', 'post action/button label' ) );
 			} else if ( attemptedDate <= currentDate && $('#original_post_status').val() != 'publish' ) {

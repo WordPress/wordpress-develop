@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_Block_Type tests
+ * Tests for WP_Block_Type.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for WP_Block_Type.
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -86,6 +80,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 55567
+	 * @ticket 59797
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes() {
@@ -93,7 +88,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$block_type->attributes
 		);
@@ -101,6 +97,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 55567
+	 * @ticket 59797
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes_matches_custom() {
@@ -108,8 +105,11 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			'core/fake',
 			array(
 				'attributes' => array(
-					'lock' => array(
+					'lock'     => array(
 						'type' => 'string',
+					),
+					'metadata' => array(
+						'type' => 'number',
 					),
 				),
 			)
@@ -118,7 +118,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		// Backward compatibility: Don't override attributes with the same name.
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'string' ),
+				'lock'     => array( 'type' => 'string' ),
+				'metadata' => array( 'type' => 'number' ),
 			),
 			$block_type->attributes
 		);

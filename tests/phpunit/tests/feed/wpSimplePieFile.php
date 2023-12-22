@@ -1,19 +1,13 @@
 <?php
 /**
- * Unit tests for methods in `WP_SimplePie_File`.
+ * Tests the `WP_SimplePie_File` class.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.6.1
- */
-
-/**
- * Tests the `WP_SimplePie_File` class.
  *
  * @group feed
  * @group wp-simplepie-file
- *
- * @since 5.6.1
  */
 class Tests_Feed_wpSimplePieFile extends WP_UnitTestCase {
 	public static function set_up_before_class() {

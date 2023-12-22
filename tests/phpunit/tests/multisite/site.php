@@ -422,7 +422,7 @@ if ( is_multisite() ) :
 		public function test_get_blog_details_when_site_does_not_exist() {
 			// Create an unused site so that we can then assume an invalid site ID.
 			$blog_id = self::factory()->blog->create();
-			$blog_id++;
+			++$blog_id;
 
 			// Prime the cache for an invalid site.
 			get_blog_details( $blog_id );
@@ -1162,7 +1162,6 @@ if ( is_multisite() ) :
 			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
 
 			$this->assertIsInt( $site_id );
-
 		}
 
 		public function action_database_insert_on_clean_site_cache() {
@@ -2125,8 +2124,10 @@ if ( is_multisite() ) :
 
 			$blog_id = wpmu_create_blog( 'testsite1.example.org', '/test', 'test', 1, array( 'public' => 1 ), 2 );
 
-			// Should not hit blog_details cache initialised in $this->populate_options_callback tirggered during
-			// populate_options callback's call of get_blog_details.
+			/*
+			 * Should not hit blog_details cache initialized in $this->populate_options_callback triggered during
+			 * populate_options callback's call of get_blog_details.
+			 */
 			$this->assertSame( 'http://testsite1.example.org/test', get_blog_details( $blog_id )->siteurl );
 			$this->assertSame( 'http://testsite1.example.org/test', get_site( $blog_id )->siteurl );
 
@@ -2168,14 +2169,12 @@ if ( is_multisite() ) :
 		 * @ticket 42251
 		 */
 		public function test_get_site_not_found_cache() {
-			global $wpdb;
-
 			$new_site_id = $this->_get_next_site_id();
 			$this->assertNull( get_site( $new_site_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			$this->assertNull( get_site( $new_site_id ) );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		/**
@@ -2194,7 +2193,6 @@ if ( is_multisite() ) :
 			$fetched_site = get_site( $new_site_id );
 			$this->assertInstanceOf( 'WP_Site', $fetched_site );
 			$this->assertEquals( $new_site_id, $fetched_site->blog_id );
-
 		}
 
 		/**

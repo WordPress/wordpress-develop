@@ -395,11 +395,11 @@ class Iri {
 			// preceding "/" (if any) from the output buffer; otherwise,
 			elseif (strpos($input, '/../') === 0) {
 				$input = substr($input, 3);
-				$output = substr_replace($output, '', strrpos($output, '/'));
+				$output = substr_replace($output, '', (strrpos($output, '/') ?: 0));
 			}
 			elseif ($input === '/..') {
 				$input = '/';
-				$output = substr_replace($output, '', strrpos($output, '/'));
+				$output = substr_replace($output, '', (strrpos($output, '/') ?: 0));
 			}
 			// D: if the input buffer consists only of "." or "..", then remove
 			// that from the input buffer; otherwise,
@@ -717,6 +717,20 @@ class Iri {
 		return true;
 	}
 
+	public function __wakeup() {
+		$class_props = get_class_vars( __CLASS__ );
+		$string_props = array( 'scheme', 'iuserinfo', 'ihost', 'port', 'ipath', 'iquery', 'ifragment' );
+		$array_props = array( 'normalization' );
+		foreach ( $class_props as $prop => $default_value ) {
+			if ( in_array( $prop, $string_props, true ) && ! is_string( $this->$prop ) ) {
+				throw new UnexpectedValueException();
+			} elseif ( in_array( $prop, $array_props, true ) && ! is_array( $this->$prop ) ) {
+				throw new UnexpectedValueException();
+			}
+			$this->$prop = null;
+		}
+	}
+
 	/**
 	 * Set the entire IRI. Returns true on success, false on failure (if there
 	 * are any invalid characters).
@@ -824,7 +838,8 @@ class Iri {
 		else {
 			$iuserinfo = null;
 		}
-		if (($port_start = strpos($remaining, ':', strpos($remaining, ']'))) !== false) {
+
+		if (($port_start = strpos($remaining, ':', (strpos($remaining, ']') ?: 0))) !== false) {
 			$port = substr($remaining, $port_start + 1);
 			if ($port === false || $port === '') {
 				$port = null;

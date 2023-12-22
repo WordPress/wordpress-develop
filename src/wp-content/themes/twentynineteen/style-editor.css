@@ -605,7 +605,7 @@ body .wp-block.aligncenter {
 }
 
 @media only screen and (min-width: 768px) {
-  body.block-editor-writing-flow,
+  body.block-editor-iframe__body, body.block-editor-writing-flow,
   body .block-editor-writing-flow {
     max-width: 80%;
     margin: 0 10%;
@@ -1005,7 +1005,7 @@ figcaption,
 
 /** === Button === */
 .wp-block-button .wp-block-button__link {
-  line-height: 1.8;
+  line-height: inherit;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   font-size: 0.88889em;
   font-weight: bold;
@@ -1274,6 +1274,31 @@ figcaption,
   font-size: 1.6875em;
   letter-spacing: calc(2 * 1rem);
   padding-left: calc(2 * 1rem);
+}
+
+.wp-block-separator.has-primary-background-color {
+  color: #0073aa;
+  background-color: #0073aa;
+}
+
+.wp-block-separator.has-secondary-background-color {
+  color: #005177;
+  background-color: #005177;
+}
+
+.wp-block-separator.has-dark-gray-background-color {
+  color: #111;
+  background-color: #111;
+}
+
+.wp-block-separator.has-light-gray-background-color {
+  color: #767676;
+  background-color: #767676;
+}
+
+.wp-block-separator.has-white-background-color {
+  color: #fff;
+  background-color: #fff;
 }
 
 /* Remove duplicate rule-line when a separator
