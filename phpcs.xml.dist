@@ -224,7 +224,7 @@
 	#############################################################################
 	SELECTIVE EXCLUSIONS
 	Exclude specific files for specific sniffs and/or exclude sub-groups in sniffs.
-
+	
 	These exclusions are listed ordered by alphabetic sniff name.
 	#############################################################################
 	-->
