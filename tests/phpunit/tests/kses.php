@@ -938,6 +938,7 @@ EOF;
 	 * @ticket 55966
 	 * @ticket 56122
 	 * @ticket 58551
+	 * @ticket 60132
 	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
