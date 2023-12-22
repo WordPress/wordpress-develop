@@ -14,6 +14,12 @@
  */
 class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 
+	/**
+	 * The HTML Processor only accepts HTML in document <body>.
+	 * Do not run tests that look for anything in document `head`.
+	 */
+	const SKIP_HEAD_TESTS = true;
+
 	const SKIP_TESTS = array(
 		'adoption01/case10 - line 159' => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/case17 - line 318' => 'Unimplemented: Reconstruction of active formatting elements.',
@@ -32,8 +38,6 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	/**
 	 * Verify the parsing results of the HTML Processor against the
 	 * test cases in the Html5lib tests project.
-	 *
-	 * @ticket {TICKET_NUMBER}
 	 *
 	 * @dataProvider data_external_html5lib_tests
 	 *
@@ -87,7 +91,6 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		}
 		closedir( $handle );
 	}
-
 
 	/**
 	 * Generates the tree-like structure represented in the Html5lib tests.
@@ -153,7 +156,22 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 				if ( "#data\n" === $line ) {
 					// Yield when switching from a previous state.
 					if ( $state ) {
-						yield array( $test_line_number, $test_context_element, $test_html, $test_dom );
+						$yield_test = true;
+
+						if ( self::SKIP_HEAD_TESTS ) {
+							$html_start = "<html>\n  <head>\n  <body>\n";
+
+							if (
+								strlen( $test_dom ) < strlen( $html_start ) ||
+								substr( $test_dom, 0, strlen( $html_start ) ) !== $html_start
+							) {
+								$yield_test = false;
+							}
+						}
+
+						if ( $yield_test ) {
+							yield array( $test_line_number, $test_context_element, $test_html, $test_dom );
+						}
 					}
 
 					// Finish previous test.
