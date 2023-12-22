@@ -830,51 +830,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				return true;
-
-			/*
-			 * > Any other start tag
-			 */
-			case '+SPAN':
-				$this->reconstruct_active_formatting_elements();
-				$this->insert_html_element( $this->state->current_token );
-				return true;
-
-			/*
-			 * Any other end tag
-			 */
-			case '-SPAN':
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-					// > If node is an HTML element with the same tag name as the token, then:
-					if ( $item->node_name === $tag_name ) {
-						$this->generate_implied_end_tags( $tag_name );
-
-						// > If node is not the current node, then this is a parse error.
-
-						$this->state->stack_of_open_elements->pop_until( $tag_name );
-						return true;
-					}
-
-					// > Otherwise, if node is in the special category, then this is a parse error; ignore the token, and return.
-					if ( self::is_special( $item->node_name ) ) {
-						return $this->step();
-					}
-				}
-				// Execution should not reach here; if it does then something went wrong.
-				return false;
-
 		}
 
 		/*
 		 * These tags require special handling in the 'in body' insertion mode
-		 * that has not been implemented yet.
+		 * but that handling hasn't yet been implemented.
 		 *
-		 * As they're implemented, they should be removed from this list. An accompanying
-		 * test should help ensure this list is maintained.
+		 * As the rules for each tag are implemented, the corresponding tag
+		 * name should be removed from this list. An accompanying test should
+		 * help ensure this list is maintained.
 		 *
 		 * @see Tests_HtmlApi_WpHtmlProcessor::test_step_in_body_fails_on_unsupported_tags
 		 *
-		 * We throw the WP_HTML_Unsupported_Exception so we're free to implememnt
-		 * the catch-all handling for any other start and end tag.
+		 * Since this switch structure throws a WP_HTML_Unsupported_Exception, it's
+		 * possible to handle "any other start tag" and "any other end tag" below,
+		 * as that guarantees execution doesn't proceed for the unimplemented tags.
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
 		 */
@@ -947,12 +917,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		if ( ! $this->is_tag_closer() ) {
-			// > Any other start tag.
+			/*
+			 * > Any other start tag
+			 */
 			$this->reconstruct_active_formatting_elements();
 			$this->insert_html_element( $this->state->current_token );
 			return true;
 		} else {
-			// > Any other end tag
+			/*
+			 * > Any other end tag
+			 */
 
 			/*
 			 * Find the corresponding tag opener in the stack of open elements, if
@@ -983,9 +957,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
-
-		$this->last_error = self::ERROR_UNSUPPORTED;
-		throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 	}
 
 	/*
