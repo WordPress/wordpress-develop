@@ -144,7 +144,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::step_in_body
 	 */
 	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
-		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '>' );
+		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '></' . $tag_name . '>' );
 		$this->assertFalse( $fragment->next_tag(), 'Should fail to find tag: ' . $tag_name . '.' );
 		$this->assertEquals( $fragment->get_last_error(), WP_HTML_Processor::ERROR_UNSUPPORTED, 'Should have unsupported last error.' );
 	}
