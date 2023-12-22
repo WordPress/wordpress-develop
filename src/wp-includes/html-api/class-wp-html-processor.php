@@ -953,37 +953,34 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return true;
 		} else {
 			// > Any other end tag
-			$node = $this->state->stack_of_open_elements->current_node();
 
-			in_body_any_other_end_tag_loop:
-			if ( $tag_name === $node->node_name ) {
-				$this->generate_implied_end_tags( $tag_name );
-				if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
-					// @todo Record parse error: this error doesn't impact parsing.
+			/*
+			 * Find the corresponding tag opener in the stack of open elements, if
+			 * it exists before reaching a special element, which provides a kind
+			 * of boundary in the stack. For example, a `</custom-tag>` should not
+			 * close anything beyond its containing `P` or `DIV` element.
+			 */
+			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+				if ( $tag_name === $node->node_name ) {
+					break;
 				}
-				$pop_count = 0;
-				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-					++$pop_count;
-					if ( $node === $item ) {
-						break;
-					}
+
+				if ( self::is_special( $node->node_name ) ) {
+					// This is a parse error, ignore the token.
+					return $this->step();
 				}
-				while ( $pop_count-- > 0 ) {
-					$this->state->stack_of_open_elements->pop();
-				}
-				return true;
-			} elseif ( self::is_special( $node->node_name ) ) {
-				// This is a parse error, ignore the token.
-				return $this->step();
 			}
-			$one_shot = false;
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-				if ( $one_shot ) {
-					$node = $item;
-					goto in_body_any_other_end_tag_loop;
-				}
 
-				$one_shot = true;
+			$this->generate_implied_end_tags( $tag_name );
+			if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+				// @todo Record parse error: this error doesn't impact parsing.
+			}
+
+			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+				$this->state->stack_of_open_elements->pop();
+				if ( $node === $item ) {
+					return true;
+				}
 			}
 		}
 
