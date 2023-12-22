@@ -1346,6 +1346,11 @@ EOF;
 				'css'      => 'writing-mode: vertical-rl',
 				'expected' => 'writing-mode: vertical-rl',
 			),
+			// `background-repeat` introduced in 6.5.
+			array(
+				'css'      => 'background-repeat: no-repeat',
+				'expected' => 'background-repeat: no-repeat',
+			),
 		);
 	}
 
