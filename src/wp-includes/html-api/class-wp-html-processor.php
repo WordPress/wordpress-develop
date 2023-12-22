@@ -100,6 +100,7 @@
  * The following list specifies the HTML tags that _are_ supported:
  *
  *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
+ *  - Custom elements: All custom elements are supported. :)
  *  - Form elements: BUTTON, DATALIST, FIELDSET, LABEL, LEGEND, METER, PROGRESS, SEARCH.
  *  - Formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U.
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
@@ -107,11 +108,11 @@
  *  - Lists: DL.
  *  - Media elements: AUDIO, CANVAS, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
  *  - Paragraph: P.
- *  - Phrasing elements: ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR
- *  - Sectioning elements: ARTICLE, ASIDE, NAV, SECTION
- *  - Templating elements: SLOT
- *  - Text decoration: RUBY
- *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, MULTICOL, NEXTID, SPACER
+ *  - Phrasing elements: ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
+ *  - Sectioning elements: ARTICLE, ASIDE, NAV, SECTION.
+ *  - Templating elements: SLOT.
+ *  - Text decoration: RUBY.
+ *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, MULTICOL, NEXTID, SPACER.
  *
  * ### Supported markup
  *
