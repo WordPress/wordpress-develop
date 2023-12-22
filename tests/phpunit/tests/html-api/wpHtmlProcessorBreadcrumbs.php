@@ -55,7 +55,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'CODE',
 			'DATA',
 			'DATALIST',
-			'DEFN',
+			'DFN',
 			'DEL',
 			'DETAILS',
 			'DIALOG',
