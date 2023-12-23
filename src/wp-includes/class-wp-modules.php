@@ -275,25 +275,3 @@ function wp_enqueue_module( $module_identifier ) {
 function wp_dequeue_module( $module_identifier ) {
 	WP_Modules::dequeue( $module_identifier );
 }
-
-/**
- * Prints the import map in the head tag.
- *
- * @since 6.5.0
- *
- */
-add_action( 'wp_head', array( 'WP_Modules', 'print_import_map' ) );
-
-/**
- * Prints the enqueued modules in the head tag.
- *
- * @since 6.5.0
- */
-add_action( 'wp_head', array( 'WP_Modules', 'print_enqueued_modules' ) );
-
-/**
- * Prints the preloaded modules in the head tag.
- *
- * @since 6.5.0
- */
-add_action( 'wp_head', array( 'WP_Modules', 'print_module_preloads' ) );

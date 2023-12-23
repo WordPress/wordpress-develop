@@ -748,4 +748,9 @@ add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 )
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
 
+// Modules
+add_action( 'wp_head', array( 'WP_Modules', 'print_import_map' ) );
+add_action( 'wp_head', array( 'WP_Modules', 'print_enqueued_modules' ) );
+add_action( 'wp_head', array( 'WP_Modules', 'print_module_preloads' ) );
+
 unset( $filter, $action );
