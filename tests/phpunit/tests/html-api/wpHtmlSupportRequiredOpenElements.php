@@ -72,12 +72,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
@@ -108,12 +110,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 
@@ -147,12 +151,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
@@ -180,12 +186,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
@@ -213,12 +221,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 	}
@@ -245,12 +255,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 
@@ -293,12 +305,14 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
-		// MathML Elements.
+		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
 		$this->ensure_support_is_added_everywhere( 'MATH' );
 
 		/*
 		 * SVG elements: note that TITLE is both an HTML element and an SVG element
 		 * so care must be taken when adding support for either one.
+		 *
+		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
 

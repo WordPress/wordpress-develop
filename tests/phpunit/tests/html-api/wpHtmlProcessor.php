@@ -137,11 +137,13 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * as handling is implemented. Otherwise there's risk of leaving special
 	 * handling (that is never reached) when tag handling is implemented.
 	 *
+	 * @ticket 60092
+	 *
 	 * @dataProvider data_unsupported_special_in_body_tags
 	 *
-	 * @param string $tag_name Name of the tag to test.
-	 *
 	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @param string $tag_name Name of the tag to test.
 	 */
 	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
 		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '></' . $tag_name . '>' );
