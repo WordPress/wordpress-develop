@@ -122,7 +122,12 @@ class WP_Modules {
 	public static function print_import_map() {
 		$import_map = self::get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
-			echo '<script type="importmap">' . wp_json_encode( self::get_import_map(), JSON_HEX_TAG | JSON_HEX_AMP ) . '</script>';
+			wp_print_inline_script_tag(
+				wp_json_encode( self::get_import_map(), JSON_HEX_TAG | JSON_HEX_AMP ),
+				array(
+					'type' => 'importmap',
+				)
+			);
 		}
 	}
 

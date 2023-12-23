@@ -86,7 +86,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 */
 	public function get_import_map() {
 		$import_map_markup = get_echo( array( 'WP_Modules', 'print_import_map' ) );
-		preg_match( '/<script type="importmap">([^<]+)<\/script>/s', $import_map_markup, $import_map_string );
+		preg_match( '/<script type="importmap">.*?(\{.*\}).*?<\/script>/s', $import_map_markup, $import_map_string );
 		return json_decode( $import_map_string[1], true )['imports'];
 	}
 
