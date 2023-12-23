@@ -43,20 +43,21 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->registered = new ReflectionProperty( 'WP_Modules', 'registered' );
-		$this->registered->setAccessible( true );
-		$this->old_registered = $this->registered->getValue();
-		$this->registered->setValue( array() );
+		$wp_modules = new ReflectionClass( 'WP_Modules' );
 
-		$this->enqueued_before_registered = new ReflectionProperty( 'WP_Modules', 'enqueued_before_registered' );
-		$this->enqueued_before_registered->setAccessible( true );
-		$this->old_enqueued_before_registered = $this->enqueued_before_registered->getValue();
-		$this->enqueued_before_registered->setValue( array() );
+		$this->old_registered                 = $wp_modules->getStaticPropertyValue( 'registered' );
+		$this->old_enqueued_before_registered = $wp_modules->getStaticPropertyValue( 'enqueued_before_registered' );
+
+		$wp_modules->setStaticPropertyValue( 'registered', array() );
+		$wp_modules->setStaticPropertyValue( 'enqueued_before_registered', array() );
 	}
 
 	public function tear_down() {
-		$this->registered->setValue( $this->old_registered );
-		$this->enqueued_before_registered->setValue( $this->old_enqueued_before_registered );
+		$wp_modules = new ReflectionClass( 'WP_Modules' );
+
+		$wp_modules->setStaticPropertyValue( 'registered', $this->old_registered );
+		$wp_modules->setStaticPropertyValue( 'enqueued_before_registered', $this->old_enqueued_before_registered );
+
 		parent::tear_down();
 	}
 
