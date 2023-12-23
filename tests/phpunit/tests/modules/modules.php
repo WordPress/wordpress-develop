@@ -4,8 +4,11 @@
  * @covers ::wp_register_module
  * @covers ::wp_enqueue_module
  * @covers ::wp_dequeue_module
+ * @covers WP_Modules::print_enqueued_modules
+ * @covers WP_Modules::print_import_map
+ * @covers WP_Modules::print_module_preloads
  */
-class Tests_Modules extends WP_UnitTestCase {
+class Tests_Modules_Functions extends WP_UnitTestCase {
 	/**
 	 * Stores a reference to the ReflectionProperty instance of the
 	 * WP_Modules::$registered property.
@@ -119,6 +122,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_enqueued_modules
 	 */
 	public function test_wp_enqueue_module() {
 		wp_register_module( 'foo', '/foo.js' );
@@ -141,6 +145,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	* @covers ::wp_register_module
 	* @covers ::wp_enqueue_module
 	* @covers ::wp_dequeue_module
+	 * @covers WP_Modules::print_enqueued_modules
 	*/
 	public function test_wp_dequeue_module() {
 		wp_register_module( 'foo', '/foo.js' );
@@ -164,6 +169,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	*
 	* @covers ::wp_register_module
 	* @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_enqueued_modules
 	*/
 	public function test_wp_enqueue_module_works_before_register() {
 		wp_enqueue_module( 'foo' );
@@ -186,6 +192,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
 	 * @covers ::wp_dequeue_module
+	 * @covers WP_Modules::print_enqueued_modules
 	 */
 	public function test_wp_dequeue_module_works_before_register() {
 		wp_enqueue_module( 'foo' );
@@ -209,6 +216,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_import_map
 	 */
 	public function test_wp_import_map_dependencies() {
 		wp_register_module( 'foo', '/foo.js', array( 'dep' ) );
@@ -231,6 +239,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_import_map
 	 */
 	public function test_wp_import_map_no_duplicate_dependencies() {
 		wp_register_module( 'foo', '/foo.js', array( 'dep' ) );
@@ -253,6 +262,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_import_map
 	 */
 	public function test_wp_import_map_recursive_dependencies() {
 		wp_register_module(
@@ -303,6 +313,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_module_preloads
 	 */
 	public function test_wp_enqueue_preloaded_static_dependencies() {
 		wp_register_module(
@@ -353,6 +364,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_module_preloads
 	 */
 	public function test_wp_preloaded_dependencies_filter_enqueued_modules() {
 		wp_register_module(
@@ -383,6 +395,7 @@ class Tests_Modules extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_register_module
 	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_import_map
 	 */
 	public function test_wp_enqueued_modules_with_dependants_add_import_map() {
 		wp_register_module(
@@ -403,27 +416,5 @@ class Tests_Modules extends WP_UnitTestCase {
 		$this->assertEquals( 2, count( $import_map ) );
 		$this->assertEquals( true, isset( $import_map['dep'] ) );
 		$this->assertEquals( true, isset( $import_map['enqueued-dep'] ) );
-	}
-
-	/**
-	 * Tests the functionality of the `get_version_query_string` method to ensure
-	 * proper version strings are returned.
-	 *
-	 * @ticket 56313
-	 *
-	 * @covers WP_Modules::get_version_query_string
-	 */
-	public function test_get_version_query_string() {
-		$get_version_query_string = new ReflectionMethod( 'WP_Modules', 'get_version_query_string' );
-		$get_version_query_string->setAccessible( true );
-
-		$result = $get_version_query_string->invoke( null, '1.0' );
-		$this->assertEquals( '?ver=1.0', $result );
-
-		$result = $get_version_query_string->invoke( null, false );
-		$this->assertEquals( '?ver=' . get_bloginfo( 'version' ), $result );
-
-		$result = $get_version_query_string->invoke( null, null );
-		$this->assertEquals( '', $result );
 	}
 }
