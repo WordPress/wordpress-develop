@@ -10,27 +10,11 @@
  */
 class Tests_Modules_Functions extends WP_UnitTestCase {
 	/**
-	 * Stores a reference to the ReflectionProperty instance of the
-	 * WP_Modules::$registered property.
-	 *
-	 * @var ReflectionProperty
-	 */
-	protected $registered;
-
-	/**
 	 * Stores the original value of WP_Modules::$registered to restore it later.
 	 *
 	 * @var array
 	 */
 	protected $old_registered;
-
-	/**
-	 * Stores a reference to the ReflectionProperty instance of the
-	 * WP_Modules::$enqueued_before_registered property.
-	 *
-	 * @var ReflectionProperty
-	 */
-	protected $enqueued_before_registered;
 
 	/**
 	 * Stores the original value of WP_Modules::$enqueued_before_registered to
@@ -43,20 +27,25 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$wp_modules = new ReflectionClass( 'WP_Modules' );
+		$registered = new ReflectionProperty( 'WP_Modules', 'registered' );
+		$registered->setAccessible( true );
+		$this->old_registered = $registered->getValue();
+		$registered->setValue( null, array() );
 
-		$this->old_registered                 = $wp_modules->getStaticPropertyValue( 'registered' );
-		$this->old_enqueued_before_registered = $wp_modules->getStaticPropertyValue( 'enqueued_before_registered' );
-
-		$wp_modules->setStaticPropertyValue( 'registered', array() );
-		$wp_modules->setStaticPropertyValue( 'enqueued_before_registered', array() );
+		$enqueued_before_registered = new ReflectionProperty( 'WP_Modules', 'enqueued_before_registered' );
+		$enqueued_before_registered->setAccessible( true );
+		$this->old_enqueued_before_registered = $enqueued_before_registered->getValue();
+		$enqueued_before_registered->setValue( null, array() );
 	}
 
 	public function tear_down() {
-		$wp_modules = new ReflectionClass( 'WP_Modules' );
+		$registered = new ReflectionProperty( 'WP_Modules', 'registered' );
+		$registered->setAccessible( true );
+		$registered->setValue( null, $this->old_registered );
 
-		$wp_modules->setStaticPropertyValue( 'registered', $this->old_registered );
-		$wp_modules->setStaticPropertyValue( 'enqueued_before_registered', $this->old_enqueued_before_registered );
+		$enqueued_before_registered = new ReflectionProperty( 'WP_Modules', 'enqueued_before_registered' );
+		$enqueued_before_registered->setAccessible( true );
+		$enqueued_before_registered->setValue( null, $this->old_enqueued_before_registered );
 
 		parent::tear_down();
 	}
