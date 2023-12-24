@@ -1623,7 +1623,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type string|bool  $autosave_rest_controller_class  REST API controller class name. Default is 'WP_REST_Autosaves_Controller'.
  *     @type string|bool  $revisions_rest_controller_class REST API controller class name. Default is 'WP_REST_Revisions_Controller'.
- *     @type bool         $late_route_registration         A flag to direct the REST API controllers for autosave / revisions should be registered before/after the post type controller.
+ *     @type bool         $late_route_registration         A flag to direct the REST API controllers for autosave / revisions
+ *                                                         should be registered before/after the post type controller.
  *     @type int          $menu_position                   The position in the menu order the post type should appear. To work,
  *                                                         $show_in_menu must be true. Default null (at the bottom).
  *     @type string       $menu_icon                       The URL to the icon to be used for this menu. Pass a base64-encoded
@@ -1641,7 +1642,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         See get_post_type_capabilities().
  *     @type bool         $map_meta_cap                    Whether to use the internal default meta capability handling.
  *                                                         Default false.
- *     @type array        $supports                        Core feature(s) the post type supports. Serves as an alias for calling
+ *     @type array|false  $supports                        Core feature(s) the post type supports. Serves as an alias for calling
  *                                                         add_post_type_support() directly. Core features include 'title',
  *                                                         'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
  *                                                         'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
@@ -1651,6 +1652,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         specified as an array of arguments to provide additional information
  *                                                         about supporting that feature.
  *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
+ *                                                         If false, no features will be added.
  *                                                         Default is an array containing 'title' and 'editor'.
  *     @type callable     $register_meta_box_cb            Provide a callback function that sets up the meta boxes for the
  *                                                         edit form. Do remove_meta_box() and add_meta_box() calls in the
@@ -7276,8 +7278,8 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_delete( $post->ID, 'posts' );
+	wp_cache_delete( 'post_parent:' . (string) $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
-	wp_cache_delete( $post->ID, 'post_parent' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
 
@@ -7823,17 +7825,37 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 function _prime_post_parent_id_caches( array $ids ) {
 	global $wpdb;
 
-	$non_cached_ids = _get_non_cached_ids( $ids, 'post_parent' );
+	$ids = array_filter( $ids, '_validate_cache_id' );
+	$ids = array_unique( array_map( 'intval', $ids ), SORT_NUMERIC );
+
+	if ( empty( $ids ) ) {
+		return;
+	}
+
+	$cache_keys = array();
+	foreach ( $ids as $id ) {
+		$cache_keys[ $id ] = 'post_parent:' . (string) $id;
+	}
+
+	$cached_data = wp_cache_get_multiple( array_values( $cache_keys ), 'posts' );
+
+	$non_cached_ids = array();
+	foreach ( $cache_keys as $id => $cache_key ) {
+		if ( false === $cached_data[ $cache_key ] ) {
+			$non_cached_ids[] = $id;
+		}
+	}
+
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.ID, $wpdb->posts.post_parent FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
 		if ( $fresh_posts ) {
 			$post_parent_data = array();
 			foreach ( $fresh_posts as $fresh_post ) {
-				$post_parent_data[ (int) $fresh_post->ID ] = (int) $fresh_post->post_parent;
+				$post_parent_data[ 'post_parent:' . (string) $fresh_post->ID ] = (int) $fresh_post->post_parent;
 			}
 
-			wp_cache_add_multiple( $post_parent_data, 'post_parent' );
+			wp_cache_add_multiple( $post_parent_data, 'posts' );
 		}
 	}
 }
