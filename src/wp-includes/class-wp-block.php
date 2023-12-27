@@ -470,6 +470,18 @@ class WP_Block {
 			}
 		}
 
+		if ( ( ! empty( $this->block_type->module_handles ) ) ) {
+			foreach ( $this->block_type->module_handles as $module_handle ) {
+				wp_enqueue_module( $module_handle );
+			}
+		}
+
+		if ( ! empty( $this->block_type->view_module_handles ) ) {
+			foreach ( $this->block_type->view_module_handles as $view_module_handle ) {
+				wp_enqueue_module( $view_module_handle );
+			}
+		}
+
 		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
 			foreach ( $this->block_type->style_handles as $style_handle ) {
 				wp_enqueue_style( $style_handle );

@@ -59,6 +59,9 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	}
 
 	$field_mappings = array(
+		'editorModule' => 'editor-module',
+		'module'       => 'module',
+		'viewModule'   => 'view-module',
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
 		'viewScript'   => 'view-script',
@@ -120,6 +123,83 @@ function get_block_asset_url( $path ) {
 	}
 
 	return plugins_url( basename( $path ), $path );
+}
+
+/**
+ * Finds a script handle for the selected block metadata field. It detects
+ * when a path to file was provided and optionally finds a corresponding asset
+ * file with details necessary to register the script under automatically
+ * generated handle name. It returns unprocessed script handle otherwise.
+ *
+ * @since 5.5.0
+ * @since 6.1.0 Added `$index` parameter.
+ * @since 6.5.0 The asset file is optional.
+ *
+ * @param array  $metadata   Block metadata.
+ * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the script to register when multiple items passed.
+ *                           Default 0.
+ * @return string|false Script handle provided directly or created through
+ *                      script's registration, or false on failure.
+ */
+function register_block_module_handle( $metadata, $field_name, $index = 0 ) {
+	if ( empty( $metadata[ $field_name ] ) ) {
+		return false;
+	}
+
+	$module_handle = $metadata[ $field_name ];
+	if ( is_array( $module_handle ) ) {
+		if ( empty( $module_handle[ $index ] ) ) {
+			return false;
+		}
+		$module_handle = $module_handle[ $index ];
+	}
+
+	$module_path = remove_block_asset_path_prefix( $module_handle );
+	if ( $module_handle === $module_path ) {
+		return $module_handle;
+	}
+
+	$path                  = dirname( $metadata['file'] );
+	$module_asset_raw_path = $path . '/' . substr_replace( $module_path, '.asset.php', - strlen( '.js' ) );
+	$module_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	$module_asset_path     = wp_normalize_path(
+		realpath( $module_asset_raw_path )
+	);
+
+	if ( empty( $module_asset_path ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
+				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
+				$module_asset_raw_path,
+				$field_name,
+				$metadata['name']
+			),
+			'6.5.0'
+		);
+		return false;
+	}
+
+	$module_path_norm = wp_normalize_path( realpath( $path . '/' . $module_path ) );
+	$module_uri       = get_block_asset_url( $module_path_norm );
+
+	$module_asset        = require $module_asset_path;
+	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
+	$result              = wp_register_module(
+		$module_handle,
+		$module_uri,
+		$module_dependencies,
+		isset( $module_asset['version'] ) ? $module_asset['version'] : false,
+	);
+
+	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $module_dependencies, true ) ) {
+		// script translations?
+		wp_set_script_translations( $module_handle, $metadata['textdomain'] );
+	}
+
+	return $module_handle;
 }
 
 /**
@@ -487,6 +567,43 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 			}
 			$settings[ $settings_field_name ] = $processed_scripts;
+		}
+	}
+
+	$module_fields = array(
+		'editorModule' => 'editor_module_handles',
+		'module'       => 'module_handles',
+		'viewModule'   => 'view_module_handles',
+	);
+	foreach ( $module_fields as $metadata_field_name => $settings_field_name ) {
+
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$modules           = $metadata[ $metadata_field_name ];
+			$processed_modules = array();
+			if ( is_array( $modules ) ) {
+				for ( $index = 0; $index < count( $modules ); $index++ ) {
+					$result = register_block_module_handle(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_modules[] = $result;
+					}
+				}
+			} else {
+				$result = register_block_module_handle(
+					$metadata,
+					$metadata_field_name
+				);
+				if ( $result ) {
+					$processed_modules[] = $result;
+				}
+			}
+			$settings[ $settings_field_name ] = $processed_modules;
 		}
 	}
 
