@@ -840,6 +840,13 @@ function switch_theme( $stylesheet ) {
 	$new_theme->delete_pattern_cache();
 	$old_theme->delete_pattern_cache();
 
+	// Set autoload=no for the old theme, autoload=yes for the switched theme.
+	$theme_mods_options = array(
+		'theme_mods_' . $stylesheet                  => 'yes',
+		'theme_mods_' . $old_theme->get_stylesheet() => 'no',
+	);
+	wp_set_option_autoload_values( $theme_mods_options );
+
 	/**
 	 * Fires after the theme is switched.
 	 *
@@ -3581,7 +3588,6 @@ function _wp_customize_include() {
  * @since 4.7.0
  * @access private
  *
- * @global wpdb                 $wpdb         WordPress database abstraction object.
  * @global WP_Customize_Manager $wp_customize Customizer instance.
  *
  * @param string  $new_status     New post status.
@@ -3589,7 +3595,7 @@ function _wp_customize_include() {
  * @param WP_Post $changeset_post Changeset post object.
  */
 function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_post ) {
-	global $wp_customize, $wpdb;
+	global $wp_customize;
 
 	$is_publishing_changeset = (
 		'customize_changeset' === $changeset_post->post_type

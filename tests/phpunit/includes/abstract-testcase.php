@@ -74,7 +74,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$class = get_called_class();
 
 		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
-			call_user_func( array( $class, 'wpSetUpBeforeClass' ), self::factory() );
+			call_user_func( array( $class, 'wpSetUpBeforeClass' ), static::factory() );
 		}
 
 		self::commit_transaction();
@@ -104,7 +104,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	public function set_up() {
 		set_time_limit( 0 );
 
-		$this->factory = self::factory();
+		$this->factory = static::factory();
 
 		if ( ! self::$ignore_files ) {
 			self::$ignore_files = $this->scan_user_uploads();
