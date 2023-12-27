@@ -3260,7 +3260,7 @@ function edit_form_image_editor( $post ) {
 		'textarea_name' => 'content',
 		'textarea_rows' => 5,
 		'media_buttons' => false,
-		'tinymce'       => false,
+		'tinymce'       => apply_filters('activate_tinymce_for_media_description', false ),
 		'quicktags'     => $quicktags_settings,
 	);
 
