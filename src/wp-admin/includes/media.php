@@ -3260,6 +3260,13 @@ function edit_form_image_editor( $post ) {
 		'textarea_name' => 'content',
 		'textarea_rows' => 5,
 		'media_buttons' => false,
+		/**
+		 * Filters the media description for tinymce.
+		 *
+		 * @since 6.5
+		 *
+		 * @param bool Activate media description for tinymce. Default false.
+		 */
 		'tinymce'       => apply_filters( 'activate_tinymce_for_media_description', false ),
 		'quicktags'     => $quicktags_settings,
 	);
