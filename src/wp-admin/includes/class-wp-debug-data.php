@@ -409,7 +409,7 @@ class WP_Debug_Data {
 				'label' => __( 'Site ID' ),
 				'value' => $site_ID,
 				'debug' => $site_ID,
-			),			
+			),		
 		}
 
 		$info['wp-core']['fields']['user_count'] = array(
