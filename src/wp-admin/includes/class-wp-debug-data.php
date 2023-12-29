@@ -405,11 +405,11 @@ class WP_Debug_Data {
 				'label' => __( 'Network count' ),
 				'value' => $network_query->found_networks,
 			);
-			'site_ID'              => array(
+			$info['wp-core']['fields']['site_ID']       = array(
 				'label' => __( 'Site ID' ),
 				'value' => $site_ID,
 				'debug' => $site_ID,
-			),		
+			);
 		}
 
 		$info['wp-core']['fields']['user_count'] = array(
