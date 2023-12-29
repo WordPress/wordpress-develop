@@ -48,7 +48,6 @@ class WP_Debug_Data {
 		$environment_type       = wp_get_environment_type();
 		$core_version           = get_bloginfo( 'version' );
 		$core_updates           = get_core_updates();
-		$site_ID                = get_current_blog_id();
 		$core_update_needed     = '';
 
 		if ( is_array( $core_updates ) ) {
@@ -109,11 +108,6 @@ class WP_Debug_Data {
 					'label' => __( 'Is this a multisite?' ),
 					'value' => $is_multisite ? __( 'Yes' ) : __( 'No' ),
 					'debug' => $is_multisite,
-				),
-				'site_ID'              => array(
-					'label' => __( 'Site ID' ),
-					'value' => $site_ID,
-					'debug' => $site_ID,
 				),
 				'user_registration'      => array(
 					'label' => __( 'Can anyone register on this site?' ),
@@ -387,6 +381,7 @@ class WP_Debug_Data {
 
 		// Conditionally add debug information for multisite setups.
 		if ( is_multisite() ) {
+			$site_ID       = get_current_blog_id();
 			$network_query = new WP_Network_Query();
 			$network_ids   = $network_query->query(
 				array(
@@ -410,6 +405,11 @@ class WP_Debug_Data {
 				'label' => __( 'Network count' ),
 				'value' => $network_query->found_networks,
 			);
+			'site_ID'              => array(
+				'label' => __( 'Site ID' ),
+				'value' => $site_ID,
+				'debug' => $site_ID,
+			),			
 		}
 
 		$info['wp-core']['fields']['user_count'] = array(
