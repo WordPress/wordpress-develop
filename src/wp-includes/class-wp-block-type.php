@@ -115,7 +115,15 @@ class WP_Block_Type {
 	 * @since 5.8.0
 	 * @var array[]
 	 */
-	public $variations = array();
+	protected $variations = array();
+
+	/**
+	 * Block variations callback.
+	 *
+	 * @since 6.5.0
+	 * @var callable[]
+	 */
+	public $variation_callback;
 
 	/**
 	 * Custom CSS selectors for theme.json style generation.
@@ -292,6 +300,7 @@ class WP_Block_Type {
 	 *     @type string|null   $textdomain               The translation textdomain.
 	 *     @type array[]       $styles                   Alternative block styles.
 	 *     @type array[]       $variations               Block variations.
+	 *     @type callable      $variation_callback       Block variations callback.
 	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
@@ -325,6 +334,11 @@ class WP_Block_Type {
 	 *                                   null when value not found, or void when unknown property name provided.
 	 */
 	public function __get( $name ) {
+		if ( 'variations' === $name ) {
+			_doing_it_wrong( __CLASS__, __( 'Calling the variation property is not recommended, call get_variations instead.' ), '6.5.0' );
+			return $this->get_variations();
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return;
 		}
@@ -353,6 +367,10 @@ class WP_Block_Type {
 	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
+		if ( 'variations' === $name && isset( $this->variation_callback ) ) {
+			return true;
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return false;
 		}
@@ -539,5 +557,20 @@ class WP_Block_Type {
 		return is_array( $this->attributes ) ?
 			$this->attributes :
 			array();
+	}
+
+	/**
+	 * Get block variations.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return array[]
+	 */
+	public function get_variations() {
+		if ( isset( $this->variation_callback ) && is_callable( $this->variation_callback ) ) {
+			return call_user_func( $this->variation_callback );
+		}
+
+		return $this->variations;
 	}
 }

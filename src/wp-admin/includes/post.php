@@ -2302,7 +2302,6 @@ function get_block_editor_server_block_settings() {
 		'ancestor'         => 'ancestor',
 		'keywords'         => 'keywords',
 		'example'          => 'example',
-		'variations'       => 'variations',
 	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
@@ -2317,6 +2316,7 @@ function get_block_editor_server_block_settings() {
 
 			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}
+		$blocks[ $block_name ][ 'variations' ] = $block_type->get_variations();
 	}
 
 	return $blocks;
