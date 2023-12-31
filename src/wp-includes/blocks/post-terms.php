@@ -59,13 +59,13 @@ function render_block_core_post_terms( $attributes, $content, $block ) {
 }
 
 /**
- * Registers the `core/post-terms` block on the server.
+ * @return array
  */
-function register_block_core_post_terms() {
+function build_post_term_block_variations() {
 	$taxonomies = get_taxonomies(
 		array(
 			'publicly_queryable' => true,
-			'show_in_rest'       => true,
+			'show_in_rest' => true,
 		),
 		'objects'
 	);
@@ -73,41 +73,47 @@ function register_block_core_post_terms() {
 	// Split the available taxonomies to `built_in` and custom ones,
 	// in order to prioritize the `built_in` taxonomies at the
 	// search results.
-	$built_ins         = array();
+	$built_ins = array();
 	$custom_variations = array();
 
 	// Create and register the eligible taxonomies variations.
-	foreach ( $taxonomies as $taxonomy ) {
+	foreach ($taxonomies as $taxonomy) {
 		$variation = array(
-			'name'        => $taxonomy->name,
-			'title'       => $taxonomy->label,
+			'name' => $taxonomy->name,
+			'title' => $taxonomy->label,
 			'description' => sprintf(
-				/* translators: %s: taxonomy's label */
-				__( 'Display a list of assigned terms from the taxonomy: %s' ),
+			/* translators: %s: taxonomy's label */
+				__('Display a list of assigned terms from the taxonomy: %s'),
 				$taxonomy->label
 			),
-			'attributes'  => array(
+			'attributes' => array(
 				'term' => $taxonomy->name,
 			),
-			'isActive'    => array( 'term' ),
-			'scope'       => array( 'inserter', 'transform' ),
+			'isActive' => array('term'),
+			'scope' => array('inserter', 'transform'),
 		);
 		// Set the category variation as the default one.
-		if ( 'category' === $taxonomy->name ) {
+		if ('category' === $taxonomy->name) {
 			$variation['isDefault'] = true;
 		}
-		if ( $taxonomy->_builtin ) {
+		if ($taxonomy->_builtin) {
 			$built_ins[] = $variation;
 		} else {
 			$custom_variations[] = $variation;
 		}
 	}
+	return array_merge( $built_ins, $custom_variations );
+}
 
+/**
+ * Registers the `core/post-terms` block on the server.
+ */
+function register_block_core_post_terms() {
 	register_block_type_from_metadata(
 		__DIR__ . '/post-terms',
 		array(
 			'render_callback' => 'render_block_core_post_terms',
-			'variations'      => array_merge( $built_ins, $custom_variations ),
+			'variation_callback'      => 'build_post_term_block_variations',
 		)
 	);
 }
