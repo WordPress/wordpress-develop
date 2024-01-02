@@ -63,3 +63,4 @@ remove_action( 'init', 'register_block_core_site_title' );
 remove_action( 'init', 'register_block_core_social_link' );
 remove_action( 'init', 'register_block_core_tag_cloud' );
 remove_action( 'init', 'register_block_core_template_part' );
+remove_action( 'init', 'register_block_core_term_description' );
