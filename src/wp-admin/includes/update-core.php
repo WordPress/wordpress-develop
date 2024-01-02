@@ -869,6 +869,8 @@ $_old_files = array(
 	'wp-includes/random_compat',
 	// 6.4
 	'wp-includes/navigation-fallback.php',
+	'wp-includes/blocks/navigation/view-modal.min.js',
+	'wp-includes/blocks/navigation/view-modal.js',
 );
 
 /**
@@ -1006,7 +1008,7 @@ $_new_bundled_files = array(
  * Upgrades the core of WordPress.
  *
  * This will create a .maintenance file at the base of the WordPress directory
- * to ensure that people can not access the web site, when the files are being
+ * to ensure that people can not access the website, when the files are being
  * copied to their locations.
  *
  * The files in the `$_old_files` list will be removed and the new files
