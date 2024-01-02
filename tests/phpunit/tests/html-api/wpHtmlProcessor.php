@@ -91,8 +91,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @covers WP_HTML_Processor::next_tag
 	 * @covers WP_HTML_Processor::seek
-	 *
-	 * @throws WP_HTML_Unsupported_Exception
 	 */
 	public function test_clear_to_navigate_after_seeking() {
 		$p = WP_HTML_Processor::create_fragment( '<div one><strong></strong></div><p><strong two></strong></p>' );
