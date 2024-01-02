@@ -9816,7 +9816,6 @@ mockedApiResponse.Schema = {
                                     "page",
                                     "category",
                                     "post_tag",
-                                    "wp_pattern_category",
                                     "any"
                                 ],
                                 "type": "string"

@@ -7,7 +7,7 @@
  *
  * @since 6.4.0
  *
- * @group functions.php
+ * @group functions
  * @covers ::wp_unique_prefixed_id
  */
 class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
