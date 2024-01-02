@@ -23,7 +23,14 @@ const parseFile = ( fileName ) =>
 	);
 
 // The list of test suites to log.
-const testSuites = [ 'home-block-theme', 'home-classic-theme' ];
+const testSuites = [
+	'admin',
+	'admin-l10n',
+	'home-block-theme',
+	'home-block-theme-l10n',
+	'home-classic-theme',
+	'home-classic-theme-l10n',
+];
 
 // The current commit's results.
 const testResults = Object.fromEntries(
@@ -128,6 +135,23 @@ console.log( 'Performance Test Results\n' );
 
 console.log( 'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n' );
 
+/**
+ * Nicely formats a given value.
+ *
+ * @param {string} metric Metric.
+ * @param {number} value
+ */
+function formatValue( metric, value) {
+	if ( null === value ) {
+		return 'N/A';
+	}
+	if ( 'wpMemoryUsage' === metric ) {
+		return `${ ( value / Math.pow( 10, 6 ) ).toFixed( 2 ) } MB`;
+	}
+
+	return `${ value.toFixed( 2 ) } ms`;
+}
+
 for ( const key of testSuites ) {
 	const current = testResults[ key ] || {};
 	const prev = prevResults[ key ] || {};
@@ -141,15 +165,15 @@ for ( const key of testSuites ) {
 
 	for ( const [ metric, values ] of Object.entries( current ) ) {
 		const value = median( values );
-		const prevValue = median( prev[ metric ] );
+		const prevValue = prev[ metric ] ? median( prev[ metric ] ) : null;
 
-		const delta = value - prevValue;
+		const delta = null !== prevValue ? value - prevValue : 0
 		const percentage = ( delta / value ) * 100;
 		rows.push( {
 			Metric: metric,
-			Before: `${ prevValue.toFixed( 2 ) } ms`,
-			After: `${ value.toFixed( 2 ) } ms`,
-			'Diff abs.': `${ delta.toFixed( 2 ) } ms`,
+			Before: formatValue( metric, prevValue ),
+			After: formatValue( metric, value ),
+			'Diff abs.': formatValue( metric, delta ),
 			'Diff %': `${ percentage.toFixed( 2 ) } %`,
 		} );
 	}
