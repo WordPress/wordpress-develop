@@ -25,6 +25,13 @@ add_filter(
 
 				$server_timing_values['total'] = $server_timing_values['before-template'] + $server_timing_values['template'];
 
+				/*
+				 * While values passed via Server-Timing are intended to be durations,
+				 * any numeric value can actually be passed.
+				 * This is a nice little trick as it allows to easily get this information in JS.
+				 */
+				$server_timing_values['memory-usage'] = memory_get_usage();
+
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
 					if ( is_float( $value ) ) {
