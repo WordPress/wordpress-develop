@@ -86,7 +86,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-
 	/**
 	 * @ticket 35567
 	 */

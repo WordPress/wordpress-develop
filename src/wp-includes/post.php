@@ -2413,7 +2413,7 @@ function is_post_embeddable( $post = null ) {
 	 *
 	 * @since x.x.x
 	 *
-	 * $param bool $is_embeddable Whether the post is embeddable.
+	 * @param bool    $is_embeddable Whether the post is embeddable.
 	 * @param WP_Post $post Post object.
 	 */
 	return apply_filters( 'is_post_embeddable', $is_embeddable, $post );
