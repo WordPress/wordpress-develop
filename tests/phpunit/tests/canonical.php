@@ -209,6 +209,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?author=%d', '/author/canonical-author/' ),
 			// array( '/?author=%d&year=2008', '/2008/?author=3'),
 			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
+			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
 
 			// Feeds.
 			array( '/?feed=atom', '/feed/atom/' ),

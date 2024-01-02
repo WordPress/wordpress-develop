@@ -388,6 +388,49 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests `_get_block_templates_paths()` for an invalid directory.
+	 *
+	 * @ticket 58196
+	 *
+	 * @covers ::_get_block_templates_paths
+	 */
+	public function test_get_block_templates_paths_dir_exists() {
+		$theme_dir = get_template_directory();
+		// Templates in the current theme.
+		$templates = array(
+			'parts/small-header.html',
+			'templates/custom-single-post-template.html',
+			'templates/index.html',
+			'templates/page-home.html',
+			'templates/page.html',
+			'templates/single.html',
+		);
+
+		$expected_template_paths = array_map(
+			static function ( $template ) use ( $theme_dir ) {
+				return $theme_dir . '/' . $template;
+			},
+			$templates
+		);
+
+		$template_paths = _get_block_templates_paths( $theme_dir );
+		$this->assertSameSets( $expected_template_paths, $template_paths );
+	}
+
+	/**
+	 * Test _get_block_templates_paths() for a invalid dir.
+	 *
+	 * @ticket 58196
+	 *
+	 * @covers ::_get_block_templates_paths
+	 */
+	public function test_get_block_templates_paths_dir_doesnt_exists() {
+		// Should return empty array for invalid path.
+		$template_paths = _get_block_templates_paths( '/tmp/random-invalid-theme-path' );
+		$this->assertSame( array(), $template_paths );
+	}
+
+	/**
 	 * Registers a test block to log `in_the_loop()` results.
 	 *
 	 * @param array $in_the_loop_logs Array to log function results in. Passed by reference.

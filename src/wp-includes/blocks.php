@@ -659,7 +659,8 @@ function has_blocks( $post = null ) {
  *
  * This test optimizes for performance rather than strict accuracy, detecting
  * whether the block type exists but not validating its structure and not checking
- * reusable blocks. For strict accuracy, you should use the block parser on post content.
+ * synced patterns (formerly called reusable blocks). For strict accuracy,
+ * you should use the block parser on post content.
  *
  * @since 5.0.0
  *
@@ -757,11 +758,45 @@ function get_hooked_blocks() {
 }
 
 /**
+ * Conditionally returns the markup for a given hooked block type.
+ *
+ * Accepts two arguments: A reference to an anchor block, and the name of a hooked block type.
+ * If the anchor block has already been processed, and the given hooked block type is in the list
+ * of ignored hooked blocks, an empty string is returned.
+ *
+ * This function is meant for internal use only.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array   $anchor_block      The anchor block. Passed by reference.
+ * @param string  $hooked_block_type The name of the hooked block type.
+ * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
+ */
+function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
+	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
+	}
+
+	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		return '';
+	}
+
+	// The following is only needed for the REST API endpoint.
+	// However, its presence does not affect the frontend.
+	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
+
+	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+}
+
+/**
  * Returns a function that injects the theme attribute into, and hooked blocks before, a given block.
  *
  * The returned function can be used as `$pre_callback` argument to `traverse_and_serialize_block(s)`,
  * where it will inject the `theme` attribute into all Template Part blocks, and prepend the markup for
  * any blocks hooked `before` the given block and as its parent's `first_child`, respectively.
+ *
+ * This function is meant for internal use only.
  *
  * @since 6.4.0
  * @access private
@@ -779,12 +814,12 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * Furthermore, prepend the markup for any blocks hooked `before` the given block and as its parent's
 	 * `first_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before.
-	 * @param array $parent_block The parent block of the given block.
-	 * @param array $prev         The previous sibling block of the given block.
+	 * @param array $block        The block to inject the theme attribute into, and hooked blocks before. Passed by reference.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, $parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
@@ -810,7 +845,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 			 */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 		}
 
@@ -823,7 +858,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
 		}
 
 		return $markup;
@@ -836,6 +871,8 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
  * The returned function can be used as `$post_callback` argument to `traverse_and_serialize_block(s)`,
  * where it will append the markup for any blocks hooked `after` the given block and as its parent's
  * `last_child`, respectively.
+ *
+ * This function is meant for internal use only.
  *
  * @since 6.4.0
  * @access private
@@ -852,12 +889,12 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * Append the markup for any blocks hooked `after` the given block and as its parent's
 	 * `last_child`, respectively, to the serialized markup for the given block.
 	 *
-	 * @param array $block        The block to inject the hooked blocks after.
-	 * @param array $parent_block The parent block of the given block.
-	 * @param array $next         The next sibling block of the given block.
+	 * @param array $block        The block to inject the hooked blocks after. Passed by reference.
+	 * @param array $parent_block The parent block of the given block. Passed by reference. Default null.
+	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, $parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
 		$markup = '';
 
 		$relative_position  = 'after';
@@ -869,7 +906,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 		/** This filter is documented in wp-includes/blocks.php */
 		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
 		}
 
 		if ( $parent_block && ! $next ) {
@@ -883,7 +920,7 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 			/** This filter is documented in wp-includes/blocks.php */
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
 			}
 		}
 
@@ -1034,7 +1071,10 @@ function serialize_blocks( $blocks ) {
  * This function should be used when there is a need to modify the saved block, or to inject markup
  * into the return value. Prefer `serialize_block` when preparing a block to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_block()
  *
@@ -1064,7 +1104,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 
 				$block_content .= call_user_func_array(
 					$pre_callback,
-					array( &$inner_block, $block, $prev )
+					array( &$inner_block, &$block, $prev )
 				);
 			}
 
@@ -1075,7 +1115,7 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 
 				$post_markup = call_user_func_array(
 					$post_callback,
-					array( &$inner_block, $block, $next )
+					array( &$inner_block, &$block, $next )
 				);
 			}
 
@@ -1116,7 +1156,10 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * This function should be used when there is a need to modify the saved blocks, or to inject markup
  * into the return value. Prefer `serialize_blocks` when preparing blocks to be saved to post content.
  *
+ * This function is meant for internal use only.
+ *
  * @since 6.4.0
+ * @access private
  *
  * @see serialize_blocks()
  *
@@ -1130,7 +1173,9 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  * @return string Serialized block markup.
  */
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
-	$result = '';
+	$result       = '';
+	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
 			$prev = 0 === $index
@@ -1139,7 +1184,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$result .= call_user_func_array(
 				$pre_callback,
-				array( &$block, null, $prev ) // At the top level, there is no parent block to pass to the callback.
+				array( &$block, &$parent_block, $prev )
 			);
 		}
 
@@ -1150,7 +1195,7 @@ function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_cal
 
 			$post_markup = call_user_func_array(
 				$post_callback,
-				array( &$block, null, $next ) // At the top level, there is no parent block to pass to the callback.
+				array( &$block, &$parent_block, $next )
 			);
 		}
 
@@ -1194,8 +1239,8 @@ function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols
 /**
  * Callback used for regular expression replacement in filter_block_content().
  *
- * @private
  * @since 6.2.1
+ * @access private
  *
  * @param array $matches Array of preg_replace_callback matches.
  * @return string Replacement string.
@@ -1958,16 +2003,17 @@ function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 
 /**
  * Strips all HTML from the content of footnotes, and sanitizes the ID.
+ *
  * This function expects slashed data on the footnotes content.
  *
  * @access private
  * @since 6.3.2
  *
- * @param string $footnotes JSON encoded string of an array containing the content and ID of each footnote.
- * @return string Filtered content without any HTML on the footnote content and with the sanitized id.
+ * @param string $footnotes JSON-encoded string of an array containing the content and ID of each footnote.
+ * @return string Filtered content without any HTML on the footnote content and with the sanitized ID.
  */
 function _wp_filter_post_meta_footnotes( $footnotes ) {
-	$footnotes_decoded   = json_decode( $footnotes, true );
+	$footnotes_decoded = json_decode( $footnotes, true );
 	if ( ! is_array( $footnotes_decoded ) ) {
 		return '';
 	}
@@ -1984,7 +2030,7 @@ function _wp_filter_post_meta_footnotes( $footnotes ) {
 }
 
 /**
- * Adds the filters to filter footnotes meta field.
+ * Adds the filters for footnotes meta field.
  *
  * @access private
  * @since 6.3.2
@@ -1994,7 +2040,7 @@ function _wp_footnotes_kses_init_filters() {
 }
 
 /**
- * Removes the filters that filter footnotes meta field.
+ * Removes the filters for footnotes meta field.
  *
  * @access private
  * @since 6.3.2
@@ -2004,7 +2050,7 @@ function _wp_footnotes_remove_filters() {
 }
 
 /**
- * Registers the filter of footnotes meta field if the user does not have unfiltered_html capability.
+ * Registers the filter of footnotes meta field if the user does not have `unfiltered_html` capability.
  *
  * @access private
  * @since 6.3.2
@@ -2017,12 +2063,12 @@ function _wp_footnotes_kses_init() {
 }
 
 /**
- * Initializes footnotes meta field filters when imported data should be filtered.
+ * Initializes the filters for footnotes meta field when imported data should be filtered.
  *
- * This filter is the last being executed on force_filtered_html_on_import.
- * If the input of the filter is true it means we are in an import situation and should
- * enable kses, independently of the user capabilities.
- * So in that case we call _wp_footnotes_kses_init_filters;
+ * This filter is the last one being executed on {@see 'force_filtered_html_on_import'}.
+ * If the input of the filter is true, it means we are in an import situation and should
+ * enable kses, independently of the user capabilities. So in that case we call
+ * _wp_footnotes_kses_init_filters().
  *
  * @access private
  * @since 6.3.2
@@ -2031,7 +2077,7 @@ function _wp_footnotes_kses_init() {
  * @return string Input argument of the filter.
  */
 function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
-	// force_filtered_html_on_import is true we need to init the global styles kses filters.
+	// If `force_filtered_html_on_import` is true, we need to init the global styles kses filters.
 	if ( $arg ) {
 		_wp_footnotes_kses_init_filters();
 	}
