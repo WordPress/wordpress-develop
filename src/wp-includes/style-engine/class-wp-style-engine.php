@@ -23,7 +23,7 @@
  * @since 6.1.0
  * @since 6.3.0 Added support for text-columns.
  * @since 6.4.0 Added support for background.backgroundImage.
- * @since 6.5.0 Added support for background.backgroundPosition, background.backgroundRepeat.
+ * @since 6.5.0 Added support for background.backgroundPosition and background.backgroundRepeat.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
