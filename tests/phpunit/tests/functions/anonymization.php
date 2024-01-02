@@ -40,8 +40,8 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
@@ -194,8 +194,8 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
