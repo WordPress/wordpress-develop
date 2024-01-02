@@ -67,6 +67,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * Tests that background image block support works as expected.
 	 *
 	 * @ticket 59357
+	 * @ticket 60175
 	 *
 	 * @covers ::wp_render_background_support
 	 *
