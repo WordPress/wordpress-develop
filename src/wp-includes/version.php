@@ -23,7 +23,7 @@ $wp_version = '6.5-alpha-56966-src';
  *
  * @global int $wp_db_version
  */
-$wp_db_version = 56657;
+$wp_db_version = 57155;
 
 /**
  * Holds the TinyMCE version.
@@ -44,4 +44,4 @@ $required_php_version = '7.0.0';
  *
  * @global string $required_mysql_version
  */
-$required_mysql_version = '5.0';
+$required_mysql_version = '5.5.5';
