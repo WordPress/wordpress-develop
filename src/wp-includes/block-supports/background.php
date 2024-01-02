@@ -72,7 +72,7 @@ function wp_render_background_support( $block_content, $block ) {
 	$background_position	 = isset( $block_attributes['style']['background']['backgroundPosition'] )
 		? $block_attributes['style']['background']['backgroundPosition']
 		: null;
-	$background_repeat	   = isset( $block_attributes['style']['background']['backgroundRepeat'] )
+	$background_repeat       = isset( $block_attributes['style']['background']['backgroundRepeat'] )
 		? $block_attributes['style']['background']['backgroundRepeat']
 		: null;
 
