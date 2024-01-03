@@ -760,7 +760,7 @@ function get_hooked_blocks() {
 /**
  * Conditionally returns the markup for a given hooked block.
  *
- * Accepts two arguments: A reference to an anchor block, and hooked block.
+ * Accepts two arguments: A hooked block, and a reference to an anchor block.
  * If the anchor block has already been processed, and the given hooked block type is in the list
  * of ignored hooked blocks, an empty string is returned.
  *
@@ -769,11 +769,11 @@ function get_hooked_blocks() {
  * @since 6.5.0
  * @access private
  *
- * @param array $anchor_block The anchor block. Passed by reference.
  * @param array $hooked_block The hooked block, represented as a parsed block array.
+ * @param array $anchor_block The anchor block. Passed by reference.
  * @return string The markup for the given hooked block, or an empty string if the block is ignored.
  */
-function get_hooked_block_markup( &$anchor_block, $hooked_block ) {
+function get_hooked_block_markup( $hooked_block, &$anchor_block ) {
 	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 	}
@@ -840,7 +840,7 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 		 */
 		$hooked_block = apply_filters( 'hooked_block', $hooked_block, $hooked_block_type, $relative_position, $anchor_block, $context );
 
-		$markup .= get_hooked_block_markup( $anchor_block, $hooked_block );
+		$markup .= get_hooked_block_markup( $hooked_block, $anchor_block );
 	}
 
 	return $markup;
