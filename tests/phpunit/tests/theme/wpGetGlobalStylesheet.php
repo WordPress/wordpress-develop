@@ -20,7 +20,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 
 	/**
 	 * Flag to indicate whether to remove 'border' theme support at tear_down().
-	 * 
+	 *
 	 * @var bool
 	 */
 	private $remove_border_support_at_teardown = false;
@@ -261,7 +261,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 
 	/**
 	 * Tests that theme color palette presets are output when appearance tools are enabled via theme support.
-	 * 
+	 *
 	 * @ticket 60134
 	 */
 	public function test_theme_color_palette_presets_output_when_border_support_enabled() {
@@ -292,11 +292,11 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 				'slug'  => 'cool-purple',
 				'color' => '#D1D1E4',
 			),
-		);				
+		);			
 
 		// Add theme support for appearance tools.
 		add_theme_support( 'border' );
-		add_theme_support('editor-color-palette', $args);
+		add_theme_support( 'editor-color-palette', $args );
 		$this->remove_border_support_at_teardown = true;
 
 		// Check for both the variable declaration and its use as a value.
@@ -313,7 +313,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		$this->assertStringContainsString( 'var(--wp--preset--color--nice-black)', $presets );
 		$this->assertStringContainsString( 'var(--wp--preset--color--dark-gray)', $presets );
 		$this->assertStringContainsString( 'var(--wp--preset--color--haunted-green)', $presets );
-		$this->assertStringContainsString( 'var(--wp--preset--color--soft-blue)', $presets );	
+		$this->assertStringContainsString( 'var(--wp--preset--color--soft-blue)', $presets );
 		$this->assertStringContainsString( 'var(--wp--preset--color--cool-purple)', $presets );
 	}
 
