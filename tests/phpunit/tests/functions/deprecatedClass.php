@@ -3,7 +3,7 @@
 /**
  * Tests for the _deprecated_class function.
  *
- * @group Functions
+ * @group functions
  *
  * @covers ::__deprecated_class
  */
