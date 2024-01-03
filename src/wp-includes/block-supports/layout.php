@@ -883,10 +883,10 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 		return $block_content;
 	}
 
-	/**
+	/*
 	 * This filter runs after the layout classnames have been added to the block, so they
 	 * have to be removed from the outer wrapper and then added to the inner.
-	*/
+	 */
 	$layout_classes = array();
 	$processor      = new WP_HTML_Tag_Processor( $block_content );
 
