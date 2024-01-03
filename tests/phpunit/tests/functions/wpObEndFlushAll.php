@@ -18,7 +18,7 @@ class Tests_Functions_wpObEndFlushAll extends WP_UnitTestCase {
 		echo 'output';
 
 		wp_ob_end_flush_all();
-		$this->assertEmpty( ob_get_contents() );
+		$this->assertEmpty( ob_get_contents(), 'All output buffers should be empty after wp_ob_end_flush_all()' );
 
 		// re-start ob as wp_ob_end_flush_all clears all the OB's and PHPunit has one open
 		ob_start();
