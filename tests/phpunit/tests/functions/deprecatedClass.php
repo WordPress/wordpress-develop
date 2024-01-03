@@ -14,8 +14,6 @@ class Tests_Functions_deprecatedClass extends WP_UnitTestCase {
 	 *
 	 * This method is responsible for setting up the test case before each test method is executed.
 	 * It removes certain actions related to deprecated and _deprecated_classfunctions.
-	 *
-	 * @return void
 	 */
 	public function set_up() {
 		parent::set_up();
