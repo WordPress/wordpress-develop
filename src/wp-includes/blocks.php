@@ -823,9 +823,13 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 
 	$markup = '';
 	foreach ( $hooked_block_types as $hooked_block_type ) {
-		$hooked_block = array(
-			'blockName' => $hooked_block_type,
-		);
+		if ( is_array( $hooked_block_type ) && isset( $hooked_block_type['blockName'] ) && isset( $hooked_block_type['attrs'] ) ) {
+			$hooked_block = $hooked_block_type;
+		} else {
+			$hooked_block = array(
+				'blockName' => $hooked_block_type,
+			);
+		}
 
 		$markup .= get_hooked_block_markup( $hooked_block, $anchor_block );
 	}
