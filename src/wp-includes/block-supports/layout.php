@@ -939,7 +939,6 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 		}
 		$updated_content = $processor->get_updated_html();
 	}
-	
 	return $updated_content;
 }
 
