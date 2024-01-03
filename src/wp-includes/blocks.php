@@ -828,6 +828,7 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 		} else {
 			$hooked_block = array(
 				'blockName' => $hooked_block_type,
+				'attrs'     => array(),
 			);
 		}
 
