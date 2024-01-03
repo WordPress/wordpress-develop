@@ -10,6 +10,8 @@
 
 /**
  * Core class used to register modules.
+ *
+ * @since 6.5.0
  */
 class WP_Modules {
 	/**
