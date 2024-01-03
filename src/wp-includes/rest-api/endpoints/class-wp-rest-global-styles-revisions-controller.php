@@ -388,4 +388,22 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 
 		return $this->add_additional_fields_schema( $this->schema );
 	}
+
+	/**
+	 * Retrieves the query params for collections.
+	 * Removes params that are not supported by global styles revisions.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return array Collection parameters.
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		unset( $query_params['exclude'] );
+		unset( $query_params['include'] );
+		unset( $query_params['search'] );
+		unset( $query_params['order'] );
+		unset( $query_params['orderby'] );
+		return $query_params;
+	}
 }
