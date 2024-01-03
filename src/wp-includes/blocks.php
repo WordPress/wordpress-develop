@@ -758,9 +758,9 @@ function get_hooked_blocks() {
 }
 
 /**
- * Conditionally returns the markup for a given hooked block type.
+ * Conditionally returns the markup for a given hooked block.
  *
- * Accepts two arguments: A reference to an anchor block, and the name of a hooked block type.
+ * Accepts two arguments: A reference to an anchor block, and hooked block.
  * If the anchor block has already been processed, and the given hooked block type is in the list
  * of ignored hooked blocks, an empty string is returned.
  *
@@ -769,15 +769,16 @@ function get_hooked_blocks() {
  * @since 6.5.0
  * @access private
  *
- * @param array   $anchor_block      The anchor block. Passed by reference.
- * @param string  $hooked_block_type The name of the hooked block type.
- * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
+ * @param array $anchor_block The anchor block. Passed by reference.
+ * @param array $hooked_block The hooked block, represented as a parsed block array.
+ * @return string The markup for the given hooked block, or an empty string if the block is ignored.
  */
-function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
+function get_hooked_block_markup( &$anchor_block, $hooked_block ) {
 	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 	}
 
+	$hooked_block_type = $hooked_block['blockName'];
 	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		return '';
 	}
@@ -786,7 +787,7 @@ function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
 	// However, its presence does not affect the frontend.
 	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
 
-	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+	return get_comment_delimited_block_content( $hooked_block_type, $hooked_block['attrs'], '' );
 }
 
 /**
@@ -822,7 +823,24 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 
 	$markup = '';
 	foreach ( $hooked_block_types as $hooked_block_type ) {
-		$markup .= get_hooked_block_markup( $anchor_block, $hooked_block_type );
+		$hooked_block = array(
+			'blockName' => $hooked_block_type,
+		);
+
+		/**
+		 * Filters the parsed block array for a given hooked block.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array                   $hooked_block      The parsed block array for the given hooked block type.
+		 * @param string                  $hooked_block_type The hooked block type name.
+		 * @param string                  $relative_position The relative position of the hooked block.
+		 * @param array                   $anchor_block      The anchor block.
+		 * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
+		 */
+		$hooked_block = apply_filters( 'hooked_block', $hooked_block, $hooked_block_type, $relative_position, $anchor_block, $context );
+
+		$markup .= get_hooked_block_markup( $anchor_block, $hooked_block );
 	}
 
 	return $markup;
