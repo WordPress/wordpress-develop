@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_widgets_add_menu function.
  *
- * @group Functions
+ * @group functions
  *
  * @covers ::wp_widgets_add_menu
  */
