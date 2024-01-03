@@ -827,19 +827,6 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 			'blockName' => $hooked_block_type,
 		);
 
-		/**
-		 * Filters the parsed block array for a given hooked block.
-		 *
-		 * @since 6.5.0
-		 *
-		 * @param array                   $hooked_block      The parsed block array for the given hooked block type.
-		 * @param string                  $hooked_block_type The hooked block type name.
-		 * @param string                  $relative_position The relative position of the hooked block.
-		 * @param array                   $anchor_block      The anchor block.
-		 * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
-		 */
-		$hooked_block = apply_filters( 'hooked_block', $hooked_block, $hooked_block_type, $relative_position, $anchor_block, $context );
-
 		$markup .= get_hooked_block_markup( $hooked_block, $anchor_block );
 	}
 
