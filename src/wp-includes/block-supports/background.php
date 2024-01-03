@@ -40,8 +40,7 @@ function wp_register_background_support( $block_type ) {
  * it is also applied to non-server-rendered blocks.
  *
  * @since 6.4.0
- * @since 6.5.0 Added support for `backgroundSize`, `backgroundPosition`,
- *              and `backgroundRepeat` output.
+ * @since 6.5.0 Added support for `backgroundPosition` and `backgroundRepeat` output.
  * @access private
  *
  * @param  string $block_content Rendered block content.
