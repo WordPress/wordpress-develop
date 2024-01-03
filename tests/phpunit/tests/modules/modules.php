@@ -342,9 +342,45 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 		$this->assertEquals( 2, count( $preloaded_modules ) );
 		$this->assertEquals( true, str_starts_with( $preloaded_modules['static-dep'], '/static-dep.js' ) );
 		$this->assertEquals( true, str_starts_with( $preloaded_modules['nested-static-dep'], '/nested-static-dep.js' ) );
-		$this->assertEquals( false, isset( $import_map['no-dep'] ) );
-		$this->assertEquals( false, isset( $import_map['dynamic-dep'] ) );
-		$this->assertEquals( false, isset( $import_map['nested-dynamic-dep'] ) );
+		$this->assertEquals( false, isset( $preloaded_modules['no-dep'] ) );
+		$this->assertEquals( false, isset( $preloaded_modules['dynamic-dep'] ) );
+		$this->assertEquals( false, isset( $preloaded_modules['nested-dynamic-dep'] ) );
+	}
+
+	/**
+	 * Tests that static dependencies of dynamic depenendencies are not preloaded.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::wp_register_module
+	 * @covers ::wp_enqueue_module
+	 * @covers WP_Modules::print_module_preloads
+	 */
+	public function test_wp_dont_preload_static_dependencies_of_dynamic_dependencies() {
+		wp_register_module(
+			'foo',
+			'/foo.js',
+			array(
+				'static-dep',
+				array(
+					'id'   => 'dynamic-dep',
+					'type' => 'dynamic',
+				),
+			)
+		);
+		wp_register_module( 'static-dep', '/static-dep.js' );
+		wp_register_module( 'dynamic-dep', '/dynamic-dep.js', array( 'nested-static-dep' ) );
+		wp_register_module( 'nested-static-dep', '/nested-static-dep.js' );
+		wp_register_module( 'no-dep', '/no-dep.js' );
+		wp_enqueue_module( 'foo' );
+
+		$preloaded_modules = $this->get_preloaded_modules();
+
+		$this->assertEquals( 1, count( $preloaded_modules ) );
+		$this->assertEquals( true, str_starts_with( $preloaded_modules['static-dep'], '/static-dep.js' ) );
+		$this->assertEquals( false, isset( $preloaded_modules['dynamic-dep'] ) );
+		$this->assertEquals( false, isset( $preloaded_modules['nested-static-dep'] ) );
+		$this->assertEquals( false, isset( $preloaded_modules['no-dep'] ) );
 	}
 
 	/**
