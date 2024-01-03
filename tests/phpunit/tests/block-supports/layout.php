@@ -256,7 +256,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * Check that wp_restore_group_inner_container() restores the legacy inner container on the Group block.
 	 *
-	 * @ticket 60130 
+	 * @ticket 60130
 	 *
 	 * @covers ::wp_restore_group_inner_container
 	 *
