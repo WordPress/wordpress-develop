@@ -111,7 +111,7 @@ class WP_oEmbed {
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
 			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
 			'#https?://play\.gumlet\.io/embed/.*#i'   => array( 'https://api.gumlet.com/v1/oembed', true ),
-			'#https?://www\.gumlet\.com/watch/.*#i'   => array( 'https://api.gumlet.com/v1/oembed', true ),
+			'#https?://(www\.)?gumlet\.com/watch/.*#i'   => array( 'https://api.gumlet.com/v1/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
