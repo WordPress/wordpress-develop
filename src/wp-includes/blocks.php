@@ -825,6 +825,7 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 	foreach ( $hooked_block_types as $hooked_block_type ) {
 		$hooked_block = array(
 			'blockName' => $hooked_block_type,
+			'attrs'     => array(),
 		);
 
 		/**
