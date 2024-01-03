@@ -292,7 +292,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 				'slug'  => 'cool-purple',
 				'color' => '#D1D1E4',
 			),
-		);			
+		);
 
 		// Add theme support for appearance tools.
 		add_theme_support( 'border' );
