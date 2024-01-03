@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_ob_end_flush_all function.
  *
- * @group Functions
+ * @group functions
  *
  * @covers ::wp_ob_end_flush_all
  */
