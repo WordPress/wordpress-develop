@@ -790,6 +790,45 @@ function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
 }
 
 /**
+ * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
+ *
+ * @since 6.5.0
+ *
+ * @param array                   $anchor_block      The anchor block.
+ * @param string                  $relative_position The relative position of the hooked blocks.
+ *                                                   Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks     An array of blocks hooked to the given anchor block.
+ * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
+ * @return string
+ */
+function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$anchor_block_type  = $anchor_block['blockName'];
+	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+		: array();
+
+	/**
+	 * Filters the list of hooked block types for a given anchor block type and relative position.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string[]                $hooked_block_types The list of hooked block types.
+	 * @param string                  $relative_position  The relative position of the hooked blocks.
+	 *                                                    Can be one of 'before', 'after', 'first_child', or 'last_child'.
+	 * @param string                  $anchor_block_type  The anchor block type.
+	 * @param WP_Block_Template|array $context            The block template, template part, or pattern that the anchor block belongs to.
+	 */
+	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+
+	$markup = '';
+	foreach ( $hooked_block_types as $hooked_block_type ) {
+		$markup .= get_hooked_block_markup( $anchor_block, $hooked_block_type );
+	}
+
+	return $markup;
+}
+
+/**
  * Returns a function that injects the theme attribute into, and hooked blocks before, a given block.
  *
  * The returned function can be used as `$pre_callback` argument to `traverse_and_serialize_block(s)`,
@@ -826,40 +865,10 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 
 		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
-			$relative_position  = 'first_child';
-			$anchor_block_type  = $parent_block['blockName'];
-			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-				: array();
-
-			/**
-			 * Filters the list of hooked block types for a given anchor block type and relative position.
-			 *
-			 * @since 6.4.0
-			 *
-			 * @param string[]                $hooked_block_types  The list of hooked block types.
-			 * @param string                  $relative_position   The relative position of the hooked blocks.
-			 *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
-			 * @param string                  $anchor_block_type   The anchor block type.
-			 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
-			 */
-			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
-			}
+			$markup .= insert_hooked_blocks( $parent_block, 'first_child', $hooked_blocks, $context );
 		}
 
-		$relative_position  = 'before';
-		$anchor_block_type  = $block['blockName'];
-		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-			? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-			: array();
-
-		/** This filter is documented in wp-includes/blocks.php */
-		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
-		}
+		$markup .= insert_hooked_blocks( $block, 'before', $hooked_blocks, $context );
 
 		return $markup;
 	};
@@ -895,33 +904,11 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
 	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
-		$markup = '';
-
-		$relative_position  = 'after';
-		$anchor_block_type  = $block['blockName'];
-		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-				: array();
-
-		/** This filter is documented in wp-includes/blocks.php */
-		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
-		}
+		$markup = insert_hooked_blocks( $block, 'after', $hooked_blocks, $context );
 
 		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
-			$relative_position  = 'last_child';
-			$anchor_block_type  = $parent_block['blockName'];
-			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-				: array();
-
-			/** This filter is documented in wp-includes/blocks.php */
-			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
-			}
+			$markup .= insert_hooked_blocks( $parent_block, 'last_child', $hooked_blocks, $context );
 		}
 
 		return $markup;
