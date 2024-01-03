@@ -1,29 +1,68 @@
-version: '3.1'
+version: "3.7"
 
 services:
   app:
-    image: wordpress
+    image: ghcr.io/ndigitals/wp-dev-container:php-8.2-node-20
     restart: always
-    ports:
-      - 8080:80
-    environment:
+    depends_on:
+      - db
+      - web
+    working_dir: /workspaces/wordpress-develop
+    environment: &env
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
-      WORDPRESS_DB_NAME: exampledb
+      WORDPRESS_DB_NAME: wordpress_develop
+      WORDPRESS_TESTS_DB_NAME: wordpress_develop_tests
+      CODESPACES: "${CODESPACES}"
+      CODESPACE_NAME: "${CODESPACE_NAME}"
+      GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: "${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}"
     volumes:
-      - ../..:/workspaces:cached
+      - ../:/workspaces/wordpress-develop:cached
+      - ../src:/app:cached
+      - ./wp-tests-config.php:/workspaces/wordpress-develop/wp-tests-config.php:ro,cached
+      - ./wp-config.php:/workspaces/wordpress-develop/src/wp-config.php:ro,cached
+      - ./wp-config.php:/app/wp-config.php:ro,cached
+      - ../tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
+    networks:
+      - wpdevnet
+
+  web:
+    image: httpd
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 8080:80
+    environment:
+      <<: *env
+    volumes:
+      - ../:/workspaces/wordpress-develop:cached
+      - ../src:/app:cached
+      - ./wp-config.php:/workspaces/wordpress-develop/src/wp-config.php:ro,cached
+      - ./wp-config.php:/app/wp-config.php:ro,cached
+      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro,cached
+    networks:
+      - wpdevnet
 
   db:
     image: mariadb
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: exampledb
+      MYSQL_DATABASE: wordpress_develop
       MYSQL_USER: exampleuser
       MYSQL_PASSWORD: examplepass
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
+      - ../tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init2.sql
+    networks:
+      - wpdevnet
 
 volumes:
   db:
+
+networks:
+  wpdevnet:
+

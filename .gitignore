@@ -1,4 +1,4 @@
-# gitignore file for WordPress Core
+/bin/bash: line 1: /: Is a directory
 
 # Configuration files with possibly sensitive information
 wp-config.php
@@ -87,6 +87,7 @@ wp-tests-config.php
 
 # Ignore other .gitignore files to allow for personal customizations
 .gitignore
+!.devcontainer/.gitignore
 
 # Files related to applying patches
 *.rej

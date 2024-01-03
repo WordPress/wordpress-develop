@@ -7,19 +7,28 @@
 
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "username": "wordpress"
-        },
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "16"
-        },
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        "ghcr.io/devcontainers/features/git:1": {}
+        "./local-features/chromium": "latest",
+        "./local-features/welcome-message": "latest"
     },
-    "onCreateCommand": "sudo chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
-    "postCreateCommand": "sudo chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh",
+
+    // Use 'postCreateCommand' to run commands after the container is created.
+    "postCreateCommand": "chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh",
+
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         8080
     ],
-    "remoteUser": "wordpress"
+
+    // Maps a port number, "host:port" value, range, or regular expression to a set of default options. See port attributes for available options
+    "portsAttributes": {
+        "8080": {
+            "label": "WordPress Development Site"
+        }
+    },
+
+    // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+    "remoteUser": "wp_php",
+
+    // A set of name-value pairs that sets or overrides environment variables for the devcontainer.json supporting service / tool (or sub-processes like terminals) but not the container as a whole.
+    "remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" }
 }

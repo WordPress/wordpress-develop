@@ -1,0 +1,8 @@
+{
+    "id": "chromium",
+    "name": "Install Chromium",
+    "install": {
+        "app": "",
+        "file": "install.sh"
+    }
+}
