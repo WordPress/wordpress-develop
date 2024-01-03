@@ -15,7 +15,7 @@ class Tests_Functions_wpObEndFlushAll extends WP_UnitTestCase {
 	public function test_wp_ob_end_flush_all() {
 
 		ob_start();
-		echo( 'output' );
+		echo 'output';
 
 		wp_ob_end_flush_all();
 		$this->assertEmpty( ob_get_contents() );
