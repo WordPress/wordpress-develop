@@ -7,7 +7,7 @@
  *
  * @covers ::wp_maybe_load_widgets
  */
-class Tests_Functions_wpMaybeLoadWidgete extends WP_UnitTestCase {
+class Tests_Functions_wpMaybeLoadWidgets extends WP_UnitTestCase {
 
 	public $submenu;
 
