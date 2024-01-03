@@ -122,9 +122,9 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$enqueued_modules = $this->get_enqueued_modules();
 
-		$this->assertEquals( 2, count( $enqueued_modules ) );
-		$this->assertEquals( true, str_starts_with( $enqueued_modules['foo'], '/foo.js' ) );
-		$this->assertEquals( true, str_starts_with( $enqueued_modules['bar'], '/bar.js' ) );
+		$this->assertCount( 2, $enqueued_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+		$this->assertStringStartsWith( '/bar.js', $enqueued_modules['bar'] );
 	}
 
 	/**
@@ -146,9 +146,9 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$enqueued_modules = $this->get_enqueued_modules();
 
-		$this->assertEquals( 1, count( $enqueued_modules ) );
-		$this->assertEquals( false, isset( $enqueued_modules['foo'] ) );
-		$this->assertEquals( true, isset( $enqueued_modules['bar'] ) );
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
+		$this->assertTrue( isset( $enqueued_modules['bar'] ) );
 	}
 
 	/**
@@ -168,9 +168,9 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$enqueued_modules = $this->get_enqueued_modules();
 
-		$this->assertEquals( 1, count( $enqueued_modules ) );
-		$this->assertEquals( true, str_starts_with( $enqueued_modules['foo'], '/foo.js' ) );
-		$this->assertEquals( false, isset( $enqueued_modules['bar'] ) );
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+		$this->assertFalse( isset( $enqueued_modules['bar'] ) );
 	}
 
 	/**
@@ -193,9 +193,9 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$enqueued_modules = $this->get_enqueued_modules();
 
-		$this->assertEquals( 1, count( $enqueued_modules ) );
-		$this->assertEquals( false, isset( $enqueued_modules['foo'] ) );
-		$this->assertEquals( true, isset( $enqueued_modules['bar'] ) );
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
+		$this->assertTrue( isset( $enqueued_modules['bar'] ) );
 	}
 
 	/**
@@ -216,9 +216,9 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$import_map = $this->get_import_map();
 
-		$this->assertEquals( 1, count( $import_map ) );
-		$this->assertEquals( true, str_starts_with( $import_map['dep'], '/dep.js' ) );
-		$this->assertEquals( false, isset( $import_map['no-dep'] ) );
+		$this->assertCount( 1, $import_map );
+		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
+		$this->assertFalse( isset( $import_map['no-dep'] ) );
 	}
 
 	/**
@@ -240,8 +240,8 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$import_map = $this->get_import_map();
 
-		$this->assertEquals( 1, count( $import_map ) );
-		$this->assertEquals( true, str_starts_with( $import_map['dep'], '/dep.js' ) );
+		$this->assertCount( 1, $import_map );
+		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
 	}
 
 	/**
@@ -288,11 +288,11 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$import_map = $this->get_import_map();
 
-		$this->assertEquals( true, str_starts_with( $import_map['static-dep'], '/static-dep.js' ) );
-		$this->assertEquals( true, str_starts_with( $import_map['dynamic-dep'], '/dynamic-dep.js' ) );
-		$this->assertEquals( true, str_starts_with( $import_map['nested-static-dep'], '/nested-static-dep.js' ) );
-		$this->assertEquals( true, str_starts_with( $import_map['nested-dynamic-dep'], '/nested-dynamic-dep.js' ) );
-		$this->assertEquals( false, isset( $import_map['no-dep'] ) );
+		$this->assertStringStartsWith( '/static-dep.js', $import_map['static-dep'] );
+		$this->assertStringStartsWith( '/dynamic-dep.js', $import_map['dynamic-dep'] );
+		$this->assertStringStartsWith( '/nested-static-dep.js', $import_map['nested-static-dep'] );
+		$this->assertStringStartsWith( '/nested-dynamic-dep.js', $import_map['nested-dynamic-dep'] );
+		$this->assertFalse( isset( $import_map['no-dep'] ) );
 	}
 
 	/**
@@ -339,12 +339,12 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$preloaded_modules = $this->get_preloaded_modules();
 
-		$this->assertEquals( 2, count( $preloaded_modules ) );
-		$this->assertEquals( true, str_starts_with( $preloaded_modules['static-dep'], '/static-dep.js' ) );
-		$this->assertEquals( true, str_starts_with( $preloaded_modules['nested-static-dep'], '/nested-static-dep.js' ) );
-		$this->assertEquals( false, isset( $preloaded_modules['no-dep'] ) );
-		$this->assertEquals( false, isset( $preloaded_modules['dynamic-dep'] ) );
-		$this->assertEquals( false, isset( $preloaded_modules['nested-dynamic-dep'] ) );
+		$this->assertCount( 2, $preloaded_modules );
+		$this->assertStringStartsWith( '/static-dep.js', $preloaded_modules['static-dep'] );
+		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_modules['nested-static-dep'] );
+		$this->assertFalse( isset( $preloaded_modules['no-dep'] ) );
+		$this->assertFalse( isset( $preloaded_modules['dynamic-dep'] ) );
+		$this->assertFalse( isset( $preloaded_modules['nested-dynamic-dep'] ) );
 	}
 
 	/**
@@ -376,11 +376,11 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$preloaded_modules = $this->get_preloaded_modules();
 
-		$this->assertEquals( 1, count( $preloaded_modules ) );
-		$this->assertEquals( true, str_starts_with( $preloaded_modules['static-dep'], '/static-dep.js' ) );
-		$this->assertEquals( false, isset( $preloaded_modules['dynamic-dep'] ) );
-		$this->assertEquals( false, isset( $preloaded_modules['nested-static-dep'] ) );
-		$this->assertEquals( false, isset( $preloaded_modules['no-dep'] ) );
+		$this->assertCount( 1, $preloaded_modules );
+		$this->assertStringStartsWith( '/static-dep.js', $preloaded_modules['static-dep'] );
+		$this->assertFalse( isset( $preloaded_modules['dynamic-dep'] ) );
+		$this->assertFalse( isset( $preloaded_modules['nested-static-dep'] ) );
+		$this->assertFalse( isset( $preloaded_modules['no-dep'] ) );
 	}
 
 	/**
@@ -408,9 +408,9 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$preloaded_modules = $this->get_preloaded_modules();
 
-		$this->assertEquals( 1, count( $preloaded_modules ) );
-		$this->assertEquals( true, isset( $preloaded_modules['dep'] ) );
-		$this->assertEquals( false, isset( $preloaded_modules['enqueued-dep'] ) );
+		$this->assertCount( 1, $preloaded_modules );
+		$this->assertTrue( isset( $preloaded_modules['dep'] ) );
+		$this->assertFalse( isset( $preloaded_modules['enqueued-dep'] ) );
 	}
 
 	/**
@@ -439,8 +439,8 @@ class Tests_Modules_Functions extends WP_UnitTestCase {
 
 		$import_map = $this->get_import_map();
 
-		$this->assertEquals( 2, count( $import_map ) );
-		$this->assertEquals( true, isset( $import_map['dep'] ) );
-		$this->assertEquals( true, isset( $import_map['enqueued-dep'] ) );
+		$this->assertCount( 2, $import_map );
+		$this->assertTrue( isset( $import_map['dep'] ) );
+		$this->assertTrue( isset( $import_map['enqueued-dep'] ) );
 	}
 }
