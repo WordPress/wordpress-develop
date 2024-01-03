@@ -269,7 +269,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		$args = array(
 			array(
 				'name'  => 'Black',
-				'slug'  => 'black',
+				'slug'  => 'nice-black',
 				'color' => '#000000',
 			),
 			array(
@@ -279,17 +279,17 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 			),
 			array(
 				'name'  => 'Green',
-				'slug'  => 'green',
+				'slug'  => 'haunted-green',
 				'color' => '#D1E4DD',
 			),
 			array(
 				'name'  => 'Blue',
-				'slug'  => 'blue',
+				'slug'  => 'soft-blue',
 				'color' => '#D1DFE4',
 			),
 			array(
 				'name'  => 'Purple',
-				'slug'  => 'purple',
+				'slug'  => 'cool-purple',
 				'color' => '#D1D1E4',
 			),
 		);				
@@ -299,13 +299,22 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		add_theme_support('editor-color-palette', $args);
 		$this->remove_border_support_at_teardown = true;
 
-		$styles = wp_get_global_stylesheet( array( 'presets' ) );
+		// Check for both the variable declaration and its use as a value.
+		$variables = wp_get_global_stylesheet( array( 'variables' ) );
 
-		$this->assertStringContainsString( 'var(--wp--preset--color--black)', $styles );
-		$this->assertStringContainsString( 'var(--wp--preset--color--dark-gray)', $styles );
-		$this->assertStringContainsString( 'var(--wp--preset--color--green)', $styles );
-		$this->assertStringContainsString( 'var(--wp--preset--color--blue)', $styles );
-		$this->assertStringContainsString( 'var(--wp--preset--color--purple)', $styles );
+		$this->assertStringContainsString( '--wp--preset--color--nice-black: #000000', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--dark-gray: #28303D', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--haunted-green: #D1E4DD', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--soft-blue: #D1DFE4', $variables );
+		$this->assertStringContainsString( '--wp--preset--color--cool-purple: #D1D1E4', $variables );
+
+		$presets = wp_get_global_stylesheet( array( 'presets' ) );
+
+		$this->assertStringContainsString( 'var(--wp--preset--color--nice-black)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--dark-gray)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--haunted-green)', $presets );
+		$this->assertStringContainsString( 'var(--wp--preset--color--soft-blue)', $presets );	
+		$this->assertStringContainsString( 'var(--wp--preset--color--cool-purple)', $presets );
 	}
 
 	/**
