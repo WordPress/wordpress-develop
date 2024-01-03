@@ -192,7 +192,7 @@ class WP_oEmbed {
 		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
 		 * | Crowdsignal  | crowdsignal.net                           | 6.2.0   |
 		 * | Anghami      | anghami.com                               | 6.3.0   |
-		 * | Gumlet		  | Gumlet.com								  | 6.5.0	|
+		 * | Gumlet       | Gumlet.com                                | 6.5.0   |
 		 *
 		 * No longer supported providers:
 		 *
