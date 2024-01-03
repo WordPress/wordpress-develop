@@ -419,6 +419,414 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @ticket 58524
+	 * @ticket 60131
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_item_permissions_check
+	 */
+	public function test_get_item_permissions_check() {
+		wp_set_current_user( self::$author_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
+	}
+
+	/**
+	 * Tests the pagination header of the first page.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_pagination_header_of_the_first_page
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_pagination_header_of_the_first_page() {
+		wp_set_current_user( self::$admin_id );
+
+		$rest_route  = '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions';
+		$per_page    = 2;
+		$total_pages = (int) ceil( $this->total_revisions / $per_page );
+		$page        = 1;  // First page.
+
+		$request = new WP_REST_Request( 'GET', $rest_route );
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$headers  = $response->get_headers();
+		$this->assertSame( $this->total_revisions, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$next_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page + 1,
+			),
+			rest_url( $rest_route )
+		);
+		$this->assertStringNotContainsString( 'rel="prev"', $headers['Link'] );
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+	}
+
+	/**
+	 * Tests the pagination header of the last page.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_pagination_header_of_the_last_page
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_pagination_header_of_the_last_page() {
+		wp_set_current_user( self::$admin_id );
+
+		$rest_route  = '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions';
+		$per_page    = 2;
+		$total_pages = (int) ceil( $this->total_revisions / $per_page );
+		$page        = 2;  // Last page.
+
+		$request = new WP_REST_Request( 'GET', $rest_route );
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$headers  = $response->get_headers();
+		$this->assertSame( $this->total_revisions, $headers['X-WP-Total'] );
+		$this->assertSame( $total_pages, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page - 1,
+			),
+			rest_url( $rest_route )
+		);
+		$this->assertStringContainsString( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+	}
+
+	/**
+	 * Tests that invalid 'per_page' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_per_page_should_error
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_invalid_per_page_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = -1; // Invalid number.
+		$expected_error  = 'rest_invalid_param';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_param( 'per_page', $per_page );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that out of bounds 'page' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bounds_page_should_error
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_out_of_bounds_page_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = 2;
+		$total_pages     = (int) ceil( $this->total_revisions / $per_page );
+		$page            = $total_pages + 1; // Out of bound page.
+		$expected_error  = 'rest_revision_invalid_page_number';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that impossibly high 'page' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_max_pages_should_error
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_invalid_max_pages_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = 2;
+		$page            = REST_TESTS_IMPOSSIBLY_HIGH_NUMBER; // Invalid number.
+		$expected_error  = 'rest_revision_invalid_page_number';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that the default query should fetch all revisions.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_default_query_should_fetch_all_revisons
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_default_query_should_fetch_all_revisons() {
+		wp_set_current_user( self::$admin_id );
+
+		$expected_count = $this->total_revisions;
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+	/**
+	 * Tests that 'offset' query shouldn't work without 'per_page' (fallback -1).
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_offset_should_not_work_without_per_page
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_offset_should_not_work_without_per_page() {
+		wp_set_current_user( self::$admin_id );
+
+		$offset         = 1;
+		$expected_count = $this->total_revisions;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_param( 'offset', $offset );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+	/**
+	 * Tests that 'offset' query should work with 'per_page'.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_offset_should_work_with_per_page
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_offset_should_work_with_per_page() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page       = 2;
+		$offset         = 1;
+		$expected_count = 2;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+	/**
+	 * Tests that 'offset' query should take priority over 'page'.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_offset_should_take_priority_over_page
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_offset_should_take_priority_over_page() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page       = 2;
+		$offset         = 1;
+		$page           = 1;
+		$expected_count = 2;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+	/**
+	 * Tests that 'offset' query, as the total revisions count, should return empty data.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_total_revisions_offset_should_return_empty_data
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_total_revisions_offset_should_return_empty_data() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = 2;
+		$offset          = $this->total_revisions;
+		$expected_error  = 'rest_revision_invalid_offset_number';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that out of bound 'offset' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bound_offset_should_error
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_out_of_bound_offset_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = 2;
+		$offset          = $this->total_revisions + 1;
+		$expected_error  = 'rest_revision_invalid_offset_number';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that impossible high number for 'offset' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_impossible_high_number_offset_should_error
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_impossible_high_number_offset_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = 2;
+		$offset          = REST_TESTS_IMPOSSIBLY_HIGH_NUMBER;
+		$expected_error  = 'rest_revision_invalid_offset_number';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that invalid 'offset' query should error.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_offset_should_error
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_invalid_offset_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page        = 2;
+		$offset          = 'moreplease';
+		$expected_error  = 'rest_invalid_param';
+		$expected_status = 400;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => $offset,
+				'per_page' => $per_page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
+	}
+
+	/**
+	 * Tests that out of bounds 'page' query should not error when offset is provided,
+	 * because it takes precedence.
+	 *
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bounds_page_should_not_error_if_offset
+	 *
+	 * @ticket 58524
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_items_out_of_bounds_page_should_not_error_if_offset() {
+		wp_set_current_user( self::$admin_id );
+
+		$per_page       = 2;
+		$total_pages    = (int) ceil( $this->total_revisions / $per_page );
+		$page           = $total_pages + 1; // Out of bound page.
+		$expected_count = 2;
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_query_params(
+			array(
+				'offset'   => 1,
+				'per_page' => $per_page,
+				'page'     => $page,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
