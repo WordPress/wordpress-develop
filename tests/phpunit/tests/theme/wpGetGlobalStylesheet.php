@@ -19,6 +19,13 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	private $remove_theme_support_at_teardown = false;
 
 	/**
+	 * Flag to indicate whether to remove 'border' theme support at tear_down().
+	 * 
+	 * @var bool
+	 */
+	private $remove_border_support_at_teardown = false;
+
+	/**
 	 * Flag to indicate whether to switch back to the default theme at tear down.
 	 *
 	 * @var bool
@@ -38,6 +45,12 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		if ( $this->switch_to_default_theme_at_teardown ) {
 			$this->switch_to_default_theme_at_teardown = false;
 			switch_theme( WP_DEFAULT_THEME );
+		}
+
+		if ( $this->remove_border_support_at_teardown ) {
+			$this->remove_border_support_at_teardown = false;
+			remove_theme_support( 'border' );
+			remove_theme_support( 'editor-color-palette' );
 		}
 
 		parent::tear_down();
@@ -244,6 +257,55 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		// When the development mode is set to 'theme', caching should not be used.
 		$_wp_tests_development_mode = 'theme';
 		$this->assertNotSame( $css, wp_get_global_stylesheet(), 'Caching was used despite theme development mode' );
+	}
+
+	/**
+	 * Tests that theme color palette presets are output when appearance tools are enabled via theme support.
+	 * 
+	 * @ticket 60134
+	 */
+	public function test_theme_color_palette_presets_output_when_border_support_enabled() {
+
+		$args = array(
+			array(
+				'name'  => 'Black',
+				'slug'  => 'black',
+				'color' => '#000000',
+			),
+			array(
+				'name'  => 'Dark Gray',
+				'slug'  => 'dark-gray',
+				'color' => '#28303D',
+			),
+			array(
+				'name'  => 'Green',
+				'slug'  => 'green',
+				'color' => '#D1E4DD',
+			),
+			array(
+				'name'  => 'Blue',
+				'slug'  => 'blue',
+				'color' => '#D1DFE4',
+			),
+			array(
+				'name'  => 'Purple',
+				'slug'  => 'purple',
+				'color' => '#D1D1E4',
+			),
+		);				
+
+		// Add theme support for appearance tools.
+		add_theme_support( 'border' );
+		add_theme_support('editor-color-palette', $args);
+		$this->remove_border_support_at_teardown = true;
+
+		$styles = wp_get_global_stylesheet( array( 'presets' ) );
+
+		$this->assertStringContainsString( 'var(--wp--preset--color--black)', $styles );
+		$this->assertStringContainsString( 'var(--wp--preset--color--dark-gray)', $styles );
+		$this->assertStringContainsString( 'var(--wp--preset--color--green)', $styles );
+		$this->assertStringContainsString( 'var(--wp--preset--color--blue)', $styles );
+		$this->assertStringContainsString( 'var(--wp--preset--color--purple)', $styles );
 	}
 
 	/**
