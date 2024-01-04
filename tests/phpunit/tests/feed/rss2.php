@@ -109,6 +109,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	/**
 	 * Test the <rss> element to make sure its present and populated
 	 * with the expected child elements and attributes.
+	 *
+	 * @covers ::xml_find
 	 */
 	public function test_rss_element() {
 		$this->go_to( '/?feed=rss2' );
@@ -132,6 +134,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 	/**
 	 * [test_channel_element description]
+	 *
+	 * @covers ::xml_find
 	 *
 	 * @return [type] [description]
 	 */
@@ -164,6 +168,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 * Test that translated feeds have a valid listed date.
 	 *
 	 * @ticket 39141
+	 *
+	 * @covers ::xml_find
 	 */
 	public function test_channel_pubdate_element_translated() {
 		$original_locale = $GLOBALS['wp_locale'];
@@ -188,6 +194,9 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Tue_Translated', $pubdate[0]['content'] );
 	}
 
+	/**
+	 * @covers ::xml_find
+	 */
 	public function test_item_elements() {
 		$this->go_to( '/?feed=rss2' );
 		$feed = $this->do_rss2();
@@ -278,6 +287,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9134
+	 *
+	 * @covers ::xml_find
 	 */
 	public function test_items_comments_closed() {
 		add_filter( 'comments_open', '__return_false' );
@@ -308,11 +319,14 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		remove_filter( 'comments_open', '__return_false' );
 	}
 
-	/*
+	/**
 	 * Check to make sure we are rendering feed templates for the home feed.
 	 * e.g. https://example.com/feed/
 	 *
 	 * @ticket 30210
+	 *
+	 * @covers ::xml_find
+	 * @covers ::have_posts
 	 */
 	public function test_valid_home_feed_endpoint() {
 		// An example of a valid home feed endpoint.
@@ -336,11 +350,14 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$this->assertCount( 1, $rss );
 	}
 
-	/*
+	/**
 	 * Check to make sure we are rendering feed templates for the taxonomy feeds.
 	 * e.g. https://example.com/category/foo/feed/
 	 *
 	 * @ticket 30210
+	 *
+	 * @covers ::xml_find
+	 * @covers ::have_posts
 	 */
 	public function test_valid_taxonomy_feed_endpoint() {
 		// An example of an valid taxonomy feed endpoint.
@@ -364,11 +381,14 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$this->assertCount( 1, $rss );
 	}
 
-	/*
+	/**
 	 * Check to make sure we are rendering feed templates for the main comment feed.
 	 * e.g. https://example.com/comments/feed/
 	 *
 	 * @ticket 30210
+	 *
+	 * @covers ::xml_find
+	 * @covers ::have_comments
 	 */
 	public function test_valid_main_comment_feed_endpoint() {
 		// Generate a bunch of comments.
@@ -397,11 +417,14 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$this->assertCount( 1, $rss );
 	}
 
-	/*
+	/**
 	 * Check to make sure we are rendering feed templates for the date archive feeds.
 	 * e.g. https://example.com/2003/05/27/feed/
 	 *
 	 * @ticket 30210
+	 *
+	 * @covers ::xml_find
+	 * @covers ::have_comments
 	 */
 	public function test_valid_archive_feed_endpoint() {
 		// An example of an valid date archive feed endpoint.
@@ -425,11 +448,14 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$this->assertCount( 1, $rss );
 	}
 
-	/*
+	/**
 	 * Check to make sure we are rendering feed templates for single post comment feeds.
 	 * e.g. https://example.com/2003/05/27/post-name/feed/
 	 *
 	 * @ticket 30210
+	 *
+	 * @covers ::xml_find
+	 * @covers ::have_comments
 	 */
 	public function test_valid_single_post_comment_feed_endpoint() {
 		// An example of an valid date archive feed endpoint.
@@ -453,11 +479,14 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		$this->assertCount( 1, $rss );
 	}
 
-	/*
+	/**
 	 * Check to make sure we are rendering feed templates for the search archive feeds.
 	 * e.g. https://example.com/?s=Lorem&feed=rss
 	 *
 	 * @ticket 30210
+	 *
+	 * @covers ::xml_find
+	 * @covers ::have_comments
 	 */
 	public function test_valid_search_feed_endpoint() {
 		// An example of an valid search feed endpoint.
@@ -487,6 +516,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 * @ticket 4575
 	 *
 	 * @dataProvider data_get_feed_build_date
+	 *
+	 * @covers ::xml_find
 	 */
 	public function test_get_feed_build_date( $url, $element ) {
 		$this->go_to( $url );

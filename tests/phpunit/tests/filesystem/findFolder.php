@@ -5,6 +5,8 @@ require_once __DIR__ . '/base.php';
 /**
  * @group file
  * @group filesystem
+ *
+ * @coversNothing
  */
 class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
 
