@@ -274,7 +274,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			// Assuming non-traditional registration doesn't use the script field
 			// or has a different mechanism that doesn't involve .asset.php
 		);
-		$result   = register_block_script_handle( $metadata, 'script' );
+		$result = register_block_script_handle( $metadata, 'script' );
 
 		// Assert that the result is false as expected in non-traditional scenarios
 		$this->assertFalse( $result );
