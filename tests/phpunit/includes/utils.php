@@ -134,6 +134,26 @@ class MockAction {
 	}
 
 	/**
+	 * @since 6.6.0
+	 */
+	public function action3( array $arg ) {
+		$current_filter = $this->current_filter();
+
+		if ( $this->debug ) {
+			dmp( __FUNCTION__, $current_filter );
+		}
+
+		$this->events[] = array(
+			'action'    => __FUNCTION__,
+			'hook_name' => $current_filter,
+			'tag'       => $current_filter, // Back compat.
+			'args'      => func_get_args(),
+		);
+
+		return $arg;
+	}
+
+	/**
 	 * @since UT (3.7.0)
 	 */
 	public function filter( $arg ) {
