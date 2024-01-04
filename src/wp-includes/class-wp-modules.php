@@ -18,15 +18,14 @@ class WP_Modules {
 	 * Holds the registered modules, keyed by module identifier.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var array
 	 */
 	private $registered = array();
+
 	/**
 	 * Holds the module identifiers that were enqueued before registered.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var array
 	 */
 	private $enqueued_before_registered = array();
