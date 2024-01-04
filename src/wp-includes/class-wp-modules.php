@@ -71,7 +71,7 @@ class WP_Modules {
 			$this->registered[ $module_identifier ] = array(
 				'src'          => $src,
 				'version'      => $version,
-				'enqueued'     => in_array( $module_identifier, $this->enqueued_before_registered, true ),
+				'enqueued'     => isset( $this->enqueued_before_registered[ $module_identifier ] ),
 				'dependencies' => $deps,
 			);
 		}
@@ -87,8 +87,8 @@ class WP_Modules {
 	public function enqueue( $module_identifier ) {
 		if ( isset( $this->registered[ $module_identifier ] ) ) {
 			$this->registered[ $module_identifier ]['enqueued'] = true;
-		} elseif ( ! in_array( $module_identifier, $this->enqueued_before_registered, true ) ) {
-			$this->enqueued_before_registered[] = $module_identifier;
+		} else {
+			$this->enqueued_before_registered[ $module_identifier ] = true;
 		}
 	}
 
@@ -103,10 +103,7 @@ class WP_Modules {
 		if ( isset( $this->registered[ $module_identifier ] ) ) {
 			$this->registered[ $module_identifier ]['enqueued'] = false;
 		}
-		$key = array_search( $module_identifier, $this->enqueued_before_registered, true );
-		if ( false !== $key ) {
-			array_splice( $this->enqueued_before_registered, $key, 1 );
-		}
+		unset( $this->enqueued_before_registered[ $module_identifier ] );
 	}
 
 	/**
