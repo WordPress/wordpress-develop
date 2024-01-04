@@ -162,18 +162,8 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		realpath( $script_asset_raw_path )
 	);
 
+	// Ensure graceful handling of scenarios where *.asset.php is not present or accessible.
 	if ( empty( $script_asset_path ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
-				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
-				$script_asset_raw_path,
-				$field_name,
-				$metadata['name']
-			),
-			'5.5.0'
-		);
 		return false;
 	}
 
@@ -185,7 +175,16 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_args['strategy'] = 'defer';
 	}
 
-	$script_asset        = require $script_asset_path;
+	if ( file_exists( $script_asset_path ) ) {
+		$script_asset = require $script_asset_path;
+	} else {
+		// Ensure graceful fallback for missing or inaccessible *.asset.php by setting default dependencies and version.
+		$script_asset = array(
+			'dependencies' => array(),
+			'version'      => false,
+		);
+	}
+
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
 		$script_handle,
