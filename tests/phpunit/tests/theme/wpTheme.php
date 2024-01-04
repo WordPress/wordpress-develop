@@ -51,6 +51,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		return $this->theme_root;
 	}
 
+	/**
+	 * @covers WP_Theme::__construct
+	 */
 	public function test_new_WP_Theme_top_level() {
 		$theme = new WP_Theme( 'theme1', $this->theme_root );
 
@@ -69,7 +72,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$this->assertSame( 'theme1', $theme->get_stylesheet() );
 		$this->assertSame( 'theme1', $theme->get_template() );
 	}
-
+	/**
+	 * @covers WP_Theme::__construct
+	 */
 	public function test_new_WP_Theme_subdir() {
 		$theme = new WP_Theme( 'subdir/theme2', $this->theme_root );
 
@@ -91,6 +96,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20313
+	 *
+	 * @covers WP_Theme::__construct
 	 */
 	public function test_new_WP_Theme_subdir_bad_root() {
 		// This is what get_theme_data() does when you pass it a style.css file for a theme in a subdirectory.
@@ -128,6 +135,10 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21749
+	 *
+	 * @covers WP_Theme::__construct
+	 * @covers ::get_stylesheet_directory_uri
+	 * @covers ::get_template_directory_uri
 	 */
 	public function test_wp_theme_uris_with_spaces() {
 		$theme = new WP_Theme( 'theme with spaces', $this->theme_root . '/subdir' );
@@ -145,6 +156,9 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21969
+	 *
+	 * @covers ::get_stylesheet_directory_uri
+	 * @covers ::get_template_directory_uri
 	 */
 	public function test_theme_uris_with_spaces() {
 		$callback = array( $this, 'filter_theme_with_spaces' );
@@ -164,6 +178,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26873
+	 *
+	 * @covers WP_Theme::__construct
 	 */
 	public function test_display_method_on_get_method_failure() {
 		$theme = new WP_Theme( 'nonexistent', $this->theme_root );
@@ -175,6 +191,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40820
+	 *
+	 * @covers WP_Theme::__construct
 	 */
 	public function test_child_theme_with_itself_as_parent_should_appear_as_broken() {
 		$theme  = new WP_Theme( 'child-parent-itself', $this->theme_root );
@@ -189,6 +207,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @ticket 30594
 	 * @group ms-required
+	 *
+	 * @covers WP_Theme::network_enable_theme
 	 */
 	public function test_wp_theme_network_enable_single_theme() {
 		$theme                  = 'testtheme-1';
@@ -206,6 +226,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @ticket 30594
 	 * @group ms-required
+	 *
+	 * @covers WP_Theme::network_enable_theme
 	 */
 	public function test_wp_theme_network_enable_multiple_themes() {
 		$themes                 = array( 'testtheme-2', 'testtheme-3' );
@@ -229,6 +251,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @ticket 30594
 	 * @group ms-required
+	 *
+	 * @covers WP_Theme::network_disable_theme
 	 */
 	public function test_network_disable_single_theme() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );
@@ -254,6 +278,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @ticket 30594
 	 * @group ms-required
+	 *
+	 * @covers WP_Theme::network_disable_theme
 	 */
 	public function test_network_disable_multiple_themes() {
 		$current_allowed_themes = get_site_option( 'allowedthemes' );

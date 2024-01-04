@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::get_object_taxonomies
  */
 class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 	public function set_up() {

@@ -5,6 +5,10 @@
  */
 class Tests_Theme_Support extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::add_theme_support
+	 * @covers ::current_theme_supports
+	 */
 	public function test_the_basics() {
 		add_theme_support( 'automatic-feed-links' );
 		$this->assertTrue( current_theme_supports( 'automatic-feed-links' ) );
@@ -14,6 +18,10 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertTrue( current_theme_supports( 'automatic-feed-links' ) );
 	}
 
+	/**
+	 * @covers ::add_theme_support
+	 * @covers ::current_theme_supports
+	 */
 	public function test_admin_bar() {
 		add_theme_support( 'admin-bar' );
 		$this->assertTrue( current_theme_supports( 'admin-bar' ) );
@@ -34,6 +42,11 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertFalse( get_theme_support( 'admin-bar' ) );
 	}
 
+	/**
+	 * @covers ::add_theme_support
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
+	 */
 	public function test_post_thumbnails() {
 		add_theme_support( 'post-thumbnails' );
 		$this->assertTrue( current_theme_supports( 'post-thumbnails' ) );
@@ -43,6 +56,11 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertTrue( current_theme_supports( 'post-thumbnails' ) );
 	}
 
+	/**
+	 * @covers ::add_theme_support
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
+	 */
 	public function test_post_thumbnails_flat_array_of_post_types() {
 		remove_theme_support( 'post-thumbnails' );
 
@@ -55,6 +73,10 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22080
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
 	 */
 	public function test_post_thumbnails_mixed_args() {
 		add_theme_support( 'post-thumbnails', array( 'post', 'page' ) );
@@ -78,6 +100,10 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @ticket 24932
 	 *
 	 * @expectedIncorrectUsage add_theme_support( 'html5' )
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
 	 */
 	public function test_supports_html5() {
 		remove_theme_support( 'html5' );
@@ -100,6 +126,10 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @ticket 24932
 	 *
 	 * @expectedIncorrectUsage add_theme_support( 'html5' )
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
 	 */
 	public function test_supports_html5_subset() {
 		remove_theme_support( 'html5' );
@@ -133,6 +163,9 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @ticket 24932
 	 *
 	 * @expectedIncorrectUsage add_theme_support( 'html5' )
+	 *
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
 	 */
 	public function test_supports_html5_invalid() {
 		remove_theme_support( 'html5' );
@@ -145,6 +178,8 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @ticket 51390
 	 *
 	 * @expectedIncorrectUsage add_theme_support( 'post-formats' )
+	 *
+	 * @covers ::add_theme_support
 	 */
 	public function test_supports_post_formats_doing_it_wrong() {
 		// The second parameter should be an array.
@@ -160,6 +195,8 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 11611
+	 *
+	 * @covers ::current_theme_supports
 	 */
 	public function test_plugin_hook() {
 		$this->assertFalse( current_theme_supports( 'foobar' ) );
@@ -189,6 +226,8 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26900
+	 *
+	 * @covers ::current_theme_supports
 	 */
 	public function test_supports_menus() {
 		// Start fresh.
@@ -219,6 +258,10 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45125
+	 *
+	 * @covers ::add_theme_support
+	 * @covers ::remove_theme_support
+	 * @covers ::current_theme_supports
 	 */
 	public function test_responsive_embeds() {
 		add_theme_support( 'responsive-embeds' );

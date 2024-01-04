@@ -4,6 +4,10 @@
  * @group taxonomy
  */
 class Tests_WP_Taxonomy extends WP_UnitTestCase {
+
+	/**
+	 * @covers WP_Taxonomy
+	 */
 	public function test_instances() {
 		global $wp_taxonomies;
 
@@ -12,6 +16,9 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers WP_Taxonomy::add_rewrite_rules
+	 */
 	public function test_does_not_add_query_var_if_not_public() {
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -25,6 +32,10 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		$this->assertNotContains( 'foobar', $wp->public_query_vars );
 	}
 
+	/**
+	 * @covers WP_Taxonomy::add_rewrite_rules
+	 * @covers WP_Taxonomy::remove_rewrite_rules
+	 */
 	public function test_adds_query_var_if_public() {
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -52,6 +63,10 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( $in_array_after );
 	}
 
+	/**
+	 * @covers WP_Taxonomy::add_rewrite_rules
+	 * @covers WP_Taxonomy::remove_rewrite_rules
+	 */
 	public function test_adds_rewrite_rules() {
 		$this->set_permalink_structure( '/%postname%' );
 
@@ -78,6 +93,10 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		$this->assertFalse( array_search( "%$taxonomy%", $rewrite_tags_after, true ) );
 	}
 
+	/**
+	 * @covers WP_Taxonomy::add_hooks
+	 * @covers WP_Taxonomy::remove_hooks
+	 */
 	public function test_adds_ajax_callback() {
 		$taxonomy        = 'taxonomy4';
 		$taxonomy_object = new WP_Taxonomy(

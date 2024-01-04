@@ -5,6 +5,8 @@ if ( is_multisite() ) :
 	 *
 	 * @group themes
 	 * @group multisite
+	 *
+	 * @covers WP_Theme::get_allowed
 	 */
 	class Tests_Theme_wpThemeGetAllowedFilters extends WP_UnitTestCase {
 		/**

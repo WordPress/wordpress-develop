@@ -12,11 +12,17 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->q = new WP_Query();
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_with_relation_default() {
 		$tq = new WP_Tax_Query( array() );
 		$this->assertSame( 'AND', $tq->relation );
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_with_relation_or_lowercase() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -26,6 +32,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'OR', $tq->relation );
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_with_relation_or_uppercase() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -35,6 +44,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'OR', $tq->relation );
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_with_relation_other() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -44,6 +56,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'AND', $tq->relation );
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_fill_missing_query_params() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -62,6 +77,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_fill_missing_query_params_merge_with_passed_values() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -85,6 +103,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected, $tq->queries[0] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query
+	 */
 	public function test_construct_cast_terms_to_array() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -99,6 +120,8 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30117
+	 *
+	 * @covers WP_Tax_Query
 	 */
 	public function test_construct_empty_strings_array_members_should_be_discarded() {
 		$q = new WP_Tax_Query(
@@ -114,6 +137,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertCount( 1, $q->queries );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_terms_empty() {
 		$tq    = new WP_Tax_Query(
 			array(
@@ -127,6 +153,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( $query, $tq->queries[0] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_field_same_as_resulting_field() {
 		$tq    = new WP_Tax_Query(
 			array(
@@ -142,6 +171,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( $query, $tq->queries[0] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_resulting_field_sanitized() {
 		$t1 = self::factory()->category->create( array( 'slug' => 'foo' ) );
 		$t2 = self::factory()->category->create( array( 'slug' => 'bar' ) );
@@ -171,6 +203,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( $tq1->queries[0], $tq2->queries[0] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_field_slug() {
 		$t1     = self::factory()->category->create( array( 'slug' => 'foo' ) );
 		$p      = self::factory()->post->create();
@@ -191,6 +226,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'term_taxonomy_id', $tq->queries[0]['field'] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_field_name() {
 		$t1     = self::factory()->category->create(
 			array(
@@ -216,6 +254,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'term_taxonomy_id', $tq->queries[0]['field'] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_field_term_taxonomy_id() {
 		$t1     = self::factory()->category->create(
 			array(
@@ -241,6 +282,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'term_id', $tq->queries[0]['field'] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_field_term_taxonomy_default() {
 		$t1     = self::factory()->category->create(
 			array(
@@ -266,6 +310,9 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		$this->assertSame( 'term_taxonomy_id', $tq->queries[0]['field'] );
 	}
 
+	/**
+	 * @covers WP_Tax_Query::transform_query
+	 */
 	public function test_transform_query_nonexistent_terms() {
 		$tq = new WP_Tax_Query(
 			array(
@@ -283,6 +330,8 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18105
+	 *
+	 * @covers WP_Tax_Query::get_sql
 	 */
 	public function test_get_sql_relation_or_operator_in() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -449,6 +498,8 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29738
+	 *
+	 * @covers WP_Tax_Query::get_sql
 	 */
 	public function test_get_sql_operator_not_in_empty_terms() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -478,6 +529,8 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29738
+	 *
+	 * @covers WP_Tax_Query::get_sql
 	 */
 	public function test_get_sql_operator_and_empty_terms() {
 		register_taxonomy( 'wptests_tax', 'post' );
