@@ -2520,7 +2520,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		// Sanity check to ensure the factory created the post correctly.
+		// Confidence check to ensure the factory created the post correctly.
 		$post = get_post( $test_post );
 		$this->assertEquals( $user_id, $post->post_author );
 
