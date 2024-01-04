@@ -1934,13 +1934,11 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$can_use_cached = ! wp_is_development_mode( 'theme' );
-
 		$args      = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
 		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
 		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
 
-		if ( $can_use_cached && $cache ) {
+		if ( $cache ) {
 			return $cache;
 		}
 
@@ -2010,9 +2008,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		if ( $can_use_cached ) {
-			wp_cache_set( $cache_key, $declarations, 'wp-styles', DAY_IN_SECONDS );
-		}
+		wp_cache_set( $cache_key, $declarations, 'wp-styles', DAY_IN_SECONDS );
 
 		return $declarations;
 	}
