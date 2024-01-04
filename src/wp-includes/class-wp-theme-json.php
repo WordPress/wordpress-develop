@@ -1934,7 +1934,8 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$args      = func_get_args(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
+		// The global settings can include dynamic data related to typography. We need evaluate it so that the cache is invalidated when it changes.
+		$args      = array( func_get_args(), wp_get_global_settings() ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
 		$cache_key = 'compute_style_properties_' . md5( wp_json_encode( $args ) );
 		$cache     = wp_cache_get( $cache_key, 'wp-styles' );
 
