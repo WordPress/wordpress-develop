@@ -43,8 +43,7 @@ function wp_modules() {
  *                                             that don't contain a type are considered static.
  * @param string|false|null $version           Optional. String specifying module version number. Defaults to false.
  *                                             It is added to the URL as a query string for cache busting purposes. If
- *                                             SCRIPT_DEBUG is true, the version is the current timestamp. If $version
- *                                             is set to false, the version number is the currently installed
+ *                                             $version is set to false, the version number is the currently installed
  *                                             WordPress version. If $version is set to null, no version is added.
  */
 function wp_register_module( $module_identifier, $src, $dependencies = array(), $version = false ) {

@@ -47,8 +47,7 @@ class WP_Modules {
 	 *                                             that don't contain a type are considered static.
 	 * @param string|false|null $version           Optional. String specifying module version number. Defaults to false.
 	 *                                             It is added to the URL as a query string for cache busting purposes. If
-	 *                                             SCRIPT_DEBUG is true, the version is the current timestamp. If $version
-	 *                                             is set to false, the version number is the currently installed
+	 *                                             $version is set to false, the version number is the currently installed
 	 *                                             WordPress version. If $version is set to null, no version is added.
 	 */
 	public function register( $module_identifier, $src, $dependencies = array(), $version = false ) {
@@ -180,10 +179,9 @@ class WP_Modules {
 	/**
 	 * Gets the version of a module.
 	 *
-	 * If SCRIPT_DEBUG is true, the version is the current timestamp. If $version
-	 * is set to false, the version number is the currently installed WordPress
-	 * version. If $version is set to null, no version is added. Otherwise, the
-	 * string passed in $version is used.
+	 * If $version is set to false, the version number is the currently installed
+	 * WordPress version. If $version is set to null, no version is added.
+	 * Otherwise, the string passed in $version is used.
 	 *
 	 * @since 6.5.0
 	 *
@@ -191,9 +189,7 @@ class WP_Modules {
 	 * @return string A string with the version, prepended by `?ver=`, or an empty string if there is no version.
 	 */
 	private function get_version_query_string( $version ) {
-		if ( defined( 'SCRIPT_DEBUG ' ) && SCRIPT_DEBUG ) {
-			return '?ver=' . time();
-		} elseif ( false === $version ) {
+		if ( false === $version ) {
 			return '?ver=' . get_bloginfo( 'version' );
 		} elseif ( null !== $version ) {
 			return '?ver=' . $version;
