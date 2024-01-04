@@ -442,4 +442,39 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 		$result = $get_version_query_string->invoke( $this->modules, null );
 		$this->assertEquals( '', $result );
 	}
+
+	/**
+	 * Tests that the correct version is propagated to the import map, enqueued
+	 * modules and preloaded modules.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_import_map()
+	 * @covers ::print_module_preloads()
+	 * @covers ::get_version_query_string()
+	 */
+	public function test_version_is_propagated_correctly() {
+		$this->modules->register(
+			'foo',
+			'/foo.js',
+			array(
+				'dep',
+			),
+			'1.0'
+		);
+		$this->modules->register( 'dep', '/dep.js', array(), '2.0' );
+		$this->modules->enqueue( 'foo' );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_modules['foo'] );
+
+		$import_map = $this->get_import_map();
+		$this->assertEquals( '/dep.js?ver=2.0', $import_map['dep'] );
+
+		$preloaded_modules = $this->get_preloaded_modules();
+		$this->assertEquals( '/dep.js?ver=2.0', $preloaded_modules['dep'] );
+	}
 }
