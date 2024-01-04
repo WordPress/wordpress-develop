@@ -474,11 +474,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * Tests that classic themes still get core default settings such as color palette and duotone.
-	 * 
+	 *
 	 * @ticket 60136
 	 */
 	public function test_core_default_settings_are_loaded_for_themes_without_theme_json() {
-		switch_theme('default');
+		switch_theme( 'default' );
 
 		$settings = WP_Theme_JSON_Resolver::get_merged_data( 'theme' )->get_settings();
 
