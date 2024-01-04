@@ -9,6 +9,24 @@
  */
 
 /**
+ * Retrieves the main WP_Modules instance.
+ *
+ * This function provides access to the WP_Modules instance, creating one if it
+ * doesn't exist yet.
+ *
+ * @since 6.5.0
+ *
+ * @return WP_Modules The main WP_Modules instance.
+ */
+function wp_modules() {
+	static $instance = null;
+	if ( is_null( $instance ) ) {
+		$instance = new WP_Modules();
+	}
+	return $instance;
+}
+
+/**
  * Registers the module if no module with that module identifier has already
  * been registered.
  *
@@ -20,7 +38,7 @@
  * @param string|false|null $version           Optional. String specifying module version number. Defaults to false. It is added to the URL as a query string for cache busting purposes. If SCRIPT_DEBUG is true, the version is the current timestamp. If $version is set to false, the version number is the currently installed WordPress version. If $version is set to null, no version is added.
  */
 function wp_register_module( $module_identifier, $src, $dependencies = array(), $version = false ) {
-	WP_Modules::register( $module_identifier, $src, $dependencies, $version );
+	wp_modules()->register( $module_identifier, $src, $dependencies, $version );
 }
 
 /**
@@ -31,7 +49,7 @@ function wp_register_module( $module_identifier, $src, $dependencies = array(), 
  * @param string $module_identifier The identifier of the module.
  */
 function wp_enqueue_module( $module_identifier ) {
-	WP_Modules::enqueue( $module_identifier );
+	wp_modules()->enqueue( $module_identifier );
 }
 
 /**
@@ -42,5 +60,5 @@ function wp_enqueue_module( $module_identifier ) {
  * @param string $module_identifier The identifier of the module.
  */
 function wp_dequeue_module( $module_identifier ) {
-	WP_Modules::dequeue( $module_identifier );
+	wp_modules()->dequeue( $module_identifier );
 }

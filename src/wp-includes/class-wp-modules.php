@@ -21,8 +21,7 @@ class WP_Modules {
 	 *
 	 * @var array
 	 */
-	private static $registered = array();
-
+	private $registered = array();
 	/**
 	 * Holds the module identifiers that were enqueued before registered.
 	 *
@@ -30,7 +29,7 @@ class WP_Modules {
 	 *
 	 * @var array
 	 */
-	private static $enqueued_before_registered = array();
+	private $enqueued_before_registered = array();
 
 	/**
 	 * Registers the module if no module with that module identifier has already
@@ -43,8 +42,8 @@ class WP_Modules {
 	 * @param array             $dependencies      Optional. An array of module identifiers of the dependencies of this module. The dependencies can be strings or arrays. If they are arrays, they need an `id` key with the module identifier, and can contain a `type` key with either `static` or `dynamic`. By default, dependencies that don't contain a type are considered static.
 	 * @param string|false|null $version           Optional. String specifying module version number. Defaults to false. It is added to the URL as a query string for cache busting purposes. If SCRIPT_DEBUG is true, the version is the current timestamp. If $version is set to false, the version number is the currently installed WordPress version. If $version is set to null, no version is added.
 	 */
-	public static function register( $module_identifier, $src, $dependencies = array(), $version = false ) {
-		if ( ! isset( self::$registered[ $module_identifier ] ) ) {
+	public function register( $module_identifier, $src, $dependencies = array(), $version = false ) {
+		if ( ! isset( $this->registered[ $module_identifier ] ) ) {
 			$deps = array();
 			foreach ( $dependencies as $dependency ) {
 				if ( isset( $dependency['id'] ) ) {
@@ -60,10 +59,10 @@ class WP_Modules {
 				}
 			}
 
-			self::$registered[ $module_identifier ] = array(
+			$this->registered[ $module_identifier ] = array(
 				'src'          => $src,
 				'version'      => $version,
-				'enqueued'     => in_array( $module_identifier, self::$enqueued_before_registered, true ),
+				'enqueued'     => in_array( $module_identifier, $this->enqueued_before_registered, true ),
 				'dependencies' => $deps,
 			);
 		}
@@ -76,11 +75,11 @@ class WP_Modules {
 	 *
 	 * @param string $module_identifier The identifier of the module.
 	 */
-	public static function enqueue( $module_identifier ) {
-		if ( isset( self::$registered[ $module_identifier ] ) ) {
-			self::$registered[ $module_identifier ]['enqueued'] = true;
-		} elseif ( ! in_array( $module_identifier, self::$enqueued_before_registered, true ) ) {
-			self::$enqueued_before_registered[] = $module_identifier;
+	public function enqueue( $module_identifier ) {
+		if ( isset( $this->registered[ $module_identifier ] ) ) {
+			$this->registered[ $module_identifier ]['enqueued'] = true;
+		} elseif ( ! in_array( $module_identifier, $this->enqueued_before_registered, true ) ) {
+			$this->enqueued_before_registered[] = $module_identifier;
 		}
 	}
 
@@ -91,13 +90,13 @@ class WP_Modules {
 	 *
 	 * @param string $module_identifier The identifier of the module.
 	 */
-	public static function dequeue( $module_identifier ) {
-		if ( isset( self::$registered[ $module_identifier ] ) ) {
-			self::$registered[ $module_identifier ]['enqueued'] = false;
+	public function dequeue( $module_identifier ) {
+		if ( isset( $this->registered[ $module_identifier ] ) ) {
+			$this->registered[ $module_identifier ]['enqueued'] = false;
 		}
-		$key = array_search( $module_identifier, self::$enqueued_before_registered, true );
+		$key = array_search( $module_identifier, $this->enqueued_before_registered, true );
 		if ( false !== $key ) {
-			array_splice( self::$enqueued_before_registered, $key, 1 );
+			array_splice( $this->enqueued_before_registered, $key, 1 );
 		}
 	}
 
@@ -108,10 +107,10 @@ class WP_Modules {
 	 *
 	 * @return array Array with an `imports` key mapping to an array of module identifiers and their respective URLs, including the version query.
 	 */
-	public static function get_import_map() {
+	public function get_import_map() {
 		$imports = array();
-		foreach ( self::get_dependencies( array_keys( self::get_enqueued() ) ) as $module_identifier => $module ) {
-			$imports[ $module_identifier ] = $module['src'] . self::get_version_query_string( $module['version'] );
+		foreach ( $this->get_dependencies( array_keys( $this->get_enqueued() ) ) as $module_identifier => $module ) {
+			$imports[ $module_identifier ] = $module['src'] . $this->get_version_query_string( $module['version'] );
 		}
 		return array( 'imports' => $imports );
 	}
@@ -121,11 +120,11 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 */
-	public static function print_import_map() {
-		$import_map = self::get_import_map();
+	public function print_import_map() {
+		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
 			wp_print_inline_script_tag(
-				wp_json_encode( self::get_import_map(), JSON_HEX_TAG | JSON_HEX_AMP ),
+				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
 				array(
 					'type' => 'importmap',
 				)
@@ -138,12 +137,12 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 */
-	public static function print_enqueued_modules() {
-		foreach ( self::get_enqueued() as $module_identifier => $module ) {
+	public function print_enqueued_modules() {
+		foreach ( $this->get_enqueued() as $module_identifier => $module ) {
 			wp_print_script_tag(
 				array(
 					'type' => 'module',
-					'src'  => $module['src'] . self::get_version_query_string( $module['version'] ),
+					'src'  => $module['src'] . $this->get_version_query_string( $module['version'] ),
 					'id'   => $module_identifier,
 				)
 			);
@@ -158,12 +157,12 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 */
-	public static function print_module_preloads() {
-		foreach ( self::get_dependencies( array_keys( self::get_enqueued() ), array( 'static' ) ) as $module_identifier => $module ) {
+	public function print_module_preloads() {
+		foreach ( $this->get_dependencies( array_keys( $this->get_enqueued() ), array( 'static' ) ) as $module_identifier => $module ) {
 			if ( true !== $module['enqueued'] ) {
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
-					esc_attr( $module['src'] . self::get_version_query_string( $module['version'] ) ),
+					esc_attr( $module['src'] . $this->get_version_query_string( $module['version'] ) ),
 					esc_attr( $module_identifier )
 				);
 			}
@@ -183,7 +182,7 @@ class WP_Modules {
 	 * @param string|false|null $version The version of the module.
 	 * @return string A string with the version, prepended by `?ver=`, or an empty string if there is no version.
 	 */
-	private static function get_version_query_string( $version ) {
+	private function get_version_query_string( $version ) {
 		if ( defined( 'SCRIPT_DEBUG ' ) && SCRIPT_DEBUG ) {
 			return '?ver=' . time();
 		} elseif ( false === $version ) {
@@ -201,9 +200,9 @@ class WP_Modules {
 	 *
 	 * @return array Enqueued modules, keyed by module identifier.
 	 */
-	private static function get_enqueued() {
+	private function get_enqueued() {
 		$enqueued = array();
-		foreach ( self::$registered as $module_identifier => $module ) {
+		foreach ( $this->registered as $module_identifier => $module ) {
 			if ( true === $module['enqueued'] ) {
 				$enqueued[ $module_identifier ] = $module;
 			}
@@ -225,21 +224,21 @@ class WP_Modules {
 	 * @param array $types              Optional. Types of dependencies to retrieve: 'static', 'dynamic', or both. Default is both.
 	 * @return array List of dependencies, keyed by module identifier.
 	 */
-	private static function get_dependencies( $module_identifiers, $types = array( 'static', 'dynamic' ) ) {
+	private function get_dependencies( $module_identifiers, $types = array( 'static', 'dynamic' ) ) {
 		return array_reduce(
 			$module_identifiers,
 			function ( $dependency_modules, $module_identifier ) use ( $types ) {
 				$dependencies = array();
-				foreach ( self::$registered[ $module_identifier ]['dependencies'] as $dependency ) {
+				foreach ( $this->registered[ $module_identifier ]['dependencies'] as $dependency ) {
 					if (
 						in_array( $dependency['type'], $types, true ) &&
-						isset( self::$registered[ $dependency['id'] ] ) &&
+						isset( $this->registered[ $dependency['id'] ] ) &&
 						! isset( $dependency_modules[ $dependency['id'] ] )
 					) {
-						$dependencies[ $dependency['id'] ] = self::$registered[ $dependency['id'] ];
+						$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
 					}
 				}
-				return array_merge( $dependency_modules, $dependencies, self::get_dependencies( array_keys( $dependencies ), $types ) );
+				return array_merge( $dependency_modules, $dependencies, $this->get_dependencies( array_keys( $dependencies ), $types ) );
 			},
 			array()
 		);
