@@ -479,6 +479,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	public function test_core_default_settings_are_loaded_for_themes_without_theme_json() {
 		switch_theme( 'default' );
+		remove_theme_support( 'editor-gradient-presets' );
 
 		$settings = WP_Theme_JSON_Resolver::get_merged_data( 'theme' )->get_settings();
 
