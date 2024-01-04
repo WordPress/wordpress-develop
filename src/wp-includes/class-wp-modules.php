@@ -133,7 +133,8 @@ class WP_Modules {
 	}
 
 	/**
-	 * Prints all the enqueued modules using script tags with type="module" attributes.
+	 * Prints all the enqueued modules using script tags with type="module"
+	 * attributes.
 	 *
 	 * @since 6.5.0
 	 */
