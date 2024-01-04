@@ -674,7 +674,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$cookies = array(
 			'1'   => 'foo',
 			2     => 'bar',
-			'qux' => 7
+			'qux' => 7,
 		);
 
 		$cookie_jar = $http->normalize_cookies( $cookies );
@@ -682,7 +682,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
 
 		foreach ( array_keys( $cookies ) as $cookie ) {
-			if ( is_string( $cookie ) ){
+			if ( is_string( $cookie ) ) {
 				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ $cookie ] );
 			} else {
 				$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ (string) $cookie ] );
@@ -700,7 +700,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$http = _wp_http_get_object();
 
 		$cookies = array(
-			'foo'   => new WP_Http_Cookie( array(
+			'foo' => new WP_Http_Cookie(
+				array(
 					'name'  => 1,
 					'value' => 'foo',
 				)
@@ -710,6 +711,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$cookie_jar = $http->normalize_cookies( $cookies );
 
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
-		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[ '1' ] );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
 	}
 }
