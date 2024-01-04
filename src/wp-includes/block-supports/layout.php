@@ -638,7 +638,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * for features like the enhanced pagination of the Query block.
 	 */
 	$container_class = wp_unique_prefixed_id(
-		'wp-container-' . sanitize_title( $block['blockName'] ) . '-layout-'
+		'wp-container-' . sanitize_title( $block['blockName'] ) . '-is-layout-'
 	);
 
 	// Set the correct layout type for blocks using legacy content width.
@@ -892,7 +892,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 
 	if ( $processor->next_tag( array( 'class_name' => 'wp-block-group' ) ) ) {
 		foreach ( $processor->class_list() as $class_name ) {
-			if ( str_contains( $class_name, 'layout' ) ) {
+			if ( str_contains( $class_name, 'is-layout-' ) ) {
 				$layout_classes[] = $class_name;
 				$processor->remove_class( $class_name );
 			}
