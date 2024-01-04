@@ -36,10 +36,20 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string            $module_identifier The identifier of the module. Should be unique. It will be used in the final import map.
-	 * @param string            $src               Full URL of the module, or path of the script relative to the WordPress root directory.
-	 * @param array             $dependencies      Optional. An array of module identifiers of the dependencies of this module. The dependencies can be strings or arrays. If they are arrays, they need an `id` key with the module identifier, and can contain a `type` key with either `static` or `dynamic`. By default, dependencies that don't contain a type are considered static.
-	 * @param string|false|null $version           Optional. String specifying module version number. Defaults to false. It is added to the URL as a query string for cache busting purposes. If SCRIPT_DEBUG is true, the version is the current timestamp. If $version is set to false, the version number is the currently installed WordPress version. If $version is set to null, no version is added.
+	 * @param string            $module_identifier The identifier of the module. Should be unique. It will be used in the
+	 *                                             final import map.
+	 * @param string            $src               Full URL of the module, or path of the script relative to the WordPress
+	 *                                             root directory.
+	 * @param array             $dependencies      Optional. An array of module identifiers of the dependencies of this
+	 *                                             module. The dependencies can be strings or arrays. If they are arrays,
+	 *                                             they need an `id` key with the module identifier, and can contain a
+	 *                                             `type` key with either `static` or `dynamic`. By default, dependencies
+	 *                                             that don't contain a type are considered static.
+	 * @param string|false|null $version           Optional. String specifying module version number. Defaults to false.
+	 *                                             It is added to the URL as a query string for cache busting purposes. If
+	 *                                             SCRIPT_DEBUG is true, the version is the current timestamp. If $version
+	 *                                             is set to false, the version number is the currently installed
+	 *                                             WordPress version. If $version is set to null, no version is added.
 	 */
 	public function register( $module_identifier, $src, $dependencies = array(), $version = false ) {
 		if ( ! isset( $this->registered[ $module_identifier ] ) ) {
@@ -104,7 +114,8 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array Array with an `imports` key mapping to an array of module identifiers and their respective URLs, including the version query.
+	 * @return array Array with an `imports` key mapping to an array of module identifiers and their respective URLs,
+	 *               including the version query.
 	 */
 	public function get_import_map() {
 		$imports = array();
@@ -221,7 +232,8 @@ class WP_Modules {
 	 * @since 6.5.0
 	 *
 	 * @param array $module_identifiers The identifiers of the modules for which to gather dependencies.
-	 * @param array $types              Optional. Types of dependencies to retrieve: 'static', 'dynamic', or both. Default is both.
+	 * @param array $types              Optional. Types of dependencies to retrieve: 'static', 'dynamic', or both. Default
+	 *                                  is both.
 	 * @return array List of dependencies, keyed by module identifier.
 	 */
 	private function get_dependencies( $module_identifiers, $types = array( 'static', 'dynamic' ) ) {
