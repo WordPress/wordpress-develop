@@ -359,36 +359,15 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_option_autoloading() {
 		return array(
-			array( 'autoload_yes', 'yes', 'yes' ),
-			array( 'autoload_true', true, 'yes' ),
-			array( 'autoload_string', 'foo', 'auto-yes' ),
-			array( 'autoload_int', 123456, 'auto-yes' ),
-			array( 'autoload_array', array(), 'auto-yes' ),
-			array( 'autoload_no', 'no', 'no' ),
-			array( 'autoload_false', false, 'no' ),
-			array( 'autoload_null', null, 'auto-yes' ),
-			array( 'autoload_default_yes', 'auto-yes', 'auto-yes' ),
-			array( 'autoload_default_no', 'auto-no', 'auto-no' ),
+			array( 'autoload_yes', 'yes', 'on' ),
+			array( 'autoload_true', true, 'on' ),
+			array( 'autoload_string', 'foo', 'auto-on' ),
+			array( 'autoload_int', 123456, 'auto-on' ),
+			array( 'autoload_array', array(), 'auto-on' ),
+			array( 'autoload_no', 'no', 'off' ),
+			array( 'autoload_false', false, 'off' ),
+			array( 'autoload_null', null, 'auto-on' ),
 		);
-	}
-
-	/**
-	 *
-	 * @ticket 42441
-	 * @dataProvider data_option_autoloading_large_option
-	 *
-	 * @covers ::add_option
-	 */
-	public function test_add_option_autoloading_large_option( $autoload, $expected ) {
-		global $wpdb;
-		$name = 'foo';
-		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
-		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$added = add_option( $name, $value, '', $autoload );
-		$this->assertTrue( $added );
-
-		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
-		$this->assertSame( $expected, $actual->autoload );
 	}
 
 	/**
@@ -411,6 +390,35 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual->autoload );
 	}
 
+	public function data_option_autoloading_large_option() {
+		return array(
+			'yes'   => array(
+				'autoload' => 'yes',
+				'expected' => 'on',
+			),
+			'true'  => array(
+				'autoload' => true,
+				'expected' => 'on',
+			),
+			'no'    => array(
+				'autoload' => 'no',
+				'expected' => 'off',
+			),
+			'false' => array(
+				'autoload' => false,
+				'expected' => 'off',
+			),
+			'null'  => array(
+				'autoload' => null,
+				'expected' => 'auto-off',
+			),
+		);
+	}
+
+	public function filter_max_option_size( $current ) {
+		return 1000;
+	}
+
 	/**
 	 *
 	 * @ticket 42441
@@ -421,50 +429,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		global $wpdb;
 		$name = 'foo';
 		add_option( $name, 'bar', '', 'no' );
-		add_filter( 'max_option_size', array( $this, 'filter_max_option_size' ) );
+		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$added = update_option( $name, $value );
 		$this->assertTrue( $added );
 
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
-		$this->assertSame( 'no', $actual->autoload );
-	}
-
-	public function data_option_autoloading_large_option() {
-		return array(
-			'yes'      => array(
-				'autoload' => 'yes',
-				'expected' => 'yes',
-			),
-			'true'     => array(
-				'autoload' => true,
-				'expected' => 'yes',
-			),
-			'no'       => array(
-				'autoload' => 'no',
-				'expected' => 'no',
-			),
-			'false'    => array(
-				'autoload' => false,
-				'expected' => 'no',
-			),
-			'auto-yes' => array(
-				'autoload' => 'auto-yes',
-				'expected' => 'auto-yes',
-			),
-			'auto-no'  => array(
-				'autoload' => 'auto-no',
-				'expected' => 'auto-no',
-			),
-			'null'     => array(
-				'autoload' => null,
-				'expected' => 'auto-no',
-			),
-		);
-	}
-
-	public function filter_max_option_size( $current ) {
-		return 1000;
+		$this->assertSame( 'auto-off', $actual->autoload );
 	}
 
 
