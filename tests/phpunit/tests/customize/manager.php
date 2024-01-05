@@ -2153,6 +2153,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Test that trash_changeset_post() passes the correct number of arguments to post trash hooks.
 	 *
+	 * @ticket 60183
 	 * @covers WP_Customize_Manager::trash_changeset_post
 	 */
 	public function test_trash_changeset_post_passes_all_arguments_to_trash_hooks() {
