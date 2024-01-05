@@ -122,7 +122,7 @@ class WP_Block_Type {
 	 * Block variations callback.
 	 *
 	 * @since 6.5.0
-	 * @var callable[]
+	 * @var callable
 	 */
 	public $variation_callback = null;
 
@@ -305,6 +305,7 @@ class WP_Block_Type {
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
+	 *     @type callable|null $variation_callback       Block type variations callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
 	 *     @type string[]      $uses_context             Context values inherited by blocks of this type.
 	 *     @type string[]|null $provides_context         Context provided by blocks of this type.
@@ -389,6 +390,11 @@ class WP_Block_Type {
 	 * @param mixed  $value Property value.
 	 */
 	public function __set( $name, $value ) {
+		if ( 'variations' === $name ) {
+			$this->variations = $value;
+			return;
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			$this->{$name} = $value;
 			return;
