@@ -735,7 +735,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 				<?php
 				wp_admin_notice(
-					'<p class="error"></p>',
+					'<p class="notice notice-error"></p>',
 					array(
 						'type'               => 'error',
 						'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),

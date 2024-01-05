@@ -36,7 +36,7 @@ add_action( 'after_switch_theme', 'twenty_twenty_one_switch_theme' );
  * @return void
  */
 function twenty_twenty_one_upgrade_notice() {
-	echo '<div class="error"><p>';
+	echo '<div class="notice notice-error"><p>';
 	printf(
 		/* translators: %s: WordPress Version. */
 		esc_html__( 'This theme requires WordPress 5.3 or newer. You are running version %s. Please upgrade.', 'twentytwentyone' ),
