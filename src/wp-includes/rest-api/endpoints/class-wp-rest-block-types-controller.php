@@ -292,6 +292,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'view_script_handles',
 				'editor_style_handles',
 				'style_handles',
+				'variations',
 				'block_hooks',
 			),
 			$deprecated_fields
@@ -311,14 +312,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				}
 				$data[ $extra_field ] = rest_sanitize_value_from_schema( $field, $schema['properties'][ $extra_field ] );
 			}
-		}
-
-		if ( rest_is_field_included( 'variations', $fields ) ) {
-			$field = $block_type->variations;
-			if ( is_callable( $block_type->variations ) ) {
-				$field = call_user_func( $block_type->variations );
-			}
-			$data['variations'] = rest_sanitize_value_from_schema( $field, $schema['properties']['variations'] );
 		}
 
 		if ( rest_is_field_included( 'styles', $fields ) ) {
