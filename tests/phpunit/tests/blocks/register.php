@@ -220,7 +220,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedIncorrectUsage register_block_script_handle
 	 * @ticket 50263
 	 */
 	public function test_missing_asset_file_register_block_script_handle() {
