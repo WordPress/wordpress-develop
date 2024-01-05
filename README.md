@@ -118,6 +118,26 @@ Starting the environment again is a single command:
 npm run env:start
 ```
 
+#### Resetting the development environment
+
+The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+
+```
+npm run env:reset
+```
+
+### Apple Silicone machines and old MySQL versions
+
+The MySQL Docker images do not support Apple Silicone processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
+
+When using MySQL <= 5.7 on an Apple Silicone machine, the following line in the `docker-compose.yml` file will need to be uncommented:
+
+```
+platform: linux/amd64
+```
+
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
+
 ## Credentials
 
 These are the default environment credentials:
