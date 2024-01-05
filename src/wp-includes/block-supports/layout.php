@@ -630,7 +630,16 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	$class_names        = array();
 	$layout_definitions = wp_get_layout_definitions();
-	$container_class    = wp_unique_id( 'wp-container-' );
+
+	/*
+	 * Uses an incremental ID that is independent per prefix to make sure that
+	 * rendering different numbers of blocks doesn't affect the IDs of other
+	 * blocks. Makes the CSS class names stable across paginations
+	 * for features like the enhanced pagination of the Query block.
+	 */
+	$container_class = wp_unique_prefixed_id(
+		'wp-container-' . sanitize_title( $block['blockName'] ) . '-layout-'
+	);
 
 	// Set the correct layout type for blocks using legacy content width.
 	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] || isset( $used_layout['contentSize'] ) && $used_layout['contentSize'] ) {
@@ -787,12 +796,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * are still present in the wrapper as they are in this example. Frequently, additional classes
 	 * will also be present; rarely should classes be removed.
 	 *
-	 * @TODO: Find a better way to match the first inner block. If it's possible to identify where the
-	 *        first inner block starts, then it will be possible to find the last tag before it starts
-	 *        and then that tag, if an opening tag, can be solidly identified as a wrapping element.
-	 *        Can some unique value or class or ID be added to the inner blocks when they process
-	 *        so that they can be extracted here safely without guessing? Can the block rendering function
-	 *        return information about where the rendered inner blocks start?
+	 * @todo Find a better way to match the first inner block. If it's possible to identify where the
+	 *       first inner block starts, then it will be possible to find the last tag before it starts
+	 *       and then that tag, if an opening tag, can be solidly identified as a wrapping element.
+	 *       Can some unique value or class or ID be added to the inner blocks when they process
+	 *       so that they can be extracted here safely without guessing? Can the block rendering function
+	 *       return information about where the rendered inner blocks start?
 	 *
 	 * @var string|null
 	 */

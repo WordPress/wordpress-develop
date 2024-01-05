@@ -224,14 +224,21 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
+	static $template_path_list = array();
+	if ( isset( $template_path_list[ $base_directory ] ) ) {
+		return $template_path_list[ $base_directory ];
+	}
 	$path_list = array();
-	if ( file_exists( $base_directory ) ) {
+	try {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
 			$path_list[] = $path;
 		}
+	} catch ( Exception $e ) {
+		// Do nothing.
 	}
+	$template_path_list[ $base_directory ] = $path_list;
 	return $path_list;
 }
 
@@ -478,7 +485,6 @@ function _flatten_blocks( &$blocks ) {
  * @access private
  *
  * @param array $block a parsed block.
- * @return void
  */
 function _inject_theme_attribute_in_template_part_block( &$block ) {
 	if (
@@ -496,7 +502,6 @@ function _inject_theme_attribute_in_template_part_block( &$block ) {
  * @access private
  *
  * @param array $block a parsed block.
- * @return void
  */
 function _remove_theme_attribute_from_template_part_block( &$block ) {
 	if (
@@ -520,12 +525,12 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
-	$template_content       = file_get_contents( $template_file['path'] );
 	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
+	$template->content        = file_get_contents( $template_file['path'] );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -556,7 +561,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
 	}
-	$blocks            = parse_blocks( $template_content );
+	$blocks            = parse_blocks( $template->content );
 	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_parse_args_object() {
@@ -229,7 +229,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$testdir = DIR_TESTDATA . '/images/';
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Test non-existing file, file name should be unchanged.' );
 
 		// Ensure correct images exist.

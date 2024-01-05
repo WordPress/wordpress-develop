@@ -37,22 +37,46 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_single_tag_of_supported_elements() {
 		$supported_elements = array(
 			'A',
+			'ADDRESS',
+			'ARTICLE',
+			'ASIDE',
 			'B',
 			'BIG',
 			'BUTTON',
+			'CENTER', // Neutralized
 			'CODE',
+			'DETAILS',
+			'DIALOG',
+			'DIR',
 			'DIV',
+			'DL',
 			'EM',
+			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
 			'FONT',
+			'FOOTER',
+			'H1',
+			'H2',
+			'H3',
+			'H4',
+			'H5',
+			'H6',
+			'HEADER',
+			'HGROUP',
 			'I',
 			'IMG',
+			'MAIN',
+			'MENU',
+			'NAV',
 			'P',
+			'SEARCH',
+			'SECTION',
 			'SMALL',
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'SUMMARY',
 			'TT',
 			'U',
 		);
@@ -99,11 +123,8 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 		$unsupported_elements = array(
 			'ABBR',
 			'ACRONYM', // Neutralized
-			'ADDRESS',
 			'APPLET', // Deprecated
 			'AREA',
-			'ARTICLE',
-			'ASIDE',
 			'AUDIO',
 			'BASE',
 			'BDI',
@@ -114,7 +135,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BR',
 			'CANVAS',
 			'CAPTION',
-			'CENTER', // Neutralized
 			'CITE',
 			'COL',
 			'COLGROUP',
@@ -122,26 +142,13 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'DATALIST',
 			'DD',
 			'DEL',
-			'DETAILS',
 			'DEFN',
-			'DIALOG',
-			'DL',
 			'DT',
 			'EMBED',
-			'FIELDSET',
-			'FOOTER',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
-			'H1',
-			'H2',
-			'H3',
-			'H4',
-			'H5',
-			'H6',
 			'HEAD',
-			'HEADER',
-			'HGROUP',
 			'HR',
 			'HTML',
 			'IFRAME',
@@ -155,16 +162,13 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'LI',
 			'LINK',
 			'LISTING', // Deprecated, use PRE instead.
-			'MAIN',
 			'MAP',
 			'MARK',
 			'MARQUEE', // Deprecated
 			'MATH',
-			'MENU',
 			'META',
 			'METER',
 			'MULTICOL', // Deprecated
-			'NAV',
 			'NEXTID', // Deprecated
 			'NOBR', // Neutralized
 			'NOEMBED', // Neutralized
@@ -187,14 +191,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'RUBY',
 			'SAMP',
 			'SCRIPT',
-			'SECTION',
 			'SELECT',
 			'SLOT',
 			'SOURCE',
 			'SPACER', // Deprecated
 			'STYLE',
 			'SUB',
-			'SUMMARY',
 			'SUP',
 			'SVG',
 			'TABLE',
@@ -300,7 +302,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @param string $html        HTML string with tags in it, one of which contains the "target" attribute.
 	 * @param array  $breadcrumbs Breadcrumbs of element with "target" attribute set.
 	 * @param int    $ignored_n   Not used in this test but provided in the dataset for other tests.
-	 * @return void
 	 */
 	public function test_reports_correct_breadcrumbs_for_html( $html, $breadcrumbs, $ignored_n ) {
 		$p = WP_HTML_Processor::create_fragment( $html );
@@ -349,6 +350,16 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 				array( 'HTML', 'BODY', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'DIV', 'STRONG', 'EM', 'CODE' ),
 				2,
 			),
+			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
+			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
+
+			// H1 - H6 close out _any_ H1 - H6 when encountering _any_ of H1 - H6, making this section surprising.
+			'EM inside H3 after unclosed P'         => array( '<p><h3><em target>Important Message</em></h3>', array( 'HTML', 'BODY', 'H3', 'EM' ), 1 ),
+			'H4 after H2'                           => array( '<h2>Major</h2><h4 target>Minor</h4>', array( 'HTML', 'BODY', 'H4' ), 1 ),
+			'H4 after unclosed H2'                  => array( '<h2>Major<h4 target>Minor</h3>', array( 'HTML', 'BODY', 'H4' ), 1 ),
+			'H4 inside H2'                          => array( '<h2><span>Major<h4 target>Minor</h3></span>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H4' ), 1 ),
+			'H5 after unclosed H4 inside H2'        => array( '<h2><span>Major<h4>Minor</span></h3><h5 target>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H5' ), 1 ),
+			'H5 after H4 inside H2'                 => array( '<h2><span>Major<h4>Minor</h4></span></h3><h5 target>', array( 'HTML', 'BODY', 'H5' ), 1 ),
 		);
 	}
 
@@ -384,29 +395,76 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_html_with_breadcrumbs_of_various_specificity() {
 		return array(
 			// Test with void elements.
-			'Inner IMG'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
-			'Inner IMG wildcard'             => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
-			'Inner IMG no wildcard'          => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
-			'Full specification'             => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
-			'Invalid Full specification'     => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
+			'Inner IMG'                               => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),
+			'Inner IMG wildcard'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'span', '*', 'img' ), true ),
+			'Inner IMG no wildcard'                   => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'img' ), false ),
+			'Full specification'                      => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'img' ), true ),
+			'Invalid Full specification'              => array( '<div><span><figure><img target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'img' ), false ),
 
 			// Test also with non-void elements that open and close.
-			'Inner P'                        => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'figure', 'p' ), true ),
-			'Inner P wildcard'               => array( '<div><span><figure><p target></figure></span></div>', array( 'span', '*', 'p' ), true ),
-			'Inner P no wildcard'            => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'p' ), false ),
-			'Full specification (P)'         => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), true ),
-			'Invalid Full specification (P)' => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+			'Inner P'                                 => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'figure', 'p' ), true ),
+			'Inner P wildcard'                        => array( '<div><span><figure><p target></figure></span></div>', array( 'span', '*', 'p' ), true ),
+			'Inner P no wildcard'                     => array( '<div><span><figure><p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P)'                  => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), true ),
+			'Invalid Full specification (P)'          => array( '<div><span><figure><p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
 
 			// Ensure that matches aren't on tag closers.
-			'Inner P'                        => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'figure', 'p' ), false ),
-			'Inner P wildcard'               => array( '<div><span><figure></p target></figure></span></div>', array( 'span', '*', 'p' ), false ),
-			'Inner P no wildcard'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
-			'Full specification (P)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
-			'Invalid Full specification (P)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
+			'Inner P (Closer)'                        => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'figure', 'p' ), false ),
+			'Inner P wildcard (Closer)'               => array( '<div><span><figure></p target></figure></span></div>', array( 'span', '*', 'p' ), false ),
+			'Inner P no wildcard (Closer)'            => array( '<div><span><figure></p target></figure></span></div>', array( 'span', 'p' ), false ),
+			'Full specification (P) (Closer)'         => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'body', 'div', 'span', 'figure', 'p' ), false ),
+			'Invalid Full specification (P) (Closer)' => array( '<div><span><figure></p target></figure></span></div>', array( 'html', 'div', 'span', 'figure', 'p' ), false ),
 
 			// Test wildcard behaviors.
-			'Single wildcard element'        => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( '*' ), true ),
-			'Child of wildcard element'      => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( 'SPAN', '*' ), true ),
+			'Single wildcard element'                 => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( '*' ), true ),
+			'Child of wildcard element'               => array( '<figure><code><div><p><span><img target></span></p></div></code></figure>', array( 'SPAN', '*' ), true ),
+		);
+	}
+
+	/**
+	 * Ensures that updating tag's attributes doesn't shift the current position
+	 * in the input HTML document.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @ticket 59607
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 */
+	public function test_remains_stable_when_editing_attributes() {
+		$p = WP_HTML_Processor::create_fragment( '<div><button>First<button><b here>Second' );
+		$p->next_tag( array( 'breadcrumbs' => array( 'BUTTON', 'B' ) ) );
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->set_attribute( 'a-name', 'a-value' );
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have found the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag.'
+		);
+
+		$p->get_updated_html();
+
+		$this->assertTrue(
+			$p->get_attribute( 'here' ),
+			'Should have stayed at the B tag but could not find expected "here" attribute.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'BUTTON', 'B' ),
+			$p->get_breadcrumbs(),
+			'Found the wrong nested structure at the matched tag after updating attributes.'
 		);
 	}
 
@@ -417,7 +475,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::set_attribute
+	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_can_modify_attributes_after_finding_tag() {
 		$p = WP_HTML_Processor::create_fragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
