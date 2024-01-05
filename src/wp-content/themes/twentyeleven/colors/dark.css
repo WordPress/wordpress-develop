@@ -578,10 +578,6 @@ li.bypostauthor a.comment-reply-link:active {
 		background: none !important;
 	}
 
-	/* Comments */
-	.commentlist > li.comment {
-	}
-
 	/* Post author highlighting */
 	.commentlist > li.bypostauthor {
 		color: #333;
