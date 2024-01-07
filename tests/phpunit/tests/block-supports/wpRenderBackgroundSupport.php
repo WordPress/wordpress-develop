@@ -136,7 +136,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'source' => 'file',
 					),
 				),
-				'expected_wrapper'    => '<div style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style with contain, position, and repeat is applied' => array(
@@ -153,7 +153,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 					'backgroundRepeat' => 'no-repeat',
 					'backgroundSize'   => 'contain',
 				),
-				'expected_wrapper'    => '<div style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-position:center;background-repeat:no-repeat;background-size:contain;">Content</div>',
+				'expected_wrapper'    => '<div class="has-background" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-position:center;background-repeat:no-repeat;background-size:contain;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style is appended if a style attribute already exists' => array(
@@ -168,8 +168,8 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'source' => 'file',
 					),
 				),
-				'expected_wrapper'    => '<div classname="wp-block-test" style="color: red;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
-				'wrapper'             => '<div classname="wp-block-test" style="color: red">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div class="wp-block-test" style="color: red">Content</div>',
 			),
 			'background image style is appended if a style attribute containing multiple styles already exists' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
@@ -183,8 +183,8 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 						'source' => 'file',
 					),
 				),
-				'expected_wrapper'    => '<div classname="wp-block-test" style="color: red;font-size: 15px;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
-				'wrapper'             => '<div classname="wp-block-test" style="color: red;font-size: 15px;">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;font-size: 15px;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div class="wp-block-test" style="color: red;font-size: 15px;">Content</div>',
 			),
 			'background image style is not applied if the block does not support background image' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
