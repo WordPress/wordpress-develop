@@ -1379,7 +1379,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 	 *
 	 * @param string $location      The path or URL to redirect to.
 	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
-	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
+	 * @param string|false $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
 	 * @return bool False if the redirect was canceled, true otherwise.
 	 */
 	function wp_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
@@ -1426,7 +1426,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 		 *
 		 * @since 5.1.0
 		 *
-		 * @param string $x_redirect_by The application doing the redirect.
+		 * @param string|false $x_redirect_by The application doing the redirect. False to not set the header
 		 * @param int    $status        Status code to use.
 		 * @param string $location      The path to redirect to.
 		 */
