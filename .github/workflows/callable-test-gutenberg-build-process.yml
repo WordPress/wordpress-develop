@@ -44,13 +44,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: 3703528d9dd8ef50b5aca9c077c556f6a0af0648
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Checkout Gutenberg plugin
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: 'WordPress/gutenberg'
+          ref: 3703528d9dd8ef50b5aca9c077c556f6a0af0648
           path: ${{ env.GUTENBERG_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
