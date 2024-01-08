@@ -121,8 +121,8 @@ class Tests_Filters extends WP_UnitTestCase {
 	/**
 	 * @ticket 60193
 	 *
-	 * @dataProvider data_filter_priority_integers
-	 * @dataProvider data_filter_priority_unhappy_path_nonintegers
+	 * @dataProvider data_priority_callback_order_with_integers
+	 * @dataProvider data_priority_callback_order_with_unhappy_path_nonintegers
 	 *
 	 * @covers ::apply_filters
 	 *
@@ -135,7 +135,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	 * @param array  $expected_call_order  An array of callback names in expected call order.
 	 * @param string $expected_deprecation Optional. Deprecation message. Default ''.
 	 */
-	public function test_filter_priority( $priorities, $expected_call_order, $expected_deprecation = '' ) {
+	public function test_priority_callback_order( $priorities, $expected_call_order, $expected_deprecation = '' ) {
 		$mock      = new MockAction();
 		$hook_name = __FUNCTION__;
 
@@ -159,7 +159,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_filter_priority_integers() {
+	public function data_priority_callback_order_with_integers() {
 		return array(
 			'int DESC' => array(
 				'priorities'          => array( 10, 9 ),
@@ -177,7 +177,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_filter_priority_unhappy_path_nonintegers() {
+	public function data_priority_callback_order_with_unhappy_path_nonintegers() {
 		return array(
 			// Numbers as strings and floats.
 			'int as string DESC'               => array(
