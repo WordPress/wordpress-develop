@@ -117,7 +117,6 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
           composer --version
           locale -a
 

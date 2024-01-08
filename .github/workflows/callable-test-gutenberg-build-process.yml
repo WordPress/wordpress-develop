@@ -69,7 +69,6 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
 
       - name: Install Core Dependencies
         run: npm ci
