@@ -162,11 +162,6 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		realpath( $script_asset_raw_path )
 	);
 
-	// Ensure graceful handling of scenarios where *.asset.php is not present or accessible.
-	if ( empty( $script_asset_path ) ) {
-		return false;
-	}
-
 	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
 	$script_uri       = get_block_asset_url( $script_path_norm );
 
