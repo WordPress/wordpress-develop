@@ -566,6 +566,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'site-options',
 						'site-queries',
 						'site-transient',
+						'theme_files',
 						'rss',
 						'users',
 						'user-queries',
@@ -577,7 +578,12 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 				);
 			}
 
-			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+			$non_persistent_groups = array( 'counts', 'plugins', 'theme_json' );
+			if ( wp_is_development_mode( 'theme' ) ) {
+				$non_persistent_groups[] = 'theme_files';
+			}
+
+			wp_cache_add_non_persistent_groups( $non_persistent_groups );
 		}
 	}
 
@@ -659,6 +665,7 @@ function restore_current_blog() {
 						'site-options',
 						'site-queries',
 						'site-transient',
+						'theme_files',
 						'rss',
 						'users',
 						'user-queries',
@@ -670,7 +677,12 @@ function restore_current_blog() {
 				);
 			}
 
-			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+			$non_persistent_groups = array( 'counts', 'plugins', 'theme_json' );
+			if ( wp_is_development_mode( 'theme' ) ) {
+				$non_persistent_groups[] = 'theme_files';
+			}
+
+			wp_cache_add_non_persistent_groups( $non_persistent_groups );
 		}
 	}
 

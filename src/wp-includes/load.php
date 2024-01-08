@@ -871,6 +871,7 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -881,7 +882,12 @@ function wp_start_object_cache() {
 			)
 		);
 
-		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
+		$non_persistent_groups = array( 'counts', 'plugins', 'theme_json' );
+		if ( wp_is_development_mode( 'theme' ) ) {
+			$non_persistent_groups[] = 'theme_files';
+		}
+
+		wp_cache_add_non_persistent_groups( $non_persistent_groups );
 	}
 
 	$first_init = false;

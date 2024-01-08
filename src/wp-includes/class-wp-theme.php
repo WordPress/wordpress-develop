@@ -1830,31 +1830,23 @@ final class WP_Theme implements ArrayAccess {
 	 * @return array Block pattern data.
 	 */
 	public function get_block_patterns() {
-		$can_use_cached = ! wp_is_development_mode( 'theme' );
-
 		$pattern_data = $this->get_pattern_cache();
 		if ( is_array( $pattern_data ) ) {
-			if ( $can_use_cached ) {
-				return $pattern_data;
-			}
-			// If in development mode, clear pattern cache.
-			$this->delete_pattern_cache();
+			return $pattern_data;
 		}
 
 		$dirpath      = $this->get_stylesheet_directory() . '/patterns/';
 		$pattern_data = array();
 
 		if ( ! file_exists( $dirpath ) ) {
-			if ( $can_use_cached ) {
-				$this->set_pattern_cache( $pattern_data );
-			}
+			$this->set_pattern_cache( $pattern_data );
+
 			return $pattern_data;
 		}
 		$files = glob( $dirpath . '*.php' );
 		if ( ! $files ) {
-			if ( $can_use_cached ) {
-				$this->set_pattern_cache( $pattern_data );
-			}
+			$this->set_pattern_cache( $pattern_data );
+
 			return $pattern_data;
 		}
 
@@ -1956,9 +1948,7 @@ final class WP_Theme implements ArrayAccess {
 			$pattern_data[ $key ] = $pattern;
 		}
 
-		if ( $can_use_cached ) {
-			$this->set_pattern_cache( $pattern_data );
-		}
+		$this->set_pattern_cache( $pattern_data );
 
 		return $pattern_data;
 	}
@@ -1974,7 +1964,7 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->exists() ) {
 			return false;
 		}
-		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet );
+		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}
@@ -1993,7 +1983,7 @@ final class WP_Theme implements ArrayAccess {
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
 		);
-		wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data );
+		wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files' );
 	}
 
 	/**
@@ -2002,7 +1992,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.4.0
 	 */
 	public function delete_pattern_cache() {
-		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet );
+		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
 	}
 
 	/**
