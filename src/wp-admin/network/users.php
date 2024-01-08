@@ -184,7 +184,7 @@ if ( isset( $_GET['action'] ) ) {
 						continue;
 					}
 					wpmu_delete_user( $id );
-					$i++;
+					++$i;
 				}
 			}
 
@@ -254,29 +254,33 @@ get_current_screen()->set_screen_reader_content(
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty( $_REQUEST['action'] ) ) {
-	?>
-	<div id="message" class="notice notice-success is-dismissible"><p>
-		<?php
-		switch ( $_REQUEST['action'] ) {
-			case 'delete':
-				_e( 'User deleted.' );
-				break;
-			case 'all_spam':
-				_e( 'Users marked as spam.' );
-				break;
-			case 'all_notspam':
-				_e( 'Users removed from spam.' );
-				break;
-			case 'all_delete':
-				_e( 'Users deleted.' );
-				break;
-			case 'add':
-				_e( 'User added.' );
-				break;
-		}
-		?>
-	</p></div>
-	<?php
+	$message = '';
+	switch ( $_REQUEST['action'] ) {
+		case 'delete':
+			$message = __( 'User deleted.' );
+			break;
+		case 'all_spam':
+			$message = __( 'Users marked as spam.' );
+			break;
+		case 'all_notspam':
+			$message = __( 'Users removed from spam.' );
+			break;
+		case 'all_delete':
+			$message = __( 'Users deleted.' );
+			break;
+		case 'add':
+			$message = __( 'User added.' );
+			break;
+	}
+
+	wp_admin_notice(
+		$message,
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 <div class="wrap">
@@ -285,7 +289,7 @@ if ( isset( $_REQUEST['updated'] ) && 'true' === $_REQUEST['updated'] && ! empty
 	<?php
 	if ( current_user_can( 'create_users' ) ) :
 		?>
-		<a href="<?php echo esc_url( network_admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
+		<a href="<?php echo esc_url( network_admin_url( 'user-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New User' ); ?></a>
 		<?php
 	endif;
 

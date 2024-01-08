@@ -3,7 +3,8 @@
 /**
  * Tests for the wp_filesize() function.
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_filesize
  */
 class Tests_Functions_wpFilesize extends WP_UnitTestCase {
@@ -25,7 +26,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_filesize',
-			static function() {
+			static function () {
 				return 999;
 			}
 		);
@@ -34,7 +35,7 @@ class Tests_Functions_wpFilesize extends WP_UnitTestCase {
 
 		add_filter(
 			'pre_wp_filesize',
-			static function() {
+			static function () {
 				return 111;
 			}
 		);

@@ -426,7 +426,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->update_count   = count( $themes );
 		$this->update_current = 0;
 		foreach ( $themes as $theme ) {
-			$this->update_current++;
+			++$this->update_current;
 
 			$this->skin->theme_info = $this->theme_info( $theme );
 
@@ -538,7 +538,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		// Check that the folder contains a valid theme.
 		$working_directory = str_replace( $wp_filesystem->wp_content_dir(), trailingslashit( WP_CONTENT_DIR ), $source );
-		if ( ! is_dir( $working_directory ) ) { // Sanity check, if the above fails, let's not prevent installation.
+		if ( ! is_dir( $working_directory ) ) { // Confidence check, if the above fails, let's not prevent installation.
 			return $source;
 		}
 
@@ -768,5 +768,4 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		return $theme;
 	}
-
 }

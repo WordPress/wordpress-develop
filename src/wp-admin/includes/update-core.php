@@ -866,6 +866,11 @@ $_old_files = array(
 	// 6.3
 	'wp-includes/images/wlw',
 	'wp-includes/wlwmanifest.xml',
+	'wp-includes/random_compat',
+	// 6.4
+	'wp-includes/navigation-fallback.php',
+	'wp-includes/blocks/navigation/view-modal.min.js',
+	'wp-includes/blocks/navigation/view-modal.js',
 );
 
 /**
@@ -996,13 +1001,14 @@ $_new_bundled_files = array(
 	'themes/twentytwentyone/'   => '5.6',
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
+	'themes/twentytwentyfour/'  => '6.4',
 );
 
 /**
  * Upgrades the core of WordPress.
  *
  * This will create a .maintenance file at the base of the WordPress directory
- * to ensure that people can not access the web site, when the files are being
+ * to ensure that people can not access the website, when the files are being
  * copied to their locations.
  *
  * The files in the `$_old_files` list will be removed and the new files
@@ -1087,7 +1093,7 @@ function update_core( $from, $to ) {
 	 */
 	apply_filters( 'update_feedback', __( 'Verifying the unpacked files&#8230;' ) );
 
-	// Sanity check the unzipped distribution.
+	// Confidence check the unzipped distribution.
 	$distro = '';
 	$roots  = array( '/wordpress/', '/wordpress-mu/' );
 
@@ -1430,9 +1436,13 @@ function update_core( $from, $to ) {
 		} else {
 			$lang_dir = WP_CONTENT_DIR . '/languages';
 		}
-
+		/*
+		 * Note: str_starts_with() is not used here, as this file is included
+		 * when updating from older WordPress versions, in which case
+		 * the polyfills from wp-includes/compat.php may not be available.
+		 */
 		// Check if the language directory exists first.
-		if ( ! @is_dir( $lang_dir ) && str_starts_with( $lang_dir, ABSPATH ) ) {
+		if ( ! @is_dir( $lang_dir ) && 0 === strpos( $lang_dir, ABSPATH ) ) {
 			// If it's within the ABSPATH we can handle it here, otherwise they're out of luck.
 			$wp_filesystem->mkdir( $to . str_replace( ABSPATH, '', $lang_dir ), FS_CHMOD_DIR );
 			clearstatcache(); // For FTP, need to clear the stat cache.
@@ -1800,7 +1810,7 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
 	$dirs = array_filter(
 		$dirs,
-		static function( $dir ) {
+		static function ( $dir ) {
 			/*
 			 * Skip any node_modules directories.
 			 *
@@ -1837,13 +1847,14 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 5.8.0
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
+ * @since 6.4.0 The minimum compatible version of Gutenberg is 16.5.
  */
 function _upgrade_core_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '16.5', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '14.1',
+			'version_compatible'  => '16.5',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );

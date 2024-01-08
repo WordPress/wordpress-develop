@@ -61,10 +61,10 @@ function wp_attach_theme_preview_middleware() {
  * Sets the JavaScript global WP_BLOCK_THEME_ACTIVATE_NONCE containing the nonce
  * required to activate a theme. For use within the site editor.
  *
- * @see https://github.com/WordPress/gutenberg/pull/41836.
+ * @see https://github.com/WordPress/gutenberg/pull/41836
  *
  * @since 6.3.0
- * @private
+ * @access private
  */
 function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
@@ -75,10 +75,19 @@ function wp_block_theme_activate_nonce() {
 	<?php
 }
 
-// Attaches filters to enable theme previews in the Site Editor.
-if ( ! empty( $_GET['wp_theme_preview'] ) ) {
-	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
-	add_filter( 'template', 'wp_get_theme_preview_path' );
-	add_action( 'init', 'wp_attach_theme_preview_middleware' );
-	add_action( 'admin_head', 'wp_block_theme_activate_nonce' );
+/**
+ * Add filters and actions to enable Block Theme Previews in the Site Editor.
+ *
+ * The filters and actions should be added after `pluggable.php` is included as they may
+ * trigger code that uses `current_user_can()` which requires functionality from `pluggable.php`.
+ *
+ * @since 6.3.2
+ */
+function wp_initialize_theme_preview_hooks() {
+	if ( ! empty( $_GET['wp_theme_preview'] ) ) {
+		add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
+		add_filter( 'template', 'wp_get_theme_preview_path' );
+		add_action( 'init', 'wp_attach_theme_preview_middleware' );
+		add_action( 'admin_head', 'wp_block_theme_activate_nonce' );
+	}
 }

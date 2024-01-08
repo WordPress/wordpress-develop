@@ -4,6 +4,7 @@
  *
  * @package WordPress
  *
+ * @group functions
  * @group cache
  *
  * @covers ::_get_non_cached_ids
@@ -97,7 +98,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 			'empty string' => array( '' ),
 			'array'        => array( array( 1 ) ),
 			'empty array'  => array( array() ),
-			'stdClass'     => array( new stdClass ),
+			'stdClass'     => array( new stdClass() ),
 		);
 	}
 }

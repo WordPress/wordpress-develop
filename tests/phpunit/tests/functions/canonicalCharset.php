@@ -5,7 +5,8 @@
  *
  * @since 4.8.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_canonical_charset
  */
 class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
@@ -88,5 +89,4 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 
 		update_option( 'blog_charset', $orig_blog_charset );
 	}
-
 }

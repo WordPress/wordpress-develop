@@ -195,16 +195,17 @@ add_filter( 'the_content', 'convert_smilies', 20 );
 add_filter( 'the_content', 'wpautop' );
 add_filter( 'the_content', 'shortcode_unautop' );
 add_filter( 'the_content', 'prepend_attachment' );
-add_filter( 'the_content', 'wp_filter_content_tags' );
 add_filter( 'the_content', 'wp_replace_insecure_home_url' );
+add_filter( 'the_content', 'do_shortcode', 11 ); // AFTER wpautop().
+add_filter( 'the_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'the_excerpt', 'wptexturize' );
 add_filter( 'the_excerpt', 'convert_smilies' );
 add_filter( 'the_excerpt', 'convert_chars' );
 add_filter( 'the_excerpt', 'wpautop' );
 add_filter( 'the_excerpt', 'shortcode_unautop' );
-add_filter( 'the_excerpt', 'wp_filter_content_tags' );
 add_filter( 'the_excerpt', 'wp_replace_insecure_home_url' );
+add_filter( 'the_excerpt', 'wp_filter_content_tags', 12 );
 add_filter( 'get_the_excerpt', 'wp_trim_excerpt', 10, 2 );
 
 add_filter( 'the_post_thumbnail_caption', 'wptexturize' );
@@ -230,13 +231,13 @@ add_filter( 'widget_text_content', 'wptexturize' );
 add_filter( 'widget_text_content', 'convert_smilies', 20 );
 add_filter( 'widget_text_content', 'wpautop' );
 add_filter( 'widget_text_content', 'shortcode_unautop' );
-add_filter( 'widget_text_content', 'wp_filter_content_tags' );
 add_filter( 'widget_text_content', 'wp_replace_insecure_home_url' );
 add_filter( 'widget_text_content', 'do_shortcode', 11 ); // Runs after wpautop(); note that $post global will be null when shortcodes run.
+add_filter( 'widget_text_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'widget_block_content', 'do_blocks', 9 );
-add_filter( 'widget_block_content', 'wp_filter_content_tags' );
 add_filter( 'widget_block_content', 'do_shortcode', 11 );
+add_filter( 'widget_block_content', 'wp_filter_content_tags', 12 ); // Runs after do_shortcode().
 
 add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
 
@@ -357,8 +358,8 @@ add_action( 'switch_theme', 'wp_clean_theme_json_cache' );
 add_action( 'start_previewing_theme', 'wp_clean_theme_json_cache' );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
-add_action( 'wp_print_styles', 'print_emoji_styles' );
-add_action( 'plugins_loaded', '_wp_theme_json_webfonts_handler' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
+add_action( 'wp_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 
 if ( isset( $_GET['replytocom'] ) ) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );
@@ -388,11 +389,6 @@ if ( ! defined( 'DOING_CRON' ) ) {
 	add_action( 'init', 'wp_cron' );
 }
 
-// HTTPS detection.
-add_action( 'init', 'wp_schedule_https_detection' );
-add_action( 'wp_https_detection', 'wp_update_https_detection_errors' );
-add_filter( 'cron_request', 'wp_cron_conditionally_prevent_sslverify', 9999 );
-
 // HTTPS migration.
 add_action( 'update_option_home', 'wp_update_https_migration_required', 10, 2 );
 
@@ -415,6 +411,7 @@ add_action( 'plugins_loaded', 'wp_maybe_load_widgets', 0 );
 add_action( 'plugins_loaded', 'wp_maybe_load_embeds', 0 );
 add_action( 'shutdown', 'wp_ob_end_flush_all', 1 );
 // Create a revision whenever a post is updated.
+add_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert', 9, 3 );
 add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
 add_action( 'publish_post', '_publish_post_hook', 5, 1 );
 add_action( 'transition_post_status', '_transition_post_status', 5, 3 );
@@ -524,7 +521,7 @@ add_action( 'init', 'wp_sitemaps_get_server' );
  */
 // Theme.
 add_action( 'setup_theme', 'create_initial_theme_features', 0 );
-add_action( 'setup_theme', '_add_default_theme_supports', 1 );
+add_action( 'after_setup_theme', '_add_default_theme_supports', 1 );
 add_action( 'wp_loaded', '_custom_header_background_just_in_time' );
 add_action( 'wp_head', '_custom_logo_header_styles' );
 add_action( 'plugins_loaded', '_wp_customize_include' );
@@ -532,6 +529,9 @@ add_action( 'transition_post_status', '_wp_customize_publish_changeset', 10, 3 )
 add_action( 'admin_enqueue_scripts', '_wp_customize_loader_settings' );
 add_action( 'delete_attachment', '_delete_attachment_theme_mod' );
 add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_dependent_auto_drafts', 20, 3 );
+
+// Block Theme Previews.
+add_action( 'plugins_loaded', 'wp_initialize_theme_preview_hooks', 1 );
 
 // Calendar widget cache.
 add_action( 'save_post', 'delete_get_calendar_cache' );
@@ -613,6 +613,15 @@ add_action( 'wp_head', 'wp_maybe_inline_styles', 1 ); // Run for styles enqueued
 add_action( 'wp_footer', 'wp_maybe_inline_styles', 1 ); // Run for late-loaded styles in the footer.
 
 /*
+ * Block specific actions and filters.
+ */
+
+// Footnotes Block.
+add_action( 'init', '_wp_footnotes_kses_init' );
+add_action( 'set_current_user', '_wp_footnotes_kses_init' );
+add_filter( 'force_filtered_html_on_import', '_wp_footnotes_force_filtered_html_on_import_filter', 999 );
+
+/*
  * Disable "Post Attributes" for wp_navigation post type. The attributes are
  * also conditionally enabled when a site has custom templates. Block Theme
  * templates can be available for every post type.
@@ -626,9 +635,6 @@ add_action( 'change_locale', 'create_initial_taxonomies' );
 // Canonical.
 add_action( 'template_redirect', 'redirect_canonical' );
 add_action( 'template_redirect', 'wp_redirect_admin_locations', 1000 );
-
-// Shortcodes.
-add_filter( 'the_content', 'do_shortcode', 11 ); // AFTER wpautop().
 
 // Media.
 add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
@@ -650,6 +656,9 @@ add_action( 'widgets_init', '_wp_block_theme_register_classic_sidebars', 1 );
 // Don't remove. Wrong way to disable.
 add_action( 'template_redirect', '_wp_admin_bar_init', 0 );
 add_action( 'admin_init', '_wp_admin_bar_init' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_bump_styles' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
+add_action( 'admin_enqueue_scripts', 'wp_enqueue_admin_bar_header_styles' );
 add_action( 'before_signup_header', '_wp_admin_bar_init' );
 add_action( 'activate_header', '_wp_admin_bar_init' );
 add_action( 'wp_body_open', 'wp_admin_bar_render', 0 );
@@ -671,7 +680,8 @@ add_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
 
 add_action( 'embed_head', 'enqueue_embed_scripts', 1 );
 add_action( 'embed_head', 'print_emoji_detection_script' );
-add_action( 'embed_head', 'print_embed_styles' );
+add_action( 'embed_head', 'wp_enqueue_embed_styles', 9 );
+add_action( 'embed_head', 'print_embed_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_embed_styles().
 add_action( 'embed_head', 'wp_print_head_scripts', 20 );
 add_action( 'embed_head', 'wp_print_styles', 20 );
 add_action( 'embed_head', 'wp_robots' );
@@ -706,9 +716,13 @@ add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
 add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug', 10, 5 );
 add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template_part' );
-add_action( 'wp_footer', 'the_block_template_skip_link' );
-add_action( 'setup_theme', 'wp_enable_block_templates' );
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_template_skip_link' );
+add_action( 'wp_footer', 'the_block_template_skip_link' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_block_template_skip_link().
+add_action( 'after_setup_theme', 'wp_enable_block_templates', 1 );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
+
+// wp_navigation post type.
+add_filter( 'rest_wp_navigation_item_schema', array( 'WP_Navigation_Fallback', 'update_wp_navigation_post_schema' ) );
 
 // Fluid typography.
 add_filter( 'render_block', 'wp_render_typography_support', 10, 2 );
@@ -718,5 +732,20 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 
 // CPT wp_block custom postmeta field.
 add_action( 'init', 'wp_create_initial_post_meta' );
+
+// Include revisioned meta when considering whether a post revision has changed.
+add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed', 10, 3 );
+
+// Save revisioned post meta immediately after a revision is saved
+add_action( '_wp_put_post_revision', 'wp_save_revisioned_meta_fields', 10, 2 );
+
+// Include revisioned meta when creating or updating an autosave revision.
+add_action( 'wp_creating_autosave', 'wp_autosave_post_revisioned_meta_fields' );
+
+// When restoring revisions, also restore revisioned meta.
+add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 );
+
+// Font management.
+add_action( 'wp_head', 'wp_print_font_faces', 50 );
 
 unset( $filter, $action );

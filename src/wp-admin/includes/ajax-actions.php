@@ -1628,8 +1628,13 @@ function wp_ajax_add_meta() {
 			$post_data['post_type']   = $post->post_type;
 			$post_data['post_status'] = 'draft';
 			$now                      = time();
-			/* translators: 1: Post creation date, 2: Post creation time. */
-			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), gmdate( __( 'F j, Y' ), $now ), gmdate( __( 'g:i a' ), $now ) );
+
+			$post_data['post_title'] = sprintf(
+				/* translators: 1: Post creation date, 2: Post creation time. */
+				__( 'Draft created on %1$s at %2$s' ),
+				gmdate( __( 'F j, Y' ), $now ),
+				gmdate( __( 'g:i a' ), $now )
+			);
 
 			$pid = edit_post( $post_data );
 
@@ -2149,7 +2154,7 @@ function wp_ajax_inline_save() {
 		while ( $parent > 0 ) {
 			$parent_post = get_post( $parent );
 			$parent      = $parent_post->post_parent;
-			$level++;
+			++$level;
 		}
 	}
 
@@ -2211,7 +2216,7 @@ function wp_ajax_inline_save_tax() {
 	while ( $parent > 0 ) {
 		$parent_tag = get_term( $parent, $taxonomy );
 		$parent     = $parent_tag->parent;
-		$level++;
+		++$level;
 	}
 
 	$wp_list_table->single_row( $tag, $level );
@@ -2821,7 +2826,7 @@ function wp_ajax_set_attachment_thumbnail() {
 		}
 
 		if ( set_post_thumbnail( $post_id, $thumbnail_id ) ) {
-			$success++;
+			++$success;
 		}
 	}
 
@@ -3853,7 +3858,7 @@ function wp_ajax_parse_embed() {
 		'attr' => $wp_embed->last_attr,
 	);
 
-	if ( strpos( $parsed, 'class="wp-embedded-content' ) ) {
+	if ( str_contains( $parsed, 'class="wp-embedded-content' ) ) {
 		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 			$script_src = includes_url( 'js/wp-embed.js' );
 		} else {
@@ -3882,13 +3887,29 @@ function wp_ajax_parse_media_shortcode() {
 
 	$shortcode = wp_unslash( $_POST['shortcode'] );
 
+	// Only process previews for media related shortcodes:
+	$found_shortcodes = get_shortcode_tags_in_content( $shortcode );
+	$media_shortcodes = array(
+		'audio',
+		'embed',
+		'playlist',
+		'video',
+		'gallery',
+	);
+
+	$other_shortcodes = array_diff( $found_shortcodes, $media_shortcodes );
+
+	if ( ! empty( $other_shortcodes ) ) {
+		wp_send_json_error();
+	}
+
 	if ( ! empty( $_POST['post_ID'] ) ) {
 		$post = get_post( (int) $_POST['post_ID'] );
 	}
 
 	// The embed shortcode requires a post.
 	if ( ! $post || ! current_user_can( 'edit_post', $post->ID ) ) {
-		if ( 'embed' === $shortcode ) {
+		if ( in_array( 'embed', $found_shortcodes, true ) ) {
 			wp_send_json_error();
 		}
 	} else {
@@ -4939,8 +4960,8 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 *         Array of personal data exporters.
 	 *
 	 *         @type callable $callback               Callable exporter function that accepts an
-	 *                                                email address and a page and returns an array
-	 *                                                of name => value pairs of personal data.
+	 *                                                email address and a page number and returns an
+	 *                                                array of name => value pairs of personal data.
 	 *         @type string   $exporter_friendly_name Translated user facing friendly name for the
 	 *                                                exporter.
 	 *     }
@@ -5051,10 +5072,10 @@ function wp_ajax_wp_privacy_export_personal_data() {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param array  $response        The personal data for the given exporter and page.
+	 * @param array  $response        The personal data for the given exporter and page number.
 	 * @param int    $exporter_index  The index of the exporter that provided this data.
 	 * @param string $email_address   The email address associated with this personal data.
-	 * @param int    $page            The page for this response.
+	 * @param int    $page            The page number for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param bool   $send_as_email   Whether the final results of the export should be emailed to the user.
 	 * @param string $exporter_key    The key (slug) of the exporter that provided this data.
@@ -5128,8 +5149,8 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 *     @type array ...$0 {
 	 *         Array of personal data exporters.
 	 *
-	 *         @type callable $callback               Callable eraser that accepts an email address and
-	 *                                                a page and returns an array with boolean values for
+	 *         @type callable $callback               Callable eraser that accepts an email address and a page
+	 *                                                number, and returns an array with boolean values for
 	 *                                                whether items were removed or retained and any messages
 	 *                                                from the eraser, as well as if additional pages are
 	 *                                                available.
@@ -5281,10 +5302,17 @@ function wp_ajax_wp_privacy_erase_personal_data() {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param array  $response        The personal data for the given exporter and page.
+	 * @param array  $response        {
+	 *     The personal data for the given exporter and page number.
+	 *
+	 *     @type bool     $items_removed  Whether items were actually removed or not.
+	 *     @type bool     $items_retained Whether items were retained or not.
+	 *     @type string[] $messages       An array of messages to add to the personal data export file.
+	 *     @type bool     $done           Whether the eraser is finished or not.
+	 * }
 	 * @param int    $eraser_index    The index of the eraser that provided this data.
 	 * @param string $email_address   The email address associated with this personal data.
-	 * @param int    $page            The page for this response.
+	 * @param int    $page            The page number for this response.
 	 * @param int    $request_id      The privacy request post ID associated with this request.
 	 * @param string $eraser_key      The key (slug) of the eraser that provided this data.
 	 */

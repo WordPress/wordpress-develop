@@ -512,4 +512,145 @@ END
 			'Should not include any unapproved comments after removing filter'
 		);
 	}
+
+	/**
+	 * Tests that the Comment Template block makes comment ID context available to programmatically inserted child blocks.
+	 *
+	 * @ticket 58839
+	 *
+	 * @covers ::render_block_core_comment_template
+	 * @covers ::block_core_comment_template_render_comments
+	 */
+	public function test_rendering_comment_template_sets_comment_id_context() {
+		$render_block_context_callback = new MockAction();
+		add_filter( 'render_block_context', array( $render_block_context_callback, 'filter' ), 2, 3 );
+
+		$parsed_comment_author_name_block = parse_blocks( '<!-- wp:comment-author-name /-->' )[0];
+		$comment_author_name_block        = new WP_Block(
+			$parsed_comment_author_name_block,
+			array(
+				'commentId' => self::$comment_ids[0],
+			)
+		);
+		$comment_author_name_block_markup = $comment_author_name_block->render();
+
+		add_filter(
+			'render_block',
+			static function ( $block_content, $block ) use ( $parsed_comment_author_name_block ) {
+				/*
+				* Insert a Comment Author Name block (which requires `commentId`
+				* block context to work) after the Comment Content block.
+				*/
+				if ( 'core/comment-content' !== $block['blockName'] ) {
+					return $block_content;
+				}
+
+				$inserted_content = render_block( $parsed_comment_author_name_block );
+				return $inserted_content . $block_content;
+			},
+			10,
+			3
+		);
+
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comment-template --><!-- wp:comment-content /--><!-- /wp:comment-template -->'
+		);
+		$block         = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => self::$custom_post->ID,
+			)
+		);
+		$markup        = $block->render();
+
+		$this->assertStringContainsString( $comment_author_name_block_markup, $markup );
+
+		$args    = $render_block_context_callback->get_args();
+		$context = $args[0][0];
+		$this->assertArrayHasKey(
+			'commentId',
+			$context,
+			"commentId block context wasn't set for render_block_context filter at priority 2."
+		);
+		$this->assertSame(
+			strval( self::$comment_ids[0] ),
+			$context['commentId'],
+			"commentId block context wasn't set correctly."
+		);
+	}
+
+	/**
+	 * Tests that an inner block added via the render_block_data filter is retained at render_block stage.
+	 *
+	 * @ticket 58839
+	 *
+	 * @covers ::render_block_core_comment_template
+	 * @covers ::block_core_comment_template_render_comments
+	 */
+	public function test_inner_block_inserted_by_render_block_data_is_retained() {
+		$render_block_callback = new MockAction();
+		add_filter( 'render_block', array( $render_block_callback, 'filter' ), 10, 3 );
+
+		$render_block_data_callback = static function ( $parsed_block ) {
+			// Add a Social Links block to a Comment Template block's inner blocks.
+			if ( 'core/comment-template' === $parsed_block['blockName'] ) {
+				$inserted_block_markup = <<<END
+<!-- wp:social-links -->
+<ul class="wp-block-social-links"><!-- wp:social-link {"url":"https://wordpress.org","service":"wordpress"} /--></ul>
+<!-- /wp:social-links -->'
+END;
+
+				$inserted_blocks = parse_blocks( $inserted_block_markup );
+
+				$parsed_block['innerBlocks'][] = $inserted_blocks[0];
+			}
+			return $parsed_block;
+		};
+
+		add_filter( 'render_block_data', $render_block_data_callback, 10, 1 );
+		$parsed_blocks = parse_blocks(
+			'<!-- wp:comments --><!-- wp:comment-template --><!-- wp:comment-content /--><!-- /wp:comment-template --><!-- /wp:comments -->'
+		);
+		$block         = new WP_Block(
+			$parsed_blocks[0],
+			array(
+				'postId' => self::$custom_post->ID,
+			)
+		);
+		$block->render();
+		remove_filter( 'render_block_data', $render_block_data_callback );
+
+		$this->assertSame(
+			5,
+			$render_block_callback->get_call_count(),
+			"render_block filter wasn't called the correct number of 5 times."
+		);
+
+		$args = $render_block_callback->get_args();
+		$this->assertSame(
+			'core/comment-content',
+			$args[0][2]->name,
+			"render_block filter didn't receive Comment Content block instance upon first call."
+		);
+		$this->assertSame(
+			'core/comment-template',
+			$args[1][2]->name,
+			"render_block filter didn't receive Comment Template block instance upon second call."
+		);
+		$this->assertCount(
+			2,
+			$args[1][2]->inner_blocks,
+			"Inner block inserted by render_block_data filter wasn't retained."
+		);
+		$this->assertInstanceOf(
+			'WP_Block',
+			$args[1][2]->inner_blocks[1],
+			"Inner block inserted by render_block_data isn't a WP_Block class instance."
+		);
+		$this->assertSame(
+			'core/social-links',
+			$args[1][2]->inner_blocks[1]->name,
+			"Inner block inserted by render_block_data isn't named as expected."
+		);
+	}
 }

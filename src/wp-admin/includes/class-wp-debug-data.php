@@ -381,6 +381,14 @@ class WP_Debug_Data {
 
 		// Conditionally add debug information for multisite setups.
 		if ( is_multisite() ) {
+			$site_id = get_current_blog_id();
+
+			$info['wp-core']['fields']['site_id'] = array(
+				'label' => __( 'Site ID' ),
+				'value' => $site_id,
+				'debug' => $site_id,
+			);
+
 			$network_query = new WP_Network_Query();
 			$network_ids   = $network_query->query(
 				array(
@@ -548,6 +556,7 @@ class WP_Debug_Data {
 			);
 		} else {
 			// Get the PHP ini directive values.
+			$file_uploads        = ini_get( 'file_uploads' );
 			$post_max_size       = ini_get( 'post_max_size' );
 			$upload_max_filesize = ini_get( 'upload_max_filesize' );
 			$max_file_uploads    = ini_get( 'max_file_uploads' );
@@ -556,8 +565,8 @@ class WP_Debug_Data {
 			// Add info in Media section.
 			$info['wp-media']['fields']['file_uploads']        = array(
 				'label' => __( 'File uploads' ),
-				'value' => empty( ini_get( 'file_uploads' ) ) ? __( 'Disabled' ) : __( 'Enabled' ),
-				'debug' => 'File uploads is turned off',
+				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => $file_uploads,
 			);
 			$info['wp-media']['fields']['post_max_size']       = array(
 				'label' => __( 'Max size of post data allowed' ),
@@ -700,12 +709,6 @@ class WP_Debug_Data {
 			$php_version_debug .= ' 64bit';
 		}
 
-		if ( function_exists( 'php_sapi_name' ) ) {
-			$php_sapi = php_sapi_name();
-		} else {
-			$php_sapi = 'unknown';
-		}
-
 		$info['wp-server']['fields']['server_architecture'] = array(
 			'label' => __( 'Server architecture' ),
 			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
@@ -723,8 +726,8 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
-			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
-			'debug' => $php_sapi,
+			'value' => PHP_SAPI,
+			'debug' => PHP_SAPI,
 		);
 
 		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
@@ -846,11 +849,12 @@ class WP_Debug_Data {
 
 		// Server time.
 		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-		$info['wp-server']['fields']['current'] = array(
+
+		$info['wp-server']['fields']['current']     = array(
 			'label' => __( 'Current time' ),
 			'value' => $date->format( DateTime::ATOM ),
 		);
-		$info['wp-server']['fields']['utc-time'] = array(
+		$info['wp-server']['fields']['utc-time']    = array(
 			'label' => __( 'Current UTC time' ),
 			'value' => $date->format( DateTime::RFC850 ),
 		);
@@ -860,10 +864,7 @@ class WP_Debug_Data {
 		);
 
 		// Populate the database debug fields.
-		if ( is_resource( $wpdb->dbh ) ) {
-			// Old mysql extension.
-			$extension = 'mysql';
-		} elseif ( is_object( $wpdb->dbh ) ) {
+		if ( is_object( $wpdb->dbh ) ) {
 			// mysqli or PDO.
 			$extension = get_class( $wpdb->dbh );
 		} else {
@@ -873,16 +874,7 @@ class WP_Debug_Data {
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
-		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
-			$client_version = $wpdb->dbh->client_info;
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
-				$client_version = $matches[0];
-			} else {
-				$client_version = null;
-			}
-		}
+		$client_version = $wpdb->dbh->client_info;
 
 		$info['wp-database']['fields']['extension'] = array(
 			'label' => __( 'Extension' ),

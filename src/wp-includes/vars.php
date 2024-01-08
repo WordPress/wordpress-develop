@@ -69,6 +69,8 @@ if ( isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		$is_lynx = true;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Edg' ) ) {
 		$is_edge = true;
+	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Opera' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'OPR/' ) ) {
+		$is_opera = true;
 	} elseif ( stripos( $_SERVER['HTTP_USER_AGENT'], 'chrome' ) !== false ) {
 		if ( stripos( $_SERVER['HTTP_USER_AGENT'], 'chromeframe' ) !== false ) {
 			$is_admin = is_admin();
@@ -89,14 +91,14 @@ if ( isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		}
 	} elseif ( stripos( $_SERVER['HTTP_USER_AGENT'], 'safari' ) !== false ) {
 		$is_safari = true;
-	} elseif ( ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'Trident' ) ) && str_contains( $_SERVER['HTTP_USER_AGENT'], 'Win' ) ) {
+	} elseif ( ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) || str_contains( $_SERVER['HTTP_USER_AGENT'], 'Trident' ) )
+		&& str_contains( $_SERVER['HTTP_USER_AGENT'], 'Win' )
+	) {
 		$is_winIE = true;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'MSIE' ) && str_contains( $_SERVER['HTTP_USER_AGENT'], 'Mac' ) ) {
 		$is_macIE = true;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Gecko' ) ) {
 		$is_gecko = true;
-	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Opera' ) ) {
-		$is_opera = true;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Nav' ) && str_contains( $_SERVER['HTTP_USER_AGENT'], 'Mozilla/4.' ) ) {
 		$is_NS4 = true;
 	}
@@ -142,11 +144,16 @@ $is_iis7 = $is_IIS && (int) substr( $_SERVER['SERVER_SOFTWARE'], strpos( $_SERVE
  * Test if the current browser runs on a mobile device (smart phone, tablet, etc.)
  *
  * @since 3.4.0
+ * @since 6.4.0 Added checking for the Sec-CH-UA-Mobile request header.
  *
  * @return bool
  */
 function wp_is_mobile() {
-	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
+	if ( isset( $_SERVER['HTTP_SEC_CH_UA_MOBILE'] ) ) {
+		// This is the `Sec-CH-UA-Mobile` user agent client hint HTTP request header.
+		// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile>.
+		$is_mobile = ( '?1' === $_SERVER['HTTP_SEC_CH_UA_MOBILE'] );
+	} elseif ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
 		$is_mobile = false;
 	} elseif ( str_contains( $_SERVER['HTTP_USER_AGENT'], 'Mobile' ) // Many mobile devices (all iPhone, iPad, etc.)
 		|| str_contains( $_SERVER['HTTP_USER_AGENT'], 'Android' )

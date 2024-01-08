@@ -28,15 +28,7 @@ $credits = wp_credits();
 			</h1>
 		</div>
 
-		<div class="about__header-text">
-			<?php
-			printf(
-				/* translators: %s: Version number. */
-				__( 'WordPress %s was created by a worldwide team of passionate individuals' ),
-				$display_version
-			);
-			?>
-		</div>
+		<div class="about__header-text"></div>
 	</div>
 
 	<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -60,7 +52,7 @@ $credits = wp_credits();
 				);
 				?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php else : ?>
@@ -68,7 +60,7 @@ $credits = wp_credits();
 			<p>
 				<?php _e( 'Want to see your name in lights on this page?' ); ?>
 				<br />
-				<a href="https://make.wordpress.org/"><?php _e( 'Get involved in WordPress.' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
 			<?php endif; ?>
