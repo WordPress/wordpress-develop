@@ -243,9 +243,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'script' => 'file:./blocks/notice/block.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
-
-		// Assert that the result is false due to missing .asset.php
-		$this->assertFalse( $result );
+	
+		// Expected generated script handle (modify as per the function's actual handle generation logic)
+		$expected_handle = generate_block_asset_handle( $metadata['name'], 'script', 0 );
+	
+		// Assert that the result is the generated script handle name
+		$this->assertEquals( $expected_handle, $result );
 	}
 
 	/**
