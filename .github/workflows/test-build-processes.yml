@@ -93,14 +93,14 @@ jobs:
   # See https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability.
   test-gutenberg-build-process-macos:
     name: Gutenberg running from ${{ matrix.directory }}
-    uses: desrosj/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@test/gutenberg-changes-failing-build
+    uses: WordPress/wordpress-develop/.github/workflows/callable-test-gutenberg-build-process.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-13 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
