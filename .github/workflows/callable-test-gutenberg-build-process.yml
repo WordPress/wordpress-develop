@@ -20,6 +20,7 @@ on:
 env:
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  NODE_OPTIONS: '--max-old-space-size=8192'
 
 jobs:
   # Verifies that installing npm dependencies and building the Gutenberg plugin works as expected.
@@ -50,7 +51,6 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: 'WordPress/gutenberg'
-          ref: v7.4.0
           path: ${{ env.GUTENBERG_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
