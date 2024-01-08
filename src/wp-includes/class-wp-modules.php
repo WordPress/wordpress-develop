@@ -70,14 +70,15 @@ class WP_Modules {
 			$this->registered[ $module_identifier ] = array(
 				'src'          => $src,
 				'version'      => $version,
-				'enqueued'     => isset( $this->enqueued_before_registered[ $module_identifier ] ),
+				'enqueue'      => isset( $this->enqueued_before_registered[ $module_identifier ] ),
 				'dependencies' => $deps,
 			);
 		}
 	}
 
 	/**
-	 * Marks the module to be enqueued in the page.
+	 * Marks the module to be enqueued in the page the next time
+	 * `prints_enqueued_modules` is called.
 	 *
 	 * @since 6.5.0
 	 *
@@ -85,14 +86,14 @@ class WP_Modules {
 	 */
 	public function enqueue( $module_identifier ) {
 		if ( isset( $this->registered[ $module_identifier ] ) ) {
-			$this->registered[ $module_identifier ]['enqueued'] = true;
+			$this->registered[ $module_identifier ]['enqueue'] = true;
 		} else {
 			$this->enqueued_before_registered[ $module_identifier ] = true;
 		}
 	}
 
 	/**
-	 * Unmarks the module so it is no longer enqueued in the page.
+	 * Unmarks the module so it will no longer be enqueued in the page.
 	 *
 	 * @since 6.5.0
 	 *
@@ -100,7 +101,7 @@ class WP_Modules {
 	 */
 	public function dequeue( $module_identifier ) {
 		if ( isset( $this->registered[ $module_identifier ] ) ) {
-			$this->registered[ $module_identifier ]['enqueued'] = false;
+			$this->registered[ $module_identifier ]['enqueue'] = false;
 		}
 		unset( $this->enqueued_before_registered[ $module_identifier ] );
 	}
@@ -115,7 +116,7 @@ class WP_Modules {
 	 */
 	public function get_import_map() {
 		$imports = array();
-		foreach ( $this->get_dependencies( array_keys( $this->get_enqueued() ) ) as $module_identifier => $module ) {
+		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $module_identifier => $module ) {
 			$imports[ $module_identifier ] = $module['src'] . $this->get_version_query_string( $module['version'] );
 		}
 		return array( 'imports' => $imports );
@@ -145,7 +146,7 @@ class WP_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_enqueued_modules() {
-		foreach ( $this->get_enqueued() as $module_identifier => $module ) {
+		foreach ( $this->get_marked_for_enqueue() as $module_identifier => $module ) {
 			wp_print_script_tag(
 				array(
 					'type' => 'module',
@@ -160,13 +161,13 @@ class WP_Modules {
 	 * Prints the the static dependencies of the enqueued modules using link tags
 	 * with rel="modulepreload" attributes.
 	 *
-	 * If a module has already been enqueued, it will not be preloaded.
+	 * If a module is marked for enqueue, it will not be preloaded.
 	 *
 	 * @since 6.5.0
 	 */
 	public function print_module_preloads() {
-		foreach ( $this->get_dependencies( array_keys( $this->get_enqueued() ), array( 'static' ) ) as $module_identifier => $module ) {
-			if ( true !== $module['enqueued'] ) {
+		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $module_identifier => $module ) {
+			if ( true !== $module['enqueue'] ) {
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
 					esc_attr( $module['src'] . $this->get_version_query_string( $module['version'] ) ),
@@ -204,10 +205,10 @@ class WP_Modules {
 	 *
 	 * @return array Enqueued modules, keyed by module identifier.
 	 */
-	private function get_enqueued() {
+	private function get_marked_for_enqueue() {
 		$enqueued = array();
 		foreach ( $this->registered as $module_identifier => $module ) {
-			if ( true === $module['enqueued'] ) {
+			if ( true === $module['enqueue'] ) {
 				$enqueued[ $module_identifier ] = $module;
 			}
 		}
