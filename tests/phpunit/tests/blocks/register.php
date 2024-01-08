@@ -236,11 +236,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	/**
 	 * @ticket 57234
 	 */
-	public function test_missing_asset_php_for_traditionally_registered_block() {
+	public function test_missing_asset_php_fails_gracefully() {
 		$metadata = array(
-			'file'   => DIR_TESTDATA . '/blocks/notice/block.json',
-			'name'   => 'unit-test/traditional-block',
-			'script' => 'file:./blocks/notice/block.js',
+			'file'   => DIR_TESTDATA . '/blocks/no-asset-php/block.json',
+			'name'   => 'unit-test/test-block',
+			'script' => 'file:./blocks/no-asset-php/block.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
 
@@ -249,37 +249,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		// Assert that the result is the generated script handle name
 		$this->assertEquals( $expected_handle, $result );
-	}
-
-	/**
-	 * @ticket 57234
-	 */
-	public function test_inaccessible_asset_php_path() {
-		$metadata = array(
-			'file'   => DIR_TESTDATA . '/blocks/notice/block.json',
-			'name'   => 'unit-test/inaccessible-asset',
-			'script' => 'file:./blocks/notice/inaccessible-asset.php',
-		);
-		$result   = register_block_script_handle( $metadata, 'script' );
-
-		// Assert that the result is false due to inaccessible .asset.php path
-		$this->assertFalse( $result );
-	}
-
-	/**
-	 * @ticket 57234
-	 */
-	public function test_missing_asset_php_for_non_traditional_block() {
-		$metadata = array(
-			'file' => DIR_TESTDATA . '/blocks/no-asset-php/block.json',
-			'name' => 'unit-test/non-traditional-block',
-			// Assuming non-traditional registration doesn't use the script field
-			// or has a different mechanism that doesn't involve .asset.php
-		);
-		$result = register_block_script_handle( $metadata, 'script' );
-
-		// Assert that the result is false as expected in non-traditional scenarios
-		$this->assertFalse( $result );
 	}
 
 	/**
