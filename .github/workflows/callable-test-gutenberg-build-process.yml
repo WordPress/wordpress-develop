@@ -36,7 +36,7 @@ jobs:
   # - Builds Gutenberg.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
-    name: Gutenberg running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    name: Gutenberg running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-13' && 'MacOS 13' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 30
 
@@ -50,6 +50,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: 'WordPress/gutenberg'
+          ref: 1ba116b01f986c5945b40d5eecd77c3bd1159df5
           path: ${{ env.GUTENBERG_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
