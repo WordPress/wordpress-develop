@@ -72,6 +72,7 @@ class WP_Modules {
 				'version'      => $version,
 				'enqueue'      => isset( $this->enqueued_before_registered[ $module_identifier ] ),
 				'dependencies' => $deps,
+				'enqueued'     => false,
 			);
 		}
 	}
@@ -147,6 +148,10 @@ class WP_Modules {
 	 */
 	public function print_enqueued_modules() {
 		foreach ( $this->get_marked_for_enqueue() as $module_identifier => $module ) {
+			if ( false === $module['enqueued'] ) {
+				// Mark it as enqueued so it doesn't get enqueued again.
+				$this->registered[ $module_identifier ]['enqueued'] = true;
+
 			wp_print_script_tag(
 				array(
 					'type' => 'module',
@@ -154,6 +159,7 @@ class WP_Modules {
 					'id'   => $module_identifier,
 				)
 			);
+			}
 		}
 	}
 
@@ -199,11 +205,11 @@ class WP_Modules {
 	}
 
 	/**
-	 * Retrieves an array of enqueued modules.
+	 * Retrieves the list of modules marked for enqueue.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array Enqueued modules, keyed by module identifier.
+	 * @return array Modules marked for enqueue, keyed by module identifier.
 	 */
 	private function get_marked_for_enqueue() {
 		$enqueued = array();
