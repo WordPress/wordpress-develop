@@ -113,10 +113,10 @@ class WP_Block_Type {
 	 * Block variations.
 	 *
 	 * @since 5.8.0
-	 * @since 6.5.0 Only accessible through magic getter.
-	 * @var array[]
+	 * @since 6.5.0 Only accessible through magic getter. null by default.
+	 * @var array[]|null
 	 */
-	private $variations = array();
+	private $variations = null;
 
 	/**
 	 * Block variations callback.
@@ -572,12 +572,21 @@ class WP_Block_Type {
 	 * @return array[]
 	 */
 	public function get_variations() {
-		if ( isset( $this->variation_callback ) && is_callable( $this->variation_callback )
-			&& ( empty( $this->variations ) || apply_filters( 'allow_variation_callback_recall', false ) )
-		) {
+		if ( ! isset( $this->variations ) ) {
+			$this->variations = array();
+			if ( is_callable( $this->variation_callback ) ) {
 				$this->variations = call_user_func( $this->variation_callback );
+			}
 		}
 
-		return $this->variations;
+		/**
+		 * Filters the registered variations for a block type.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array         $variations Array of registered variations for a block type.
+		 * @param WP_Block_Type $block_type The full block type object.
+		 */
+		return apply_filters( 'get_block_type_variations', $this->variations, $this );
 	}
 }
