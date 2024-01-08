@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: 'WordPress/gutenberg'
-          ref: 1ba116b01f986c5945b40d5eecd77c3bd1159df5
+          ref: 71ff85b113634032a21b7f15f7b549db108fcb3a
           path: ${{ env.GUTENBERG_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
