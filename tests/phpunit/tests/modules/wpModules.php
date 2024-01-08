@@ -477,4 +477,33 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 		$preloaded_modules = $this->get_preloaded_modules();
 		$this->assertEquals( '/dep.js?ver=2.0', $preloaded_modules['dep'] );
 	}
+
+	/**
+	 * Tests that it can print the enqueued modules multiple times, and it will
+	 * only print the modules that have not been printed before.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::print_enqueued_modules()
+	 */
+	public function test_print_enqueued_modules_can_be_called_multiple_times() {
+		$this->modules->register( 'foo', '/foo.js' );
+		$this->modules->register( 'bar', '/bar.js' );
+		$this->modules->enqueue( 'foo' );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+
+		$this->modules->enqueue( 'bar' );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertStringStartsWith( '/bar.js', $enqueued_modules['bar'] );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+		$this->assertCount( 0, $enqueued_modules );
+	}
 }
