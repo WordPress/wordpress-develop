@@ -1258,8 +1258,8 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Cleanup.
 		switch_theme( $old_theme->get_stylesheet() );
 
-		$this->assertEquals( $old_root . '/test', $path1, 'The original stylesheet path is not correct' );
-		$this->assertEquals( $new_root . '/test', $path2, 'The new stylesheet path is not correct' );
+		$this->assertSame( $old_root . '/test', $path1, 'The original stylesheet path is not correct' );
+		$this->assertSame( $new_root . '/test', $path2, 'The new stylesheet path is not correct' );
 	}
 
 	/**
@@ -1301,7 +1301,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Cleanup.
 		switch_theme( $old_theme->get_stylesheet() );
 
-		$this->assertEquals( $old_root . '/test-parent', $path1, 'The original template path is not correct' );
-		$this->assertEquals( $new_root . '/test-parent', $path2, 'The new template path is not correct' );
+		$this->assertSame( $old_root . '/test-parent', $path1, 'The original template path is not correct' );
+		$this->assertSame( $new_root . '/test-parent', $path2, 'The new template path is not correct' );
 	}
 }
