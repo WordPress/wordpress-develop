@@ -170,16 +170,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		$script_args['strategy'] = 'defer';
 	}
 
-	if ( file_exists( $script_asset_path ) ) {
-		$script_asset = require $script_asset_path;
-	} else {
-		// Ensure graceful fallback for missing or inaccessible *.asset.php by setting default dependencies and version.
-		$script_asset = array(
-			'dependencies' => array(),
-			'version'      => false,
-		);
-	}
-
+	$script_asset        = @include $script_asset_path;
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
 		$script_handle,
