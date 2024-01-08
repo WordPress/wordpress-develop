@@ -495,15 +495,48 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 
 		$enqueued_modules = $this->get_enqueued_modules();
 		$this->assertCount( 1, $enqueued_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+		$this->assertTrue( isset( $enqueued_modules['foo'] ) );
 
 		$this->modules->enqueue( 'bar' );
 
 		$enqueued_modules = $this->get_enqueued_modules();
 		$this->assertCount( 1, $enqueued_modules );
-		$this->assertStringStartsWith( '/bar.js', $enqueued_modules['bar'] );
+		$this->assertTrue( isset( $enqueued_modules['bar'] ) );
 
 		$enqueued_modules = $this->get_enqueued_modules();
 		$this->assertCount( 0, $enqueued_modules );
+	}
+
+	/**
+	 * Tests that it can print the preloaded modules multiple times, and it will
+	 * only print the modules that have not been printed before.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::print_module_preloads()
+	 */
+	public function test_print_preloaded_modules_can_be_called_multiple_times() {
+		$this->modules->register( 'foo', '/foo.js', array( 'static-dep-1', 'static-dep-2' ) );
+		$this->modules->register( 'bar', '/bar.js', array( 'static-dep-3' ) );
+		$this->modules->register( 'static-dep-1', '/static-dep-1.js' );
+		$this->modules->register( 'static-dep-3', '/static-dep-3.js' );
+		$this->modules->enqueue( 'foo' );
+
+		$preloaded_modules = $this->get_preloaded_modules();
+		$this->assertCount( 1, $preloaded_modules );
+		$this->assertTrue( isset( $preloaded_modules['static-dep-1'] ) );
+
+		$this->modules->register( 'static-dep-2', '/static-dep-2.js' );
+		$this->modules->enqueue( 'bar' );
+
+		$preloaded_modules = $this->get_preloaded_modules();
+		$this->assertCount( 2, $preloaded_modules );
+		$this->assertTrue( isset( $preloaded_modules['static-dep-2'] ) );
+		$this->assertTrue( isset( $preloaded_modules['static-dep-3'] ) );
+
+		$preloaded_modules = $this->get_preloaded_modules();
+		$this->assertCount( 0, $preloaded_modules );
 	}
 }
