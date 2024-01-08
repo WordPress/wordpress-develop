@@ -73,6 +73,7 @@ class WP_Modules {
 				'enqueue'      => isset( $this->enqueued_before_registered[ $module_identifier ] ),
 				'dependencies' => $deps,
 				'enqueued'     => false,
+				'preloaded'    => false,
 			);
 		}
 	}
@@ -152,13 +153,13 @@ class WP_Modules {
 				// Mark it as enqueued so it doesn't get enqueued again.
 				$this->registered[ $module_identifier ]['enqueued'] = true;
 
-			wp_print_script_tag(
-				array(
-					'type' => 'module',
-					'src'  => $module['src'] . $this->get_version_query_string( $module['version'] ),
-					'id'   => $module_identifier,
-				)
-			);
+				wp_print_script_tag(
+					array(
+						'type' => 'module',
+						'src'  => $module['src'] . $this->get_version_query_string( $module['version'] ),
+						'id'   => $module_identifier,
+					)
+				);
 			}
 		}
 	}
@@ -173,7 +174,11 @@ class WP_Modules {
 	 */
 	public function print_module_preloads() {
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $module_identifier => $module ) {
-			if ( true !== $module['enqueue'] ) {
+			// Don't preload if it's marked for enqueue or has already been preloaded.
+			if ( true !== $module['enqueue'] && false === $module['preloaded'] ) {
+				// Mark it as preloaded so it doesn't get preloaded again.
+				$this->registered[ $module_identifier ]['preloaded'] = true;
+
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
 					esc_attr( $module['src'] . $this->get_version_query_string( $module['version'] ) ),
