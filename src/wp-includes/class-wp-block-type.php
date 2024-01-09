@@ -367,7 +367,7 @@ class WP_Block_Type {
 	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
-		if ( 'variations' === $name && isset( $this->variation_callback ) ) {
+		if ( 'variations' === $name && ( isset( $this->variations ) || isset( $this->variation_callback ) ) ) {
 			return true;
 		}
 
