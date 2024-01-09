@@ -109,6 +109,33 @@ class WP_Modules {
 	}
 
 	/**
+	 * Adds the hooks to print the import map and enqueued modules.
+	 *
+	 * It adds the actions to print the enqueued modules and module preloads to
+	 * both `wp_head` and `wp_footer` because in classic themes, the modules
+	 * used by the theme and plugins will likely be able to be printed in the
+	 * `head`, but the ones used by the blocks will need to be enqueued in the
+	 * `footer`.
+	 *
+	 * As all modules are deferred and dependencies are handled by the browser,
+	 * the order of the modules is not important, but it's still better to print
+	 * the ones that are available when the `wp_head` is rendered, so the browser
+	 * starts downloading those as soon as possible.
+	 *
+	 * The import map is also printed in the footer to be able to include the
+	 * dependencies of all the modules, including the ones printed in the footer.
+	 *
+	 * @since 6.5.0
+	 */
+	public function add_hooks() {
+		add_action( 'wp_head', array( $this, 'print_enqueued_modules' ) );
+		add_action( 'wp_head', array( $this, 'print_module_preloads' ) );
+		add_action( 'wp_footer', array( $this, 'print_enqueued_modules' ) );
+		add_action( 'wp_footer', array( $this, 'print_module_preloads' ) );
+		add_action( 'wp_footer', array( $this, 'print_import_map' ) );
+	}
+
+	/**
 	 * Returns the import map array.
 	 *
 	 * @since 6.5.0

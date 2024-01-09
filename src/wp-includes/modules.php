@@ -22,6 +22,7 @@ function wp_modules() {
 	static $instance = null;
 	if ( is_null( $instance ) ) {
 		$instance = new WP_Modules();
+		$instance->add_hooks();
 	}
 	return $instance;
 }
@@ -70,35 +71,4 @@ function wp_enqueue_module( $module_identifier ) {
  */
 function wp_dequeue_module( $module_identifier ) {
 	wp_modules()->dequeue( $module_identifier );
-}
-
-/**
- * Prints the import map using a script tag with a type="importmap" attribute.
- *
- * @since 6.5.0
- */
-function wp_print_import_map() {
-	wp_modules()->print_import_map();
-}
-
-/**
- * Prints all the enqueued modules using script tags with type="module"
- * attributes.
- *
- * @since 6.5.0
- */
-function wp_print_enqueued_modules() {
-	wp_modules()->print_enqueued_modules();
-}
-
-/**
- * Prints the the static dependencies of the enqueued modules using link tags
- * with rel="modulepreload" attributes.
- *
- * If a module has already been enqueued, it will not be preloaded.
- *
- * @since 6.5.0
- */
-function wp_print_module_preloads() {
-	wp_modules()->print_module_preloads();
 }
