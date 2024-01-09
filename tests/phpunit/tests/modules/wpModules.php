@@ -273,6 +273,25 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the import map is not printed at all if there are no
+	 * dependencies.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::print_import_map()
+	 */
+	public function test_wp_import_map_doesnt_print_if_no_dependencies() {
+		$this->modules->register( 'foo', '/foo.js' ); // No deps.
+		$this->modules->enqueue( 'foo' );
+
+		$import_map_markup = get_echo( array( $this->modules, 'print_import_map' ) );
+
+		$this->assertEmpty( $import_map_markup );
+	}
+
+	/**
 	 * Tests that only static dependencies are preloaded and dynamic ones are
 	 * excluded.
 	 *
