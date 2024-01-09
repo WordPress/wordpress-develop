@@ -154,39 +154,6 @@ class WP_Modules {
 	}
 
 	/**
-	 * Returns the import map array.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @return array Array with an `imports` key mapping to an array of module identifiers and their respective URLs,
-	 *               including the version query.
-	 */
-	private function get_import_map() {
-		$imports = array();
-		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $module_id => $module ) {
-			$imports[ $module_id ] = $module['src'] . $this->get_version_query_string( $module['version'] );
-		}
-		return array( 'imports' => $imports );
-	}
-
-	/**
-	 * Prints the import map using a script tag with a type="importmap" attribute.
-	 *
-	 * @since 6.5.0
-	 */
-	public function print_import_map() {
-		$import_map = $this->get_import_map();
-		if ( ! empty( $import_map['imports'] ) ) {
-			wp_print_inline_script_tag(
-				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
-				array(
-					'type' => 'importmap',
-				)
-			);
-		}
-	}
-
-	/**
 	 * Prints the enqueued modules using script tags with type="module"
 	 * attributes.
 	 *
@@ -239,24 +206,36 @@ class WP_Modules {
 	}
 
 	/**
-	 * Gets the version of a module.
+	 * Prints the import map using a script tag with a type="importmap" attribute.
 	 *
-	 * If $version is set to false, the version number is the currently installed
-	 * WordPress version. If $version is set to null, no version is added.
-	 * Otherwise, the string passed in $version is used.
+	 * @since 6.5.0
+	 */
+	public function print_import_map() {
+		$import_map = $this->get_import_map();
+		if ( ! empty( $import_map['imports'] ) ) {
+			wp_print_inline_script_tag(
+				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
+				array(
+					'type' => 'importmap',
+				)
+			);
+		}
+	}
+
+	/**
+	 * Returns the import map array.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string|false|null $version The version of the module.
-	 * @return string A string with the version, prepended by `?ver=`, or an empty string if there is no version.
+	 * @return array Array with an `imports` key mapping to an array of module identifiers and their respective URLs,
+	 *               including the version query.
 	 */
-	private function get_version_query_string( $version ) {
-		if ( false === $version ) {
-			return '?ver=' . get_bloginfo( 'version' );
-		} elseif ( null !== $version ) {
-			return '?ver=' . $version;
+	private function get_import_map() {
+		$imports = array();
+		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $module_id => $module ) {
+			$imports[ $module_id ] = $module['src'] . $this->get_version_query_string( $module['version'] );
 		}
-		return '';
+		return array( 'imports' => $imports );
 	}
 
 	/**
@@ -309,5 +288,26 @@ class WP_Modules {
 			},
 			array()
 		);
+	}
+
+	/**
+	 * Gets the version of a module.
+	 *
+	 * If $version is set to false, the version number is the currently installed
+	 * WordPress version. If $version is set to null, no version is added.
+	 * Otherwise, the string passed in $version is used.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string|false|null $version The version of the module.
+	 * @return string A string with the version, prepended by `?ver=`, or an empty string if there is no version.
+	 */
+	private function get_version_query_string( $version ) {
+		if ( false === $version ) {
+			return '?ver=' . get_bloginfo( 'version' );
+		} elseif ( null !== $version ) {
+			return '?ver=' . $version;
+		}
+		return '';
 	}
 }
