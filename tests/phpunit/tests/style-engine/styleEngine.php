@@ -27,6 +27,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58549
 	 * @ticket 58590
+	 * @ticket 60175
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -252,19 +253,26 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 
 			'elements_with_css_var_value'                  => array(
 				'block_styles'    => array(
-					'color' => array(
+					'color'      => array(
 						'text' => 'var:preset|color|my-little-pony',
+					),
+					'typography' => array(
+						'fontSize'   => 'var:preset|font-size|cabbage-patch',
+						'fontFamily' => 'var:preset|font-family|transformers',
 					),
 				),
 				'options'         => array(
 					'selector' => '.wp-selector',
 				),
 				'expected_output' => array(
-					'css'          => '.wp-selector{color:var(--wp--preset--color--my-little-pony);}',
+					'css'          => '.wp-selector{color:var(--wp--preset--color--my-little-pony);font-size:var(--wp--preset--font-size--cabbage-patch);font-family:var(--wp--preset--font-family--transformers);}',
 					'declarations' => array(
-						'color' => 'var(--wp--preset--color--my-little-pony)',
+						'color'       => 'var(--wp--preset--color--my-little-pony)',
+						'font-size'   => 'var(--wp--preset--font-size--cabbage-patch)',
+						'font-family' => 'var(--wp--preset--font-family--transformers)',
+
 					),
-					'classnames'   => 'has-text-color has-my-little-pony-color',
+					'classnames'   => 'has-text-color has-my-little-pony-color has-cabbage-patch-font-size has-transformers-font-family',
 				),
 			),
 
@@ -513,18 +521,22 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			'inline_background_image_url_with_background_size' => array(
 				'block_styles'    => array(
 					'background' => array(
-						'backgroundImage' => array(
+						'backgroundImage'    => array(
 							'url' => 'https://example.com/image.jpg',
 						),
-						'backgroundSize'  => 'cover',
+						'backgroundPosition' => 'center',
+						'backgroundRepeat'   => 'no-repeat',
+						'backgroundSize'     => 'cover',
 					),
 				),
 				'options'         => array(),
 				'expected_output' => array(
-					'css'          => "background-image:url('https://example.com/image.jpg');background-size:cover;",
+					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;",
 					'declarations' => array(
-						'background-image' => "url('https://example.com/image.jpg')",
-						'background-size'  => 'cover',
+						'background-image'    => "url('https://example.com/image.jpg')",
+						'background-position' => 'center',
+						'background-repeat'   => 'no-repeat',
+						'background-size'     => 'cover',
 					),
 				),
 			),
