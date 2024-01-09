@@ -198,7 +198,7 @@ class WP_Modules {
 
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
-					esc_attr( $this->get_versioned_src( $module ) ),
+					esc_url( $this->get_versioned_src( $module ) ),
 					esc_attr( $module_id )
 				);
 			}
