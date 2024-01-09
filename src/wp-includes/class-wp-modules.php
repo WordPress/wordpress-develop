@@ -36,35 +36,47 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string            $module_identifier The identifier of the module. Should be unique. It will be used in the
-	 *                                             final import map.
-	 * @param string            $src               Full URL of the module, or path of the script relative to the WordPress
-	 *                                             root directory.
-	 * @param array             $dependencies      Optional. An array of module identifiers of the dependencies of this
-	 *                                             module. The dependencies can be strings or arrays. If they are arrays,
-	 *                                             they need an `id` key with the module identifier, and can contain an
-	 *                                             `import` key with either `static` or `dynamic`. By default,
-	 *                                             dependencies that don't contain an `import` key are considered static.
-	 * @param string|false|null $version           Optional. String specifying module version number. Defaults to false.
-	 *                                             It is added to the URL as a query string for cache busting purposes. If
-	 *                                             $version is set to false, the version number is the currently installed
-	 *                                             WordPress version. If $version is set to null, no version is added.
+	 * @param string                                                        $module_id The identifier of the module.
+	 *                                                                                 Should be unique. It will be used
+	 *                                                                                 in the final import map.
+	 * @param string                                                        $src       Full URL of the module, or path of
+	 *                                                                                 the module relative to the
+	 *                                                                                 WordPress root directory.
+	 * @param array<string|array{id: string, import?: 'static'|'dynamic' }> $deps      Optional. An array of module
+	 *                                                                                 identifiers of the dependencies of
+	 *                                                                                 this module. The dependencies can
+	 *                                                                                 be strings or arrays. If they are
+	 *                                                                                 arrays, they need an `id` key with
+	 *                                                                                 the module identifier, and can
+	 *                                                                                 contain an `import` key with either
+	 *                                                                                 `static` or `dynamic`. By default,
+	 *                                                                                 dependencies that don't contain an
+	 *                                                                                 `import` key are considered static.
+	 * @param string|false|null                                             $version   Optional. String specifying the
+	 *                                                                                 module version number. Defaults to
+	 *                                                                                 false. It is added to the URL as a
+	 *                                                                                 query string for cache busting
+	 *                                                                                 purposes. If $version is set to
+	 *                                                                                 false, the version number is the
+	 *                                                                                 currently installed WordPress
+	 *                                                                                 version. If $version is set to
+	 *                                                                                 null, no version is added.
 	 */
-	public function register( $module_identifier, $src, $dependencies = array(), $version = false ) {
-		if ( ! isset( $this->registered[ $module_identifier ] ) ) {
-			$deps = array();
-			foreach ( $dependencies as $dependency ) {
+	public function register( $module_id, $src, $deps = array(), $version = false ) {
+		if ( ! isset( $this->registered[ $module_id ] ) ) {
+			$dependencies = array();
+			foreach ( $deps as $dependency ) {
 				if ( is_array( $dependency ) ) {
 					if ( ! isset( $dependency['id'] ) ) {
 						_doing_it_wrong( __METHOD__, __( 'Missing required id key in entry among dependencies array.' ), '6.5.0' );
 						continue;
 					}
-					$deps[] = array(
+					$dependencies[] = array(
 						'id'     => $dependency['id'],
 						'import' => isset( $dependency['import'] ) && 'dynamic' === $dependency['import'] ? 'dynamic' : 'static',
 					);
 				} elseif ( is_string( $dependency ) ) {
-					$deps[] = array(
+					$dependencies[] = array(
 						'id'     => $dependency,
 						'import' => 'static',
 					);
@@ -73,11 +85,11 @@ class WP_Modules {
 				}
 			}
 
-			$this->registered[ $module_identifier ] = array(
+			$this->registered[ $module_id ] = array(
 				'src'          => $src,
 				'version'      => $version,
-				'enqueue'      => isset( $this->enqueued_before_registered[ $module_identifier ] ),
-				'dependencies' => $deps,
+				'enqueue'      => isset( $this->enqueued_before_registered[ $module_id ] ),
+				'dependencies' => $dependencies,
 				'enqueued'     => false,
 				'preloaded'    => false,
 			);
@@ -90,13 +102,13 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $module_identifier The identifier of the module.
+	 * @param string $module_id The identifier of the module.
 	 */
-	public function enqueue( $module_identifier ) {
-		if ( isset( $this->registered[ $module_identifier ] ) ) {
-			$this->registered[ $module_identifier ]['enqueue'] = true;
+	public function enqueue( $module_id ) {
+		if ( isset( $this->registered[ $module_id ] ) ) {
+			$this->registered[ $module_id ]['enqueue'] = true;
 		} else {
-			$this->enqueued_before_registered[ $module_identifier ] = true;
+			$this->enqueued_before_registered[ $module_id ] = true;
 		}
 	}
 
@@ -105,13 +117,13 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $module_identifier The identifier of the module.
+	 * @param string $module_id The identifier of the module.
 	 */
-	public function dequeue( $module_identifier ) {
-		if ( isset( $this->registered[ $module_identifier ] ) ) {
-			$this->registered[ $module_identifier ]['enqueue'] = false;
+	public function dequeue( $module_id ) {
+		if ( isset( $this->registered[ $module_id ] ) ) {
+			$this->registered[ $module_id ]['enqueue'] = false;
 		}
-		unset( $this->enqueued_before_registered[ $module_identifier ] );
+		unset( $this->enqueued_before_registered[ $module_id ] );
 	}
 
 	/**
@@ -149,10 +161,10 @@ class WP_Modules {
 	 * @return array Array with an `imports` key mapping to an array of module identifiers and their respective URLs,
 	 *               including the version query.
 	 */
-	public function get_import_map() {
+	private function get_import_map() {
 		$imports = array();
-		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $module_identifier => $module ) {
-			$imports[ $module_identifier ] = $module['src'] . $this->get_version_query_string( $module['version'] );
+		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $module_id => $module ) {
+			$imports[ $module_id ] = $module['src'] . $this->get_version_query_string( $module['version'] );
 		}
 		return array( 'imports' => $imports );
 	}
@@ -181,16 +193,16 @@ class WP_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_enqueued_modules() {
-		foreach ( $this->get_marked_for_enqueue() as $module_identifier => $module ) {
+		foreach ( $this->get_marked_for_enqueue() as $module_id => $module ) {
 			if ( false === $module['enqueued'] ) {
 				// Mark it as enqueued so it doesn't get enqueued again.
-				$this->registered[ $module_identifier ]['enqueued'] = true;
+				$this->registered[ $module_id ]['enqueued'] = true;
 
 				wp_print_script_tag(
 					array(
 						'type' => 'module',
 						'src'  => $module['src'] . $this->get_version_query_string( $module['version'] ),
-						'id'   => $module_identifier,
+						'id'   => $module_id,
 					)
 				);
 			}
@@ -206,16 +218,16 @@ class WP_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_module_preloads() {
-		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $module_identifier => $module ) {
+		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $module_id => $module ) {
 			// Don't preload if it's marked for enqueue or has already been preloaded.
 			if ( true !== $module['enqueue'] && false === $module['preloaded'] ) {
 				// Mark it as preloaded so it doesn't get preloaded again.
-				$this->registered[ $module_identifier ]['preloaded'] = true;
+				$this->registered[ $module_id ]['preloaded'] = true;
 
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
 					esc_attr( $module['src'] . $this->get_version_query_string( $module['version'] ) ),
-					esc_attr( $module_identifier )
+					esc_attr( $module_id )
 				);
 			}
 		}
@@ -251,9 +263,9 @@ class WP_Modules {
 	 */
 	private function get_marked_for_enqueue() {
 		$enqueued = array();
-		foreach ( $this->registered as $module_identifier => $module ) {
+		foreach ( $this->registered as $module_id => $module ) {
 			if ( true === $module['enqueue'] ) {
-				$enqueued[ $module_identifier ] = $module;
+				$enqueued[ $module_id ] = $module;
 			}
 		}
 		return $enqueued;
@@ -269,21 +281,21 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $module_identifiers The identifiers of the modules for which to gather dependencies.
+	 * @param array $module_ids The identifiers of the modules for which to gather dependencies.
 	 * @param array $import_types       Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                                  Default is both.
 	 * @return array List of dependencies, keyed by module identifier.
 	 */
-	private function get_dependencies( $module_identifiers, $import_types = array( 'static', 'dynamic' ) ) {
+	private function get_dependencies( $module_ids, $import_types = array( 'static', 'dynamic' ) ) {
 		return array_reduce(
-			$module_identifiers,
-			function ( $dependency_modules, $module_identifier ) use ( $import_types ) {
+			$module_ids,
+			function ( $dependency_modules, $module_id ) use ( $import_types ) {
 				$dependencies = array();
-				foreach ( $this->registered[ $module_identifier ]['dependencies'] as $dependency ) {
+				foreach ( $this->registered[ $module_id ]['dependencies'] as $dependency ) {
 					if (
-						in_array( $dependency['import'], $import_types, true ) &&
-						isset( $this->registered[ $dependency['id'] ] ) &&
-						! isset( $dependency_modules[ $dependency['id'] ] )
+					in_array( $dependency['import'], $import_types, true ) &&
+					isset( $this->registered[ $dependency['id'] ] ) &&
+					! isset( $dependency_modules[ $dependency['id'] ] )
 					) {
 						$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
 					}
