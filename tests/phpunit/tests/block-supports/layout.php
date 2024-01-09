@@ -250,6 +250,44 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow wp-block-group-is-layout-flow"></div></div>',
 			),
+			'element without class attribute before target' => array(
+				'args'            => array(
+					'block_content' => '<div><div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div><div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div><div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div><div class="wp-block-group"></div>',
+			),
+			'element with true class attribute before target' => array(
+				'args'            => array(
+					'block_content' => '<div class><div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class><div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class><div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class><div class="wp-block-group"></div>',
+			),
 		);
 	}
 
