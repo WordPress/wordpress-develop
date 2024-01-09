@@ -1,11 +1,13 @@
 <?php
 
 /**
- * Test apply_filters() and related functions
+ * Test apply_filters().
  *
  * @group hooks
+ * @covers ::apply_filters
  */
-class Tests_Filters extends WP_UnitTestCase {
+class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
+	private $current_priority;
 
 	public function test_simple_filter() {
 		$a         = new MockAction();
@@ -23,41 +25,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		$argsvar = $a->get_args();
 		$args    = array_pop( $argsvar );
 		$this->assertSame( array( $val ), $args );
-	}
-
-	public function test_remove_filter() {
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-		$val       = __FUNCTION__ . '_val';
-
-		add_filter( $hook_name, array( $a, 'filter' ) );
-		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
-
-		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-
-		// Now remove the filter, do it again, and make sure it's not called this time.
-		remove_filter( $hook_name, array( $a, 'filter' ) );
-		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-	}
-
-	public function test_has_filter() {
-		$hook_name = __FUNCTION__;
-		$callback  = __FUNCTION__ . '_func';
-
-		$this->assertFalse( has_filter( $hook_name, $callback ) );
-		$this->assertFalse( has_filter( $hook_name ) );
-
-		add_filter( $hook_name, $callback );
-		$this->assertSame( 10, has_filter( $hook_name, $callback ) );
-		$this->assertTrue( has_filter( $hook_name ) );
-
-		remove_filter( $hook_name, $callback );
-		$this->assertFalse( has_filter( $hook_name, $callback ) );
-		$this->assertFalse( has_filter( $hook_name ) );
 	}
 
 	// One tag with multiple filters.
@@ -247,30 +214,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @covers ::did_filter
-	 */
-	public function test_did_filter() {
-		$hook_name1 = 'filter1';
-		$hook_name2 = 'filter2';
-		$val        = __FUNCTION__ . '_val';
-
-		// Apply filter $hook_name1 but not $hook_name2.
-		apply_filters( $hook_name1, $val );
-		$this->assertSame( 1, did_filter( $hook_name1 ) );
-		$this->assertSame( 0, did_filter( $hook_name2 ) );
-
-		// Apply filter $hook_name2 10 times.
-		$count = 10;
-		for ( $i = 0; $i < $count; $i++ ) {
-			apply_filters( $hook_name2, $val );
-		}
-
-		// $hook_name1's count hasn't changed, $hook_name2 should be correct.
-		$this->assertSame( 1, did_filter( $hook_name1 ) );
-		$this->assertSame( $count, did_filter( $hook_name2 ) );
-	}
-
 	public function test_all_filter() {
 		$a          = new MockAction();
 		$hook_name1 = __FUNCTION__ . '_1';
@@ -292,48 +235,6 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
-	}
-
-	public function test_remove_all_filter() {
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-		$val       = __FUNCTION__ . '_val';
-
-		add_filter( 'all', array( $a, 'filterall' ) );
-		$this->assertTrue( has_filter( 'all' ) );
-		$this->assertSame( 10, has_filter( 'all', array( $a, 'filterall' ) ) );
-		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
-
-		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-
-		// Now remove the filter, do it again, and make sure it's not called this time.
-		remove_filter( 'all', array( $a, 'filterall' ) );
-		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
-		$this->assertFalse( has_filter( 'all' ) );
-		$this->assertSame( $val, apply_filters( $hook_name, $val ) );
-		// Call cound should remain at 1.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-	}
-
-	/**
-	 * @ticket 20920
-	 */
-	public function test_remove_all_filters_should_respect_the_priority_argument() {
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-
-		add_filter( $hook_name, array( $a, 'filter' ), 12 );
-		$this->assertTrue( has_filter( $hook_name ) );
-
-		// Should not be removed.
-		remove_all_filters( $hook_name, 11 );
-		$this->assertTrue( has_filter( $hook_name ) );
-
-		remove_all_filters( $hook_name, 12 );
-		$this->assertFalse( has_filter( $hook_name ) );
 	}
 
 	/**
@@ -378,134 +279,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		$obj->foo = true;
 		$this->assertNotEmpty( $args[0][1]->foo );
 	}
-
-	/**
-	 * @ticket 9886
-	 */
-	public function test_filter_ref_array() {
-		$obj       = new stdClass();
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-
-		add_action( $hook_name, array( $a, 'filter' ) );
-
-		apply_filters_ref_array( $hook_name, array( &$obj ) );
-
-		$args = $a->get_args();
-		$this->assertSame( $args[0][0], $obj );
-		// Just in case we don't trust assertSame().
-		$obj->foo = true;
-		$this->assertNotEmpty( $args[0][0]->foo );
-	}
-
-	/**
-	 * @ticket 12723
-	 */
-	public function test_filter_ref_array_result() {
-		$obj       = new stdClass();
-		$a         = new MockAction();
-		$b         = new MockAction();
-		$hook_name = __FUNCTION__;
-
-		add_action( $hook_name, array( $a, 'filter_append' ), 10, 2 );
-		add_action( $hook_name, array( $b, 'filter_append' ), 10, 2 );
-
-		$result = apply_filters_ref_array( $hook_name, array( 'string', &$obj ) );
-
-		$this->assertSame( $result, 'string_append_append' );
-
-		$args = $a->get_args();
-		$this->assertSame( $args[0][1], $obj );
-		// Just in case we don't trust assertSame().
-		$obj->foo = true;
-		$this->assertNotEmpty( $args[0][1]->foo );
-
-		$args = $b->get_args();
-		$this->assertSame( $args[0][1], $obj );
-		// Just in case we don't trust assertSame().
-		$obj->foo = true;
-		$this->assertNotEmpty( $args[0][1]->foo );
-	}
-
-	/**
-	 * @ticket 29070
-	 */
-	public function test_has_filter_after_remove_all_filters() {
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-
-		// No priority.
-		add_filter( $hook_name, array( $a, 'filter' ), 11 );
-		add_filter( $hook_name, array( $a, 'filter' ), 12 );
-		$this->assertTrue( has_filter( $hook_name ) );
-
-		remove_all_filters( $hook_name );
-		$this->assertFalse( has_filter( $hook_name ) );
-
-		// Remove priorities one at a time.
-		add_filter( $hook_name, array( $a, 'filter' ), 11 );
-		add_filter( $hook_name, array( $a, 'filter' ), 12 );
-		$this->assertTrue( has_filter( $hook_name ) );
-
-		remove_all_filters( $hook_name, 11 );
-		remove_all_filters( $hook_name, 12 );
-		$this->assertFalse( has_filter( $hook_name ) );
-	}
-
-	/**
-	 * @ticket 10441
-	 * @expectedDeprecated tests_apply_filters_deprecated
-	 */
-	public function test_apply_filters_deprecated() {
-		$p = 'Foo';
-
-		add_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback' ) );
-		$p = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p ), '4.6.0' );
-		remove_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback' ) );
-
-		$this->assertSame( 'Bar', $p );
-	}
-
-	public static function deprecated_filter_callback( $p ) {
-		$p = 'Bar';
-		return $p;
-	}
-
-	/**
-	 * @ticket 10441
-	 * @expectedDeprecated tests_apply_filters_deprecated
-	 */
-	public function test_apply_filters_deprecated_with_multiple_params() {
-		$p1 = 'Foo1';
-		$p2 = 'Foo2';
-
-		add_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback_multiple_params' ), 10, 2 );
-		$p1 = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p1, $p2 ), '4.6.0' );
-		remove_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback_multiple_params' ), 10, 2 );
-
-		$this->assertSame( 'Bar1', $p1 );
-
-		// Not passed by reference, so not modified.
-		$this->assertSame( 'Foo2', $p2 );
-	}
-
-	public static function deprecated_filter_callback_multiple_params( $p1, $p2 ) {
-		$p1 = 'Bar1';
-		$p2 = 'Bar2';
-
-		return $p1;
-	}
-
-	/**
-	 * @ticket 10441
-	 */
-	public function test_apply_filters_deprecated_without_filter() {
-		$val = 'Foobar';
-
-		$this->assertSame( $val, apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $val ), '4.6.0' ) );
-	}
-
-	private $current_priority;
 
 	/**
 	 * @ticket 39007

@@ -1,44 +1,13 @@
 <?php
 
 /**
- * Test do_action() and related functions
+ * Test do_action().
  *
  * @group hooks
+ * @covers ::do_action
  */
-class Tests_Actions extends WP_UnitTestCase {
+class Tests_Hooks_DoAction extends WP_UnitTestCase {
 
-	/**
-	 * Flag to keep track whether a certain filter has been applied.
-	 *
-	 * Used in the `test_doing_filter_real()` test method.
-	 *
-	 * @var bool
-	 */
-	private $apply_testing_filter = false;
-
-	/**
-	 * Flag to keep track whether a certain filter has been applied.
-	 *
-	 * Used in the `test_doing_filter_real()` test method.
-	 *
-	 * @var bool
-	 */
-	private $apply_testing_nested_filter = false;
-
-	/**
-	 * Clean up after each test.
-	 */
-	public function tear_down() {
-		// Make sure potentially changed properties are reverted to their default value.
-		$this->apply_testing_filter        = false;
-		$this->apply_testing_nested_filter = false;
-
-		parent::tear_down();
-	}
-
-	/**
-	 * @covers ::do_action
-	 */
 	public function test_simple_action() {
 		$a         = new MockAction();
 		$hook_name = __FUNCTION__;
@@ -56,44 +25,28 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( array( '' ), $args );
 	}
 
-	/**
-	 * @covers ::remove_action
-	 */
-	public function test_remove_action() {
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
+	public function test_all_action() {
+		$a          = new MockAction();
+		$hook_name1 = __FUNCTION__ . '_1';
+		$hook_name2 = __FUNCTION__ . '_2';
 
-		add_action( $hook_name, array( &$a, 'action' ) );
-		do_action( $hook_name );
+		// Add an 'all' action.
+		add_action( 'all', array( &$a, 'action' ) );
+		$this->assertSame( 10, has_filter( 'all', array( &$a, 'action' ) ) );
 
-		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+		// Do some actions.
+		do_action( $hook_name1 );
+		do_action( $hook_name2 );
+		do_action( $hook_name1 );
+		do_action( $hook_name1 );
 
-		// Now remove the action, do it again, and make sure it's not called this time.
-		remove_action( $hook_name, array( &$a, 'action' ) );
-		do_action( $hook_name );
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-	}
+		// Our action should have been called once for each tag.
+		$this->assertSame( 4, $a->get_call_count() );
+		// Only our hook was called.
+		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_hook_names() );
 
-	/**
-	 * @covers ::has_action
-	 */
-	public function test_has_action() {
-		$hook_name = __FUNCTION__;
-		$callback  = __FUNCTION__ . '_func';
-
-		$this->assertFalse( has_action( $hook_name, $callback ) );
-		$this->assertFalse( has_action( $hook_name ) );
-
-		add_action( $hook_name, $callback );
-		$this->assertSame( 10, has_action( $hook_name, $callback ) );
-		$this->assertTrue( has_action( $hook_name ) );
-
-		remove_action( $hook_name, $callback );
-		$this->assertFalse( has_action( $hook_name, $callback ) );
-		$this->assertFalse( has_action( $hook_name ) );
+		remove_action( 'all', array( &$a, 'action' ) );
+		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
 	}
 
 	/**
@@ -359,97 +312,6 @@ class Tests_Actions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::did_action
-	 */
-	public function test_did_action() {
-		$hook_name1 = 'action1';
-		$hook_name2 = 'action2';
-
-		// Do action $hook_name1 but not $hook_name2.
-		do_action( $hook_name1 );
-		$this->assertSame( 1, did_action( $hook_name1 ) );
-		$this->assertSame( 0, did_action( $hook_name2 ) );
-
-		// Do action $hook_name2 10 times.
-		$count = 10;
-		for ( $i = 0; $i < $count; $i++ ) {
-			do_action( $hook_name2 );
-		}
-
-		// $hook_name1's count hasn't changed, $hook_name2 should be correct.
-		$this->assertSame( 1, did_action( $hook_name1 ) );
-		$this->assertSame( $count, did_action( $hook_name2 ) );
-	}
-
-	/**
-	 * @covers ::do_action
-	 */
-	public function test_all_action() {
-		$a          = new MockAction();
-		$hook_name1 = __FUNCTION__ . '_1';
-		$hook_name2 = __FUNCTION__ . '_2';
-
-		// Add an 'all' action.
-		add_action( 'all', array( &$a, 'action' ) );
-		$this->assertSame( 10, has_filter( 'all', array( &$a, 'action' ) ) );
-		// Do some actions.
-		do_action( $hook_name1 );
-		do_action( $hook_name2 );
-		do_action( $hook_name1 );
-		do_action( $hook_name1 );
-
-		// Our action should have been called once for each tag.
-		$this->assertSame( 4, $a->get_call_count() );
-		// Only our hook was called.
-		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_hook_names() );
-
-		remove_action( 'all', array( &$a, 'action' ) );
-		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
-	}
-
-	/**
-	 * @covers ::remove_action
-	 */
-	public function test_remove_all_action() {
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-
-		add_action( 'all', array( &$a, 'action' ) );
-		$this->assertSame( 10, has_filter( 'all', array( &$a, 'action' ) ) );
-		do_action( $hook_name );
-
-		// Make sure our hook was called correctly.
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-
-		// Now remove the action, do it again, and make sure it's not called this time.
-		remove_action( 'all', array( &$a, 'action' ) );
-		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
-		do_action( $hook_name );
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-	}
-
-	/**
-	 * @covers ::do_action_ref_array
-	 */
-	public function test_action_ref_array() {
-		$obj       = new stdClass();
-		$a         = new MockAction();
-		$hook_name = __FUNCTION__;
-
-		add_action( $hook_name, array( &$a, 'action' ) );
-
-		do_action_ref_array( $hook_name, array( &$obj ) );
-
-		$args = $a->get_args();
-		$this->assertSame( $args[0][0], $obj );
-		// Just in case we don't trust assertSame().
-		$obj->foo = true;
-		$this->assertNotEmpty( $args[0][0]->foo );
-	}
-
-	/**
 	 * @ticket 11241
 	 *
 	 * @covers ::do_action
@@ -511,36 +373,6 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		remove_action( $hook_name, $closure );
 		remove_action( $hook_name2, $closure2 );
-	}
-
-	/**
-	 * @ticket 23265
-	 *
-	 * @covers ::add_action
-	 */
-	public function test_action_callback_representations() {
-		$hook_name = __FUNCTION__;
-
-		$this->assertFalse( has_action( $hook_name ) );
-
-		add_action( $hook_name, array( 'Class', 'method' ) );
-
-		$this->assertSame( 10, has_action( $hook_name, array( 'Class', 'method' ) ) );
-
-		$this->assertSame( 10, has_action( $hook_name, 'Class::method' ) );
-	}
-
-	/**
-	 * @covers ::remove_action
-	 */
-	public function test_action_self_removal() {
-		add_action( 'test_action_self_removal', array( $this, 'action_self_removal' ) );
-		do_action( 'test_action_self_removal' );
-		$this->assertSame( 1, did_action( 'test_action_self_removal' ) );
-	}
-
-	public function action_self_removal() {
-		remove_action( 'test_action_self_removal', array( $this, 'action_self_removal' ) );
 	}
 
 	/**
@@ -608,226 +440,5 @@ class Tests_Actions extends WP_UnitTestCase {
 		add_action( $hook_name, array( $mocks[2], 'action' ), 12, 2 );
 		add_action( $hook_name, array( $mocks[3], 'action' ), 13, 2 );
 		add_action( $hook_name, array( $mocks[4], 'action' ), 10, 2 );
-	}
-
-	/**
-	 * @ticket 17817
-	 *
-	 * This specificaly addresses the concern raised at
-	 * https://core.trac.wordpress.org/ticket/17817#comment:52
-	 *
-	 * @covers ::remove_filter
-	 */
-	public function test_remove_anonymous_callback() {
-		$hook_name = __FUNCTION__;
-		$a         = new MockAction();
-		add_action( $hook_name, array( $a, 'action' ), 12, 1 );
-		$this->assertTrue( has_action( $hook_name ) );
-
-		$hook = $GLOBALS['wp_filter'][ $hook_name ];
-
-		// From http://wordpress.stackexchange.com/a/57088/6445
-		foreach ( $hook as $priority => $filter ) {
-			foreach ( $filter as $identifier => $function ) {
-				if ( is_array( $function )
-					&& $function['function'][0] instanceof MockAction
-					&& 'action' === $function['function'][1]
-				) {
-					remove_filter(
-						$hook_name,
-						array( $function['function'][0], 'action' ),
-						$priority
-					);
-				}
-			}
-		}
-
-		$this->assertFalse( has_action( $hook_name ) );
-	}
-
-
-	/**
-	 * Test the ArrayAccess methods of WP_Hook
-	 *
-	 * @ticket 17817
-	 *
-	 * @covers WP_Hook::offsetGet
-	 * @covers WP_Hook::offsetSet
-	 * @covers WP_Hook::offsetUnset
-	 */
-	public function test_array_access_of_wp_filter_global() {
-		global $wp_filter;
-
-		$hook_name = __FUNCTION__;
-
-		add_action( $hook_name, '__return_null', 11, 1 );
-
-		$this->assertArrayHasKey( 11, $wp_filter[ $hook_name ] );
-		$this->assertArrayHasKey( '__return_null', $wp_filter[ $hook_name ][11] );
-
-		unset( $wp_filter[ $hook_name ][11] );
-		$this->assertFalse( has_action( $hook_name, '__return_null' ) );
-
-		$wp_filter[ $hook_name ][11] = array(
-			'__return_null' => array(
-				'function'      => '__return_null',
-				'accepted_args' => 1,
-			),
-		);
-		$this->assertSame( 11, has_action( $hook_name, '__return_null' ) );
-	}
-
-	/**
-	 * Make sure current_action() behaves as current_filter()
-	 *
-	 * @ticket 14994
-	 *
-	 * @covers ::current_action
-	 */
-	public function test_current_action() {
-		global $wp_current_filter;
-
-		$wp_current_filter[] = 'first';
-		$wp_current_filter[] = 'second'; // Let's say a second action was invoked.
-
-		$this->assertSame( 'second', current_action() );
-	}
-
-	/**
-	 * @ticket 14994
-	 *
-	 * @covers ::doing_filter
-	 */
-	public function test_doing_filter() {
-		global $wp_current_filter;
-
-		$wp_current_filter = array(); // Set to an empty array first.
-
-		$this->assertFalse( doing_filter() );            // No filter is passed in, and no filter is being processed.
-		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed.
-
-		$wp_current_filter[] = 'testing';
-
-		$this->assertTrue( doing_filter() );                    // No action is passed in, and a filter is being processed.
-		$this->assertTrue( doing_filter( 'testing' ) );         // Filter is passed in and is being processed.
-		$this->assertFalse( doing_filter( 'something_else' ) ); // Filter is passed in but not being processed.
-
-		$wp_current_filter = array();
-	}
-
-	/**
-	 * @ticket 14994
-	 *
-	 * @covers ::doing_filter
-	 */
-	public function test_doing_action() {
-		global $wp_current_filter;
-
-		$wp_current_filter = array(); // Set to an empty array first.
-
-		$this->assertFalse( doing_action() );            // No action is passed in, and no filter is being processed.
-		$this->assertFalse( doing_action( 'testing' ) ); // Action is passed in but not being processed.
-
-		$wp_current_filter[] = 'testing';
-
-		$this->assertTrue( doing_action() );                    // No action is passed in, and a filter is being processed.
-		$this->assertTrue( doing_action( 'testing' ) );         // Action is passed in and is being processed.
-		$this->assertFalse( doing_action( 'something_else' ) ); // Action is passed in but not being processed.
-
-		$wp_current_filter = array();
-	}
-
-	/**
-	 * @ticket 14994
-	 *
-	 * @covers ::doing_filter
-	 */
-	public function test_doing_filter_real() {
-		$this->assertFalse( doing_filter() );            // No filter is passed in, and no filter is being processed.
-		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed.
-
-		add_filter( 'testing', array( $this, 'apply_testing_filter' ) );
-		$this->assertTrue( has_action( 'testing' ) );
-		$this->assertSame( 10, has_action( 'testing', array( $this, 'apply_testing_filter' ) ) );
-
-		apply_filters( 'testing', '' );
-
-		// Make sure it ran.
-		$this->assertTrue( $this->apply_testing_filter );
-
-		$this->assertFalse( doing_filter() );            // No longer doing any filters.
-		$this->assertFalse( doing_filter( 'testing' ) ); // No longer doing this filter.
-	}
-
-	public function apply_testing_filter() {
-		$this->apply_testing_filter = true;
-
-		$this->assertTrue( doing_filter() );
-		$this->assertTrue( doing_filter( 'testing' ) );
-		$this->assertFalse( doing_filter( 'something_else' ) );
-		$this->assertFalse( doing_filter( 'testing_nested' ) );
-
-		add_filter( 'testing_nested', array( $this, 'apply_testing_nested_filter' ) );
-		$this->assertTrue( has_action( 'testing_nested' ) );
-		$this->assertSame( 10, has_action( 'testing_nested', array( $this, 'apply_testing_nested_filter' ) ) );
-
-		apply_filters( 'testing_nested', '' );
-
-		// Make sure it ran.
-		$this->assertTrue( $this->apply_testing_nested_filter );
-
-		$this->assertFalse( doing_filter( 'testing_nested' ) );
-		$this->assertFalse( doing_filter( 'testing_nested' ) );
-	}
-
-	public function apply_testing_nested_filter() {
-		$this->apply_testing_nested_filter = true;
-		$this->assertTrue( doing_filter() );
-		$this->assertTrue( doing_filter( 'testing' ) );
-		$this->assertTrue( doing_filter( 'testing_nested' ) );
-		$this->assertFalse( doing_filter( 'something_else' ) );
-	}
-
-	/**
-	 * @ticket 10441
-	 * @expectedDeprecated tests_do_action_deprecated
-	 *
-	 * @covers ::do_action_deprecated
-	 */
-	public function test_do_action_deprecated() {
-		$p = new WP_Post( (object) array( 'post_title' => 'Foo' ) );
-
-		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback' ) );
-		do_action_deprecated( 'tests_do_action_deprecated', array( $p ), '4.6.0' );
-		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback' ) );
-
-		$this->assertSame( 'Bar', $p->post_title );
-	}
-
-	public static function deprecated_action_callback( $p ) {
-		$p->post_title = 'Bar';
-	}
-
-	/**
-	 * @ticket 10441
-	 * @expectedDeprecated tests_do_action_deprecated
-	 *
-	 * @covers ::do_action_deprecated
-	 */
-	public function test_do_action_deprecated_with_multiple_params() {
-		$p1 = new WP_Post( (object) array( 'post_title' => 'Foo1' ) );
-		$p2 = new WP_Post( (object) array( 'post_title' => 'Foo2' ) );
-
-		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
-		do_action_deprecated( 'tests_do_action_deprecated', array( $p1, $p2 ), '4.6.0' );
-		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
-
-		$this->assertSame( 'Bar1', $p1->post_title );
-		$this->assertSame( 'Bar2', $p2->post_title );
-	}
-
-	public static function deprecated_action_callback_multiple_params( $p1, $p2 ) {
-		$p1->post_title = 'Bar1';
-		$p2->post_title = 'Bar2';
 	}
 }
