@@ -65,6 +65,11 @@ function wp_render_background_support( $block_content, $block ) {
 	$background_image_url    = isset( $block_attributes['style']['background']['backgroundImage']['url'] )
 		? $block_attributes['style']['background']['backgroundImage']['url']
 		: null;
+
+	if ( ! $background_image_source && ! $background_image_url ) {
+		return $block_content;
+	}
+
 	$background_size         = isset( $block_attributes['style']['background']['backgroundSize'] )
 		? $block_attributes['style']['background']['backgroundSize']
 		: 'cover';
