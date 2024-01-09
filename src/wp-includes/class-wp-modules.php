@@ -187,8 +187,11 @@ class WP_Modules {
 	}
 
 	/**
-	 * Prints all the enqueued modules using script tags with type="module"
+	 * Prints the enqueued modules using script tags with type="module"
 	 * attributes.
+	 *
+	 * If a enqueued module has already been printed, it will not be printed again
+	 * on subsequent calls to this function.
 	 *
 	 * @since 6.5.0
 	 */
@@ -213,7 +216,9 @@ class WP_Modules {
 	 * Prints the the static dependencies of the enqueued modules using link tags
 	 * with rel="modulepreload" attributes.
 	 *
-	 * If a module is marked for enqueue, it will not be preloaded.
+	 * If a module is marked for enqueue, it will not be preloaded. If a preloaded
+	 * module has already been printed, it will not be printed again on subsequent
+	 * calls to this function.
 	 *
 	 * @since 6.5.0
 	 */
