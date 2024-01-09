@@ -35,7 +35,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 			continue;
 		}
 
-		$this->assertEquals(
+		$this->assertSame(
 			$tag_name,
 			$processor->get_tag(),
 			"Expected to find {$tag_name} but found {$processor->get_tag()} instead."
@@ -125,7 +125,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$p = WP_HTML_Processor::create_fragment( '<div>Test</button></div>' );
 
 		$p->step();
-		$this->assertEquals( 'DIV', $p->get_tag(), 'Did not stop at initial DIV tag.' );
+		$this->assertSame( 'DIV', $p->get_tag(), 'Did not stop at initial DIV tag.' );
 		$this->assertFalse( $p->is_tag_closer(), 'Did not find that initial DIV tag is an opener.' );
 
 		/*
@@ -133,7 +133,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		 * It should be ignored as there's no BUTTON to close.
 		 */
 		$this->assertTrue( $p->step(), 'Found no further tags when it should have found the closing DIV' );
-		$this->assertEquals( 'DIV', $p->get_tag(), "Did not skip unexpected BUTTON; stopped at {$p->get_tag()}." );
+		$this->assertSame( 'DIV', $p->get_tag(), "Did not skip unexpected BUTTON; stopped at {$p->get_tag()}." );
 		$this->assertTrue( $p->is_tag_closer(), 'Did not find that the terminal DIV tag is a closer.' );
 	}
 

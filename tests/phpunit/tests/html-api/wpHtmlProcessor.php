@@ -61,22 +61,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that if the HTML Processor encounters inputs that it can't properly handle,
-	 * that it stops processing the rest of the document. This prevents data corruption.
-	 *
-	 * @ticket 59167
-	 *
-	 * @covers WP_HTML_Processor::next_tag
-	 */
-	public function test_stops_processing_after_unsupported_elements() {
-		$p = WP_HTML_Processor::create_fragment( '<p><x-not-supported></p><p></p>' );
-		$p->next_tag( 'P' );
-		$this->assertFalse( $p->next_tag(), 'Stepped into a tag after encountering X-NOT-SUPPORTED element when it should have aborted.' );
-		$this->assertNull( $p->get_tag(), "Should have aborted processing, but still reported tag {$p->get_tag()} after properly failing to step into tag." );
-		$this->assertFalse( $p->next_tag( 'P' ), 'Stepped into normal P element after X-NOT-SUPPORTED element when it should have aborted.' );
-	}
-
-	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
@@ -146,5 +130,97 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$this->assertTrue( $p->next_tag( 'EM' ), 'Could not find first EM.' );
 		$this->assertFalse( $p->next_tag( 'EM' ), 'Should have aborted before finding second EM as it required reconstructing the first EM.' );
+	}
+
+	/**
+	 * Ensures that special handling of unsupported tags is cleaned up
+	 * as handling is implemented. Otherwise there's risk of leaving special
+	 * handling (that is never reached) when tag handling is implemented.
+	 *
+	 * @ticket 60092
+	 *
+	 * @dataProvider data_unsupported_special_in_body_tags
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @param string $tag_name Name of the tag to test.
+	 */
+	public function test_step_in_body_fails_on_unsupported_tags( $tag_name ) {
+		$fragment = WP_HTML_Processor::create_fragment( '<' . $tag_name . '></' . $tag_name . '>' );
+		$this->assertFalse( $fragment->next_tag(), 'Should fail to find tag: ' . $tag_name . '.' );
+		$this->assertEquals( $fragment->get_last_error(), WP_HTML_Processor::ERROR_UNSUPPORTED, 'Should have unsupported last error.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unsupported_special_in_body_tags() {
+		return array(
+			'APPLET'    => array( 'APPLET' ),
+			'AREA'      => array( 'AREA' ),
+			'BASE'      => array( 'BASE' ),
+			'BASEFONT'  => array( 'BASEFONT' ),
+			'BGSOUND'   => array( 'BGSOUND' ),
+			'BODY'      => array( 'BODY' ),
+			'BR'        => array( 'BR' ),
+			'CAPTION'   => array( 'CAPTION' ),
+			'COL'       => array( 'COL' ),
+			'COLGROUP'  => array( 'COLGROUP' ),
+			'DD'        => array( 'DD' ),
+			'DT'        => array( 'DT' ),
+			'EMBED'     => array( 'EMBED' ),
+			'FORM'      => array( 'FORM' ),
+			'FRAME'     => array( 'FRAME' ),
+			'FRAMESET'  => array( 'FRAMESET' ),
+			'HEAD'      => array( 'HEAD' ),
+			'HR'        => array( 'HR' ),
+			'HTML'      => array( 'HTML' ),
+			'IFRAME'    => array( 'IFRAME' ),
+			'INPUT'     => array( 'INPUT' ),
+			'KEYGEN'    => array( 'KEYGEN' ),
+			'LI'        => array( 'LI' ),
+			'LINK'      => array( 'LINK' ),
+			'LISTING'   => array( 'LISTING' ),
+			'MARQUEE'   => array( 'MARQUEE' ),
+			'MATH'      => array( 'MATH' ),
+			'META'      => array( 'META' ),
+			'NOBR'      => array( 'NOBR' ),
+			'NOEMBED'   => array( 'NOEMBED' ),
+			'NOFRAMES'  => array( 'NOFRAMES' ),
+			'NOSCRIPT'  => array( 'NOSCRIPT' ),
+			'OBJECT'    => array( 'OBJECT' ),
+			'OL'        => array( 'OL' ),
+			'OPTGROUP'  => array( 'OPTGROUP' ),
+			'OPTION'    => array( 'OPTION' ),
+			'PARAM'     => array( 'PARAM' ),
+			'PLAINTEXT' => array( 'PLAINTEXT' ),
+			'PRE'       => array( 'PRE' ),
+			'RB'        => array( 'RB' ),
+			'RP'        => array( 'RP' ),
+			'RT'        => array( 'RT' ),
+			'RTC'       => array( 'RTC' ),
+			'SARCASM'   => array( 'SARCASM' ),
+			'SCRIPT'    => array( 'SCRIPT' ),
+			'SELECT'    => array( 'SELECT' ),
+			'SOURCE'    => array( 'SOURCE' ),
+			'STYLE'     => array( 'STYLE' ),
+			'SVG'       => array( 'SVG' ),
+			'TABLE'     => array( 'TABLE' ),
+			'TBODY'     => array( 'TBODY' ),
+			'TD'        => array( 'TD' ),
+			'TEMPLATE'  => array( 'TEMPLATE' ),
+			'TEXTAREA'  => array( 'TEXTAREA' ),
+			'TFOOT'     => array( 'TFOOT' ),
+			'TH'        => array( 'TH' ),
+			'THEAD'     => array( 'THEAD' ),
+			'TITLE'     => array( 'TITLE' ),
+			'TR'        => array( 'TR' ),
+			'TRACK'     => array( 'TRACK' ),
+			'UL'        => array( 'UL' ),
+			'WBR'       => array( 'WBR' ),
+			'XMP'       => array( 'XMP' ),
+		);
 	}
 }
