@@ -870,7 +870,7 @@ class WP_Debug_Data {
 
 		$db_engine = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
 		$extension = null;
-		if ( 'mysql' === $database_type ) {
+		if ( 'mysql' === $db_engine ) {
 			// Populate the database debug fields.
 			if ( is_object( $wpdb->dbh ) ) {
 				// mysqli or PDO.
