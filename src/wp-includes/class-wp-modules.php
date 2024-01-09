@@ -172,7 +172,7 @@ class WP_Modules {
 					array(
 						'type' => 'module',
 						'src'  => $this->get_versioned_src( $module ),
-						'id'   => $module_id,
+						'id'   => $module_id . '-js-module',
 					)
 				);
 			}
@@ -199,7 +199,7 @@ class WP_Modules {
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
 					esc_url( $this->get_versioned_src( $module ) ),
-					esc_attr( $module_id )
+					esc_attr( $module_id . '-js-modulepreload' )
 				);
 			}
 		}
@@ -217,6 +217,7 @@ class WP_Modules {
 				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
 				array(
 					'type' => 'importmap',
+					'id'   => 'wp-importmap',
 				)
 			);
 		}
