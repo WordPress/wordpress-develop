@@ -382,6 +382,7 @@ require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/interactivity-api.php';
+require ABSPATH . WPINC . '/class-wp-incompatible-plugins-handler.php';
 
 wp_script_modules()->add_hooks();
 
@@ -486,7 +487,10 @@ if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 }
 
 // Load active plugins.
-foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
+$_active_and_valid_plugins_to_load = wp_get_active_and_valid_plugins();
+WP_Incompatible_Plugins_Handler::deactivate_on_wp_load( $_active_and_valid_plugins_to_load );
+
+foreach ( $_active_and_valid_plugins_to_load as $plugin ) {
 	wp_register_plugin_realpath( $plugin );
 
 	$_wp_plugin_file = $plugin;
@@ -502,7 +506,8 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	 */
 	do_action( 'plugin_loaded', $plugin );
 }
-unset( $plugin, $_wp_plugin_file );
+unset( $plugin, $_wp_plugin_file, $_active_and_valid_plugins_to_load );
+WP_Incompatible_Plugins_Handler::reset();
 
 // Load pluggable functions.
 require ABSPATH . WPINC . '/pluggable.php';

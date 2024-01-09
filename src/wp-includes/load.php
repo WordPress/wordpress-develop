@@ -993,7 +993,9 @@ function wp_get_active_and_valid_plugins() {
 			// Not already included as a network plugin.
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 		) {
-			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
+			$plugin_file = WP_PLUGIN_DIR . '/' . $plugin;
+			$plugins[]   = $plugin_file;
+			WP_Incompatible_Plugins_Handler::maybe_flag_for_compat_check( $plugin, $plugin_file, $plugins );
 		}
 	}
 
