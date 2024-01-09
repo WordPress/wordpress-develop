@@ -39,9 +39,9 @@ function wp_modules() {
  *                                             root directory.
  * @param array             $dependencies      Optional. An array of module identifiers of the dependencies of this
  *                                             module. The dependencies can be strings or arrays. If they are arrays,
- *                                             they need an `id` key with the module identifier, and can contain a
- *                                             `type` key with either `static` or `dynamic`. By default, dependencies
- *                                             that don't contain a type are considered static.
+ *                                             they need an `id` key with the module identifier, and can contain an
+ *                                             `import` key with either `static` or `dynamic`. By default,
+ *                                             dependencies that don't contain an `import` key are considered static.
  * @param string|false|null $version           Optional. String specifying module version number. Defaults to false.
  *                                             It is added to the URL as a query string for cache busting purposes. If
  *                                             $version is set to false, the version number is the currently installed

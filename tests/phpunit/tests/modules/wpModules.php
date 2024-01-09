@@ -39,8 +39,8 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 
 		while ( $p->next_tag(
 			array(
-				'tag'  => 'SCRIPT',
-				'type' => 'module',
+				'tag'    => 'SCRIPT',
+				'import' => 'module',
 			)
 		) ) {
 			$enqueued_modules[ $p->get_attribute( 'id' ) ] = $p->get_attribute( 'src' );
@@ -238,8 +238,8 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 			array(
 				'static-dep',
 				array(
-					'id'   => 'dynamic-dep',
-					'type' => 'dynamic',
+					'id'     => 'dynamic-dep',
+					'import' => 'dynamic',
 				),
 			)
 		);
@@ -248,12 +248,12 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 			'/static-dep.js',
 			array(
 				array(
-					'id'   => 'nested-static-dep',
-					'type' => 'static',
+					'id'     => 'nested-static-dep',
+					'import' => 'static',
 				),
 				array(
-					'id'   => 'nested-dynamic-dep',
-					'type' => 'dynamic',
+					'id'     => 'nested-dynamic-dep',
+					'import' => 'dynamic',
 				),
 			)
 		);
@@ -289,8 +289,8 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 			array(
 				'static-dep',
 				array(
-					'id'   => 'dynamic-dep',
-					'type' => 'dynamic',
+					'id'     => 'dynamic-dep',
+					'import' => 'dynamic',
 				),
 			)
 		);
@@ -299,12 +299,12 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 			'/static-dep.js',
 			array(
 				array(
-					'id'   => 'nested-static-dep',
-					'type' => 'static',
+					'id'     => 'nested-static-dep',
+					'import' => 'static',
 				),
 				array(
-					'id'   => 'nested-dynamic-dep',
-					'type' => 'dynamic',
+					'id'     => 'nested-dynamic-dep',
+					'import' => 'dynamic',
 				),
 			)
 		);
@@ -340,8 +340,8 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 			array(
 				'static-dep',
 				array(
-					'id'   => 'dynamic-dep',
-					'type' => 'dynamic',
+					'id'     => 'dynamic-dep',
+					'import' => 'dynamic',
 				),
 			)
 		);

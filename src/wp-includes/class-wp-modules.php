@@ -42,9 +42,9 @@ class WP_Modules {
 	 *                                             root directory.
 	 * @param array             $dependencies      Optional. An array of module identifiers of the dependencies of this
 	 *                                             module. The dependencies can be strings or arrays. If they are arrays,
-	 *                                             they need an `id` key with the module identifier, and can contain a
-	 *                                             `type` key with either `static` or `dynamic`. By default, dependencies
-	 *                                             that don't contain a type are considered static.
+	 *                                             they need an `id` key with the module identifier, and can contain an
+	 *                                             `import` key with either `static` or `dynamic`. By default,
+	 *                                             dependencies that don't contain an `import` key are considered static.
 	 * @param string|false|null $version           Optional. String specifying module version number. Defaults to false.
 	 *                                             It is added to the URL as a query string for cache busting purposes. If
 	 *                                             $version is set to false, the version number is the currently installed
@@ -56,13 +56,13 @@ class WP_Modules {
 			foreach ( $dependencies as $dependency ) {
 				if ( isset( $dependency['id'] ) ) {
 					$deps[] = array(
-						'id'   => $dependency['id'],
-						'type' => isset( $dependency['type'] ) && 'dynamic' === $dependency['type'] ? 'dynamic' : 'static',
+						'id'     => $dependency['id'],
+						'import' => isset( $dependency['import'] ) && 'dynamic' === $dependency['import'] ? 'dynamic' : 'static',
 					);
 				} elseif ( is_string( $dependency ) ) {
 					$deps[] = array(
-						'id'   => $dependency,
-						'type' => 'static',
+						'id'     => $dependency,
+						'import' => 'static',
 					);
 				}
 			}
@@ -255,34 +255,34 @@ class WP_Modules {
 
 	/**
 	 * Retrieves all the dependencies for the given module identifiers, filtered
-	 * by types.
+	 * by import types.
 	 *
 	 * It will consolidate an array containing a set of unique dependencies based
-	 * on the requested types: 'static', 'dynamic', or both. This method is
+	 * on the requested import types: 'static', 'dynamic', or both. This method is
 	 * recursive and also retrieves dependencies of the dependencies.
 	 *
 	 * @since 6.5.0
 	 *
 	 * @param array $module_identifiers The identifiers of the modules for which to gather dependencies.
-	 * @param array $types              Optional. Types of dependencies to retrieve: 'static', 'dynamic', or both. Default
-	 *                                  is both.
+	 * @param array $import_types       Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 *                                  Default is both.
 	 * @return array List of dependencies, keyed by module identifier.
 	 */
-	private function get_dependencies( $module_identifiers, $types = array( 'static', 'dynamic' ) ) {
+	private function get_dependencies( $module_identifiers, $import_types = array( 'static', 'dynamic' ) ) {
 		return array_reduce(
 			$module_identifiers,
-			function ( $dependency_modules, $module_identifier ) use ( $types ) {
+			function ( $dependency_modules, $module_identifier ) use ( $import_types ) {
 				$dependencies = array();
 				foreach ( $this->registered[ $module_identifier ]['dependencies'] as $dependency ) {
 					if (
-						in_array( $dependency['type'], $types, true ) &&
+						in_array( $dependency['import'], $import_types, true ) &&
 						isset( $this->registered[ $dependency['id'] ] ) &&
 						! isset( $dependency_modules[ $dependency['id'] ] )
 					) {
 						$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
 					}
 				}
-				return array_merge( $dependency_modules, $dependencies, $this->get_dependencies( array_keys( $dependencies ), $types ) );
+				return array_merge( $dependency_modules, $dependencies, $this->get_dependencies( array_keys( $dependencies ), $import_types ) );
 			},
 			array()
 		);
