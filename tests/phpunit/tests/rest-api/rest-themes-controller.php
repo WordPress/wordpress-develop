@@ -127,9 +127,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$contributor_id );
 		self::delete_user( self::$admin_id );
-
-		remove_theme_support( 'editor-gradient-presets' );
-		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
@@ -688,6 +685,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 		$this->assertSame( array( $wordpress_blue ), $result[0]['theme_supports']['editor-color-palette'] );
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
@@ -1054,6 +1052,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 		$this->assertSame( array( $gradient ), $result[0]['theme_supports']['editor-gradient-presets'] );
+		remove_theme_support( 'editor-gradient-presets' );
 	}
 
 	/**

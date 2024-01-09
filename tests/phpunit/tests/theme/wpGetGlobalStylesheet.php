@@ -19,13 +19,6 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	private $remove_theme_support_at_teardown = false;
 
 	/**
-	 * Flag to indicate whether to remove 'border' theme support at tear_down().
-	 *
-	 * @var bool
-	 */
-	private $remove_border_support_at_teardown = false;
-
-	/**
 	 * Flag to indicate whether to switch back to the default theme at tear down.
 	 *
 	 * @var bool
@@ -45,12 +38,6 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		if ( $this->switch_to_default_theme_at_teardown ) {
 			$this->switch_to_default_theme_at_teardown = false;
 			switch_theme( WP_DEFAULT_THEME );
-		}
-
-		if ( $this->remove_border_support_at_teardown ) {
-			$this->remove_border_support_at_teardown = false;
-			remove_theme_support( 'border' );
-			remove_theme_support( 'editor-color-palette' );
 		}
 
 		parent::tear_down();
@@ -294,10 +281,9 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 			),
 		);
 
-		// Add theme support for appearance tools.
+		// Add theme support for border and color palette.
 		add_theme_support( 'border' );
 		add_theme_support( 'editor-color-palette', $args );
-		$this->remove_border_support_at_teardown = true;
 
 		// Check for both the variable declaration and its use as a value.
 		$variables = wp_get_global_stylesheet( array( 'variables' ) );
@@ -315,6 +301,10 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 		$this->assertStringContainsString( 'var(--wp--preset--color--haunted-green)', $presets );
 		$this->assertStringContainsString( 'var(--wp--preset--color--soft-blue)', $presets );
 		$this->assertStringContainsString( 'var(--wp--preset--color--cool-purple)', $presets );
+
+		// Remove theme support for border and color palette.
+		remove_theme_support( 'border' );
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
