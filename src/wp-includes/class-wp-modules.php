@@ -171,7 +171,7 @@ class WP_Modules {
 				wp_print_script_tag(
 					array(
 						'type' => 'module',
-						'src'  => $module['src'] . $this->get_version_query_string( $module['version'] ),
+						'src'  => $this->get_versioned_src( $module ),
 						'id'   => $module_id,
 					)
 				);
@@ -198,7 +198,7 @@ class WP_Modules {
 
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s">',
-					esc_attr( $module['src'] . $this->get_version_query_string( $module['version'] ) ),
+					esc_attr( $this->get_versioned_src( $module ) ),
 					esc_attr( $module_id )
 				);
 			}
@@ -233,7 +233,7 @@ class WP_Modules {
 	private function get_import_map() {
 		$imports = array();
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $module_id => $module ) {
-			$imports[ $module_id ] = $module['src'] . $this->get_version_query_string( $module['version'] );
+			$imports[ $module_id ] = $this->get_versioned_src( $module );
 		}
 		return array( 'imports' => $imports );
 	}
@@ -291,7 +291,7 @@ class WP_Modules {
 	}
 
 	/**
-	 * Gets the version of a module.
+	 * Gets the versioned URL for a module src.
 	 *
 	 * If $version is set to false, the version number is the currently installed
 	 * WordPress version. If $version is set to null, no version is added.
@@ -299,15 +299,19 @@ class WP_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string|false|null $version The version of the module.
-	 * @return string A string with the version, prepended by `?ver=`, or an empty string if there is no version.
+	 * @param array $module The module.
+	 * @return string The module src with a version if relevant.
 	 */
-	private function get_version_query_string( $version ) {
-		if ( false === $version ) {
-			return '?ver=' . get_bloginfo( 'version' );
-		} elseif ( null !== $version ) {
-			return '?ver=' . $version;
+	private function get_versioned_src( array $module ) {
+		$args = array();
+		if ( false === $module['version'] ) {
+			$args['ver'] = get_bloginfo( 'version' );
+		} elseif ( null !== $module['version'] ) {
+			$args['ver'] = $module['version'];
 		}
-		return '';
+		if ( $args ) {
+			return add_query_arg( $args, $module['src'] );
+		}
+		return $module['src'];
 	}
 }

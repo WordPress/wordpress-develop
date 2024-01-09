@@ -441,25 +441,48 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the functionality of the `get_version_query_string` method to ensure
-	 * proper version strings are returned.
+	 * Tests the functionality of the `get_versioned_src` method to ensure
+	 * proper URLs with version strings are returned.
 	 *
 	 * @ticket 56313
 	 *
-	 * @covers ::get_version_query_string()
+	 * @covers ::get_versioned_src()
 	 */
-	public function test_get_version_query_string() {
-		$get_version_query_string = new ReflectionMethod( $this->modules, 'get_version_query_string' );
-		$get_version_query_string->setAccessible( true );
+	public function test_get_versioned_src() {
+		$get_versioned_src = new ReflectionMethod( $this->modules, 'get_versioned_src' );
+		$get_versioned_src->setAccessible( true );
 
-		$result = $get_version_query_string->invoke( $this->modules, '1.0' );
-		$this->assertEquals( '?ver=1.0', $result );
+		$module_with_version = array(
+			'src'     => 'http://example.com/module.js',
+			'version' => '1.0',
+		);
 
-		$result = $get_version_query_string->invoke( $this->modules, false );
-		$this->assertEquals( '?ver=' . get_bloginfo( 'version' ), $result );
+		$result = $get_versioned_src->invoke( $this->modules, $module_with_version );
+		$this->assertEquals( 'http://example.com/module.js?ver=1.0', $result );
 
-		$result = $get_version_query_string->invoke( $this->modules, null );
-		$this->assertEquals( '', $result );
+		$module_without_version = array(
+			'src'     => 'http://example.com/module.js',
+			'version' => null,
+		);
+
+		$result = $get_versioned_src->invoke( $this->modules, $module_without_version );
+		$this->assertEquals( 'http://example.com/module.js', $result );
+
+		$module_with_wp_version = array(
+			'src'     => 'http://example.com/module.js',
+			'version' => false,
+		);
+
+		$result = $get_versioned_src->invoke( $this->modules, $module_with_wp_version );
+		$this->assertEquals( 'http://example.com/module.js?ver=' . get_bloginfo( 'version' ), $result );
+
+		$module_with_existing_query_string = array(
+			'src'     => 'http://example.com/module.js?foo=bar',
+			'version' => '1.0',
+		);
+
+		$result = $get_versioned_src->invoke( $this->modules, $module_with_existing_query_string );
+		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
 	}
 
 	/**
