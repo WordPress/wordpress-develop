@@ -54,7 +54,11 @@ class WP_Modules {
 		if ( ! isset( $this->registered[ $module_identifier ] ) ) {
 			$deps = array();
 			foreach ( $dependencies as $dependency ) {
-				if ( isset( $dependency['id'] ) ) {
+				if ( is_array( $dependency ) ) {
+					if ( ! isset( $dependency['id'] ) ) {
+						_doing_it_wrong( __METHOD__, __( 'Missing required id key in entry among dependencies array.' ), '6.5.0' );
+						continue;
+					}
 					$deps[] = array(
 						'id'     => $dependency['id'],
 						'import' => isset( $dependency['import'] ) && 'dynamic' === $dependency['import'] ? 'dynamic' : 'static',
@@ -64,6 +68,8 @@ class WP_Modules {
 						'id'     => $dependency,
 						'import' => 'static',
 					);
+				} else {
+					_doing_it_wrong( __METHOD__, __( 'Entries in dependencies array must be either strings or arrays with an id key.' ), '6.5.0' );
 				}
 			}
 
