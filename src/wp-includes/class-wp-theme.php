@@ -1830,23 +1830,31 @@ final class WP_Theme implements ArrayAccess {
 	 * @return array Block pattern data.
 	 */
 	public function get_block_patterns() {
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+
 		$pattern_data = $this->get_pattern_cache();
 		if ( is_array( $pattern_data ) ) {
-			return $pattern_data;
+			if ( $can_use_cached ) {
+				return $pattern_data;
+			}
+			// If in development mode, clear pattern cache.
+			$this->delete_pattern_cache();
 		}
 
 		$dirpath      = $this->get_stylesheet_directory() . '/patterns/';
 		$pattern_data = array();
 
 		if ( ! file_exists( $dirpath ) ) {
-			$this->set_pattern_cache( $pattern_data );
-
+			if ( $can_use_cached ) {
+				$this->set_pattern_cache( $pattern_data );
+			}
 			return $pattern_data;
 		}
 		$files = glob( $dirpath . '*.php' );
 		if ( ! $files ) {
-			$this->set_pattern_cache( $pattern_data );
-
+			if ( $can_use_cached ) {
+				$this->set_pattern_cache( $pattern_data );
+			}
 			return $pattern_data;
 		}
 
@@ -1948,7 +1956,9 @@ final class WP_Theme implements ArrayAccess {
 			$pattern_data[ $key ] = $pattern;
 		}
 
-		$this->set_pattern_cache( $pattern_data );
+		if ( $can_use_cached ) {
+			$this->set_pattern_cache( $pattern_data );
+		}
 
 		return $pattern_data;
 	}

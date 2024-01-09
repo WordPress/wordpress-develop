@@ -578,12 +578,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 				);
 			}
 
-			$non_persistent_groups = array( 'counts', 'plugins', 'theme_json' );
-			if ( wp_is_development_mode( 'theme' ) ) {
-				$non_persistent_groups[] = 'theme_files';
-			}
-
-			wp_cache_add_non_persistent_groups( $non_persistent_groups );
+			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
 		}
 	}
 
@@ -677,12 +672,7 @@ function restore_current_blog() {
 				);
 			}
 
-			$non_persistent_groups = array( 'counts', 'plugins', 'theme_json' );
-			if ( wp_is_development_mode( 'theme' ) ) {
-				$non_persistent_groups[] = 'theme_files';
-			}
-
-			wp_cache_add_non_persistent_groups( $non_persistent_groups );
+			wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
 		}
 	}
 

@@ -423,12 +423,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			)
 		);
 
-		$non_persistent_groups = array( 'counts', 'plugins', 'theme_json' );
-		if ( wp_is_development_mode( 'theme' ) ) {
-			$non_persistent_groups[] = 'theme_files';
-		}
-
-		wp_cache_add_non_persistent_groups( $non_persistent_groups );
+		wp_cache_add_non_persistent_groups( array( 'counts', 'plugins', 'theme_json' ) );
 	}
 
 	/**
