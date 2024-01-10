@@ -1284,8 +1284,6 @@ function add_magic_quotes( $input_array ) {
 			$input_array[ $k ] = add_magic_quotes( $v );
 		} elseif ( is_string( $v ) ) {
 			$input_array[ $k ] = addslashes( $v );
-		} else {
-			continue;
 		}
 	}
 
@@ -3319,7 +3317,6 @@ function wp_get_image_mime( $file ) {
 				// Not using wp_getimagesize() here to avoid an infinite loop.
 				$imagesize = getimagesize( $file );
 			} else {
-				// phpcs:ignore WordPress.PHP.NoSilencedErrors
 				$imagesize = @getimagesize( $file );
 			}
 
@@ -4287,36 +4284,38 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Encodes a variable into JSON, with some sanity checks.
+ * Encodes a variable into JSON, with some confidence checks.
  *
  * @since 4.1.0
  * @since 5.3.0 No longer handles support for PHP < 5.6.
+ * @since 6.5.0 The `$data` parameter has been renamed to `$value` and
+ *              the `$options` parameter to `$flags` for parity with PHP.
  *
- * @param mixed $data    Variable (usually an array or object) to encode as JSON.
- * @param int   $options Optional. Options to be passed to json_encode(). Default 0.
- * @param int   $depth   Optional. Maximum depth to walk through $data. Must be
- *                       greater than 0. Default 512.
+ * @param mixed $value Variable (usually an array or object) to encode as JSON.
+ * @param int   $flags Optional. Options to be passed to json_encode(). Default 0.
+ * @param int   $depth Optional. Maximum depth to walk through $value. Must be
+ *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
  */
-function wp_json_encode( $data, $options = 0, $depth = 512 ) {
-	$json = json_encode( $data, $options, $depth );
+function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
+	$json = json_encode( $value, $flags, $depth );
 
-	// If json_encode() was successful, no need to do more sanity checking.
+	// If json_encode() was successful, no need to do more confidence checking.
 	if ( false !== $json ) {
 		return $json;
 	}
 
 	try {
-		$data = _wp_json_sanity_check( $data, $depth );
+		$value = _wp_json_sanity_check( $value, $depth );
 	} catch ( Exception $e ) {
 		return false;
 	}
 
-	return json_encode( $data, $options, $depth );
+	return json_encode( $value, $flags, $depth );
 }
 
 /**
- * Performs sanity checks on data that shall be encoded to JSON.
+ * Performs confidence checks on data that shall be encoded to JSON.
  *
  * @ignore
  * @since 4.1.0
@@ -4326,18 +4325,18 @@ function wp_json_encode( $data, $options = 0, $depth = 512 ) {
  *
  * @throws Exception If depth limit is reached.
  *
- * @param mixed $data  Variable (usually an array or object) to encode as JSON.
- * @param int   $depth Maximum depth to walk through $data. Must be greater than 0.
+ * @param mixed $value Variable (usually an array or object) to encode as JSON.
+ * @param int   $depth Maximum depth to walk through $value. Must be greater than 0.
  * @return mixed The sanitized data that shall be encoded to JSON.
  */
-function _wp_json_sanity_check( $data, $depth ) {
+function _wp_json_sanity_check( $value, $depth ) {
 	if ( $depth < 0 ) {
 		throw new Exception( 'Reached depth limit' );
 	}
 
-	if ( is_array( $data ) ) {
+	if ( is_array( $value ) ) {
 		$output = array();
-		foreach ( $data as $id => $el ) {
+		foreach ( $value as $id => $el ) {
 			// Don't forget to sanitize the ID!
 			if ( is_string( $id ) ) {
 				$clean_id = _wp_json_convert_string( $id );
@@ -4354,9 +4353,9 @@ function _wp_json_sanity_check( $data, $depth ) {
 				$output[ $clean_id ] = $el;
 			}
 		}
-	} elseif ( is_object( $data ) ) {
+	} elseif ( is_object( $value ) ) {
 		$output = new stdClass();
-		foreach ( $data as $id => $el ) {
+		foreach ( $value as $id => $el ) {
 			if ( is_string( $id ) ) {
 				$clean_id = _wp_json_convert_string( $id );
 			} else {
@@ -4371,10 +4370,10 @@ function _wp_json_sanity_check( $data, $depth ) {
 				$output->$clean_id = $el;
 			}
 		}
-	} elseif ( is_string( $data ) ) {
-		return _wp_json_convert_string( $data );
+	} elseif ( is_string( $value ) ) {
+		return _wp_json_convert_string( $value );
 	} else {
-		return $data;
+		return $value;
 	}
 
 	return $output;
@@ -4421,12 +4420,12 @@ function _wp_json_convert_string( $input_string ) {
  *                   has been dropped.
  * @access private
  *
- * @param mixed $data Native representation.
+ * @param mixed $value Native representation.
  * @return bool|int|float|null|string|array Data ready for `json_encode()`.
  */
-function _wp_json_prepare_data( $data ) {
+function _wp_json_prepare_data( $value ) {
 	_deprecated_function( __FUNCTION__, '5.3.0' );
-	return $data;
+	return $value;
 }
 
 /**
@@ -4434,14 +4433,14 @@ function _wp_json_prepare_data( $data ) {
  *
  * @since 3.5.0
  * @since 4.7.0 The `$status_code` parameter was added.
- * @since 5.6.0 The `$options` parameter was added.
+ * @since 5.6.0 The `$flags` parameter was added.
  *
  * @param mixed $response    Variable (usually an array or object) to encode as JSON,
  *                           then print and die.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
- * @param int   $options     Optional. Options to be passed to json_encode(). Default 0.
+ * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
  */
-function wp_send_json( $response, $status_code = null, $options = 0 ) {
+function wp_send_json( $response, $status_code = null, $flags = 0 ) {
 	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 		_doing_it_wrong(
 			__FUNCTION__,
@@ -4462,7 +4461,7 @@ function wp_send_json( $response, $status_code = null, $options = 0 ) {
 		}
 	}
 
-	echo wp_json_encode( $response, $options );
+	echo wp_json_encode( $response, $flags );
 
 	if ( wp_doing_ajax() ) {
 		wp_die(
@@ -4482,46 +4481,46 @@ function wp_send_json( $response, $status_code = null, $options = 0 ) {
  *
  * @since 3.5.0
  * @since 4.7.0 The `$status_code` parameter was added.
- * @since 5.6.0 The `$options` parameter was added.
+ * @since 5.6.0 The `$flags` parameter was added.
  *
- * @param mixed $data        Optional. Data to encode as JSON, then print and die. Default null.
+ * @param mixed $value       Optional. Data to encode as JSON, then print and die. Default null.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
- * @param int   $options     Optional. Options to be passed to json_encode(). Default 0.
+ * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
  */
-function wp_send_json_success( $data = null, $status_code = null, $options = 0 ) {
+function wp_send_json_success( $value = null, $status_code = null, $flags = 0 ) {
 	$response = array( 'success' => true );
 
-	if ( isset( $data ) ) {
-		$response['data'] = $data;
+	if ( isset( $value ) ) {
+		$response['data'] = $value;
 	}
 
-	wp_send_json( $response, $status_code, $options );
+	wp_send_json( $response, $status_code, $flags );
 }
 
 /**
  * Sends a JSON response back to an Ajax request, indicating failure.
  *
- * If the `$data` parameter is a WP_Error object, the errors
+ * If the `$value` parameter is a WP_Error object, the errors
  * within the object are processed and output as an array of error
  * codes and corresponding messages. All other types are output
  * without further processing.
  *
  * @since 3.5.0
- * @since 4.1.0 The `$data` parameter is now processed if a WP_Error object is passed in.
+ * @since 4.1.0 The `$value` parameter is now processed if a WP_Error object is passed in.
  * @since 4.7.0 The `$status_code` parameter was added.
- * @since 5.6.0 The `$options` parameter was added.
+ * @since 5.6.0 The `$flags` parameter was added.
  *
- * @param mixed $data        Optional. Data to encode as JSON, then print and die. Default null.
+ * @param mixed $value       Optional. Data to encode as JSON, then print and die. Default null.
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
- * @param int   $options     Optional. Options to be passed to json_encode(). Default 0.
+ * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
  */
-function wp_send_json_error( $data = null, $status_code = null, $options = 0 ) {
+function wp_send_json_error( $value = null, $status_code = null, $flags = 0 ) {
 	$response = array( 'success' => false );
 
-	if ( isset( $data ) ) {
-		if ( is_wp_error( $data ) ) {
+	if ( isset( $value ) ) {
+		if ( is_wp_error( $value ) ) {
 			$result = array();
-			foreach ( $data->errors as $code => $messages ) {
+			foreach ( $value->errors as $code => $messages ) {
 				foreach ( $messages as $message ) {
 					$result[] = array(
 						'code'    => $code,
@@ -4532,11 +4531,11 @@ function wp_send_json_error( $data = null, $status_code = null, $options = 0 ) {
 
 			$response['data'] = $result;
 		} else {
-			$response['data'] = $data;
+			$response['data'] = $value;
 		}
 	}
 
-	wp_send_json( $response, $status_code, $options );
+	wp_send_json( $response, $status_code, $flags );
 }
 
 /**
@@ -5082,7 +5081,7 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
 		) {
 			$input_array[ $path_element ] = array();
 		}
-		$input_array = &$input_array[ $path_element ]; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.VariableRedeclaration
+		$input_array = &$input_array[ $path_element ];
 	}
 
 	$input_array[ $path[ $i ] ] = $value;
@@ -5468,49 +5467,39 @@ function _deprecated_function( $function_name, $version, $replacement = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_function_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
-						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$function_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number, 3: Alternative function name. */
+					__( 'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$function_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number. */
-						__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number. */
+					__( 'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$function_name,
+					$version
 				);
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$function_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$function_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$function_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -5560,53 +5549,43 @@ function _deprecated_constructor( $class_name, $version, $parent_class = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_constructor_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $parent_class ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
-						__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
-						$class_name,
-						$parent_class,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: PHP parent class name, 3: Version number, 4: __construct() method. */
+					__( 'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.' ),
+					$class_name,
+					$parent_class,
+					$version,
+					'<code>__construct()</code>'
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
-						__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class_name,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number, 3: __construct() method. */
+					__( 'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$class_name,
+					$version,
+					'<code>__construct()</code>'
 				);
 			}
 		} else {
 			if ( $parent_class ) {
-				trigger_error(
-					sprintf(
-						'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
-						$class_name,
-						$parent_class,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'The called constructor method for %1$s class in %2$s is <strong>deprecated</strong> since version %3$s! Use %4$s instead.',
+					$class_name,
+					$parent_class,
+					$version,
+					'<code>__construct()</code>'
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class_name,
-						$version,
-						'<code>__construct()</code>'
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'The called constructor method for %1$s class is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$class_name,
+					$version,
+					'<code>__construct()</code>'
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -5651,49 +5630,39 @@ function _deprecated_class( $class_name, $version, $replacement = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_class_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
-						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$class_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number, 3: Alternative class or function name. */
+					__( 'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$class_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP class name, 2: Version number. */
-						__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$class_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP class name, 2: Version number. */
+					__( 'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$class_name,
+					$version
 				);
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$class_name,
-						$version,
-						$replacement
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Class %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$class_name,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$class_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Class %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$class_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -5743,49 +5712,39 @@ function _deprecated_file( $file, $version, $replacement = '', $message = '' ) {
 
 		if ( function_exists( '__' ) ) {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
-						__( 'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-						$file,
-						$version,
-						$replacement
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					/* translators: 1: PHP file name, 2: Version number, 3: Alternative file name. */
+					__( 'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+					$file,
+					$version,
+					$replacement
+				) . $message;
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP file name, 2: Version number. */
-						__( 'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$file,
-						$version
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					/* translators: 1: PHP file name, 2: Version number. */
+					__( 'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$file,
+					$version
+				) . $message;
 			}
 		} else {
 			if ( $replacement ) {
-				trigger_error(
-					sprintf(
-						'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
-						$file,
-						$version,
-						$replacement
-					) . $message,
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'File %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.',
+					$file,
+					$version,
+					$replacement
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$file,
-						$version
-					) . $message,
-					E_USER_DEPRECATED
-				);
+				$message = sprintf(
+					'File %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$file,
+					$version
+				) . $message;
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 /**
@@ -5837,49 +5796,39 @@ function _deprecated_argument( $function_name, $version, $message = '' ) {
 	if ( WP_DEBUG && apply_filters( 'deprecated_argument_trigger_error', true ) ) {
 		if ( function_exists( '__' ) ) {
 			if ( $message ) {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
-						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
-						$function_name,
-						$version,
-						$message
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number, 3: Optional message regarding the change. */
+					__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s' ),
+					$function_name,
+					$version,
+					$message
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						/* translators: 1: PHP function name, 2: Version number. */
-						__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					/* translators: 1: PHP function name, 2: Version number. */
+					__( 'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+					$function_name,
+					$version
 				);
 			}
 		} else {
 			if ( $message ) {
-				trigger_error(
-					sprintf(
-						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
-						$function_name,
-						$version,
-						$message
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s! %3$s',
+					$function_name,
+					$version,
+					$message
 				);
 			} else {
-				trigger_error(
-					sprintf(
-						'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
-						$function_name,
-						$version
-					),
-					E_USER_DEPRECATED
+				$message = sprintf(
+					'Function %1$s was called with an argument that is <strong>deprecated</strong> since version %2$s with no alternative available.',
+					$function_name,
+					$version
 				);
 			}
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -5928,27 +5877,23 @@ function _deprecated_hook( $hook, $version, $replacement = '', $message = '' ) {
 		$message = empty( $message ) ? '' : ' ' . $message;
 
 		if ( $replacement ) {
-			trigger_error(
-				sprintf(
-					/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
-					__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
-					$hook,
-					$version,
-					$replacement
-				) . $message,
-				E_USER_DEPRECATED
-			);
+			$message = sprintf(
+				/* translators: 1: WordPress hook name, 2: Version number, 3: Alternative hook name. */
+				__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.' ),
+				$hook,
+				$version,
+				$replacement
+			) . $message;
 		} else {
-			trigger_error(
-				sprintf(
-					/* translators: 1: WordPress hook name, 2: Version number. */
-					__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
-					$hook,
-					$version
-				) . $message,
-				E_USER_DEPRECATED
-			);
+			$message = sprintf(
+				/* translators: 1: WordPress hook name, 2: Version number. */
+				__( 'Hook %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.' ),
+				$hook,
+				$version
+			) . $message;
 		}
+
+		wp_trigger_error( '', $message, E_USER_DEPRECATED );
 	}
 }
 
@@ -6004,15 +5949,12 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				__( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' )
 			);
 
-			trigger_error(
-				sprintf(
-					/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
-					__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+			$message = sprintf(
+				/* translators: Developer debugging message. 1: PHP function name, 2: Explanatory message, 3: WordPress version number. */
+				__( 'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s' ),
+				$function_name,
+				$message,
+				$version
 			);
 		} else {
 			if ( $version ) {
@@ -6024,16 +5966,15 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 				'https://wordpress.org/documentation/article/debugging-in-wordpress/'
 			);
 
-			trigger_error(
-				sprintf(
-					'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
-					$function_name,
-					$message,
-					$version
-				),
-				E_USER_NOTICE
+			$message = sprintf(
+				'Function %1$s was called <strong>incorrectly</strong>. %2$s %3$s',
+				$function_name,
+				$message,
+				$version
 			);
 		}
+
+		wp_trigger_error( '', $message );
 	}
 }
 
@@ -6046,6 +5987,10 @@ function _doing_it_wrong( $function_name, $message, $version ) {
  *
  * @param string $function_name The function that triggered the error.
  * @param string $message       The message explaining the error.
+ *                              The message can contain allowed HTML 'a' (with href), 'code',
+ *                              'br', 'em', and 'strong' tags and http or https protocols.
+ *                              If it contains other HTML tags or protocols, the message should be escaped
+ *                              before passing to this function to avoid being stripped {@see wp_kses()}.
  * @param int    $error_level   Optional. The designated error type for this error.
  *                              Only works with E_USER family of constants. Default E_USER_NOTICE.
  */
@@ -6073,12 +6018,17 @@ function wp_trigger_error( $function_name, $message, $error_level = E_USER_NOTIC
 		$message = sprintf( '%s(): %s', $function_name, $message );
 	}
 
-	/*
-	 * If the message appears in the browser, then it needs to be escaped.
-	 * Note the warning in the `trigger_error()` PHP manual.
-	 * @link https://www.php.net/manual/en/function.trigger-error.php
-	 */
-	$message = esc_html( $message );
+	$message = wp_kses(
+		$message,
+		array(
+			'a' => array( 'href' ),
+			'br',
+			'code',
+			'em',
+			'strong',
+		),
+		array( 'http', 'https' )
+	);
 
 	trigger_error( $message, $error_level );
 }
@@ -6159,7 +6109,7 @@ function iis7_supports_permalinks() {
 		 * easily update the xml configuration file, hence we just bail out and tell user that
 		 * pretty permalinks cannot be used.
 		 *
-		 * Next we check if the URL Rewrite Module 1.1 is loaded and enabled for the web site. When
+		 * Next we check if the URL Rewrite Module 1.1 is loaded and enabled for the website. When
 		 * URL Rewrite 1.1 is loaded it always sets a server variable called 'IIS_UrlRewriteModule'.
 		 * Lastly we make sure that PHP is running via FastCGI. This is important because if it runs
 		 * via ISAPI then pretty permalinks will not work.
@@ -7221,7 +7171,7 @@ function _get_non_cached_ids( $object_ids, $cache_group ) {
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $value ) {
-		if ( ! $value ) {
+		if ( false === $value ) {
 			$non_cached_ids[] = (int) $id;
 		}
 	}
@@ -7637,7 +7587,7 @@ function wp_delete_file_from_directory( $file, $directory ) {
 }
 
 /**
- * Outputs a small JS snippet on preview tabs/windows to remove `window.name` on unload.
+ * Outputs a small JS snippet on preview tabs/windows to remove `window.name` when a user is navigating to another page.
  *
  * This prevents reusing the same tab for a preview when the user has navigated away.
  *
@@ -7655,6 +7605,7 @@ function wp_post_preview_js() {
 	// Has to match the window name used in post_submit_meta_box().
 	$name = 'wp-preview-' . (int) $post->ID;
 
+	ob_start();
 	?>
 	<script>
 	( function() {
@@ -7665,11 +7616,12 @@ function wp_post_preview_js() {
 		}
 
 		if ( window.addEventListener ) {
-			window.addEventListener( 'unload', function() { window.name = ''; }, false );
+			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
@@ -7878,6 +7830,40 @@ function wp_is_uuid( $uuid, $version = null ) {
 function wp_unique_id( $prefix = '' ) {
 	static $id_counter = 0;
 	return $prefix . (string) ++$id_counter;
+}
+
+/**
+ * Generates an incremental ID that is independent per each different prefix.
+ *
+ * It is similar to `wp_unique_id`, but each prefix has its own internal ID
+ * counter to make each prefix independent from each other. The ID starts at 1
+ * and increments on each call. The returned value is not universally unique,
+ * but it is unique across the life of the PHP process and it's stable per
+ * prefix.
+ *
+ * @since 6.4.0
+ *
+ * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
+ * @return string Incremental ID per prefix.
+ */
+function wp_unique_prefixed_id( $prefix = '' ) {
+	static $id_counters = array();
+
+	if ( ! is_string( $prefix ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			sprintf( 'The prefix must be a string. "%s" data type given.', gettype( $prefix ) )
+		);
+		$prefix = '';
+	}
+
+	if ( ! isset( $id_counters[ $prefix ] ) ) {
+		$id_counters[ $prefix ] = 0;
+	}
+
+	$id = ++$id_counters[ $prefix ];
+
+	return $prefix . (string) $id;
 }
 
 /**
@@ -8318,19 +8304,19 @@ function wp_get_default_update_php_url() {
  *
  * @since 5.1.0
  * @since 5.2.0 Added the `$before` and `$after` parameters.
- * @since 6.4.0 Added the `$echo` parameter.
+ * @since 6.4.0 Added the `$display` parameter.
  *
- * @param string $before Markup to output before the annotation. Default `<p class="description">`.
- * @param string $after  Markup to output after the annotation. Default `</p>`.
- * @param bool   $echo   Markup should echo if true. Default `true`.
+ * @param string $before  Markup to output before the annotation. Default `<p class="description">`.
+ * @param string $after   Markup to output after the annotation. Default `</p>`.
+ * @param bool   $display Whether to echo or return the markup. Default `true` for echo.
  *
  * @return string|void
  */
-function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $echo = true ) {
+function wp_update_php_annotation( $before = '<p class="description">', $after = '</p>', $display = true ) {
 	$annotation = wp_get_update_php_annotation();
 
 	if ( $annotation ) {
-		if ( $echo ) {
+		if ( $display ) {
 			echo $before . $annotation . $after;
 		} else {
 			return $before . $annotation . $after;

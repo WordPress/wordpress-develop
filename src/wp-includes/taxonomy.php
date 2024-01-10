@@ -227,12 +227,12 @@ function create_initial_taxonomies() {
 		'wp_pattern_category',
 		array( 'wp_block' ),
 		array(
-			'public'             => true,
+			'public'             => false,
 			'publicly_queryable' => false,
 			'hierarchical'       => false,
 			'labels'             => array(
-				'name'           => _x( 'Pattern Categories', 'taxonomy general name' ),
-				'singular_name'  => _x( 'Pattern Category', 'taxonomy singular name' ),
+				'name'          => _x( 'Pattern Categories', 'taxonomy general name' ),
+				'singular_name' => _x( 'Pattern Category', 'taxonomy singular name' ),
 			),
 			'query_var'          => false,
 			'rewrite'            => false,
@@ -2434,6 +2434,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$description = wp_unslash( $args['description'] );
 	$parent      = (int) $args['parent'];
 
+	// Sanitization could clean the name to an empty string that must be checked again.
+	if ( '' === $name ) {
+		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
 	$slug_provided = ! empty( $args['slug'] );
 	if ( ! $slug_provided ) {
 		$slug = sanitize_title( $name );
@@ -2573,7 +2578,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$tt_id = (int) $wpdb->insert_id;
 
 	/*
-	 * Sanity check: if we just created a term with the same parent + taxonomy + slug but a higher term_id than
+	 * Confidence check: if we just created a term with the same parent + taxonomy + slug but a higher term_id than
 	 * an existing term, then we have unwittingly created a duplicate term. Delete the dupe, and use the term_id
 	 * and term_taxonomy_id of the older term instead. Then return out of the function so that the "create" hooks
 	 * are not fired.

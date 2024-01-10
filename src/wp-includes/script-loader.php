@@ -110,7 +110,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom'                   => '18.2.0',
 		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
-		'lodash'                      => '4.17.19',
+		'lodash'                      => '4.17.21',
 		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
@@ -278,6 +278,10 @@ function wp_default_packages_scripts( $scripts ) {
 	 *     'api-fetch.js' => array(...
 	 */
 	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages{$suffix}.php";
+
+	// Add the private version of the Interactivity API manually.
+	$scripts->add( 'wp-interactivity', '/wp-includes/js/dist/interactivity.min.js' );
+	did_action( 'init' ) && $scripts->add_data( 'wp-interactivity', 'strategy', 'defer' );
 
 	foreach ( $assets as $file_name => $package_data ) {
 		$basename = str_replace( $suffix . '.js', '', basename( $file_name ) );
@@ -1684,6 +1688,7 @@ function wp_default_styles( $styles ) {
 		'wp-block-library',
 		'wp-reusable-blocks',
 		'wp-block-editor-content',
+		'wp-patterns',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
@@ -1726,10 +1731,12 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
+		'patterns'             => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 		'widgets'              => array(
 			'wp-components',
@@ -1740,6 +1747,7 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'customize-widgets'    => array(
 			'wp-widgets',
@@ -1747,6 +1755,7 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
+			'wp-patterns',
 		),
 		'edit-site'            => array(
 			'wp-components',
@@ -1818,6 +1827,7 @@ function wp_default_styles( $styles ) {
 		'wp-format-library',
 		'wp-list-reusable-blocks',
 		'wp-reusable-blocks',
+		'wp-patterns',
 		'wp-nux',
 		'wp-widgets',
 		// Deprecated CSS.
@@ -1871,6 +1881,8 @@ function wp_prototype_before_jquery( $js_array ) {
  * These localizations require information that may not be loaded even by init.
  *
  * @since 2.5.0
+ *
+ * @global array $shortcode_tags
  */
 function wp_just_in_time_script_localization() {
 
@@ -2787,7 +2799,11 @@ function wp_sanitize_script_attributes( $attributes ) {
  */
 function wp_get_script_tag( $attributes ) {
 	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
 	/**
 	 * Filters attributes to be added to a script tag.
@@ -2830,9 +2846,57 @@ function wp_print_script_tag( $attributes ) {
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
+	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
+	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
+		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
+		$attributes = array_merge(
+			array( 'type' => 'text/javascript' ),
+			$attributes
+		);
 	}
+
+	/*
+	 * XHTML extracts the contents of the SCRIPT element and then the XML parser
+	 * decodes character references and other syntax elements. This can lead to
+	 * misinterpretation of the script contents or invalid XHTML documents.
+	 *
+	 * Wrapping the contents in a CDATA section instructs the XML parser not to
+	 * transform the contents of the SCRIPT element before passing them to the
+	 * JavaScript engine.
+	 *
+	 * Example:
+	 *
+	 *     <script>console.log('&hellip;');</script>
+	 *
+	 *     In an HTML document this would print "&hellip;" to the console,
+	 *     but in an XHTML document it would print "…" to the console.
+	 *
+	 *     <script>console.log('An image is <img> in HTML');</script>
+	 *
+	 *     In an HTML document this would print "An image is <img> in HTML",
+	 *     but it's an invalid XHTML document because it interprets the `<img>`
+	 *     as an empty tag missing its closing `/`.
+	 *
+	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
+	 */
+	if ( ! $is_html5 ) {
+		/*
+		 * If the string `]]>` exists within the JavaScript it would break
+		 * out of any wrapping CDATA section added here, so to start, it's
+		 * necessary to escape that sequence which requires splitting the
+		 * content into two CDATA sections wherever it's found.
+		 *
+		 * Note: it's only necessary to escape the closing `]]>` because
+		 * an additional `<![CDATA[` leaves the contents unchanged.
+		 */
+		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript );
+
+		// Wrap the entire escaped script inside a CDATA section.
+		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
+	}
+
+	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
@@ -2844,8 +2908,6 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 * @param string $javascript Inline JavaScript code.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
-
-	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
 	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
 }
@@ -3128,6 +3190,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
  *     @type string[]         $deps   Array of registered stylesheet handles this stylesheet depends on.
  *     @type string|bool|null $ver    Stylesheet version number.
  *     @type string           $media  The media for which this stylesheet has been defined.
+ *     @type string|null      $path   Absolute path to the stylesheet, so that it can potentially be inlined.
  * }
  */
 function wp_enqueue_block_style( $block_name, $args ) {
@@ -3272,4 +3335,52 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
 
 	return $editor_settings;
+}
+
+/**
+ * Removes leading and trailing _empty_ script tags.
+ *
+ * This is a helper meant to be used for literal script tag construction
+ * within `wp_get_inline_script_tag()` or `wp_print_inline_script_tag()`.
+ * It removes the literal values of "<script>" and "</script>" from
+ * around an inline script after trimming whitespace. Typlically this
+ * is used in conjunction with output buffering, where `ob_get_clean()`
+ * is passed as the `$contents` argument.
+ *
+ * Example:
+ *
+ *     // Strips exact literal empty SCRIPT tags.
+ *     $js = '<script>sayHello();</script>;
+ *     'sayHello();' === wp_remove_surrounding_empty_script_tags( $js );
+ *
+ *     // Otherwise if anything is different it warns in the JS console.
+ *     $js = '<script type="text/javascript">console.log( "hi" );</script>';
+ *     'console.error( ... )' === wp_remove_surrounding_empty_script_tags( $js );
+ *
+ * @since 6.4.0
+ * @access private
+ *
+ * @see wp_print_inline_script_tag()
+ * @see wp_get_inline_script_tag()
+ *
+ * @param string $contents Script body with manually created SCRIPT tag literals.
+ * @return string Script body without surrounding script tag literals, or
+ *                original contents if both exact literals aren't present.
+ */
+function wp_remove_surrounding_empty_script_tags( $contents ) {
+	$contents = trim( $contents );
+	$opener   = '<SCRIPT>';
+	$closer   = '</SCRIPT>';
+
+	if (
+		strlen( $contents ) > strlen( $opener ) + strlen( $closer ) &&
+		strtoupper( substr( $contents, 0, strlen( $opener ) ) ) === $opener &&
+		strtoupper( substr( $contents, -strlen( $closer ) ) ) === $closer
+	) {
+		return substr( $contents, strlen( $opener ), -strlen( $closer ) );
+	} else {
+		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
+		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
+		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
+	}
 }

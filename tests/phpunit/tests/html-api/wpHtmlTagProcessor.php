@@ -499,6 +499,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_next_tag_matches_decoded_class_names() {
+		$p = new WP_HTML_Tag_Processor( '<div class="&lt;egg&gt;">' );
+
+		$this->assertTrue( $p->next_tag( array( 'class_name' => '<egg>' ) ), 'Failed to find tag with HTML-encoded class name.' );
+	}
+
+	/**
 	 * @ticket 56299
 	 * @ticket 57852
 	 *
@@ -1049,15 +1060,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Removing an attribute that's listed many times, e.g. `<div id="a" id="b" />` should remove
 	 * all its instances and output just `<div />`.
 	 *
-	 * Today, however, WP_HTML_Tag_Processor only removes the first such attribute. It seems like a corner case
-	 * and introducing additional complexity to correctly handle this scenario doesn't seem to be worth it.
-	 * Let's revisit if and when this becomes a problem.
+	 * @since 6.3.2 Removes all duplicated attributes as expected.
 	 *
-	 * This test is in place to confirm this behavior, which while incorrect, is well-defined.
-	 * A later fix introduced to the Tag Processor should update this test to reflect the
-	 * wanted and correct behavior.
-	 *
-	 * @ticket 56299
+	 * @ticket 58119
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
@@ -1066,8 +1071,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->remove_attribute( 'id' );
 
-		$this->assertSame(
-			'<div  id="ignored-id"><span id="second">Text</span></div>',
+		$this->assertStringNotContainsString(
+			'update-me',
 			$p->get_updated_html(),
 			'First attribute (when duplicates exist) was not removed'
 		);
@@ -1087,6 +1092,61 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			'<div ><span id="second">Text</span></div>',
 			$p->get_updated_html(),
 			'Attribute was not removed'
+		);
+	}
+
+	/**
+	 * @ticket 58119
+	 *
+	 * @since 6.3.2 Removes all duplicated attributes as expected.
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_html_with_duplicated_attributes
+	 */
+	public function test_remove_attribute_with_duplicated_attributes_removes_all_of_them( $html_with_duplicate_attributes, $attribute_to_remove ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
+		$p->next_tag();
+
+		$p->remove_attribute( $attribute_to_remove );
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
+
+		// Recreate a tag processor with the updated HTML after removing the attribute.
+		$p = new WP_HTML_Tag_Processor( $p->get_updated_html() );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
+	}
+
+	/**
+	 * @ticket 58119
+	 *
+	 * @since 6.3.2 Removes all duplicated attributes as expected.
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 */
+	public function test_previous_duplicated_attributes_are_not_removed_on_successive_tag_removal() {
+		$p = new WP_HTML_Tag_Processor( '<span id=one id=two id=three><span id=four>' );
+		$p->next_tag();
+		$p->next_tag();
+		$p->remove_attribute( 'id' );
+
+		$this->assertSame( '<span id=one id=two id=three><span >', $p->get_updated_html() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @ticket 58119
+	 *
+	 * @return array[].
+	 */
+	public function data_html_with_duplicated_attributes() {
+		return array(
+			'Double attributes'               => array( '<div id=one id=two>', 'id' ),
+			'Triple attributes'               => array( '<div id=one id=two id=three>', 'id' ),
+			'Duplicates around another'       => array( '<img src="test.png" alt="kites flying in the wind" src="kites.jpg">', 'src' ),
+			'Case-variants of attribute'      => array( '<button disabled inert DISABLED dISaBled INERT DisABleD>', 'disabled' ),
+			'Case-variants of attribute name' => array( '<button disabled inert DISABLED dISaBled INERT DisABleD>', 'DISABLED' ),
 		);
 	}
 
@@ -1696,11 +1756,20 @@ HTML;
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 */
 	public function test_unclosed_script_tag_should_not_cause_an_infinite_loop() {
-		$p = new WP_HTML_Tag_Processor( '<script>' );
-		$p->next_tag();
-		$this->assertSame( 'SCRIPT', $p->get_tag(), 'Did not find script tag' );
+		$p = new WP_HTML_Tag_Processor( '<script><div>' );
+		$this->assertFalse(
+			$p->next_tag(),
+			'Should not have stopped on an opening SCRIPT tag without a proper closing tag in the document.'
+		);
+		$this->assertTrue(
+			$p->paused_at_incomplete_token(),
+			"Should have paused the parser because of the incomplete SCRIPT tag but didn't."
+		);
+
+		// Run this to ensure that the test ends (not in an infinite loop).
 		$p->next_tag();
 	}
 
@@ -1872,6 +1941,30 @@ HTML;
 	}
 
 	/**
+	 * Ensures matching elements inside NOSCRIPT elements.
+	 *
+	 * In a browser when the scripting flag is enabled, everything inside
+	 * the NOSCRIPT element will be ignored and treated at RAW TEXT. This
+	 * means that it's valid to send what looks like incomplete or partial
+	 * HTML syntax without impacting a rendered page. The Tag Processor is
+	 * a parser with the scripting flag disabled, however, and needs to
+	 * expose all the potential content that some code might want to modify.
+	 *
+	 * Were it not for this then the NOSCRIPT tag would be handled like the
+	 * other tags in the RAW TEXT special group, e.g. NOEMBED or STYLE.
+	 *
+	 * @ticket 60122
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_processes_inside_of_noscript_elements() {
+		$p = new WP_HTML_Tag_Processor( '<noscript><input type="submit"></noscript><div>' );
+
+		$this->assertTrue( $p->next_tag( 'INPUT' ), 'Failed to find INPUT element inside NOSCRIPT element.' );
+		$this->assertTrue( $p->next_tag( 'DIV' ), 'Failed to find DIV element after NOSCRIPT element.' );
+	}
+
+	/**
 	 * @ticket 59292
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -1902,9 +1995,152 @@ HTML;
 			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
 			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
 			'NOFRAMES'         => array( '<noframes><p>Check the rules here.</p></noframes><div target>' ),
-			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
 			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
 			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
+		);
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_missing_class() {
+		$p = new WP_HTML_Tag_Processor( '<div>' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_class_is_boolean() {
+		$p = new WP_HTML_Tag_Processor( '<div class>' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_empty_when_class_is_empty() {
+		$p = new WP_HTML_Tag_Processor( '<div class="">' );
+		$p->next_tag();
+
+		$found_classes = false;
+		foreach ( $p->class_list() as $class ) {
+			$found_classes = true;
+		}
+
+		$this->assertFalse( $found_classes, 'Found classes when none exist.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_visits_each_class_in_order() {
+		$p = new WP_HTML_Tag_Processor( '<div class="one two three">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( 'one', 'two', 'three' ), $found_classes, 'Failed to visit the class names in their original order.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_decodes_class_names() {
+		$p = new WP_HTML_Tag_Processor( '<div class="&notin;-class &lt;egg&gt; &#xff03;">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( '∉-class', '<egg>', "\u{ff03}" ), $found_classes, 'Failed to report class names in their decoded form.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_visits_unique_class_names_only_once() {
+		$p = new WP_HTML_Tag_Processor( '<div class="one one &#x6f;ne">' );
+		$p->next_tag();
+
+		$found_classes = array();
+		foreach ( $p->class_list() as $class ) {
+			$found_classes[] = $class;
+		}
+
+		$this->assertSame( array( 'one' ), $found_classes, 'Visited multiple copies of the same class name when it should have skipped the duplicates.' );
+	}
+
+	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 *
+	 * @dataProvider data_html_with_variations_of_class_values_and_sought_class_names
+	 *
+	 * @param string $html         Contains a tag optionally containing a `class` attribute.
+	 * @param string $sought_class Name of class to find in the input tag's `class`.
+	 * @param bool   $has_class    Whether the sought class exists in the given HTML.
+	 */
+	public function test_has_class_handles_expected_class_name_variations( $html, $sought_class, $has_class ) {
+		$p = new WP_HTML_Tag_Processor( $html );
+		$p->next_tag();
+
+		if ( $has_class ) {
+			$this->assertTrue( $p->has_class( $sought_class ), "Failed to find expected class {$sought_class}." );
+		} else {
+			$this->assertFalse( $p->has_class( $sought_class ), "Found class {$sought_class} when it doesn't exist." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_with_variations_of_class_values_and_sought_class_names() {
+		return array(
+			'Tag without any classes'      => array( '<div>', 'foo', false ),
+			'Tag with boolean class'       => array( '<img class>', 'foo', false ),
+			'Tag with empty class'         => array( '<p class="">', 'foo', false ),
+			'Tag with exact match'         => array( '<button class="foo">', 'foo', true ),
+			'Tag with duplicate matches'   => array( '<span class="foo bar foo">', 'foo', true ),
+			'Tag with non-initial match'   => array( '<section class="bar foo">', 'foo', true ),
+			'Tag with encoded match'       => array( '<main class="&hellip;">', '…', true ),
+			'Class with tab separator'     => array( "<div class='one\ttwo'>", 'two', true ),
+			'Class with newline separator' => array( "<div class='one\ntwo\n'>", 'two', true ),
+			'False duplicate attribute'    => array( '<img class=dog class=cat>', 'cat', false ),
 		);
 	}
 
@@ -1935,15 +2171,24 @@ HTML;
 	 * @ticket 58007
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 *
 	 * @dataProvider data_html_with_unclosed_comments
 	 *
-	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed
+	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed.
 	 */
 	public function test_documents_may_end_with_unclosed_comment( $html_ending_before_comment_close ) {
 		$p = new WP_HTML_Tag_Processor( $html_ending_before_comment_close );
 
-		$this->assertFalse( $p->next_tag() );
+		$this->assertFalse(
+			$p->next_tag(),
+			"Should not have found any tag, but found {$p->get_tag()}."
+		);
+
+		$this->assertTrue(
+			$p->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
 	}
 
 	/**
@@ -2076,17 +2321,71 @@ HTML;
 	}
 
 	/**
+	 * Ensures that no tags are matched in a document containing only non-tag content.
+	 *
+	 * @ticket 60122
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
+	 *
+	 * @dataProvider data_html_without_tags
+	 *
+	 * @param string $html_without_tags HTML without any tags in it.
+	 */
+	public function test_next_tag_returns_false_when_there_are_no_tags( $html_without_tags ) {
+		$processor = new WP_HTML_Tag_Processor( $html_without_tags );
+
+		$this->assertFalse(
+			$processor->next_tag(),
+			"Shouldn't have found any tags but found {$processor->get_tag()}."
+		);
+
+		$this->assertFalse(
+			$processor->paused_at_incomplete_token(),
+			'Should have indicated that end of document was reached without evidence that elements were truncated.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_html_without_tags() {
+		return array(
+			'DOCTYPE declaration'    => array( '<!DOCTYPE html>Just some HTML' ),
+			'No tags'                => array( 'this is nothing more than a text node' ),
+			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
+			'Empty tag closer'       => array( '</>' ),
+			'Processing instruction' => array( '<?xml version="1.0"?>' ),
+			'Combination XML-like'   => array( '<!DOCTYPE xml><?xml version=""?><!-- this is not a real document. --><![CDATA[it only serves as a test]]>' ),
+		);
+	}
+
+	/**
+	 * Ensures that the processor doesn't attempt to match an incomplete token.
+	 *
 	 * @ticket 58637
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 *
 	 * @dataProvider data_incomplete_syntax_elements
 	 *
 	 * @param string $incomplete_html HTML text containing some kind of incomplete syntax.
 	 */
-	public function test_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
+	public function test_next_tag_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
 		$p = new WP_HTML_Tag_Processor( $incomplete_html );
-		$this->assertFalse( $p->next_tag() );
+
+		$this->assertFalse(
+			$p->next_tag(),
+			"Shouldn't have found any tags but found {$p->get_tag()}."
+		);
+
+		$this->assertTrue(
+			$p->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
 	}
 
 	/**
@@ -2096,7 +2395,6 @@ HTML;
 	 */
 	public function data_incomplete_syntax_elements() {
 		return array(
-			'No tags'                              => array( 'this is nothing more than a text node' ),
 			'Incomplete tag name'                  => array( '<swit' ),
 			'Incomplete tag (no attributes)'       => array( '<div' ),
 			'Incomplete tag (attributes)'          => array( '<div inert title="test"' ),
@@ -2109,10 +2407,26 @@ HTML;
 			'Incomplete comment (bogus comment)'   => array( '</3 is not a tag' ),
 			'Incomplete DOCTYPE'                   => array( '<!DOCTYPE html' ),
 			'Partial DOCTYPE'                      => array( '<!DOCTY' ),
-			'Incomplete CDATA'                     => array( '<[CDATA[something inside of here needs to get out' ),
-			'Partial CDATA'                        => array( '<[CDA' ),
-			'Partially closed CDATA]'              => array( '<[CDATA[cannot escape]' ),
-			'Partially closed CDATA]>'             => array( '<[CDATA[cannot escape]>' ),
+			'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
+			'Partial CDATA'                        => array( '<![CDA' ),
+			'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
+			'Partially closed CDATA]>'             => array( '<![CDATA[cannot escape]>' ),
+			'Unclosed IFRAME'                      => array( '<iframe><div>' ),
+			'Unclosed NOEMBED'                     => array( '<noembed><div>' ),
+			'Unclosed NOFRAMES'                    => array( '<noframes><div>' ),
+			'Unclosed SCRIPT'                      => array( '<script><div>' ),
+			'Unclosed STYLE'                       => array( '<style><div>' ),
+			'Unclosed TEXTAREA'                    => array( '<textarea><div>' ),
+			'Unclosed TITLE'                       => array( '<title><div>' ),
+			'Unclosed XMP'                         => array( '<xmp><div>' ),
+			'Partially closed IFRAME'              => array( '<iframe><div></iframe' ),
+			'Partially closed NOEMBED'             => array( '<noembed><div></noembed' ),
+			'Partially closed NOFRAMES'            => array( '<noframes><div></noframes' ),
+			'Partially closed SCRIPT'              => array( '<script><div></script' ),
+			'Partially closed STYLE'               => array( '<style><div></style' ),
+			'Partially closed TEXTAREA'            => array( '<textarea><div></textarea' ),
+			'Partially closed TITLE'               => array( '<title><div></title' ),
+			'Partially closed XMP'                 => array( '<xmp><div></xmp' ),
 		);
 	}
 
@@ -2211,7 +2525,7 @@ HTML;
 	 */
 	public function test_updating_attributes_in_malformed_html( $html, $expected ) {
 		$p = new WP_HTML_Tag_Processor( $html );
-		$p->next_tag();
+		$this->assertTrue( $p->next_tag(), 'Could not find first tag.' );
 		$p->set_attribute( 'foo', 'bar' );
 		$p->add_class( 'firstTag' );
 		$p->next_tag();
@@ -2230,8 +2544,6 @@ HTML;
 	 * @return array[]
 	 */
 	public function data_updating_attributes_in_malformed_html() {
-		$null_byte = chr( 0 );
-
 		return array(
 			'Invalid entity inside attribute value'        => array(
 				'input'    => '<img src="https://s0.wp.com/i/atat.png" title="&; First &lt;title&gt; is &notit;" TITLE="second title" title="An Imperial &imperial; AT-AT"><span>test</span>',
@@ -2290,8 +2602,8 @@ HTML;
 				'expected' => '<hr class="firstTag" foo="bar" id"quo="test"><span class="secondTag">test</span>',
 			),
 			'id without double quotation marks around null byte' => array(
-				'input'    => '<hr id' . $null_byte . 'zero="test"><span>test</span>',
-				'expected' => '<hr class="firstTag" foo="bar" id' . $null_byte . 'zero="test"><span class="secondTag">test</span>',
+				'input'    => "<hr id\x00zero=\"test\"><span>test</span>",
+				'expected' => "<hr class=\"firstTag\" foo=\"bar\" id\x00zero=\"test\"><span class=\"secondTag\">test</span>",
 			),
 			'Unexpected > before an attribute'             => array(
 				'input'    => '<hr >id="test"><span>test</span>',
@@ -2378,5 +2690,23 @@ HTML
 				'expected' => '<hr class="firstTag" foo="bar" id a  =5><span class="secondTag">test</span>',
 			),
 		);
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_open_short_html() {
+		$p      = new WP_HTML_Tag_Processor( '<' );
+		$result = $p->next_tag();
+		$this->assertFalse( $result, 'Did not handle "<" html properly.' );
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_close_short_html() {
+		$p      = new WP_HTML_Tag_Processor( '</ ' );
+		$result = $p->next_tag();
+		$this->assertFalse( $result, 'Did not handle "</ " html properly.' );
 	}
 }

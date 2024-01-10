@@ -1088,7 +1088,13 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		}
 
 		foreach ( $possible as $comment ) {
-			if ( ! current_user_can( 'read_post', $comment->comment_post_ID ) ) {
+			$comment_post = get_post( $comment->comment_post_ID );
+
+			if ( ! current_user_can( 'edit_post', $comment->comment_post_ID )
+				&& ( ! empty( $comment_post->post_password )
+					|| ! current_user_can( 'read_post', $comment->comment_post_ID ) )
+			) {
+				// The user has no access to the post and thus cannot see the comments.
 				continue;
 			}
 
@@ -1454,6 +1460,15 @@ function wp_print_community_events_templates() {
 					<div class="dashicons event-icon" aria-hidden="true"></div>
 					<div class="event-info-inner">
 						<a class="event-title" href="{{ event.url }}">{{ event.title }}</a>
+						<# if ( event.type ) {
+							const titleCaseEventType = event.type.replace(
+								/\w\S*/g,
+								function ( type ) { return type.charAt(0).toUpperCase() + type.substr(1).toLowerCase(); }
+							);
+						#>
+							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
+							<span class="ce-separator"></span>
+						<# } #>
 						<span class="event-city">{{ event.location.location }}</span>
 					</div>
 				</div>
