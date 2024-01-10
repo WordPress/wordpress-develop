@@ -367,6 +367,10 @@ class WP_Block_Type {
 	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
+		if ( 'variations' === $name ) {
+			return true;
+		}
+
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return false;
 		}
