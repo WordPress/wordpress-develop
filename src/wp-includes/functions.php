@@ -2095,11 +2095,10 @@ function wp_mkdir_p( $target ) {
 		/**
 		 * Fires after the directory is created and the permissions are set.
 		 *
+		 * @since 6.5.0
 		 *
-		 * @since 6.5 The action was added.
-		 *
-		 * @param strin $target Full path to created directory
-		 * @param int $dir_perms Directory permissions
+		 * @param string $target    Full path to created directory.
+		 * @param int    $dir_perms Directory permissions.
 		 */
 		do_action( 'after_create_directory', $target, $dir_perms );
 
