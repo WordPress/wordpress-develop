@@ -2108,7 +2108,7 @@ function wp_mkdir_p( $target ) {
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param string $target Full path to created directory.
+		 * @param string $target    Full path to created directory.
 		 * @param int    $dir_perms Directory permissions.
 		 */
 		do_action( 'after_create_directory', $target, $dir_perms );
