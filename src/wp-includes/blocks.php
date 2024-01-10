@@ -787,7 +787,7 @@ function get_hooked_block_markup( $hooked_block, &$anchor_block ) {
 	// However, its presence does not affect the frontend.
 	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
 
-	return get_comment_delimited_block_content( $hooked_block_type, $hooked_block['attrs'], '' );
+	return serialize_block( $hooked_block );
 }
 
 /**
@@ -824,8 +824,10 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 	$markup = '';
 	foreach ( $hooked_block_types as $hooked_block_type ) {
 		$hooked_block = array(
-			'blockName' => $hooked_block_type,
-			'attrs'     => array(),
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
 		);
 
 		/**
