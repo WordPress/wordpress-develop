@@ -2085,7 +2085,7 @@ function wp_mkdir_p( $target ) {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $target Full path to attempt to create.
+	 * @param string $target    Full path to attempt to create.
 	 * @param int    $dir_perms Directory permissions.
 	 */
 	do_action( 'before_create_directory', $target, $dir_perms );
