@@ -344,6 +344,8 @@ class WP_Theme_JSON {
 	 * @since 6.3.0 Added support for `typography.textColumns`, removed `layout.definitions`.
 	 * @since 6.4.0 Added support for `layout.allowEditing`, `background.backgroundImage`,
 	 *              `typography.writingMode`, `lightbox.enabled` and `lightbox.allowEditing`.
+	 * @since 6.5.0 Added support for `layout.allowCustomContentAndWideSize` and
+	 *              `background.backgroundSize`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -351,6 +353,7 @@ class WP_Theme_JSON {
 		'useRootPaddingAwareAlignments' => null,
 		'background'                    => array(
 			'backgroundImage' => null,
+			'backgroundSize'  => null,
 		),
 		'border'                        => array(
 			'color'  => null,
@@ -380,9 +383,10 @@ class WP_Theme_JSON {
 			'minHeight' => null,
 		),
 		'layout'                        => array(
-			'contentSize'  => null,
-			'wideSize'     => null,
-			'allowEditing' => null,
+			'contentSize'                   => null,
+			'wideSize'                      => null,
+			'allowEditing'                  => null,
+			'allowCustomContentAndWideSize' => null,
 		),
 		'lightbox'                      => array(
 			'enabled'      => null,
@@ -571,10 +575,12 @@ class WP_Theme_JSON {
 	 * @since 6.0.0
 	 * @since 6.2.0 Added `dimensions.minHeight` and `position.sticky`.
 	 * @since 6.4.0 Added `background.backgroundImage`.
+	 * @since 6.5.0 Added `background.backgroundSize`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
 		array( 'background', 'backgroundImage' ),
+		array( 'background', 'backgroundSize' ),
 		array( 'border', 'color' ),
 		array( 'border', 'radius' ),
 		array( 'border', 'style' ),
@@ -1146,9 +1152,23 @@ class WP_Theme_JSON {
 		// Split CSS nested rules.
 		$parts = explode( '&', $css );
 		foreach ( $parts as $part ) {
-			$processed_css .= ( ! str_contains( $part, '{' ) )
-				? trim( $selector ) . '{' . trim( $part ) . '}' // If the part doesn't contain braces, it applies to the root level.
-				: trim( $selector . $part ); // Prepend the selector, which effectively replaces the "&" character.
+			$is_root_css = ( ! str_contains( $part, '{' ) );
+			if ( $is_root_css ) {
+				// If the part doesn't contain braces, it applies to the root level.
+				$processed_css .= trim( $selector ) . '{' . trim( $part ) . '}';
+			} else {
+				// If the part contains braces, it's a nested CSS rule.
+				$part = explode( '{', str_replace( '}', '', $part ) );
+				if ( count( $part ) !== 2 ) {
+					continue;
+				}
+				$nested_selector = $part[0];
+				$css_value       = $part[1];
+				$part_selector   = str_starts_with( $nested_selector, ' ' )
+					? static::scope_selector( $selector, $nested_selector )
+					: static::append_to_selector( $selector, $nested_selector );
+				$processed_css  .= $part_selector . '{' . trim( $css_value ) . '}';
+			}
 		}
 		return $processed_css;
 	}
@@ -3376,7 +3396,15 @@ class WP_Theme_JSON {
 			|| ! is_numeric( $spacing_scale['mediumStep'] )
 			|| ( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ) {
 			if ( ! empty( $spacing_scale ) ) {
-				trigger_error( __( 'Some of the theme.json settings.spacing.spacingScale values are invalid' ), E_USER_NOTICE );
+				trigger_error(
+					sprintf(
+						/* translators: 1: theme.json, 2: settings.spacing.spacingScale */
+						__( 'Some of the %1$s %2$s values are invalid' ),
+						'theme.json',
+						'settings.spacing.spacingScale'
+					),
+					E_USER_NOTICE
+				);
 			}
 			return null;
 		}

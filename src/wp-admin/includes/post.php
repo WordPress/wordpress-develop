@@ -171,10 +171,6 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		}
 	}
 
-	if ( isset( $post_data['edit_date'] ) && 'false' === $post_data['edit_date'] ) {
-		$post_data['edit_date'] = false;
-	}
-
 	if ( ! empty( $post_data['edit_date'] ) ) {
 		$aa = $post_data['aa'];
 		$mm = $post_data['mm'];
@@ -197,7 +193,19 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 			return new WP_Error( 'invalid_date', __( 'Invalid date.' ) );
 		}
 
-		$post_data['post_date_gmt'] = get_gmt_from_date( $post_data['post_date'] );
+		/*
+		 * Only assign a post date if the user has explicitly set a new value.
+		 * See #59125 and #19907.
+		 */
+		$previous_date = $post_id ? get_post_field( 'post_date', $post_id ) : false;
+		if ( $previous_date && $previous_date !== $post_data['post_date'] ) {
+			$post_data['edit_date']     = true;
+			$post_data['post_date_gmt'] = get_gmt_from_date( $post_data['post_date'] );
+		} else {
+			$post_data['edit_date'] = false;
+			unset( $post_data['post_date'] );
+			unset( $post_data['post_date_gmt'] );
+		}
 	}
 
 	if ( isset( $post_data['post_category'] ) ) {
@@ -444,7 +452,7 @@ function edit_post( $post_data = null ) {
 
 	$success = wp_update_post( $translated );
 
-	// If the save failed, see if we can sanity check the main fields and try again.
+	// If the save failed, see if we can confidence check the main fields and try again.
 	if ( ! $success && is_callable( array( $wpdb, 'strip_invalid_text_for_column' ) ) ) {
 		$fields = array( 'post_title', 'post_content', 'post_excerpt' );
 
@@ -641,21 +649,8 @@ function bulk_edit_posts( $post_data = null ) {
 		}
 
 		if ( isset( $new_cats ) && in_array( 'category', $tax_names, true ) ) {
-			$cats = (array) wp_get_post_categories( $post_id );
-
-			if (
-				isset( $post_data['indeterminate_post_category'] )
-				&& is_array( $post_data['indeterminate_post_category'] )
-			) {
-				$indeterminate_post_category = $post_data['indeterminate_post_category'];
-			} else {
-				$indeterminate_post_category = array();
-			}
-
-			$indeterminate_cats         = array_intersect( $cats, $indeterminate_post_category );
-			$determinate_cats           = array_diff( $new_cats, $indeterminate_post_category );
-			$post_data['post_category'] = array_unique( array_merge( $indeterminate_cats, $determinate_cats ) );
-
+			$cats                       = (array) wp_get_post_categories( $post_id );
+			$post_data['post_category'] = array_unique( array_merge( $cats, $new_cats ) );
 			unset( $post_data['tax_input']['category'] );
 		}
 

@@ -329,12 +329,12 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
@@ -367,12 +367,12 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );

@@ -15,11 +15,12 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		parent::set_up();
 		switch_theme( 'block-theme' );
 		do_action( 'setup_theme' );
+		do_action( 'after_setup_theme' );
 	}
 
 	public function tear_down() {
-		global $_wp_current_template_content;
-		unset( $_wp_current_template_content );
+		global $_wp_current_template_id, $_wp_current_template_content;
+		unset( $_wp_current_template_id, $_wp_current_template_content );
 
 		parent::tear_down();
 	}
@@ -192,10 +193,11 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * since there is only a single post in the main query loop in such cases anyway.
 	 *
 	 * @ticket 58154
+	 * @ticket 59736
 	 * @covers ::get_the_block_template_html
 	 */
 	public function test_get_the_block_template_html_enforces_singular_query_loop() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query;
 
 		// Register test block to log `in_the_loop()` results.
 		$in_the_loop_logs = array();
@@ -206,6 +208,8 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$wp_query     = new WP_Query( array( 'p' => $post_id ) );
 		$wp_the_query = $wp_query;
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id = get_stylesheet() . '//single';
 		// Use block template that just renders post title and the above test block.
 		$_wp_current_template_content = '<!-- wp:post-title /--><!-- wp:test/in-the-loop-logger /-->';
 
@@ -226,7 +230,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * @covers ::get_the_block_template_html
 	 */
 	public function test_get_the_block_template_html_does_not_generally_enforce_loop() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query;
 
 		// Register test block to log `in_the_loop()` results.
 		$in_the_loop_logs = array();
@@ -246,6 +250,9 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			)
 		);
 		$wp_the_query = $wp_query;
+
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id = get_stylesheet() . '//home';
 
 		/*
 		 * Use block template that renders the above test block, followed by a main query loop.
@@ -273,6 +280,35 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		$this->unregister_in_the_loop_logger_block();
 		$this->assertSame( $expected, $output, 'Unexpected block template output' );
 		$this->assertSame( array( false, true ), $in_the_loop_logs, 'Main query loop was triggered incorrectly' );
+	}
+
+	/**
+	 * Tests that `get_the_block_template_html()` does not start the main query loop when on a template that is not from the current theme.
+	 *
+	 * @ticket 58154
+	 * @ticket 59736
+	 * @covers ::get_the_block_template_html
+	 */
+	public function test_get_the_block_template_html_skips_singular_query_loop_when_non_theme_template() {
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query;
+
+		// Register test block to log `in_the_loop()` results.
+		$in_the_loop_logs = array();
+		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
+
+		// Set main query to single post.
+		$post_id      = self::factory()->post->create( array( 'post_title' => 'A single post' ) );
+		$wp_query     = new WP_Query( array( 'p' => $post_id ) );
+		$wp_the_query = $wp_query;
+
+		// Force a template ID that is not for the current stylesheet.
+		$_wp_current_template_id = 'some-plugin-slug//single';
+		// Use block template that just renders post title and the above test block.
+		$_wp_current_template_content = '<!-- wp:post-title /--><!-- wp:test/in-the-loop-logger /-->';
+
+		$output = get_the_block_template_html();
+		$this->unregister_in_the_loop_logger_block();
+		$this->assertSame( array( false ), $in_the_loop_logs, 'Main query loop was triggered despite a custom block template outside the current theme being used' );
 	}
 
 	/**
@@ -349,6 +385,49 @@ class Tests_Block_Template extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Tests `_get_block_templates_paths()` for an invalid directory.
+	 *
+	 * @ticket 58196
+	 *
+	 * @covers ::_get_block_templates_paths
+	 */
+	public function test_get_block_templates_paths_dir_exists() {
+		$theme_dir = get_template_directory();
+		// Templates in the current theme.
+		$templates = array(
+			'parts/small-header.html',
+			'templates/custom-single-post-template.html',
+			'templates/index.html',
+			'templates/page-home.html',
+			'templates/page.html',
+			'templates/single.html',
+		);
+
+		$expected_template_paths = array_map(
+			static function ( $template ) use ( $theme_dir ) {
+				return $theme_dir . '/' . $template;
+			},
+			$templates
+		);
+
+		$template_paths = _get_block_templates_paths( $theme_dir );
+		$this->assertSameSets( $expected_template_paths, $template_paths );
+	}
+
+	/**
+	 * Test _get_block_templates_paths() for a invalid dir.
+	 *
+	 * @ticket 58196
+	 *
+	 * @covers ::_get_block_templates_paths
+	 */
+	public function test_get_block_templates_paths_dir_doesnt_exists() {
+		// Should return empty array for invalid path.
+		$template_paths = _get_block_templates_paths( '/tmp/random-invalid-theme-path' );
+		$this->assertSame( array(), $template_paths );
 	}
 
 	/**
