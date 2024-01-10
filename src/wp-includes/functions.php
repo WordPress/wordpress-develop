@@ -2121,8 +2121,8 @@ function wp_mkdir_p( $target ) {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $target Full path to the directory that failed to create.
-	 * @param int    $dit_perms Directory permissions.
+	 * @param string $target    Full path to the directory that failed to create.
+	 * @param int    $dir_perms Directory permissions.
 	 */
 	do_action( 'create_directory_failed', $target, $dir_perms );
 
