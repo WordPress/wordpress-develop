@@ -1,11 +1,11 @@
 <?php
 /**
- * Modules API: WP_Modules class.
+ * Modules API: WP_Script_Modules class.
  *
  * Native support for ES Modules and Import Maps.
  *
  * @package WordPress
- * @subpackage Modules
+ * @subpackage Script Modules
  */
 
 /**
@@ -13,7 +13,7 @@
  *
  * @since 6.5.0
  */
-class WP_Modules {
+class WP_Script_Modules {
 	/**
 	 * Holds the registered modules, keyed by module identifier.
 	 *
@@ -127,7 +127,8 @@ class WP_Modules {
 	}
 
 	/**
-	 * Adds the hooks to print the import map and enqueued modules.
+	 * Adds the hooks to print the import map, enqueued modules and module
+	 * preloads.
 	 *
 	 * It adds the actions to print the enqueued modules and module preloads to
 	 * both `wp_head` and `wp_footer` because in classic themes, the modules

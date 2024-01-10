@@ -1,21 +1,21 @@
 <?php
 /**
- * Unit tests covering WP_Modules functionality.
+ * Unit tests covering WP_Script_Modules functionality.
  *
  * @package WordPress
- * @subpackage Modules
+ * @subpackage Script Modules
  *
  * @since 6.5.0
  *
- * @group modules
+ * @group script-modules
  *
- * @coversDefaultClass WP_Modules
+ * @coversDefaultClass WP_Script_Modules
  */
-class Tests_WP_Modules extends WP_UnitTestCase {
+class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	/**
-	 * Instance of WP_Modules.
+	 * Instance of WP_Script_Modules.
 	 *
-	 * @var WP_Modules
+	 * @var WP_Script_Modules
 	 */
 	protected $modules;
 
@@ -24,7 +24,7 @@ class Tests_WP_Modules extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		$this->modules = new WP_Modules();
+		$this->modules = new WP_Script_Modules();
 	}
 
 	/**

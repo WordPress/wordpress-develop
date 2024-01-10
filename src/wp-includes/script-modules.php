@@ -1,27 +1,27 @@
 <?php
 /**
- * Modules API: Module functions
+ * Script Modules API: Module functions
  *
  * @since 6.5.0
  *
  * @package WordPress
- * @subpackage Modules
+ * @subpackage Script Modules
  */
 
 /**
- * Retrieves the main WP_Modules instance.
+ * Retrieves the main WP_Script_Modules instance.
  *
- * This function provides access to the WP_Modules instance, creating one if it
- * doesn't exist yet.
+ * This function provides access to the WP_Script_Modules instance, creating one
+ * if it doesn't exist yet.
  *
  * @since 6.5.0
  *
- * @return WP_Modules The main WP_Modules instance.
+ * @return WP_Script_Modules The main WP_Script_Modules instance.
  */
 function wp_modules() {
 	static $instance = null;
 	if ( is_null( $instance ) ) {
-		$instance = new WP_Modules();
+		$instance = new WP_Script_Modules();
 		$instance->add_hooks();
 	}
 	return $instance;
