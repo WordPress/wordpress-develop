@@ -2081,13 +2081,12 @@ function wp_mkdir_p( $target ) {
 	}
 
 	/**
-	 * Fires before the directory creation
+	 * Fires before the directory creation.
 	 *
+	 * @since 6.5.0
 	 *
-	 * @since 6.5 The action was added.
-	 *
-	 * @param strin $target Full path to attempt to create
-	 * @param int $dir_perms Directory permissions
+	 * @param string $target Full path to attempt to create.
+	 * @param int    $dir_perms Directory permissions.
 	 */
 	do_action( 'before_create_directory', $target, $dir_perms );
 
