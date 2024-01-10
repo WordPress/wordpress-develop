@@ -735,6 +735,35 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 59969
+	 */
+	public function test_variation_callback() {
+		$block_type = 'test/block';
+		$settings   = array(
+			'title'              => true,
+			'variation_callback' => array( $this, 'mock_variation_callback' ),
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSameSets( $this->mock_variation_callback(), $data['variations'] );
+	}
+
+	/**
+	 * Mock variation callback.
+	 *
+	 * @return array
+	 */
+	public function mock_variation_callback() {
+		return array(
+			array( 'name' => 'var1' ),
+			array( 'name' => 'var2' ),
+		);
+	}
+
+	/**
 	 * The create_item() method does not exist for block types.
 	 *
 	 * @doesNotPerformAssertions

@@ -460,4 +460,47 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			array( '<!- - wp:core/separator -->', 0 ),
 		);
 	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_variation_callback() {
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => array( $this, 'mock_variation_callback' ),
+			)
+		);
+
+		$this->assertSameSets( $this->mock_variation_callback(), $block_type->variations );
+	}
+
+	/**
+	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
+	 */
+	public function test_get_variations() {
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => array( $this, 'mock_variation_callback' ),
+			)
+		);
+
+		$this->assertSameSets( $this->mock_variation_callback(), $block_type->get_variations() );
+	}
+
+	/**
+	 * Mock variation callback.
+	 *
+	 * @return array
+	 */
+	public function mock_variation_callback() {
+		return array(
+			array( 'name' => 'var1' ),
+			array( 'name' => 'var2' ),
+		);
+	}
 }
