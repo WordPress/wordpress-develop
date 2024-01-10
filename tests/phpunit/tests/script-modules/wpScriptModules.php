@@ -583,4 +583,87 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 		$preloaded_modules = $this->get_preloaded_modules();
 		$this->assertCount( 0, $preloaded_modules );
 	}
+
+	/**
+	 * Tests that a module is not registered when calling enqueue without a valid
+	 * src.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::enqueue()
+	 * @covers ::print_enqueued_modules()
+	 */
+	public function test_wp_enqueue_module_doesnt_register_without_a_valid_src() {
+		$this->modules->enqueue( 'foo' );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+
+		$this->assertCount( 0, $enqueued_modules );
+		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
+	}
+
+	/**
+	 * Tests that a module is registered when calling enqueue with a valid src.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::enqueue()
+	 * @covers ::print_enqueued_modules()
+	 */
+	public function test_wp_enqueue_module_registers_with_valid_src() {
+		$this->modules->enqueue( 'foo', '/foo.js' );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+	}
+
+	/**
+	 * Tests that a module is registered when calling enqueue with a valid src the
+	 * second time.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::enqueue()
+	 * @covers ::print_enqueued_modules()
+	 */
+	public function test_wp_enqueue_module_registers_with_valid_src_the_second_time() {
+		$this->modules->enqueue( 'foo' ); // Not valid src.
+
+		$enqueued_modules = $this->get_enqueued_modules();
+
+		$this->assertCount( 0, $enqueued_modules );
+		$this->assertFalse( isset( $enqueued_modules['foo'] ) );
+
+		$this->modules->enqueue( 'foo', '/foo.js' ); // Valid src.
+
+		$enqueued_modules = $this->get_enqueued_modules();
+
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_modules['foo'] );
+	}
+
+	/**
+	 * Tests that a module is registered with all the params when calling enqueue.
+	 *
+	 * @ticket 56313
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::print_enqueued_modules()
+	 * @covers ::print_import_map()
+	 */
+	public function test_wp_enqueue_module_registers_all_params() {
+		$this->modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
+		$this->modules->register( 'dep', '/dep.js' );
+
+		$enqueued_modules = $this->get_enqueued_modules();
+		$import_map       = $this->get_import_map();
+
+		$this->assertCount( 1, $enqueued_modules );
+		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_modules['foo'] );
+		$this->assertCount( 1, $import_map );
+		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
+	}
 }

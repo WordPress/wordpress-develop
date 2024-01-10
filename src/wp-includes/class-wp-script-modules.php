@@ -100,12 +100,45 @@ class WP_Script_Modules {
 	 * Marks the module to be enqueued in the page the next time
 	 * `prints_enqueued_modules` is called.
 	 *
+	 * If a src is provided and the module has not been registered yet, it will be
+	 * registered.
+	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $module_id The identifier of the module.
+	 * @param string                                                        $module_id The identifier of the module.
+	 *                                                                                 Should be unique. It will be used
+	 *                                                                                 in the final import map.
+	 * @param string                                                        $src       Optional. Full URL of the module,
+	 *                                                                                 or path of the module relative to
+	 *                                                                                 the WordPress root directory. If
+	 *                                                                                 it is provided and the module has
+	 *                                                                                 not been registered yet, it will be
+	 *                                                                                 registered.
+	 * @param array<string|array{id: string, import?: 'static'|'dynamic' }> $deps      Optional. An array of module
+	 *                                                                                 identifiers of the dependencies of
+	 *                                                                                 this module. The dependencies can
+	 *                                                                                 be strings or arrays. If they are
+	 *                                                                                 arrays, they need an `id` key with
+	 *                                                                                 the module identifier, and can
+	 *                                                                                 contain an `import` key with either
+	 *                                                                                 `static` or `dynamic`. By default,
+	 *                                                                                 dependencies that don't contain an
+	 *                                                                                 `import` key are considered static.
+	 * @param string|false|null                                             $version   Optional. String specifying the
+	 *                                                                                 module version number. Defaults to
+	 *                                                                                 false. It is added to the URL as a
+	 *                                                                                 query string for cache busting
+	 *                                                                                 purposes. If $version is set to
+	 *                                                                                 false, the version number is the
+	 *                                                                                 currently installed WordPress
+	 *                                                                                 version. If $version is set to
+	 *                                                                                 null, no version is added.
 	 */
-	public function enqueue( $module_id ) {
+	public function enqueue( $module_id, $src = '', $deps = array(), $version = false ) {
 		if ( isset( $this->registered[ $module_id ] ) ) {
+			$this->registered[ $module_id ]['enqueue'] = true;
+		} elseif ( $src ) {
+			$this->register( $module_id, $src, $deps, $version );
 			$this->registered[ $module_id ]['enqueue'] = true;
 		} else {
 			$this->enqueued_before_registered[ $module_id ] = true;
