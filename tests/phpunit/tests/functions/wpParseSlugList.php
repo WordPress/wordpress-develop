@@ -19,6 +19,13 @@ class Tests_functions_wpParseSlugList extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, wp_parse_slug_list( $input_list ) );
 	}
 
+	/**
+	 * data for test_wp_parse_slug_list
+	 *
+	 * @ticket 60217
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_parse_slug_list() {
 		return array(
 			'simple'             => array(
