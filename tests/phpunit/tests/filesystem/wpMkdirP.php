@@ -180,11 +180,11 @@ class Tests_Filesystem_WpMkdirP extends WP_UnitTestCase {
 
 		add_action(
 			'before_create_directory',
-			function( $target ) {
+			function ( $target ) {
 				/*
-					* Force a failure by creating a file of the same name
-					* just before `mkdir()` runs.
-					*/
+				 * Force a failure by creating a file of the same name
+				 * just before `mkdir()` runs.
+				*/
 				$this->touch( $target );
 			}
 		);
