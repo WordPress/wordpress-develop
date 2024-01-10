@@ -2027,7 +2027,7 @@ function wp_get_original_referer() {
  * Will attempt to set permissions on folders.
  *
  * @since 2.0.1
- * @since 6.5.0 Added `before_create_directory` and `after_create_directory` hooks.
+ * @since 6.5.0 Added `before_create_directory`, `after_create_directory` and `create_directory_failed` hooks.
  *
  * @param string $target Full path to attempt to create.
  * @return bool Whether the path was created. True if path already exists.
@@ -2085,22 +2085,12 @@ function wp_mkdir_p( $target ) {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $target    Full path to attempt to create.
+	 * @param string $target  Full path to attempt to create.
 	 * @param int    $dir_perms Directory permissions.
 	 */
 	do_action( 'before_create_directory', $target, $dir_perms );
 
 	if ( @mkdir( $target, $dir_perms, true ) ) {
-
-		/**
-		 * Fires after the directory is created and the permissions are set.
-		 *
-		 * @since 6.5.0
-		 *
-		 * @param string $target    Full path to created directory.
-		 * @param int    $dir_perms Directory permissions.
-		 */
-		do_action( 'after_create_directory', $target, $dir_perms );
 
 		/*
 		 * If a umask is set that modifies $dir_perms, we'll have to re-set
@@ -2113,8 +2103,28 @@ function wp_mkdir_p( $target ) {
 			}
 		}
 
+		/**
+		 * Fires after the directory is created and the permissions are set.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string $target Full path to created directory.
+		 * @param int    $dir_perms Directory permissions.
+		 */
+		do_action( 'after_create_directory', $target, $dir_perms );
+
 		return true;
 	}
+
+	/**
+	 * Fires when directory creation fails.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $target Full path to the directory that failed to create.
+	 * @param int    $dit_perms Directory permissions.
+	 */
+	do_action( 'create_directory_failed', $target, $dir_perms );
 
 	return false;
 }

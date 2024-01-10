@@ -168,4 +168,29 @@ class Tests_Filesystem_WpMkdirP extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $action->get_call_count() );
 	}
+
+	/**
+	 * Tests that `wp_mkdir_p()` fires the 'create_directory_failed' action when `mkdir()` fails.
+	 *
+	 * @ticket 44083
+	 */
+	public function test_wp_mkdir_p_should_fire_the_create_directory_failed_action_when_mkdir_fails() {
+		$action = new MockAction();
+		add_action( 'create_directory_failed', array( $action, 'action' ) );
+
+		add_action(
+			'before_create_directory',
+			function( $target ) {
+				/*
+					* Force a failure by creating a file of the same name
+					* just before `mkdir()` runs.
+					*/
+				$this->touch( $target );
+			}
+		);
+
+		wp_mkdir_p( self::$test_directory . 'create_directory_failed' );
+
+		$this->assertSame( 1, $action->get_call_count() );
+	}
 }
