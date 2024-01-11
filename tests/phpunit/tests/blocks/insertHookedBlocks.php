@@ -31,6 +31,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		);
 
 		$actual = insert_hooked_blocks( $anchor_block, 'after', $hooked_blocks, array() );
+		$this->assertSame( array( 'tests/hooked-before' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 		$this->assertSame( '<!-- wp:tests/hooked-before /-->', $actual );
 	}
 }
