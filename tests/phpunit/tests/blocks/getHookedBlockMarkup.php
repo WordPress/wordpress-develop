@@ -13,7 +13,7 @@
 class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	const HOOKED_BLOCK_TYPE = 'tests/hooked-block';
 	const HOOKED_BLOCK      = array(
-		'blockName'    => 'tests/hooked-block',
+		'blockName'    => 'tests/different-hooked-block',
 		'attrs'        => array(),
 		'innerContent' => array(),
 	);
@@ -30,7 +30,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 
 		$actual = get_hooked_block_markup( self::HOOKED_BLOCK, self::HOOKED_BLOCK_TYPE, $anchor_block );
 		$this->assertSame( array( self::HOOKED_BLOCK_TYPE ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
-		$this->assertSame( '<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /-->', $actual );
+		$this->assertSame( '<!-- wp:' . self::HOOKED_BLOCK['blockName'] . ' /-->', $actual );
 	}
 
 	/**
@@ -77,6 +77,6 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 
 		$actual = get_hooked_block_markup( $other_hooked_block, $other_hooked_block_type, $anchor_block );
 		$this->assertSame( array( self::HOOKED_BLOCK_TYPE, $other_hooked_block_type ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
-		$this->assertSame( '<!-- wp:' . $other_hooked_block_type. ' /-->', $actual );
+		$this->assertSame( '<!-- wp:' . $other_hooked_block_type . ' /-->', $actual );
 	}
 }
