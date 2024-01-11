@@ -109,15 +109,15 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		}
 
 		// Check if plugins are loaded
-		if( defined('WP_PLUGIN_DIR') ) {
+		if ( defined( 'WP_PLUGIN_DIR' ) ) {
 			// Get the caller file path
 			$caller = debug_backtrace()[1]['file'];
 
 			// Check if a plugin is adding this filter
-			if ( substr( $caller, 0, strlen(WP_PLUGIN_DIR) ) == WP_PLUGIN_DIR ) {
+			if ( substr( $caller, 0, strlen( WP_PLUGIN_DIR ) ) === WP_PLUGIN_DIR ) {
 				// Strip the WP_PLUGIN_DIR from the caller path
 				$caller = substr( $caller, strlen( WP_PLUGIN_DIR ) );
-				array_push ( $this->callers, $caller );
+				array_push( $this->callers, $caller );
 			}
 		}
 	}
