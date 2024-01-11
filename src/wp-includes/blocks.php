@@ -59,8 +59,6 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	}
 
 	$field_mappings = array(
-		'editorModule' => 'editor-module',
-		'module'       => 'module',
 		'viewModule'   => 'view-module',
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
@@ -571,8 +569,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	$module_fields = array(
-		'editorModule' => 'editor_module_handles',
-		'module'       => 'module_handles',
 		'viewModule'   => 'view_module_handles',
 	);
 	foreach ( $module_fields as $metadata_field_name => $settings_field_name ) {

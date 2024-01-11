@@ -227,22 +227,6 @@ class WP_Block_Type {
 	public $view_script_handles = array();
 
 	/**
-	 * Block type editor only module handles.
-	 *
-	 * @since 6.5.0
-	 * @var string[]
-	 */
-	public $editor_module_handles = array();
-
-	/**
-	 * Block type front end and editor module handles.
-	 *
-	 * @since 6.5.0
-	 * @var string[]
-	 */
-	public $module_handles = array();
-
-	/**
 	 * Block type front end only module handles.
 	 *
 	 * @since 6.5.0
