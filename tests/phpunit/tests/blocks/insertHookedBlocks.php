@@ -12,6 +12,8 @@
  */
 class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
+	 * @ticket 60126
+	 *
 	 * @covers ::insert_hooked_blocks
 	 */
 	public function test_insert_hooked_blocks() {
