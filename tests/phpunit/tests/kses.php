@@ -938,6 +938,8 @@ EOF;
 	 * @ticket 55966
 	 * @ticket 56122
 	 * @ticket 58551
+	 * @ticket 60132
+	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
@@ -1345,6 +1347,11 @@ EOF;
 			array(
 				'css'      => 'writing-mode: vertical-rl',
 				'expected' => 'writing-mode: vertical-rl',
+			),
+			// `background-repeat` introduced in 6.5.
+			array(
+				'css'      => 'background-repeat: no-repeat',
+				'expected' => 'background-repeat: no-repeat',
 			),
 		);
 	}
