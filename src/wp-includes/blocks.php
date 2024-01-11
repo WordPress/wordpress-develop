@@ -798,6 +798,7 @@ function get_hooked_block_markup( $hooked_block, $hooked_block_type, &$anchor_bl
  * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
  *
  * @since 6.5.0
+ * @access private
  *
  * @param array                   $anchor_block      The anchor block.
  * @param string                  $relative_position The relative position of the hooked blocks.
