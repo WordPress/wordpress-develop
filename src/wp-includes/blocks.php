@@ -140,27 +140,27 @@ function get_block_asset_url( $path ) {
  * @return string|false Script handle provided directly or created through
  *                      script's registration, or false on failure.
  */
-function register_block_module_handle( $metadata, $field_name, $index = 0 ) {
+function register_block_module_id( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
 
-	$module_handle = $metadata[ $field_name ];
-	if ( is_array( $module_handle ) ) {
-		if ( empty( $module_handle[ $index ] ) ) {
+	$module_id = $metadata[ $field_name ];
+	if ( is_array( $module_id ) ) {
+		if ( empty( $module_id[ $index ] ) ) {
 			return false;
 		}
-		$module_handle = $module_handle[ $index ];
+		$module_id = $module_id[ $index ];
 	}
 
-	$module_path = remove_block_asset_path_prefix( $module_handle );
-	if ( $module_handle === $module_path ) {
-		return $module_handle;
+	$module_path = remove_block_asset_path_prefix( $module_id );
+	if ( $module_id === $module_path ) {
+		return $module_id;
 	}
 
 	$path                  = dirname( $metadata['file'] );
 	$module_asset_raw_path = $path . '/' . substr_replace( $module_path, '.asset.php', - strlen( '.js' ) );
-	$module_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	$module_id             = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$module_asset_path     = wp_normalize_path(
 		realpath( $module_asset_raw_path )
 	);
@@ -186,7 +186,7 @@ function register_block_module_handle( $metadata, $field_name, $index = 0 ) {
 	$module_asset        = require $module_asset_path;
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
 	$result              = wp_register_module(
-		$module_handle,
+		$module_id,
 		$module_uri,
 		$module_dependencies,
 		isset( $module_asset['version'] ) ? $module_asset['version'] : false,
@@ -194,10 +194,10 @@ function register_block_module_handle( $metadata, $field_name, $index = 0 ) {
 
 	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $module_dependencies, true ) ) {
 		// script translations?
-		wp_set_script_translations( $module_handle, $metadata['textdomain'] );
+		wp_set_script_translations( $module_id, $metadata['textdomain'] );
 	}
 
-	return $module_handle;
+	return $module_id;
 }
 
 /**
@@ -569,7 +569,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	$module_fields = array(
-		'viewModule'   => 'view_module_handles',
+		'viewModule'   => 'view_module_ids',
 	);
 	foreach ( $module_fields as $metadata_field_name => $settings_field_name ) {
 
@@ -581,7 +581,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$processed_modules = array();
 			if ( is_array( $modules ) ) {
 				for ( $index = 0; $index < count( $modules ); $index++ ) {
-					$result = register_block_module_handle(
+					$result = register_block_module_id(
 						$metadata,
 						$metadata_field_name,
 						$index
@@ -591,7 +591,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 					}
 				}
 			} else {
-				$result = register_block_module_handle(
+				$result = register_block_module_id(
 					$metadata,
 					$metadata_field_name
 				);

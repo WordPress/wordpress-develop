@@ -470,9 +470,9 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $this->block_type->view_module_handles ) ) {
-			foreach ( $this->block_type->view_module_handles as $view_module_handle ) {
-				wp_enqueue_module( $view_module_handle );
+		if ( ! empty( $this->block_type->view_module_ids ) ) {
+			foreach ( $this->block_type->view_module_ids as $view_module_id ) {
+				wp_enqueue_module( $view_module_id );
 			}
 		}
 
