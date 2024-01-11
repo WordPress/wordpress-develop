@@ -760,9 +760,12 @@ function get_hooked_blocks() {
 /**
  * Conditionally returns the markup for a given hooked block.
  *
- * Accepts two arguments: A hooked block, and a reference to an anchor block.
+ * Accepts three arguments: A hooked block, its type, and a reference to an anchor block.
  * If the anchor block has already been processed, and the given hooked block type is in the list
  * of ignored hooked blocks, an empty string is returned.
+ *
+ * The hooked block type is specified separately as it's possible that a filter might've modified
+ * the hooked block such that `$hooked_block['blockName']` does no longer reflect the original type.
  *
  * This function is meant for internal use only.
  *
