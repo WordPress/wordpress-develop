@@ -2038,8 +2038,8 @@ class WP_HTML_Tag_Processor {
 		$this->token_length         = null;
 		$this->tag_name_starts_at   = null;
 		$this->tag_name_length      = null;
-		$this->text_starts_at       = 0;
-		$this->text_length          = 0;
+		$this->text_starts_at       = null;
+		$this->text_length          = null;
 		$this->is_closing_tag       = null;
 		$this->attributes           = array();
 		$this->comment_type         = null;
