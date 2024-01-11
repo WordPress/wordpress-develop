@@ -29,9 +29,14 @@ class Tests_functions_mceSetDirection extends WP_UnitTestCase {
 			'toolbar1'       => 'toolbar1,ltr',
 		);
 
-		$this->assertSameSets( $mce_init, _mce_set_direction( $mce_init ) );
+		$actual = _mce_set_direction( $mce_init );
+		$this->assertSameSets( $mce_init, $actual );
+
+		$orig_text_dir             = $wp_locale->text_direction;
 		$wp_locale->text_direction = 'rtl';
-		$this->assertSameSets( $expected, _mce_set_direction( $mce_init ) );
-		$wp_locale->text_direction = 'ltr';
+		$actual                    = _mce_set_direction( $mce_init );
+		$wp_locale->text_direction = $orig_text_dir;
+
+		$this->assertSameSets( $expected, $actual );
 	}
 }
