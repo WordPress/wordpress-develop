@@ -848,7 +848,7 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 		$hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $hooked_block, $relative_position, $anchor_block, $context );
 
 		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
-		// so we pass the original $hooked_block_type as well.
+		// so we need to pass the original $hooked_block_type as well.
 		$markup .= get_hooked_block_markup( $hooked_block, $hooked_block_type, $anchor_block );
 	}
 
