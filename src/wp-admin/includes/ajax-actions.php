@@ -384,32 +384,31 @@ function wp_ajax_get_community_events() {
 				'error' => $events->get_error_message(),
 			)
 		);
-	} else {
-		if ( empty( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) ) {
-			$ip_changed = true;
-		} elseif ( isset( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) && $saved_location['ip'] !== $events['location']['ip'] ) {
-			$ip_changed = true;
-		}
-
-		/*
-		 * The location should only be updated when it changes. The API doesn't always return
-		 * a full location; sometimes it's missing the description or country. The location
-		 * that was saved during the initial request is known to be good and complete, though.
-		 * It should be left intact until the user explicitly changes it (either by manually
-		 * searching for a new location, or by changing their IP address).
-		 *
-		 * If the location was updated with an incomplete response from the API, then it could
-		 * break assumptions that the UI makes (e.g., that there will always be a description
-		 * that corresponds to a latitude/longitude location).
-		 *
-		 * The location is stored network-wide, so that the user doesn't have to set it on each site.
-		 */
-		if ( $ip_changed || $search ) {
-			update_user_meta( $user_id, 'community-events-location', $events['location'] );
-		}
-
-		wp_send_json_success( $events );
 	}
+	if ( empty( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) ) {
+		$ip_changed = true;
+	} elseif ( isset( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) && $saved_location['ip'] !== $events['location']['ip'] ) {
+		$ip_changed = true;
+	}
+
+	/*
+		* The location should only be updated when it changes. The API doesn't always return
+		* a full location; sometimes it's missing the description or country. The location
+		* that was saved during the initial request is known to be good and complete, though.
+		* It should be left intact until the user explicitly changes it (either by manually
+		* searching for a new location, or by changing their IP address).
+		*
+		* If the location was updated with an incomplete response from the API, then it could
+		* break assumptions that the UI makes (e.g., that there will always be a description
+		* that corresponds to a latitude/longitude location).
+		*
+		* The location is stored network-wide, so that the user doesn't have to set it on each site.
+		*/
+	if ( $ip_changed || $search ) {
+		update_user_meta( $user_id, 'community-events-location', $events['location'] );
+	}
+
+	wp_send_json_success( $events );
 }
 
 /**
@@ -2691,10 +2690,11 @@ function wp_ajax_image_editor() {
 			}
 
 			wp_send_json_success( $msg );
-			break;
+
 		case 'scale':
 			$msg = wp_save_image( $attachment_id );
 			break;
+
 		case 'restore':
 			$msg = wp_restore_image( $attachment_id );
 			break;
@@ -2746,9 +2746,8 @@ function wp_ajax_set_post_thumbnail() {
 		if ( delete_post_thumbnail( $post_id ) ) {
 			$return = _wp_post_thumbnail_html( null, $post_id );
 			$json ? wp_send_json_success( $return ) : wp_die( $return );
-		} else {
-			wp_die( 0 );
 		}
+		wp_die( 0 );
 	}
 
 	if ( set_post_thumbnail( $post_id, $thumbnail_id ) ) {
@@ -2832,11 +2831,8 @@ function wp_ajax_set_attachment_thumbnail() {
 
 	if ( 0 === $success ) {
 		wp_send_json_error();
-	} else {
-		wp_send_json_success();
 	}
-
-	wp_send_json_error();
+	wp_send_json_success();
 }
 
 /**
@@ -4236,14 +4232,17 @@ function wp_ajax_install_theme() {
 		$status['errorCode']    = $result->get_error_code();
 		$status['errorMessage'] = $result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( is_wp_error( $skin->result ) ) {
+	}
+	if ( is_wp_error( $skin->result ) ) {
 		$status['errorCode']    = $skin->result->get_error_code();
 		$status['errorMessage'] = $skin->result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( $skin->get_errors()->has_errors() ) {
+	}
+	if ( $skin->get_errors()->has_errors() ) {
 		$status['errorMessage'] = $skin->get_error_messages();
 		wp_send_json_error( $status );
-	} elseif ( is_null( $result ) ) {
+	}
+	if ( is_null( $result ) ) {
 		global $wp_filesystem;
 
 		$status['errorCode']    = 'unable_to_connect_to_filesystem';
@@ -4359,10 +4358,12 @@ function wp_ajax_update_theme() {
 		$status['errorCode']    = $skin->result->get_error_code();
 		$status['errorMessage'] = $skin->result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( $skin->get_errors()->has_errors() ) {
+	}
+	if ( $skin->get_errors()->has_errors() ) {
 		$status['errorMessage'] = $skin->get_error_messages();
 		wp_send_json_error( $status );
-	} elseif ( is_array( $result ) && ! empty( $result[ $stylesheet ] ) ) {
+	}
+	if ( is_array( $result ) && ! empty( $result[ $stylesheet ] ) ) {
 
 		// Theme is already at the latest version.
 		if ( true === $result[ $stylesheet ] ) {
@@ -4376,7 +4377,8 @@ function wp_ajax_update_theme() {
 		}
 
 		wp_send_json_success( $status );
-	} elseif ( false === $result ) {
+	}
+	if ( false === $result ) {
 		global $wp_filesystem;
 
 		$status['errorCode']    = 'unable_to_connect_to_filesystem';
@@ -4461,7 +4463,8 @@ function wp_ajax_delete_theme() {
 	if ( is_wp_error( $result ) ) {
 		$status['errorMessage'] = $result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( false === $result ) {
+	}
+	if ( false === $result ) {
 		$status['errorMessage'] = __( 'Theme could not be deleted.' );
 		wp_send_json_error( $status );
 	}
@@ -4533,14 +4536,17 @@ function wp_ajax_install_plugin() {
 		$status['errorCode']    = $result->get_error_code();
 		$status['errorMessage'] = $result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( is_wp_error( $skin->result ) ) {
+	}
+	if ( is_wp_error( $skin->result ) ) {
 		$status['errorCode']    = $skin->result->get_error_code();
 		$status['errorMessage'] = $skin->result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( $skin->get_errors()->has_errors() ) {
+	}
+	if ( $skin->get_errors()->has_errors() ) {
 		$status['errorMessage'] = $skin->get_error_messages();
 		wp_send_json_error( $status );
-	} elseif ( is_null( $result ) ) {
+	}
+	if ( is_null( $result ) ) {
 		global $wp_filesystem;
 
 		$status['errorCode']    = 'unable_to_connect_to_filesystem';
@@ -4639,10 +4645,12 @@ function wp_ajax_update_plugin() {
 		$status['errorCode']    = $skin->result->get_error_code();
 		$status['errorMessage'] = $skin->result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( $skin->get_errors()->has_errors() ) {
+	}
+	if ( $skin->get_errors()->has_errors() ) {
 		$status['errorMessage'] = $skin->get_error_messages();
 		wp_send_json_error( $status );
-	} elseif ( is_array( $result ) && ! empty( $result[ $plugin ] ) ) {
+	}
+	if ( is_array( $result ) && ! empty( $result[ $plugin ] ) ) {
 
 		/*
 		 * Plugin is already at the latest version.
@@ -4667,7 +4675,8 @@ function wp_ajax_update_plugin() {
 		}
 
 		wp_send_json_success( $status );
-	} elseif ( false === $result ) {
+	}
+	if ( false === $result ) {
 		global $wp_filesystem;
 
 		$status['errorCode']    = 'unable_to_connect_to_filesystem';
@@ -4755,7 +4764,8 @@ function wp_ajax_delete_plugin() {
 	if ( is_wp_error( $result ) ) {
 		$status['errorMessage'] = $result->get_error_message();
 		wp_send_json_error( $status );
-	} elseif ( false === $result ) {
+	}
+	if ( false === $result ) {
 		$status['errorMessage'] = __( 'Plugin could not be deleted.' );
 		wp_send_json_error( $status );
 	}
@@ -4890,13 +4900,12 @@ function wp_ajax_edit_theme_plugin_file() {
 				(array) $r->get_error_data()
 			)
 		);
-	} else {
-		wp_send_json_success(
-			array(
-				'message' => __( 'File edited successfully.' ),
-			)
-		);
 	}
+	wp_send_json_success(
+		array(
+			'message' => __( 'File edited successfully.' ),
+		)
+	);
 }
 
 /**
@@ -5551,6 +5560,7 @@ function wp_ajax_toggle_auto_updates() {
 			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
 			$all_items = apply_filters( 'all_plugins', get_plugins() );
 			break;
+
 		case 'theme':
 			if ( ! current_user_can( 'update_themes' ) ) {
 				$error_message = __( 'Sorry, you are not allowed to modify themes.' );
@@ -5560,6 +5570,7 @@ function wp_ajax_toggle_auto_updates() {
 			$option    = 'auto_update_themes';
 			$all_items = wp_get_themes();
 			break;
+
 		default:
 			wp_send_json_error( array( 'error' => __( 'Invalid data. Unknown type.' ) ) );
 	}
@@ -5611,7 +5622,6 @@ function wp_ajax_send_password_reset() {
 			/* translators: %s: User's display name. */
 			sprintf( __( 'A password reset link was emailed to %s.' ), $user->display_name )
 		);
-	} else {
-		wp_send_json_error( $results->get_error_message() );
 	}
+	wp_send_json_error( $results->get_error_message() );
 }

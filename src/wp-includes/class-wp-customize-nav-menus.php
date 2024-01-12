@@ -334,9 +334,8 @@ final class WP_Customize_Nav_Menus {
 
 		if ( empty( $items ) ) {
 			wp_send_json_error( array( 'message' => __( 'No results found.' ) ) );
-		} else {
-			wp_send_json_success( array( 'items' => $items ) );
 		}
+		wp_send_json_success( array( 'items' => $items ) );
 	}
 
 	/**
@@ -1046,14 +1045,13 @@ final class WP_Customize_Nav_Menus {
 				'message' => sprintf( __( '%1$s could not be created: %2$s' ), $singular_name, $error->get_error_message() ),
 			);
 			wp_send_json_error( $data );
-		} else {
-			$post = $r;
-			$data = array(
-				'post_id' => $post->ID,
-				'url'     => get_permalink( $post->ID ),
-			);
-			wp_send_json_success( $data );
 		}
+		$post = $r;
+		$data = array(
+			'post_id' => $post->ID,
+			'url'     => get_permalink( $post->ID ),
+		);
+		wp_send_json_success( $data );
 	}
 
 	/**

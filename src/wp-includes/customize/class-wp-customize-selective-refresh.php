@@ -313,7 +313,8 @@ final class WP_Customize_Selective_Refresh {
 		 */
 		if ( ! is_customize_preview() ) {
 			wp_send_json_error( 'expected_customize_preview', 403 );
-		} elseif ( ! isset( $_POST['partials'] ) ) {
+		}
+		if ( ! isset( $_POST['partials'] ) ) {
 			wp_send_json_error( 'missing_partials', 400 );
 		}
 

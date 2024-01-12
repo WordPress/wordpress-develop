@@ -86,12 +86,12 @@ function locate_block_template( $template, $type, array $templates ) {
 			return $template;
 		}
 
-		if ( 'index' === $type ) {
-			if ( isset( $_GET['_wp-find-template'] ) ) {
-				wp_send_json_error( array( 'message' => __( 'No matching template found.' ) ) );
-			}
-		} else {
+		if ( 'index' !== $type ) {
 			return ''; // So that the template loader keeps looking for templates.
+		}
+
+		if ( isset( $_GET['_wp-find-template'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'No matching template found.' ) ) );
 		}
 	}
 
