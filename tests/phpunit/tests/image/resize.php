@@ -103,15 +103,10 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
 			$this->markTestSkipped( sprintf( 'No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
 		}
-		error_log( 'test_resize_avif!!!' );
+
 		$image = $this->resize_helper( $file, 25, 25 );
 
-		// Log image
-		error_log( json_encode( $image, JSON_PRETTY_PRINT ) );
-
 		list( $w, $h, $type ) = wp_getimagesize( $image );
-
-
 
 		unlink( $image );
 
@@ -230,13 +225,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			return $editor;
 		}
 
-		// log editor class name
-		error_log( 'editor: ' . get_class( $editor ) );
-
 		$resized = $editor->resize( $width, $height, $crop );
-
-		// log resized
-		error_log( 'resized: ' . json_encode( $resized, JSON_PRETTY_PRINT ) );
 
 		if ( is_wp_error( $resized ) ) {
 			return $resized;

@@ -273,8 +273,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$height = $size[1];
 		}
 
-		error_log( '---- update_size: ' . $width . 'x' . $height );
-
 		return parent::update_size( $width, $height );
 	}
 
