@@ -111,6 +111,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'avif-animated.avif',
+			'avif-lossless.avif',
+			'avif-lossy.avif',
+			'avif-transparent.avif',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
