@@ -1540,6 +1540,50 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					150,
+					150,
+					IMAGETYPE_AVIF,
+					'width="150" height="150"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					400,
+					400,
+					IMAGETYPE_AVIF,
+					'width="400" height="400"',
+					'mime' => 'image/avif',
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					128,
+					128,
+					IMAGETYPE_AVIF,
+					'width="128" height="128"',
+					'mime' => 'image/avif',
+				),
+			),
 		);
 
 		return $data;
