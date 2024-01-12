@@ -5511,6 +5511,9 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 			$info = @getimagesize( $filename );
 		}
 	}
+	// Temporarily log the file info returned during test runs
+	error_log( print_r( $info, true ) );
+	error_log( ! ( empty( $info[0] ) && empty( $info[1] ) ) );
 
 	if (
 		false !== $info &&
