@@ -3355,15 +3355,20 @@ function wp_get_image_mime( $file ) {
 		/**
 		 * Add AVIF fallback detection when image library doesn't support AVIF.
 		 *
-		 * Note: detection values come from libavif.
+		 * Note: detection values come from libavif and test files.
 		 *
 		 */
 		if (
-			// avif.
-			( str_starts_with( $magic, '0000002066' ) )
+			// AVIF: lossless, lossy
+			( str_starts_with( $magic, '0000002066' ) ) ||
+			// AVIF: animated
+			( str_starts_with( $magic, '0000002c66' ) ) ||
+			// AVIF: transparent
+			( str_starts_with( $magic, '0000001c66' ) )
 		) {
 			$mime = 'image/avif';
 		}
+
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
