@@ -1394,6 +1394,26 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/uploads/dashicons.woff',
 				false,
 			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				'image/avif',
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				'image/avif',
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				'image/avif',
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				'image/avif',
+			),
 		);
 
 		return $data;
