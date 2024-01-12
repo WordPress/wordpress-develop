@@ -33,7 +33,8 @@ if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	}
 	wp_redirect( network_admin_url( $redirect ) );
 	exit;
-} elseif ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' === $_GET['dismiss'] ) {
+}
+if ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' === $_GET['dismiss'] ) {
 	check_admin_referer( 'dismiss_new_network_admin_email' );
 	delete_site_option( 'network_admin_hash' );
 	delete_site_option( 'new_admin_email' );

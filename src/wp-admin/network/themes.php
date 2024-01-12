@@ -45,11 +45,13 @@ if ( $action ) {
 				wp_safe_redirect( add_query_arg( 'enabled', 1, $referer ) );
 			}
 			exit;
+
 		case 'disable':
 			check_admin_referer( 'disable-theme_' . $_GET['theme'] );
 			WP_Theme::network_disable_theme( $_GET['theme'] );
 			wp_safe_redirect( add_query_arg( 'disabled', '1', $referer ) );
 			exit;
+
 		case 'enable-selected':
 			check_admin_referer( 'bulk-themes' );
 			$themes = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
@@ -60,6 +62,7 @@ if ( $action ) {
 			WP_Theme::network_enable_theme( (array) $themes );
 			wp_safe_redirect( add_query_arg( 'enabled', count( $themes ), $referer ) );
 			exit;
+
 		case 'disable-selected':
 			check_admin_referer( 'bulk-themes' );
 			$themes = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
@@ -70,6 +73,7 @@ if ( $action ) {
 			WP_Theme::network_disable_theme( (array) $themes );
 			wp_safe_redirect( add_query_arg( 'disabled', count( $themes ), $referer ) );
 			exit;
+
 		case 'update-selected':
 			check_admin_referer( 'bulk-themes' );
 
@@ -97,6 +101,7 @@ if ( $action ) {
 			echo '</div>';
 			require_once ABSPATH . 'wp-admin/admin-footer.php';
 			exit;
+
 		case 'delete-selected':
 			if ( ! current_user_can( 'delete_themes' ) ) {
 				wp_die( __( 'Sorry, you are not allowed to delete themes for this site.' ) );
@@ -232,6 +237,7 @@ if ( $action ) {
 				)
 			);
 			exit;
+
 		case 'enable-auto-update':
 		case 'disable-auto-update':
 		case 'enable-auto-update-selected':
@@ -284,6 +290,7 @@ if ( $action ) {
 
 			wp_safe_redirect( $referer );
 			exit;
+
 		default:
 			$themes = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
 			if ( empty( $themes ) ) {

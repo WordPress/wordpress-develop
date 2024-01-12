@@ -237,7 +237,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );

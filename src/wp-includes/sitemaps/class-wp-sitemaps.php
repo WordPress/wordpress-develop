@@ -239,7 +239,7 @@ class WP_Sitemaps {
 			|| 'sitemap-xml' === $query->get( 'name' )
 		) {
 			wp_safe_redirect( $this->index->get_index_url() );
-			exit();
+			exit;
 		}
 
 		return $bypass;

@@ -61,9 +61,8 @@ if ( $action ) {
 					$redirect = self_admin_url( 'plugins.php?error=true&charsout=' . strlen( $result->get_error_data() ) . '&plugin=' . urlencode( $plugin ) . "&plugin_status=$status&paged=$page&s=$s" );
 					wp_redirect( add_query_arg( '_error_nonce', wp_create_nonce( 'plugin-activation-error_' . $plugin ), $redirect ) );
 					exit;
-				} else {
-					wp_die( $result );
 				}
+				wp_die( $result );
 			}
 
 			if ( ! is_network_admin() ) {
@@ -421,16 +420,16 @@ if ( $action ) {
 
 				require_once ABSPATH . 'wp-admin/admin-footer.php';
 				exit;
-			} else {
-				$plugins_to_delete = count( $plugins );
 			} // End if verify-delete.
 
-			$delete_result = delete_plugins( $plugins );
+			$plugins_to_delete = count( $plugins );
+			$delete_result     = delete_plugins( $plugins );
 
 			// Store the result in a cache rather than a URL param due to object type & length.
 			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
+
 		case 'clear-recent-list':
 			if ( ! is_network_admin() ) {
 				update_option( 'recently_activated', array() );
@@ -439,6 +438,7 @@ if ( $action ) {
 			}
 
 			break;
+
 		case 'resume':
 			if ( is_multisite() ) {
 				return;
@@ -458,6 +458,7 @@ if ( $action ) {
 
 			wp_redirect( self_admin_url( "plugins.php?resume=true&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
+
 		case 'enable-auto-update':
 		case 'disable-auto-update':
 		case 'enable-auto-update-selected':
@@ -530,6 +531,7 @@ if ( $action ) {
 
 			wp_redirect( $redirect );
 			exit;
+
 		default:
 			if ( isset( $_POST['checked'] ) ) {
 				check_admin_referer( 'bulk-plugins' );

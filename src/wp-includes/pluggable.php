@@ -1194,10 +1194,9 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 			if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 				exit;
-			} else {
-				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-				exit;
 			}
+			wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+			exit;
 		}
 
 		/**
@@ -1225,10 +1224,9 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 				if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 					exit;
-				} else {
-					wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-					exit;
 				}
+				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+				exit;
 			}
 
 			return; // The cookie is good, so we're done.

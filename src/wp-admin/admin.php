@@ -297,7 +297,9 @@ if ( isset( $plugin_page ) ) {
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 	exit;
-} elseif ( isset( $_GET['import'] ) ) {
+}
+
+if ( isset( $_GET['import'] ) ) {
 
 	$importer = $_GET['import'];
 
@@ -369,40 +371,40 @@ if ( isset( $plugin_page ) ) {
 	flush_rewrite_rules( false );
 
 	exit;
-} else {
-	/**
-	 * Fires before a particular screen is loaded.
-	 *
-	 * The load-* hook fires in a number of contexts. This hook is for core screens.
-	 *
-	 * The dynamic portion of the hook name, `$pagenow`, is a global variable
-	 * referring to the filename of the current screen, such as 'admin.php',
-	 * 'post-new.php' etc. A complete hook for the latter would be
-	 * 'load-post-new.php'.
-	 *
-	 * @since 2.1.0
-	 */
-	do_action( "load-{$pagenow}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+}
 
-	/*
-	 * The following hooks are fired to ensure backward compatibility.
-	 * In all other cases, 'load-' . $pagenow should be used instead.
-	 */
-	if ( 'page' === $typenow ) {
-		if ( 'post-new.php' === $pagenow ) {
-			do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( 'post.php' === $pagenow ) {
-			do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		}
-	} elseif ( 'edit-tags.php' === $pagenow ) {
-		if ( 'category' === $taxnow ) {
-			do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		} elseif ( 'link_category' === $taxnow ) {
-			do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		}
-	} elseif ( 'term.php' === $pagenow ) {
-		do_action( 'load-edit-tags.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+/**
+ * Fires before a particular screen is loaded.
+ *
+ * The load-* hook fires in a number of contexts. This hook is for core screens.
+ *
+ * The dynamic portion of the hook name, `$pagenow`, is a global variable
+ * referring to the filename of the current screen, such as 'admin.php',
+ * 'post-new.php' etc. A complete hook for the latter would be
+ * 'load-post-new.php'.
+ *
+ * @since 2.1.0
+ */
+do_action( "load-{$pagenow}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+
+/*
+	* The following hooks are fired to ensure backward compatibility.
+	* In all other cases, 'load-' . $pagenow should be used instead.
+	*/
+if ( 'page' === $typenow ) {
+	if ( 'post-new.php' === $pagenow ) {
+		do_action( 'load-page-new.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	} elseif ( 'post.php' === $pagenow ) {
+		do_action( 'load-page.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
+} elseif ( 'edit-tags.php' === $pagenow ) {
+	if ( 'category' === $taxnow ) {
+		do_action( 'load-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	} elseif ( 'link_category' === $taxnow ) {
+		do_action( 'load-edit-link-categories.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+	}
+} elseif ( 'term.php' === $pagenow ) {
+	do_action( 'load-edit-tags.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
 
 if ( ! empty( $_REQUEST['action'] ) ) {
