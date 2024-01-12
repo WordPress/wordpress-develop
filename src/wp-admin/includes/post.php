@@ -284,9 +284,8 @@ function edit_post( $post_data = null ) {
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
-		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
+		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 	}
 
 	if ( post_type_supports( $ptype->name, 'revisions' ) ) {
@@ -511,9 +510,8 @@ function bulk_edit_posts( $post_data = null ) {
 	if ( ! current_user_can( $ptype->cap->edit_posts ) ) {
 		if ( 'page' === $ptype->name ) {
 			wp_die( __( 'Sorry, you are not allowed to edit pages.' ) );
-		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit posts.' ) );
 		}
+		wp_die( __( 'Sorry, you are not allowed to edit posts.' ) );
 	}
 
 	if ( -1 == $post_data['_status'] ) {
@@ -966,9 +964,8 @@ function write_post() {
 	$result = wp_write_post();
 	if ( is_wp_error( $result ) ) {
 		wp_die( $result->get_error_message() );
-	} else {
-		return $result;
 	}
+	return $result;
 }
 
 //

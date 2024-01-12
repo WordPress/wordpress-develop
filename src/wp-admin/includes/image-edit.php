@@ -22,11 +22,10 @@ function wp_image_editor( $post_id, $msg = false ) {
 	$sub_sizes = isset( $meta['sizes'] ) && is_array( $meta['sizes'] );
 	$note      = '';
 
-	if ( isset( $meta['width'], $meta['height'] ) ) {
-		$big = max( $meta['width'], $meta['height'] );
-	} else {
+	if ( ! isset( $meta['width'], $meta['height'] ) ) {
 		die( __( 'Image data does not exist. Please re-upload the image.' ) );
 	}
+	$big = max( $meta['width'], $meta['height'] );
 
 	$sizer = $big > 600 ? 600 / $big : 1;
 

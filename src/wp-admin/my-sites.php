@@ -26,12 +26,11 @@ if ( 'updateblogsettings' === $action && isset( $_POST['primary_blog'] ) ) {
 	check_admin_referer( 'update-my-sites' );
 
 	$blog = get_site( (int) $_POST['primary_blog'] );
-	if ( $blog && isset( $blog->domain ) ) {
-		update_user_meta( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'] );
-		$updated = true;
-	} else {
+	if ( ! $blog || ! isset( $blog->domain ) ) {
 		wp_die( __( 'The primary site you chose does not exist.' ) );
 	}
+	update_user_meta( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'] );
+	$updated = true;
 }
 
 // Used in the HTML title tag.

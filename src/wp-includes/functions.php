@@ -4471,9 +4471,8 @@ function wp_send_json( $response, $status_code = null, $flags = 0 ) {
 				'response' => null,
 			)
 		);
-	} else {
-		die;
 	}
+	die;
 }
 
 /**

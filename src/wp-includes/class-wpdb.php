@@ -3952,15 +3952,14 @@ class wpdb {
 			}
 
 			wp_die( $message );
-		} else {
-			if ( class_exists( 'WP_Error', false ) ) {
-				$this->error = new WP_Error( $error_code, $message );
-			} else {
-				$this->error = $message;
-			}
-
-			return false;
 		}
+		if ( class_exists( 'WP_Error', false ) ) {
+			$this->error = new WP_Error( $error_code, $message );
+		} else {
+			$this->error = $message;
+		}
+
+		return false;
 	}
 
 	/**

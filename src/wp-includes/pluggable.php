@@ -1343,9 +1343,8 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 		if ( $stop && false === $result ) {
 			if ( wp_doing_ajax() ) {
 				wp_die( -1, 403 );
-			} else {
-				die( '-1' );
 			}
+			die( '-1' );
 		}
 
 		return $result;

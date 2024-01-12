@@ -1930,7 +1930,6 @@ final class WP_Customize_Manager {
 					'<code>customize_messenger_channel<code>'
 				)
 			);
-			return;
 		}
 
 		$this->prepare_controls();

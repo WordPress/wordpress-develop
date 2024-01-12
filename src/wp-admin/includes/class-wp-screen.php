@@ -295,12 +295,13 @@ final class WP_Screen {
 				case 'post':
 					if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 						wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
-					} elseif ( isset( $_GET['post'] ) ) {
+					}
+
+					$post_id = 0;
+					if ( isset( $_GET['post'] ) ) {
 						$post_id = (int) $_GET['post'];
 					} elseif ( isset( $_POST['post_ID'] ) ) {
 						$post_id = (int) $_POST['post_ID'];
-					} else {
-						$post_id = 0;
 					}
 
 					if ( $post_id ) {
