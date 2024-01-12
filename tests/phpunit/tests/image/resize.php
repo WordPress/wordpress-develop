@@ -107,14 +107,10 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$image = $this->resize_helper( $file, 25, 25 );
 
 		// Log image
-		error_log( print_r( $image, true ) );
+		error_log( json_encode( $image, JSON_PRETTY_PRINT ) );
 
 		list( $w, $h, $type ) = wp_getimagesize( $image );
 
-		// log w, h and type
-		error_log( 'w: ' . $w );
-		error_log( 'h: ' . $h );
-		error_log( 'type: ' . $type );
 
 
 		unlink( $image );
@@ -234,7 +230,13 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			return $editor;
 		}
 
+		// log editor class name
+		error_log( 'editor: ' . get_class( $editor ) );
+
 		$resized = $editor->resize( $width, $height, $crop );
+
+		// log resized
+		error_log( 'resized: ' . json_encode( $resized, JSON_PRETTY_PRINT ) );
 
 		if ( is_wp_error( $resized ) ) {
 			return $resized;
