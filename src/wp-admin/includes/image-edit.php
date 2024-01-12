@@ -358,40 +358,44 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 		}
 
 		return true;
-	} else {
-		/* translators: 1: $image, 2: WP_Image_Editor */
-		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
+	}
 
-		/**
-		 * Filters the GD image resource to be streamed to the browser.
-		 *
-		 * @since 2.9.0
-		 * @deprecated 3.5.0 Use {@see 'image_editor_save_pre'} instead.
-		 *
-		 * @param resource|GdImage $image         Image resource to be streamed.
-		 * @param int              $attachment_id The attachment post ID.
-		 */
-		$image = apply_filters_deprecated( 'image_save_pre', array( $image, $attachment_id ), '3.5.0', 'image_editor_save_pre' );
+	/* translators: 1: $image, 2: WP_Image_Editor */
+	_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
 
-		switch ( $mime_type ) {
-			case 'image/jpeg':
-				header( 'Content-Type: image/jpeg' );
-				return imagejpeg( $image, null, 90 );
-			case 'image/png':
-				header( 'Content-Type: image/png' );
-				return imagepng( $image );
-			case 'image/gif':
-				header( 'Content-Type: image/gif' );
-				return imagegif( $image );
-			case 'image/webp':
-				if ( function_exists( 'imagewebp' ) ) {
-					header( 'Content-Type: image/webp' );
-					return imagewebp( $image, null, 90 );
-				}
-				return false;
-			default:
-				return false;
-		}
+	/**
+	 * Filters the GD image resource to be streamed to the browser.
+	 *
+	 * @since 2.9.0
+	 * @deprecated 3.5.0 Use {@see 'image_editor_save_pre'} instead.
+	 *
+	 * @param resource|GdImage $image         Image resource to be streamed.
+	 * @param int              $attachment_id The attachment post ID.
+	 */
+	$image = apply_filters_deprecated( 'image_save_pre', array( $image, $attachment_id ), '3.5.0', 'image_editor_save_pre' );
+
+	switch ( $mime_type ) {
+		case 'image/jpeg':
+			header( 'Content-Type: image/jpeg' );
+			return imagejpeg( $image, null, 90 );
+
+		case 'image/png':
+			header( 'Content-Type: image/png' );
+			return imagepng( $image );
+
+		case 'image/gif':
+			header( 'Content-Type: image/gif' );
+			return imagegif( $image );
+
+		case 'image/webp':
+			if ( function_exists( 'imagewebp' ) ) {
+				header( 'Content-Type: image/webp' );
+				return imagewebp( $image, null, 90 );
+			}
+			return false;
+
+		default:
+			return false;
 	}
 }
 
@@ -447,55 +451,59 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		}
 
 		return $image->save( $filename, $mime_type );
-	} else {
-		/* translators: 1: $image, 2: WP_Image_Editor */
-		_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
+	}
 
-		/** This filter is documented in wp-admin/includes/image-edit.php */
-		$image = apply_filters_deprecated( 'image_save_pre', array( $image, $post_id ), '3.5.0', 'image_editor_save_pre' );
+	/* translators: 1: $image, 2: WP_Image_Editor */
+	_deprecated_argument( __FUNCTION__, '3.5.0', sprintf( __( '%1$s needs to be a %2$s object.' ), '$image', 'WP_Image_Editor' ) );
 
-		/**
-		 * Filters whether to skip saving the image file.
-		 *
-		 * Returning a non-null value will short-circuit the save method,
-		 * returning that value instead.
-		 *
-		 * @since 2.9.0
-		 * @deprecated 3.5.0 Use {@see 'wp_save_image_editor_file'} instead.
-		 *
-		 * @param bool|null        $override  Value to return instead of saving. Default null.
-		 * @param string           $filename  Name of the file to be saved.
-		 * @param resource|GdImage $image     Image resource or GdImage instance.
-		 * @param string           $mime_type The mime type of the image.
-		 * @param int              $post_id   Attachment post ID.
-		 */
-		$saved = apply_filters_deprecated(
-			'wp_save_image_file',
-			array( null, $filename, $image, $mime_type, $post_id ),
-			'3.5.0',
-			'wp_save_image_editor_file'
-		);
+	/** This filter is documented in wp-admin/includes/image-edit.php */
+	$image = apply_filters_deprecated( 'image_save_pre', array( $image, $post_id ), '3.5.0', 'image_editor_save_pre' );
 
-		if ( null !== $saved ) {
-			return $saved;
-		}
+	/**
+	 * Filters whether to skip saving the image file.
+	 *
+	 * Returning a non-null value will short-circuit the save method,
+	 * returning that value instead.
+	 *
+	 * @since 2.9.0
+	 * @deprecated 3.5.0 Use {@see 'wp_save_image_editor_file'} instead.
+	 *
+	 * @param bool|null        $override  Value to return instead of saving. Default null.
+	 * @param string           $filename  Name of the file to be saved.
+	 * @param resource|GdImage $image     Image resource or GdImage instance.
+	 * @param string           $mime_type The mime type of the image.
+	 * @param int              $post_id   Attachment post ID.
+	 */
+	$saved = apply_filters_deprecated(
+		'wp_save_image_file',
+		array( null, $filename, $image, $mime_type, $post_id ),
+		'3.5.0',
+		'wp_save_image_editor_file'
+	);
 
-		switch ( $mime_type ) {
-			case 'image/jpeg':
-				/** This filter is documented in wp-includes/class-wp-image-editor.php */
-				return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
-			case 'image/png':
-				return imagepng( $image, $filename );
-			case 'image/gif':
-				return imagegif( $image, $filename );
-			case 'image/webp':
-				if ( function_exists( 'imagewebp' ) ) {
-					return imagewebp( $image, $filename );
-				}
-				return false;
-			default:
-				return false;
-		}
+	if ( null !== $saved ) {
+		return $saved;
+	}
+
+	switch ( $mime_type ) {
+		case 'image/jpeg':
+			/** This filter is documented in wp-includes/class-wp-image-editor.php */
+			return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
+
+		case 'image/png':
+			return imagepng( $image, $filename );
+
+		case 'image/gif':
+			return imagegif( $image, $filename );
+
+		case 'image/webp':
+			if ( function_exists( 'imagewebp' ) ) {
+				return imagewebp( $image, $filename );
+			}
+			return false;
+
+		default:
+			return false;
 	}
 }
 

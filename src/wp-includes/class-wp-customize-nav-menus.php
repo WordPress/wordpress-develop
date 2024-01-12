@@ -977,9 +977,8 @@ final class WP_Customize_Nav_Menus {
 
 		if ( is_wp_error( $r ) ) {
 			return $r;
-		} else {
-			return get_post( $r );
 		}
+		return get_post( $r );
 	}
 
 	/**

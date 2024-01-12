@@ -444,9 +444,8 @@ class WP_Customize_Control {
 	public function get_link( $setting_key = 'default' ) {
 		if ( isset( $this->settings[ $setting_key ] ) && $this->settings[ $setting_key ] instanceof WP_Customize_Setting ) {
 			return 'data-customize-setting-link="' . esc_attr( $this->settings[ $setting_key ]->id ) . '"';
-		} else {
-			return 'data-customize-setting-key-link="' . esc_attr( $setting_key ) . '"';
 		}
+		return 'data-customize-setting-key-link="' . esc_attr( $setting_key ) . '"';
 	}
 
 	/**

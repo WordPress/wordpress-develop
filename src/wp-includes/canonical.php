@@ -985,11 +985,11 @@ function redirect_guess_404_permalink() {
 
 		if ( get_query_var( 'feed' ) ) {
 			return get_post_comments_feed_link( $post_id, get_query_var( 'feed' ) );
-		} elseif ( get_query_var( 'page' ) > 1 ) {
-			return trailingslashit( get_permalink( $post_id ) ) . user_trailingslashit( get_query_var( 'page' ), 'single_paged' );
-		} else {
-			return get_permalink( $post_id );
 		}
+		if ( get_query_var( 'page' ) > 1 ) {
+			return trailingslashit( get_permalink( $post_id ) ) . user_trailingslashit( get_query_var( 'page' ), 'single_paged' );
+		}
+		return get_permalink( $post_id );
 	}
 
 	return false;

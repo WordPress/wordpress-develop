@@ -425,13 +425,12 @@ final class WP_Customize_Manager {
 
 		if ( ! $action ) {
 			return true;
-		} else {
-			/*
-			 * Note: we can't just use doing_action( "wp_ajax_{$action}" ) because we need
-			 * to check before admin-ajax.php gets to that point.
-			 */
-			return isset( $_REQUEST['action'] ) && wp_unslash( $_REQUEST['action'] ) === $action;
 		}
+		/*
+		 * Note: we can't just use doing_action( "wp_ajax_{$action}" ) because we need
+		 * to check before admin-ajax.php gets to that point.
+		 */
+		return isset( $_REQUEST['action'] ) && wp_unslash( $_REQUEST['action'] ) === $action;
 	}
 
 	/**
@@ -2410,9 +2409,8 @@ final class WP_Customize_Manager {
 				);
 			}
 			return $notification;
-		} else {
-			return true;
 		}
+		return true;
 	}
 
 	/**
@@ -2699,9 +2697,11 @@ final class WP_Customize_Manager {
 		if ( $args['autosave'] ) {
 			if ( $args['date_gmt'] ) {
 				return new WP_Error( 'illegal_autosave_with_date_gmt' );
-			} elseif ( $args['status'] ) {
+			}
+			if ( $args['status'] ) {
 				return new WP_Error( 'illegal_autosave_with_status' );
-			} elseif ( $args['user_id'] && get_current_user_id() !== $args['user_id'] ) {
+			}
+			if ( $args['user_id'] && get_current_user_id() !== $args['user_id'] ) {
 				return new WP_Error( 'illegal_autosave_with_non_current_user' );
 			}
 		}
@@ -4406,9 +4406,8 @@ final class WP_Customize_Manager {
 
 		if ( $a->priority === $b->priority ) {
 			return $a->instance_number - $b->instance_number;
-		} else {
-			return $a->priority - $b->priority;
 		}
+		return $a->priority - $b->priority;
 	}
 
 	/**
@@ -4708,18 +4707,17 @@ final class WP_Customize_Manager {
 				 * verify that it belongs to the active theme, otherwise fall back to the Themes screen.
 				 */
 				if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
-					$return_url = admin_url( 'themes.php' );
+					return admin_url( 'themes.php' );
 				}
 			}
-		} elseif ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
-			$return_url = $referer;
-		} elseif ( $this->preview_url ) {
-			$return_url = $this->preview_url;
-		} else {
-			$return_url = home_url( '/' );
+			return $return_url;
+		if ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
+			return $referer;
 		}
-
-		return $return_url;
+		if ( $this->preview_url ) {
+			return $this->preview_url;
+		}
+		return home_url( '/' );
 	}
 
 	/**

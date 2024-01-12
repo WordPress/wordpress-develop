@@ -56,13 +56,14 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 
 	if ( OBJECT === $output ) {
 		return $_bookmark;
-	} elseif ( ARRAY_A === $output ) {
-		return get_object_vars( $_bookmark );
-	} elseif ( ARRAY_N === $output ) {
-		return array_values( get_object_vars( $_bookmark ) );
-	} else {
-		return $_bookmark;
 	}
+	if ( ARRAY_A === $output ) {
+		return get_object_vars( $_bookmark );
+	}
+	if ( ARRAY_N === $output ) {
+		return array_values( get_object_vars( $_bookmark ) );
+	}
+	return $_bookmark;
 }
 
 /**
@@ -414,6 +415,7 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 		case 'link_visible': // bool stored as Y|N
 			$value = preg_replace( '/[^YNyn]/', '', $value );
 			break;
+
 		case 'link_target': // "enum"
 			$targets = array( '_top', '_blank' );
 			if ( ! in_array( $value, $targets, true ) ) {

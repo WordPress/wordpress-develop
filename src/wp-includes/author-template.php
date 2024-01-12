@@ -255,9 +255,8 @@ function get_the_author_link() {
 		 * @param WP_User $authordata Author user data.
 		 */
 		return apply_filters( 'the_author_link', $link, $author_url, $authordata );
-	} else {
-		return get_the_author();
 	}
+	return get_the_author();
 }
 
 /**

@@ -1059,9 +1059,8 @@ function get_super_admins() {
 
 	if ( isset( $super_admins ) ) {
 		return $super_admins;
-	} else {
-		return get_site_option( 'site_admins', array( 'admin' ) );
 	}
+	return get_site_option( 'site_admins', array( 'admin' ) );
 }
 
 /**
@@ -1088,10 +1087,8 @@ function is_super_admin( $user_id = false ) {
 		if ( is_array( $super_admins ) && in_array( $user->user_login, $super_admins, true ) ) {
 			return true;
 		}
-	} else {
-		if ( $user->has_cap( 'delete_users' ) ) {
-			return true;
-		}
+	} elseif ( $user->has_cap( 'delete_users' ) ) {
+		return true;
 	}
 
 	return false;
