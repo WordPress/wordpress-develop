@@ -103,10 +103,19 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
 			$this->markTestSkipped( sprintf( 'No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
 		}
-
+		error_log( 'test_resize_avif!!!' );
 		$image = $this->resize_helper( $file, 25, 25 );
 
+		// Log image
+		error_log( print_r( $image, true ) );
+
 		list( $w, $h, $type ) = wp_getimagesize( $image );
+
+		// log w, h and type
+		error_log( 'w: ' . $w );
+		error_log( 'h: ' . $h );
+		error_log( 'type: ' . $type );
+
 
 		unlink( $image );
 
