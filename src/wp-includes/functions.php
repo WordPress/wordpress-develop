@@ -3368,7 +3368,6 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/avif';
 		}
-
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
