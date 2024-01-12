@@ -286,7 +286,7 @@ final class WP_Customize_Manager {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
 		}
 
-		// Only include 'widgets' component if usable.
+		// Don't load 'widgets' component if a block theme is activated.
 		if ( ! wp_is_block_theme() ) {
 			$this->components[] = 'widgets';
 		}
