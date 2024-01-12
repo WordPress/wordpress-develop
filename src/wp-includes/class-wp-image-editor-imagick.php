@@ -265,6 +265,13 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$height = $size['height'];
 		}
 
+		// If we still don't have the image size, fall back to `$size = wp_getimagesize( $this->file );`.
+		if ( ! $width && ! $height && 'image/avif' === $this->mime_type ) {
+			$size   = wp_getimagesize( $this->file );
+			$width  = $size[0];
+			$height = $size[1];
+		}
+
 		return parent::update_size( $width, $height );
 	}
 
