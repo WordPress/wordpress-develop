@@ -363,4 +363,88 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test wp_get_avif_info.
+	 *
+	 * @ticket 51228
+	 * @dataProvider data_wp_get_avif_info
+	 *
+	 */
+	public function test_wp_get_avif_info( $file, $expected ) {
+		$editor = wp_get_image_editor( $file );
+
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( sprintf( 'No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
+		}
+
+		$file_data = wp_get_avif_info( $file );
+		$this->assertSame( $expected, $file_data );
+	}
+
+	/**
+	 * Data provider for test_wp_get_avif_info().
+	 */
+	public function data_wp_get_avif_info() {
+		return array(
+			// Standard JPEG.
+			array(
+				DIR_TESTDATA . '/images/test-image.jpg',
+				array(
+					'width'  => false,
+					'height' => false,
+					'type'   => false,
+				),
+			),
+			// Standard GIF.
+			array(
+				DIR_TESTDATA . '/images/test-image.gif',
+				array(
+					'width'  => false,
+					'height' => false,
+					'type'   => false,
+				),
+			),
+			// Animated AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-animated.avif',
+				array(
+					'width'        => 150,
+					'height'       => 150,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Lossless AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossless.avif',
+				array(
+					'width'        => 400,
+					'height'       => 400,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Lossy AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-lossy.avif',
+				array(
+					'width'        => 400,
+					'height'       => 400,
+					'bit_depth'    => 8,
+					'num_channels' => 3,
+				),
+			),
+			// Transparent AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-transparent.avif',
+				array(
+					'width'        => 128,
+					'height'       => 128,
+					'bit_depth'    => 12,
+					'num_channels' => 3,
+				),
+			),
+		);
+	}
 }
