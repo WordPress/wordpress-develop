@@ -108,14 +108,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 		list( $w, $h, $type ) = wp_getimagesize( $image );
 
-		if ( null === $w ) {
-			error_log( 'failed to load image size from ' . $image );
-			error_log( wp_getimagesize( $image ) );
-
-			// exit test
-			$this->markTestSkipped( 'failed to load image size' );
-		}
-
 		unlink( $image );
 
 		$this->assertSame( 'avif-lossy-25x25.avif', wp_basename( $image ) );
