@@ -5,7 +5,7 @@
  *
  * @ticket 53299
  *
- * @group function
+ * @group functions
  *
  * @covers ::is_serialized
  */
