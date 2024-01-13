@@ -87,6 +87,16 @@ class WP_HTML_Active_Formatting_Elements {
 	}
 
 	/**
+	 * Inserts a marker at the end of the list of active formatting elements.
+	 *
+	 * @since 6.5.0
+	 */
+	public function insert_marker() {
+		$marker = new WP_HTML_Token( null, 'marker', false );
+		$this->push( $marker );
+	}
+
+	/**
 	 * Pushes a node onto the stack of active formatting elements.
 	 *
 	 * @since 6.4.0

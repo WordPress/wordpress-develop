@@ -150,14 +150,9 @@ class WP_HTML_Open_Elements {
 		return $this->has_element_in_specific_scope(
 			$tag_name,
 			array(
-
-				/*
-				 * Because it's not currently possible to encounter
-				 * one of the termination elements, they don't need
-				 * to be listed here. If they were, they would be
-				 * unreachable and only waste CPU cycles while
-				 * scanning through HTML.
-				 */
+				'APPLET',
+				'MARQUEE',
+				'OBJECT',
 			)
 		);
 	}
@@ -421,7 +416,10 @@ class WP_HTML_Open_Elements {
 		 * cases where the precalculated value needs to change.
 		 */
 		switch ( $item->node_name ) {
+			case 'APPLET':
 			case 'BUTTON':
+			case 'MARQUEE':
+			case 'OBJECT':
 				$this->has_p_in_button_scope = false;
 				break;
 

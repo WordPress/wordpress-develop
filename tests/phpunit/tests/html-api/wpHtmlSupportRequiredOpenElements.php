@@ -62,14 +62,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_has_element_in_scope_needs_support() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
@@ -100,14 +97,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_has_element_in_list_item_scope_needs_support() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
@@ -134,14 +128,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_has_element_in_button_scope_needs_support() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
@@ -169,14 +160,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_after_element_pop_must_maintain_p_in_button_scope_flag() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
@@ -204,14 +192,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_after_element_push_must_maintain_p_in_button_scope_flag() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
@@ -238,14 +223,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_has_element_in_table_scope_needs_support() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.
@@ -288,14 +270,11 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 */
 	public function test_has_element_in_select_scope_needs_support() {
 		// These elements impact all scopes.
-		$this->ensure_support_is_added_everywhere( 'APPLET' );
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'HTML' );
 		$this->ensure_support_is_added_everywhere( 'TABLE' );
 		$this->ensure_support_is_added_everywhere( 'TD' );
 		$this->ensure_support_is_added_everywhere( 'TH' );
-		$this->ensure_support_is_added_everywhere( 'MARQUEE' );
-		$this->ensure_support_is_added_everywhere( 'OBJECT' );
 		$this->ensure_support_is_added_everywhere( 'TEMPLATE' );
 
 		// MathML Elements: MI, MO, MN, MS, MTEXT, ANNOTATION-XML.

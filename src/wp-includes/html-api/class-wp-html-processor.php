@@ -516,7 +516,26 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 *        is provided in the opening tag, otherwise it expects a tag closer.
 			 */
 			$top_node = $this->state->stack_of_open_elements->current_node();
-			if ( $top_node && self::is_void( $top_node->node_name ) ) {
+			if (
+				$top_node &&
+				(
+					self::is_void( $top_node->node_name ) ||
+
+					// Special: Skips SCRIPT data in Tag Processor.
+					'SCRIPT' === $top_node->node_name ||
+
+					// Special: Skips RCDATA data in Tag Processor.
+					'TEXTAREA' === $top_node->node_name ||
+					'TITLE' === $top_node->node_name ||
+
+					// Special: Skips RAWTEXT data in Tag Processor.
+					'IFRAME' === $top_node->node_name ||
+					'NOEMBED' === $top_node->node_name ||
+					'NOFRAMES' === $top_node->node_name ||
+					'STYLE' === $top_node->node_name ||
+					'XMP' === $top_node->node_name
+				)
+			) {
 				$this->state->stack_of_open_elements->pop();
 			}
 
@@ -949,6 +968,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A start tag whose tag name is one of: "applet", "marquee", "object"
+			 */
+			case '+APPLET':
+			case '+MARQUEE':
+			case '+OBJECT':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->active_formatting_elements->insert_marker();
+				$this->state->frameset_ok = false;
+				return true;
+
+			/*
 			 * > An end tag whose tag name is "br"
 			 * >   Parse error. Drop the attributes from the token, and act as described in the next
 			 * >   entry; i.e. act as if this was a "br" start tag token with no attributes, rather
@@ -982,6 +1013,39 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 				return true;
+
+			/*
+			 * > A start tag whose tag name is "textarea"
+			 */
+			case '+TEXTAREA':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "xmp"
+			 */
+			case '+XMP':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "iframe"
+			 */
+			case '+IFRAME':
+				$this->state->frameset_ok = false;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "noembed"
+			 */
+			case '+NOEMBED':
+				return true;
 		}
 
 		/*
@@ -1001,7 +1065,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody
 		 */
 		switch ( $tag_name ) {
-			case 'APPLET':
 			case 'BASE':
 			case 'BASEFONT':
 			case 'BGSOUND':
@@ -1014,17 +1077,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'FRAMESET':
 			case 'HEAD':
 			case 'HTML':
-			case 'IFRAME':
 			case 'INPUT':
 			case 'LINK':
-			case 'MARQUEE':
 			case 'MATH':
 			case 'META':
 			case 'NOBR':
-			case 'NOEMBED':
 			case 'NOFRAMES':
 			case 'NOSCRIPT':
-			case 'OBJECT':
 			case 'OPTGROUP':
 			case 'OPTION':
 			case 'PARAM':
@@ -1043,14 +1102,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'TBODY':
 			case 'TD':
 			case 'TEMPLATE':
-			case 'TEXTAREA':
 			case 'TFOOT':
 			case 'TH':
 			case 'THEAD':
 			case 'TITLE':
 			case 'TR':
 			case 'TRACK':
-			case 'XMP':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 		}
