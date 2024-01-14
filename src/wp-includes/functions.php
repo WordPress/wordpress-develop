@@ -3367,6 +3367,7 @@ function wp_get_image_mime( $file ) {
 		if (
 			// AVIF: lossless, lossy
 			( str_starts_with( $magic, '0000002066' ) ) ||
+			( str_starts_with( $magic, '0000001866' ) ) || // magic from tests
 			// AVIF: animated
 			( str_starts_with( $magic, '0000002c66' ) ) ||
 			// AVIF: transparent
