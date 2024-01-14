@@ -5511,6 +5511,13 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 			$info = @getimagesize( $filename );
 		}
 	}
+// Log results so far
+error_log( '!!! getimagesize' );
+error_log( print_r( $info, true ) );
+
+// Log image mime
+error_log( print_r( wp_get_image_mime( $filename ), true ) );
+
 
 	if (
 		false !== $info &&
@@ -5549,13 +5556,13 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 	// extract the image size info from the file headers.
 	if ( 'image/avif' === wp_get_image_mime( $filename ) ) {
 		$avif_info = wp_get_avif_info( $filename );
-		$width     = $avif_info['width'];
-		$height    = $avif_info['height'];
-
 		// log the avifinfo results
 		error_log( '!!! AVIF info' );
 		error_log( print_r( $avif_info, true ) );
 		error_log( print_r( $filename ) );
+		$width     = $avif_info['width'];
+		$height    = $avif_info['height'];
+
 
 		// Mimic the native return format.
 		if ( $width && $height ) {
