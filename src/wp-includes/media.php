@@ -5552,6 +5552,11 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		$width     = $avif_info['width'];
 		$height    = $avif_info['height'];
 
+		// log the avifinfo results
+		error_log( '!!! AVIF info' );
+		error_log( print_r( $avif_info, true ) );
+		error_log( print_r( $filename ) );
+
 		// Mimic the native return format.
 		if ( $width && $height ) {
 			return array(
