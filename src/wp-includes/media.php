@@ -5520,13 +5520,13 @@ error_log( print_r( wp_get_image_mime( $filename ), true ) );
 
 
 	if (
-		false !== $info &&
+		! empty( $info ) &&
 		// Some PHP versions return 0x0 sizes from `getimagesize` for unrecognized image formats, including AVIFs
-		! ( empty( $info[0] ) || empty( $info[1] ) )
+		! ( empty( $info[0] ) && empty( $info[1] ) )
 		) {
 		return $info;
 	}
-
+	error_log( '!!! getimagesize failed' );
 	/*
 	 * For PHP versions that don't support WebP images,
 	 * extract the image size info from the file headers.
