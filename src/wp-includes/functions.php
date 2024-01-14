@@ -3337,7 +3337,7 @@ function wp_get_image_mime( $file ) {
 			return false;
 		}
 
-		error_log( "wp_get_image_mime() magic: $magic"
+		error_log( "wp_get_image_mime() magic: $magic" );
 
 
 		/*
@@ -3356,7 +3356,7 @@ function wp_get_image_mime( $file ) {
 		}
 
 		// log the magic #
-		error_log( "binhex() magic: $magic"
+		error_log( "binhex() magic: $magic" );
 
 		/**
 		 * Add AVIF fallback detection when image library doesn't support AVIF.
