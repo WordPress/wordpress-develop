@@ -105,6 +105,10 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		}
 
 		$image = $this->resize_helper( $file, 25, 25 );
+		error_log( "in test image: " .  json_encode( $image, JSON_PRETTY_PRINT ) );
+
+		// file exists?
+		error_log( "file exists: " .  json_encode( file_exists( $image ), JSON_PRETTY_PRINT ) );
 
 
 		list( $w, $h, $type ) = wp_getimagesize( $image );
