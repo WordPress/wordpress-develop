@@ -1531,13 +1531,24 @@ All at ###SITENAME###
 		$site_title = parse_url( home_url(), PHP_URL_HOST );
 	}
 
+	$subject = sprintf(
+		/* translators: New admin email address notification email subject. %s: Site title. */
+		__( '[%s] New Admin Email Address' ),
+		$site_title
+	);
+
+	/**
+	 * Filters the subject of the email sent when a change of site admin email address is attempted.
+	 * 
+	 * @since 6.5.0
+	 * 
+	 * @param string $subject Subject of the email.
+	 */
+	$subject = apply_filters( 'new_admin_email_subject', $subject );
+
 	wp_mail(
 		$value,
-		sprintf(
-			/* translators: New admin email address notification email subject. %s: Site title. */
-			__( '[%s] New Admin Email Address' ),
-			$site_title
-		),
+		$subject,
 		$content
 	);
 
