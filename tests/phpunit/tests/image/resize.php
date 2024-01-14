@@ -110,6 +110,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		// file exists?
 		error_log( "file exists: " .  json_encode( file_exists( $image ), JSON_PRETTY_PRINT ) );
 
+		// log mime type of resized image
+		error_log( "mime type of resized image: " .  json_encode( wp_get_image_mime( $image ), JSON_PRETTY_PRINT ) );
 
 		list( $w, $h, $type ) = wp_getimagesize( $image );
 		if ( null === $w ) {
