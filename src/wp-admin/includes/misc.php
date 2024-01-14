@@ -1539,9 +1539,9 @@ All at ###SITENAME###
 
 	/**
 	 * Filters the subject of the email sent when a change of site admin email address is attempted.
-	 * 
+	 *
 	 * @since 6.5.0
-	 * 
+	 *
 	 * @param string $subject Subject of the email.
 	 */
 	$subject = apply_filters( 'new_admin_email_subject', $subject );
