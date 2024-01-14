@@ -105,25 +105,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		}
 
 		$image = $this->resize_helper( $file, 25, 25 );
-		error_log( "in test image: " .  json_encode( $image, JSON_PRETTY_PRINT ) );
-
-		// file exists?
-		error_log( "file exists: " .  json_encode( file_exists( $image ), JSON_PRETTY_PRINT ) );
-
-		// log mime type of resized image
-		error_log( "mime type of resized image: " .  json_encode( wp_get_image_mime( $image ), JSON_PRETTY_PRINT ) );
 
 		list( $w, $h, $type ) = wp_getimagesize( $image );
-		if ( null === $w ) {
-			// Log the editor type and skip the test.
-			error_log( '!!!' );
-			error_log( "image: " .  json_encode( $image, JSON_PRETTY_PRINT ) );
-			error_log( "sizes from wp_getimagesize: " .  json_encode( wp_getimagesize( $image ), JSON_PRETTY_PRINT ) );
-			error_log( "editor: " .  json_encode( get_class( $editor ), JSON_PRETTY_PRINT ) );
-			error_log( "editor for image after: " .  json_encode( get_class( wp_get_image_editor( $image ) ), JSON_PRETTY_PRINT ) );
-			error_log( "editor supports avif: " . json_encode( $editor->supports_mime_type( 'image/avif' ), JSON_PRETTY_PRINT ) );
-			$this->markTestSkipped( sprintf( '!!! No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
-		}
 
 		unlink( $image );
 

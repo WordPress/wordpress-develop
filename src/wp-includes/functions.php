@@ -3337,9 +3337,6 @@ function wp_get_image_mime( $file ) {
 			return false;
 		}
 
-		error_log( "wp_get_image_mime() magic: $magic" );
-
-
 		/*
 		 * Add WebP fallback detection when image library doesn't support WebP.
 		 * Note: detection values come from LibWebP, see
@@ -3354,9 +3351,6 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/webp';
 		}
-
-		// log the magic #
-		error_log( "binhex() magic: $magic" );
 
 		/**
 		 * Add AVIF fallback detection when image library doesn't support AVIF.
