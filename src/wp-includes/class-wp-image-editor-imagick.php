@@ -109,7 +109,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( ! method_exists( 'Imagick', 'setIteratorIndex' ) && 'image/jpeg' !== $mime_type ) {
 				return false;
 		}
-		error_log(' format ' . json_encode($imagick_extension) . ' result ' . json_encode(Imagick::queryFormats( $imagick_extension ) ) . " all ". json_encode( Imagick::queryFormats( $imagick_extension ) ) );
+		// log imagick supported
+		error_log( 'Imagick supported: ' . (bool) @Imagick::queryFormats( $imagick_extension )  );
 		try {
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			return ( (bool) @Imagick::queryFormats( $imagick_extension ) );
