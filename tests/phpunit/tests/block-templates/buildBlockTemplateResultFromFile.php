@@ -26,7 +26,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromFile extends WP_Block_Te
 		$this->assertSame( 'publish', $template->status );
 		$this->assertSame( 'theme', $template->source );
 		$this->assertSame( 'Single Posts', $template->title );
-		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
+		$this->assertSame( 'Displays a single post on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 		$this->assertEmpty( $template->modified );
 	}
@@ -64,7 +64,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromFile extends WP_Block_Te
 
 		$this->assertSame( 'single', $template->slug );
 		$this->assertSame( 'Single Posts', $template->title );
-		$this->assertSame( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
+		$this->assertSame( 'Displays a single post on your website unless a custom template has been applied to that post or a dedicated template exists.', $template->description );
 		$this->assertFalse( $template->is_custom );
 	}
 
