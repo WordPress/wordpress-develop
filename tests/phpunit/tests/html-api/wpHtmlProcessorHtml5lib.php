@@ -84,7 +84,9 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, strlen( $entry ) - 4 );
-				yield "{$test_suite}/line{$test[0]}" => array_slice( $test, 1 );
+				$line = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
+
+				yield "{$test_suite}/line{$line}" => array_slice( $test, 1 );
 			}
 		}
 		closedir( $handle );
