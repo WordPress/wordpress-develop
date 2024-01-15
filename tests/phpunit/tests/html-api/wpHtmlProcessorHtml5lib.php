@@ -170,7 +170,13 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 						}
 
 						if ( $yield_test ) {
-							yield array( $test_line_number, $test_context_element, $test_html, $test_dom );
+							yield array(
+								$test_line_number,
+								$test_context_element,
+								// Remove the trailing newline
+								substr( $test_html, 0, -1 ),
+								$test_dom
+							);
 						}
 					}
 
@@ -238,6 +244,12 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		fclose( $handle );
 
 		// Return the last result when reaching the end of the file.
-		return array( $line_number, $test_context_element, $test_html, $test_dom );
+		return array(
+			$test_line_number,
+			$test_context_element,
+			// Remove the trailing newline
+			substr( $test_html, 0, -1 ),
+			$test_dom
+		);
 	}
 }
