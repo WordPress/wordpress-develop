@@ -92,8 +92,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	 * Test resizing AVIF image.
 	 *
 	 * @ticket 51228
-	 * @ticket 99999
-	 *
 	 */
 	public function test_resize_avif() {
 		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';

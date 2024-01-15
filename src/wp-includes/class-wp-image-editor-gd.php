@@ -62,7 +62,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 */
 	public static function supports_mime_type( $mime_type ) {
 		$image_types = imagetypes();
-
 		switch ( $mime_type ) {
 			case 'image/jpeg':
 				return ( $image_types & IMG_JPG ) != 0;
@@ -579,13 +578,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 					header( 'Content-Type: image/webp' );
 					return imagewebp( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to the default if WebP isn't supported.
 			case 'image/avif':
 				if ( function_exists( 'imageavif' ) ) {
 					header( 'Content-Type: image/avif' );
 					return imageavif( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to the default if AVIF isn't supported.
+				// Fall back to JPEG as the default.
 			default:
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );

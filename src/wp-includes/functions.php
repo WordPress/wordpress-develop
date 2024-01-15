@@ -3296,7 +3296,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  *
  * @since 4.7.1
  * @since 5.8.0 Added support for WebP images.
- * @since 6.4.0 Added support for AVIF images.
+ * @since 6.5.0 Added support for AVIF images.
  *
  * @param string $file Full path to the file.
  * @return string|false The actual mime type or false if the type cannot be determined.
@@ -3359,12 +3359,12 @@ function wp_get_image_mime( $file ) {
 		 *
 		 */
 		if (
-			// AVIF: lossless, lossy
+			// AVIF: lossless or lossy.
 			( str_starts_with( $magic, '0000002066' ) ) ||
-			( str_starts_with( $magic, '0000001866' ) ) || // magic from tests
-			// AVIF: animated
+			( str_starts_with( $magic, '0000001866' ) ) || // AVIF created by Imagick.
+			// AVIF: animated.
 			( str_starts_with( $magic, '0000002c66' ) ) ||
-			// AVIF: transparent
+			// AVIF: transparent.
 			( str_starts_with( $magic, '0000001c66' ) )
 		) {
 			$mime = 'image/avif';

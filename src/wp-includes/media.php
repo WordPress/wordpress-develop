@@ -5479,7 +5479,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  *
  * @since 5.7.0
  * @since 5.8.0 Added support for WebP images.
- * @since 6.4.0 Added support for AVIF images.
+ * @since 6.5.0 Added support for AVIF images.
  *
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
@@ -5576,7 +5576,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 /**
  * Extracts meta information about an AVIF file: width, height, and type.
  *
- * @since 6.4.0
+ * @since 6.5.0
  *
  * @param string $filename Path to an AVIF file.
  * @return array {
@@ -5630,7 +5630,6 @@ function wp_get_avif_info( $filename ) {
 		}
 
 		return $features;
-
 	}
 }
 
