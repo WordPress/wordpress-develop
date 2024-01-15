@@ -33,13 +33,15 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_true' );
 	}
 
+	/**
+	 * Register custom post type for tests.
+	 *
+	 * Register non publicly queryable post type with public set to true.
+	 *
+	 * These arguments are intentionally contradictory for the test associated
+	 * with ticket #59795.
+	 */
 	public static function set_up_custom_post_types() {
-		/*
-		 * Register non publicly queryable post type with public set to true.
-		 *
-		 * These arguments are intentionally contradictory for the test associated
-		 * with ticket #59795.
-		 */
 		register_post_type(
 			'wp_tests_private',
 			array(
