@@ -20,6 +20,7 @@ on:
 env:
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+  NODE_OPTIONS: '--max-old-space-size=8192'
 
 jobs:
   # Verifies that installing npm dependencies and building the Gutenberg plugin works as expected.
@@ -69,7 +70,6 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
 
       - name: Install Core Dependencies
         run: npm ci
