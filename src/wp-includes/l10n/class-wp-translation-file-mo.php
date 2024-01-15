@@ -21,7 +21,6 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 * Used for unpack().
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var false|'V'|'N'
 	 */
 	protected $uint32 = false;

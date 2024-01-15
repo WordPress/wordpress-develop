@@ -17,7 +17,6 @@ abstract class WP_Translation_File {
 	 * List of headers.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var array<string, string>
 	 */
 	protected $headers = array();
@@ -26,7 +25,6 @@ abstract class WP_Translation_File {
 	 * Whether file has been parsed.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var bool
 	 */
 	protected $parsed = false;
@@ -35,16 +33,14 @@ abstract class WP_Translation_File {
 	 * Error information.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @var bool|string
+	 * @var string|null Error message or null if no error.
 	 */
-	protected $error = false;
+	protected $error;
 
 	/**
 	 * File name.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var string
 	 */
 	protected $file = '';
@@ -53,7 +49,6 @@ abstract class WP_Translation_File {
 	 * Translation entries.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var array<string, string>
 	 */
 	protected $entries = array();
@@ -62,7 +57,6 @@ abstract class WP_Translation_File {
 	 * Plural forms function.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var callable|null Plural forms.
 	 */
 	protected $plural_forms = null;
@@ -110,6 +104,42 @@ abstract class WP_Translation_File {
 	}
 
 	/**
+	 * Creates a new WP_Translation_File instance for a given file.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $file     Source file name.
+	 * @param string $filetype Desired target file type.
+	 * @return string|false Transformed translation file contents on success, false otherwise.
+	 */
+	public static function transform( string $file, string $filetype ) {
+		$source = self::create( $file );
+
+		if ( false === $source ) {
+			return false;
+		}
+
+		switch ( $filetype ) {
+			case 'mo':
+				$destination = new WP_Translation_File_MO( '' );
+				break;
+			case 'php':
+				$destination = new WP_Translation_File_PHP( '' );
+				break;
+			default:
+				return false;
+		}
+
+		$success = $destination->import( $source );
+
+		if ( ! $success ) {
+			return false;
+		}
+
+		return $destination->export();
+	}
+
+	/**
 	 * Returns all headers.
 	 *
 	 * @since 6.5.0
@@ -143,7 +173,7 @@ abstract class WP_Translation_File {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return bool|string Error
+	 * @return string|null Error message or null if no error.
 	 */
 	public function error() {
 		return $this->error;
@@ -228,42 +258,6 @@ abstract class WP_Translation_File {
 	}
 
 	/**
-	 * Creates a new WP_Translation_File instance for a given file.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param string $file     Source file name.
-	 * @param string $filetype Desired target file type.
-	 * @return string|false Transformed translation file contents on success, false otherwise.
-	 */
-	public static function transform( string $file, string $filetype ) {
-		$source = self::create( $file );
-
-		if ( false === $source ) {
-			return false;
-		}
-
-		switch ( $filetype ) {
-			case 'mo':
-				$destination = new WP_Translation_File_MO( '' );
-				break;
-			case 'php':
-				$destination = new WP_Translation_File_PHP( '' );
-				break;
-			default:
-				return false;
-		}
-
-		$success = $destination->import( $source );
-
-		if ( ! $success ) {
-			return false;
-		}
-
-		return $destination->export();
-	}
-
-	/**
 	 * Imports translations from another file.
 	 *
 	 * @since 6.5.0
@@ -272,7 +266,7 @@ abstract class WP_Translation_File {
 	 * @return bool True on success, false otherwise.
 	 */
 	protected function import( WP_Translation_File $source ) {
-		if ( false !== $source->error() ) {
+		if ( null !== $source->error() ) {
 			return false;
 		}
 
@@ -280,7 +274,7 @@ abstract class WP_Translation_File {
 		$this->entries = $source->entries();
 		$this->error   = $source->error();
 
-		return false === $this->error;
+		return null === $this->error;
 	}
 
 	/**

@@ -20,7 +20,6 @@ class WP_Translations {
 	 * Text domain.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var string
 	 */
 	protected $textdomain = 'default';
@@ -29,7 +28,6 @@ class WP_Translations {
 	 * Translation controller instance.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var WP_Translation_Controller
 	 */
 	protected $controller;

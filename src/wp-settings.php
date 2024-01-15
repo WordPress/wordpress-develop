@@ -114,11 +114,11 @@ require ABSPATH . WPINC . '/class-wp-matchesmapregex.php';
 require ABSPATH . WPINC . '/class-wp.php';
 require ABSPATH . WPINC . '/class-wp-error.php';
 require ABSPATH . WPINC . '/pomo/mo.php';
-require ABSPATH . WPINC . '/i18n/class-wp-translation-controller.php';
-require ABSPATH . WPINC . '/i18n/class-wp-translations.php';
-require ABSPATH . WPINC . '/i18n/class-wp-translation-file.php';
-require ABSPATH . WPINC . '/i18n/class-wp-translation-file-mo.php';
-require ABSPATH . WPINC . '/i18n/class-wp-translation-file-php.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 
 /**
  * @global wpdb $wpdb WordPress database abstraction object.

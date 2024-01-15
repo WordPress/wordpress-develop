@@ -830,11 +830,11 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		 */
 		$file = apply_filters( 'load_translation_file', $file, $domain );
 
-		$success = $i18n_controller->load( $file, $domain, $locale );
+		$success = $i18n_controller->load_file( $file, $domain, $locale );
 
 		if ( $success ) {
 			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
-				$i18n_controller->load( $l10n[ $domain ]->get_filename(), $domain, $locale );
+				$i18n_controller->load_file( $l10n[ $domain ]->get_filename(), $domain, $locale );
 			}
 
 			// Unset Noop_Translations reference in get_translations_for_domain.
@@ -902,7 +902,7 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 	// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
 	if ( ! $reloadable ) {
-		WP_Translation_Controller::instance()->unload( $domain );
+		WP_Translation_Controller::instance()->unload_textdomain( $domain );
 	}
 
 	if ( isset( $l10n[ $domain ] ) ) {
