@@ -16,6 +16,8 @@ services:
 
     environment:
       LOCAL_DIR: ${LOCAL_DIR-src}
+      LOCAL_PHP_MEMCACHED: ${LOCAL_PHP_MEMCACHED-false}
+      LOCAL_DB_TYPE: ${LOCAL_DB_TYPE-mysql}
 
     volumes:
       - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
@@ -134,6 +136,21 @@ services:
     depends_on:
       php:
         condition: service_started
+
+  
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    networks:
+      - wpdevnet
+    ports:
+      - 8081:80
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: password
+    depends_on:
+      - mysql
 
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
