@@ -4711,6 +4711,7 @@ final class WP_Customize_Manager {
 				}
 			}
 			return $return_url;
+		}
 		if ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 			return $referer;
 		}
