@@ -29,7 +29,6 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 * The magic number of the GNU message catalog format.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var int
 	 */
 	const MAGIC_MARKER = 0x950412de;
