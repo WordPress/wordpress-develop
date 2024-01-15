@@ -97,7 +97,7 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_load_textdomain_php_files() {
-		$load_php_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo.php' );
+		$load_php_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.l10n.php' );
 
 		$unload_php_successful = unload_textdomain( 'wp-tests-domain' );
 
@@ -122,7 +122,7 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 		$unload_mo_successful = unload_textdomain( 'wp-tests-domain' );
 
-		$load_php_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo.php' );
+		$load_php_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.l10n.php' );
 
 		$unload_php_successful = unload_textdomain( 'wp-tests-domain' );
 
