@@ -110,7 +110,7 @@ class WP_HTML_Template extends WP_HTML_Tag_Processor {
 						$spread_name = substr( $attribute_name, 3 );
 						if ( isset( $args[ $spread_name ] ) && is_array( $args[ $spread_name ] ) ) {
 							foreach ( $args[ $spread_name ] as $key => $value ) {
-								if ( true === $value || null === $value || is_string( $value ) ) {
+								if ( true === $value || false === $value || null === $value || is_string( $value ) ) {
 									$processor->set_attribute( $key, $value );
 								}
 							}
@@ -131,7 +131,7 @@ class WP_HTML_Template extends WP_HTML_Tag_Processor {
 
 						if ( array_key_exists( $name, $args ) ) {
 							$value = $args[ $name ];
-							if ( null === $value ) {
+							if ( false === $value || null === $value ) {
 								$processor->remove_attribute( $attribute_name );
 							} elseif ( true === $value ) {
 								$processor->set_attribute( $attribute_name, true );
