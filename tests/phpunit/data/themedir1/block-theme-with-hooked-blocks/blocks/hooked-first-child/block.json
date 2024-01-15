@@ -1,4 +1,5 @@
 {
+	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"name": "tests/hooked-first-child",
 	"blockHooks": {
 		"core/comments": "firstChild"
