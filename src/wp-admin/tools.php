@@ -12,7 +12,8 @@ if ( isset( $_GET['page'] ) && ! empty( $_POST ) ) {
 	if ( 'export_personal_data' === $_GET['page'] ) {
 		require_once ABSPATH . 'wp-admin/export-personal-data.php';
 		return;
-	} elseif ( 'remove_personal_data' === $_GET['page'] ) {
+	}
+	if ( 'remove_personal_data' === $_GET['page'] ) {
 		require_once ABSPATH . 'wp-admin/erase-personal-data.php';
 		return;
 	}

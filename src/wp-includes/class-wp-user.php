@@ -142,7 +142,8 @@ class WP_User {
 		if ( $id instanceof WP_User ) {
 			$this->init( $id->data, $site_id );
 			return;
-		} elseif ( is_object( $id ) ) {
+		}
+		if ( is_object( $id ) ) {
 			$this->init( $id, $site_id );
 			return;
 		}
@@ -225,19 +226,23 @@ class WP_User {
 				$user_id  = $value;
 				$db_field = 'ID';
 				break;
+
 			case 'slug':
 				$user_id  = wp_cache_get( $value, 'userslugs' );
 				$db_field = 'user_nicename';
 				break;
+
 			case 'email':
 				$user_id  = wp_cache_get( $value, 'useremail' );
 				$db_field = 'user_email';
 				break;
+
 			case 'login':
 				$value    = sanitize_user( $value );
 				$user_id  = wp_cache_get( $value, 'userlogins' );
 				$db_field = 'user_login';
 				break;
+
 			default:
 				return false;
 		}
@@ -677,9 +682,8 @@ class WP_User {
 		if ( preg_match( '/^level_(10|[0-9])$/i', $item, $matches ) ) {
 			$level = (int) $matches[1];
 			return max( $max, $level );
-		} else {
-			return $max;
 		}
+		return $max;
 	}
 
 	/**

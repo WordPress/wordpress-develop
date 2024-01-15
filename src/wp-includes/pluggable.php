@@ -1712,9 +1712,8 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		// If there's no email to send the comment to, bail, otherwise flip array back around for use below.
 		if ( ! count( $emails ) ) {
 			return false;
-		} else {
-			$emails = array_flip( $emails );
 		}
+		$emails = array_flip( $emails );
 
 		$switched_locale = switch_to_locale( get_locale() );
 
@@ -2700,9 +2699,8 @@ if ( ! function_exists( 'wp_rand' ) ) :
 				$val  = random_int( $_min, $_max );
 				if ( false !== $val ) {
 					return absint( $val );
-				} else {
-					$use_random_int_functionality = false;
 				}
+				$use_random_int_functionality = false;
 			} catch ( Error $e ) {
 				$use_random_int_functionality = false;
 			} catch ( Exception $e ) {

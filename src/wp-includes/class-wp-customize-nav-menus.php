@@ -611,9 +611,10 @@ final class WP_Customize_Nav_Menus {
 		unset( $setting_id );
 
 		if ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Setting::TYPE === $setting_args['type'] ) {
-			$setting_class = 'WP_Customize_Nav_Menu_Setting';
-		} elseif ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Item_Setting::TYPE === $setting_args['type'] ) {
-			$setting_class = 'WP_Customize_Nav_Menu_Item_Setting';
+			return 'WP_Customize_Nav_Menu_Setting';
+		}
+		if ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Item_Setting::TYPE === $setting_args['type'] ) {
+			return 'WP_Customize_Nav_Menu_Item_Setting';
 		}
 		return $setting_class;
 	}

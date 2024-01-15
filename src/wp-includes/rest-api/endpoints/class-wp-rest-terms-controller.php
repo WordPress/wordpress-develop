@@ -475,7 +475,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		if ( ( is_taxonomy_hierarchical( $this->taxonomy )
 				&& ! current_user_can( $taxonomy_obj->cap->edit_terms ) )
 			|| ( ! is_taxonomy_hierarchical( $this->taxonomy )
-				&& ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) ) {
+				&& ! current_user_can( $taxonomy_obj->cap->assign_terms ) )
+		) {
 			return new WP_Error(
 				'rest_cannot_create',
 				__( 'Sorry, you are not allowed to create terms in this taxonomy.' ),
@@ -1203,9 +1204,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	protected function check_is_taxonomy_allowed( $taxonomy ) {
 		$taxonomy_obj = get_taxonomy( $taxonomy );
-		if ( $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest ) ) {
-			return true;
-		}
-		return false;
+		return ( $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest ) );
 	}
 }

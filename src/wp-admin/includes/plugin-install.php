@@ -407,6 +407,7 @@ function display_plugins_table() {
 				'https://make.wordpress.org/core/handbook/about/release-cycle/features-as-plugins/'
 			);
 			break;
+
 		case 'install_plugins_featured':
 			printf(
 				/* translators: %s: https://wordpress.org/plugins/ */
@@ -414,9 +415,11 @@ function display_plugins_table() {
 				__( 'https://wordpress.org/plugins/' )
 			);
 			break;
+
 		case 'install_plugins_recommended':
 			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
 			break;
+
 		case 'install_plugins_favorites':
 			if ( empty( $_GET['user'] ) && ! get_user_option( 'wporg_favorites' ) ) {
 				return;

@@ -232,6 +232,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 					'frame_title'  => __( 'Select video' ),
 					'frame_button' => __( 'Choose video' ),
 				);
+
 			case 'audio':
 				return array(
 					'select'       => __( 'Select audio' ),
@@ -242,6 +243,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 					'frame_title'  => __( 'Select audio' ),
 					'frame_button' => __( 'Choose audio' ),
 				);
+
 			case 'image':
 				return array(
 					'select'       => __( 'Select image' ),
@@ -253,6 +255,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 					'frame_title'  => __( 'Select image' ),
 					'frame_button' => __( 'Choose image' ),
 				);
+
 			default:
 				return array(
 					'select'       => __( 'Select file' ),

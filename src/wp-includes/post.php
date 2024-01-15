@@ -805,9 +805,8 @@ function update_attached_file( $attachment_id, $file ) {
 	$file = _wp_relative_upload_path( $file );
 	if ( $file ) {
 		return update_post_meta( $attachment_id, '_wp_attached_file', $file );
-	} else {
-		return delete_post_meta( $attachment_id, '_wp_attached_file' );
 	}
+	return delete_post_meta( $attachment_id, '_wp_attached_file' );
 }
 
 /**
@@ -895,11 +894,10 @@ function _wp_relative_upload_path( $path ) {
 function get_children( $args = '', $output = OBJECT ) {
 	$kids = array();
 	if ( empty( $args ) ) {
-		if ( isset( $GLOBALS['post'] ) ) {
-			$args = array( 'post_parent' => (int) $GLOBALS['post']->post_parent );
-		} else {
+		if ( ! isset( $GLOBALS['post'] ) ) {
 			return $kids;
 		}
+		$args = array( 'post_parent' => (int) $GLOBALS['post']->post_parent );
 	} elseif ( is_object( $args ) ) {
 		$args = array( 'post_parent' => (int) $args->post_parent );
 	} elseif ( is_numeric( $args ) ) {
@@ -933,21 +931,22 @@ function get_children( $args = '', $output = OBJECT ) {
 
 	if ( OBJECT === $output ) {
 		return $kids;
-	} elseif ( ARRAY_A === $output ) {
+	}
+	if ( ARRAY_A === $output ) {
 		$weeuns = array();
 		foreach ( (array) $kids as $kid ) {
 			$weeuns[ $kid->ID ] = get_object_vars( $kids[ $kid->ID ] );
 		}
 		return $weeuns;
-	} elseif ( ARRAY_N === $output ) {
+	}
+	if ( ARRAY_N === $output ) {
 		$babes = array();
 		foreach ( (array) $kids as $kid ) {
 			$babes[ $kid->ID ] = array_values( get_object_vars( $kids[ $kid->ID ] ) );
 		}
 		return $babes;
-	} else {
-		return $kids;
 	}
+	return $kids;
 }
 
 /**
@@ -1044,7 +1043,8 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 
 	if ( ARRAY_A === $output ) {
 		return $_post->to_array();
-	} elseif ( ARRAY_N === $output ) {
+	}
+	if ( ARRAY_N === $output ) {
 		return array_values( $_post->to_array() );
 	}
 
@@ -4181,9 +4181,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	if ( apply_filters( 'wp_insert_post_empty_content', $maybe_empty, $postarr ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'empty_content', __( 'Content, title, and excerpt are empty.' ) );
-		} else {
-			return 0;
 		}
+		return 0;
 	}
 
 	$post_status = empty( $postarr['post_status'] ) ? 'draft' : $postarr['post_status'];
@@ -4257,9 +4256,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	if ( ! $post_date ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_date', __( 'Invalid date.' ) );
-		} else {
-			return 0;
 		}
+		return 0;
 	}
 
 	if ( empty( $postarr['post_date_gmt'] ) || '0000-00-00 00:00:00' === $postarr['post_date_gmt'] ) {
@@ -4486,9 +4484,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 				}
 
 				return new WP_Error( 'db_update_error', $message, $wpdb->last_error );
-			} else {
-				return 0;
 			}
+			return 0;
 		}
 	} else {
 		// If there is a suggested ID, use it if not already present.
@@ -4509,9 +4506,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 				}
 
 				return new WP_Error( 'db_insert_error', $message, $wpdb->last_error );
-			} else {
-				return 0;
 			}
+			return 0;
 		}
 
 		$post_id = (int) $wpdb->insert_id;
@@ -5727,9 +5723,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
 			return;
-		} else {
-			return get_post( $cached, $output );
 		}
+		return get_post( $cached, $output );
 	}
 
 	$page_path     = rawurlencode( urldecode( $page_path ) );
@@ -6513,9 +6508,8 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$data = apply_filters( 'wp_update_attachment_metadata', $data, $post->ID );
 	if ( $data ) {
 		return update_post_meta( $post->ID, '_wp_attachment_metadata', $data );
-	} else {
-		return delete_post_meta( $post->ID, '_wp_attachment_metadata' );
 	}
+	return delete_post_meta( $post->ID, '_wp_attachment_metadata' );
 }
 
 /**
@@ -7657,9 +7651,8 @@ function set_post_thumbnail( $post, $thumbnail_id ) {
 	if ( $post && $thumbnail_id && get_post( $thumbnail_id ) ) {
 		if ( wp_get_attachment_image( $thumbnail_id, 'thumbnail' ) ) {
 			return update_post_meta( $post->ID, '_thumbnail_id', $thumbnail_id );
-		} else {
-			return delete_post_meta( $post->ID, '_thumbnail_id' );
 		}
+		return delete_post_meta( $post->ID, '_thumbnail_id' );
 	}
 	return false;
 }

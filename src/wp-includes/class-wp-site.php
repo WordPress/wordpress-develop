@@ -224,12 +224,10 @@ final class WP_Site {
 		switch ( $key ) {
 			case 'id':
 				return (int) $this->blog_id;
+
 			case 'network_id':
 				return (int) $this->site_id;
-			case 'blogname':
-			case 'siteurl':
-			case 'post_count':
-			case 'home':
+
 			default: // Custom properties added by 'site_details' filter.
 				if ( ! did_action( 'ms_loaded' ) ) {
 					return null;
@@ -260,14 +258,13 @@ final class WP_Site {
 			case 'id':
 			case 'network_id':
 				return true;
+
 			case 'blogname':
 			case 'siteurl':
 			case 'post_count':
 			case 'home':
-				if ( ! did_action( 'ms_loaded' ) ) {
-					return false;
-				}
-				return true;
+				return ( did_action( 'ms_loaded' ) );
+
 			default: // Custom properties added by 'site_details' filter.
 				if ( ! did_action( 'ms_loaded' ) ) {
 					return false;

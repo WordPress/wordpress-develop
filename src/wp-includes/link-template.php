@@ -195,9 +195,11 @@ function get_permalink( $post = 0, $leavename = false ) {
 
 	if ( 'page' === $post->post_type ) {
 		return get_page_link( $post, $leavename, $sample );
-	} elseif ( 'attachment' === $post->post_type ) {
+	}
+	if ( 'attachment' === $post->post_type ) {
 		return get_attachment_link( $post, $leavename );
-	} elseif ( in_array( $post->post_type, get_post_types( array( '_builtin' => false ) ), true ) ) {
+	}
+	if ( in_array( $post->post_type, get_post_types( array( '_builtin' => false ) ), true ) ) {
 		return get_post_permalink( $post, $leavename, $sample );
 	}
 
@@ -1165,11 +1167,10 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $display ) {
-		echo $link;
-	} else {
+	if ( ! $display ) {
 		return $link;
 	}
+	echo $link;
 }
 
 /**
@@ -2475,9 +2476,8 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 
 	if ( $escape ) {
 		return esc_url( $result );
-	} else {
-		return sanitize_url( $result );
 	}
+	return sanitize_url( $result );
 }
 
 /**
@@ -2521,11 +2521,10 @@ function next_posts( $max_page = 0, $display = true ) {
 	$link   = get_next_posts_page_link( $max_page );
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+	echo $output;
 }
 
 /**
@@ -2626,11 +2625,10 @@ function get_previous_posts_page_link() {
 function previous_posts( $display = true ) {
 	$output = esc_url( get_previous_posts_page_link() );
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+	echo $output;
 }
 
 /**
@@ -3254,11 +3252,10 @@ function paginate_comments_links( $args = array() ) {
 	$args       = wp_parse_args( $args, $defaults );
 	$page_links = paginate_links( $args );
 
-	if ( $args['echo'] && 'array' !== $args['type'] ) {
-		echo $page_links;
-	} else {
+	if ( ! $args['echo'] || 'array' === $args['type'] ) {
 		return $page_links;
 	}
+	echo $page_links;
 }
 
 /**

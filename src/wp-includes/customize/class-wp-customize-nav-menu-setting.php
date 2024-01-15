@@ -360,7 +360,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 			return $menu_obj;
 		}
 
-		$menu_obj = (object) array_merge(
+		return (object) array_merge(
 			array(
 				'term_id'          => $this->term_id,
 				'term_taxonomy_id' => $this->term_id,
@@ -372,8 +372,6 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 			),
 			$setting_value
 		);
-
-		return $menu_obj;
 	}
 
 	/**
@@ -389,14 +387,12 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 			return $nav_menu_options;
 		}
 
-		$menu             = $this->value();
-		$nav_menu_options = $this->filter_nav_menu_options_value(
+		$menu = $this->value();
+		return $this->filter_nav_menu_options_value(
 			$nav_menu_options,
 			$this->term_id,
 			false === $menu ? false : $menu['auto_add']
 		);
-
-		return $nav_menu_options;
 	}
 
 	/**

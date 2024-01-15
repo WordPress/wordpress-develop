@@ -1103,9 +1103,8 @@ class WP_User_Query {
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'ASC';
-		} else {
-			return 'DESC';
 		}
+		return 'DESC';
 	}
 
 	/**

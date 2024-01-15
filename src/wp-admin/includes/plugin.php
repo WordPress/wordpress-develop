@@ -371,14 +371,13 @@ function get_mu_plugins() {
 
 	// Files in wp-content/mu-plugins directory.
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
-	if ( $plugins_dir ) {
-		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( str_ends_with( $file, '.php' ) ) {
-				$plugin_files[] = $file;
-			}
-		}
-	} else {
+	if ( ! $plugins_dir ) {
 		return $wp_plugins;
+	}
+	while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
+		if ( str_ends_with( $file, '.php' ) ) {
+			$plugin_files[] = $file;
+		}
 	}
 
 	closedir( $plugins_dir );
@@ -441,14 +440,13 @@ function get_dropins() {
 
 	// Files in wp-content directory.
 	$plugins_dir = @opendir( WP_CONTENT_DIR );
-	if ( $plugins_dir ) {
-		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( isset( $_dropins[ $file ] ) ) {
-				$plugin_files[] = $file;
-			}
-		}
-	} else {
+	if ( ! $plugins_dir ) {
 		return $dropins;
+	}
+	while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
+		if ( isset( $_dropins[ $file ] ) ) {
+			$plugin_files[] = $file;
+		}
 	}
 
 	closedir( $plugins_dir );
@@ -1160,7 +1158,8 @@ function validate_plugin_requirements( $plugin ) {
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
 		);
-	} elseif ( ! $compatible_php ) {
+	}
+	if ( ! $compatible_php ) {
 		return new WP_Error(
 			'plugin_php_incompatible',
 			'<p>' . sprintf(
@@ -1171,7 +1170,8 @@ function validate_plugin_requirements( $plugin ) {
 				$requirements['requires_php']
 			) . $php_update_message . '</p>'
 		);
-	} elseif ( ! $compatible_wp ) {
+	}
+	if ( ! $compatible_wp ) {
 		return new WP_Error(
 			'plugin_wp_incompatible',
 			'<p>' . sprintf(
@@ -1199,11 +1199,7 @@ function is_uninstallable_plugin( $plugin ) {
 	$file = plugin_basename( $plugin );
 
 	$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
-	if ( isset( $uninstallable_plugins[ $file ] ) || file_exists( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' ) ) {
-		return true;
-	}
-
-	return false;
+	return ( isset( $uninstallable_plugins[ $file ] ) || file_exists( WP_PLUGIN_DIR . '/' . dirname( $file ) . '/uninstall.php' ) );
 }
 
 /**
@@ -1938,12 +1934,14 @@ function get_admin_page_parent( $parent_page = '' ) {
 			if ( ! empty( $typenow ) && "$pagenow?post_type=$typenow" === $submenu_array[2] ) {
 				$parent_file = $parent_page;
 				return $parent_page;
-			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
+			}
+			if ( empty( $typenow ) && $pagenow === $submenu_array[2]
 				&& ( empty( $parent_file ) || ! str_contains( $parent_file, '?' ) )
 			) {
 				$parent_file = $parent_page;
 				return $parent_page;
-			} elseif ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
+			}
+			if ( isset( $plugin_page ) && $plugin_page === $submenu_array[2] ) {
 				$parent_file = $parent_page;
 				return $parent_page;
 			}
@@ -1988,7 +1986,8 @@ function get_admin_page_title() {
 				if ( $menu_array[2] === $pagenow ) {
 					$title = $menu_array[3];
 					return $menu_array[3];
-				} elseif ( isset( $plugin_page ) && $plugin_page === $menu_array[2] && $hook === $menu_array[5] ) {
+				}
+				if ( isset( $plugin_page ) && $plugin_page === $menu_array[2] && $hook === $menu_array[5] ) {
 					$title = $menu_array[3];
 					return $menu_array[3];
 				}
@@ -2019,10 +2018,9 @@ function get_admin_page_title() {
 				if ( isset( $submenu_array[3] ) ) {
 					$title = $submenu_array[3];
 					return $submenu_array[3];
-				} else {
-					$title = $submenu_array[0];
-					return $title;
 				}
+				$title = $submenu_array[0];
+				return $title;
 			}
 		}
 		if ( empty( $title ) ) {
@@ -2056,9 +2054,8 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 	$hook = get_plugin_page_hookname( $plugin_page, $parent_page );
 	if ( has_action( $hook ) ) {
 		return $hook;
-	} else {
-		return null;
 	}
+	return null;
 }
 
 /**
@@ -2165,7 +2162,8 @@ function user_can_access_admin_page() {
 		foreach ( $submenu[ $parent ] as $submenu_array ) {
 			if ( isset( $plugin_page ) && $submenu_array[2] === $plugin_page ) {
 				return current_user_can( $submenu_array[1] );
-			} elseif ( $submenu_array[2] === $pagenow ) {
+			}
+			if ( $submenu_array[2] === $pagenow ) {
 				return current_user_can( $submenu_array[1] );
 			}
 		}
@@ -2356,7 +2354,8 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 			'4.9.7'
 		);
 		return;
-	} elseif ( ! doing_action( 'admin_init' ) && ! did_action( 'admin_init' ) ) {
+	}
+	if ( ! doing_action( 'admin_init' ) && ! did_action( 'admin_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(

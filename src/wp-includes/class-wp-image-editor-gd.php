@@ -65,10 +65,13 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		switch ( $mime_type ) {
 			case 'image/jpeg':
 				return ( $image_types & IMG_JPG ) != 0;
+
 			case 'image/png':
 				return ( $image_types & IMG_PNG ) != 0;
+
 			case 'image/gif':
 				return ( $image_types & IMG_GIF ) != 0;
+
 			case 'image/webp':
 				return ( $image_types & IMG_WEBP ) != 0;
 		}
@@ -186,8 +189,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imagedestroy( $this->image );
 			$this->image = $resized;
 			return true;
-
-		} elseif ( is_wp_error( $resized ) ) {
+		}
+		if ( is_wp_error( $resized ) ) {
 			return $resized;
 		}
 
@@ -554,16 +557,18 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			case 'image/png':
 				header( 'Content-Type: image/png' );
 				return imagepng( $this->image );
+
 			case 'image/gif':
 				header( 'Content-Type: image/gif' );
 				return imagegif( $this->image );
+
 			case 'image/webp':
 				if ( function_exists( 'imagewebp' ) ) {
 					header( 'Content-Type: image/webp' );
 					return imagewebp( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to the default if webp isn't supported.
-			default:
+
+			default: // Fall back to the default if webp isn't supported.
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );
 		}

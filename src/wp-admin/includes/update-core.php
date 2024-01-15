@@ -1195,7 +1195,8 @@ function update_core( $from, $to ) {
 				$mysql_version
 			) . $php_update_message
 		);
-	} elseif ( ! $php_compat ) {
+	}
+	if ( ! $php_compat ) {
 		return new WP_Error(
 			'php_not_compatible',
 			sprintf(
@@ -1206,7 +1207,8 @@ function update_core( $from, $to ) {
 				$php_version
 			) . $php_update_message
 		);
-	} elseif ( ! $mysql_compat ) {
+	}
+	if ( ! $mysql_compat ) {
 		return new WP_Error(
 			'mysql_not_compatible',
 			sprintf(

@@ -1015,9 +1015,8 @@ class WP_Theme_JSON {
 	public function get_settings() {
 		if ( ! isset( $this->theme_json['settings'] ) ) {
 			return array();
-		} else {
-			return $this->theme_json['settings'];
 		}
+		return $this->theme_json['settings'];
 	}
 
 	/**

@@ -369,10 +369,9 @@ class WP_Scripts extends WP_Dependencies {
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
 				return true;
-			} else {
-				$this->ext_handles .= "$handle,";
-				$this->ext_version .= "$handle$ver";
 			}
+			$this->ext_handles .= "$handle,";
+			$this->ext_version .= "$handle$ver";
 		}
 
 		$has_conditional_data = $conditional && $this->get_data( $handle, 'data' );
@@ -845,7 +844,8 @@ JS;
 					'6.3.0'
 				);
 				return false;
-			} elseif ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
+			}
+			if ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(

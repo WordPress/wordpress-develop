@@ -1312,7 +1312,8 @@ function is_login() {
 function is_admin() {
 	if ( isset( $GLOBALS['current_screen'] ) ) {
 		return $GLOBALS['current_screen']->in_admin();
-	} elseif ( defined( 'WP_ADMIN' ) ) {
+	}
+	if ( defined( 'WP_ADMIN' ) ) {
 		return WP_ADMIN;
 	}
 
@@ -1336,7 +1337,8 @@ function is_admin() {
 function is_blog_admin() {
 	if ( isset( $GLOBALS['current_screen'] ) ) {
 		return $GLOBALS['current_screen']->in_admin( 'site' );
-	} elseif ( defined( 'WP_BLOG_ADMIN' ) ) {
+	}
+	if ( defined( 'WP_BLOG_ADMIN' ) ) {
 		return WP_BLOG_ADMIN;
 	}
 
@@ -1363,7 +1365,8 @@ function is_blog_admin() {
 function is_network_admin() {
 	if ( isset( $GLOBALS['current_screen'] ) ) {
 		return $GLOBALS['current_screen']->in_admin( 'network' );
-	} elseif ( defined( 'WP_NETWORK_ADMIN' ) ) {
+	}
+	if ( defined( 'WP_NETWORK_ADMIN' ) ) {
 		return WP_NETWORK_ADMIN;
 	}
 
@@ -1387,7 +1390,8 @@ function is_network_admin() {
 function is_user_admin() {
 	if ( isset( $GLOBALS['current_screen'] ) ) {
 		return $GLOBALS['current_screen']->in_admin( 'user' );
-	} elseif ( defined( 'WP_USER_ADMIN' ) ) {
+	}
+	if ( defined( 'WP_USER_ADMIN' ) ) {
 		return WP_USER_ADMIN;
 	}
 

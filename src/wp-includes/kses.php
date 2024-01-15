@@ -1571,9 +1571,8 @@ function wp_kses_hair_parse( $attr ) {
 	if ( 1 === preg_match( $validation, $attr ) ) {
 		preg_match_all( $extraction, $attr, $attrarr );
 		return $attrarr[0];
-	} else {
-		return false;
 	}
+	return false;
 }
 
 /**
@@ -1870,9 +1869,8 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 
 	if ( $allowed ) {
 		return "$scheme:";
-	} else {
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -1958,7 +1956,8 @@ function wp_kses_xml_named_entities( $matches ) {
 
 	if ( in_array( $i, $allowedxmlentitynames, true ) ) {
 		return "&$i;";
-	} elseif ( in_array( $i, $allowedentitynames, true ) ) {
+	}
+	if ( in_array( $i, $allowedentitynames, true ) ) {
 		return html_entity_decode( "&$i;", ENT_HTML5 );
 	}
 
@@ -2705,11 +2704,7 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	$upload_host = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
 	$upload_port = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : '';
 
-	if ( str_starts_with( $url, "http://$upload_host$upload_port/" )
+	return ( str_starts_with( $url, "http://$upload_host$upload_port/" )
 		|| str_starts_with( $url, "https://$upload_host$upload_port/" )
-	) {
-		return true;
-	}
-
-	return false;
+	);
 }

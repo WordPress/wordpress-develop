@@ -838,9 +838,11 @@ class WP_Site_Query {
 					$parsed = "{$primary_meta_query['alias']}.meta_value";
 				}
 				break;
+
 			case 'meta_value_num':
 				$parsed = "{$primary_meta_query['alias']}.meta_value+0";
 				break;
+
 			default:
 				if ( isset( $meta_clauses[ $orderby ] ) ) {
 					$meta_clause = $meta_clauses[ $orderby ];
@@ -866,8 +868,7 @@ class WP_Site_Query {
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'ASC';
-		} else {
-			return 'DESC';
 		}
+		return 'DESC';
 	}
 }

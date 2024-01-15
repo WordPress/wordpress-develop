@@ -120,9 +120,8 @@ class WP_Error {
 
 		if ( isset( $this->errors[ $code ] ) ) {
 			return $this->errors[ $code ];
-		} else {
-			return array();
 		}
+		return array();
 	}
 
 	/**

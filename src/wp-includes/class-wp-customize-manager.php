@@ -6026,11 +6026,9 @@ final class WP_Customize_Manager {
 				return new WP_Error( 'invalid_value', __( 'Invalid value for background size.' ) );
 			}
 		} elseif ( 'background_image' === $setting->id || 'background_image_thumb' === $setting->id ) {
-			$value = empty( $value ) ? '' : sanitize_url( $value );
-		} else {
-			return new WP_Error( 'unrecognized_setting', __( 'Unrecognized background setting.' ) );
+			return empty( $value ) ? '' : sanitize_url( $value );
 		}
-		return $value;
+		return new WP_Error( 'unrecognized_setting', __( 'Unrecognized background setting.' ) );
 	}
 
 	/**

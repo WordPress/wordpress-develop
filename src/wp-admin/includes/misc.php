@@ -320,9 +320,8 @@ function iis7_save_url_rewrite_rules() {
 
 		if ( ! empty( $rule ) ) {
 			return iis7_add_rewrite_rule( $web_config_file, $rule );
-		} else {
-			return iis7_delete_rewrite_rule( $web_config_file );
 		}
+		return iis7_delete_rewrite_rule( $web_config_file );
 	}
 
 	return false;

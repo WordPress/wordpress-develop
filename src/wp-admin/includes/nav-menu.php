@@ -1265,9 +1265,7 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 		 */
 		$walker_class_name = apply_filters( 'wp_edit_nav_menu_walker', 'Walker_Nav_Menu_Edit', $menu_id );
 
-		if ( class_exists( $walker_class_name ) ) {
-			$walker = new $walker_class_name();
-		} else {
+		if ( ! class_exists( $walker_class_name ) ) {
 			return new WP_Error(
 				'menu_walker_not_exist',
 				sprintf(
@@ -1277,6 +1275,7 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 				)
 			);
 		}
+		$walker = new $walker_class_name();
 
 		$some_pending_menu_items = false;
 		$some_invalid_menu_items = false;
@@ -1317,7 +1316,8 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 		$result .= ' </ul> ';
 
 		return $result;
-	} elseif ( is_wp_error( $menu ) ) {
+	}
+	if ( is_wp_error( $menu ) ) {
 		return $menu;
 	}
 }

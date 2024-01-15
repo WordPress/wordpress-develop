@@ -1062,38 +1062,38 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$this->reconstruct_active_formatting_elements();
 			$this->insert_html_element( $this->state->current_token );
 			return true;
-		} else {
-			/*
-			 * > Any other end tag
-			 */
+		}
 
-			/*
-			 * Find the corresponding tag opener in the stack of open elements, if
-			 * it exists before reaching a special element, which provides a kind
-			 * of boundary in the stack. For example, a `</custom-tag>` should not
-			 * close anything beyond its containing `P` or `DIV` element.
-			 */
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
-				if ( $tag_name === $node->node_name ) {
-					break;
-				}
+		/*
+		 * > Any other end tag
+		 */
 
-				if ( self::is_special( $node->node_name ) ) {
-					// This is a parse error, ignore the token.
-					return $this->step();
-				}
+		/*
+		 * Find the corresponding tag opener in the stack of open elements, if
+		 * it exists before reaching a special element, which provides a kind
+		 * of boundary in the stack. For example, a `</custom-tag>` should not
+		 * close anything beyond its containing `P` or `DIV` element.
+		 */
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+			if ( $tag_name === $node->node_name ) {
+				break;
 			}
 
-			$this->generate_implied_end_tags( $tag_name );
-			if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
-				// @todo Record parse error: this error doesn't impact parsing.
+			if ( self::is_special( $node->node_name ) ) {
+				// This is a parse error, ignore the token.
+				return $this->step();
 			}
+		}
 
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-				$this->state->stack_of_open_elements->pop();
-				if ( $node === $item ) {
-					return true;
-				}
+		$this->generate_implied_end_tags( $tag_name );
+		if ( $node !== $this->state->stack_of_open_elements->current_node() ) {
+			// @todo Record parse error: this error doesn't impact parsing.
+		}
+
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+			$this->state->stack_of_open_elements->pop();
+			if ( $node === $item ) {
+				return true;
 			}
 		}
 	}

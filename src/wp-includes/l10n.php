@@ -236,9 +236,8 @@ function before_last_bar( $text ) {
 	$last_bar = strrpos( $text, '|' );
 	if ( false === $last_bar ) {
 		return $text;
-	} else {
-		return substr( $text, 0, $last_bar );
 	}
+	return substr( $text, 0, $last_bar );
 }
 
 /**
@@ -696,9 +695,8 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
 
 	if ( $nooped_plural['context'] ) {
 		return _nx( $nooped_plural['singular'], $nooped_plural['plural'], $count, $nooped_plural['context'], $domain );
-	} else {
-		return _n( $nooped_plural['singular'], $nooped_plural['plural'], $count, $domain );
 	}
+	return _n( $nooped_plural['singular'], $nooped_plural['plural'], $count, $domain );
 }
 
 /**

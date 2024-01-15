@@ -396,10 +396,9 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 	} elseif ( 0 === count( $stack ) ) {
 		// Stack is empty. Just stop.
 		return;
-	} else {
-		$opening_tag = false;
-		$name_offset = 2;
 	}
+	$opening_tag = false;
+	$name_offset = 2;
 
 	// Parse out the tag name.
 	$space = strpos( $text, ' ' );
@@ -2555,9 +2554,8 @@ function convert_invalid_entities( $content ) {
 function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	if ( $force || (int) get_option( 'use_balanceTags' ) === 1 ) {
 		return force_balance_tags( $text );
-	} else {
-		return $text;
 	}
+	return $text;
 }
 
 /**
@@ -6009,14 +6007,13 @@ function wp_staticize_emoji( $text ) {
 		if ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) {
 			// The text doesn't contain anything that might be emoji, so we can return early.
 			return $text;
-		} else {
-			$encoded_text = wp_encode_emoji( $text );
-			if ( $encoded_text === $text ) {
-				return $encoded_text;
-			}
-
-			$text = $encoded_text;
 		}
+		$encoded_text = wp_encode_emoji( $text );
+		if ( $encoded_text === $text ) {
+			return $encoded_text;
+		}
+
+		$text = $encoded_text;
 	}
 
 	$emoji = _wp_emoji_list( 'entities' );

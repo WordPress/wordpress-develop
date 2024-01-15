@@ -1072,11 +1072,10 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 	 */
 	if ( empty( $user_id ) ) {
 		return false;
-	} else {
-		$user = get_userdata( $user_id );
-		if ( ! $user instanceof WP_User ) {
-			return false;
-		}
+	}
+	$user = get_userdata( $user_id );
+	if ( ! $user instanceof WP_User ) {
+		return false;
 	}
 
 	if ( ! is_multisite() ) {
@@ -2120,10 +2119,12 @@ function wp_insert_user( $userdata ) {
 	// Remove any non-printable chars from the login string to see if we have ended up with an empty username.
 	$user_login = trim( $pre_user_login );
 
-	// user_login must be between 0 and 60 characters.
 	if ( empty( $user_login ) ) {
 		return new WP_Error( 'empty_user_login', __( 'Cannot create a user with an empty login name.' ) );
-	} elseif ( mb_strlen( $user_login ) > 60 ) {
+	}
+
+	// user_login must be between 0 and 60 characters.
+	if ( mb_strlen( $user_login ) > 60 ) {
 		return new WP_Error( 'user_login_too_long', __( 'Username may not be longer than 60 characters.' ) );
 	}
 
@@ -2912,7 +2913,8 @@ function get_password_reset_key( $user ) {
 	$password_reset_allowed = wp_is_password_reset_allowed_for_user( $user );
 	if ( ! $password_reset_allowed ) {
 		return new WP_Error( 'no_password_reset', __( 'Password reset is not allowed for this user' ) );
-	} elseif ( is_wp_error( $password_reset_allowed ) ) {
+	}
+	if ( is_wp_error( $password_reset_allowed ) ) {
 		return $password_reset_allowed;
 	}
 
@@ -3016,7 +3018,8 @@ function check_password_reset_key( $key, $login ) {
 
 	if ( $hash_is_correct && $expiration_time && time() < $expiration_time ) {
 		return $user;
-	} elseif ( $hash_is_correct && $expiration_time ) {
+	}
+	if ( $hash_is_correct && $expiration_time ) {
 		// Key has an expiration time that's passed.
 		return new WP_Error( 'expired_key', __( 'Invalid key.' ) );
 	}

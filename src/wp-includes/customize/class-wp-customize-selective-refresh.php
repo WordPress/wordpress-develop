@@ -122,9 +122,8 @@ final class WP_Customize_Selective_Refresh {
 	public function get_partial( $id ) {
 		if ( isset( $this->partials[ $id ] ) ) {
 			return $this->partials[ $id ];
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**

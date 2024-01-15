@@ -162,9 +162,8 @@ function get_pending_comments_num( $post_id ) {
 	if ( $single ) {
 		if ( empty( $pending ) ) {
 			return 0;
-		} else {
-			return absint( $pending[0]['num_comments'] );
 		}
+		return absint( $pending[0]['num_comments'] );
 	}
 
 	$pending_keyed = array();

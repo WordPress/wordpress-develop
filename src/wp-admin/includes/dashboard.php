@@ -1005,56 +1005,54 @@ function wp_dashboard_recent_posts( $args ) {
 
 	$posts = new WP_Query( $query_args );
 
-	if ( $posts->have_posts() ) {
-
-		echo '<div id="' . $args['id'] . '" class="activity-block">';
-
-		echo '<h3>' . $args['title'] . '</h3>';
-
-		echo '<ul>';
-
-		$today    = current_time( 'Y-m-d' );
-		$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
-		$year     = current_time( 'Y' );
-
-		while ( $posts->have_posts() ) {
-			$posts->the_post();
-
-			$time = get_the_time( 'U' );
-
-			if ( gmdate( 'Y-m-d', $time ) === $today ) {
-				$relative = __( 'Today' );
-			} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
-				$relative = __( 'Tomorrow' );
-			} elseif ( gmdate( 'Y', $time ) !== $year ) {
-				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS Y' ), $time );
-			} else {
-				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
-				$relative = date_i18n( __( 'M jS' ), $time );
-			}
-
-			// Use the post edit link for those who can edit, the permalink otherwise.
-			$recent_post_link = current_user_can( 'edit_post', get_the_ID() ) ? get_edit_post_link() : get_permalink();
-
-			$draft_or_post_title = _draft_or_post_title();
-			printf(
-				'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
-				/* translators: 1: Relative date, 2: Time. */
-				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
-				$recent_post_link,
-				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
-				$draft_or_post_title
-			);
-		}
-
-		echo '</ul>';
-		echo '</div>';
-
-	} else {
+	if ( ! $posts->have_posts() ) {
 		return false;
 	}
+
+	echo '<div id="' . $args['id'] . '" class="activity-block">';
+
+	echo '<h3>' . $args['title'] . '</h3>';
+
+	echo '<ul>';
+
+	$today    = current_time( 'Y-m-d' );
+	$tomorrow = current_datetime()->modify( '+1 day' )->format( 'Y-m-d' );
+	$year     = current_time( 'Y' );
+
+	while ( $posts->have_posts() ) {
+		$posts->the_post();
+
+		$time = get_the_time( 'U' );
+
+		if ( gmdate( 'Y-m-d', $time ) === $today ) {
+			$relative = __( 'Today' );
+		} elseif ( gmdate( 'Y-m-d', $time ) === $tomorrow ) {
+			$relative = __( 'Tomorrow' );
+		} elseif ( gmdate( 'Y', $time ) !== $year ) {
+			/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
+			$relative = date_i18n( __( 'M jS Y' ), $time );
+		} else {
+			/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
+			$relative = date_i18n( __( 'M jS' ), $time );
+		}
+
+		// Use the post edit link for those who can edit, the permalink otherwise.
+		$recent_post_link = current_user_can( 'edit_post', get_the_ID() ) ? get_edit_post_link() : get_permalink();
+
+		$draft_or_post_title = _draft_or_post_title();
+		printf(
+			'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
+			/* translators: 1: Relative date, 2: Time. */
+			sprintf( _x( '%1$s, %2$s', 'dashboard' ), $relative, get_the_time() ),
+			$recent_post_link,
+			/* translators: %s: Post title. */
+			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
+			$draft_or_post_title
+		);
+	}
+
+	echo '</ul>';
+	echo '</div>';
 
 	wp_reset_postdata();
 
@@ -1107,31 +1105,32 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		$comments_query['number']  = $total_items * 10;
 	}
 
-	if ( $comments ) {
-		echo '<div id="latest-comments" class="activity-block table-view-list">';
-		echo '<h3>' . __( 'Recent Comments' ) . '</h3>';
-
-		echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
-		foreach ( $comments as $comment ) {
-			_wp_dashboard_recent_comments_row( $comment );
-		}
-		echo '</ul>';
-
-		if ( current_user_can( 'edit_posts' ) ) {
-			echo '<h3 class="screen-reader-text">' .
-				/* translators: Hidden accessibility text. */
-				__( 'View more comments' ) .
-			'</h3>';
-			_get_list_table( 'WP_Comments_List_Table' )->views();
-		}
-
-		wp_comment_reply( -1, false, 'dashboard', false );
-		wp_comment_trashnotice();
-
-		echo '</div>';
-	} else {
+	if ( ! $comments ) {
 		return false;
 	}
+
+	echo '<div id="latest-comments" class="activity-block table-view-list">';
+	echo '<h3>' . __( 'Recent Comments' ) . '</h3>';
+
+	echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
+	foreach ( $comments as $comment ) {
+		_wp_dashboard_recent_comments_row( $comment );
+	}
+	echo '</ul>';
+
+	if ( current_user_can( 'edit_posts' ) ) {
+		echo '<h3 class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'View more comments' ) .
+		'</h3>';
+		_get_list_table( 'WP_Comments_List_Table' )->views();
+	}
+
+	wp_comment_reply( -1, false, 'dashboard', false );
+	wp_comment_trashnotice();
+
+	echo '</div>';
+
 	return true;
 }
 

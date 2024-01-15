@@ -378,9 +378,8 @@ class WP_Object_Cache {
 			$this->cache_hits += 1;
 			if ( is_object( $this->cache[ $group ][ $key ] ) ) {
 				return clone $this->cache[ $group ][ $key ];
-			} else {
-				return $this->cache[ $group ][ $key ];
 			}
+			return $this->cache[ $group ][ $key ];
 		}
 
 		$found               = false;

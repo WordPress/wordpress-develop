@@ -772,12 +772,7 @@ switch ( $action ) {
 		 */
 		$expire  = apply_filters( 'post_password_expires', time() + 10 * DAY_IN_SECONDS );
 		$referer = wp_get_referer();
-
-		if ( $referer ) {
-			$secure = ( 'https' === parse_url( $referer, PHP_URL_SCHEME ) );
-		} else {
-			$secure = false;
-		}
+		$secure  = ( $referer && 'https' === parse_url( $referer, PHP_URL_SCHEME ) );
 
 		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
 

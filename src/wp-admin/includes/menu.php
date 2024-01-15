@@ -324,16 +324,17 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 
 		if ( isset( $menu_order[ $a ] ) && ! isset( $menu_order[ $b ] ) ) {
 			return -1;
-		} elseif ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
+		}
+		if ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			return 1;
-		} elseif ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
+		}
+		if ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			if ( $menu_order[ $a ] === $menu_order[ $b ] ) {
 				return 0;
 			}
 			return ( $menu_order[ $a ] < $menu_order[ $b ] ) ? -1 : 1;
-		} else {
-			return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
 		}
+		return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
 	}
 
 	usort( $menu, 'sort_menu' );

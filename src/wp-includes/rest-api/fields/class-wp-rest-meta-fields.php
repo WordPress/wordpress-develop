@@ -609,15 +609,20 @@ abstract class WP_REST_Meta_Fields {
 		switch ( $type ) {
 			case 'string':
 				return '';
+
 			case 'boolean':
 				return false;
+
 			case 'integer':
 				return 0;
+
 			case 'number':
 				return 0.0;
+
 			case 'array':
 			case 'object':
 				return array();
+
 			default:
 				return null;
 		}

@@ -96,8 +96,7 @@ class WP_Role {
 
 		if ( ! empty( $capabilities[ $cap ] ) ) {
 			return $capabilities[ $cap ];
-		} else {
-			return false;
 		}
+		return false;
 	}
 }

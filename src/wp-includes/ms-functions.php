@@ -74,30 +74,28 @@ function get_active_blog_for_user( $user_id ) {
 	if ( ( ! is_object( $primary ) ) || ( 1 == $primary->archived || 1 == $primary->spam || 1 == $primary->deleted ) ) {
 		$blogs = get_blogs_of_user( $user_id, true ); // If a user's primary blog is shut down, check their other blogs.
 		$ret   = false;
-		if ( is_array( $blogs ) && count( $blogs ) > 0 ) {
-			foreach ( (array) $blogs as $blog_id => $blog ) {
-				if ( get_current_network_id() != $blog->site_id ) {
-					continue;
-				}
-				$details = get_site( $blog_id );
-				if ( is_object( $details ) && 0 == $details->archived && 0 == $details->spam && 0 == $details->deleted ) {
-					$ret = $details;
-					if ( get_user_meta( $user_id, 'primary_blog', true ) != $blog_id ) {
-						update_user_meta( $user_id, 'primary_blog', $blog_id );
-					}
-					if ( ! get_user_meta( $user_id, 'source_domain', true ) ) {
-						update_user_meta( $user_id, 'source_domain', $details->domain );
-					}
-					break;
-				}
-			}
-		} else {
+		if ( ! is_array( $blogs ) || count( $blogs ) <= 0 ) {
 			return;
 		}
+		foreach ( (array) $blogs as $blog_id => $blog ) {
+			if ( get_current_network_id() != $blog->site_id ) {
+				continue;
+			}
+			$details = get_site( $blog_id );
+			if ( is_object( $details ) && 0 == $details->archived && 0 == $details->spam && 0 == $details->deleted ) {
+				$ret = $details;
+				if ( get_user_meta( $user_id, 'primary_blog', true ) != $blog_id ) {
+					update_user_meta( $user_id, 'primary_blog', $blog_id );
+				}
+				if ( ! get_user_meta( $user_id, 'source_domain', true ) ) {
+					update_user_meta( $user_id, 'source_domain', $details->domain );
+				}
+				break;
+			}
+		}
 		return $ret;
-	} else {
-		return $primary;
 	}
+	return $primary;
 }
 
 /**
@@ -343,7 +341,8 @@ function get_blog_id_from_url( $domain, $path = '/' ) {
 
 	if ( -1 == $id ) { // Blog does not exist.
 		return 0;
-	} elseif ( $id ) {
+	}
+	if ( $id ) {
 		return (int) $id;
 	}
 
@@ -1171,9 +1170,8 @@ function wpmu_activate_signup( $key ) {
 	if ( $signup->active ) {
 		if ( empty( $signup->domain ) ) {
 			return new WP_Error( 'already_active', __( 'The user is already active.' ), $signup );
-		} else {
-			return new WP_Error( 'already_active', __( 'The site is already active.' ), $signup );
 		}
+		return new WP_Error( 'already_active', __( 'The site is already active.' ), $signup );
 	}
 
 	$meta     = maybe_unserialize( $signup->meta );

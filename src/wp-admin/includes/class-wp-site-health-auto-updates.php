@@ -378,12 +378,11 @@ class WP_Site_Health_Auto_Updates {
 				'description' => __( 'Some files are not writable by WordPress:' ) . ' <ul><li>' . implode( '</li><li>', $unwritable_files ) . '</li></ul>',
 				'severity'    => 'fail',
 			);
-		} else {
-			return array(
-				'description' => __( 'All of your WordPress files are writable.' ),
-				'severity'    => 'pass',
-			);
 		}
+		return array(
+			'description' => __( 'All of your WordPress files are writable.' ),
+			'severity'    => 'pass',
+		);
 	}
 
 	/**

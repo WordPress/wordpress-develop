@@ -222,14 +222,13 @@ function image_downsize( $id, $size = 'medium' ) {
 	 * Otherwise, a non-image type could be returned.
 	 */
 	if ( ! $is_image ) {
-		if ( ! empty( $meta['sizes']['full'] ) ) {
-			$img_url          = str_replace( $img_url_basename, $meta['sizes']['full']['file'], $img_url );
-			$img_url_basename = $meta['sizes']['full']['file'];
-			$width            = $meta['sizes']['full']['width'];
-			$height           = $meta['sizes']['full']['height'];
-		} else {
+		if ( empty( $meta['sizes']['full'] ) ) {
 			return false;
 		}
+		$img_url          = str_replace( $img_url_basename, $meta['sizes']['full']['file'], $img_url );
+		$img_url_basename = $meta['sizes']['full']['file'];
+		$width            = $meta['sizes']['full']['width'];
+		$height           = $meta['sizes']['full']['height'];
 	}
 
 	// Try for a new style intermediate size.
@@ -576,10 +575,8 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
 		if ( $orig_h < $dest_h ) {
 			return false;
 		}
-	} else {
-		if ( $orig_w < $dest_w && $orig_h < $dest_h ) {
-			return false;
-		}
+	} elseif ( $orig_w < $dest_w && $orig_h < $dest_h ) {
+		return false;
 	}
 
 	if ( $crop ) {
@@ -1228,7 +1225,8 @@ function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
 			absint( $image_meta['width'] ),
 			absint( $image_meta['height'] ),
 		);
-	} elseif ( ! empty( $image_meta['sizes'][ $size_name ] ) ) {
+	}
+	if ( ! empty( $image_meta['sizes'][ $size_name ] ) ) {
 		return array(
 			absint( $image_meta['sizes'][ $size_name ]['width'] ),
 			absint( $image_meta['sizes'][ $size_name ]['height'] ),
@@ -3937,13 +3935,9 @@ function get_taxonomies_for_attachments( $output = 'names' ) {
  *              false otherwise.
  */
 function is_gd_image( $image ) {
-	if ( $image instanceof GdImage
+	return ( $image instanceof GdImage
 		|| is_resource( $image ) && 'gd' === get_resource_type( $image )
-	) {
-		return true;
-	}
-
-	return false;
+	);
 }
 
 /**

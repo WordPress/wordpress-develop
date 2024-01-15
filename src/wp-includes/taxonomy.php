@@ -973,7 +973,8 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
 	if ( is_wp_error( $_term ) ) {
 		return $_term;
-	} elseif ( ! $_term ) {
+	}
+	if ( ! $_term ) {
 		return null;
 	}
 
@@ -1026,7 +1027,8 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 
 	if ( ARRAY_A === $output ) {
 		return $_term->to_array();
-	} elseif ( ARRAY_N === $output ) {
+	}
+	if ( ARRAY_N === $output ) {
 		return array_values( $_term->to_array() );
 	}
 
@@ -1108,13 +1110,16 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
 		case 'slug':
 			$args['slug'] = $value;
 			break;
+
 		case 'name':
 			$args['name'] = $value;
 			break;
+
 		case 'term_taxonomy_id':
 			$args['term_taxonomy_id'] = $value;
 			unset( $args['taxonomy'] );
 			break;
+
 		default:
 			return false;
 	}
@@ -2500,31 +2505,30 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	if ( $name_match ) {
 		$slug_match = get_term_by( 'slug', $slug, $taxonomy );
 		if ( ! $slug_provided || $name_match->slug === $slug || $slug_match ) {
-			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
-				$siblings = get_terms(
-					array(
-						'taxonomy'               => $taxonomy,
-						'get'                    => 'all',
-						'parent'                 => $parent,
-						'update_term_meta_cache' => false,
-					)
-				);
-
-				$existing_term = null;
-				$sibling_names = wp_list_pluck( $siblings, 'name' );
-				$sibling_slugs = wp_list_pluck( $siblings, 'slug' );
-
-				if ( ( ! $slug_provided || $name_match->slug === $slug ) && in_array( $name, $sibling_names, true ) ) {
-					$existing_term = $name_match;
-				} elseif ( $slug_match && in_array( $slug, $sibling_slugs, true ) ) {
-					$existing_term = $slug_match;
-				}
-
-				if ( $existing_term ) {
-					return new WP_Error( 'term_exists', __( 'A term with the name provided already exists with this parent.' ), $existing_term->term_id );
-				}
-			} else {
+			if ( ! is_taxonomy_hierarchical( $taxonomy ) ) {
 				return new WP_Error( 'term_exists', __( 'A term with the name provided already exists in this taxonomy.' ), $name_match->term_id );
+			}
+			$siblings = get_terms(
+				array(
+					'taxonomy'               => $taxonomy,
+					'get'                    => 'all',
+					'parent'                 => $parent,
+					'update_term_meta_cache' => false,
+				)
+			);
+
+			$existing_term = null;
+			$sibling_names = wp_list_pluck( $siblings, 'name' );
+			$sibling_slugs = wp_list_pluck( $siblings, 'slug' );
+
+			if ( ( ! $slug_provided || $name_match->slug === $slug ) && in_array( $name, $sibling_names, true ) ) {
+				$existing_term = $name_match;
+			} elseif ( $slug_match && in_array( $slug, $sibling_slugs, true ) ) {
+				$existing_term = $slug_match;
+			}
+
+			if ( $existing_term ) {
+				return new WP_Error( 'term_exists', __( 'A term with the name provided already exists with this parent.' ), $existing_term->term_id );
 			}
 		}
 	}
@@ -3282,12 +3286,11 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 		 * If an empty slug was passed or the parent changed, reset the slug to something unique.
 		 * Otherwise, bail.
 		 */
-		if ( $empty_slug || ( $parent !== (int) $term['parent'] ) ) {
-			$slug = wp_unique_term_slug( $slug, (object) $args );
-		} else {
+		if ( ! $empty_slug && $parent === (int) $term['parent'] ) {
 			/* translators: %s: Taxonomy term slug. */
 			return new WP_Error( 'duplicate_term_slug', sprintf( __( 'The slug &#8220;%s&#8221; is already in use by another term.' ), $slug ) );
 		}
+		$slug = wp_unique_term_slug( $slug, (object) $args );
 	}
 
 	$tt_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_taxonomy_id FROM $wpdb->term_taxonomy AS tt INNER JOIN $wpdb->terms AS t ON tt.term_id = t.term_id WHERE tt.taxonomy = %s AND t.term_id = %d", $taxonomy, $term_id ) );

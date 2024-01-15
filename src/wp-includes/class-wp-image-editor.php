@@ -299,9 +299,8 @@ abstract class WP_Image_Editor {
 		if ( ( $quality >= 1 ) && ( $quality <= 100 ) ) {
 			$this->quality = $quality;
 			return true;
-		} else {
-			return new WP_Error( 'invalid_image_quality', __( 'Attempted to set image quality outside of the range [1,100].' ) );
 		}
+		return new WP_Error( 'invalid_image_quality', __( 'Attempted to set image quality outside of the range [1,100].' ) );
 	}
 
 	/**
@@ -527,6 +526,7 @@ abstract class WP_Image_Editor {
 				// Flip horizontally.
 				$result = $this->flip( false, true );
 				break;
+
 			case 3:
 				/*
 				 * Rotate 180 degrees or flip horizontally and vertically.
@@ -534,10 +534,12 @@ abstract class WP_Image_Editor {
 				 */
 				$result = $this->flip( true, true );
 				break;
+
 			case 4:
 				// Flip vertically.
 				$result = $this->flip( true, false );
 				break;
+
 			case 5:
 				// Rotate 90 degrees counter-clockwise and flip vertically.
 				$result = $this->rotate( 90 );
@@ -545,12 +547,13 @@ abstract class WP_Image_Editor {
 				if ( ! is_wp_error( $result ) ) {
 					$result = $this->flip( true, false );
 				}
-
 				break;
+
 			case 6:
 				// Rotate 90 degrees clockwise (270 counter-clockwise).
 				$result = $this->rotate( 270 );
 				break;
+
 			case 7:
 				// Rotate 90 degrees counter-clockwise and flip horizontally.
 				$result = $this->rotate( 90 );
@@ -558,8 +561,8 @@ abstract class WP_Image_Editor {
 				if ( ! is_wp_error( $result ) ) {
 					$result = $this->flip( false, true );
 				}
-
 				break;
+
 			case 8:
 				// Rotate 90 degrees counter-clockwise.
 				$result = $this->rotate( 90 );

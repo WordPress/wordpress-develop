@@ -139,20 +139,20 @@ function wp_dropdown_cats( $current_cat = 0, $current_parent = 0, $category_pare
 	if (!$categories )
 		$categories = get_categories( array('hide_empty' => 0) );
 
-	if ( $categories ) {
-		foreach ( $categories as $category ) {
-			if ( $current_cat != $category->term_id && $category_parent == $category->parent) {
-				$pad = str_repeat( '&#8211; ', $level );
-				$category->name = esc_html( $category->name );
-				echo "\n\t<option value='$category->term_id'";
-				if ( $current_parent == $category->term_id )
-					echo " selected='selected'";
-				echo ">$pad$category->name</option>";
-				wp_dropdown_cats( $current_cat, $current_parent, $category->term_id, $level +1, $categories );
-			}
-		}
-	} else {
+	if ( ! $categories ) {
 		return false;
+	}
+
+	foreach ( $categories as $category ) {
+		if ( $current_cat != $category->term_id && $category_parent == $category->parent) {
+			$pad = str_repeat( '&#8211; ', $level );
+			$category->name = esc_html( $category->name );
+			echo "\n\t<option value='$category->term_id'";
+			if ( $current_parent == $category->term_id )
+				echo " selected='selected'";
+			echo ">$pad$category->name</option>";
+			wp_dropdown_cats( $current_cat, $current_parent, $category->term_id, $level +1, $categories );
+		}
 	}
 }
 

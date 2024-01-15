@@ -576,11 +576,10 @@ function wp_list_authors( $args = '' ) {
 
 	$return = rtrim( $return, ', ' );
 
-	if ( $parsed_args['echo'] ) {
-		echo $return;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
+	echo $return;
 }
 
 /**

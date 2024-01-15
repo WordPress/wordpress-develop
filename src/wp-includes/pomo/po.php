@@ -350,12 +350,10 @@ if ( ! class_exists( 'PO', false ) ) :
 							break;
 						} elseif ( ! $context ) { // We haven't read a line and EOF came.
 							return null;
-						} else {
-							return false;
 						}
-					} else {
 						return false;
 					}
+					return false;
 				}
 				if ( "\n" === $line ) {
 					continue;
@@ -422,18 +420,23 @@ if ( ! class_exists( 'PO', false ) ) :
 						case 'msgid':
 							$entry->singular .= $unpoified;
 							break;
+
 						case 'msgctxt':
 							$entry->context .= $unpoified;
 							break;
+
 						case 'msgid_plural':
 							$entry->plural .= $unpoified;
 							break;
+
 						case 'msgstr':
 							$entry->translations[0] .= $unpoified;
 							break;
+
 						case 'msgstr_plural':
 							$entry->translations[ $msgstr_index ] .= $unpoified;
 							break;
+
 						default:
 							return false;
 					}

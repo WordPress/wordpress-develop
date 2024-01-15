@@ -2532,9 +2532,11 @@ class WP_Site_Health {
 			case 'recommended':
 				$result['label'] = __( 'Page cache is not detected but the server response time is OK' );
 				break;
+
 			case 'good':
 				$result['label'] = __( 'Page cache is detected and the server response time is good' );
 				break;
+
 			default:
 				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
 					$result['label'] = __( 'Page cache is not detected and the server response time is slow' );
@@ -3087,12 +3089,14 @@ class WP_Site_Health {
 				'status'  => 'recommended',
 				'message' => __( 'Auto-updates for plugins and themes appear to be disabled. This will prevent your site from receiving new versions automatically when available.' ),
 			);
-		} elseif ( ! $test_plugins_enabled && $plugin_filter_present ) {
+		}
+		if ( ! $test_plugins_enabled && $plugin_filter_present ) {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => __( 'Auto-updates for plugins appear to be disabled. This will prevent your site from receiving new versions automatically when available.' ),
 			);
-		} elseif ( ! $test_themes_enabled && $theme_filter_present ) {
+		}
+		if ( ! $test_themes_enabled && $theme_filter_present ) {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => __( 'Auto-updates for themes appear to be disabled. This will prevent your site from receiving new versions automatically when available.' ),

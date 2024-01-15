@@ -206,9 +206,8 @@ function get_comment_author_email_link( $link_text = '', $before = '', $after = 
 		) . $after;
 
 		return $comment_author_email_link;
-	} else {
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -482,11 +481,10 @@ function comment_class( $css_class = '', $comment = null, $post = null, $display
 	// Separates classes with a single space, collates classes for comment DIV.
 	$css_class = 'class="' . implode( ' ', get_comment_class( $css_class, $comment, $post ) ) . '"';
 
-	if ( $display ) {
-		echo $css_class;
-	} else {
+	if ( ! $display ) {
 		return $css_class;
 	}
+	echo $css_class;
 }
 
 /**
@@ -1249,11 +1247,10 @@ function trackback_url( $deprecated_echo = true ) {
 		);
 	}
 
-	if ( $deprecated_echo ) {
-		echo get_trackback_url();
-	} else {
+	if ( ! $deprecated_echo ) {
 		return get_trackback_url();
 	}
+	echo get_trackback_url();
 }
 
 /**
@@ -2392,11 +2389,10 @@ function wp_list_comments( $args = array(), $comments = null ) {
 
 	$in_comment_loop = false;
 
-	if ( $parsed_args['echo'] ) {
-		echo $output;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $output;
 	}
+	echo $output;
 }
 
 /**

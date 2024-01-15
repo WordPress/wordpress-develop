@@ -362,11 +362,10 @@ function get_search_form( $args = array() ) {
 		$result = $form;
 	}
 
-	if ( $args['echo'] ) {
-		echo $result;
-	} else {
+	if ( ! $args['echo'] ) {
 		return $result;
 	}
+	echo $result;
 }
 
 /**
@@ -388,7 +387,7 @@ function wp_loginout( $redirect = '', $display = true ) {
 		$link = '<a href="' . esc_url( wp_logout_url( $redirect ) ) . '">' . __( 'Log out' ) . '</a>';
 	}
 
-	if ( $display ) {
+	if ( ! $display ) {
 		/**
 		 * Filters the HTML output for the Log In/Log Out link.
 		 *
@@ -396,11 +395,10 @@ function wp_loginout( $redirect = '', $display = true ) {
 		 *
 		 * @param string $link The HTML link content.
 		 */
-		echo apply_filters( 'loginout', $link );
-	} else {
-		/** This filter is documented in wp-includes/general-template.php */
 		return apply_filters( 'loginout', $link );
 	}
+	/** This filter is documented in wp-includes/general-template.php */
+	echo apply_filters( 'loginout', $link );
 }
 
 /**
@@ -629,11 +627,10 @@ function wp_login_form( $args = array() ) {
 		$login_form_bottom .
 		'</form>';
 
-	if ( $args['echo'] ) {
-		echo $form;
-	} else {
+	if ( ! $args['echo'] ) {
 		return $form;
 	}
+	echo $form;
 }
 
 /**
@@ -712,11 +709,10 @@ function wp_register( $before = '<li>', $after = '</li>', $display = true ) {
 	 */
 	$link = apply_filters( 'register', $link );
 
-	if ( $display ) {
-		echo $link;
-	} else {
+	if ( ! $display ) {
 		return $link;
 	}
+	echo $link;
 }
 
 /**
@@ -1444,11 +1440,10 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	$title = apply_filters( 'wp_title', $title, $sep, $seplocation );
 
 	// Send it out.
-	if ( $display ) {
-		echo $title;
-	} else {
+	if ( ! $display ) {
 		return $title;
 	}
+	echo $title;
 }
 
 /**
@@ -1483,11 +1478,10 @@ function single_post_title( $prefix = '', $display = true ) {
 	 * @param WP_Post $_post       The current post.
 	 */
 	$title = apply_filters( 'single_post_title', $_post->post_title, $_post );
-	if ( $display ) {
-		echo $prefix . $title;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $title;
 	}
+	echo $prefix . $title;
 }
 
 /**
@@ -1524,11 +1518,10 @@ function post_type_archive_title( $prefix = '', $display = true ) {
 	 */
 	$title = apply_filters( 'post_type_archive_title', $post_type_obj->labels->name, $post_type );
 
-	if ( $display ) {
-		echo $prefix . $title;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $title;
 	}
+	echo $prefix . $title;
 }
 
 /**
@@ -1620,11 +1613,10 @@ function single_term_title( $prefix = '', $display = true ) {
 		return;
 	}
 
-	if ( $display ) {
-		echo $prefix . $term_name;
-	} else {
+	if ( ! $display ) {
 		return $prefix . $term_name;
 	}
+	echo $prefix . $term_name;
 }
 
 /**
@@ -2192,11 +2184,10 @@ function wp_get_archives( $args = '' ) {
 		}
 	}
 
-	if ( $parsed_args['echo'] ) {
-		echo $output;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $output;
 	}
+	echo $output;
 }
 
 /**
@@ -2547,11 +2538,10 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	 */
 	$the_date = apply_filters( 'the_date', $the_date, $format, $before, $after );
 
-	if ( $display ) {
-		echo $the_date;
-	} else {
+	if ( ! $display ) {
 		return $the_date;
 	}
+	echo $the_date;
 }
 
 /**
@@ -2615,11 +2605,10 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
-	if ( $display ) {
-		echo $the_modified_date;
-	} else {
+	if ( ! $display ) {
 		return $the_modified_date;
 	}
+	echo $the_modified_date;
 }
 
 /**
@@ -4302,7 +4291,7 @@ function get_search_query( $escaped = true ) {
 	$query = apply_filters( 'get_search_query', get_query_var( 's' ) );
 
 	if ( $escaped ) {
-		$query = esc_attr( $query );
+		return esc_attr( $query );
 	}
 	return $query;
 }
@@ -4986,13 +4975,16 @@ function get_the_generator( $type = '' ) {
 			case 'commentsrss2_head':
 				$type = 'rss2';
 				break;
+
 			case 'rss_head':
 			case 'opml_head':
 				$type = 'comment';
 				break;
+
 			case 'rdf_header':
 				$type = 'rdf';
 				break;
+
 			case 'atom_head':
 			case 'comments_atom_head':
 			case 'app_head':

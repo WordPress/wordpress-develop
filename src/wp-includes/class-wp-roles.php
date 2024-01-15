@@ -248,9 +248,8 @@ class WP_Roles {
 	public function get_role( $role ) {
 		if ( isset( $this->role_objects[ $role ] ) ) {
 			return $this->role_objects[ $role ];
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**

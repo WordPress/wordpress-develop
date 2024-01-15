@@ -356,7 +356,8 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 			do_action( 'ms_network_not_found', $domain, $path );
 
 			return false;
-		} elseif ( $path === $current_site->path ) {
+		}
+		if ( $path === $current_site->path ) {
 			$current_blog = get_site_by_path( $domain, $path );
 		} else {
 			// Search the network path + one more path segment (on top of the network path).

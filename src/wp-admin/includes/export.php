@@ -217,10 +217,9 @@ function export_wp( $args = array() ) {
 		if ( is_multisite() ) {
 			// Multisite: the base URL.
 			return network_home_url();
-		} else {
-			// WordPress (single site): the site URL.
-			return get_bloginfo_rss( 'url' );
 		}
+		// WordPress (single site): the site URL.
+		return get_bloginfo_rss( 'url' );
 	}
 
 	/**

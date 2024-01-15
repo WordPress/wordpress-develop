@@ -636,9 +636,8 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	if ( null !== $check ) {
 		if ( $single && is_array( $check ) ) {
 			return $check[0];
-		} else {
-			return $check;
 		}
+		return $check;
 	}
 
 	$meta_cache = wp_cache_get( $object_id, $meta_type . '_meta' );
@@ -659,9 +658,8 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	if ( isset( $meta_cache[ $meta_key ] ) ) {
 		if ( $single ) {
 			return maybe_unserialize( $meta_cache[ $meta_key ][0] );
-		} else {
-			return array_map( 'maybe_unserialize', $meta_cache[ $meta_key ] );
 		}
+		return array_map( 'maybe_unserialize', $meta_cache[ $meta_key ] );
 	}
 
 	return null;
@@ -1469,7 +1467,8 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object type supports revisions.' ), '6.4.0' );
 
 			return false;
-		} elseif ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
+		}
+		if ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
 			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object subtype supports revisions.' ), '6.4.0' );
 
 			return false;

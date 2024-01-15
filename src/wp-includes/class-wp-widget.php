@@ -419,12 +419,11 @@ class WP_Widget {
 		}
 
 		if ( isset( $_POST['delete_widget'] ) && $_POST['delete_widget'] ) {
-			// Delete the settings for this instance of the widget.
-			if ( isset( $_POST['the-widget-id'] ) ) {
-				$del_id = $_POST['the-widget-id'];
-			} else {
+			if ( ! isset( $_POST['the-widget-id'] ) ) {
 				return;
 			}
+			// Delete the settings for this instance of the widget.
+			$del_id = $_POST['the-widget-id'];
 
 			if ( isset( $wp_registered_widgets[ $del_id ]['params'][0]['number'] ) ) {
 				$number = $wp_registered_widgets[ $del_id ]['params'][0]['number'];

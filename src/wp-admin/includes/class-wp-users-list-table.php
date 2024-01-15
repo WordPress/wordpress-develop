@@ -67,9 +67,8 @@ class WP_Users_List_Table extends WP_List_Table {
 	public function ajax_user_can() {
 		if ( $this->is_site_users ) {
 			return current_user_can( 'manage_sites' );
-		} else {
-			return current_user_can( 'list_users' );
 		}
+		return current_user_can( 'list_users' );
 	}
 
 	/**

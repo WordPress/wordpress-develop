@@ -85,7 +85,8 @@ function get_file_description( $file ) {
 
 	if ( isset( $wp_file_descriptions[ basename( $file ) ] ) && '.' === $dirname ) {
 		return $wp_file_descriptions[ basename( $file ) ];
-	} elseif ( file_exists( $file_path ) && is_file( $file_path ) ) {
+	}
+	if ( file_exists( $file_path ) && is_file( $file_path ) ) {
 		$template_data = implode( '', file( $file_path ) );
 
 		if ( preg_match( '|Template Name:(.*)$|mi', $template_data, $name ) ) {
@@ -463,11 +464,13 @@ function wp_edit_theme_plugin_file( $args ) {
 				case 'php':
 					$allowed_files = array_merge( $allowed_files, $theme->get_files( 'php', -1 ) );
 					break;
+
 				case 'css':
 					$style_files                = $theme->get_files( 'css', -1 );
 					$allowed_files['style.css'] = $style_files['style.css'];
 					$allowed_files              = array_merge( $allowed_files, $style_files );
 					break;
+
 				default:
 					$allowed_files = array_merge( $allowed_files, $theme->get_files( $type, -1 ) );
 					break;
@@ -1626,10 +1629,9 @@ function unzip_file( $file, $to ) {
 		$result = _unzip_file_ziparchive( $file, $to, $needed_dirs );
 		if ( true === $result ) {
 			return $result;
-		} elseif ( is_wp_error( $result ) ) {
-			if ( 'incompatible_archive' !== $result->get_error_code() ) {
-				return $result;
-			}
+		}
+		if ( is_wp_error( $result ) && 'incompatible_archive' !== $result->get_error_code() ) {
+			return $result;
 		}
 	}
 	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
@@ -2078,7 +2080,8 @@ function move_dir( $from, $to, $overwrite = false ) {
 	if ( $wp_filesystem->exists( $to ) ) {
 		if ( ! $overwrite ) {
 			return new WP_Error( 'destination_already_exists_move_dir', __( 'The destination folder already exists.' ), $to );
-		} elseif ( ! $wp_filesystem->delete( $to, true ) ) {
+		}
+		if ( ! $wp_filesystem->delete( $to, true ) ) {
 			// Can't overwrite if the destination couldn't be deleted.
 			return new WP_Error( 'destination_not_deleted_move_dir', __( 'The destination directory already exists and could not be removed.' ) );
 		}

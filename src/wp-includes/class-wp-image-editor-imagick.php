@@ -198,9 +198,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		$quality_result = parent::set_quality( $quality );
 		if ( is_wp_error( $quality_result ) ) {
 			return $quality_result;
-		} else {
-			$quality = $this->get_quality();
 		}
+
+		$quality = $this->get_quality();
 
 		try {
 			switch ( $this->mime_type ) {
@@ -721,9 +721,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	public function maybe_exif_rotate() {
 		if ( is_callable( array( $this->image, 'setImageOrientation' ) ) && defined( 'Imagick::ORIENTATION_TOPLEFT' ) ) {
 			return parent::maybe_exif_rotate();
-		} else {
-			return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
 		}
+		return new WP_Error( 'write_exif_error', __( 'The image cannot be rotated because the embedded meta data cannot be updated.' ) );
 	}
 
 	/**
@@ -867,9 +866,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					),
 					$filename
 				);
-			} else {
-				return true;
 			}
+			return true;
 		} else {
 			$dirname = dirname( $filename );
 

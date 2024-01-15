@@ -242,9 +242,8 @@ function upload_is_user_over_quota( $display_message = true ) {
 			);
 		}
 		return true;
-	} else {
-		return false;
 	}
+	return false;
 }
 
 /**

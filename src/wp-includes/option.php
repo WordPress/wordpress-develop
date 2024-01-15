@@ -214,12 +214,11 @@ function get_option( $option, $default_value = false ) {
 		$row      = $wpdb->get_row( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$wpdb->suppress_errors( $suppress );
 
-		if ( is_object( $row ) ) {
-			$value = $row->option_value;
-		} else {
+		if ( ! is_object( $row ) ) {
 			/** This filter is documented in wp-includes/option.php */
 			return apply_filters( "default_option_{$option}", $default_value, $option, $passed_default );
 		}
+		$value = $row->option_value;
 	}
 
 	// If home is not set, use siteurl.

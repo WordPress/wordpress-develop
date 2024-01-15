@@ -264,21 +264,25 @@ class WP_Upgrader {
 						return new WP_Error( 'fs_no_root_dir', $this->strings['fs_no_root_dir'] );
 					}
 					break;
+
 				case WP_CONTENT_DIR:
 					if ( ! $wp_filesystem->wp_content_dir() ) {
 						return new WP_Error( 'fs_no_content_dir', $this->strings['fs_no_content_dir'] );
 					}
 					break;
+
 				case WP_PLUGIN_DIR:
 					if ( ! $wp_filesystem->wp_plugins_dir() ) {
 						return new WP_Error( 'fs_no_plugins_dir', $this->strings['fs_no_plugins_dir'] );
 					}
 					break;
+
 				case get_theme_root():
 					if ( ! $wp_filesystem->wp_themes_dir() ) {
 						return new WP_Error( 'fs_no_themes_dir', $this->strings['fs_no_themes_dir'] );
 					}
 					break;
+
 				default:
 					if ( ! $wp_filesystem->find_folder( $dir ) ) {
 						return new WP_Error( 'fs_no_folder', sprintf( $this->strings['fs_no_folder'], esc_html( basename( $dir ) ) ) );
@@ -556,20 +560,22 @@ class WP_Upgrader {
 		$source_files       = array_keys( $wp_filesystem->dirlist( $remote_source ) );
 		$remote_destination = $wp_filesystem->find_folder( $local_destination );
 
+		if ( 0 === count( $source_files ) ) {
+			// There are no files?
+			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
+		}
+
 		// Locate which directory to copy to the new folder. This is based on the actual folder holding the files.
 		if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
 			// Only one folder? Then we want its contents.
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
-		} elseif ( 0 === count( $source_files ) ) {
-			// There are no files?
-			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
-		} else {
-			/*
-			 * It's only a single file, the upgrader will use the folder name of this file as the destination folder.
-			 * Folder name is based on zip filename.
-			 */
-			$source = trailingslashit( $args['source'] );
 		}
+
+		/*
+		 * It's only a single file, the upgrader will use the folder name of this file as the destination folder.
+		 * Folder name is based on zip filename.
+		 */
+		$source = trailingslashit( $args['source'] );
 
 		/**
 		 * Filters the source file location for the upgrade package.

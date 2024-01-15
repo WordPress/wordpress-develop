@@ -1050,18 +1050,22 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 		case 'image/jpeg':
 			$image = imagecreatefromjpeg( $filepath );
 			break;
+
 		case 'image/png':
 			$image = imagecreatefrompng( $filepath );
 			break;
+
 		case 'image/gif':
 			$image = imagecreatefromgif( $filepath );
 			break;
+
 		case 'image/webp':
 			$image = false;
 			if ( function_exists( 'imagecreatefromwebp' ) ) {
 				$image = imagecreatefromwebp( $filepath );
 			}
 			break;
+
 		default:
 			$image = false;
 			break;

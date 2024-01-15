@@ -289,10 +289,8 @@ class WP_Customize_Setting {
 	 * @return bool If preview() has been called.
 	 */
 	public function is_current_blog_previewed() {
-		if ( ! isset( $this->_previewed_blog_id ) ) {
-			return false;
-		}
-		return ( get_current_blog_id() === $this->_previewed_blog_id );
+		return ( isset( $this->_previewed_blog_id ) &&
+			get_current_blog_id() === $this->_previewed_blog_id );
 	}
 
 	/**
@@ -773,12 +771,11 @@ class WP_Customize_Setting {
 
 			// Ensure that the post value is used if the setting is previewed, since preview filters aren't applying on cached $root_value.
 			if ( $this->is_previewed ) {
-				$value = $this->post_value( $value );
+				return $this->post_value( $value );
 			}
-		} else {
-			$value = $this->get_root_value( $this->default );
+			return $value;
 		}
-		return $value;
+		return $this->get_root_value( $this->default );
 	}
 
 	/**

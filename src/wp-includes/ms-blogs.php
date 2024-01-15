@@ -143,12 +143,11 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			} else {
 				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s AND path = %s", $fields['domain'], $fields['path'] ) );
 			}
-			if ( $blog ) {
-				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
-				$blog_id = $blog->blog_id;
-			} else {
+			if ( ! $blog ) {
 				return false;
 			}
+			wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
+			$blog_id = $blog->blog_id;
 		} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
 			$key  = md5( $fields['domain'] );
 			$blog = wp_cache_get( $key, 'blog-lookup' );
@@ -161,12 +160,11 @@ function get_blog_details( $fields = null, $get_all = true ) {
 			} else {
 				$blog = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->blogs WHERE domain = %s", $fields['domain'] ) );
 			}
-			if ( $blog ) {
-				wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
-				$blog_id = $blog->blog_id;
-			} else {
+			if ( ! $blog ) {
 				return false;
 			}
+			wp_cache_set( $blog->blog_id . 'short', $blog, 'blog-details' );
+			$blog_id = $blog->blog_id;
 		} else {
 			return false;
 		}
@@ -186,17 +184,15 @@ function get_blog_details( $fields = null, $get_all = true ) {
 	$details = wp_cache_get( $blog_id . $all, 'blog-details' );
 
 	if ( $details ) {
-		if ( ! is_object( $details ) ) {
-			if ( -1 == $details ) {
-				return false;
-			} else {
-				// Clear old pre-serialized objects. Cache clients do better with that.
-				wp_cache_delete( $blog_id . $all, 'blog-details' );
-				unset( $details );
-			}
-		} else {
+		if ( is_object( $details ) ) {
 			return $details;
 		}
+		if ( -1 == $details ) {
+			return false;
+		}
+		// Clear old pre-serialized objects. Cache clients do better with that.
+		wp_cache_delete( $blog_id . $all, 'blog-details' );
+		unset( $details );
 	}
 
 	// Try the other cache.
@@ -206,17 +202,15 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		$details = wp_cache_get( $blog_id, 'blog-details' );
 		// If short was requested and full cache is set, we can return.
 		if ( $details ) {
-			if ( ! is_object( $details ) ) {
-				if ( -1 == $details ) {
-					return false;
-				} else {
-					// Clear old pre-serialized objects. Cache clients do better with that.
-					wp_cache_delete( $blog_id, 'blog-details' );
-					unset( $details );
-				}
-			} else {
+			if ( is_object( $details ) ) {
 				return $details;
 			}
+			if ( -1 == $details ) {
+				return false;
+			}
+			// Clear old pre-serialized objects. Cache clients do better with that.
+			wp_cache_delete( $blog_id, 'blog-details' );
+			unset( $details );
 		}
 	}
 

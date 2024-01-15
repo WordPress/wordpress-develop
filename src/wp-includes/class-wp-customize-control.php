@@ -506,6 +506,7 @@ class WP_Customize_Control {
 				</span>
 				<?php
 				break;
+
 			case 'radio':
 				if ( empty( $this->choices ) ) {
 					return;
@@ -536,6 +537,7 @@ class WP_Customize_Control {
 				<?php endforeach; ?>
 				<?php
 				break;
+
 			case 'select':
 				if ( empty( $this->choices ) ) {
 					return;
@@ -558,6 +560,7 @@ class WP_Customize_Control {
 				</select>
 				<?php
 				break;
+
 			case 'textarea':
 				?>
 				<?php if ( ! empty( $this->label ) ) : ?>
@@ -575,6 +578,7 @@ class WP_Customize_Control {
 				><?php echo esc_textarea( $this->value() ); ?></textarea>
 				<?php
 				break;
+
 			case 'dropdown-pages':
 				?>
 				<?php if ( ! empty( $this->label ) ) : ?>
@@ -647,6 +651,7 @@ class WP_Customize_Control {
 				<?php endif; ?>
 				<?php
 				break;
+
 			default:
 				?>
 				<?php if ( ! empty( $this->label ) ) : ?>

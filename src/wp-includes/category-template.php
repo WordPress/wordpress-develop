@@ -680,11 +680,10 @@ function wp_list_categories( $args = '' ) {
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
-	if ( $parsed_args['echo'] ) {
-		echo $html;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $html;
 	}
+	echo $html;
 }
 
 /**
