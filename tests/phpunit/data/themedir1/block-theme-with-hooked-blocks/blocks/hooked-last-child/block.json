@@ -1,5 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"title": "Hooked Block Last Child",
 	"name": "tests/hooked-last-child",
 	"blockHooks": {
 		"core/comment-template": "lastChild"

@@ -1,5 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"title": "Hooked Block First Child",
 	"name": "tests/hooked-first-child",
 	"blockHooks": {
 		"core/comments": "firstChild"
