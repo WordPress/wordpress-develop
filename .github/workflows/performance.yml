@@ -71,12 +71,14 @@ jobs:
   # - Run performance tests (current commit).
   # - Print performance tests results.
   # - Check out target commit (target branch or previous commit).
+  # - Switch Node.js versions if necessary.
   # - Install npm dependencies.
   # - Build WordPress.
   # - Run any database upgrades.
   # - Run performance tests (previous/target commit).
   # - Print target performance tests results.
   # - Reset to original commit.
+  # - Switch Node.js versions if necessary.
   # - Install npm dependencies.
   # - Set the environment to the baseline version.
   # - Run any database upgrades.
@@ -119,7 +121,6 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
           locale -a
 
       - name: Install npm dependencies
@@ -190,6 +191,12 @@ jobs:
           fi
           git reset --hard $TARGET_SHA
 
+      - name: Set up Node.js
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Install npm dependencies
         run: npm ci
 
@@ -211,6 +218,12 @@ jobs:
 
       - name: Reset to original commit
         run: git reset --hard $GITHUB_SHA
+
+      - name: Set up Node.js
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Install npm dependencies
         run: npm ci
