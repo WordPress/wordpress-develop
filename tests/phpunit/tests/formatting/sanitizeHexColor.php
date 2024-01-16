@@ -3,7 +3,7 @@
 /**
  * Tests for the sanitize_hex_color function.
  *
- * @group formating
+ * @group formatting
  *
  * @covers ::sanitize_hex_color
  */
