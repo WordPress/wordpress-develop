@@ -890,7 +890,10 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 					'<code>is_rtl()</code>'
 				)
 			);
-			$output = ( function_exists( 'is_rtl' ) && is_rtl() ) ? 'rtl' : 'ltr';
+			$output = 'ltr';
+			if ( function_exists( 'is_rtl' ) ) {
+				$output = is_rtl() ? 'rtl' : 'ltr';
+			}
 			break;
 		default:
 			$output = get_option( 'blogname' );
@@ -4281,7 +4284,7 @@ function get_search_query( $escaped = true ) {
 	$query = apply_filters( 'get_search_query', get_query_var( 's' ) );
 
 	if ( $escaped ) {
-		return esc_attr( $query );
+		$query = esc_attr( $query );
 	}
 	return $query;
 }

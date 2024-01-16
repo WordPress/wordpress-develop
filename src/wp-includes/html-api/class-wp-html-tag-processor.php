@@ -2742,7 +2742,11 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		return ( null === $this->sought_class_name || $this->has_class( $this->sought_class_name ) );
+		if ( null !== $this->sought_class_name && ! $this->has_class( $this->sought_class_name ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

@@ -250,7 +250,6 @@ function wptexturize( $text, $reset = false ) {
 			}
 
 			// This is an HTML element delimiter.
-
 			// Replace each & with &#038; unless it already looks like an entity.
 			$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
 
@@ -262,7 +261,7 @@ function wptexturize( $text, $reset = false ) {
 		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
 			// This is a shortcode delimiter.
 
-			if ( str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
+			if ( str_starts_with( $curl, '[[' ) || str_ends_with( $curl, ']]' ) ) {
 				// Looks like an escaped shortcode.
 				continue;
 			}

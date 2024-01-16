@@ -738,19 +738,13 @@ function is_serialized_string( $data ) {
 		return false;
 	}
 	$data = trim( $data );
-	if ( strlen( $data ) < 4 ) {
-		return false;
-	}
-	if ( ':' !== $data[1] ) {
-		return false;
-	}
-	if ( ! str_ends_with( $data, ';' ) ) {
-		return false;
-	}
-	if ( 's' !== $data[0] ) {
-		return false;
-	}
-	if ( '"' !== substr( $data, -2, 1 ) ) {
+	if (
+		strlen( $data ) < 4 ||
+		':' !== $data[1] ||
+		! str_ends_with( $data, ';' ) ||
+		's' !== $data[0] ||
+		'"' !== substr( $data, -2, 1 )
+	) {
 		return false;
 	}
 	return true;
@@ -771,10 +765,11 @@ function is_serialized_string( $data ) {
  */
 function xmlrpc_getposttitle( $content ) {
 	global $post_default_title;
+	$post_title = $post_default_title;
 	if ( preg_match( '/<title>(.+?)<\/title>/is', $content, $matchtitle ) ) {
-		return $matchtitle[1];
+		$post_title = $matchtitle[1];
 	}
-	return $post_default_title;
+	return $post_title;
 }
 
 /**
@@ -795,9 +790,11 @@ function xmlrpc_getpostcategory( $content ) {
 	global $post_default_category;
 	if ( preg_match( '/<category>(.+?)<\/category>/is', $content, $matchcat ) ) {
 		$post_category = trim( $matchcat[1], ',' );
-		return explode( ',', $post_category );
+		$post_category = explode( ',', $post_category );
+	} else {
+		$post_category = $post_default_category;
 	}
-	return $post_default_category;
+	return $post_category;
 }
 
 /**
@@ -1009,7 +1006,10 @@ function wp_get_http_headers( $url, $deprecated = false ) {
 function is_new_day() {
 	global $currentday, $previousday;
 
-	return (int) $currentday !== $previousday;
+	if ( $currentday !== $previousday ) {
+		return 1;
+	}
+	return 0;
 }
 
 /**
@@ -7233,9 +7233,8 @@ function _device_can_upload() {
 
 	if ( str_contains( $ua, 'iPhone' )
 		|| str_contains( $ua, 'iPad' )
-		|| str_contains( $ua, 'iPod' )
-	) {
-		return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
+		|| str_contains( $ua, 'iPod' ) ) {
+			return preg_match( '#OS ([\d_]+) like Mac OS X#', $ua, $version ) && version_compare( $version[1], '6', '>=' );
 	}
 
 	return true;

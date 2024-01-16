@@ -3283,11 +3283,12 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 		 * If an empty slug was passed or the parent changed, reset the slug to something unique.
 		 * Otherwise, bail.
 		 */
-		if ( ! $empty_slug && $parent === (int) $term['parent'] ) {
+		if ( $empty_slug || ( $parent !== (int) $term['parent'] ) ) {
+			$slug = wp_unique_term_slug( $slug, (object) $args );
+		} else {
 			/* translators: %s: Taxonomy term slug. */
 			return new WP_Error( 'duplicate_term_slug', sprintf( __( 'The slug &#8220;%s&#8221; is already in use by another term.' ), $slug ) );
 		}
-		$slug = wp_unique_term_slug( $slug, (object) $args );
 	}
 
 	$tt_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT tt.term_taxonomy_id FROM $wpdb->term_taxonomy AS tt INNER JOIN $wpdb->terms AS t ON tt.term_id = t.term_id WHERE tt.taxonomy = %s AND t.term_id = %d", $taxonomy, $term_id ) );
