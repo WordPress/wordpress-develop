@@ -323,11 +323,12 @@ function build_variation_for_navigation_link( $entity, $kind ) {
 }
 
 /**
- * Returns an array of variations for the navigation link block.
+ * Register the navigation link block.
  *
- * @return array
+ * @uses render_block_core_navigation()
+ * @throws WP_Error An WP_Error exception parsing the block definition.
  */
-function build_navigation_link_block_variations() {
+function register_block_core_navigation_link() {
 	$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
 	$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'objects' );
 
@@ -358,21 +359,12 @@ function build_navigation_link_block_variations() {
 			}
 		}
 	}
-	return array_merge( $built_ins, $variations );
-}
 
-/**
- * Register the navigation link block.
- *
- * @uses render_block_core_navigation()
- * @throws WP_Error An WP_Error exception parsing the block definition.
- */
-function register_block_core_navigation_link() {
 	register_block_type_from_metadata(
 		__DIR__ . '/navigation-link',
 		array(
-			'render_callback'    => 'render_block_core_navigation_link',
-			'variation_callback' => 'build_navigation_link_block_variations',
+			'render_callback' => 'render_block_core_navigation_link',
+			'variations'      => array_merge( $built_ins, $variations ),
 		)
 	);
 }
