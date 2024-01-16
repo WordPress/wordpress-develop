@@ -566,9 +566,9 @@ class WP_Upgrader {
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
 		} else {
 			/*
-			* It's only a single file, the upgrader will use the folder name of this file as the destination folder.
-			* Folder name is based on zip filename.
-			*/
+			 * It's only a single file, the upgrader will use the folder name of this file as the destination folder.
+			 * Folder name is based on zip filename.
+			 */
 			$source = trailingslashit( $args['source'] );
 		}
 
