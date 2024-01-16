@@ -1610,11 +1610,10 @@ function unzip_file( $file, $to ) {
 				continue;
 			}
 
-			if ( ! $wp_filesystem->is_dir( $dir ) ) {
-				$needed_dirs[] = $dir;
-			} else {
+			if ( $wp_filesystem->is_dir( $dir ) ) {
 				break; // A folder exists, therefore we don't need to check the levels below this.
 			}
+			$needed_dirs[] = $dir;
 		}
 	}
 

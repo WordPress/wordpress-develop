@@ -1504,14 +1504,13 @@ final class WP_Customize_Manager {
 				$nav_menu_item['nav_menu_term_id'] = $nav_menu_term_id;
 
 				if ( isset( $nav_menu_item['object_id'] ) ) {
-					if ( 'post_type' === $nav_menu_item['type'] && preg_match( '/^{{(?P<symbol>.+)}}$/', $nav_menu_item['object_id'], $matches ) && isset( $posts[ $matches['symbol'] ] ) ) {
-						$nav_menu_item['object_id'] = $posts[ $matches['symbol'] ]['ID'];
-						if ( empty( $nav_menu_item['title'] ) ) {
-							$original_object        = get_post( $nav_menu_item['object_id'] );
-							$nav_menu_item['title'] = $original_object->post_title;
-						}
-					} else {
+					if ( 'post_type' !== $nav_menu_item['type'] || ! preg_match( '/^{{(?P<symbol>.+)}}$/', $nav_menu_item['object_id'], $matches ) || ! isset( $posts[ $matches['symbol'] ] ) ) {
 						continue;
+					}
+					$nav_menu_item['object_id'] = $posts[ $matches['symbol'] ]['ID'];
+					if ( empty( $nav_menu_item['title'] ) ) {
+						$original_object        = get_post( $nav_menu_item['object_id'] );
+						$nav_menu_item['title'] = $original_object->post_title;
 					}
 				} else {
 					$nav_menu_item['object_id'] = 0;
@@ -1544,13 +1543,12 @@ final class WP_Customize_Manager {
 						$symbol_match = $attachment_ids[ $matches['symbol'] ];
 					}
 
-					// If we have any symbol matches, update the values.
-					if ( isset( $symbol_match ) ) {
-						// Replace found string matches with post IDs.
-						$value = str_replace( $matches[0], "i:{$symbol_match}", $value );
-					} else {
+					if ( ! isset( $symbol_match ) ) {
 						continue;
 					}
+					// If we have symbol matches, update the values.
+					// Replace found string matches with post IDs.
+					$value = str_replace( $matches[0], "i:{$symbol_match}", $value );
 				}
 			} elseif ( preg_match( '/^{{(?P<symbol>.+)}}$/', $value, $matches ) ) {
 				if ( isset( $posts[ $matches['symbol'] ] ) ) {
@@ -1586,13 +1584,12 @@ final class WP_Customize_Manager {
 						$symbol_match = $attachment_ids[ $matches['symbol'] ];
 					}
 
-					// If we have any symbol matches, update the values.
-					if ( isset( $symbol_match ) ) {
-						// Replace found string matches with post IDs.
-						$value = str_replace( $matches[0], "i:{$symbol_match}", $value );
-					} else {
+					if ( ! isset( $symbol_match ) ) {
 						continue;
 					}
+					// If we have any symbol matches, update the values.
+					// Replace found string matches with post IDs.
+					$value = str_replace( $matches[0], "i:{$symbol_match}", $value );
 				}
 			} elseif ( preg_match( '/^{{(?P<symbol>.+)}}$/', $value, $matches ) ) {
 				if ( isset( $posts[ $matches['symbol'] ] ) ) {

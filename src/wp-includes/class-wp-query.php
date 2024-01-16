@@ -958,9 +958,11 @@ class WP_Query {
 						case 'category':
 							$this->is_category = true;
 							break;
+
 						case 'post_tag':
 							$this->is_tag = true;
 							break;
+
 						default:
 							$this->is_tax = true;
 					}

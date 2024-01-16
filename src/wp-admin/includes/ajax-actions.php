@@ -627,10 +627,9 @@ function _wp_ajax_add_hierarchical_term() {
 
 		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
 			continue;
-		} else {
-			$cat_id = $cat_id['term_id'];
 		}
 
+		$cat_id               = $cat_id['term_id'];
 		$checked_categories[] = $cat_id;
 
 		if ( $parent ) { // Do these all at once in a second.
@@ -1061,10 +1060,9 @@ function wp_ajax_add_link_category( $action ) {
 
 		if ( ! $cat_id || is_wp_error( $cat_id ) ) {
 			continue;
-		} else {
-			$cat_id = $cat_id['term_id'];
 		}
 
+		$cat_id   = $cat_id['term_id'];
 		$cat_name = esc_html( $cat_name );
 
 		$x->add(

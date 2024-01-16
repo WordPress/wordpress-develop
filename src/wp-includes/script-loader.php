@@ -626,7 +626,8 @@ function wp_tinymce_inline_scripts() {
 			$val       = $value ? 'true' : 'false';
 			$init_obj .= $key . ':' . $val . ',';
 			continue;
-		} elseif ( ! empty( $value ) && is_string( $value ) && (
+		}
+		if ( ! empty( $value ) && is_string( $value ) && (
 			( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
 			( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
 			preg_match( '/^\(?function ?\(/', $value ) ) ) {

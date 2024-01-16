@@ -1068,7 +1068,9 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 
 		if ( null === $v ) {
 			continue;
-		} elseif ( false === $v ) {
+		}
+
+		if ( false === $v ) {
 			$v = '0';
 		}
 

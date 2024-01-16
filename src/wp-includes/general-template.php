@@ -3481,12 +3481,11 @@ function wp_resource_hints() {
 			$atts = array();
 
 			if ( is_array( $url ) ) {
-				if ( isset( $url['href'] ) ) {
-					$atts = $url;
-					$url  = $url['href'];
-				} else {
+				if ( ! isset( $url['href'] ) ) {
 					continue;
 				}
+				$atts = $url;
+				$url  = $url['href'];
 			}
 
 			$url = esc_url( $url, array( 'http', 'https' ) );
@@ -3527,7 +3526,6 @@ function wp_resource_hints() {
 				if ( ! is_scalar( $value )
 					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'pr', 'rel', 'type' ), true ) && ! is_numeric( $attr ) )
 				) {
-
 					continue;
 				}
 

@@ -64,12 +64,10 @@ foreach ( $menu as $menu_page ) {
 
 	$hook_name = sanitize_title( $hook_name );
 
-	if ( isset( $compat[ $hook_name ] ) ) {
-		$hook_name = $compat[ $hook_name ];
-	} elseif ( ! $hook_name ) {
+	if ( ! isset( $compat[ $hook_name ] ) ) {
 		continue;
 	}
-
+	$hook_name                         = $compat[ $hook_name ];
 	$admin_page_hooks[ $menu_page[2] ] = $hook_name;
 }
 unset( $menu_page, $compat );

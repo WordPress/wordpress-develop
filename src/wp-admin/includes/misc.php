@@ -197,7 +197,8 @@ Any changes to the directives between these markers will be overwritten.'
 		if ( ! $found_marker && str_contains( $line, $start_marker ) ) {
 			$found_marker = true;
 			continue;
-		} elseif ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
+		}
+		if ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
 			$found_end_marker = true;
 			continue;
 		}

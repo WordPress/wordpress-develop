@@ -1036,14 +1036,13 @@ class WP_Site_Health {
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
 				/*
-				 * If that other function has a failure, mark this module as required for usual operations.
 				 * If that other function hasn't failed, skip this test as it's only a fallback.
+				 * If that other function has a failure, mark this module as required for usual operations.
 				 */
-				if ( isset( $failures[ $module['fallback_for'] ] ) ) {
-					$module['required'] = true;
-				} else {
+				if ( ! isset( $failures[ $module['fallback_for'] ] ) ) {
 					continue;
 				}
+				$module['required'] = true;
 			}
 
 			if ( ! $this->test_php_extension_availability( $extension_name, $function_name, $constant_name, $class_name )

@@ -268,7 +268,8 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 				if ( 'var' === $next[0] ) {
 					$stack[] = $n;
 					continue;
-				} elseif ( 'value' === $next[0] ) {
+				}
+				if ( 'value' === $next[0] ) {
 					$stack[] = $next[1];
 					continue;
 				}

@@ -210,6 +210,7 @@ switch ( $wp_list_table->current_action() ) {
 				case 'delete':
 					wp_delete_user( $id );
 					break;
+
 				case 'reassign':
 					wp_delete_user( $id, $_REQUEST['reassign_user'] );
 					break;

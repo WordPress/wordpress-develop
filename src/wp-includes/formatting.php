@@ -247,14 +247,14 @@ function wptexturize( $text, $reset = false ) {
 			if ( str_starts_with( $curl, '<!--' ) ) {
 				// This is an HTML comment delimiter.
 				continue;
-			} else {
-				// This is an HTML element delimiter.
-
-				// Replace each & with &#038; unless it already looks like an entity.
-				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
-
-				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
+
+			// This is an HTML element delimiter.
+
+			// Replace each & with &#038; unless it already looks like an entity.
+			$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
+
+			_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 		} elseif ( '' === trim( $curl ) ) {
 			// This is a newline between delimiters. Performance improves when we check this.
 			continue;
@@ -262,13 +262,13 @@ function wptexturize( $text, $reset = false ) {
 		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
 			// This is a shortcode delimiter.
 
-			if ( ! str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
-				// Looks like a normal shortcode.
-				_wptexturize_pushpop_element( $curl, $no_texturize_shortcodes_stack, $no_texturize_shortcodes );
-			} else {
+			if ( str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
 				// Looks like an escaped shortcode.
 				continue;
 			}
+
+			// Looks like a normal shortcode.
+			_wptexturize_pushpop_element( $curl, $no_texturize_shortcodes_stack, $no_texturize_shortcodes );
 		} elseif ( empty( $no_texturize_shortcodes_stack ) && empty( $no_texturize_tags_stack ) ) {
 			// This is neither a delimiter, nor is this content inside of no_texturize pairs. Do texturize.
 
@@ -330,7 +330,8 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 	foreach ( $sentences as $key => &$sentence ) {
 		if ( ! str_contains( $sentence, $needle ) ) {
 			continue;
-		} elseif ( 0 !== $key && 0 === substr_count( $sentence, $close_quote ) ) {
+		}
+		if ( 0 !== $key && 0 === substr_count( $sentence, $close_quote ) ) {
 			$sentence = preg_replace( $quote_pattern, $flag, $sentence, -1, $count );
 			if ( $count > 1 ) {
 				// This sentence appears to have multiple closing quotes. Attempt Vulcan logic.

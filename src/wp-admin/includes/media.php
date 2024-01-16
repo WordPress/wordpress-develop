@@ -2863,10 +2863,9 @@ function media_upload_library_form( $errors ) {
 
 				$arc_row->mmonth = zeroise( $arc_row->mmonth, 2 );
 
+				$default = '';
 				if ( $arc_row->yyear . $arc_row->mmonth == $selected_month ) {
 					$default = ' selected="selected"';
-				} else {
-					$default = '';
 				}
 
 				echo "<option$default value='" . esc_attr( $arc_row->yyear . $arc_row->mmonth ) . "'>";
