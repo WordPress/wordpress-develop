@@ -104,8 +104,8 @@ jobs:
   # - Runs the theme build script.
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
-    name: Test ${{ matrix.theme }} build script
-    runs-on: ubuntu-latest
+    name: Test ${{ matrix.theme }} build script (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
     timeout-minutes: 10
@@ -113,6 +113,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
         theme: [
             'twentytwentyone',
             'twentytwenty',
