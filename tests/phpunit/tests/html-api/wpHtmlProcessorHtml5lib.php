@@ -47,11 +47,21 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 * @param string $result           Tree structure of parsed HTML.
 	 */
 	public function test_external_html5lib( $fragment_context, $html, $result ) {
-		$processed_tree = self::build_html5_treelike_string( $fragment_context, $html );
+		if ( self::SKIP_HEAD_TESTS ) {
+			$html_start = "<html>\n  <head>\n  <body>\n";
+			if (
+				strlen( $result ) < strlen( $html_start ) ||
+				substr( $result, 0, strlen( $html_start ) ) !== $html_start
+			) {
+				$this->markTestSkipped( 'Skip test with expected content in <head> (unsupported).' );
+			}
+		}
 
 		if ( array_key_exists( $this->dataName(), self::SKIP_TESTS ) ) {
 			$this->markTestSkipped( self::SKIP_TESTS[ $this->dataName() ] );
 		}
+
+		$processed_tree = self::build_html5_treelike_string( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
 			$this->markTestIncomplete( 'Test includes unsupported markup.' );
@@ -161,28 +171,13 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 				if ( "#data\n" === $line ) {
 					// Yield when switching from a previous state.
 					if ( $state ) {
-						$yield_test = true;
-
-						if ( self::SKIP_HEAD_TESTS ) {
-							$html_start = "<html>\n  <head>\n  <body>\n";
-
-							if (
-								strlen( $test_dom ) < strlen( $html_start ) ||
-								substr( $test_dom, 0, strlen( $html_start ) ) !== $html_start
-							) {
-								$yield_test = false;
-							}
-						}
-
-						if ( $yield_test ) {
-							yield array(
-								$test_line_number,
-								$test_context_element,
-								// Remove the trailing newline
-								substr( $test_html, 0, -1 ),
-								$test_dom,
-							);
-						}
+						yield array(
+							$test_line_number,
+							$test_context_element,
+							// Remove the trailing newline
+							substr( $test_html, 0, -1 ),
+							$test_dom,
+						);
 					}
 
 					// Finish previous test.
