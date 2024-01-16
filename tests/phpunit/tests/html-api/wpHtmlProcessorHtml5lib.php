@@ -242,24 +242,51 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 				 * the tree of the parsed DOM. Each node must be represented by a single line. Each line
 				 * must start with "| ", followed by two spaces per parent node that the node has before
 				 * the root document node.
+				 *
+				 * - Element nodes must be represented by a "<" then the tag name string ">", and all the attributes must be given, sorted lexicographically by UTF-16 code unit according to their attribute name string, on subsequent lines, as if they were children of the element node.
+				 * - Attribute nodes must have the attribute name string, then an "=" sign, then the attribute value in double quotes (").
+				 * - Text nodes must be the string, in double quotes. Newlines aren't escaped.
+				 * - Comments must be "<" then "!-- " then the data then " -->".
+				 * - DOCTYPEs must be "<!DOCTYPE " then the name then if either of the system id or public id is non-empty a space, public id in double-quotes, another space an the system id in double-quotes, and then in any case ">".
+				 * - Processing instructions must be "<?", then the target, then a space, then the data and then ">". (The HTML parser cannot emit processing instructions, but scripts can, and the WebVTT to DOM rules can emit them.)
+				 * - Template contents are represented by the string "content" with the children below it.
 				 */
 				case 'document':
 					if ( '|' === $line[0] ) {
 						$candidate = substr( $line, 2 );
-						$trimmed   = trim( $candidate );
-						// Only take lines that look like tags
-						// At least 3 chars (< + tag + >)
-						// Tag must start with ascii alphabetic
-						if ( strlen( $trimmed ) > 2 && '<' === $trimmed[0] && ctype_alpha( $trimmed[1] ) ) {
-							$test_dom .= $candidate;
+
+						// Remove leading spaces and the trailing newline
+						$trimmed = ltrim( substr( $candidate, 0, -1 ) );
+
+						// Text: "…
+						if ( $trimmed[0] === '"' ) {
+							// Skip for now
+							break;
 						}
 
-						if (
-							( $trimmed[0] !== '<' || $trimmed[ strlen($trimmed) - 1 ] !== '>' ) &&
-							$trimmed[0] !== '"'
-						) {
+						// Attribute: name="value"
+						if ( $trimmed[ strlen($trimmed) - 1 ] === '"' ) {
 							$test_dom .= $candidate;
+							break;
 						}
+
+						// Tags: <tag-name>
+						// Comments: <!-- comment text -->
+						// Doctypes: <!DOCTYPE … >
+						// Processing instructions: <?target >
+						if ( $trimmed[0] === '<' && $trimmed[ strlen($trimmed) - 1 ] === '>' ) {
+							// Tags: <tag-name>
+							if ( ctype_alpha( $trimmed[1] ) ) {
+								$test_dom .= $candidate;
+								break;
+							}
+							// Skip everything else for now
+							break;
+						}
+					} else {
+						// This is a text node that includes unescaped newlines.
+						// Everything else should be singles lines starting with "| ".
+						// @todo Skip for now, add to $test_dom when we handle text nodes.
 					}
 					break;
 			}
