@@ -468,12 +468,16 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
 		return null;
 	}
 
+	// Build CSS rule.
+	// Borrowed from https://websemantics.uk/tools/responsive-font-calculator/.
+	$view_port_width_offset    = round( $minimum_viewport_width['value'] / 100, 3 ) . $font_size_unit;
+	$linear_factor_denominator = $maximum_viewport_width['value'] - $minimum_viewport_width['value'];
+
 	/*
-	 * Build CSS rule.
-	 * Borrowed from https://websemantics.uk/tools/responsive-font-calculator/.
+	 * If the linear factor denominator is 0, we cannot calculate a fluid value.
+	 * Setting $linear_factor to 0 will cause $linear_factor_scaled to default to 1.
 	 */
-	$view_port_width_offset = round( $minimum_viewport_width['value'] / 100, 3 ) . $font_size_unit;
-	$linear_factor          = 100 * ( ( $maximum_font_size['value'] - $minimum_font_size['value'] ) / ( $maximum_viewport_width['value'] - $minimum_viewport_width['value'] ) );
+	$linear_factor          = ! empty( $linear_factor_denominator ) ? 100 * ( ( $maximum_font_size['value'] - $minimum_font_size['value'] ) / ( $linear_factor_denominator ) ) : 0;
 	$linear_factor_scaled   = round( $linear_factor * $scale_factor, 3 );
 	$linear_factor_scaled   = empty( $linear_factor_scaled ) ? 1 : $linear_factor_scaled;
 	$fluid_target_font_size = implode( '', $minimum_font_size_rem ) . " + ((1vw - $view_port_width_offset) * $linear_factor_scaled)";

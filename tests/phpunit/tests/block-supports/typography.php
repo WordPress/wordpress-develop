@@ -951,6 +951,16 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 				),
 				'expected_output' => 'clamp(50px, 3.125rem + ((1vw - 3.2px) * 7.353), 100px)',
 			),
+			'returns default linear factor of `1` when maximum and minimum viewport width are equal' => array(
+				'args'            => array(
+					'minimum_viewport_width' => '800px',
+					'maximum_viewport_width' => '800px',
+					'minimum_font_size'      => '50px',
+					'maximum_font_size'      => '100px',
+					'scale_factor'           => 1,
+				),
+				'expected_output' => 'clamp(50px, 3.125rem + ((1vw - 8px) * 1), 100px)',
+			),
 			'returns `null` when `maximum_viewport_width` is an unsupported unit' => array(
 				'args'            => array(
 					'minimum_viewport_width' => '320px',
