@@ -6214,15 +6214,22 @@ function url_shorten( $url, $length = 35 ) {
  * @since 3.4.0
  *
  * @param string $color
+ * @param bool $maybe_alpha optional: allows you support alpa colors default is fasle Since 6.5.0
+ *
  * @return string|void
+ *
  */
-function sanitize_hex_color( $color ) {
+function sanitize_hex_color( $color, bool $maybe_alpha = false ) {
 	if ( '' === $color ) {
 		return '';
 	}
 
-	// 3 or 6 hex digits, or the empty string.
-	if ( preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ) {
+
+	$allowed_lengths = $maybe_alpha ? array( 4, 5, 7, 9 ) : array( 4, 7 );
+	$correct_length  = in_array( strlen( $color ), $allowed_lengths, true );
+
+	if ( $correct_length && preg_replace( '|^#([^A-Fa-f0-9]+)$|', '', $color ) === $color ) {
+
 		return $color;
 	}
 }
@@ -6239,16 +6246,18 @@ function sanitize_hex_color( $color ) {
  * @since 3.4.0
  *
  * @param string $color
+ * @param bool $maybe_alpha optional: allows you support alpa colors default is fasle Since 6.5.0
+ *
  * @return string|null
  */
-function sanitize_hex_color_no_hash( $color ) {
+function sanitize_hex_color_no_hash( $color, $maybe_alpha = false ) {
 	$color = ltrim( $color, '#' );
 
 	if ( '' === $color ) {
 		return '';
 	}
 
-	return sanitize_hex_color( '#' . $color ) ? $color : null;
+	return sanitize_hex_color( '#' . $color, $maybe_alpha ) ? $color : null;
 }
 
 /**
@@ -6260,10 +6269,12 @@ function sanitize_hex_color_no_hash( $color ) {
  * @since 3.4.0
  *
  * @param string $color
+ * @param bool $maybe_alpha optional: allows you support alpa colors default is fasle Since 6.5.0
+ *
  * @return string
  */
-function maybe_hash_hex_color( $color ) {
-	$unhashed = sanitize_hex_color_no_hash( $color );
+function maybe_hash_hex_color( $color, $maybe_alpha = false ) {
+	$unhashed = sanitize_hex_color_no_hash( $color, $maybe_alpha );
 	if ( $unhashed ) {
 		return '#' . $unhashed;
 	}
