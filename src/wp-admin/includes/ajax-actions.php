@@ -2688,6 +2688,7 @@ function wp_ajax_image_editor() {
 			}
 
 			wp_send_json_success( $msg );
+			break;
 		case 'scale':
 			$msg = wp_save_image( $attachment_id );
 			break;
