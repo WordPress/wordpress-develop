@@ -554,8 +554,10 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$attachment_post      = get_post( $attachment_id );
 		$attachment_parent_id = $attachment_post ? $attachment_post->post_parent : 0;
 
-		// If attachment is attached to a post, attachment page inherits parent post's private status,
-		// so fetch the post to have its private status checked later.
+		/*
+		 * If an attachment is attached to a post, it inherits the parent post's status. Fetch the
+		 * parent post to check its status later.
+		 */
 		if ( $attachment_parent_id ) {
 			$redirect_obj = get_post( $attachment_parent_id );
 		}
