@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage HTML-API
  *
- * @since {WP_VERSION}
+ * @since 6.5.0
  *
  * @group html-api
  *
@@ -16,10 +16,13 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 
 	/**
 	 * The HTML Processor only accepts HTML in document <body>.
-	 * Do not run tests that look for anything in document `head`.
+	 * Do not run tests that look for anything in document <head>.
 	 */
 	const SKIP_HEAD_TESTS = true;
 
+	/**
+	 * Skip specific tests that may not be supported.
+	 */
 	const SKIP_TESTS = array(
 		'adoption01/line0046' => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0159' => 'Unimplemented: Reconstruction of active formatting elements.',
