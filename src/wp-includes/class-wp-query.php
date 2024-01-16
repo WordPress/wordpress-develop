@@ -4354,12 +4354,9 @@ class WP_Query {
 		if ( 'posts' === get_option( 'show_on_front' ) && $this->is_home() ) {
 			return true;
 		}
-		if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' )
+		return ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' )
 			&& $this->is_page( get_option( 'page_on_front' ) )
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	/**
@@ -4396,12 +4393,9 @@ class WP_Query {
 	 * @return bool Whether the query is for the Privacy Policy page.
 	 */
 	public function is_privacy_policy() {
-		if ( get_option( 'wp_page_for_privacy_policy' )
+		return ( get_option( 'wp_page_for_privacy_policy' )
 			&& $this->is_page( get_option( 'wp_page_for_privacy_policy' ) )
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	/**

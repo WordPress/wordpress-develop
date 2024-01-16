@@ -224,10 +224,8 @@ final class WP_Site {
 		switch ( $key ) {
 			case 'id':
 				return (int) $this->blog_id;
-
 			case 'network_id':
 				return (int) $this->site_id;
-
 			default: // Custom properties added by 'site_details' filter.
 				if ( ! did_action( 'ms_loaded' ) ) {
 					return null;

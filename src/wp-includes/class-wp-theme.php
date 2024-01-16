@@ -326,8 +326,7 @@ final class WP_Theme implements ArrayAccess {
 				$this->errors->add( 'theme_root_missing', __( '<strong>Error:</strong> The themes directory is either empty or does not exist. Please check your installation.' ) );
 			}
 			return;
-		}
-		if ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
+		} elseif ( ! is_readable( $this->theme_root . '/' . $theme_file ) ) {
 			$this->headers['Name']        = $this->stylesheet;
 			$this->errors                 = new WP_Error( 'theme_stylesheet_not_readable', __( 'Stylesheet is not readable.' ) );
 			$this->template               = $this->stylesheet;
@@ -345,16 +344,17 @@ final class WP_Theme implements ArrayAccess {
 				)
 			);
 			return;
-		}
-		$this->headers = get_file_data( $this->theme_root . '/' . $theme_file, self::$file_headers, 'theme' );
-		/*
-			* Default themes always trump their pretenders.
-			* Properly identify default themes that are inside a directory within wp-content/themes.
-			*/
-		$default_theme_slug = array_search( $this->headers['Name'], self::$default_themes, true );
-		if ( $default_theme_slug ) {
-			if ( basename( $this->stylesheet ) != $default_theme_slug ) {
-				$this->headers['Name'] .= '/' . $this->stylesheet;
+		} else {
+			$this->headers = get_file_data( $this->theme_root . '/' . $theme_file, self::$file_headers, 'theme' );
+			/*
+			 * Default themes always trump their pretenders.
+			 * Properly identify default themes that are inside a directory within wp-content/themes.
+			 */
+			$default_theme_slug = array_search( $this->headers['Name'], self::$default_themes, true );
+			if ( $default_theme_slug ) {
+				if ( basename( $this->stylesheet ) != $default_theme_slug ) {
+					$this->headers['Name'] .= '/' . $this->stylesheet;
+				}
 			}
 		}
 
@@ -733,7 +733,6 @@ final class WP_Theme implements ArrayAccess {
 				return $this->parent() ? $this->parent()->get( 'Name' ) : '';
 			default:
 				return null;
-
 		}
 	}
 
@@ -1101,6 +1100,7 @@ final class WP_Theme implements ArrayAccess {
 				}
 
 				return $value;
+
 			default:
 				// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
 				$value = translate( $value, $this->get( 'TextDomain' ) );

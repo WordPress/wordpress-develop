@@ -2026,6 +2026,7 @@ class wpdb {
 
 			return false;
 		}
+
 		if ( $this->dbh ) {
 			if ( ! $this->has_connected ) {
 				$this->init_charset();

@@ -544,6 +544,7 @@ abstract class WP_Image_Editor {
 				if ( ! is_wp_error( $result ) ) {
 					$result = $this->flip( true, false );
 				}
+
 				break;
 			case 6:
 				// Rotate 90 degrees clockwise (270 counter-clockwise).
@@ -556,6 +557,7 @@ abstract class WP_Image_Editor {
 				if ( ! is_wp_error( $result ) ) {
 					$result = $this->flip( false, true );
 				}
+
 				break;
 			case 8:
 				// Rotate 90 degrees counter-clockwise.
