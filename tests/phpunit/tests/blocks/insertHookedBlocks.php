@@ -11,27 +11,33 @@
  * @group block-hooks
  */
 class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
+	const ANCHOR_BLOCK_TYPE = 'tests/anchor-block';
+
+	const HOOKED_BLOCK_TYPE = 'tests/hooked-block';
+	const HOOKED_BLOCK      = array(
+		'blockName'    => 'tests/different-hooked-block',
+		'attrs'        => array(),
+		'innerContent' => array(),
+	);
+
+	const HOOKED_BLOCKS = array(
+		self::ANCHOR_BLOCK_TYPE => array(
+			'after' => array( self::HOOKED_BLOCK_TYPE ),
+		),
+	);
+
 	/**
 	 * @ticket 60126
 	 *
 	 * @covers ::insert_hooked_blocks
 	 */
-	public function test_insert_hooked_blocks() {
-		$anchor_block_name = 'tests/anchor-block';
-		$anchor_block      = array(
-			'blockName' => $anchor_block_name,
+	public function test_insert_hooked_blocks_adds_metadata() {
+		$anchor_block = array(
+			'blockName' => self::ANCHOR_BLOCK_TYPE,
 		);
 
-		// Maybe move to class level and include other relative positions?
-		// And/or data provider?
-		$hooked_blocks = array(
-			$anchor_block_name => array(
-				'after' => array( 'tests/hooked-before' ),
-			),
-		);
-
-		$actual = insert_hooked_blocks( $anchor_block, 'after', $hooked_blocks, array() );
-		$this->assertSame( array( 'tests/hooked-before' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
-		$this->assertSame( '<!-- wp:tests/hooked-before /-->', $actual );
+		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
+		$this->assertSame( array( self::HOOKED_BLOCK_TYPE ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
+		$this->assertSame( '<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /-->', $actual );
 	}
 }
