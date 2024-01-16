@@ -304,21 +304,23 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 		if ( 'post_type' === $item->type ) {
 			$object = get_post_type_object( $item->object );
 			if ( $object ) {
-				return $object->labels->singular_name;
+				$type_label = $object->labels->singular_name;
+			} else {
+				$type_label = $item->object;
 			}
-			return $item->object;
-		}
-		if ( 'taxonomy' === $item->type ) {
+		} elseif ( 'taxonomy' === $item->type ) {
 			$object = get_taxonomy( $item->object );
 			if ( $object ) {
-				return $object->labels->singular_name;
+				$type_label = $object->labels->singular_name;
+			} else {
+				$type_label = $item->object;
 			}
-			return $item->object;
+		} elseif ( 'post_type_archive' === $item->type ) {
+			$type_label = __( 'Post Type Archive' );
+		} else {
+			$type_label = __( 'Custom Link' );
 		}
-		if ( 'post_type_archive' === $item->type ) {
-			return __( 'Post Type Archive' );
-		}
-		return __( 'Custom Link' );
+		return $type_label;
 	}
 
 	/**
