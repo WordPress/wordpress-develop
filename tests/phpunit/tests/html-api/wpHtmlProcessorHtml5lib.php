@@ -177,7 +177,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 								$test_context_element,
 								// Remove the trailing newline
 								substr( $test_html, 0, -1 ),
-								$test_dom
+								$test_dom,
 							);
 						}
 					}
@@ -251,7 +251,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 			$test_context_element,
 			// Remove the trailing newline
 			substr( $test_html, 0, -1 ),
-			$test_dom
+			$test_dom,
 		);
 	}
 }
