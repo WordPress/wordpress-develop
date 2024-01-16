@@ -58,6 +58,7 @@ function render_block_core_archives( $attributes ) {
 				break;
 			default:
 				$label = __( 'Select Post' );
+				break;
 		}
 
 		$show_label = empty( $attributes['showLabel'] ) ? ' screen-reader-text' : '';
