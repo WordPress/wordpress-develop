@@ -205,48 +205,46 @@ function wp_ajax_wp_compression_test() {
 		$force_gzip = ( defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP );
 		$test_str   = '"wpCompressionTest Lorem ipsum dolor sit amet consectetuer mollis sapien urna ut a. Eu nonummy condimentum fringilla tempor pretium platea vel nibh netus Maecenas. Hac molestie amet justo quis pellentesque est ultrices interdum nibh Morbi. Cras mattis pretium Phasellus ante ipsum ipsum ut sociis Suspendisse Lorem. Ante et non molestie. Porta urna Vestibulum egestas id congue nibh eu risus gravida sit. Ac augue auctor Ut et non a elit massa id sodales. Elit eu Nulla at nibh adipiscing mattis lacus mauris at tempus. Netus nibh quis suscipit nec feugiat eget sed lorem et urna. Pellentesque lacus at ut massa consectetuer ligula ut auctor semper Pellentesque. Ut metus massa nibh quam Curabitur molestie nec mauris congue. Volutpat molestie elit justo facilisis neque ac risus Ut nascetur tristique. Vitae sit lorem tellus et quis Phasellus lacus tincidunt nunc Fusce. Pharetra wisi Suspendisse mus sagittis libero lacinia Integer consequat ac Phasellus. Et urna ac cursus tortor aliquam Aliquam amet tellus volutpat Vestibulum. Justo interdum condimentum In augue congue tellus sollicitudin Quisque quis nibh."';
 
-		switch ( $_GET['test'] ) {
-			case 1:
-				echo $test_str;
-				wp_die();
+		if ( 1 == $_GET['test'] ) {
+			echo $test_str;
+			wp_die();
+		}
 
-			case 2:
-				if ( ! isset( $_SERVER['HTTP_ACCEPT_ENCODING'] ) ) {
-					wp_die( -1 );
-				}
+		if ( 2 == $_GET['test'] ) {
+			if ( ! isset( $_SERVER['HTTP_ACCEPT_ENCODING'] ) ) {
+				wp_die( -1 );
+			}
 
-				if ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate' ) && function_exists( 'gzdeflate' ) && ! $force_gzip ) {
-					header( 'Content-Encoding: deflate' );
-					$out = gzdeflate( $test_str, 1 );
-				} elseif ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && function_exists( 'gzencode' ) ) {
-					header( 'Content-Encoding: gzip' );
-					$out = gzencode( $test_str, 1 );
-				} else {
-					wp_die( -1 );
-				}
+			if ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate' ) && function_exists( 'gzdeflate' ) && ! $force_gzip ) {
+				header( 'Content-Encoding: deflate' );
+				$out = gzdeflate( $test_str, 1 );
+			} elseif ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && function_exists( 'gzencode' ) ) {
+				header( 'Content-Encoding: gzip' );
+				$out = gzencode( $test_str, 1 );
+			} else {
+				wp_die( -1 );
+			}
 
-				echo $out;
-				wp_die();
+			echo $out;
+			wp_die();
+		}
 
-			case 'no':
-				check_ajax_referer( 'update_can_compress_scripts' );
-				// Use `update_option()` on single site to mark the option for autoloading.
-				if ( is_multisite() ) {
-					update_site_option( 'can_compress_scripts', 0 );
-				} else {
-					update_option( 'can_compress_scripts', 0, 'yes' );
-				}
-				break;
-
-			case 'yes':
-				check_ajax_referer( 'update_can_compress_scripts' );
-				// Use `update_option()` on single site to mark the option for autoloading.
-				if ( is_multisite() ) {
-					update_site_option( 'can_compress_scripts', 1 );
-				} else {
-					update_option( 'can_compress_scripts', 1, 'yes' );
-				}
-				break;
+		if ( 'no' === $_GET['test'] ) {
+			check_ajax_referer( 'update_can_compress_scripts' );
+			// Use `update_option()` on single site to mark the option for autoloading.
+			if ( is_multisite() ) {
+				update_site_option( 'can_compress_scripts', 0 );
+			} else {
+				update_option( 'can_compress_scripts', 0, 'yes' );
+			}
+		} elseif ( 'yes' === $_GET['test'] ) {
+			check_ajax_referer( 'update_can_compress_scripts' );
+			// Use `update_option()` on single site to mark the option for autoloading.
+			if ( is_multisite() ) {
+				update_site_option( 'can_compress_scripts', 1 );
+			} else {
+				update_option( 'can_compress_scripts', 1, 'yes' );
+			}
 		}
 	}
 

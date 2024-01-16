@@ -599,6 +599,5 @@ class WP_Network_Query {
 			return 'ASC';
 		}
 		return 'DESC';
-
 	}
 }
