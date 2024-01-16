@@ -564,13 +564,13 @@ class WP_Upgrader {
 		if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
 			// Only one folder? Then we want its contents.
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
+		} else {
+			/*
+			* It's only a single file, the upgrader will use the folder name of this file as the destination folder.
+			* Folder name is based on zip filename.
+			*/
+			$source = trailingslashit( $args['source'] );
 		}
-
-		/*
-		 * It's only a single file, the upgrader will use the folder name of this file as the destination folder.
-		 * Folder name is based on zip filename.
-		 */
-		$source = trailingslashit( $args['source'] );
 
 		/**
 		 * Filters the source file location for the upgrade package.
