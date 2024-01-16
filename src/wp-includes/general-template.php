@@ -4964,16 +4964,13 @@ function get_the_generator( $type = '' ) {
 			case 'commentsrss2_head':
 				$type = 'rss2';
 				break;
-
 			case 'rss_head':
 			case 'opml_head':
 				$type = 'comment';
 				break;
-
 			case 'rdf_header':
 				$type = 'rdf';
 				break;
-
 			case 'atom_head':
 			case 'comments_atom_head':
 			case 'app_head':

@@ -421,23 +421,18 @@ if ( ! class_exists( 'PO', false ) ) :
 						case 'msgid':
 							$entry->singular .= $unpoified;
 							break;
-
 						case 'msgctxt':
 							$entry->context .= $unpoified;
 							break;
-
 						case 'msgid_plural':
 							$entry->plural .= $unpoified;
 							break;
-
 						case 'msgstr':
 							$entry->translations[0] .= $unpoified;
 							break;
-
 						case 'msgstr_plural':
 							$entry->translations[ $msgstr_index ] .= $unpoified;
 							break;
-
 						default:
 							return false;
 					}

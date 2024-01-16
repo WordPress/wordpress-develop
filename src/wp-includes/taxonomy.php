@@ -1110,16 +1110,13 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
 		case 'slug':
 			$args['slug'] = $value;
 			break;
-
 		case 'name':
 			$args['name'] = $value;
 			break;
-
 		case 'term_taxonomy_id':
 			$args['term_taxonomy_id'] = $value;
 			unset( $args['taxonomy'] );
 			break;
-
 		default:
 			return false;
 	}

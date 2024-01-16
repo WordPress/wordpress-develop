@@ -1440,7 +1440,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			case 'draft':
 			case 'pending':
 				break;
-
 			case 'private':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 					return new WP_Error(
@@ -1450,7 +1449,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					);
 				}
 				break;
-
 			case 'publish':
 			case 'future':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
@@ -1461,7 +1459,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					);
 				}
 				break;
-
 			default:
 				if ( ! get_post_status_object( $post_status ) ) {
 					$post_status = 'draft';

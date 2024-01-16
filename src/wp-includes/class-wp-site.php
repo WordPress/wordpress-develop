@@ -258,13 +258,11 @@ final class WP_Site {
 			case 'id':
 			case 'network_id':
 				return true;
-
 			case 'blogname':
 			case 'siteurl':
 			case 'post_count':
 			case 'home':
 				return ( did_action( 'ms_loaded' ) );
-
 			default: // Custom properties added by 'site_details' filter.
 				if ( ! did_action( 'ms_loaded' ) ) {
 					return false;

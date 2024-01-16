@@ -1465,20 +1465,17 @@ class wp_xmlrpc_server extends IXR_Server {
 			case 'draft':
 			case 'pending':
 				break;
-
 			case 'private':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 					return new IXR_Error( 401, __( 'Sorry, you are not allowed to create private posts in this post type.' ) );
 				}
 				break;
-
 			case 'publish':
 			case 'future':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 					return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish posts in this post type.' ) );
 				}
 				break;
-
 			default:
 				if ( ! get_post_status_object( $post_data['post_status'] ) ) {
 					$post_data['post_status'] = 'draft';
@@ -5458,13 +5455,11 @@ class wp_xmlrpc_server extends IXR_Server {
 						return new IXR_Error( 401, __( 'Sorry, you are not allowed to create posts as this user.' ) );
 					}
 					break;
-
 				case 'page':
 					if ( ! current_user_can( 'edit_others_pages' ) ) {
 						return new IXR_Error( 401, __( 'Sorry, you are not allowed to create pages as this user.' ) );
 					}
 					break;
-
 				default:
 					return new IXR_Error( 401, __( 'Invalid post type.' ) );
 			}
@@ -5825,13 +5820,11 @@ class wp_xmlrpc_server extends IXR_Server {
 							return new IXR_Error( 401, __( 'Sorry, you are not allowed to change the post author as this user.' ) );
 						}
 						break;
-
 					case 'page':
 						if ( ! current_user_can( 'edit_others_pages' ) ) {
 							return new IXR_Error( 401, __( 'Sorry, you are not allowed to change the page author as this user.' ) );
 						}
 						break;
-
 					default:
 						return new IXR_Error( 401, __( 'Invalid post type.' ) );
 				}

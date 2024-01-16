@@ -378,22 +378,18 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 		case 'image/jpeg':
 			header( 'Content-Type: image/jpeg' );
 			return imagejpeg( $image, null, 90 );
-
 		case 'image/png':
 			header( 'Content-Type: image/png' );
 			return imagepng( $image );
-
 		case 'image/gif':
 			header( 'Content-Type: image/gif' );
 			return imagegif( $image );
-
 		case 'image/webp':
 			if ( function_exists( 'imagewebp' ) ) {
 				header( 'Content-Type: image/webp' );
 				return imagewebp( $image, null, 90 );
 			}
 			return false;
-
 		default:
 			return false;
 	}
@@ -489,19 +485,15 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 		case 'image/jpeg':
 			/** This filter is documented in wp-includes/class-wp-image-editor.php */
 			return imagejpeg( $image, $filename, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
-
 		case 'image/png':
 			return imagepng( $image, $filename );
-
 		case 'image/gif':
 			return imagegif( $image, $filename );
-
 		case 'image/webp':
 			if ( function_exists( 'imagewebp' ) ) {
 				return imagewebp( $image, $filename );
 			}
 			return false;
-
 		default:
 			return false;
 	}

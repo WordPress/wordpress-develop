@@ -3526,20 +3526,16 @@ function translate_level_to_role( $level ) {
 		case 9:
 		case 8:
 			return 'administrator';
-
 		case 7:
 		case 6:
 		case 5:
 			return 'editor';
-
 		case 4:
 		case 3:
 		case 2:
 			return 'author';
-
 		case 1:
 			return 'contributor';
-
 		default:
 			return 'subscriber';
 	}

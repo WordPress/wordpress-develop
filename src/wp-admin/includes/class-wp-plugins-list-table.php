@@ -511,7 +511,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						'plugins'
 					);
 					break;
-
 				case 'active':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -520,7 +519,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'recently_activated':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -529,7 +527,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'inactive':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -538,7 +535,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'mustuse':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -547,7 +543,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'dropins':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -556,7 +551,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'paused':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -565,7 +559,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'upgrade':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -574,7 +567,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'auto-update-enabled':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
@@ -583,7 +575,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'auto-update-disabled':
 					/* translators: %s: Number of plugins. */
 					$text = _n(

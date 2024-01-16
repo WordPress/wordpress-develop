@@ -439,10 +439,8 @@ class WP_Recovery_Mode {
 		switch ( $extension['type'] ) {
 			case 'plugin':
 				return wp_paused_plugins()->set( $extension['slug'], $error );
-
 			case 'theme':
 				return wp_paused_themes()->set( $extension['slug'], $error );
-
 			default:
 				return false;
 		}

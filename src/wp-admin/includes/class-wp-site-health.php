@@ -2531,11 +2531,9 @@ class WP_Site_Health {
 			case 'recommended':
 				$result['label'] = __( 'Page cache is not detected but the server response time is OK' );
 				break;
-
 			case 'good':
 				$result['label'] = __( 'Page cache is detected and the server response time is good' );
 				break;
-
 			default:
 				if ( empty( $page_cache_detail['headers'] ) && ! $page_cache_detail['advanced_cache_present'] ) {
 					$result['label'] = __( 'Page cache is not detected and the server response time is slow' );

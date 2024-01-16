@@ -909,11 +909,9 @@ function wp_write_post() {
 			case 'public':
 				$_POST['post_password'] = '';
 				break;
-
 			case 'password':
 				unset( $_POST['sticky'] );
 				break;
-
 			case 'private':
 				$_POST['post_status']   = 'private';
 				$_POST['post_password'] = '';

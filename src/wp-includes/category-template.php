@@ -1016,7 +1016,6 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		case 'array':
 			$return =& $a;
 			break;
-
 		case 'list':
 			/*
 			 * Force role="list", as some browsers (sic: Safari 10) don't expose to assistive
@@ -1027,7 +1026,6 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 			$return .= implode( "</li>\n\t<li>", $a );
 			$return .= "</li>\n</ul>\n";
 			break;
-
 		default:
 			$return = implode( $args['separator'], $a );
 	}

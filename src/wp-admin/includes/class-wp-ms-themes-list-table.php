@@ -382,7 +382,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						'themes'
 					);
 					break;
-
 				case 'enabled':
 					/* translators: %s: Number of themes. */
 					$text = _nx(
@@ -392,7 +391,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						'themes'
 					);
 					break;
-
 				case 'disabled':
 					/* translators: %s: Number of themes. */
 					$text = _nx(
@@ -402,7 +400,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						'themes'
 					);
 					break;
-
 				case 'upgrade':
 					/* translators: %s: Number of themes. */
 					$text = _nx(
@@ -412,7 +409,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						'themes'
 					);
 					break;
-
 				case 'broken':
 					/* translators: %s: Number of themes. */
 					$text = _nx(
@@ -422,7 +418,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						'themes'
 					);
 					break;
-
 				case 'auto-update-enabled':
 					/* translators: %s: Number of themes. */
 					$text = _n(
@@ -431,7 +426,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						$count
 					);
 					break;
-
 				case 'auto-update-disabled':
 					/* translators: %s: Number of themes. */
 					$text = _n(

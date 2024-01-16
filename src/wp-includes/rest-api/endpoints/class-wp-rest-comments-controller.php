@@ -1714,28 +1714,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			case '1':
 				$changed = wp_set_comment_status( $comment_id, 'approve' );
 				break;
-
 			case 'hold':
 			case '0':
 				$changed = wp_set_comment_status( $comment_id, 'hold' );
 				break;
-
 			case 'spam':
 				$changed = wp_spam_comment( $comment_id );
 				break;
-
 			case 'unspam':
 				$changed = wp_unspam_comment( $comment_id );
 				break;
-
 			case 'trash':
 				$changed = wp_trash_comment( $comment_id );
 				break;
-
 			case 'untrash':
 				$changed = wp_untrash_comment( $comment_id );
 				break;
-
 			default:
 				$changed = false;
 		}

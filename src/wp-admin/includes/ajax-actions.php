@@ -2688,11 +2688,9 @@ function wp_ajax_image_editor() {
 			}
 
 			wp_send_json_success( $msg );
-
 		case 'scale':
 			$msg = wp_save_image( $attachment_id );
 			break;
-
 		case 'restore':
 			$msg = wp_restore_image( $attachment_id );
 			break;
@@ -5558,7 +5556,6 @@ function wp_ajax_toggle_auto_updates() {
 			/** This filter is documented in wp-admin/includes/class-wp-plugins-list-table.php */
 			$all_items = apply_filters( 'all_plugins', get_plugins() );
 			break;
-
 		case 'theme':
 			if ( ! current_user_can( 'update_themes' ) ) {
 				$error_message = __( 'Sorry, you are not allowed to modify themes.' );
@@ -5568,7 +5565,6 @@ function wp_ajax_toggle_auto_updates() {
 			$option    = 'auto_update_themes';
 			$all_items = wp_get_themes();
 			break;
-
 		default:
 			wp_send_json_error( array( 'error' => __( 'Invalid data. Unknown type.' ) ) );
 	}

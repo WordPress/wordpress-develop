@@ -429,7 +429,6 @@ if ( $action ) {
 			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
-
 		case 'clear-recent-list':
 			if ( ! is_network_admin() ) {
 				update_option( 'recently_activated', array() );
@@ -438,7 +437,6 @@ if ( $action ) {
 			}
 
 			break;
-
 		case 'resume':
 			if ( is_multisite() ) {
 				return;
@@ -458,7 +456,6 @@ if ( $action ) {
 
 			wp_redirect( self_admin_url( "plugins.php?resume=true&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
-
 		case 'enable-auto-update':
 		case 'disable-auto-update':
 		case 'enable-auto-update-selected':
@@ -531,7 +528,6 @@ if ( $action ) {
 
 			wp_redirect( $redirect );
 			exit;
-
 		default:
 			if ( isset( $_POST['checked'] ) ) {
 				check_admin_referer( 'bulk-plugins' );

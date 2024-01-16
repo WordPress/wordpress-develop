@@ -226,23 +226,19 @@ class WP_User {
 				$user_id  = $value;
 				$db_field = 'ID';
 				break;
-
 			case 'slug':
 				$user_id  = wp_cache_get( $value, 'userslugs' );
 				$db_field = 'user_nicename';
 				break;
-
 			case 'email':
 				$user_id  = wp_cache_get( $value, 'useremail' );
 				$db_field = 'user_email';
 				break;
-
 			case 'login':
 				$value    = sanitize_user( $value );
 				$user_id  = wp_cache_get( $value, 'userlogins' );
 				$db_field = 'user_login';
 				break;
-
 			default:
 				return false;
 		}

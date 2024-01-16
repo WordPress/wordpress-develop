@@ -337,11 +337,9 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 		case 'gmt':
 			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
-
 		case 'blog':
 			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
-
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
@@ -2411,21 +2409,17 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 		case '0':
 			$status = '0';
 			break;
-
 		case 'approve':
 		case '1':
 			$status = '1';
 			add_action( 'wp_set_comment_status', 'wp_new_comment_notify_postauthor' );
 			break;
-
 		case 'spam':
 			$status = 'spam';
 			break;
-
 		case 'trash':
 			$status = 'trash';
 			break;
-
 		default:
 			return false;
 	}

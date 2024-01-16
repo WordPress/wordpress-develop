@@ -152,10 +152,8 @@ class WP_Network {
 		switch ( $key ) {
 			case 'id':
 				return (int) $this->id;
-
 			case 'blog_id':
 				return (string) $this->get_main_site_id();
-
 			case 'site_id':
 				return $this->get_main_site_id();
 		}

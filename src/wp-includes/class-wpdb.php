@@ -1131,29 +1131,24 @@ class wpdb {
 					$tables = array_merge( $tables, $this->ms_global_tables );
 				}
 				break;
-
 			case 'blog':
 				$tables = $this->tables;
 				break;
-
 			case 'global':
 				$tables = $this->global_tables;
 				if ( is_multisite() ) {
 					$tables = array_merge( $tables, $this->ms_global_tables );
 				}
 				break;
-
 			case 'ms_global':
 				$tables = $this->ms_global_tables;
 				break;
-
 			case 'old':
 				$tables = $this->old_tables;
 				if ( is_multisite() ) {
 					$tables = array_merge( $tables, $this->old_ms_global_tables );
 				}
 				break;
-
 			default:
 				return array();
 		}
@@ -4094,10 +4089,8 @@ class wpdb {
 			case 'group_concat': // @since 2.7.0
 			case 'subqueries':   // @since 2.7.0
 				return version_compare( $db_version, '4.1', '>=' );
-
 			case 'set_charset':
 				return version_compare( $db_version, '5.0.7', '>=' );
-
 			case 'utf8mb4':      // @since 4.1.0
 				if ( version_compare( $db_version, '5.5.3', '<' ) ) {
 					return false;
@@ -4118,10 +4111,8 @@ class wpdb {
 					return version_compare( $client_version, '5.0.9', '>=' );
 				}
 				return version_compare( $client_version, '5.5.3', '>=' );
-
 			case 'utf8mb4_520': // @since 4.6.0
 				return version_compare( $db_version, '5.6', '>=' );
-
 			case 'identifier_placeholders': // @since 6.2.0
 				/*
 				 * As of WordPress 6.2, wpdb::prepare() supports identifiers via '%i',

@@ -446,7 +446,6 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			case 'request-confirmed':
 				$timestamp = $item->confirmed_timestamp;
 				break;
-
 			case 'request-completed':
 				$timestamp = $item->completed_timestamp;
 				break;

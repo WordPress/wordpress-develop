@@ -715,7 +715,6 @@ function is_serialized( $data, $strict = true ) {
 		case 'O':
 		case 'E':
 			return (bool) preg_match( "/^{$token}:[0-9]+:/s", $data );
-
 		case 'b':
 		case 'i':
 		case 'd':
@@ -6964,14 +6963,12 @@ function _wp_mysql_week( $column ) {
 	switch ( $start_of_week ) {
 		case 1:
 			return "WEEK( $column, 1 )";
-
 		case 2:
 		case 3:
 		case 4:
 		case 5:
 		case 6:
 			return "WEEK( DATE_SUB( $column, INTERVAL $start_of_week DAY ), 0 )";
-
 		default:
 			return "WEEK( $column, 0 )";
 	}
