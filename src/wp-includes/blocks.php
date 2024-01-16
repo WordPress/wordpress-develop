@@ -828,6 +828,7 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 			// Candidate for first-child insertion.
 			$relative_position  = 'first_child';
 			$anchor_block_type  = $parent_block['blockName'];
+
 			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 				: array();
@@ -846,6 +847,24 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 			foreach ( $hooked_block_types as $hooked_block_type ) {
 				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
+			}
+
+			// See https://make.wordpress.org/core/2023/10/15/introducing-block-hooks-for-dynamic-blocks/
+			// > Blocks cannot be hooked into post content or patterns crafted by the user, such as
+			// > synced patterns or theme templates and template parts that the user has modified.
+			$problematic_anchor_blocks_for_child_insertion = array(
+				'core/pattern',
+				'core/post-content',
+				'core/template-part',
+			);
+			if ( in_array( $anchor_block_type, $problematic_anchor_blocks_for_child_insertion, true ) ) {
+				// Display warning:
+				// The following block(s) are being inserted into the `first_child` position of $anchor_block_type:
+				// $hooked_block_types
+				// Note that due to the nature of the $anchor_block_type block, the hooked block(s) cannot be displayed in the
+				// Site Editor. Consider using `before` insertion instead.
+
+				// Inserting $hooked_block_types into `first_child` position of $anchor_block_type.
 			}
 		}
 
