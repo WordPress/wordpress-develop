@@ -27,6 +27,11 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 		'adoption01/line0046' => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0159' => 'Unimplemented: Reconstruction of active formatting elements.',
 		'adoption01/line0318' => 'Unimplemented: Reconstruction of active formatting elements.',
+		'entities02/line0100' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
+		'entities02/line0114' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
+		'entities02/line0128' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
+		'entities02/line0142' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
+		'entities02/line0156' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
 		'tests15/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/line0022'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests20/line0497'    => "Closing P tag implicitly creates opener, which we don't visit.",
@@ -118,14 +123,27 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 
 		$output = "<html>\n  <head>\n  <body>\n";
 		while ( $p->next_tag() ) {
+			$indent = '';
+
 			// Breadcrumbs include this tag, so skip 1 nesting level.
 			foreach ( $p->get_breadcrumbs() as $index => $_ ) {
 				if ( $index ) {
-					$output .= '  ';
+					$indent .= '  ';
 				}
 			}
 			$t       = strtolower( $p->get_tag() );
-			$output .= "<{$t}>\n";
+			$output .= "{$indent}<{$t}>\n";
+
+			$attribute_names = $p->get_attribute_names_with_prefix( '' );
+			sort( $attribute_names, SORT_STRING );
+
+			foreach ( $attribute_names as $attribute_name ) {
+				$val = $p->get_attribute($attribute_name);
+				if ( $val === true ) {
+					$val = "";
+				}
+				$output .= "{$indent}  {$attribute_name}=\"{$val}\"\n";
+			}
 		}
 
 		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $p->get_last_error() ) {
@@ -226,7 +244,6 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 				 * the root document node.
 				 */
 				case 'document':
-					// Ignore everything that doesn't look like an element.
 					if ( '|' === $line[0] ) {
 						$candidate = substr( $line, 2 );
 						$trimmed   = trim( $candidate );
@@ -234,6 +251,13 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 						// At least 3 chars (< + tag + >)
 						// Tag must start with ascii alphabetic
 						if ( strlen( $trimmed ) > 2 && '<' === $trimmed[0] && ctype_alpha( $trimmed[1] ) ) {
+							$test_dom .= $candidate;
+						}
+
+						if (
+							( $trimmed[0] !== '<' || $trimmed[ strlen($trimmed) - 1 ] !== '>' ) &&
+							$trimmed[0] !== '"'
+						) {
 							$test_dom .= $candidate;
 						}
 					}
