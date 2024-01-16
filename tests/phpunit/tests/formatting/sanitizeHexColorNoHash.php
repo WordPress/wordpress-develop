@@ -3,57 +3,61 @@
 /**
  * Tests for the sanitize_hex_color function.
  *
- * @group formating
+ * @group formatting
  *
- * @covers ::sanitize_hex_color
+ * @covers ::sanitize_hex_color_no_hash
  */
-class Tests_formating_sanitizeHexColor extends WP_UnitTestCase {
+class Tests_formating_sanitizeHexColorNoHash extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 60270
+	 * @ticket 60271
 	 *
-	 * @dataProvider date_sanitize_hex_color
+	 * @dataProvider date_sanitize_hex_color_no_hash
 	 */
-	public function test_sanitize_hex_color( $color, $expected ) {
-		$this->assertSame( $expected, sanitize_hex_color( $color ) );
+	public function test_sanitize_hex_color_no_hash( $color, $expected ) {
+		$this->assertSame( $expected, sanitize_hex_color_no_hash( $color ) );
 	}
 
 	/**
 	 * @return array
 	 */
-	public function date_sanitize_hex_color() {
+	public function date_sanitize_hex_color_no_hash() {
 		return array(
 			'$maybe_alpha = false, 3 digit'               => array(
 				'color'    => '#123',
-				'expected' => '#123',
+				'expected' => '123',
 			),
 			'$maybe_alpha = false, 3 letter'              => array(
 				'color'    => '#abc',
-				'expected' => '#abc',
+				'expected' => 'abc',
 			),
 			'$maybe_alpha = false, 3 mixed'               => array(
 				'color'    => '#0ab',
-				'expected' => '#0ab',
+				'expected' => '0ab',
 			),
 			'$maybe_alpha = false, 6 digit'               => array(
 				'color'    => '#123456',
-				'expected' => '#123456',
+				'expected' => '123456',
 			),
 			'$maybe_alpha = false, 6 letter'              => array(
 				'color'    => '#abcdef',
-				'expected' => '#abcdef',
+				'expected' => 'abcdef',
 			),
 			'$maybe_alpha = false, 6 mixed'               => array(
 				'color'    => '#abc123',
-				'expected' => '#abc123',
+				'expected' => 'abc123',
 			),
 			'empty string'                                => array(
 				'color'    => '',
 				'expected' => '',
 			),
+			'just #'                                      => array(
+				'color'    => '#',
+				'expected' => '',
+			),
 			'no hash'                                     => array(
 				'color'    => '123',
-				'expected' => null,
+				'expected' => '123',
 			),
 			'not a-f'                                     => array(
 				'color'    => '#hjg',
@@ -90,27 +94,27 @@ class Tests_formating_sanitizeHexColor extends WP_UnitTestCase {
 			// Happy.
 			'$maybe_alpha = true, 3 digit'                => array(
 				'color'    => '#123',
-				'expected' => '#123',
+				'expected' => '123',
 			),
 			'$maybe_alpha = true, 3 letter'               => array(
 				'color'    => '#abc',
-				'expected' => '#abc',
+				'expected' => 'abc',
 			),
 			'$maybe_alpha = true, 3 mixed'                => array(
 				'color'    => '#0ab',
-				'expected' => '#0ab',
+				'expected' => '0ab',
 			),
 			'$maybe_alpha = true, 6 digit'                => array(
 				'color'    => '#123456',
-				'expected' => '#123456',
+				'expected' => '123456',
 			),
 			'$maybe_alpha = true, 6 letter'               => array(
 				'color'    => '#abcdef',
-				'expected' => '#abcdef',
+				'expected' => 'abcdef',
 			),
 			'$maybe_alpha = true, 6 mixed'                => array(
 				'color'    => '#abc123',
-				'expected' => '#abc123',
+				'expected' => 'abc123',
 			),
 			'$maybe_alpha = true, 3 digit with 1 alpha'   => array(
 				'color'    => '#123f',
