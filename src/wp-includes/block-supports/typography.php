@@ -398,6 +398,7 @@ function wp_get_typography_value_and_unit( $raw_value, $options = array() ) {
  *
  * @since 6.1.0
  * @since 6.3.0 Checks for unsupported min/max viewport values that cause invalid clamp values.
+ * @since 6.5.0 Use linear scale factor fallback of `1` to avoid division by zero.
  * @access private
  *
  * @param array $args {

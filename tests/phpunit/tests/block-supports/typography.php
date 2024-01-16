@@ -913,6 +913,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests computed font size values.
 	 *
 	 * @ticket 58522
+	 * @ticket 60263
 	 *
 	 * @covers ::wp_get_computed_fluid_typography_value
 	 *
