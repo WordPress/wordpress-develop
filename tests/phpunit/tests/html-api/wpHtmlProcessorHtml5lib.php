@@ -119,6 +119,10 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 			return null;
 		}
 
+		if ( $p->paused_at_incomplete_token() ) {
+			return null;
+		}
+
 		return $output;
 	}
 
