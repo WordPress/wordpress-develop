@@ -677,7 +677,6 @@ class WP_Term_Query {
 				if ( 'all_with_object_id' === $args['fields'] && ! empty( $args['object_ids'] ) ) {
 					$selects[] = 'tr.object_id';
 				}
-				break;
 		}
 
 		$_fields = $args['fields'];
@@ -1066,7 +1065,6 @@ class WP_Term_Query {
 					$meta_clause = $meta_clauses[ $orderby_raw ];
 					$orderby     = "CAST({$meta_clause['alias']}.meta_value AS {$meta_clause['cast']})";
 				}
-				break;
 		}
 
 		return $orderby;

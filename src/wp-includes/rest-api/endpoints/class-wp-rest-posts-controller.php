@@ -1466,7 +1466,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				if ( ! get_post_status_object( $post_status ) ) {
 					$post_status = 'draft';
 				}
-				break;
 		}
 
 		return $post_status;

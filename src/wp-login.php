@@ -1264,7 +1264,6 @@ switch ( $action ) {
 		login_footer();
 		exit;
 
-	case 'login':
 	default:
 		$secure_cookie   = '';
 		$customize_login = isset( $_REQUEST['customize-login'] );

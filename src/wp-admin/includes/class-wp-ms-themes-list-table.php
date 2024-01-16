@@ -974,7 +974,6 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 					$this->column_default( $item, $column_name );
 
 					echo '</td>';
-					break;
 			}
 		}
 	}

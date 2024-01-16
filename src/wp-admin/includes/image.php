@@ -1068,7 +1068,6 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 
 		default:
 			$image = false;
-			break;
 	}
 
 	if ( is_gd_image( $image ) ) {

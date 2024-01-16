@@ -985,11 +985,10 @@ function wp_save_image( $post_id ) {
 			$new_filename = "{$filename}.{$ext}";
 			$new_path     = "{$dirname}/$new_filename";
 
-			if ( file_exists( $new_path ) ) {
-				++$suffix;
-			} else {
+			if ( ! file_exists( $new_path ) ) {
 				break;
 			}
+			++$suffix;
 		}
 	}
 

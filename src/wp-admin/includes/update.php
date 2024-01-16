@@ -286,7 +286,6 @@ function core_update_footer( $msg = '' ) {
 				sprintf( __( 'Get Version %s' ), $cur->current )
 			);
 
-		case 'latest':
 		default:
 			/* translators: %s: WordPress version. */
 			return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );

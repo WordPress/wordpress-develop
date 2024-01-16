@@ -575,7 +575,6 @@ class WP_Comment_Query {
 
 					default:
 						$status_clauses[] = $wpdb->prepare( 'comment_approved = %s', $status );
-						break;
 				}
 			}
 
@@ -796,7 +795,6 @@ class WP_Comment_Query {
 
 					default:
 						$comment_types[ $operator ][] = $wpdb->prepare( '%s', $type );
-						break;
 				}
 			}
 

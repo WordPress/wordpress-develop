@@ -1483,7 +1483,6 @@ class wp_xmlrpc_server extends IXR_Server {
 				if ( ! get_post_status_object( $post_data['post_status'] ) ) {
 					$post_data['post_status'] = 'draft';
 				}
-				break;
 		}
 
 		if ( ! empty( $post_data['post_password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
@@ -5511,7 +5510,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_comments'] ) {
@@ -5524,7 +5522,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			}
 		} else {
@@ -5542,7 +5539,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_pings'] ) {
@@ -5554,7 +5550,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			}
 		} else {
@@ -5855,7 +5850,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_comments'] ) {
@@ -5868,7 +5862,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			}
 		}
@@ -5884,7 +5877,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_pings'] ) {
@@ -5896,7 +5888,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			}
 		}
@@ -5936,7 +5927,6 @@ class wp_xmlrpc_server extends IXR_Server {
 					break;
 				default:
 					$post_status = $publish ? 'publish' : 'draft';
-					break;
 			}
 		}
 

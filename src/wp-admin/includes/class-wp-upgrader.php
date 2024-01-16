@@ -287,7 +287,6 @@ class WP_Upgrader {
 					if ( ! $wp_filesystem->find_folder( $dir ) ) {
 						return new WP_Error( 'fs_no_folder', sprintf( $this->strings['fs_no_folder'], esc_html( basename( $dir ) ) ) );
 					}
-					break;
 			}
 		}
 		return true;

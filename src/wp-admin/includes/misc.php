@@ -794,8 +794,6 @@ function set_screen_options() {
 			if ( false === $value ) {
 				return;
 			}
-
-			break;
 	}
 
 	update_user_meta( $user->ID, $option, $value );

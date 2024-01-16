@@ -293,7 +293,6 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 					break;
 				default:
 					$new_format .= $format[ $i ];
-					break;
 			}
 		}
 
@@ -6973,7 +6972,6 @@ function _wp_mysql_week( $column ) {
 		case 6:
 			return "WEEK( DATE_SUB( $column, INTERVAL $start_of_week DAY ), 0 )";
 
-		case 0:
 		default:
 			return "WEEK( $column, 0 )";
 	}
@@ -7755,7 +7753,6 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 *                                   shorthand string notation, such as '256M'.
 			 */
 			$filtered_limit = apply_filters( "{$context}_memory_limit", $filtered_limit );
-			break;
 	}
 
 	$filtered_limit_int = wp_convert_hr_to_bytes( $filtered_limit );
@@ -8132,7 +8129,6 @@ function wp_privacy_anonymize_data( $type, $data = '' ) {
 			break;
 		default:
 			$anonymous = '';
-			break;
 	}
 
 	/**

@@ -80,8 +80,6 @@ switch ( $action ) {
 			get_edit_post_link( $post->ID, 'url' )
 		);
 		break;
-	case 'view':
-	case 'edit':
 	default:
 		$revision = wp_get_post_revision( $revision_id );
 		if ( ! $revision ) {
@@ -112,7 +110,6 @@ switch ( $action ) {
 		$title = __( 'Revisions' );
 
 		$redirect = false;
-		break;
 }
 
 // Empty post_type means either malformed object found, or no valid parent was found.

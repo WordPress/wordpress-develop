@@ -671,7 +671,6 @@ class WP_Customize_Control {
 					<?php $this->link(); ?>
 					/>
 				<?php
-				break;
 		}
 	}
 

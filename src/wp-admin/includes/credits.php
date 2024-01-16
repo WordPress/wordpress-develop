@@ -161,6 +161,5 @@ function wp_credits_section_list( $credits = array(), $slug = '' ) {
 				echo "</li>\n";
 			}
 			echo "</ul>\n";
-			break;
 	}
 }

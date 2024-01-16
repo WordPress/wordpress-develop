@@ -4650,7 +4650,6 @@ function wp_user_request_action_description( $action_name ) {
 		default:
 			/* translators: %s: Action name. */
 			$description = sprintf( __( 'Confirm the "%s" action' ), $action_name );
-			break;
 	}
 
 	/**

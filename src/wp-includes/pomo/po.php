@@ -348,7 +348,8 @@ if ( ! class_exists( 'PO', false ) ) :
 					if ( feof( $f ) ) {
 						if ( self::is_final( $context ) ) {
 							break;
-						} elseif ( ! $context ) { // We haven't read a line and EOF came.
+						}
+						if ( ! $context ) { // We haven't read a line and EOF came.
 							return null;
 						}
 						return false;

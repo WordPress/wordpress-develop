@@ -545,7 +545,6 @@ if ( $action ) {
 				wp_safe_redirect( $sendback );
 				exit;
 			}
-			break;
 	}
 }
 

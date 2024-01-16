@@ -890,16 +890,10 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 					'<code>is_rtl()</code>'
 				)
 			);
-			if ( function_exists( 'is_rtl' ) ) {
-				$output = is_rtl() ? 'rtl' : 'ltr';
-			} else {
-				$output = 'ltr';
-			}
+			$output = ( function_exists( 'is_rtl' ) && is_rtl() ) ? 'rtl' : 'ltr';
 			break;
-		case 'name':
 		default:
 			$output = get_option( 'blogname' );
-			break;
 	}
 
 	if ( 'display' === $filter ) {
@@ -4083,10 +4077,8 @@ function wp_get_code_editor_settings( $args ) {
 				case 'yaml':
 					$type = 'text/x-yaml';
 					break;
-				case 'txt':
 				default:
 					$type = 'text/plain';
-					break;
 			}
 		}
 	}
@@ -4615,7 +4607,6 @@ function paginate_links( $args = '' ) {
 
 		default:
 			$r = implode( "\n", $page_links );
-			break;
 	}
 
 	/**

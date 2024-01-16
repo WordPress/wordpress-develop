@@ -249,7 +249,6 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					 * @param string $column_name Name of the custom column.
 					 */
 					do_action( "manage_{$this->screen->id}_custom_column_js_template", $column_name );
-					break;
 			}
 
 			if ( $is_primary ) {

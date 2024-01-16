@@ -82,10 +82,8 @@ function permalink_anchor( $mode = 'id' ) {
 			$title = sanitize_title( $post->post_title ) . '-' . $post->ID;
 			echo '<a id="' . $title . '"></a>';
 			break;
-		case 'id':
 		default:
 			echo '<a id="post-' . $post->ID . '"></a>';
-			break;
 	}
 }
 

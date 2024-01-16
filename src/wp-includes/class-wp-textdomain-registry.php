@@ -248,7 +248,6 @@ class WP_Textdomain_Registry {
 					break;
 				default:
 					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/' ), 'translations' );
-					break;
 			}
 		}
 	}

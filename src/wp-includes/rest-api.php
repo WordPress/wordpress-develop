@@ -2195,7 +2195,6 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			break;
 		default:
 			$is_valid = true;
-			break;
 	}
 
 	if ( is_wp_error( $is_valid ) ) {

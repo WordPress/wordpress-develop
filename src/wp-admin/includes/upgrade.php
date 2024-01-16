@@ -1768,7 +1768,8 @@ function upgrade_330() {
 
 								$found = true;
 								break;
-							} elseif ( sanitize_title( $widget['name'] ) === sanitize_title( $name ) ) {
+							}
+							if ( sanitize_title( $widget['name'] ) === sanitize_title( $name ) ) {
 								$_sidebars_widgets[ $index ][ $i ] = $widget['id'];
 
 								$found = true;
@@ -3539,7 +3540,6 @@ function translate_level_to_role( $level ) {
 		case 1:
 			return 'contributor';
 
-		case 0:
 		default:
 			return 'subscriber';
 	}

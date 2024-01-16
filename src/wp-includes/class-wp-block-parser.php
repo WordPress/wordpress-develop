@@ -218,7 +218,6 @@ class WP_Block_Parser {
 			default:
 				// This is an error.
 				$this->add_freeform();
-				return false;
 		}
 	}
 

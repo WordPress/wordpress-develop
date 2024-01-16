@@ -632,7 +632,6 @@ class WP_Tax_Query {
 				break;
 			default:
 				$args['include'] = wp_parse_id_list( $terms );
-				break;
 		}
 
 		if ( ! is_taxonomy_hierarchical( $query['taxonomy'] ) ) {

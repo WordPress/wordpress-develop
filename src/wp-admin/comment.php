@@ -144,7 +144,6 @@ switch ( $action ) {
 			default:
 				$caution_msg = __( 'You are about to approve the following comment:' );
 				$button      = __( 'Approve comment' );
-				break;
 		}
 
 		if ( '0' !== $comment->comment_approved ) { // If not unapproved.

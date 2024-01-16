@@ -168,7 +168,6 @@ class WP_Http_Curl {
 				if ( ! is_null( $parsed_args['body'] ) ) {
 					curl_setopt( $handle, CURLOPT_POSTFIELDS, $parsed_args['body'] );
 				}
-				break;
 		}
 
 		if ( true === $parsed_args['blocking'] ) {

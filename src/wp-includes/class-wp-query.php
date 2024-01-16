@@ -1771,8 +1771,6 @@ class WP_Query {
 					// Default: order by post field.
 					$orderby_clause = "{$wpdb->posts}.post_" . sanitize_key( $orderby );
 				}
-
-				break;
 		}
 
 		return $orderby_clause;

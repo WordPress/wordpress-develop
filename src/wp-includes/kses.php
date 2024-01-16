@@ -909,7 +909,6 @@ function wp_kses_allowed_html( $context = '' ) {
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $allowedentitynames, $context );
 
-		case 'data':
 		default:
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $allowedtags, $context );
@@ -2568,10 +2567,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				if ( empty( $url ) || wp_kses_bad_protocol( $url, $allowed_protocols ) !== $url ) {
 					$found = false;
 					break;
-				} else {
-					// Remove the whole `url(*)` bit that was matched above from the CSS.
-					$css_test_string = str_replace( $url_match, '', $css_test_string );
 				}
+				// Remove the whole `url(*)` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $url_match, '', $css_test_string );
 			}
 		}
 

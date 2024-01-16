@@ -456,7 +456,6 @@ function wp_get_post_content_block_attributes() {
 				break;
 			default:
 				$template_slug = $post_slug;
-				break;
 		}
 	}
 

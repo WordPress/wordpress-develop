@@ -3440,7 +3440,6 @@ function attachment_submitbox_metadata() {
 						break;
 					default:
 						echo esc_html( $meta[ $key ] );
-						break;
 				}
 
 				?>

@@ -1237,7 +1237,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				break;
 			default:
 				$normalized = $prefix . $query_param;
-				break;
 		}
 
 		return $normalized;
@@ -1264,11 +1263,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$status = 'approved';
 				break;
 
-			case 'spam':
-			case 'trash':
 			default:
 				$status = $comment_approved;
-				break;
 		}
 
 		return $status;
@@ -1742,7 +1738,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 			default:
 				$changed = false;
-				break;
 		}
 
 		return $changed;

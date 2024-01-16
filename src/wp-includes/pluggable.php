@@ -344,7 +344,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						default:
 							// Add it to our grand headers array.
 							$headers[ trim( $name ) ] = trim( $content );
-							break;
 					}
 				}
 			}
@@ -1778,7 +1777,6 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 				$notify_message .= __( 'You can see all comments on this post here:' ) . "\r\n";
 				/* translators: Comment notification email subject. 1: Site title, 2: Post title. */
 				$subject = sprintf( __( '[%1$s] Comment: "%2$s"' ), $blogname, $post->post_title );
-				break;
 		}
 
 		$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
@@ -1961,7 +1959,6 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 
 				/* translators: %s: Comment text. */
 				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
-				break;
 		}
 
 		/* translators: Comment moderation. %s: Comment action URL. */

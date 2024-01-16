@@ -220,7 +220,6 @@ if ( $doaction ) {
 			 *                         comments, terms, links, plugins, attachments, or users.
 			 */
 			$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-			break;
 	}
 
 	$sendback = remove_query_arg( array( 'action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view' ), $sendback );

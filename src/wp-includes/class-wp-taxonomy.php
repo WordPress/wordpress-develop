@@ -457,10 +457,8 @@ final class WP_Taxonomy {
 					$args['meta_box_sanitize_cb'] = 'taxonomy_meta_box_sanitize_cb_checkboxes';
 					break;
 
-				case 'post_tags_meta_box':
 				default:
 					$args['meta_box_sanitize_cb'] = 'taxonomy_meta_box_sanitize_cb_input';
-					break;
 			}
 		}
 

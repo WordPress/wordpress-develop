@@ -61,10 +61,8 @@ class Walker_Comment extends Walker {
 			case 'ol':
 				$output .= '<ol class="children">' . "\n";
 				break;
-			case 'ul':
 			default:
 				$output .= '<ul class="children">' . "\n";
-				break;
 		}
 	}
 
@@ -90,10 +88,8 @@ class Walker_Comment extends Walker {
 			case 'ol':
 				$output .= "</ol><!-- .children -->\n";
 				break;
-			case 'ul':
 			default:
 				$output .= "</ul><!-- .children -->\n";
-				break;
 		}
 	}
 

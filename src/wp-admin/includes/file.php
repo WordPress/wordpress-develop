@@ -473,7 +473,6 @@ function wp_edit_theme_plugin_file( $args ) {
 
 				default:
 					$allowed_files = array_merge( $allowed_files, $theme->get_files( $type, -1 ) );
-					break;
 			}
 		}
 

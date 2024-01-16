@@ -949,7 +949,6 @@ if ( current_user_can( 'manage_network' ) ) {
 			break;
 		default:
 			_e( 'The network currently allows both site and user registrations.' );
-			break;
 	}
 
 	echo ' ';
@@ -991,7 +990,6 @@ if ( 'none' === $active_signup ) {
 		case 'gimmeanotherblog':
 			validate_another_blog_signup();
 			break;
-		case 'default':
 		default:
 			$user_email = isset( $_POST['user_email'] ) ? $_POST['user_email'] : '';
 			/**
@@ -1027,7 +1025,6 @@ if ( 'none' === $active_signup ) {
 					);
 				}
 			}
-			break;
 	}
 }
 ?>
