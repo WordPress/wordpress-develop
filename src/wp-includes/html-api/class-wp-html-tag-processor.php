@@ -2827,6 +2827,50 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Sets the modifiable text for the matched token, if possible.
+	 *
+	 * @param string $text Replace the modifiable text with this string.
+	 * @return bool Whether the modifiable text was updated.
+	 */
+	public function set_modifiable_text( $text ) {
+		if ( null === $this->text_starts_at || ! is_string( $text ) ) {
+			return false;
+		}
+
+		switch ( $this->get_token_name() ) {
+			case '#text':
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					esc_html( $text )
+				);
+				break;
+
+			case 'TEXTAREA':
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					preg_replace( '~</textarea~i', '&lt;/textarea', $text )
+				);
+				break;
+
+			case 'TITLE':
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					preg_replace( '~</title~i', '&lt;/title', $text )
+				);
+				break;
+
+			default:
+				return false;
+		}
+
+		$this->get_updated_html();
+		return true;
+	}
+
+	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
 	 * For boolean attributes special handling is provided:
