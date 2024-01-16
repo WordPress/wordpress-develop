@@ -407,47 +407,84 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Test canonical redirects for attachment pages when the option is disabled.
+	 *
 	 * @ticket 57913
+	 * @ticket 59866
+	 *
+	 * @dataProvider data_canonical_attachment_page_redirect_with_option_disabled
 	 */
-	public function test_canonical_attachment_page_redirect_with_option_disabled() {
+	public function test_canonical_attachment_page_redirect_with_option_disabled( $expected, $user = null, $parent_post_status = '' ) {
 		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_false' );
+
+		if ( '' !== $parent_post_status ) {
+			$parent_post_id = self::factory()->post->create(
+				array(
+					'post_status' => $parent_post_status,
+				)
+			);
+		} else {
+			$parent_post_id = 0;
+		}
 
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
 
-		$attachment_id   = $this->_make_attachment( $upload );
+		$attachment_id   = $this->_make_attachment( $upload, $parent_post_id );
+		$attachment_url  = wp_get_attachment_url( $attachment_id );
 		$attachment_page = get_permalink( $attachment_id );
+
+		// Set as anonymous/logged out user.
+		if ( null !== $user ) {
+			wp_set_current_user( $user );
+		}
 
 		$this->go_to( $attachment_page );
 
-		$url      = redirect_canonical( $attachment_page, false );
-		$expected = wp_get_attachment_url( $attachment_id );
+		$url = redirect_canonical( $attachment_page, false );
+		if ( is_string( $expected ) ) {
+			$expected = str_replace( '%%attachment_url%%', $attachment_url, $expected );
+			$expected = str_replace( '%%attachment_page%%', $attachment_page, $expected );
+		}
 
 		$this->assertSame( $expected, $url );
 	}
 
 	/**
-	 * @ticket 59866
+	 * Data provider for test_canonical_attachment_page_redirect_with_option_disabled().
+	 *
+	 * @return array[]
 	 */
-	public function test_canonical_attachment_page_redirect_with_option_disabled_for_visitors() {
-		add_filter( 'pre_option_wp_attachment_pages_enabled', '__return_false' );
-
-		$filename = DIR_TESTDATA . '/images/test-image.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-
-		$attachment_id   = $this->_make_attachment( $upload );
-		$attachment_page = get_permalink( $attachment_id );
-
-		// Unset current user to test as visitor.
-		wp_set_current_user( 0 );
-
-		$this->go_to( $attachment_page );
-
-		$url      = redirect_canonical( $attachment_page, false );
-		$expected = wp_get_attachment_url( $attachment_id );
-
-		$this->assertSame( $expected, $url );
+	public function data_canonical_attachment_page_redirect_with_option_disabled() {
+		return array(
+			'logged out user, no parent'      => array(
+				'%%attachment_url%%',
+				0,
+			),
+			'logged in user, no parent'       => array(
+				'%%attachment_url%%',
+			),
+			'logged out user, private parent' => array(
+				null,
+				0,
+				'private',
+			),
+			'logged in user, private parent'  => array(
+				'%%attachment_url%%',
+				null,
+				'private',
+			),
+			'logged out user, public parent'  => array(
+				'%%attachment_url%%',
+				0,
+				'publish',
+			),
+			'logged in user, public parent'   => array(
+				'%%attachment_url%%',
+				null,
+				'publish',
+			),
+		);
 	}
 }
