@@ -2048,10 +2048,6 @@ final class WP_Theme implements ArrayAccess {
 		$allowed_themes = get_site_option( 'allowedthemes' );
 		foreach ( $stylesheets as $stylesheet ) {
 			if ( isset( $allowed_themes[ $stylesheet ] ) ) {
-				$theme = wp_get_theme( $stylesheet );
-				if ( $theme->exists() ) {
-					$theme->cache_delete();
-				}
 				unset( $allowed_themes[ $stylesheet ] );
 			}
 		}
