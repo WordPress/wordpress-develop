@@ -343,6 +343,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	 * Should insert hooked blocks into registered patterns.
 	 *
 	 * @ticket 59476
+	 * @ticket 60008
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 * @covers WP_Block_Patterns_Registry::get_all_registered
@@ -416,6 +417,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	 * Should insert hooked blocks into registered patterns.
 	 *
 	 * @ticket 59476
+	 * @ticket 60008
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 * @covers WP_Block_Patterns_Registry::get_registered
