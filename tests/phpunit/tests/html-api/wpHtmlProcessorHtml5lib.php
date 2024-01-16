@@ -235,7 +235,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 						// Only take lines that look like tags
 						// At least 3 chars (< + tag + >)
 						// Tag must start with ascii alphabetic
-						if ( strlen( $trimmed > 2 ) && '<' === $trimmed[0] && ctype_alpha( $trimmed[1] ) ) {
+						if ( strlen( $trimmed ) > 2 && '<' === $trimmed[0] && ctype_alpha( $trimmed[1] ) ) {
 							$test_dom .= $candidate;
 						}
 					}
