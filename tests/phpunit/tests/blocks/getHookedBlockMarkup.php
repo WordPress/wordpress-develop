@@ -19,6 +19,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	);
 
 	/**
+	 * @ticket 59572
 	 * @ticket 60008
 	 * @ticket 60126
 	 *
@@ -35,6 +36,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59572
 	 * @ticket 60008
 	 * @ticket 60126
 	 *
@@ -56,6 +58,7 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59572
 	 * @ticket 60008
 	 * @ticket 60126
 	 *

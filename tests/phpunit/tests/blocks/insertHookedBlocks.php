@@ -35,6 +35,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	);
 
 	/**
+	 * @ticket 59572
 	 * @ticket 60126
 	 *
 	 * @covers ::insert_hooked_blocks
@@ -50,6 +51,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59572
 	 * @ticket 60126
 	 *
 	 * @covers ::insert_hooked_blocks
@@ -70,6 +72,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59572
 	 * @ticket 60126
 	 *
 	 * @covers ::insert_hooked_blocks
