@@ -654,6 +654,7 @@ function url_to_postid( $url ) {
 			if ( ! empty( $query->posts ) && $query->is_singular ) {
 				return $query->post->ID;
 			}
+			return 0;
 		}
 	}
 	return 0;
