@@ -713,7 +713,7 @@ function wp_load_core_site_options( $network_id = null ) {
  *                              to leave the decision up to default heuristics in WordPress..
  *                              For existing options,
  *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
- *                              For backwards also accepts 'yes'|true to enable or 'no'|false to disable.
+ *                              For backward compatibility 'yes' and 'no' are also accepted.
  *                              Autoloading too many options can lead to performance problems, especially if the
  *                              options are not frequently used. For options which are accessed across several places
  *                              in the frontend, it is recommended to autoload them, by using 'yes'|true.
