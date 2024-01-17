@@ -122,7 +122,7 @@ class WP_Block_Type {
 	 * Block variations callback.
 	 *
 	 * @since 6.5.0
-	 * @var callable
+	 * @var callable|null
 	 */
 	public $variation_callback = null;
 
