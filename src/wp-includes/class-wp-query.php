@@ -1175,7 +1175,7 @@ class WP_Query {
 					'field'    => 'slug',
 				);
 
-				if ( ! empty( $t->rewrite['hierarchical'] ) ) {
+				if ( ! empty( $t->rewrite['hierarchical'] ) && ! is_array( $q[ $t->query_var ] ) ) {
 					$q[ $t->query_var ] = wp_basename( $q[ $t->query_var ] );
 				}
 
