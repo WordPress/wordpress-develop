@@ -49,7 +49,7 @@ abstract class WP_Translation_File {
 	 * Translation entries.
 	 *
 	 * @since 6.5.0
-	 * @var array<string, string[]>
+	 * @var array<string, string>
 	 */
 	protected $entries = array();
 
