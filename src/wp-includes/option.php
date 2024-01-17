@@ -392,8 +392,8 @@ function wp_set_option_autoload_values( array $options ) {
 	}
 
 	$grouped_options = array(
-		'on' => array(),
-		'off'  => array(),
+		'on'  => array(),
+		'off' => array(),
 	);
 	$results         = array();
 	foreach ( $options as $option => $autoload ) {
