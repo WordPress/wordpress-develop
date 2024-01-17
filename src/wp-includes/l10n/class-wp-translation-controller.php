@@ -12,7 +12,7 @@
  *
  * @since 6.5.0
  */
-class WP_Translation_Controller {
+final class WP_Translation_Controller {
 	/**
 	 * Current locale.
 	 *
@@ -24,7 +24,7 @@ class WP_Translation_Controller {
 	/**
 	 * Map of loaded translations per locale and text domain.
 	 *
-	 * [ Locale => [ Textdomain => [ .., .. ] ] ]
+	 * [ Locale => [ Textdomain => [ ..., ... ] ] ]
 	 *
 	 * @since 6.5.0
 	 * @var array<string, array<string, WP_Translation_File[]>>
@@ -37,7 +37,7 @@ class WP_Translation_Controller {
 	 * [ Filename => [ Locale => [ Textdomain => WP_Translation_File ] ] ]
 	 *
 	 * @since 6.5.0
-	 * @var array<string,array<string, array<string, WP_Translation_File|false>>>
+	 * @var array<string, array<string, array<string, WP_Translation_File|false>>>
 	 */
 	protected $loaded_files = array();
 
@@ -48,11 +48,11 @@ class WP_Translation_Controller {
 	 *
 	 * @return WP_Translation_Controller
 	 */
-	public static function instance() {
+	public static function instance(): WP_Translation_Controller {
 		static $instance;
 
 		if ( ! $instance ) {
-			$instance = new WP_Translation_Controller();
+			$instance = new self();
 		}
 
 		return $instance;
@@ -65,7 +65,7 @@ class WP_Translation_Controller {
 	 *
 	 * @return string Locale.
 	 */
-	public function get_locale() {
+	public function get_locale(): string {
 		return $this->current_locale;
 	}
 
@@ -90,7 +90,7 @@ class WP_Translation_Controller {
 	 * @param string $locale           Optional. Locale. Default current locale.
 	 * @return bool True on success, false otherwise.
 	 */
-	public function load_file( string $translation_file, string $textdomain = 'default', string $locale = null ) {
+	public function load_file( string $translation_file, string $textdomain = 'default', string $locale = null ): bool {
 		if ( null === $locale ) {
 			$locale = $this->current_locale;
 		}
@@ -145,7 +145,7 @@ class WP_Translation_Controller {
 	 * @param string                     $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
-	public function unload_file( $file, string $textdomain = 'default', string $locale = null ) {
+	public function unload_file( $file, string $textdomain = 'default', string $locale = null ): bool {
 		if ( is_string( $file ) ) {
 			$file = realpath( $file );
 		}
@@ -184,7 +184,7 @@ class WP_Translation_Controller {
 	 * @param string $locale     Optional. Locale. Default all locales.
 	 * @return bool True on success, false otherwise.
 	 */
-	public function unload_textdomain( string $textdomain = 'default', string $locale = null ) {
+	public function unload_textdomain( string $textdomain = 'default', string $locale = null ): bool {
 		if ( null !== $locale ) {
 			foreach ( $this->loaded_translations[ $locale ][ $textdomain ] as $moe ) {
 				unset( $this->loaded_files[ $moe->get_file() ][ $locale ][ $textdomain ] );
@@ -289,7 +289,7 @@ class WP_Translation_Controller {
 			}
 		}
 
-		/* @var WP_Translation_File $source */
+		/** @var WP_Translation_File $source */
 		$source = $translation['source'];
 		$num    = $source->get_plural_form( $number );
 
@@ -305,7 +305,7 @@ class WP_Translation_Controller {
 	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @return array<string, string> Headers.
 	 */
-	public function get_headers( string $textdomain = 'default' ) {
+	public function get_headers( string $textdomain = 'default' ): array {
 		if ( array() === $this->loaded_translations ) {
 			return array();
 		}
@@ -329,7 +329,7 @@ class WP_Translation_Controller {
 	 * @param string $header Header name.
 	 * @return string Normalized header name.
 	 */
-	protected function normalize_header( string $header ) {
+	protected function normalize_header( string $header ): string {
 		$parts = explode( '-', $header );
 		$parts = array_map( 'ucfirst', $parts );
 		return implode( '-', $parts );
@@ -343,7 +343,7 @@ class WP_Translation_Controller {
 	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @return array<string, string> Entries.
 	 */
-	public function get_entries( string $textdomain = 'default' ) {
+	public function get_entries( string $textdomain = 'default' ): array {
 		if ( array() === $this->loaded_translations ) {
 			return array();
 		}
@@ -400,7 +400,7 @@ class WP_Translation_Controller {
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return WP_Translation_File[] List of translation files.
 	 */
-	protected function get_files( string $textdomain = 'default', string $locale = null ) {
+	protected function get_files( string $textdomain = 'default', string $locale = null ): array {
 		if ( null === $locale ) {
 			$locale = $this->current_locale;
 		}
