@@ -47,11 +47,13 @@ class Custom_Image_Header {
 	private $updated;
 
 	/**
-	 * Constructor - Register administration header callback.
+	 * Constructor - Registers administration header callback.
 	 *
 	 * @since 2.1.0
-	 * @param callable $admin_header_callback
-	 * @param callable $admin_image_div_callback Optional custom image div output callback.
+	 *
+	 * @param callable $admin_header_callback    Administration header callback.
+	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                           Default empty string.
 	 */
 	public function __construct( $admin_header_callback, $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -882,14 +884,16 @@ endif;
 			$this->set_header_image( compact( 'url', 'attachment_id', 'width', 'height' ) );
 
 			/**
-			 * Fires after the header image is set or an error is returned.
+			 * Filters the attachment file path after the custom header or background image is set.
+			 *
+			 * Used for file replication.
 			 *
 			 * @since 2.1.0
 			 *
 			 * @param string $file          Path to the file.
 			 * @param int    $attachment_id Attachment ID.
 			 */
-			do_action( 'wp_create_file_in_uploads', $file, $attachment_id ); // For replication.
+			$file = apply_filters( 'wp_create_file_in_uploads', $file, $attachment_id ); // For replication.
 
 			return $this->finished();
 		} elseif ( $width > $max_width ) {

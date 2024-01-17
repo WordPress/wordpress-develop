@@ -867,6 +867,10 @@ $_old_files = array(
 	'wp-includes/images/wlw',
 	'wp-includes/wlwmanifest.xml',
 	'wp-includes/random_compat',
+	// 6.4
+	'wp-includes/navigation-fallback.php',
+	'wp-includes/blocks/navigation/view-modal.min.js',
+	'wp-includes/blocks/navigation/view-modal.js',
 );
 
 /**
@@ -1004,7 +1008,7 @@ $_new_bundled_files = array(
  * Upgrades the core of WordPress.
  *
  * This will create a .maintenance file at the base of the WordPress directory
- * to ensure that people can not access the web site, when the files are being
+ * to ensure that people can not access the website, when the files are being
  * copied to their locations.
  *
  * The files in the `$_old_files` list will be removed and the new files
@@ -1089,7 +1093,7 @@ function update_core( $from, $to ) {
 	 */
 	apply_filters( 'update_feedback', __( 'Verifying the unpacked files&#8230;' ) );
 
-	// Sanity check the unzipped distribution.
+	// Confidence check the unzipped distribution.
 	$distro = '';
 	$roots  = array( '/wordpress/', '/wordpress-mu/' );
 
@@ -1843,13 +1847,14 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 5.8.0
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
+ * @since 6.4.0 The minimum compatible version of Gutenberg is 16.5.
  */
 function _upgrade_core_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '16.5', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '14.1',
+			'version_compatible'  => '16.5',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );

@@ -323,7 +323,7 @@ function twentytwenty_get_custom_logo( $html ) {
 			);
 
 			// Add a style attribute with the height, or append the height to the style attribute if the style attribute already exists.
-			if ( ! str_contains( $html, ' style=' ) ) {
+			if ( false === strpos( $html, ' style=' ) ) {
 				$search[]  = '/(src=)/';
 				$replace[] = "style=\"height: {$logo_height}px;\" src=";
 			} else {
@@ -416,6 +416,7 @@ add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
  * Enqueue supplemental block editor styles.
  *
  * @since Twenty Twenty 1.0
+ * @since Twenty Twenty 2.4 Removed a script related to the obsolete Squared style of Button blocks.
  */
 function twentytwenty_block_editor_styles() {
 
@@ -434,12 +435,13 @@ function twentytwenty_block_editor_styles() {
 	if ( $custom_css ) {
 		wp_add_inline_style( 'twentytwenty-block-editor-styles', $custom_css );
 	}
-
-	// Enqueue the editor script.
-	wp_enqueue_script( 'twentytwenty-block-editor-script', get_theme_file_uri( '/assets/js/editor-script-block.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), array( 'in_footer' => true ) );
 }
 
-add_action( 'enqueue_block_editor_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
+	add_action( 'enqueue_block_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+} else {
+	add_action( 'enqueue_block_editor_assets', 'twentytwenty_block_editor_styles', 1, 1 );
+}
 
 /**
  * Enqueue classic editor styles.

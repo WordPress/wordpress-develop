@@ -473,7 +473,7 @@
 	min-height: 0;
 	line-height: 2.18181818;
 	text-align: left;
-	color: #008a20;
+	color: #007017;
 }
 
 .compat-item label span {
@@ -2905,6 +2905,7 @@
  * HiDPI Displays
  */
 @media print,
+  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 
 	.wp-core-ui .media-modal-icon {

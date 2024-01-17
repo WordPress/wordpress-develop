@@ -57,6 +57,8 @@ function get_postdata($postid) {
  *
  * @since 1.0.1
  * @deprecated 1.5.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  */
 function start_wp() {
 	global $wp_query;
@@ -2217,6 +2219,8 @@ function unregister_widget_control($id) {
  * @deprecated 3.0.0 Use delete_user_meta()
  * @see delete_user_meta()
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int $user_id User ID.
  * @param string $meta_key Metadata key.
  * @param mixed $meta_value Optional. Metadata value. Default empty.
@@ -2263,6 +2267,8 @@ function delete_usermeta( $user_id, $meta_key, $meta_value = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use get_user_meta()
  * @see get_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Optional. Metadata key. Default empty.
@@ -2315,6 +2321,8 @@ function get_usermeta( $user_id, $meta_key = '' ) {
  * @since 2.0.0
  * @deprecated 3.0.0 Use update_user_meta()
  * @see update_user_meta()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID
  * @param string $meta_key Metadata key.
@@ -2752,6 +2760,8 @@ function index_rel_link() {
  *
  * @since 2.8.0
  * @deprecated 3.3.0
+ *
+ * @global WP_Post $post Global post object.
  *
  * @param string $title Optional. Link title format. Default '%title'.
  * @return string
@@ -4062,8 +4072,6 @@ function _wp_register_meta_args_whitelist( $args, $default_args ) {
  * @deprecated 5.5.0 Use add_allowed_options() instead.
  *                   Please consider writing more inclusive code.
  *
- * @global array $allowed_options
- *
  * @param array        $new_options
  * @param string|array $options
  * @return array
@@ -4080,8 +4088,6 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @since 2.7.0
  * @deprecated 5.5.0 Use remove_allowed_options() instead.
  *                   Please consider writing more inclusive code.
- *
- * @global array $allowed_options
  *
  * @param array        $del_options
  * @param string|array $options
@@ -6123,4 +6129,113 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
 	}
 
 	return $new_content;
+}
+
+/**
+ * Prints the skip-link script & styles.
+ *
+ * @since 5.8.0
+ * @access private
+ * @deprecated 6.4.0 Use wp_enqueue_block_template_skip_link() instead.
+ *
+ * @global string $_wp_current_template_content
+ */
+function the_block_template_skip_link() {
+	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_block_template_skip_link()' );
+
+	global $_wp_current_template_content;
+
+	// Early exit if not a block theme.
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
+		return;
+	}
+	?>
+
+	<?php
+	/**
+	 * Print the skip-link styles.
+	 */
+	?>
+	<style id="skip-link-styles">
+		.skip-link.screen-reader-text {
+			border: 0;
+			clip: rect(1px,1px,1px,1px);
+			clip-path: inset(50%);
+			height: 1px;
+			margin: -1px;
+			overflow: hidden;
+			padding: 0;
+			position: absolute !important;
+			width: 1px;
+			word-wrap: normal !important;
+		}
+
+		.skip-link.screen-reader-text:focus {
+			background-color: #eee;
+			clip: auto !important;
+			clip-path: none;
+			color: #444;
+			display: block;
+			font-size: 1em;
+			height: auto;
+			left: 5px;
+			line-height: normal;
+			padding: 15px 23px 14px;
+			text-decoration: none;
+			top: 5px;
+			width: auto;
+			z-index: 100000;
+		}
+	</style>
+	<?php
+	/**
+	 * Print the skip-link script.
+	 */
+	?>
+	<script>
+	( function() {
+		var skipLinkTarget = document.querySelector( 'main' ),
+			sibling,
+			skipLinkTargetID,
+			skipLink;
+
+		// Early exit if a skip-link target can't be located.
+		if ( ! skipLinkTarget ) {
+			return;
+		}
+
+		/*
+		 * Get the site wrapper.
+		 * The skip-link will be injected in the beginning of it.
+		 */
+		sibling = document.querySelector( '.wp-site-blocks' );
+
+		// Early exit if the root element was not found.
+		if ( ! sibling ) {
+			return;
+		}
+
+		// Get the skip-link target's ID, and generate one if it doesn't exist.
+		skipLinkTargetID = skipLinkTarget.id;
+		if ( ! skipLinkTargetID ) {
+			skipLinkTargetID = 'wp--skip-link--target';
+			skipLinkTarget.id = skipLinkTargetID;
+		}
+
+		// Create the skip link.
+		skipLink = document.createElement( 'a' );
+		skipLink.classList.add( 'skip-link', 'screen-reader-text' );
+		skipLink.href = '#' + skipLinkTargetID;
+		skipLink.innerHTML = '<?php /* translators: Hidden accessibility text. */ esc_html_e( 'Skip to content' ); ?>';
+
+		// Inject the skip link.
+		sibling.parentElement.insertBefore( skipLink, sibling );
+	}() );
+	</script>
+	<?php
 }

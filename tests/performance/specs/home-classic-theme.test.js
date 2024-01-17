@@ -1,71 +1,56 @@
 /**
- * External dependencies.
+ * WordPress dependencies
  */
-const { basename, join } = require( 'path' );
-const { writeFileSync } = require( 'fs' );
-const { exec } = require( 'child_process' );
-const {
-	getResultsFilename,
-	getTimeToFirstByte,
-	getLargestContentfulPaint,
-} = require( './../utils' );
+import { test } from '@wordpress/e2e-test-utils-playwright';
 
 /**
- * WordPress dependencies.
+ * Internal dependencies
  */
-import { activateTheme, createURL } from '@wordpress/e2e-test-utils';
+import { camelCaseDashes } from '../utils';
 
-describe( 'Server Timing - Twenty Twenty One', () => {
-	const results = {
-		wpBeforeTemplate: [],
-		wpTemplate: [],
-		wpTotal: [],
-		timeToFirstByte: [],
-		largestContentfulPaint: [],
-		lcpMinusTtfb: [],
-	};
+const results = {
+	timeToFirstByte: [],
+	largestContentfulPaint: [],
+	lcpMinusTtfb: [],
+};
 
-	beforeAll( async () => {
-		await activateTheme( 'twentytwentyone' );
-		await exec(
-			'npm run env:cli -- menu location assign all-pages primary'
-		);
+test.describe( 'Front End - Twenty Twenty One', () => {
+	test.use( {
+		storageState: {}, // User will be logged out.
 	} );
 
-	afterAll( async () => {
-		const resultsFilename = getResultsFilename(
-			basename( __filename, '.js' )
-		);
-		writeFileSync(
-			join( __dirname, resultsFilename ),
-			JSON.stringify( results, null, 2 )
-		);
+	test.beforeAll( async ( { requestUtils } ) => {
+		await requestUtils.activateTheme( 'twentytwentyone' );
 	} );
 
-	it( 'Server Timing Metrics', async () => {
-		let i = TEST_RUNS;
-		while ( i-- ) {
-			await page.goto( createURL( '/' ) );
-			const navigationTimingJson = await page.evaluate( () =>
-				JSON.stringify( performance.getEntriesByType( 'navigation' ) )
-			);
+	test.afterAll( async ( {}, testInfo ) => {
+		await testInfo.attach( 'results', {
+			body: JSON.stringify( results, null, 2 ),
+			contentType: 'application/json',
+		} );
+	} );
 
-			const [ navigationTiming ] = JSON.parse( navigationTimingJson );
+	const iterations = Number( process.env.TEST_RUNS );
+	for ( let i = 1; i <= iterations; i++ ) {
+		test( `Measure load time metrics (${ i } of ${ iterations })`, async ( {
+			page,
+			metrics,
+		} ) => {
+			await page.goto( '/' );
 
-			results.wpBeforeTemplate.push(
-				navigationTiming.serverTiming[ 0 ].duration
-			);
-			results.wpTemplate.push(
-				navigationTiming.serverTiming[ 1 ].duration
-			);
-			results.wpTotal.push( navigationTiming.serverTiming[ 2 ].duration );
+			const serverTiming = await metrics.getServerTiming();
 
-			const ttfb = await getTimeToFirstByte();
-			const lcp = await getLargestContentfulPaint();
+			for ( const [ key, value ] of Object.entries( serverTiming ) ) {
+				results[ camelCaseDashes( key ) ] ??= [];
+				results[ camelCaseDashes( key ) ].push( value );
+			}
 
-			results.timeToFirstByte.push( ttfb );
+			const ttfb = await metrics.getTimeToFirstByte();
+			const lcp = await metrics.getLargestContentfulPaint();
+
 			results.largestContentfulPaint.push( lcp );
+			results.timeToFirstByte.push( ttfb );
 			results.lcpMinusTtfb.push( lcp - ttfb );
-		}
-	} );
+		} );
+	}
 } );

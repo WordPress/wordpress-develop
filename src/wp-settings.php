@@ -273,7 +273,9 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-global-styles-revis
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-types-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-post-statuses-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-revisions-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-revisions-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-autosaves-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-template-autosaves-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-taxonomies-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-terms-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-menu-items-controller.php';
@@ -354,7 +356,6 @@ require ABSPATH . WPINC . '/block-supports/position.php';
 require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 require ABSPATH . WPINC . '/block-supports/settings.php';
-require ABSPATH . WPINC . '/navigation-fallback.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';
@@ -364,6 +365,8 @@ require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face-resolver.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
 require ABSPATH . WPINC . '/fonts.php';
+require ABSPATH . WPINC . '/class-wp-script-modules.php';
+require ABSPATH . WPINC . '/script-modules.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
@@ -377,6 +380,7 @@ $GLOBALS['wp_embed'] = new WP_Embed();
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  */
 $GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+$GLOBALS['wp_textdomain_registry']->init();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {

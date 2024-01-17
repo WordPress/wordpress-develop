@@ -935,7 +935,8 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				'description' => '',
 				'icon'        => 'text',
 				'attributes'  => array(
-					'lock' => array( 'type' => 'object' ),
+					'lock'     => array( 'type' => 'object' ),
+					'metadata' => array( 'type' => 'object' ),
 				),
 				'usesContext' => array(),
 				'blockHooks'  => array( 'core/post-content' => 'before' ),
@@ -1144,8 +1145,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * Test refreshed nonce for metabox loader.
-	 *
-	 * @return void
 	 */
 	public function test_user_get_refreshed_metabox_nonce() {
 

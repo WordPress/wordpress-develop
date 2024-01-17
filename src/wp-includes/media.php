@@ -378,7 +378,7 @@ function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
  * @param string       $align Part of the class name for aligning the image.
  * @param string|int[] $size  Optional. Image size. Accepts any registered image size name, or an array of
  *                            width and height values in pixels (in that order). Default 'medium'.
- * @return string HTML IMG element for given image attachment?
+ * @return string HTML IMG element for given image attachment.
  */
 function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 
@@ -1248,7 +1248,7 @@ function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
  * @param int          $attachment_id Image attachment ID.
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order). Default 'medium'.
- * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
+ * @param array|null   $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
  * @return string|false A 'srcset' value string or false.
  */
@@ -1489,7 +1489,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
  * @param int          $attachment_id Image attachment ID.
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order). Default 'medium'.
- * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
+ * @param array|null   $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
  * @return string|false A valid source size value for use in a 'sizes' attribute or false.
  */
@@ -1520,8 +1520,8 @@ function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image
  *
  * @param string|int[] $size          Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order).
- * @param string       $image_src     Optional. The URL to the image file. Default null.
- * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
+ * @param string|null  $image_src     Optional. The URL to the image file. Default null.
+ * @param array|null   $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
  * @param int          $attachment_id Optional. Image attachment ID. Either `$image_meta` or `$attachment_id`
  *                                    is needed when using the image size name as argument for `$size`. Default 0.
@@ -2117,6 +2117,13 @@ function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id 
 		$size_array = wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id );
 
 		if ( $size_array ) {
+			// If the width is enforced through style (e.g. in an inline image), calculate the dimension attributes.
+			$style_width = preg_match( '/style="width:\s*(\d+)px;"/', $image, $match_width ) ? (int) $match_width[1] : 0;
+			if ( $style_width ) {
+				$size_array[1] = (int) round( $size_array[1] * $style_width / $size_array[0] );
+				$size_array[0] = $style_width;
+			}
+
 			$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
 			return str_replace( '<img', "<img {$hw}", $image );
 		}
@@ -2607,7 +2614,8 @@ function gallery_shortcode( $attr ) {
 			$attachments[ $val->ID ] = $_attachments[ $key ];
 		}
 	} elseif ( ! empty( $atts['exclude'] ) ) {
-		$attachments = get_children(
+		$post_parent_id = $id;
+		$attachments    = get_children(
 			array(
 				'post_parent'    => $id,
 				'exclude'        => $atts['exclude'],
@@ -2619,7 +2627,8 @@ function gallery_shortcode( $attr ) {
 			)
 		);
 	} else {
-		$attachments = get_children(
+		$post_parent_id = $id;
+		$attachments    = get_children(
 			array(
 				'post_parent'    => $id,
 				'post_status'    => 'inherit',
@@ -2629,6 +2638,17 @@ function gallery_shortcode( $attr ) {
 				'orderby'        => $atts['orderby'],
 			)
 		);
+	}
+
+	if ( ! empty( $post_parent_id ) ) {
+		$post_parent = get_post( $post_parent_id );
+
+		// Terminate the shortcode execution if the user cannot read the post or it is password-protected.
+		if ( ! is_post_publicly_viewable( $post_parent->ID ) && ! current_user_can( 'read_post', $post_parent->ID )
+			|| post_password_required( $post_parent )
+		) {
+			return '';
+		}
 	}
 
 	if ( empty( $attachments ) ) {
@@ -2961,6 +2981,15 @@ function wp_playlist_shortcode( $attr ) {
 	} else {
 		$args['post_parent'] = $id;
 		$attachments         = get_children( $args );
+	}
+
+	if ( ! empty( $args['post_parent'] ) ) {
+		$post_parent = get_post( $id );
+
+		// Terminate the shortcode execution if the user cannot read the post or it is password-protected.
+		if ( ! current_user_can( 'read_post', $post_parent->ID ) || post_password_required( $post_parent ) ) {
+			return '';
+		}
 	}
 
 	if ( empty( $attachments ) ) {
@@ -4111,7 +4140,7 @@ function _wp_image_editor_choose( $args = array() ) {
 			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
 		) {
 			/*
-			 * This implementation supports the imput type but not the output type.
+			 * This implementation supports the input type but not the output type.
 			 * Keep looking to see if we can find an implementation that supports both.
 			 */
 			$supports_input = $implementation;

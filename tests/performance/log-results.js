@@ -11,8 +11,12 @@ const { median } = require( './utils' );
 
 // The list of test suites to log.
 const testSuites = [
+	'admin',
+	'admin-l10n',
 	'home-block-theme',
+	'home-block-theme-l10n',
 	'home-classic-theme',
+	'home-classic-theme-l10n',
 ];
 
 // A list of results to parse based on test suites.
