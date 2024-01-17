@@ -198,7 +198,7 @@ abstract class WP_Translation_File {
 	 * @param string $text String to translate.
 	 * @return false|string Translation(s) on success, false otherwise.
 	 */
-	public function translate( string $text ): bool {
+	public function translate( string $text ) {
 		if ( ! $this->parsed ) {
 			$this->parse_file();
 		}
