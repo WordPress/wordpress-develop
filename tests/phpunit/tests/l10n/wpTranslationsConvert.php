@@ -144,11 +144,11 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		return array(
 			array( 'php', '' ),
 			array( 'php', '<?php // This is a php file without a payload' ),
-			array( 'mo', '', 'Invalid Data.' ),
-			array( 'mo', 'Random data in a file long enough to be a real header', "Magic Marker doesn't exist" ),
-			array( 'mo', pack( 'V*', 0x950412de ), 'Invalid Data.' ),
-			array( 'mo', pack( 'V*', 0x950412de ) . 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'Unsupported Revision.' ),
-			array( 'mo', pack( 'V*', 0x950412de, 0x0 ) . 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'Invalid Data.' ),
+			array( 'mo', '', 'Invalid data' ),
+			array( 'mo', 'Random data in a file long enough to be a real header', 'Magic marker does not exist' ),
+			array( 'mo', pack( 'V*', 0x950412de ), 'Invalid data' ),
+			array( 'mo', pack( 'V*', 0x950412de ) . 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'Unsupported revision' ),
+			array( 'mo', pack( 'V*', 0x950412de, 0x0 ) . 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'Invalid data' ),
 		);
 	}
 
