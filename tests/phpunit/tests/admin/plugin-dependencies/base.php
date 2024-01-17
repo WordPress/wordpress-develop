@@ -30,7 +30,6 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 		'dependency_slugs'                => array(),
 		'dependent_slugs'                 => array(),
 		'dependency_api_data'             => array(),
-		'uninstalled_dependency_api_data' => array(),
 		'plugin_card_data'                => array(),
 	);
 
