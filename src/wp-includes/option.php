@@ -1195,7 +1195,7 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	}
 
 	/**
-	 * Filter: set the default value if null is passed as the $autoload
+	 * Allows to determine the default autoload value for an option where no explicit value is passed.
 	 *
 	 *
 	 * @since 6.5.0
