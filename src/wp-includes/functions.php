@@ -3355,7 +3355,7 @@ function wp_get_image_mime( $file ) {
 		/**
 		 * Add AVIF fallback detection when image library doesn't support AVIF.
 		 *
-		 * Note: detection values come from libavif and test files.
+		 * @todo check the third 4-byte token "[major_brand]", for "avif" or "avis" .
 		 *
 		 */
 		if (
