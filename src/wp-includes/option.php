@@ -1162,9 +1162,9 @@ function delete_option( $option ) {
  * @param mixed            $value    The value of the option to check its autoload value.
  * @param string|bool|null $autoload The autoload value to check.
  *                                   Accepts 'yes'|true to enable or 'no'|false to disable, or
- *                                   'auto-yes' and 'auto-no' for internal purposes.
- *                                   Any other autoload value will be forced to either `auto-yes`
- *                                   or `auto-no`.
+ *                                   'auto-yes', 'auto-no', or 'auto' for internal purposes.
+ *                                   Any other autoload value will be forced to either `auto-yes`,
+ *                                   `auto-no`, or `auto`.
  * @return string Returns the original $autoload value if valid, or 'auto-no' if the size exceeds
  *                the maximum allowed size, or 'auto-yes' otherwise.
  */
