@@ -5574,7 +5574,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 }
 
 /**
- * Extracts meta information about an AVIF file: width, height, and type.
+ * Extracts meta information about an AVIF file: width, height, bit depth, and number of channels.
  *
  * @since 6.5.0
  *
@@ -5582,9 +5582,10 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  * @return array {
  *    An array of AVIF image information.
  *
- *   @type int|false    $width  Image width on success, false on failure.
- *   @type int|false    $height Image height on success, false on failure.
- *   @type string|false $type   The AVIF type: one of 'lossy' or 'lossless'. False on failure.
+ *   @type int|false    $width        Image width on success, false on failure.
+ *   @type int|false    $height       Image height on success, false on failure.
+ *   @type int|false    $bit_depth    Image bit depth on success, false on failure.
+ *   @type int|false    $num_channels Image number of channels on success, false on failure.
  * }
  */
 function wp_get_avif_info( $filename ) {
@@ -5596,41 +5597,25 @@ function wp_get_avif_info( $filename ) {
 		return compact( 'width', 'height', 'type' );
 	}
 
-	if ( function_exists( 'avif_get_info' ) ) {
+	// Parse the file using libavifinfo's PHP implementation.
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
+	$results = array(
+		'width'        => false,
+		'height'       => false,
+		'bit_depth'    => false,
+		'num_channels' => false,
+	);
 
-		$avif_info = avif_get_info( $filename );
-
-		if ( ! $avif_info ) {
-			return compact( 'width', 'height', 'type' );
+	$handle = fopen( $filename, 'rb' );
+	if ( $handle ) {
+		$parser  = new Avifinfo\Parser( $handle );
+		$success = $parser->parse_ftyp() && $parser->parse_file();
+		fclose( $handle );
+		if ( $success ) {
+			$results = $parser->features->primary_item_features;
 		}
-
-		$width  = $avif_info['width'];
-		$height = $avif_info['height'];
-		$type   = $avif_info['type'];
-
-		return compact( 'width', 'height', 'type' );
-	} else {
-		// Fall back to directly parsing the file headers.
-		require_once ABSPATH . WPINC . '/class-avif-info.php';
-		$features = array(
-			'width'        => false,
-			'height'       => false,
-			'bit_depth'    => false,
-			'num_channels' => false,
-		);
-
-		$handle = fopen( $filename, 'rb' );
-		if ( $handle ) {
-			$parser  = new Avifinfo\Parser( $handle );
-			$success = $parser->parse_ftyp() && $parser->parse_file();
-			fclose( $handle );
-			if ( $success ) {
-				$features = $parser->features->primary_item_features;
-			}
-		}
-
-		return $features;
 	}
+	return $results;
 }
 
 /**
