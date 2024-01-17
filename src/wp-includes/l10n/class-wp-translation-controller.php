@@ -365,7 +365,12 @@ final class WP_Translation_Controller {
 	 * @param string $singular   Singular translation.
 	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Default current locale.
-	 * @return array{source: WP_Translation_File, entries: string[]}|false Translations on success, false otherwise.
+	 * @return array{source: WP_Translation_File, entries: string[]}|false {
+	 *     Translations on success, false otherwise.
+	 *
+	 *     @type WP_Translation_File $source Translation file instance.
+	 *     @type string[]            $entries Array of translation entries.
+	 * }
 	 */
 	protected function locate_translation( string $singular, string $textdomain = 'default', string $locale = null ) {
 		if ( array() === $this->loaded_translations ) {
