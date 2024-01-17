@@ -228,8 +228,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 			foreach ( $types as $type ) {
 				if ( post_type_supports( $type->name, 'author' )
-					&& current_user_can( $type->cap->edit_posts )
-				) {
+					&& current_user_can( $type->cap->edit_posts ) ) {
 					return true;
 				}
 			}

@@ -475,8 +475,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		if ( ( is_taxonomy_hierarchical( $this->taxonomy )
 				&& ! current_user_can( $taxonomy_obj->cap->edit_terms ) )
 			|| ( ! is_taxonomy_hierarchical( $this->taxonomy )
-				&& ! current_user_can( $taxonomy_obj->cap->assign_terms ) )
-		) {
+				&& ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) ) {
 			return new WP_Error(
 				'rest_cannot_create',
 				__( 'Sorry, you are not allowed to create terms in this taxonomy.' ),

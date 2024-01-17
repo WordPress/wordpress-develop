@@ -160,9 +160,8 @@ function wp_nav_menu( $args = array() ) {
 	 *  - Otherwise, bail.
 	 */
 	if ( ( ! $menu || is_wp_error( $menu ) || ( isset( $menu_items ) && empty( $menu_items ) && ! $args->theme_location ) )
-		&& isset( $args->fallback_cb ) && $args->fallback_cb && is_callable( $args->fallback_cb )
-	) {
-		return call_user_func( $args->fallback_cb, (array) $args );
+		&& isset( $args->fallback_cb ) && $args->fallback_cb && is_callable( $args->fallback_cb ) ) {
+			return call_user_func( $args->fallback_cb, (array) $args );
 	}
 
 	if ( ! $menu || is_wp_error( $menu ) ) {

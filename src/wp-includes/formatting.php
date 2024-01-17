@@ -261,13 +261,13 @@ function wptexturize( $text, $reset = false ) {
 		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
 			// This is a shortcode delimiter.
 
-			if ( str_starts_with( $curl, '[[' ) || str_ends_with( $curl, ']]' ) ) {
+			if ( ! str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
+				// Looks like a normal shortcode.
+				_wptexturize_pushpop_element( $curl, $no_texturize_shortcodes_stack, $no_texturize_shortcodes );
+			} else {
 				// Looks like an escaped shortcode.
 				continue;
 			}
-
-			// Looks like a normal shortcode.
-			_wptexturize_pushpop_element( $curl, $no_texturize_shortcodes_stack, $no_texturize_shortcodes );
 		} elseif ( empty( $no_texturize_shortcodes_stack ) && empty( $no_texturize_tags_stack ) ) {
 			// This is neither a delimiter, nor is this content inside of no_texturize pairs. Do texturize.
 
@@ -396,9 +396,10 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 	} elseif ( 0 === count( $stack ) ) {
 		// Stack is empty. Just stop.
 		return;
+	} else {
+		$opening_tag = false;
+		$name_offset = 2;
 	}
-	$opening_tag = false;
-	$name_offset = 2;
 
 	// Parse out the tag name.
 	$space = strpos( $text, ' ' );
