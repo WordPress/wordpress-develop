@@ -606,7 +606,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload = 'yes' OR autoload = 'auto-on' OR autoload = 'on'" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( 'yes', 'on', 'auto-on', 'auto' )" );
 
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
@@ -706,20 +706,20 @@ function wp_load_core_site_options( $network_id = null ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string           $option   Name of the option to update. Expected to not be SQL-escaped.
- * @param mixed            $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
- * @param bool|null        $autoload Optional. Whether to load the option when WordPress starts up.
- *                              Accepts a boolean, or `null` to stick with the initial value or, if no initial value is set,
- *                              to leave the decision up to default heuristics in WordPress..
- *                              For existing options,
- *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
- *                              For backward compatibility 'yes' and 'no' are also accepted.
- *                              Autoloading too many options can lead to performance problems, especially if the
- *                              options are not frequently used. For options which are accessed across several places
- *                              in the frontend, it is recommended to autoload them, by using true.
- *                              For options which are accessed only on few specific URLs, it is recommended
- *                              to not autoload them, by using false.
- *                              For non-existent options, the default is 'null' and this will set to autoload if the value is too large.
+ * @param string    $option   Name of the option to update. Expected to not be SQL-escaped.
+ * @param mixed     $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param bool|null $autoload Optional. Whether to load the option when WordPress starts up.
+ *                            Accepts a boolean, or `null` to stick with the initial value or, if no initial value is set,
+ *                            to leave the decision up to default heuristics in WordPress..
+ *                            For existing options,
+ *                            `$autoload` can only be updated using `update_option()` if `$value` is also changed.
+ *                            For backward compatibility 'yes' and 'no' are also accepted.
+ *                            Autoloading too many options can lead to performance problems, especially if the
+ *                            options are not frequently used. For options which are accessed across several places
+ *                            in the frontend, it is recommended to autoload them, by using true.
+ *                            For options which are accessed only on few specific URLs, it is recommended
+ *                            to not autoload them, by using false.
+ *                            For non-existent options, the default is 'null' and this will set to autoload if the value is too large.
  *
  * @return bool True if the value was updated, false otherwise.
  */
