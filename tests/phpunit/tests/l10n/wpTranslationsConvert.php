@@ -70,7 +70,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	public function test_unload_file_is_not_actually_loaded() {
 		$controller = new WP_Translation_Controller();
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo', 'unittest' ) );
-		$this->assertTrue( $controller->unload_file( DIR_TESTDATA . '/l10n/simple.mo', 'unittest' ) );
+		$this->assertFalse( $controller->unload_file( DIR_TESTDATA . '/l10n/simple.mo', 'unittest' ) );
 
 		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
 		$this->assertSame( 'translation', $controller->translate( 'original', '', 'unittest' ) );

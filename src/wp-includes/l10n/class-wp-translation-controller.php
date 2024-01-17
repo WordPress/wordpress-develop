@@ -172,7 +172,7 @@ final class WP_Translation_Controller {
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	/**
