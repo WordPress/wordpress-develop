@@ -2510,21 +2510,19 @@ function compression_test() {
 				this.get(1);
 
 			if ( 1 == test ) {
-				if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) ) {
+				if ( h && ( h.match(/deflate/i) || h.match(/gzip/i) ) )
 					this.get('no');
-				} else {
+				else
 					this.get(2);
-				}
 
 				return;
 			}
 
 			if ( 2 == test ) {
-				if ( '"wpCompressionTest' === r ) {
+				if ( '"wpCompressionTest' === r )
 					this.get('yes');
-				} else {
+				else
 					this.get('no');
-				}
 			}
 		}
 	};

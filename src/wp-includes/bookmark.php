@@ -411,6 +411,7 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 			 * The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
 			 */
 			return $value;
+
 		case 'link_visible': // bool stored as Y|N
 			$value = preg_replace( '/[^YNyn]/', '', $value );
 			break;

@@ -938,6 +938,7 @@ switch ( $action ) {
 			</form>
 		</div>
 		<?php
+		break;
 }
 ?>
 <script type="text/javascript">

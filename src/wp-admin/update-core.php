@@ -1318,15 +1318,15 @@ if ( 'upgrade-core' === $action ) {
 
 	wp_redirect( $redirect_url );
 	exit;
+} else {
+	/**
+	 * Fires for each custom update action on the WordPress Updates screen.
+	 *
+	 * The dynamic portion of the hook name, `$action`, refers to the
+	 * passed update action. The hook fires in lieu of all available
+	 * default update actions.
+	 *
+	 * @since 3.2.0
+	 */
+	do_action( "update-core-custom_{$action}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }
-
-/**
- * Fires for each custom update action on the WordPress Updates screen.
- *
- * The dynamic portion of the hook name, `$action`, refers to the
- * passed update action. The hook fires in lieu of all available
- * default update actions.
- *
- * @since 3.2.0
- */
-do_action( "update-core-custom_{$action}" );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores

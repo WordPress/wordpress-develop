@@ -1377,5 +1377,9 @@ function is_admin_bar_showing() {
  */
 function _get_admin_bar_pref( $context = 'front', $user = 0 ) {
 	$pref = get_user_option( "show_admin_bar_{$context}", $user );
-	return ( false === $pref || 'true' === $pref );
+	if ( false === $pref ) {
+		return true;
+	}
+
+	return 'true' === $pref;
 }

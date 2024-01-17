@@ -1290,9 +1290,6 @@ function filter_block_kses( $block, $allowed_html, $allowed_protocols = array() 
  * @return string[]|string The filtered and sanitized result.
  */
 function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = array() ) {
-	if ( is_string( $value ) ) {
-		return wp_kses( $value, $allowed_html, $allowed_protocols );
-	}
 	if ( is_array( $value ) ) {
 		foreach ( $value as $key => $inner_value ) {
 			$filtered_key   = filter_block_kses_value( $key, $allowed_html, $allowed_protocols );
@@ -1304,6 +1301,8 @@ function filter_block_kses_value( $value, $allowed_html, $allowed_protocols = ar
 
 			$value[ $filtered_key ] = $filtered_value;
 		}
+	} elseif ( is_string( $value ) ) {
+		return wp_kses( $value, $allowed_html, $allowed_protocols );
 	}
 
 	return $value;

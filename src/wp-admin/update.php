@@ -201,8 +201,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		wp_redirect( self_admin_url( 'plugin-install.php' ) );
 		exit;
-	}
-	if ( 'upgrade-theme' === $action ) {
+	} elseif ( 'upgrade-theme' === $action ) {
 
 		if ( ! current_user_can( 'update_themes' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ) );
@@ -350,16 +349,16 @@ if ( isset( $_GET['action'] ) ) {
 
 		wp_redirect( self_admin_url( 'theme-install.php' ) );
 		exit;
+	} else {
+		/**
+		 * Fires when a custom plugin or theme update request is received.
+		 *
+		 * The dynamic portion of the hook name, `$action`, refers to the action
+		 * provided in the request for wp-admin/update.php. Can be used to
+		 * provide custom update functionality for themes and plugins.
+		 *
+		 * @since 2.8.0
+		 */
+		do_action( "update-custom_{$action}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
-
-	/**
-	 * Fires when a custom plugin or theme update request is received.
-	 *
-	 * The dynamic portion of the hook name, `$action`, refers to the action
-	 * provided in the request for wp-admin/update.php. Can be used to
-	 * provide custom update functionality for themes and plugins.
-	 *
-	 * @since 2.8.0
-	 */
-	do_action( "update-custom_{$action}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 }

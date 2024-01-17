@@ -289,8 +289,10 @@ class WP_Customize_Setting {
 	 * @return bool If preview() has been called.
 	 */
 	public function is_current_blog_previewed() {
-		return ( isset( $this->_previewed_blog_id ) &&
-			get_current_blog_id() === $this->_previewed_blog_id );
+		if ( ! isset( $this->_previewed_blog_id ) ) {
+			return false;
+		}
+		return ( get_current_blog_id() === $this->_previewed_blog_id );
 	}
 
 	/**
@@ -656,6 +658,7 @@ class WP_Customize_Setting {
 			}
 			return update_option( $id_base, $value, $autoload );
 		}
+
 		if ( 'theme_mod' === $this->type ) {
 			set_theme_mod( $id_base, $value );
 			return true;
@@ -771,11 +774,12 @@ class WP_Customize_Setting {
 
 			// Ensure that the post value is used if the setting is previewed, since preview filters aren't applying on cached $root_value.
 			if ( $this->is_previewed ) {
-				return $this->post_value( $value );
+				$value = $this->post_value( $value );
 			}
-			return $value;
+		} else {
+			$value = $this->get_root_value( $this->default );
 		}
-		return $this->get_root_value( $this->default );
+		return $value;
 	}
 
 	/**
