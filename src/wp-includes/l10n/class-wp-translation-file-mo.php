@@ -74,7 +74,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 			return 'V';
 		}
 
-		$this->error = "Magic Marker doesn't exist";
+		$this->error = 'Magic marker does not exist';
 		return false;
 	}
 
@@ -97,7 +97,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 		$file_length = strlen( $file_contents );
 
 		if ( $file_length < 24 ) {
-			$this->error = 'Invalid Data.';
+			$this->error = 'Invalid data';
 			return false;
 		}
 
@@ -123,12 +123,12 @@ class WP_Translation_File_MO extends WP_Translation_File {
 		$offsets['translations_length'] = $offsets['hash_addr'] - $offsets['translations_addr'];
 
 		if ( $offsets['rev'] > 0 ) {
-			$this->error = 'Unsupported Revision.';
+			$this->error = 'Unsupported revision';
 			return false;
 		}
 
 		if ( $offsets['translations_addr'] > $file_length || $offsets['originals_addr'] > $file_length ) {
-			$this->error = 'Invalid Data.';
+			$this->error = 'Invalid data';
 			return false;
 		}
 

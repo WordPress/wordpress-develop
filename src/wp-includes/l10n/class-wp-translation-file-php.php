@@ -23,7 +23,7 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 
 		$result = include $this->file;
 		if ( ! $result || ! is_array( $result ) ) {
-			$this->error = true;
+			$this->error = 'Invalid data';
 			return;
 		}
 
