@@ -12,7 +12,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
+class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 	/**
 	 * The HTML Processor only accepts HTML in document <body>.
@@ -51,7 +51,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 	 * @param string $html             Given test HTML.
 	 * @param string $result           Tree structure of parsed HTML.
 	 */
-	public function test_external_html5lib( $fragment_context, $html, $result ) {
+	public function test_parse( $fragment_context, $html, $result ) {
 		if ( self::SKIP_HEAD_TESTS ) {
 			$html_start = "<html>\n  <head>\n  <body>\n";
 			if (
