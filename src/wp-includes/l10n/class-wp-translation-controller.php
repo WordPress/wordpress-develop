@@ -265,7 +265,12 @@ final class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array{0: string, 1: string} $plurals    Pair of singular and plural translations.
+	 * @param array{0: string, 1: string} {
+	 *     Pair of singular and plural translations.
+	 *
+	 *     @type string $0 Singular translation.
+	 *     @type string $1 Plural translation.
+	 * }
 	 * @param int                         $number     Number of items.
 	 * @param string                      $context    Optional. Context for the string. Default empty string.
 	 * @param string                      $textdomain Optional. Text domain. Default 'default'.
