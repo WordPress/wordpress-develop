@@ -265,7 +265,7 @@ final class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array{0: string, 1: string} {
+	 * @param array{0: string, 1: string} $plurals {
 	 *     Pair of singular and plural translations.
 	 *
 	 *     @type string $0 Singular translation.
