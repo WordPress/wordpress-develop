@@ -85,7 +85,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 *
 	 * @return bool True on success, false otherwise.
 	 */
-	protected function parse_file() {
+	protected function parse_file(): bool {
 		$this->parsed = true;
 
 		$file_contents = file_get_contents( $this->file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -175,7 +175,7 @@ class WP_Translation_File_MO extends WP_Translation_File {
 	 *
 	 * @return string Translation file contents.
 	 */
-	public function export() {
+	public function export(): string {
 		// Prefix the headers as the first key.
 		$headers_string = '';
 		foreach ( $this->headers as $header => $value ) {
@@ -205,13 +205,13 @@ class WP_Translation_File_MO extends WP_Translation_File {
 		foreach ( array_keys( $entries ) as $original ) {
 			$o_addr        .= pack( $this->uint32 . '*', strlen( $original ), $entry_offsets );
 			$entry_offsets += strlen( $original ) + 1;
-			$o_entries     .= $original . pack( 'x' );
+			$o_entries     .= $original . "\0";
 		}
 
 		foreach ( $entries as $translations ) {
 			$t_addr        .= pack( $this->uint32 . '*', strlen( $translations ), $entry_offsets );
 			$entry_offsets += strlen( $translations ) + 1;
-			$t_entries     .= $translations . pack( 'x' );
+			$t_entries     .= $translations . "\0";
 		}
 
 		return $file_header . $o_addr . $t_addr . $o_entries . $t_entries;

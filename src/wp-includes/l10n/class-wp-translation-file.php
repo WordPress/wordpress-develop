@@ -146,7 +146,7 @@ abstract class WP_Translation_File {
 	 *
 	 * @return array<string, string> Headers.
 	 */
-	public function headers() {
+	public function headers(): array {
 		if ( ! $this->parsed ) {
 			$this->parse_file();
 		}
@@ -160,7 +160,7 @@ abstract class WP_Translation_File {
 	 *
 	 * @return array<string, string[]> Entries.
 	 */
-	public function entries() {
+	public function entries(): array {
 		if ( ! $this->parsed ) {
 			$this->parse_file();
 		}
@@ -186,7 +186,7 @@ abstract class WP_Translation_File {
 	 *
 	 * @return string File name.
 	 */
-	public function get_file() {
+	public function get_file(): string {
 		return $this->file;
 	}
 
@@ -198,7 +198,7 @@ abstract class WP_Translation_File {
 	 * @param string $text String to translate.
 	 * @return false|string Translation(s) on success, false otherwise.
 	 */
-	public function translate( string $text ) {
+	public function translate( string $text ): bool {
 		if ( ! $this->parsed ) {
 			$this->parse_file();
 		}
@@ -214,7 +214,7 @@ abstract class WP_Translation_File {
 	 * @param int $number Count.
 	 * @return int Plural form.
 	 */
-	public function get_plural_form( int $number ) {
+	public function get_plural_form( int $number ): int {
 		if ( ! $this->parsed ) {
 			$this->parse_file();
 		}
@@ -265,7 +265,7 @@ abstract class WP_Translation_File {
 	 * @param WP_Translation_File $source Source file.
 	 * @return bool True on success, false otherwise.
 	 */
-	protected function import( WP_Translation_File $source ) {
+	protected function import( WP_Translation_File $source ): bool {
 		if ( null !== $source->error() ) {
 			return false;
 		}

@@ -48,7 +48,7 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 	 *
 	 * @return string Translation file contents.
 	 */
-	public function export() {
+	public function export(): string {
 		$data = array_merge( $this->headers, array( 'messages' => $this->entries ) );
 
 		return '<?php' . PHP_EOL . 'return ' . $this->var_export( $data ) . ';' . PHP_EOL;
@@ -65,7 +65,7 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 	 * @param mixed $value The variable you want to export.
 	 * @return string The variable representation.
 	 */
-	private function var_export( $value ) {
+	private function var_export( $value ): string {
 		if ( ! is_array( $value ) ) {
 			return var_export( $value, true );
 		}
