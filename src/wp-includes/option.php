@@ -862,7 +862,7 @@ function update_option( $option, $value, $autoload = null ) {
 			} else {
 				wp_cache_set( $option, $serialized_value, 'options' );
 			}
-		} elseif ( 'yes' === $update_args['autoload'] || 'auto-yes' === $update_args['autoload'] ) {
+		} elseif ( 'on' === $update_args['autoload'] || 'auto-on' === $update_args['autoload'] || 'auto' === $update_args['autoload'] || 'yes' === $update_args['autoload'] ) {
 			// Delete the individual cache, then set in alloptions cache.
 			wp_cache_delete( $option, 'options' );
 
