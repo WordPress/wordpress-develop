@@ -223,7 +223,7 @@ class WP_Translation_Controller {
 	 * @param string $locale     Optional. Locale. Default current locale.
 	 * @return bool True if there are any loaded translations, false otherwise.
 	 */
-	public function is_loaded( string $textdomain = 'default', string $locale = null ) {
+	public function is_textdomain_loaded(string $textdomain = 'default', string $locale = null ) {
 		if ( null === $locale ) {
 			$locale = $this->current_locale;
 		}

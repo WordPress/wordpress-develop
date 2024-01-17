@@ -34,14 +34,14 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 */
 	public function test_unload_not_loaded() {
 		$instance = new WP_Translation_Controller();
-		$this->assertFalse( $instance->is_loaded( 'unittest' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest' ) );
 		$this->assertFalse( $instance->unload_textdomain( 'unittest' ) );
 	}
 
 	/**
 	 * @covers ::load
 	 * @covers ::unload
-	 * @covers ::is_loaded
+	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::locate_translation
 	 * @covers ::get_files
@@ -50,14 +50,14 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 */
 	public function test_unload_entire_textdomain() {
 		$instance = new WP_Translation_Controller();
-		$this->assertFalse( $instance->is_loaded( 'unittest' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest' ) );
 		$this->assertTrue( $instance->load_file( DIR_TESTDATA . '/l10n/example-simple.php', 'unittest' ) );
-		$this->assertTrue( $instance->is_loaded( 'unittest' ) );
+		$this->assertTrue( $instance->is_textdomain_loaded( 'unittest' ) );
 
 		$this->assertSame( 'translation', $instance->translate( 'original', '', 'unittest' ) );
 
 		$this->assertTrue( $instance->unload_textdomain( 'unittest' ) );
-		$this->assertFalse( $instance->is_loaded( 'unittest' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest' ) );
 		$this->assertFalse( $instance->translate( 'original', '', 'unittest' ) );
 	}
 
@@ -72,36 +72,36 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo', 'unittest' ) );
 		$this->assertTrue( $controller->unload_file( DIR_TESTDATA . '/l10n/simple.mo', 'unittest' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
 		$this->assertSame( 'translation', $controller->translate( 'original', '', 'unittest' ) );
 	}
 
 	/**
 	 * @covers ::unload
-	 * @covers ::is_loaded
+	 * @covers ::is_textdomain_loaded
 	 *
 	 * @return void
 	 */
 	public function test_unload_specific_locale() {
 		$instance = new WP_Translation_Controller();
-		$this->assertFalse( $instance->is_loaded( 'unittest' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest' ) );
 		$this->assertTrue( $instance->load_file( DIR_TESTDATA . '/l10n/example-simple.php', 'unittest' ) );
-		$this->assertTrue( $instance->is_loaded( 'unittest' ) );
+		$this->assertTrue( $instance->is_textdomain_loaded( 'unittest' ) );
 
-		$this->assertFalse( $instance->is_loaded( 'unittest', 'es_ES' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest', 'es_ES' ) );
 		$this->assertTrue( $instance->load_file( DIR_TESTDATA . '/l10n/example-simple.php', 'unittest', 'es_ES' ) );
-		$this->assertTrue( $instance->is_loaded( 'unittest', 'es_ES' ) );
+		$this->assertTrue( $instance->is_textdomain_loaded( 'unittest', 'es_ES' ) );
 
 		$this->assertSame( 'translation', $instance->translate( 'original', '', 'unittest' ) );
 		$this->assertSame( 'translation', $instance->translate( 'original', '', 'unittest', 'es_ES' ) );
 
 		$this->assertTrue( $instance->unload_textdomain( 'unittest', $instance->get_locale() ) );
-		$this->assertFalse( $instance->is_loaded( 'unittest' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest' ) );
 		$this->assertFalse( $instance->translate( 'original', '', 'unittest' ) );
 
-		$this->assertTrue( $instance->is_loaded( 'unittest', 'es_ES' ) );
+		$this->assertTrue( $instance->is_textdomain_loaded( 'unittest', 'es_ES' ) );
 		$this->assertTrue( $instance->unload_textdomain( 'unittest', 'es_ES' ) );
-		$this->assertFalse( $instance->is_loaded( 'unittest', 'es_ES' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest', 'es_ES' ) );
 		$this->assertFalse( $instance->translate( 'original', '', 'unittest', 'es_ES' ) );
 	}
 
@@ -154,7 +154,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Translation_Controller::load
-	 * @covers WP_Translation_Controller::is_loaded
+	 * @covers WP_Translation_Controller::is_textdomain_loaded
 	 *
 	 * @return void
 	 */
@@ -162,7 +162,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$instance = new WP_Translation_Controller();
 
 		$this->assertFalse( $instance->load_file( DIR_TESTDATA . '/l10n/file-that-doesnt-exist.mo', 'unittest' ) );
-		$this->assertFalse( $instance->is_loaded( 'unittest' ) );
+		$this->assertFalse( $instance->is_textdomain_loaded( 'unittest' ) );
 	}
 
 	/**
@@ -187,7 +187,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load
-	 * @covers ::is_loaded
+	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural
 	 * @covers ::locate_translation
@@ -202,8 +202,8 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$controller = new WP_Translation_Controller();
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/' . $file, 'unittest' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
-		$this->assertFalse( $controller->is_loaded( 'textdomain not loaded' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
+		$this->assertFalse( $controller->is_textdomain_loaded( 'textdomain not loaded' ) );
 
 		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
 		$this->assertFalse( $controller->translate( 'original', '', 'textdomain not loaded' ) );
@@ -233,7 +233,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	/**
 	 * @covers ::load
 	 * @covers ::unload
-	 * @covers ::is_loaded
+	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural
 	 * @covers ::locate_translation
@@ -249,7 +249,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/simple.mo', 'unittest' ) );
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/plural.mo', 'unittest' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
 
 		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
 		$this->assertFalse( $controller->translate( 'original', '', 'textdomain not loaded' ) );
@@ -287,7 +287,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @covers ::get_locale
 	 * @covers ::load
 	 * @covers ::unload
-	 * @covers ::is_loaded
+	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural
 	 *
@@ -306,7 +306,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/simple.mo', 'unittest', 'es_ES' ) );
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/plural.mo', 'unittest', 'en_US' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
 
 		// From example-simple.mo
 
@@ -347,22 +347,22 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $ginger_mo->load_file( DIR_TESTDATA . '/l10n/plural.mo', 'unittest' ) );
 		$this->assertSame( 'pl_PL', $ginger_mo->get_locale() );
 
-		$this->assertTrue( $ginger_mo->is_loaded( 'unittest' ) );
+		$this->assertTrue( $ginger_mo->is_textdomain_loaded( 'unittest' ) );
 
 		$ginger_mo->set_locale( 'en_US' );
 		$this->assertSame( 'en_US', $ginger_mo->get_locale() );
 
-		$this->assertFalse( $ginger_mo->is_loaded( 'unittest' ) );
-		$this->assertTrue( $ginger_mo->is_loaded( 'unittest', 'pl_PL' ) );
-		$this->assertTrue( $ginger_mo->is_loaded( 'unittest', 'es_ES' ) );
-		$this->assertTrue( $ginger_mo->is_loaded( 'unittest', 'de_DE' ) );
+		$this->assertFalse( $ginger_mo->is_textdomain_loaded( 'unittest' ) );
+		$this->assertTrue( $ginger_mo->is_textdomain_loaded( 'unittest', 'pl_PL' ) );
+		$this->assertTrue( $ginger_mo->is_textdomain_loaded( 'unittest', 'es_ES' ) );
+		$this->assertTrue( $ginger_mo->is_textdomain_loaded( 'unittest', 'de_DE' ) );
 
 		$this->assertTrue( $ginger_mo->unload_textdomain( 'unittest' ) );
 
-		$this->assertFalse( $ginger_mo->is_loaded( 'unittest' ) );
-		$this->assertFalse( $ginger_mo->is_loaded( 'unittest', 'pl_PL' ) );
-		$this->assertFalse( $ginger_mo->is_loaded( 'unittest', 'es_ES' ) );
-		$this->assertFalse( $ginger_mo->is_loaded( 'unittest', 'de_DE' ) );
+		$this->assertFalse( $ginger_mo->is_textdomain_loaded( 'unittest' ) );
+		$this->assertFalse( $ginger_mo->is_textdomain_loaded( 'unittest', 'pl_PL' ) );
+		$this->assertFalse( $ginger_mo->is_textdomain_loaded( 'unittest', 'es_ES' ) );
+		$this->assertFalse( $ginger_mo->is_textdomain_loaded( 'unittest', 'de_DE' ) );
 	}
 
 	/**
@@ -375,7 +375,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$controller = new WP_Translation_Controller();
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo' ) );
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo' ) );
-		$this->assertFalse( $controller->is_loaded( 'unittest' ) );
+		$this->assertFalse( $controller->is_textdomain_loaded( 'unittest' ) );
 		$this->assertSame( 'translation', $controller->translate( 'original' ) );
 	}
 
@@ -389,7 +389,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo', 'unittest' ) );
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo', 'unittest' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
 	}
 
 	/**
@@ -402,14 +402,14 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo', 'foo' ) );
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/example-simple.mo', 'bar' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'foo' ) );
-		$this->assertTrue( $controller->is_loaded( 'bar' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'foo' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'bar' ) );
 	}
 
 	/**
 	 * @covers ::load
 	 * @covers ::unload
-	 * @covers ::is_loaded
+	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural
 	 * @covers ::locate_translation
@@ -423,7 +423,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$controller = new WP_Translation_Controller();
 		$this->assertTrue( $controller->load_file( DIR_TESTDATA . '/l10n/fa_IR.mo', 'unittest' ) );
 
-		$this->assertTrue( $controller->is_loaded( 'unittest' ) );
+		$this->assertTrue( $controller->is_textdomain_loaded( 'unittest' ) );
 
 		$this->assertFalse( $controller->translate( "string that doesn't exist", '', 'unittest' ) );
 

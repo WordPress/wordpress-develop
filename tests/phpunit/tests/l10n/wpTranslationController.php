@@ -35,7 +35,7 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$is_loaded = WP_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded = WP_Translation_Controller::instance()->is_textdomain_loaded( 'wp-tests-domain' );
 		$headers   = WP_Translation_Controller::instance()->get_headers( 'wp-tests-domain' );
 		$entries   = WP_Translation_Controller::instance()->get_entries( 'wp-tests-domain' );
 
@@ -83,7 +83,7 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 		$is_loaded_wp = is_textdomain_loaded( 'wp-tests-domain' );
 
-		$is_loaded = WP_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded = WP_Translation_Controller::instance()->is_textdomain_loaded( 'wp-tests-domain' );
 
 		remove_filter( 'override_load_textdomain', '__return_true' );
 
@@ -258,7 +258,7 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$is_loaded = WP_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded = WP_Translation_Controller::instance()->is_textdomain_loaded( 'wp-tests-domain' );
 		$headers   = WP_Translation_Controller::instance()->get_headers( 'wp-tests-domain' );
 		$entries   = WP_Translation_Controller::instance()->get_entries( 'wp-tests-domain' );
 
@@ -282,13 +282,13 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 
-		$is_loaded = WP_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded = WP_Translation_Controller::instance()->is_textdomain_loaded( 'wp-tests-domain' );
 
 		remove_filter( 'override_unload_textdomain', '__return_true' );
 
 		$unload_successful_after = unload_textdomain( 'wp-tests-domain' );
 
-		$is_loaded_after = WP_Translation_Controller::instance()->is_loaded( 'wp-tests-domain' );
+		$is_loaded_after = WP_Translation_Controller::instance()->is_textdomain_loaded( 'wp-tests-domain' );
 
 		$this->assertTrue( $unload_successful );
 		$this->assertTrue( $is_loaded );
@@ -307,14 +307,14 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 		$actual = __( 'Invalid parameter.' );
 
-		$this->assertTrue( WP_Translation_Controller::instance()->is_loaded() );
-		$this->assertTrue( WP_Translation_Controller::instance()->is_loaded( 'default', 'es_ES' ) );
+		$this->assertTrue( WP_Translation_Controller::instance()->is_textdomain_loaded() );
+		$this->assertTrue( WP_Translation_Controller::instance()->is_textdomain_loaded( 'default', 'es_ES' ) );
 
 		restore_previous_locale();
 
 		$actual_2 = __( 'Invalid parameter.' );
 
-		$this->assertTrue( WP_Translation_Controller::instance()->is_loaded( 'default', 'es_ES' ) );
+		$this->assertTrue( WP_Translation_Controller::instance()->is_textdomain_loaded( 'default', 'es_ES' ) );
 
 		$this->assertSame( 'Parámetro no válido. ', $actual );
 		$this->assertSame( 'Invalid parameter.', $actual_2 );
@@ -339,15 +339,15 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 		$actual = i18n_plugin_test();
 
 		$this->assertSame( 'es_ES', WP_Translation_Controller::instance()->get_locale() );
-		$this->assertTrue( WP_Translation_Controller::instance()->is_loaded( 'internationalized-plugin', 'es_ES' ) );
-		$this->assertTrue( WP_Translation_Controller::instance()->is_loaded( 'default', 'es_ES' ) );
-		$this->assertFalse( WP_Translation_Controller::instance()->is_loaded( 'foo-bar', 'es_ES' ) );
+		$this->assertTrue( WP_Translation_Controller::instance()->is_textdomain_loaded( 'internationalized-plugin', 'es_ES' ) );
+		$this->assertTrue( WP_Translation_Controller::instance()->is_textdomain_loaded( 'default', 'es_ES' ) );
+		$this->assertFalse( WP_Translation_Controller::instance()->is_textdomain_loaded( 'foo-bar', 'es_ES' ) );
 
 		restore_previous_locale();
 
 		$after = i18n_plugin_test();
 
-		$this->assertTrue( WP_Translation_Controller::instance()->is_loaded( 'internationalized-plugin', 'es_ES' ) );
+		$this->assertTrue( WP_Translation_Controller::instance()->is_textdomain_loaded( 'internationalized-plugin', 'es_ES' ) );
 
 		$this->assertSame( 'This is a dummy plugin', $before );
 		$this->assertSame( 'Este es un plugin dummy', $actual );
