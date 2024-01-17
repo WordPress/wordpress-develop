@@ -830,7 +830,7 @@ function update_option( $option, $value, $autoload = null ) {
 		$update_args['autoload'] = determine_option_autoload_value( $option, $serialized_value, $autoload );
 	} else {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
-		$allow_values = array( 'on', 'off', 'auto-on', 'auto-off' );
+		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
 			$autoload = determine_option_autoload_value( $option, $serialized_value, $autoload );
 			if ( $autoload !== $raw_autoload ) {
