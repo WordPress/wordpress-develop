@@ -3,7 +3,7 @@
  * Unit tests covering WP_Block_Bindings functionality.
  *
  * @since 6.5.0
- * @package wordpress
+ * @package WordPress
  */
 
 class WP_Block_Bindings_Test extends WP_UnitTestCase {
