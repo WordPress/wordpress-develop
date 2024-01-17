@@ -778,7 +778,7 @@ function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 	}
 
-	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true ) ) {
 		return '';
 	}
 
