@@ -389,6 +389,7 @@ function wp_ajax_get_community_events() {
 			)
 		);
 	}
+
 	if ( empty( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) ) {
 		$ip_changed = true;
 	} elseif ( isset( $saved_location['ip'] ) && ! empty( $events['location']['ip'] ) && $saved_location['ip'] !== $events['location']['ip'] ) {

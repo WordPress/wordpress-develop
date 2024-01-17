@@ -180,10 +180,8 @@ if ( $doaction ) {
 					if ( ! wp_delete_attachment( $post_id ) ) {
 						wp_die( __( 'Error in deleting the attachment.' ) );
 					}
-				} else {
-					if ( ! wp_delete_post( $post_id ) ) {
-						wp_die( __( 'Error in deleting the item.' ) );
-					}
+				} elseif ( ! wp_delete_post( $post_id ) ) {
+					wp_die( __( 'Error in deleting the item.' ) );
 				}
 				++$deleted;
 			}
