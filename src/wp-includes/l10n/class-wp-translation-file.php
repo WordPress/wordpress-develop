@@ -49,7 +49,7 @@ abstract class WP_Translation_File {
 	 * Translation entries.
 	 *
 	 * @since 6.5.0
-	 * @var array<string, string>
+	 * @var array<string, string[]>
 	 */
 	protected $entries = array();
 
@@ -247,7 +247,7 @@ abstract class WP_Translation_File {
 	 * @param string $expression Plural form expression.
 	 * @return callable(int $num): int Plural forms function.
 	 */
-	public function make_plural_form_function( string $expression ) {
+	public function make_plural_form_function( string $expression ): callable {
 		try {
 			$handler = new Plural_Forms( rtrim( $expression, ';' ) );
 			return array( $handler, 'get' );

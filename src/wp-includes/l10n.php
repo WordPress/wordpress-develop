@@ -837,7 +837,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		 * @param string $file   Path to the translation file to load.
 		 * @param string $domain The text domain.
 		 */
-		$file = apply_filters( 'load_translation_file', $file, $domain );
+		$file = (string) apply_filters( 'load_translation_file', $file, $domain );
 
 		$success = $i18n_controller->load_file( $file, $domain, $locale );
 
