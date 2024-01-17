@@ -716,7 +716,7 @@ function wp_load_core_site_options( $network_id = null ) {
  *                              For backward compatibility 'yes' and 'no' are also accepted.
  *                              Autoloading too many options can lead to performance problems, especially if the
  *                              options are not frequently used. For options which are accessed across several places
- *                              in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                              in the frontend, it is recommended to autoload them, by using true.
  *                              For options which are accessed only on few specific URLs, it is recommended
  *                              to not autoload them, by using false.
  *                              For non-existent options, the default is 'null' and this will set to autoload if the value is too large.
