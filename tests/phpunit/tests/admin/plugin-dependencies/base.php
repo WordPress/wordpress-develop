@@ -23,14 +23,14 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @var array
 	 */
 	protected static $static_properties = array(
-		'plugins'                         => array(),
-		'plugin_dirnames'                 => array(),
-		'plugin_dirnames_cache'           => array(),
-		'dependencies'                    => array(),
-		'dependency_slugs'                => array(),
-		'dependent_slugs'                 => array(),
-		'dependency_api_data'             => array(),
-		'plugin_card_data'                => array(),
+		'plugins'               => array(),
+		'plugin_dirnames'       => array(),
+		'plugin_dirnames_cache' => array(),
+		'dependencies'          => array(),
+		'dependency_slugs'      => array(),
+		'dependent_slugs'       => array(),
+		'dependency_api_data'   => array(),
+		'plugin_card_data'      => array(),
 	);
 
 	/**
