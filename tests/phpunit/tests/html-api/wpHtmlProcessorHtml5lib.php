@@ -138,9 +138,11 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 			sort( $attribute_names, SORT_STRING );
 
 			foreach ( $attribute_names as $attribute_name ) {
-				$val = $p->get_attribute($attribute_name);
-				if ( $val === true ) {
-					$val = "";
+				$val = $p->get_attribute( $attribute_name );
+				// Attributes with no value are `true` with the HTML API,
+				// We map use the empty string value in the tree structure.
+				if ( true === $val ) {
+					$val = '';
 				}
 				$output .= "{$indent}  {$attribute_name}=\"{$val}\"\n";
 			}
@@ -259,13 +261,13 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 						$trimmed = ltrim( substr( $candidate, 0, -1 ) );
 
 						// Text: "…
-						if ( $trimmed[0] === '"' ) {
+						if ( '"' === $trimmed[0] ) {
 							// Skip for now
 							break;
 						}
 
 						// Attribute: name="value"
-						if ( $trimmed[ strlen($trimmed) - 1 ] === '"' ) {
+						if ( '"' === $trimmed[ strlen( $trimmed ) - 1 ] ) {
 							$test_dom .= $candidate;
 							break;
 						}
@@ -274,7 +276,7 @@ class Tests_HtmlApi_WpHtmlProcessorHtml5lib extends WP_UnitTestCase {
 						// Comments: <!-- comment text -->
 						// Doctypes: <!DOCTYPE … >
 						// Processing instructions: <?target >
-						if ( $trimmed[0] === '<' && $trimmed[ strlen($trimmed) - 1 ] === '>' ) {
+						if ( '<' === $trimmed[0] && '>' === $trimmed[ strlen( $trimmed ) - 1 ] ) {
 							// Tags: <tag-name>
 							if ( ctype_alpha( $trimmed[1] ) ) {
 								$test_dom .= $candidate;
