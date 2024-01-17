@@ -86,6 +86,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59490
+	 * @group ms-excluded
 	 */
 	public function test_should_clear_cache_after_switching_theme() {
 		switch_theme( 'block-theme' );
@@ -105,9 +106,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$theme2 = wp_get_theme();
 		$this->assertTrue( $theme2->exists(), 'The block-theme-patterns test theme could not be found.' );
 
-		if ( ! is_multisite() ) {
-			$this->assertFalse( $this->get_pattern_cache( $theme1 ), 'Cache should not be set for block theme after switch theme.' );
-		}
+		$this->assertFalse( $this->get_pattern_cache( $theme1 ), 'Cache should not be set for block theme after switch theme.' );
 		$this->assertFalse( $this->get_pattern_cache( $theme2 ), 'Cache should not be set for block theme patterns before being requested.' );
 
 		$theme2->get_block_patterns( $theme2 );
