@@ -39,6 +39,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests23/line0041'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/line0069'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/line0101'    => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests26/line0263'    => 'BUG: An active formatting element should be created for a trailing text node.',
 	);
 
 	/**
