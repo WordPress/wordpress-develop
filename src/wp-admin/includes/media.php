@@ -2426,13 +2426,11 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 	insert : function() {
 		var t = this, html, f = document.forms[0], cls, title = '', alt = '', caption = '';
 
-		if ( '' === f.src.value || '' === t.width ) {
+		if ( '' === f.src.value || '' === t.width )
 			return false;
-		}
 
-		if ( f.alt.value ) {
+		if ( f.alt.value )
 			alt = f.alt.value.replace(/'/g, '&#039;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-		}
 
 		<?php
 		/** This filter is documented in wp-admin/includes/media.php */
@@ -2487,9 +2485,8 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 	},
 
 	getImageData : function() {
-		if ( jQuery('table.describe').hasClass('not-image') ) {
+		if ( jQuery('table.describe').hasClass('not-image') )
 			return;
-		}
 
 		var t = addExtImage, src = document.forms[0].src.value;
 
@@ -2863,9 +2860,10 @@ function media_upload_library_form( $errors ) {
 
 				$arc_row->mmonth = zeroise( $arc_row->mmonth, 2 );
 
-				$default = '';
 				if ( $arc_row->yyear . $arc_row->mmonth == $selected_month ) {
 					$default = ' selected="selected"';
+				} else {
+					$default = '';
 				}
 
 				echo "<option$default value='" . esc_attr( $arc_row->yyear . $arc_row->mmonth ) . "'>";

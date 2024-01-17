@@ -369,9 +369,10 @@ class WP_Scripts extends WP_Dependencies {
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
 				return true;
+			} else {
+				$this->ext_handles .= "$handle,";
+				$this->ext_version .= "$handle$ver";
 			}
-			$this->ext_handles .= "$handle,";
-			$this->ext_version .= "$handle$ver";
 		}
 
 		$has_conditional_data = $conditional && $this->get_data( $handle, 'data' );

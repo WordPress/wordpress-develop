@@ -260,6 +260,7 @@ class Snoopy
 				// not a valid protocol
 				$this->error	=	'Invalid protocol "'.$URI_PARTS["scheme"].'"\n';
 				return false;
+				break;
 		}
 		return true;
 	}
@@ -425,6 +426,7 @@ class Snoopy
 				// not a valid protocol
 				$this->error	=	'Invalid protocol "'.$URI_PARTS["scheme"].'"\n';
 				return false;
+				break;
 		}
 		return true;
 	}

@@ -1685,10 +1685,10 @@ class wpdb {
 			}
 
 			/*
-			* If we don't have the right number of placeholders,
-			* but they were passed as individual arguments,
-			* or we were expecting multiple arguments in an array, throw a warning.
-			*/
+			 * If we don't have the right number of placeholders,
+			 * but they were passed as individual arguments,
+			 * or we were expecting multiple arguments in an array, throw a warning.
+			 */
 			wp_load_translations_early();
 			_doing_it_wrong(
 				'wpdb::prepare',

@@ -3523,6 +3523,7 @@ function wp_resource_hints() {
 				if ( ! is_scalar( $value )
 					|| ( ! in_array( $attr, array( 'as', 'crossorigin', 'href', 'pr', 'rel', 'type' ), true ) && ! is_numeric( $attr ) )
 				) {
+
 					continue;
 				}
 

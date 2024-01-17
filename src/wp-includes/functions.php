@@ -4349,9 +4349,7 @@ function _wp_json_sanity_check( $value, $depth ) {
 				$output[ $clean_id ] = $el;
 			}
 		}
-		return $output;
-	}
-	if ( is_object( $value ) ) {
+	} elseif ( is_object( $value ) ) {
 		$output = new stdClass();
 		foreach ( $value as $id => $el ) {
 			if ( is_string( $id ) ) {
@@ -4368,12 +4366,13 @@ function _wp_json_sanity_check( $value, $depth ) {
 				$output->$clean_id = $el;
 			}
 		}
-		return $output;
-	}
-	if ( is_string( $value ) ) {
+	} elseif ( is_string( $value ) ) {
 		return _wp_json_convert_string( $value );
+	} else {
+		return $value;
 	}
-	return $value;
+
+	return $output;
 }
 
 /**
@@ -7441,10 +7440,12 @@ function get_tag_regex( $tag ) {
  */
 function _canonical_charset( $charset ) {
 	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset ) ) {
+
 		return 'UTF-8';
 	}
 
 	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
+
 		return 'ISO-8859-1';
 	}
 

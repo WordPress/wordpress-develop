@@ -4966,9 +4966,10 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'gmt_offset':
-			$value = '';
 			if ( is_numeric( $value ) ) {
 				$value = preg_replace( '/[^0-9:.-]/', '', $value ); // Strips slashes.
+			} else {
+				$value = '';
 			}
 			break;
 
