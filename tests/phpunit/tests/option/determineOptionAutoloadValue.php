@@ -50,7 +50,6 @@ class Tests_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
