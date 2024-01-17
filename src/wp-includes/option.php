@@ -1222,7 +1222,7 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	 * @param string $option          The name of the option.
 	 */
 	$max_option_size = (int) apply_filters( 'wp_max_autoloaded_option_size', 150000, $option );
-	$size            = ( ! empty( $value ) ) ? strlen( $value ) : 0;
+	$size            = ! empty( $value ) ? strlen( $value ) : 0;
 
 	if ( $size > $max_option_size ) {
 		return 'auto-off';
