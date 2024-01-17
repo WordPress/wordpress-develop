@@ -2092,7 +2092,7 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
  * @param array    $block Block attributes.
  * @param WP_Block $block_instance The block instance.
  */
-function gutenberg_process_block_bindings( $block_content, $block, $block_instance ) {
+function _process_block_bindings( $block_content, $block, $block_instance ) {
 
 	// Allowed blocks that support block bindings.
 	// TODO: Look for a mechanism to opt-in for this. Maybe adding a property to block attributes?
@@ -2157,5 +2157,3 @@ function gutenberg_process_block_bindings( $block_content, $block, $block_instan
 	}
 	return $modified_block_content;
 }
-
-add_filter( 'render_block', 'gutenberg_process_block_bindings', 20, 3 );

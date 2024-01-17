@@ -280,6 +280,8 @@ class WP_Block {
 			}
 		}
 
+		$block_content = _process_block_bindings( $block_content, $this->parsed_block, $this );
+
 		/**
 		 * Filters the content of a single block.
 		 *
