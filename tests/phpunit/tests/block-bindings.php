@@ -57,7 +57,9 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		$this->assertStringContainsString( $source_value, $result );
 	}
 
-	// Test case for scenarios where block type is not registered.
+	/**
+	* Test case for scenarios where block type is not registered.
+	*/
 	public function test_replace_html_with_unregistered_block() {
 		$wp_block_bindings = new WP_Block_Bindings();
 
@@ -71,7 +73,9 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		$this->assertEquals( $block_content, $result );
 	}
 
-	// Test case for scenarios where block is registered but attribute does not exist on block type.
+	/**
+	* Test case for scenarios where block is registered but attribute does not exist on block type.
+	*/
 	public function test_replace_html_with_registered_block_but_unsupported_source_type() {
 		$wp_block_bindings = new WP_Block_Bindings();
 
