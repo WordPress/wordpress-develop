@@ -1182,7 +1182,7 @@ function determine_option_autoload_value( $option, $value, $autoload ) {
 	 */
 	$autoload = apply_filters( 'option_autoload_value', $autoload, $option, $value );
 
-	//check if autoload is a boolean.
+	// Check if autoload is a boolean.
 	if ( is_bool( $autoload ) ) {
 		return $autoload ? 'on' : 'off';
 	}
