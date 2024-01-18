@@ -1106,7 +1106,7 @@ function delete_option( $option ) {
 	$result = $wpdb->delete( $wpdb->options, array( 'option_name' => $option ) );
 
 	if ( ! wp_installing() ) {
-		if ( 'yes' === $row->autoload || 'on' === $row->autoload || 'auto-on' === $row->autoload || 'auto' === $row->autoload ) {
+		if ( 'on' === $row->autoload || 'auto-on' === $row->autoload || 'auto' === $row->autoload || 'yes' === $row->autoload ) {
 			$alloptions = wp_load_alloptions( true );
 
 			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
