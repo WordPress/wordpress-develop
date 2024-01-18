@@ -617,7 +617,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 * @ticket 59969
 	 */
 	public function test_get_block_type_variations_filter_variations() {
-		// Filter will override the variations set during resistration.
+		// Filter will override the variations set during registration.
 		add_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10, 2 );
 		$expected_variations = array( array( 'name' => 'test1' ) );
 
