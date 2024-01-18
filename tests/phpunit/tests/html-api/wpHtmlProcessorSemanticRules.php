@@ -229,7 +229,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 *
 	 * @ticket 60283
 	 */
-	public function test_in_body_hr_element_closes_open_p_tag( $tag_name ) {
+	public function test_in_body_hr_element_closes_open_p_tag() {
 		$processor = WP_HTML_Processor::create_fragment( '<p><hr>' );
 
 		$processor->next_tag( 'HR' );
