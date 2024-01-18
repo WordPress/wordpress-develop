@@ -361,12 +361,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			array( 'autoload_yes', 'yes', 'on' ),
 			array( 'autoload_true', true, 'on' ),
-			array( 'autoload_string', 'foo', 'auto-on' ),
-			array( 'autoload_int', 123456, 'auto-on' ),
-			array( 'autoload_array', array(), 'auto-on' ),
+			array( 'autoload_string', 'foo', 'auto' ),
+			array( 'autoload_int', 123456, 'auto' ),
+			array( 'autoload_array', array(), 'auto' ),
 			array( 'autoload_no', 'no', 'off' ),
 			array( 'autoload_false', false, 'off' ),
-			array( 'autoload_null', null, 'auto-on' ),
+			array( 'autoload_null', null, 'auto' ),
 		);
 	}
 
@@ -435,9 +435,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertTrue( $added );
 
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
-		$this->assertSame( 'auto-off', $actual->autoload );
+		$this->assertSame( 'off', $actual->autoload );
 	}
-
 
 	/**
 	 * Tests that calling update_option() with changed autoload from 'no' to 'yes' updates the cache correctly.

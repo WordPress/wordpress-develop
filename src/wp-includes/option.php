@@ -1160,8 +1160,8 @@ function delete_option( $option ) {
  * @since 6.5.0
  * @access private
  *
- * @param string           $option   The name of the option.
- * @param mixed            $value    The value of the option to check its autoload value.
+ * @param string    $option   The name of the option.
+ * @param mixed     $value    The value of the option to check its autoload value.
  * @param bool|null $autoload The autoload value to check.
  *                                   Accepts 'on'|true to enable or 'off'|false to disable, or
  *                                   'auto-on', 'auto-off', or 'auto' for internal purposes.

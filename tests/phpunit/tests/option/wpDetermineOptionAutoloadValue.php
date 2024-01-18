@@ -44,7 +44,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 			),
 			'null'  => array(
 				'autoload' => null,
-				'expected' => 'auto-on',
+				'expected' => 'auto',
 			),
 		);
 	}
@@ -54,7 +54,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 */
 	public function test_small_option() {
 		$test = wp_determine_option_autoload_value( 'foo', 'bar', null );
-		$this->assertSame( 'auto-on', $test );
+		$this->assertSame( 'auto', $test );
 	}
 
 	/**
