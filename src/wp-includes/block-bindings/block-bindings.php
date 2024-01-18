@@ -11,6 +11,8 @@
 /**
  * Retrieves the singleton instance of WP_Block_Bindings.
  *
+ * @since 6.5.0
+ *
  * @return WP_Block_Bindings The WP_Block_Bindings instance.
  */
 function wp_block_bindings() {
@@ -24,6 +26,8 @@ function wp_block_bindings() {
 
 /**
  * Registers a new source for block bindings.
+ *
+ * @since 6.5.0
  *
  * @param string   $source_name The name of the source.
  * @param string   $label The label of the source.
@@ -43,6 +47,8 @@ function wp_block_bindings_register_source( $source_name, $label, $apply ) {
 /**
  * Retrieves the list of registered block sources.
  *
+ * @since 6.5.0
+ *
  * @return array The list of registered block sources.
  */
 function wp_block_bindings_get_sources() {
@@ -52,6 +58,8 @@ function wp_block_bindings_get_sources() {
 
 /**
  * Replaces the HTML content of a block based on the provided source value.
+ *
+ * @since 6.5.0
  *
  * @param string $block_content Block content.
  * @param string $block_name The name of the block to process.
