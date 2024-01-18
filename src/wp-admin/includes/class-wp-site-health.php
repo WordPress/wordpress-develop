@@ -1964,6 +1964,38 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if registration is open to everyone and the default role is privileged.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_privileged_default_role_with_open_registration() {
+		$users_can_register = get_option( 'users_can_register' );
+		$default_role       = get_option( 'default_role' );
+
+		$result = array(
+			'label'       => __( 'Open Registration with privileged default role' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => '<p>' . __( 'The combination of open registration and the default user role is acceptable.' ) . '</p>',
+			'actions'     => '',
+			'test'        => 'privileged_default_role_with_open_registration',
+		);
+
+		$privileged_roles = (array) apply_filters( 'site_status_over_privileged_role', array( 'editor', 'administrator' ) );
+		if ( $users_can_register && in_array( $default_role, $privileged_roles, true ) ) {
+			$result['description'] = __( 'Registration is open to anyone, and the default role is set to a privileged role.' );
+			$result['status']      = 'critical';
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Tests if plugin and theme temporary backup directories are writable or can be created.
 	 *
 	 * @since 6.3.0
@@ -2779,6 +2811,10 @@ class WP_Site_Health {
 				'available_updates_disk_space' => array(
 					'label' => __( 'Available disk space' ),
 					'test'  => 'available_updates_disk_space',
+				),
+				'privileged_default_role_with_open_registration' => array(
+					'label' => __( 'Open Registration with Default Administrator Privileges' ),
+					'test'  => 'privileged_default_role_with_open_registration',
 				),
 			),
 			'async'  => array(

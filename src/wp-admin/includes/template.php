@@ -970,13 +970,20 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  * Prints out option HTML elements for role selectors.
  *
  * @since 2.1.0
+ * @since 6.5.0 Added $roles_to_exclude parameter
  *
  * @param string $selected Slug for the role that should be already selected.
  */
-function wp_dropdown_roles( $selected = '' ) {
+function wp_dropdown_roles( $selected = '', $roles_to_exclude = array() ) {
 	$r = '';
 
 	$editable_roles = array_reverse( get_editable_roles() );
+
+	if ( ! empty( $roles_to_exclude ) && is_array( $roles_to_exclude ) ) {
+		foreach ( $roles_to_exclude as $role_to_exclude ) {
+			unset( $editable_roles[ $role_to_exclude ] );
+		}
+	}
 
 	foreach ( $editable_roles as $role => $details ) {
 		$name = translate_user_role( $details['name'] );
