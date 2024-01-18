@@ -88,4 +88,51 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 		$this->assertEquals( $block_content, $result );
 	}
+
+	/**
+	 * Test case for the _process_block_bindings function using a custom binding source.
+	 *
+	 * @covers _process_block_bindings
+	 */
+	public function test_post_meta_bindings_source() {
+		$wp_block_bindings = wp_block_bindings();
+
+		// Register a custom binding source.
+		$source_name = 'test_source';
+		$label       = 'Test Source';
+		$apply       = function () {
+			return 'test source value';
+		};
+		$wp_block_bindings->register_source( $source_name, $label, $apply );
+
+		$block_content = '<p>This content will be overriden</p>';
+
+		// Parsed block representing a paragraph block.
+		$block = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'metadata' => array(
+					'bindings' => array(
+						'content' => array(
+							'source' => array(
+								'name'       => 'test_source',
+								'attributes' => array(
+									'value' => 'does not matter, it is not used by the test source',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		// Block instance representing a paragraph block.
+		$block_instance = new WP_Block( $block );
+
+		$content = _process_block_bindings( $block_content, $block, $block_instance );
+
+		$result = '<p>test source value</p>';
+
+		$this->assertEquals( $result, $content, 'The block content should be updated with the value returned by the custom binding source.' );
+	}
 }
