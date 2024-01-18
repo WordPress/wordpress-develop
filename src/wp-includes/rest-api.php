@@ -209,7 +209,7 @@ function rest_api_register_rewrites() {
  * @since 4.4.0
  */
 function rest_api_default_filters() {
-	if ( wp_is_rest_request() ) {
+	if ( wp_is_serving_rest_request() ) {
 		// Deprecated reporting.
 		add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
 		add_filter( 'deprecated_function_trigger_error', '__return_false' );
@@ -3406,7 +3406,7 @@ function wp_is_rest_endpoint(): bool {
 	global $wp_rest_server;
 
 	// Check whether this is a standalone REST request.
-	$is_rest_endpoint = wp_is_rest_request();
+	$is_rest_endpoint = wp_is_serving_rest_request();
 	if ( ! $is_rest_endpoint ) {
 		// Otherwise, check whether an internal REST request is currently being handled.
 		$is_rest_endpoint = isset( $wp_rest_server )
