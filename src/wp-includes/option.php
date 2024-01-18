@@ -1173,18 +1173,6 @@ function delete_option( $option ) {
  */
 function wp_determine_option_autoload_value( $option, $value, $autoload ) {
 
-	/**
-	 * Filters the maximum size of option value in bytes.
-	 *
-	 * @param string|bool|null $autoload autoload value to check.
-	 * @param string           $option name of the option.
-	 * @param string           $value value of the option to check its autoload value.
-	 * @return string|bool|null $autoload autoload value to set. Accepted strings 'yes', 'no', auto-yes', 'auto-no' to enable.
-	 *
-	 * @since 6.5.0
-	 */
-	$autoload = apply_filters( 'option_autoload_value', $autoload, $option, $value );
-
 	// Check if autoload is a boolean.
 	if ( is_bool( $autoload ) ) {
 		return $autoload ? 'on' : 'off';
