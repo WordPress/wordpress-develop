@@ -1150,8 +1150,8 @@ function delete_option( $option ) {
 /**
  *  Determines the appropriate autoload value for an option based on input.
  *
- *  This function checks the provided autoload value and returns a standardized
- *  value ('yes', 'no', 'auto-yes', or 'auto-no') based on specific conditions.
+ *  This function checks the provided autoload value and returns a standardized value
+ *  ('on', 'off', 'auto-on', 'auto-off', or 'auto') based on specific conditions.
  *
  * If no explicit autoload value is provided, the function will check for certain heuristics around the given option.
  * It will return `auto-on` to indicate autoloading, `auto-off` to indicate not autoloading, or `auto` if no clear
