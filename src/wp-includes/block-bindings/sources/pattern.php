@@ -1,6 +1,6 @@
 <?php
 /**
- * Add the metadata source to the block bindings API.
+ * Add the metadata source to the Block Bindings API.
  *
  * @since 6.5.0
  * @package WordPress

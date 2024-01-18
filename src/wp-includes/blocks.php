@@ -2086,10 +2086,13 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 
 
 /**
- * Process the block bindings attribute.
+ * Processes the block bindings in block's attributes.
  *
- * @param string   $block_content Block Content.
- * @param array    $block Block attributes.
+ * @access private
+ * @since 6.5.0
+ *
+ * @param string   $block_content Block content.
+ * @param array    $block The full block, including name and attributes.
  * @param WP_Block $block_instance The block instance.
  */
 function _process_block_bindings( $block_content, $block, $block_instance ) {
@@ -2107,24 +2110,6 @@ function _process_block_bindings( $block_content, $block, $block_instance ) {
 	if ( ! isset( $block['attrs']['metadata']['bindings'] ) || ! isset( $allowed_blocks[ $block_instance->name ] ) ) {
 		return $block_content;
 	}
-
-	// Assuming the following format for the bindings property of the "metadata" attribute:
-	//
-	// "bindings": {
-	//   "title": {
-	//     "source": {
-	//       "name": "post_meta",
-	//       "attributes": { "value": "text_custom_field" }
-	//     }
-	//   },
-	//   "url": {
-	//     "source": {
-	//       "name": "post_meta",
-	//       "attributes": { "value": "text_custom_field" }
-	//     }
-	//   }
-	// }
-	//
 
 	$block_bindings_sources = wp_block_bindings_get_sources();
 	$modified_block_content = $block_content;
