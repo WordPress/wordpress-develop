@@ -25,7 +25,12 @@ class WP_Block_Bindings {
 	private $sources = array();
 
 	/**
-	 * Function to register a new source.
+	 * Function to register a new block binding source.
+	 *
+	 * Sources are used to override block's original attributes with a value
+	 * coming from the source. Once a source is registered, it can be used by a
+	 * block by setting its `metadata.bindings` attribute to a value that refers
+	 * to the source.
 	 *
 	 * @since 6.5.0
 	 *
