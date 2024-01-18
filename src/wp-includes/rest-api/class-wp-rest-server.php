@@ -1068,7 +1068,7 @@ class WP_REST_Server {
 	 * @return bool Whether the REST server is currently handling a request.
 	 */
 	public function is_dispatching() {
-		return empty( $this->dispatching_requests );
+		return ! empty( $this->dispatching_requests );
 	}
 
 	/**
