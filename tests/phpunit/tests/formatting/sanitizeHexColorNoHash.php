@@ -14,8 +14,8 @@ class Tests_formating_sanitizeHexColorNoHash extends WP_UnitTestCase {
 	 *
 	 * @dataProvider date_sanitize_hex_color_no_hash
 	 */
-	public function test_sanitize_hex_color_no_hash( $color, $expected, $maybe_alpha  ) {
-		$this->assertSame( $expected, sanitize_hex_color_no_hash( $color, $maybe_alpha  ) );
+	public function test_sanitize_hex_color_no_hash( $color, $expected, $maybe_alpha ) {
+		$this->assertSame( $expected, sanitize_hex_color_no_hash( $color, $maybe_alpha ) );
 	}
 
 	/**

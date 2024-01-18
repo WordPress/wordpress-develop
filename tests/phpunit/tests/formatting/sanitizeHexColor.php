@@ -202,4 +202,3 @@ class Tests_formating_sanitizeHexColor extends WP_UnitTestCase {
 		);
 	}
 }
-

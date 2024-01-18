@@ -6224,7 +6224,6 @@ function sanitize_hex_color( $color, bool $maybe_alpha = false ) {
 		return '';
 	}
 
-
 	$allowed_lengths = $maybe_alpha ? array( 4, 5, 7, 9 ) : array( 4, 7 );
 	$correct_length  = in_array( strlen( $color ), $allowed_lengths, true );
 
