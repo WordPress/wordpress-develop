@@ -18,12 +18,16 @@ class WP_Block_Bindings {
 	/**
 	 * Holds the registered block bindings sources, keyed by source identifier.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @var array
 	 */
 	private $sources = array();
 
 	/**
 	 * Function to register a new source.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string   $source_name The name of the source.
 	 * @param string   $label The label of the source.
@@ -44,7 +48,9 @@ class WP_Block_Bindings {
 	}
 
 	/**
-	 * Depending on the block attributes, replace the proper HTML based on the value returned by the source.
+	 * Depending on the block attributes, replace the HTML based on the value returned by the source.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $block_content Block content.
 	 * @param string $block_name The name of the block to process.
@@ -147,6 +153,8 @@ class WP_Block_Bindings {
 
 	/**
 	 * Retrieves the list of registered block sources.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @return array The array of registered sources.
 	 */
