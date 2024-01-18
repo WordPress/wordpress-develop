@@ -827,12 +827,12 @@ function update_option( $option, $value, $autoload = null ) {
 	);
 
 	if ( null !== $autoload ) {
-		$update_args['autoload'] = determine_option_autoload_value( $option, $serialized_value, $autoload );
+		$update_args['autoload'] = wp_determine_option_autoload_value( $option, $serialized_value, $autoload );
 	} else {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
-			$autoload = determine_option_autoload_value( $option, $serialized_value, $autoload );
+			$autoload = wp_determine_option_autoload_value( $option, $serialized_value, $autoload );
 			if ( $autoload !== $raw_autoload ) {
 				$update_args['autoload'] = $autoload;
 			}
@@ -1004,7 +1004,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 
 	$serialized_value = maybe_serialize( $value );
 
-	$autoload = determine_option_autoload_value( $option, $serialized_value, $autoload );
+	$autoload = wp_determine_option_autoload_value( $option, $serialized_value, $autoload );
 
 	/**
 	 * Fires before an option is added.
@@ -1171,7 +1171,7 @@ function delete_option( $option ) {
  * @return string Returns the original $autoload value if explicit, or 'auto-on', 'auto-off',
  *                or 'auto' depending on default heuristics.
  */
-function determine_option_autoload_value( $option, $value, $autoload ) {
+function wp_determine_option_autoload_value( $option, $value, $autoload ) {
 
 	/**
 	 * Filters the maximum size of option value in bytes.
