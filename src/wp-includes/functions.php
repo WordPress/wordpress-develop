@@ -4440,7 +4440,7 @@ function _wp_json_prepare_data( $value ) {
  * @param int   $status_code Optional. The HTTP status code to output. Default null.
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
  */
-function wp_send_json( $response, $status_code = null, $options = 0 ) {
+function wp_send_json( $response, $status_code = null, $flags = 0 ) {
 	if ( wp_is_rest_request() ) {
 		_doing_it_wrong(
 			__FUNCTION__,
