@@ -159,16 +159,13 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function data_unsupported_special_in_body_tags() {
 		return array(
 			'APPLET'    => array( 'APPLET' ),
-			'AREA'      => array( 'AREA' ),
 			'BASE'      => array( 'BASE' ),
 			'BASEFONT'  => array( 'BASEFONT' ),
 			'BGSOUND'   => array( 'BGSOUND' ),
 			'BODY'      => array( 'BODY' ),
-			'BR'        => array( 'BR' ),
 			'CAPTION'   => array( 'CAPTION' ),
 			'COL'       => array( 'COL' ),
 			'COLGROUP'  => array( 'COLGROUP' ),
-			'EMBED'     => array( 'EMBED' ),
 			'FORM'      => array( 'FORM' ),
 			'FRAME'     => array( 'FRAME' ),
 			'FRAMESET'  => array( 'FRAMESET' ),
@@ -177,7 +174,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'HTML'      => array( 'HTML' ),
 			'IFRAME'    => array( 'IFRAME' ),
 			'INPUT'     => array( 'INPUT' ),
-			'KEYGEN'    => array( 'KEYGEN' ),
 			'LINK'      => array( 'LINK' ),
 			'LISTING'   => array( 'LISTING' ),
 			'MARQUEE'   => array( 'MARQUEE' ),
@@ -214,7 +210,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'TITLE'     => array( 'TITLE' ),
 			'TR'        => array( 'TR' ),
 			'TRACK'     => array( 'TRACK' ),
-			'WBR'       => array( 'WBR' ),
 			'XMP'       => array( 'XMP' ),
 		);
 	}

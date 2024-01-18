@@ -376,4 +376,33 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'DIV', $p->get_tag(), "Expected to find DIV element, but found {$p->get_tag()} instead." );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'DIV' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting: SPAN should be closed and DIV should be its sibling.' );
 	}
+
+	/**
+	 * Verifies that when "in body" and encountering a br close tag `</br …>`:
+	 *
+	 * > An end tag whose tag name is "br"
+	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
+	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
+	 * >   tag token that it actually is.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 58907
+	 *
+	 * @since 6.4.0
+	 */
+	public function test_br_close_tag_special_behavior() {
+		$this->markTestIncomplete( 'BR end tag special handling is unimplemented' );
+
+		$p = WP_HTML_Processor::create_fragment( '</br attribute="must be removed">' );
+
+		$this->assertTrue( $p->next_tag( 'BR' ), 'No BR tag found.' );
+		$this->assertNull( $p->get_attribute_names_with_prefix( '' ), 'BR end tag had attributes.' );
+		$this->assertFalse( $p->is_tag_closer(), '</br> is treated as a BR start tag.' );
+
+		$this->assertFalse( $p->set_attribute( 'new-attribute', 'added' ), 'BR end tag becomes an opener' );
+		$this->assertCount( 1, $p->get_attribute_names_with_prefix( '' ), 'Tag should have 1 attribute.' );
+		$this->assertSame( 'added', $p->get_attribute( 'new-attribute' ), 'Tag did not set attribute value correctly.' );
+		$this->assertSame( '<br new-attribute="added">', $p->get_updated_html(), 'Tag HTML was not updated correctly.' );
+	}
 }
