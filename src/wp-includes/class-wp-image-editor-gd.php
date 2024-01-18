@@ -577,14 +577,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				if ( function_exists( 'imagewebp' ) ) {
 					header( 'Content-Type: image/webp' );
 					return imagewebp( $this->image, null, $this->get_quality() );
+				} else {
+					// Fall back to JPEG.
+					header( 'Content-Type: image/jpeg' );
+					return imagejpeg( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to JPEG as the default.
 			case 'image/avif':
 				if ( function_exists( 'imageavif' ) ) {
 					header( 'Content-Type: image/avif' );
 					return imageavif( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to JPEG as the default.
+				// Fall back to JPEG.
 			default:
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );
