@@ -3410,7 +3410,6 @@ function wp_is_rest_endpoint(): bool {
 	if ( ! $is_rest_endpoint ) {
 		// Otherwise, check whether an internal REST request is currently being handled.
 		$is_rest_endpoint = isset( $wp_rest_server )
-			&& method_exists( $wp_rest_server, 'is_dispatching' )
 			&& $wp_rest_server->is_dispatching();
 	}
 
