@@ -1986,10 +1986,14 @@ class WP_Site_Health {
 			'test'        => 'privileged_default_role_with_open_registration',
 		);
 
-		$privileged_roles = (array) apply_filters( 'site_status_over_privileged_role', array( 'editor', 'administrator' ) );
-		if ( $users_can_register && in_array( $default_role, $privileged_roles, true ) ) {
+		if ( $users_can_register && in_array( $default_role, array( 'editor', 'administrator' ), true ) ) {
 			$result['description'] = __( 'Registration is open to anyone, and the default role is set to a privileged role.' );
 			$result['status']      = 'critical';
+			$result['actions']     = sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( admin_url( 'options-general.php' ) ),
+				__( 'Change these settings' )
+			);
 		}
 
 		return $result;
