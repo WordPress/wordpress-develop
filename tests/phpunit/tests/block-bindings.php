@@ -27,8 +27,8 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 		$sources = $wp_block_bindings->get_sources();
 		$this->assertArrayHasKey( $source_name, $sources );
-		$this->assertEquals( $label, $sources[ $source_name ]['label'] );
-		$this->assertEquals( $apply, $sources[ $source_name ]['apply'] );
+		$this->assertEquals( $label, $sources[ $source_name ]['label'], 'The label should match the one in the registered source' );
+		$this->assertEquals( $apply, $sources[ $source_name ]['apply'], 'The apply callback should match the one in the registered source' );
 	}
 
 	/**
@@ -47,7 +47,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
 
 		// Check if the block content was updated correctly.
-		$this->assertStringContainsString( $source_value, $result );
+		$this->assertStringContainsString( $source_value, $result, 'The block content should be updated with the value returned by the source.' );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		$source_value      = 'Updated URL';
 
 		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
-		$this->assertStringContainsString( $source_value, $result );
+		$this->assertStringContainsString( $source_value, $result, 'The block content should be updated with the value returned by the source.' );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
 
-		$this->assertEquals( $block_content, $result );
+		$this->assertEquals( $block_content, $result, 'The block content should not be updated if the block type is not registered.' );
 	}
 
 	/**
@@ -100,7 +100,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
 
-		$this->assertEquals( $block_content, $result );
+		$this->assertEquals( $block_content, $result, 'The block content should not be updated if the block type does not support the attribute.' );
 	}
 
 	/**
