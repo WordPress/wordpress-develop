@@ -1153,9 +1153,9 @@ function delete_option( $option ) {
  *  This function checks the provided autoload value and returns a standardized
  *  value ('yes', 'no', 'auto-yes', or 'auto-no') based on specific conditions.
  *
- * If no valid autoload value is provided, the function will check the size of the given option value
- * and compare it to the maximum allowed size. If it ls larger, it will return 'auto-no', otherwise
- * it will return 'auto-yes'.
+ * If no explicit autoload value is provided, the function will check for certain heuristics around the given option.
+ * It will return `auto-on` to indicate autoloading, `auto-off` to indicate not autoloading, or `auto` if no clear
+ * decision could be made.
  *
  * @since 6.5.0
  * @access private
