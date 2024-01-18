@@ -164,8 +164,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 
 		$this->assertTrue( $result, "Could not find first {$tag}." );
 		$this->assertCount( 3, $p->get_breadcrumbs(), "{$tag} was not nested correctly." );
-		$this->assertTrue( $p->next_tag( 'DIV' ), "Could not find <div> tag." );
-		$this->assertCount( 3, $p->get_breadcrumbs(), "Following <div> was not nested correctly." );
+		$this->assertTrue( $p->next_tag( 'DIV' ), 'Could not find <div> tag.' );
+		$this->assertCount( 3, $p->get_breadcrumbs(), 'Following <div> was not nested correctly.' );
 	}
 
 	/**
