@@ -2088,6 +2088,42 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 /**
  * Processes the block bindings in block's attributes.
  *
+ * A block might contain bindings in its attributes. Bindings are mappings
+ * between an attribute of the block and a source. A "source" is a function
+ * registered with `wp_block_bindings_register_source()` that defines how to
+ * retrieve a value from outside the block, e.g. from post meta.
+ *
+ * This function will process those bindings and replace the HTML with the value of the binding.
+ * The value is retrieved from the source of the binding.
+ *
+ * ### Example
+ *
+ * The "bindings" property for an Image block might look like this:
+ *
+ * ```json
+ * {
+ *   "metadata": {
+ *     "bindings": {
+ *       "title": {
+ *         "source": {
+ *           "name": "post_meta",
+ *           "attributes": { "value": "text_custom_field" }
+ *         }
+ *       },
+ *       "url": {
+ *         "source": {
+ *           "name": "post_meta",
+ *           "attributes": { "value": "url_custom_field" }
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * The above example will replace the `title` and `url` attributes of the Image
+ * block with the values of the `text_custom_field` and `url_custom_field` post meta.
+ *
  * @access private
  * @since 6.5.0
  *
