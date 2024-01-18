@@ -631,7 +631,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		$obtained_variations = $block_type->variations; // access the variations.
 		remove_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10 );
-		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
+		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations that was initially set should be filtered.' );
 	}
 
 	/**
