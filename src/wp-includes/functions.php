@@ -4711,7 +4711,7 @@ function _mce_set_direction( $mce_init ) {
  *
  * @return bool True if it's a WordPress REST API request, false otherwise.
  */
-function wp_is_serving_rest_request(): bool {
+function wp_is_serving_rest_request() {
 	return defined( 'REST_REQUEST' ) && REST_REQUEST;
 }
 

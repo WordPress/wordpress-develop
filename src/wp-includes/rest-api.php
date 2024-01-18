@@ -3401,7 +3401,7 @@ function rest_convert_error_to_response( $error ) {
  *
  * @return bool True if a REST endpoint request is currently being handled, false otherwise.
  */
-function wp_is_rest_endpoint(): bool {
+function wp_is_rest_endpoint() {
 	/* @var WP_REST_Server $wp_rest_server */
 	global $wp_rest_server;
 
