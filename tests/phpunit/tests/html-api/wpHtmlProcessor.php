@@ -133,6 +133,46 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure non-nesting tags do not nest
+	 *
+	 * @ticket 60283
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @dataProvider data_unnestable_tags
+	 */
+	public function test_cannot_nest_unnestable_tags( $tag ) {
+		$p = WP_HTML_Processor::create_fragment( "{$tag}{$tag}" );
+
+		// We should have this structure:
+		// <html>
+		//   <body>
+		//     <$TAG />
+		//     <$TAG />
+		//   </body>
+		// </html>
+		//
+		// The breadcrumbs should be:
+		// HTML > BODY > $TAG
+
+		$this->assertTrue( $p->next_tag(), "Could not find first {$tag}." );
+		$this->assertCount( 3, $p->get_breadcrumbs(), "First {$tag} was not nested correctly." );
+		$this->assertTrue( $p->next_tag(), "Could not find second {$tag}." );
+		$this->assertCount( 3, $p->get_breadcrumbs(), "Second {$tag} was not nested correctly." );
+	}
+
+	public function data_unnestable_tags() {
+		return array(
+			'AREA'   => array( '<area>' ),
+			'BR'     => array( '<br>' ),
+			'EMBED'  => array( '<embed>' ),
+			'IMG'    => array( '<img>' ),
+			'KEYGEN' => array( '<keygen>' ),
+			'WBR'    => array( '<wbr>' ),
+		);
+	}
+
+	/**
 	 * Ensures that special handling of unsupported tags is cleaned up
 	 * as handling is implemented. Otherwise there's risk of leaving special
 	 * handling (that is never reached) when tag handling is implemented.
