@@ -2512,9 +2512,6 @@ function wp_enqueue_global_styles() {
 	wp_register_style( 'global-styles', false );
 	wp_add_inline_style( 'global-styles', $stylesheet );
 	wp_enqueue_style( 'global-styles' );
-
-	// Add each block as an inline css.
-	wp_add_global_styles_for_blocks();
 }
 
 /**

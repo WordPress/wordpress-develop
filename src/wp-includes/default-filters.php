@@ -596,8 +596,10 @@ add_action( 'admin_head', 'wp_check_widget_editor_deps' );
 add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
+add_action( 'init', 'wp_enqueue_global_styles', 1 );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
+
+add_action( 'wp_enqueue_scripts', 'wp_add_global_styles_for_blocks' );
 
 // Global styles custom CSS.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
