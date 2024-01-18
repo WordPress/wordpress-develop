@@ -941,6 +941,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				return true;
+
+			/*
+			 * > A start tag whose tag name is "hr"
+			 */
+			case '+HR':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+				return true;
 		}
 
 		/*
@@ -977,7 +988,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'FRAME':
 			case 'FRAMESET':
 			case 'HEAD':
-			case 'HR':
 			case 'HTML':
 			case 'IFRAME':
 			case 'INPUT':

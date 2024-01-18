@@ -175,7 +175,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
-			'HR',
 			'HTML',
 			'IFRAME',
 			'INPUT',
