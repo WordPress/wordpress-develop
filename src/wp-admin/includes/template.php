@@ -2118,14 +2118,17 @@ function _admin_search_query() {
  *
  * @global string    $hook_suffix
  * @global string    $admin_body_class
+ * @global string    $body_id
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
  *
  * @param string $title      Optional. Title of the Iframe page. Default empty.
  * @param bool   $deprecated Not used.
  */
 function iframe_header( $title = '', $deprecated = false ) {
+	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
+
 	show_admin_bar( false );
-	global $hook_suffix, $admin_body_class, $wp_locale;
+
 	$admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 
 	$current_screen = get_current_screen();
@@ -2179,10 +2182,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	?>
 </head>
 	<?php
-	/**
-	 * @global string $body_id
-	 */
-	$admin_body_id = isset( $GLOBALS['body_id'] ) ? 'id="' . $GLOBALS['body_id'] . '" ' : '';
+	$admin_body_id = isset( $body_id ) ? 'id="' . $body_id . '" ' : '';
 
 	/** This filter is documented in wp-admin/admin-header.php */
 	$admin_body_classes = apply_filters( 'admin_body_class', '' );
@@ -2540,22 +2540,22 @@ function compression_test() {
  *
  * @see get_submit_button()
  *
- * @param string       $text             The text of the button (defaults to 'Save Changes')
+ * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
  *                                       include 'primary', 'small', and 'large'. Default 'primary'.
- * @param string       $name             The HTML name of the submit button. Defaults to "submit". If no
- *                                       id attribute is given in $other_attributes below, $name will be
- *                                       used as the button's id.
- * @param bool         $wrap             True if the output button should be wrapped in a paragraph tag,
- *                                       false otherwise. Defaults to true.
- * @param array|string $other_attributes Other attributes that should be output with the button, mapping
- *                                       attributes to their values, such as setting tabindex to 1, etc.
- *                                       These key/value attribute pairs will be output as attribute="value",
- *                                       where attribute is the key. Other attributes can also be provided
- *                                       as a string such as 'tabindex="1"', though the array format is
- *                                       preferred. Default null.
+ * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
+ *                                       is given in the `$other_attributes` parameter, `$name` will be used
+ *                                       as the button's `id`. Default 'submit'.
+ * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph tag,
+ *                                       false otherwise. Default true.
+ * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
+ *                                       mapping attributes to their values, e.g. `array( 'id' => 'search-submit' )`.
+ *                                       These key/value attribute pairs will be output as `attribute="value"`,
+ *                                       where attribute is the key. Attributes can also be provided as a string,
+ *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+ *                                       Default empty string.
  */
-function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = null ) {
+function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
 }
 
@@ -2564,20 +2564,20 @@ function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap
  *
  * @since 3.1.0
  *
- * @param string       $text             Optional. The text of the button. Default 'Save Changes'.
+ * @param string       $text             Optional. The text of the button. Defaults to 'Save Changes'.
  * @param string       $type             Optional. The type and CSS class(es) of the button. Core values
  *                                       include 'primary', 'small', and 'large'. Default 'primary large'.
- * @param string       $name             Optional. The HTML name of the submit button. Defaults to "submit".
- *                                       If no id attribute is given in $other_attributes below, `$name` will
- *                                       be used as the button's id. Default 'submit'.
- * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph
- *                                       tag, false otherwise. Default true.
+ * @param string       $name             Optional. The HTML name of the submit button. If no `id` attribute
+ *                                       is given in the `$other_attributes` parameter, `$name` will be used
+ *                                       as the button's `id`. Default 'submit'.
+ * @param bool         $wrap             Optional. True if the output button should be wrapped in a paragraph tag,
+ *                                       false otherwise. Default true.
  * @param array|string $other_attributes Optional. Other attributes that should be output with the button,
- *                                       mapping attributes to their values, such as `array( 'tabindex' => '1' )`.
- *                                       These attributes will be output as `attribute="value"`, such as
- *                                       `tabindex="1"`. Other attributes can also be provided as a string such
- *                                       as `tabindex="1"`, though the array format is typically cleaner.
- *                                       Default empty.
+ *                                       mapping attributes to their values, e.g. `array( 'id' => 'search-submit' )`.
+ *                                       These key/value attribute pairs will be output as `attribute="value"`,
+ *                                       where attribute is the key. Attributes can also be provided as a string,
+ *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
+ *                                       Default empty string.
  * @return string Submit button HTML.
  */
 function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
