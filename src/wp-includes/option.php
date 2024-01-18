@@ -1197,7 +1197,7 @@ function wp_determine_option_autoload_value( $option, $value, $autoload ) {
 	 *        null will allow the size of the $autoload to be set 'auto-off' for large values.
 	 */
 
-	$autoload = apply_filters( 'wp_default_autoload_value', null, $autoload, $option, $value );
+	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value );
 	if ( is_bool( $autoload ) ) {
 		return $autoload ? 'auto-on' : 'auto-off';
 	}
