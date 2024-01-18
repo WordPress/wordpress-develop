@@ -1113,8 +1113,10 @@ function delete_option( $option ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
 			}
+		} else {
+			wp_cache_delete( $option, 'options' );
 		}
-		wp_cache_delete( $option, 'options' );
+
 	}
 
 	if ( $result ) {
