@@ -609,6 +609,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
 		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
 	}
+
 	public function filter_test_variations( $variations, $block_type ) {
 		return array( array( 'name' => 'test1' ) );
 	}
