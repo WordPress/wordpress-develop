@@ -9,7 +9,7 @@
  * Media Patent License 1.0 was not distributed with this source code in the
  * PATENTS file, you can obtain it at www.aomedia.org/license/patent.
  *
- * Note: this class is from libavifinfo - https://aomedia.googlesource.com/libavifinfo/+/refs/heads/main/avifinfo.php
+ * Note: this class is from libavifinfo - https://aomedia.googlesource.com/libavifinfo/+/refs/heads/main/avifinfo.php at b496868.
  */
 
 namespace Avifinfo;
