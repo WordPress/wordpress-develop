@@ -934,7 +934,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->run_adoption_agency_algorithm();
 				return true;
 
-
 			/*
 			 * > An end tag whose tag name is "br"
 			 * >   Parse error. Drop the attributes from the token, and act as described in the next
@@ -943,7 +942,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-BR':
 				$this->last_error = self::ERROR_UNSUPPORTED;
-				throw new WP_HTML_Unsupported_Exception( "Closing BR tags require unimplemented special handling." );
+				throw new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
 
 			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
