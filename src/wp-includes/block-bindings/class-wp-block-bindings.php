@@ -46,7 +46,7 @@ class WP_Block_Bindings {
 	/**
 	 * Depending on the block attributes, replace the proper HTML based on the value returned by the source.
 	 *
-	 * @param string $block_content Block Content.
+	 * @param string $block_content Block content.
 	 * @param string $block_name The name of the block to process.
 	 * @param string $block_attr The attribute of the block we want to process.
 	 * @param string $source_value The value used to replace the HTML.

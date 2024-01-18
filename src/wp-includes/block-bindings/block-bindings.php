@@ -53,7 +53,7 @@ function wp_block_bindings_get_sources() {
 /**
  * Replaces the HTML content of a block based on the provided source value.
  *
- * @param string $block_content Block Content.
+ * @param string $block_content Block content.
  * @param string $block_name The name of the block to process.
  * @param string $block_attr The attribute of the block we want to process.
  * @param string $source_value The value used to replace the HTML.

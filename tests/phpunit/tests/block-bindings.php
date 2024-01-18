@@ -2,14 +2,19 @@
 /**
  * Unit tests covering WP_Block_Bindings functionality.
  *
+ * @group block-bindings
+ *
+ * @covers WP_Block_Bindings
+ *
  * @since 6.5.0
  * @package WordPress
  */
-
 class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 	/**
 	* Test register_source method.
+	*
+	* @covers WP_Block_Bindings::register_source
 	*/
 	public function test_register_source() {
 		$wp_block_bindings = new WP_Block_Bindings();
@@ -28,6 +33,8 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 	/**
 	* Test replace_html method for content.
+	*
+	* @covers WP_Block_Bindings::replace_html
 	*/
 	public function test_replace_html_for_paragraph_content() {
 		$wp_block_bindings = new WP_Block_Bindings();
@@ -45,6 +52,8 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 	/**
 	* Test replace_html method for attributes.
+	*
+	* @covers WP_Block_Bindings::replace_html
 	*/
 	public function test_replace_html_for_attribute() {
 		$wp_block_bindings = new WP_Block_Bindings();
@@ -59,6 +68,8 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 	/**
 	* Test case for scenarios where block type is not registered.
+	*
+	* @covers WP_Block_Bindings::replace_html
 	*/
 	public function test_replace_html_with_unregistered_block() {
 		$wp_block_bindings = new WP_Block_Bindings();
@@ -74,7 +85,10 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	* Test case for scenarios where block is registered but attribute does not exist on block type.
+	* Test case for scenarios where block is registered but attribute does not
+	* exist on block type.
+	*
+	* @covers WP_Block_Bindings::replace_html
 	*/
 	public function test_replace_html_with_registered_block_but_unsupported_source_type() {
 		$wp_block_bindings = new WP_Block_Bindings();
