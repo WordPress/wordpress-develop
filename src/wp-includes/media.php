@@ -5521,7 +5521,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 
 	if (
 		! empty( $info ) &&
-		// Some PHP versions return 0x0 sizes from `getimagesize` for unrecognized image formats, including AVIFs
+		// Some PHP versions return 0x0 sizes from `getimagesize` for unrecognized image formats, including AVIFs.
 		! ( empty( $info[0] ) && empty( $info[1] ) )
 		) {
 		return $info;
@@ -5552,13 +5552,12 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
-	// For PHP versions that don't support AVIF images,
-	// extract the image size info from the file headers.
+	// For PHP versions that don't support AVIF images, extract the image size info from the file headers.
 	if ( 'image/avif' === wp_get_image_mime( $filename ) ) {
 		$avif_info = wp_get_avif_info( $filename );
 
-		$width     = $avif_info['width'];
-		$height    = $avif_info['height'];
+		$width  = $avif_info['width'];
+		$height = $avif_info['height'];
 
 		// Mimic the native return format.
 		if ( $width && $height ) {
@@ -5589,10 +5588,10 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  * @return array {
  *    An array of AVIF image information.
  *
- *   @type int|false    $width        Image width on success, false on failure.
- *   @type int|false    $height       Image height on success, false on failure.
- *   @type int|false    $bit_depth    Image bit depth on success, false on failure.
- *   @type int|false    $num_channels Image number of channels on success, false on failure.
+ *    @type int|false    $width        Image width on success, false on failure.
+ *    @type int|false    $height       Image height on success, false on failure.
+ *    @type int|false    $bit_depth    Image bit depth on success, false on failure.
+ *    @type int|false    $num_channels Image number of channels on success, false on failure.
  * }
  */
 function wp_get_avif_info( $filename ) {
