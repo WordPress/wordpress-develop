@@ -280,6 +280,8 @@ class WP_Block {
 			}
 		}
 
+		// Process the block bindings for this block, if any are registered. This
+		// will replace the block content with the value from a registered binding source.
 		$block_content = _process_block_bindings( $block_content, $this->parsed_block, $this );
 
 		/**
