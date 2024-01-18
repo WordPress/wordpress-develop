@@ -385,9 +385,33 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
 	 * >   tag token that it actually is.
 	 *
+	 * When this handling is implemented, this test should be removed and
+	 * `test_br_end_tag_special_behavior` should not be marked incomplete.
+	 *
 	 * @covers WP_HTML_Processor::step_in_body
 	 *
-	 * @ticket 58907
+	 * @ticket 60283
+	 *
+	 * @since 6.4.0
+	 */
+	public function test_br_end_tag_unsupported() {
+		$p = WP_HTML_Processor::create_fragment( '</br>' );
+
+		$this->assertFalse( $p->next_tag(), 'Found a BR tag that should not be handled.' );
+		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $p->get_last_error() );
+	}
+
+	/**
+	 * Verifies that when "in body" and encountering a BR end tag `</br …>`:
+	 *
+	 * > An end tag whose tag name is "br"
+	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
+	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
+	 * >   tag token that it actually is.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 60283
 	 *
 	 * @since 6.4.0
 	 */
