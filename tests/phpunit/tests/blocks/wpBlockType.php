@@ -592,7 +592,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		$expected_variations = array( array( 'name' => 'test1' ) );
 
 		$callback_called = false;
-		$block_type = new WP_Block_Type(
+		$block_type      = new WP_Block_Type(
 			'test/block',
 			array(
 				'title'              => 'Test title',
@@ -625,7 +625,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			'test/block',
 			array(
 				'title'      => 'Test title',
-				'variations' => $this->mock_variation_callback()
+				'variations' => $this->mock_variation_callback(),
 			)
 		);
 
