@@ -378,7 +378,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that when "in body" and encountering a br close tag `</br …>`:
+	 * Verifies that when "in body" and encountering a BR end tag `</br …>`:
 	 *
 	 * > An end tag whose tag name is "br"
 	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
@@ -391,15 +391,14 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 *
 	 * @since 6.4.0
 	 */
-	public function test_br_close_tag_special_behavior() {
+	public function test_br_end_tag_special_behavior() {
 		$this->markTestIncomplete( 'BR end tag special handling is unimplemented' );
 
 		$p = WP_HTML_Processor::create_fragment( '</br attribute="must be removed">' );
 
-		$this->assertTrue( $p->next_tag( 'BR' ), 'No BR tag found.' );
+		$this->assertTrue( $p->next_tag(), 'No BR tag found.' );
+		$this->assertFalse( $p->is_tag_closer(), '</br> should not be treated as an end tag.' );
 		$this->assertNull( $p->get_attribute_names_with_prefix( '' ), 'BR end tag had attributes.' );
-		$this->assertFalse( $p->is_tag_closer(), '</br> is treated as a BR start tag.' );
-
 		$this->assertFalse( $p->set_attribute( 'new-attribute', 'added' ), 'BR end tag becomes an opener' );
 		$this->assertCount( 1, $p->get_attribute_names_with_prefix( '' ), 'Tag should have 1 attribute.' );
 		$this->assertSame( 'added', $p->get_attribute( 'new-attribute' ), 'Tag did not set attribute value correctly.' );
