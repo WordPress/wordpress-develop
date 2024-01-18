@@ -3331,9 +3331,9 @@ function wp_get_image_mime( $file ) {
 			return $mime;
 		}
 
-		$header = file_get_contents( $file, false, null, 0, 12 );
+		$magic = file_get_contents( $file, false, null, 0, 12 );
 
-		if ( false === $header ) {
+		if ( false === $magic ) {
 			return false;
 		}
 
@@ -3342,7 +3342,7 @@ function wp_get_image_mime( $file ) {
 		 * Note: detection values come from LibWebP, see
 		 * https://github.com/webmproject/libwebp/blob/master/imageio/image_dec.c#L30
 		 */
-		$magic = bin2hex( $header );
+		$magic = bin2hex( $magic );
 		if (
 			// RIFF.
 			( str_starts_with( $magic, '52494646' ) ) &&
