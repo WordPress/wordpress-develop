@@ -478,6 +478,22 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
+	 */
+	public function test_get_variations() {
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => array( $this, 'mock_variation_callback' ),
+			)
+		);
+
+		$this->assertSameSets( $this->mock_variation_callback(), $block_type->get_variations() );
+	}
+
+	/**
+	 * @ticket 59969
 	 */
 	public function test_variations_precedence_over_callback() {
 		$test_variations = array( 'name' => 'test1' );
@@ -519,6 +535,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
 	 */
 	public function test_variations_precedence_over_callback_post_registration() {
 		$test_variations = array( 'name' => 'test1' );
@@ -543,6 +560,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
 	 */
 	public function test_variations_callback_happens_only_once() {
 		$callback_count = 0;
@@ -567,18 +585,53 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59969
-	 * @covers WP_Block_Type::get_variations
 	 */
-	public function test_get_variations() {
+	public function test_get_block_type_variations_filter_with_variation_callback() {
+		// Filter will override the variations obtained from the callback.
+		add_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10, 2 );
+		$expected_variations = array( array( 'name' => 'test1' ) );
+
+		$callback_called = false;
 		$block_type = new WP_Block_Type(
 			'test/block',
 			array(
 				'title'              => 'Test title',
-				'variation_callback' => array( $this, 'mock_variation_callback' ),
+				'variation_callback' => function () use ( &$callback_called ) {
+					$callback_called = true;
+					return $this->mock_variation_callback();
+				},
 			)
 		);
 
-		$this->assertSameSets( $this->mock_variation_callback(), $block_type->get_variations() );
+		$obtained_variations = $block_type->variations; // access the variations.
+		remove_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10 );
+
+		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
+		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
+	}
+	public function filter_test_variations( $variations, $block_type ) {
+		return array( array( 'name' => 'test1' ) );
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_get_block_type_variations_filter_variations() {
+		// Filter will override the variations set during resistration.
+		add_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10, 2 );
+		$expected_variations = array( array( 'name' => 'test1' ) );
+
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'      => 'Test title',
+				'variations' => $this->mock_variation_callback()
+			)
+		);
+
+		$obtained_variations = $block_type->variations; // access the variations.
+		remove_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10 );
+		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
 	}
 
 	/**
