@@ -225,6 +225,18 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a P end tag with no open P element adds a P element.
+	 *
+	 * @ticket @todo
+	 */
+	public function test_p_end_tag_without_p_element_adds_p_element() {
+		$p = WP_HTML_Processor::create_fragment( '</p>' );
+		$this->assertTrue( $p->next_tag(), 'Failed to find a P tag.' );
+		$this->assertSame( 'P', $p->get_tag(), 'Failed to find expected P tag name.' );
+		$this->assertFalse( $p->is_tag_closer(), 'We should find a P tag opener.' );
+	}
+
+	/**
 	 * Verifies that H1 through H6 elements close an open P element.
 	 *
 	 * @ticket 60215
