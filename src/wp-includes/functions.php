@@ -3331,9 +3331,9 @@ function wp_get_image_mime( $file ) {
 			return $mime;
 		}
 
-		$magic = file_get_contents( $file, false, null, 0, 12 );
+		$header = file_get_contents( $file, false, null, 0, 12 );
 
-		if ( false === $magic ) {
+		if ( false === $header ) {
 			return false;
 		}
 
@@ -3342,7 +3342,7 @@ function wp_get_image_mime( $file ) {
 		 * Note: detection values come from LibWebP, see
 		 * https://github.com/webmproject/libwebp/blob/master/imageio/image_dec.c#L30
 		 */
-		$magic = bin2hex( $magic );
+		$magic = bin2hex( $header );
 		if (
 			// RIFF.
 			( str_starts_with( $magic, '52494646' ) ) &&
@@ -3358,14 +3358,15 @@ function wp_get_image_mime( $file ) {
 		 * @todo check the third 4-byte token "[major_brand]", for "avif" or "avis" .
 		 *
 		 */
+
+		 // Divide the header string into 4 byte groups.
+		$magic = str_split( $magic, 8 );
+
 		if (
-			// AVIF: lossless or lossy.
-			( str_starts_with( $magic, '0000002066' ) ) ||
-			( str_starts_with( $magic, '0000001866' ) ) || // AVIF created by Imagick.
-			// AVIF: animated.
-			( str_starts_with( $magic, '0000002c66' ) ) ||
-			// AVIF: transparent.
-			( str_starts_with( $magic, '0000001c66' ) )
+			isset( $magic[1] ) &&
+			isset( $magic[2] ) &&
+			'ftyp' === hex2bin( $magic[1] ) &&
+			( 'avif' === hex2bin( $magic[2] ) || 'avis' === hex2bin( $magic[2] ) )
 		) {
 			$mime = 'image/avif';
 		}
