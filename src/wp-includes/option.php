@@ -710,7 +710,7 @@ function wp_load_core_site_options( $network_id = null ) {
  * @param mixed     $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
  * @param bool|null $autoload Optional. Whether to load the option when WordPress starts up.
  *                            Accepts a boolean, or `null` to stick with the initial value or, if no initial value is set,
- *                            to leave the decision up to default heuristics in WordPress..
+ *                            to leave the decision up to default heuristics in WordPress.
  *                            For existing options,
  *                            `$autoload` can only be updated using `update_option()` if `$value` is also changed.
  *                            For backward compatibility 'yes' and 'no' are also accepted.
