@@ -1698,7 +1698,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'META' === $tag_name ||
 			'SOURCE' === $tag_name ||
 			'TRACK' === $tag_name ||
-			'WBR' === $tag_name
+			'WBR' === $tag_name ||
+
+			// Obsolete
+			//
+			// This does not appear in https://html.spec.whatwg.org/#void-elements
+			// but it was a void tag and browsers treat it as such.
+			'KEYGEN' === $tag_name
 		);
 	}
 

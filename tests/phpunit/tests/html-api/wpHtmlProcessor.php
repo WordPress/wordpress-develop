@@ -138,11 +138,12 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 60283
 	 *
 	 * @covers WP_HTML_Processor::step_in_body
+	 * @covers WP_HTML_Processor::is_void
 	 *
-	 * @dataProvider data_unnestable_tags
+	 * @dataProvider data_void_tags
 	 */
-	public function test_cannot_nest_unnestable_tags( $tag ) {
-		$p = WP_HTML_Processor::create_fragment( "{$tag}{$tag}" );
+	public function test_cannot_nest_void_tags( $tag ) {
+		$p = WP_HTML_Processor::create_fragment( "{$tag}<div>" );
 
 		// We should have this structure:
 		// <html>
@@ -155,19 +156,38 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		// The breadcrumbs should be:
 		// HTML > BODY > $TAG
 
-		$this->assertTrue( $p->next_tag(), "Could not find first {$tag}." );
-		$this->assertCount( 3, $p->get_breadcrumbs(), "First {$tag} was not nested correctly." );
-		$this->assertTrue( $p->next_tag(), "Could not find second {$tag}." );
-		$this->assertCount( 3, $p->get_breadcrumbs(), "Second {$tag} was not nested correctly." );
+		$result = $p->next_tag();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $p->get_last_error() ) {
+			$this->markTestSkipped( "{$tag} is unsupported." );
+		}
+
+		$this->assertTrue( $result, "Could not find first {$tag}." );
+		$this->assertCount( 3, $p->get_breadcrumbs(), "{$tag} was not nested correctly." );
+		$this->assertTrue( $p->next_tag( 'DIV' ), "Could not find <div> tag." );
+		$this->assertCount( 3, $p->get_breadcrumbs(), "Following <div> was not nested correctly." );
 	}
 
-	public function data_unnestable_tags() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_void_tags() {
 		return array(
 			'AREA'   => array( '<area>' ),
+			'BASE'   => array( '<base>' ),
 			'BR'     => array( '<br>' ),
+			'COL'    => array( '<col>' ),
 			'EMBED'  => array( '<embed>' ),
+			'HR'     => array( '<hr>' ),
 			'IMG'    => array( '<img>' ),
+			'INPUT'  => array( '<input>' ),
 			'KEYGEN' => array( '<keygen>' ),
+			'LINK'   => array( '<link>' ),
+			'META'   => array( '<meta>' ),
+			'SOURCE' => array( '<source>' ),
+			'TRACK'  => array( '<track>' ),
 			'WBR'    => array( '<wbr>' ),
 		);
 	}
