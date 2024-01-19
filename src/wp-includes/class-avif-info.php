@@ -10,6 +10,10 @@
  * PATENTS file, you can obtain it at www.aomedia.org/license/patent.
  *
  * Note: this class is from libavifinfo - https://aomedia.googlesource.com/libavifinfo/+/refs/heads/main/avifinfo.php at b496868.
+ * It is used as a fallback to parse AVIF files when the server doesn't support AVIF,
+ * primarily to identify the width and height of the image.
+ *
+ * Note PHP 8.2 added native support for AVIF, so this class can be removed when WordPress requires PHP 8.2.
  */
 
 namespace Avifinfo;
