@@ -250,6 +250,25 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				),
 				'expected_output' => '<div class="wp-block-group"><div class="wp-block-group__inner-wrapper is-layout-flow wp-block-group-is-layout-flow"></div></div>',
 			),
+			'skip classname output if block does not support layout and there are no child layout classes to be output' => array(
+				'args'            => array(
+					'block_content' => '<p>A paragraph</p>',
+					'block'         => array(
+						'blockName'    => 'core/paragraph',
+						'attrs'        => array(
+							'style' => array(
+								'layout' => array(
+									'selfStretch' => 'fit'
+								)
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<p>A paragraph</p>',
+						'innerContent' => array( '<p>A paragraph</p>' ),
+					),
+				),
+				'expected_output' => '<p>A paragraph</p>',
+			)
 		);
 	}
 
