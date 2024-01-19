@@ -445,7 +445,6 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$url = redirect_canonical( $attachment_page, false );
 		if ( is_string( $expected ) ) {
 			$expected = str_replace( '%%attachment_url%%', $attachment_url, $expected );
-			$expected = str_replace( '%%attachment_page%%', $attachment_page, $expected );
 		}
 
 		$this->assertSame( $expected, $url );
