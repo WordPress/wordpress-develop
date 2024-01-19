@@ -4281,8 +4281,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param array $expected_output Expected output from data provider.
 	 */
 	public function test_set_spacing_sizes_should_detect_invalid_spacing_scale( $spacing_scale, $expected_output ) {
-		$this->expectNotice();
-		$this->expectNoticeMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
+		$this->expectException( Exception::class );
+		$this->expectExceptionMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
 
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -4293,6 +4293,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 			)
+		);
+
+		// Ensure PHPUnit 10 compatibility.
+		set_error_handler(
+			static function ( $errno, $errstr ) {
+				restore_error_handler();
+				throw new Exception( $errstr, $errno );
+			},
+			E_ALL
 		);
 
 		$theme_json->set_spacing_sizes();
