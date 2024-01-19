@@ -102,17 +102,17 @@
  *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
  *  - Custom elements: All custom elements are supported. :)
  *  - Form elements: BUTTON, DATALIST, FIELDSET, LABEL, LEGEND, METER, PROGRESS, SEARCH.
- *  - Formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U.
+ *  - Formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U, WBR.
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
  *  - Lists: DD, DL, DT, LI, OL, LI.
- *  - Media elements: AUDIO, CANVAS, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
- *  - Paragraph: P.
- *  - Phrasing elements: ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
+ *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
+ *  - Paragraph: BR, P.
+ *  - Phrasing elements: AREA, ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
  *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
  *  - Templating elements: SLOT.
  *  - Text decoration: RUBY.
- *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, MULTICOL, NEXTID, SPACER.
+ *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, KEYGEN, MULTICOL, NEXTID, SPACER.
  *
  * ### Supported markup
  *
@@ -1704,16 +1704,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'IMG' === $tag_name ||
 			'INPUT' === $tag_name ||
 			'LINK' === $tag_name ||
+			'KEYGEN' === $tag_name || // Obsolete but still treated as void.
 			'META' === $tag_name ||
 			'SOURCE' === $tag_name ||
 			'TRACK' === $tag_name ||
-			'WBR' === $tag_name ||
-
-			// Obsolete
-			//
-			// This does not appear in https://html.spec.whatwg.org/#void-elements
-			// but it was a void tag and browsers treat it as such.
-			'KEYGEN' === $tag_name
+			'WBR' === $tag_name
 		);
 	}
 

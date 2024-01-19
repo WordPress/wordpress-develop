@@ -394,54 +394,27 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that when "in body" and encountering a BR end tag `</br …>`:
+	 * Ensures that support isn't accidentally partially added for the closing BR tag `</br>`.
+	 *
+	 * This tag closer has special rules and support shouldn't be added without implementing full support.
 	 *
 	 * > An end tag whose tag name is "br"
 	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
 	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
 	 * >   tag token that it actually is.
 	 *
-	 * When this handling is implemented, this test should be removed and
-	 * `test_br_end_tag_special_behavior` should not be marked incomplete.
+	 * When this handling is implemented, this test should be removed and `test_br_end_tag_special_behavior`
+	 * should not be marked incomplete. It's not incorporated into the existing unsupported tag behavior test
+	 * because the opening tag is supported; only the closing tag isn't.
 	 *
 	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 60283
-	 *
-	 * @since 6.4.0
 	 */
 	public function test_br_end_tag_unsupported() {
 		$p = WP_HTML_Processor::create_fragment( '</br>' );
 
 		$this->assertFalse( $p->next_tag(), 'Found a BR tag that should not be handled.' );
 		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $p->get_last_error() );
-	}
-
-	/**
-	 * Verifies that when "in body" and encountering a BR end tag `</br …>`:
-	 *
-	 * > An end tag whose tag name is "br"
-	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
-	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
-	 * >   tag token that it actually is.
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 *
-	 * @ticket 60283
-	 *
-	 * @since 6.4.0
-	 */
-	public function test_br_end_tag_special_behavior() {
-		$this->markTestIncomplete( 'BR end tag special handling is unimplemented' );
-
-		$p = WP_HTML_Processor::create_fragment( '</br attribute="must be removed">' );
-
-		$this->assertTrue( $p->next_tag(), 'No BR tag found.' );
-		$this->assertFalse( $p->is_tag_closer(), '</br> should not be treated as an end tag.' );
-		$this->assertNull( $p->get_attribute_names_with_prefix( '' ), 'BR end tag had attributes.' );
-		$this->assertFalse( $p->set_attribute( 'new-attribute', 'added' ), 'BR end tag becomes an opener' );
-		$this->assertCount( 1, $p->get_attribute_names_with_prefix( '' ), 'Tag should have 1 attribute.' );
-		$this->assertSame( 'added', $p->get_attribute( 'new-attribute' ), 'Tag did not set attribute value correctly.' );
-		$this->assertSame( '<br new-attribute="added">', $p->get_updated_html(), 'Tag HTML was not updated correctly.' );
 	}
 }

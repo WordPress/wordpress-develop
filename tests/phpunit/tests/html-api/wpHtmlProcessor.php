@@ -133,7 +133,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure non-nesting tags do not nest
+	 * Ensure non-nesting tags do not nest.
 	 *
 	 * @ticket 60283
 	 *
@@ -141,31 +141,51 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::is_void
 	 *
 	 * @dataProvider data_void_tags
+	 *
+	 * @param string $tag_name Name of void tag under test.
 	 */
-	public function test_cannot_nest_void_tags( $tag ) {
-		$p = WP_HTML_Processor::create_fragment( "{$tag}<div>" );
+	public function test_cannot_nest_void_tags( $tag_name ) {
+		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}><div>" );
 
-		// We should have this structure:
-		// <html>
-		//   <body>
-		//     <$TAG />
-		//     <$TAG />
-		//   </body>
-		// </html>
-		//
-		// The breadcrumbs should be:
-		// HTML > BODY > $TAG
+		/*
+		 * This HTML represents the same as the following HTML,
+		 * assuming that it were provided `<img>` as the tag:
+		 *
+		 *     <html>
+		 *         <body>
+		 *             <img>
+		 *             <div></div>
+		 *         </body>
+		 *     </html>
+		 */
 
-		$result = $p->next_tag();
+		$found_tag = $processor->next_tag();
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $p->get_last_error() ) {
-			$this->markTestSkipped( "{$tag} is unsupported." );
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
 		}
 
-		$this->assertTrue( $result, "Could not find first {$tag}." );
-		$this->assertCount( 3, $p->get_breadcrumbs(), "{$tag} was not nested correctly." );
-		$this->assertTrue( $p->next_tag( 'DIV' ), 'Could not find <div> tag.' );
-		$this->assertCount( 3, $p->get_breadcrumbs(), 'Following <div> was not nested correctly.' );
+		$this->assertTrue(
+			$found_tag,
+			"Could not find first {$tag_name}."
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', $tag_name ),
+			$processor->get_breadcrumbs(),
+			'Found incorrect nesting of first element.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Should have found the DIV as the second tag.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV' ),
+			$processor->get_breadcrumbs(),
+			"DIV should have been a sibling of the {$tag_name}."
+		);
 	}
 
 	/**
@@ -175,20 +195,20 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 */
 	public function data_void_tags() {
 		return array(
-			'AREA'   => array( '<area>' ),
-			'BASE'   => array( '<base>' ),
-			'BR'     => array( '<br>' ),
-			'COL'    => array( '<col>' ),
-			'EMBED'  => array( '<embed>' ),
-			'HR'     => array( '<hr>' ),
-			'IMG'    => array( '<img>' ),
-			'INPUT'  => array( '<input>' ),
-			'KEYGEN' => array( '<keygen>' ),
-			'LINK'   => array( '<link>' ),
-			'META'   => array( '<meta>' ),
-			'SOURCE' => array( '<source>' ),
-			'TRACK'  => array( '<track>' ),
-			'WBR'    => array( '<wbr>' ),
+			'AREA'   => array( 'AREA' ),
+			'BASE'   => array( 'BASE' ),
+			'BR'     => array( 'BR' ),
+			'COL'    => array( 'COL' ),
+			'EMBED'  => array( 'EMBED' ),
+			'HR'     => array( 'HR' ),
+			'IMG'    => array( 'IMG' ),
+			'INPUT'  => array( 'INPUT' ),
+			'KEYGEN' => array( 'KEYGEN' ),
+			'LINK'   => array( 'LINK' ),
+			'META'   => array( 'META' ),
+			'SOURCE' => array( 'SOURCE' ),
+			'TRACK'  => array( 'TRACK' ),
+			'WBR'    => array( 'WBR' ),
 		);
 	}
 
