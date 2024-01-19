@@ -264,7 +264,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'OBJECT'    => array( 'OBJECT' ),
 			'OPTGROUP'  => array( 'OPTGROUP' ),
 			'OPTION'    => array( 'OPTION' ),
-			'PARAM'     => array( 'PARAM' ),
 			'PLAINTEXT' => array( 'PLAINTEXT' ),
 			'RB'        => array( 'RB' ),
 			'RP'        => array( 'RP' ),
@@ -273,7 +272,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'SARCASM'   => array( 'SARCASM' ),
 			'SCRIPT'    => array( 'SCRIPT' ),
 			'SELECT'    => array( 'SELECT' ),
-			'SOURCE'    => array( 'SOURCE' ),
 			'STYLE'     => array( 'STYLE' ),
 			'SVG'       => array( 'SVG' ),
 			'TABLE'     => array( 'TABLE' ),
@@ -286,7 +284,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'THEAD'     => array( 'THEAD' ),
 			'TITLE'     => array( 'TITLE' ),
 			'TR'        => array( 'TR' ),
-			'TRACK'     => array( 'TRACK' ),
 			'XMP'       => array( 'XMP' ),
 		);
 	}

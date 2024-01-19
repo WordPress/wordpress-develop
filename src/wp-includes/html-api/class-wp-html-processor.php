@@ -982,6 +982,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "param", "source", "track"
+			 */
+			case '+PARAM':
+			case '+SOURCE':
+			case '+TRACK':
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->stack_of_open_elements->pop();
+				return true;
 		}
 
 		/*
@@ -1027,7 +1037,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'OBJECT':
 			case 'OPTGROUP':
 			case 'OPTION':
-			case 'PARAM':
 			case 'PLAINTEXT':
 			case 'RB':
 			case 'RP':
@@ -1036,7 +1045,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'SARCASM':
 			case 'SCRIPT':
 			case 'SELECT':
-			case 'SOURCE':
 			case 'STYLE':
 			case 'SVG':
 			case 'TABLE':
@@ -1049,7 +1057,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'THEAD':
 			case 'TITLE':
 			case 'TR':
-			case 'TRACK':
 			case 'XMP':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );

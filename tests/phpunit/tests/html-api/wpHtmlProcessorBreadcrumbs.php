@@ -199,7 +199,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'RTC', // Neutralized.
 			'SCRIPT',
 			'SELECT',
-			'SOURCE',
 			'STYLE',
 			'SVG',
 			'TABLE',
@@ -212,7 +211,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'THEAD',
 			'TITLE',
 			'TR',
-			'TRACK',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
