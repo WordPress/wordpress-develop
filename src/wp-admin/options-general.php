@@ -187,7 +187,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 	 *
 	 * @param array $roles_to_exclude Array of roles to exclude from the default_role dropdown
 	 */
-	$roles_to_exclude = (array) apply_filters( 'default_user_dropdown_excluded_roles', array( 'administrator' ) );
+	$roles_to_exclude = (array) apply_filters( 'default_user_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
 	?>
 	<select name="default_role" id="default_role"><?php wp_dropdown_roles( get_option( 'default_role' ), $roles_to_exclude ); ?></select>
 </td>
