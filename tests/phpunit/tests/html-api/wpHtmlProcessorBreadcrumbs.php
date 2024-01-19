@@ -162,26 +162,20 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_unsupported_elements() {
 		$unsupported_elements = array(
 			'APPLET', // Deprecated.
-			'AREA',
 			'BASE',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'BR',
 			'CAPTION',
 			'COL',
 			'COLGROUP',
-			'EMBED',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
-			'HR',
 			'HTML',
 			'IFRAME',
 			'INPUT',
-			'KEYGEN', // Deprecated; void.
 			'LINK',
-			'LISTING', // Deprecated, use PRE instead.
 			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
@@ -193,7 +187,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'OPTGROUP',
 			'OPTION',
 			'PLAINTEXT', // Neutralized.
-			'PRE',
 			'RB', // Neutralized.
 			'RP',
 			'RT',
@@ -214,7 +207,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'TITLE',
 			'TR',
 			'TRACK',
-			'WBR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 

@@ -102,17 +102,17 @@
  *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
  *  - Custom elements: All custom elements are supported. :)
  *  - Form elements: BUTTON, DATALIST, FIELDSET, LABEL, LEGEND, METER, PROGRESS, SEARCH.
- *  - Formatting elements: B, BIG, CODE, EM, FONT, I, SMALL, STRIKE, STRONG, TT, U.
+ *  - Formatting elements: B, BIG, CODE, EM, FONT, I, PRE, SMALL, STRIKE, STRONG, TT, U, WBR.
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
  *  - Lists: DD, DL, DT, LI, OL, LI.
- *  - Media elements: AUDIO, CANVAS, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
- *  - Paragraph: P.
- *  - Phrasing elements: ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
- *  - Sectioning elements: ARTICLE, ASIDE, NAV, SECTION.
+ *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
+ *  - Paragraph: BR, P.
+ *  - Phrasing elements: AREA, ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
+ *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
  *  - Templating elements: SLOT.
  *  - Text decoration: RUBY.
- *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, MULTICOL, NEXTID, SPACER.
+ *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, KEYGEN, LISTING, MULTICOL, NEXTID, SPACER.
  *
  * ### Supported markup
  *
@@ -684,10 +684,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-FOOTER':
 			case '-HEADER':
 			case '-HGROUP':
+			case '-LISTING':
 			case '-MAIN':
 			case '-MENU':
 			case '-NAV':
 			case '-OL':
+			case '-PRE':
 			case '-SEARCH':
 			case '-SECTION':
 			case '-SUMMARY':
@@ -730,6 +732,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "pre", "listing"
+			 */
+			case '+PRE':
+			case '+LISTING':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
 				return true;
 
 			/*
@@ -935,11 +949,38 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > An end tag whose tag name is "br"
+			 * >   Parse error. Drop the attributes from the token, and act as described in the next
+			 * >   entry; i.e. act as if this was a "br" start tag token with no attributes, rather
+			 * >   than the end tag token that it actually is.
+			 */
+			case '-BR':
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				throw new WP_HTML_Unsupported_Exception( 'Closing BR tags require unimplemented special handling.' );
+
+			/*
 			 * > A start tag whose tag name is one of: "area", "br", "embed", "img", "keygen", "wbr"
 			 */
+			case '+AREA':
+			case '+BR':
+			case '+EMBED':
 			case '+IMG':
+			case '+KEYGEN':
+			case '+WBR':
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "hr"
+			 */
+			case '+HR':
+				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
 				return true;
 		}
 
@@ -966,25 +1007,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'BASEFONT':
 			case 'BGSOUND':
 			case 'BODY':
-			case 'BR':
 			case 'CAPTION':
 			case 'COL':
 			case 'COLGROUP':
 			case 'DD':
 			case 'DT':
-			case 'EMBED':
 			case 'FORM':
 			case 'FRAME':
 			case 'FRAMESET':
 			case 'HEAD':
-			case 'HR':
 			case 'HTML':
 			case 'IFRAME':
 			case 'INPUT':
-			case 'KEYGEN':
 			case 'LI':
 			case 'LINK':
-			case 'LISTING':
 			case 'MARQUEE':
 			case 'MATH':
 			case 'META':
@@ -998,7 +1034,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'OPTION':
 			case 'PARAM':
 			case 'PLAINTEXT':
-			case 'PRE':
 			case 'RB':
 			case 'RP':
 			case 'RT':
@@ -1021,7 +1056,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'TR':
 			case 'TRACK':
 			case 'UL':
-			case 'WBR':
 			case 'XMP':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
@@ -1682,6 +1716,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'IMG' === $tag_name ||
 			'INPUT' === $tag_name ||
 			'LINK' === $tag_name ||
+			'KEYGEN' === $tag_name || // Obsolete but still treated as void.
 			'META' === $tag_name ||
 			'SOURCE' === $tag_name ||
 			'TRACK' === $tag_name ||
