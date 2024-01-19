@@ -863,6 +863,19 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A start tag whose tag name is "plaintext"
+			 */
+			case '+PLAINTEXT':
+				if ( ! $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
+					$this->close_a_p_element();
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->insertion_mode;
+				return true;
+
+
+			/*
 			 * > An end tag whose tag name is "p"
 			 */
 			case '-P':
@@ -1020,7 +1033,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'OPTGROUP':
 			case 'OPTION':
 			case 'PARAM':
-			case 'PLAINTEXT':
 			case 'PRE':
 			case 'RB':
 			case 'RP':
