@@ -973,6 +973,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A start tag whose tag name is "input"
+			 */
+			case '+INPUT':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$type_attribute = $this->get_attribute( 'type' );
+				if ( null === $type_attribute || 'hidden' === strtolower( $type_attribute ) ) {
+					$this->state->frameset_ok = false;
+				}
+				return true;
+
+			/*
 			 * > A start tag whose tag name is "hr"
 			 */
 			case '+HR':
@@ -1024,7 +1036,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'HEAD':
 			case 'HTML':
 			case 'IFRAME':
-			case 'INPUT':
 			case 'LINK':
 			case 'MARQUEE':
 			case 'MATH':
