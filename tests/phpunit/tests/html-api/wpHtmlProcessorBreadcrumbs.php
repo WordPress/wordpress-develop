@@ -181,7 +181,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'INPUT',
 			'KEYGEN', // Deprecated; void.
 			'LINK',
-			'LISTING', // Deprecated, use PRE instead.
 			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
@@ -193,7 +192,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'OPTGROUP',
 			'OPTION',
 			'PLAINTEXT', // Neutralized.
-			'PRE',
 			'RB', // Neutralized.
 			'RP',
 			'RT',
