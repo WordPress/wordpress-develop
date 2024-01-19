@@ -225,6 +225,22 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that HR closes an open p tag
+	 *
+	 * @ticket 60283
+	 */
+	public function test_in_body_hr_element_closes_open_p_tag() {
+		$processor = WP_HTML_Processor::create_fragment( '<p><hr>' );
+
+		$processor->next_tag( 'HR' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'HR' ),
+			$processor->get_breadcrumbs(),
+			'Expected HR to be a direct child of the BODY, having closed the open P element.'
+		);
+	}
+
+	/**
 	 * Verifies that H1 through H6 elements close an open P element.
 	 *
 	 * @ticket 60215
