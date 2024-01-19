@@ -162,15 +162,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_unsupported_elements() {
 		$unsupported_elements = array(
 			'APPLET', // Deprecated.
-			'AREA',
 			'BASE',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'BR',
 			'CAPTION',
 			'COL',
 			'COLGROUP',
-			'EMBED',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
@@ -178,7 +175,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'HTML',
 			'IFRAME',
 			'INPUT',
-			'KEYGEN', // Deprecated; void.
 			'LINK',
 			'LISTING', // Deprecated, use PRE instead.
 			'MARQUEE', // Deprecated.
@@ -213,7 +209,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'TITLE',
 			'TR',
 			'TRACK',
-			'WBR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 

@@ -392,4 +392,29 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'DIV', $p->get_tag(), "Expected to find DIV element, but found {$p->get_tag()} instead." );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'DIV' ), $p->get_breadcrumbs(), 'Failed to produce expected DOM nesting: SPAN should be closed and DIV should be its sibling.' );
 	}
+
+	/**
+	 * Ensures that support isn't accidentally partially added for the closing BR tag `</br>`.
+	 *
+	 * This tag closer has special rules and support shouldn't be added without implementing full support.
+	 *
+	 * > An end tag whose tag name is "br"
+	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
+	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
+	 * >   tag token that it actually is.
+	 *
+	 * When this handling is implemented, this test should be removed. It's not incorporated
+	 * into the existing unsupported tag behavior test because the opening tag is supported;
+	 * only the closing tag isn't.
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 *
+	 * @ticket 60283
+	 */
+	public function test_br_end_tag_unsupported() {
+		$p = WP_HTML_Processor::create_fragment( '</br>' );
+
+		$this->assertFalse( $p->next_tag(), 'Found a BR tag that should not be handled.' );
+		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $p->get_last_error() );
+	}
 }
