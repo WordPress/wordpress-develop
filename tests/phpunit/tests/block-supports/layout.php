@@ -171,6 +171,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	/**
 	 * @ticket 57584
 	 * @ticket 58548
+	 * @ticket 60292
 	 *
 	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
 	 *
@@ -258,8 +259,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						'attrs'        => array(
 							'style' => array(
 								'layout' => array(
-									'selfStretch' => 'fit'
-								)
+									'selfStretch' => 'fit',
+								),
 							),
 						),
 						'innerBlocks'  => array(),
@@ -268,7 +269,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => '<p>A paragraph</p>',
-			)
+			),
 		);
 	}
 
