@@ -403,9 +403,9 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
 	 * >   tag token that it actually is.
 	 *
-	 * When this handling is implemented, this test should be removed and `test_br_end_tag_special_behavior`
-	 * should not be marked incomplete. It's not incorporated into the existing unsupported tag behavior test
-	 * because the opening tag is supported; only the closing tag isn't.
+	 * When this handling is implemented, this test should be removed. It's not incorporated
+	 * into the existing unsupported tag behavior test because the opening tag is supported;
+	 * only the closing tag isn't.
 	 *
 	 * @covers WP_HTML_Processor::step_in_body
 	 *
