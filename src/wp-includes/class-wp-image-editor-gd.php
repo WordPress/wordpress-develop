@@ -560,12 +560,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( 'image/webp' === $this->mime_type ) {
 				$webp_info = wp_get_webp_info( $this->file );
 				if ( 'lossless' === $webp_info['type'] && defined( 'IMG_WEBP_LOSSLESS' ) ) {
-					$this->quality = IMG_WEBP_LOSSLESS;
+					$quality = IMG_WEBP_LOSSLESS;
 				}
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_quality_error', $e->getMessage() );
 		}
+		$this->quality = $quality;
+		return true;
 	}
 
 	/**
