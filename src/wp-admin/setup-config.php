@@ -224,7 +224,11 @@ switch ( $step ) {
 		<tr>
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
 			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/>
-			<p id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></p></td>
+			<p id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></p>
+			<label for="create_db_option" class="checkbox-label">
+                        <input type="checkbox" name="create_db_option" id="create_db_option">
+                        <?php echo _e("Сreate database if it doesn't exist"); ?></label>
+			</td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
@@ -315,6 +319,20 @@ switch ( $step ) {
 		define( 'DB_PASSWORD', $pwd );
 		define( 'DB_HOST', $dbhost );
 		/**#@-*/
+	
+	        /* 
+	        * If the checkbox next to “Create a database if it does not exist” is checked,
+	        * then the script checks for the presence of a database on the server,
+	        * and if it does not exist,
+	        * then creates it.
+                */
+	        if (isset($_REQUEST['create_db_option'])) {
+			$wpdbs = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, '');
+			if (!$wpdbs->connect_error) {
+			$check_create_db = $wpdbs->query("CREATE DATABASE IF NOT EXISTS `$dbname`");
+			$wpdbs->close();
+			}
+		}
 
 		// Re-construct $wpdb with these new values.
 		unset( $wpdb );
