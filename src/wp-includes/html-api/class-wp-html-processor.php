@@ -950,6 +950,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->close_a_p_element();
 				}
 				$this->insert_html_element( $this->state->current_token );
+				$this->state->stack_of_open_elements->pop();
 				$this->state->frameset_ok = false;
 				return true;
 		}
