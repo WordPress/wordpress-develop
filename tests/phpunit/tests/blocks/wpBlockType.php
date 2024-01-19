@@ -585,6 +585,11 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/**
 	 * Test filter function for get_block_type_variations filter.
+	 *
+	 * @param array $variations Block variations before filter.
+	 * @param WP_Block_Type $block_type Block type.
+	 *
+	 * @return array Block variations after filter.
 	 */
 	public function filter_test_variations( $variations, $block_type ) {
 		return array( array( 'name' => 'test1' ) );
@@ -611,7 +616,6 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		);
 
 		$obtained_variations = $block_type->variations; // access the variations.
-		remove_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10 );
 
 		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
 		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
@@ -634,7 +638,6 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		);
 
 		$obtained_variations = $block_type->variations; // access the variations.
-		remove_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10 );
 		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations that was initially set should be filtered.' );
 	}
 
