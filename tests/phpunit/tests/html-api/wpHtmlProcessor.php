@@ -191,7 +191,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'OPTGROUP'  => array( 'OPTGROUP' ),
 			'OPTION'    => array( 'OPTION' ),
 			'PARAM'     => array( 'PARAM' ),
-			'PLAINTEXT' => array( 'PLAINTEXT' ),
 			'PRE'       => array( 'PRE' ),
 			'RB'        => array( 'RB' ),
 			'RP'        => array( 'RP' ),
