@@ -109,7 +109,7 @@
  *  - Media elements: AUDIO, CANVAS, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
  *  - Paragraph: P.
  *  - Phrasing elements: ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
- *  - Sectioning elements: ARTICLE, ASIDE, NAV, SECTION.
+ *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
  *  - Templating elements: SLOT.
  *  - Text decoration: RUBY.
  *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, MULTICOL, NEXTID, SPACER.
