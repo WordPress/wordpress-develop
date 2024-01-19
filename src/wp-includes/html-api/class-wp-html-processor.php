@@ -101,7 +101,7 @@
  *
  *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
  *  - Custom elements: All custom elements are supported. :)
- *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, PROGRESS, SEARCH.
+ *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, OPTGROUP, OPTION, PROGRESS, SEARCH, SELECT.
  *  - Formatting elements: B, BIG, CODE, EM, FONT, I, PRE, SMALL, STRIKE, STRONG, TT, U, WBR.
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
@@ -757,6 +757,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
 					return $this->step_in_body();
 
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
+					return $this->step_in_select();
+
 				default:
 					$this->last_error = self::ERROR_UNSUPPORTED;
 					throw new WP_HTML_Unsupported_Exception( "No support for parsing in the '{$this->state->insertion_mode}' state." );
@@ -1336,6 +1339,50 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TRACK':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
+
+			/*
+			 * > A start tag whose tag name is "select"
+			 */
+			case '+SELECT':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$this->state->frameset_ok = false;
+
+				// If the insertion mode is one of
+				// - "in table"
+				// - "in caption"
+				// - "in table body"
+				// - "in row"
+				// - "in cell"
+				// then switch the insertion mode to "in select in table"
+				//
+				// Otherwise, switch the insertion mode to "in select".
+				switch ( $this->state->insertion_mode ) {
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
+						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
+						break;
+					default:
+						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
+						break;
+				}
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "optgroup", "option"
+			 */
+			case '+OPTGROUP':
+			case '+OPTION':
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 		}
 
 		/*
@@ -1378,8 +1425,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'NOFRAMES':
 			case 'NOSCRIPT':
 			case 'OBJECT':
-			case 'OPTGROUP':
-			case 'OPTION':
 			case 'PLAINTEXT':
 			case 'RB':
 			case 'RP':
@@ -1387,7 +1432,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'RTC':
 			case 'SARCASM':
 			case 'SCRIPT':
-			case 'SELECT':
 			case 'STYLE':
 			case 'SVG':
 			case 'TABLE':
@@ -1446,6 +1490,118 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Parses next element in the 'in select' insertion mode.
+	 *
+	 * This internal function performs the 'in select' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_select() {
+		$tag_name = $this->get_tag();
+		$op_sigil = $this->is_tag_closer() ? '-' : '+';
+		$op       = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A start tag whose tag name is "html"
+			 */
+			case '+HTML':
+				$this->last_error = self::ERROR_UNSUPPORTED;
+				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
+
+			/*
+			 * > A start tag whose tag name is "option"
+			 */
+			case '+OPTION':
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "optgroup"
+			 * > A start tag whose tag name is "hr"
+			 */
+			case '+OPTGROUP':
+			case '+HR':
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+					// If we've popped, update the current_node
+					$current_node = $this->state->stack_of_open_elements->current_node();
+				}
+
+				if ( $current_node && 'OPTGROUP' === $current_node->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > An end tag whose tag name is "optgroup"
+			 */
+			case '-OPTGROUP':
+				$walker       = $this->state->stack_of_open_elements->walk_up();
+				$current_node = $walker->current();
+				if ( ! $current_node ) {
+					return $this->step();
+				}
+				if ( 'OPTGROUP' === $current_node->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+					return true;
+				}
+
+				$walker->next();
+				$current_node_parent = $walker->current();
+				if ( 'OPTION' === $current_node->node_name && 'OPTGROUP' === $current_node_parent->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+					$this->state->stack_of_open_elements->pop();
+					return true;
+				}
+				return $this->step();
+
+			/*
+			 * > An end tag whose tag name is "option"
+			 */
+			case '-OPTION':
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				if ( $current_node && 'OPTION' === $current_node->node_name ) {
+					$this->state->stack_of_open_elements->pop();
+					return true;
+				}
+				return $this->step();
+
+			/*
+			 * > An end tag whose tag name is "select"
+			 * > A start tag whose tag name is "select"
+			 */
+			case '-SELECT':
+			case '+SELECT':
+				if ( ! $this->state->stack_of_open_elements->has_element_in_select_scope( 'SELECT' ) ) {
+					return $this->step();
+				}
+				$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+				$this->state->stack_of_open_elements->pop();
+				$this->reset_insertion_mode();
+				return true;
+		}
+
+		$this->last_error = self::ERROR_UNSUPPORTED;
+		throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
 	}
 
 	/*

@@ -269,19 +269,34 @@ class WP_HTML_Open_Elements {
 	/**
 	 * Returns whether a particular element is in select scope.
 	 *
-	 * @since 6.4.0
+	 * @since 6.4.0 - Stub, always throws.
+	 * @since 6.5.0 - Implemented.
 	 *
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-select-scope
 	 *
-	 * @throws WP_HTML_Unsupported_Exception Always until this function is implemented.
+	 * > The stack of open elements is said to have a particular element in select scope when it has
+	 * > that element in the specific scope consisting of all element types except the following:
+	 * > - optgroup in the HTML namespace
+	 * > - option in the HTML namespace
 	 *
 	 * @param string $tag_name Name of tag to check.
 	 * @return bool Whether given element is in scope.
 	 */
 	public function has_element_in_select_scope( $tag_name ) {
-		throw new WP_HTML_Unsupported_Exception( 'Cannot process elements depending on select scope.' );
+		foreach ( $this->walk_up() as $node ) {
+			if ( $node->node_name === $tag_name ) {
+				return true;
+			}
 
-		return false; // The linter requires this unreachable code until the function is implemented and can return.
+			if (
+				'OPTION' !== $node->node_name &&
+				'OPTGROUP' !== $node->node_name
+			) {
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	/**
