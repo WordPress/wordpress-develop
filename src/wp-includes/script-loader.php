@@ -1881,6 +1881,8 @@ function wp_prototype_before_jquery( $js_array ) {
  * These localizations require information that may not be loaded even by init.
  *
  * @since 2.5.0
+ *
+ * @global array $shortcode_tags
  */
 function wp_just_in_time_script_localization() {
 
@@ -2584,7 +2586,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
 		return false;
 	}
 

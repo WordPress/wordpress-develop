@@ -77,7 +77,6 @@ jobs:
           npm --version
           node --version
           git --version
-          svn --version
 
       - name: Install npm Dependencies
         run: npm ci
