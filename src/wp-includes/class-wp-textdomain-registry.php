@@ -161,7 +161,7 @@ class WP_Textdomain_Registry {
 	 * @return array Array of .mo file paths.
 	 */
 	public function get_language_files_from_path( $path ) {
-		$path = trailingslashit( $path );
+		$path = rtrim( $path, '/' ) . '/';
 
 		/**
 		 * Filters the .mo files retrieved from a specified path before the actual lookup.
@@ -228,7 +228,11 @@ class WP_Textdomain_Registry {
 	 * @return void
 	 */
 	public function invalidate_mo_files_cache( $upgrader, $hook_extra ) {
-		if ( 'translation' !== $hook_extra['type'] || array() === $hook_extra['translations'] ) {
+		if (
+			! isset( $hook_extra['type'] ) ||
+			'translation' !== $hook_extra['type'] ||
+			array() === $hook_extra['translations']
+		) {
 			return;
 		}
 
@@ -237,13 +241,13 @@ class WP_Textdomain_Registry {
 		foreach ( $translation_types as $type ) {
 			switch ( $type ) {
 				case 'plugin':
-					wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/plugins/' ), 'translations' );
+					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/plugins/' ), 'translations' );
 					break;
 				case 'theme':
-					wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) . '/themes/' ), 'translations' );
+					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/themes/' ), 'translations' );
 					break;
 				default:
-					wp_cache_delete( 'cached_mo_files_' . md5( trailingslashit( WP_LANG_DIR ) ), 'translations' );
+					wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/' ), 'translations' );
 					break;
 			}
 		}

@@ -300,11 +300,11 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	public function test_wp_local_package_global_not_installing() {
-		$_REQUEST['language'] = 'de_DE';
+		$GLOBALS['wp_local_package'] = 'de_DE';
 		$this->assertSame( 'en_US', determine_locale() );
 	}
 	public function test_wp_local_package_global_installing() {
-		$_REQUEST['language'] = 'de_DE';
+		$GLOBALS['wp_local_package'] = 'de_DE';
 		wp_installing( true );
 		$this->assertSame( 'de_DE', determine_locale() );
 	}
