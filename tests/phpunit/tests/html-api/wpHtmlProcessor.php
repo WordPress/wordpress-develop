@@ -230,7 +230,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'FRAME'     => array( 'FRAME' ),
 			'FRAMESET'  => array( 'FRAMESET' ),
 			'HEAD'      => array( 'HEAD' ),
-			'HR'        => array( 'HR' ),
 			'HTML'      => array( 'HTML' ),
 			'IFRAME'    => array( 'IFRAME' ),
 			'INPUT'     => array( 'INPUT' ),
