@@ -40,6 +40,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'ABBR',
 			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'AREA',
 			'ARTICLE',
 			'ASIDE',
 			'AUDIO',
@@ -48,6 +49,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BDO',
 			'BIG',
 			'BLINK', // Deprecated.
+			'BR',
 			'BUTTON',
 			'CANVAS',
 			'CENTER', // Neutralized.
@@ -65,6 +67,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'DL',
 			'DT',
 			'EM',
+			'EMBED',
 			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
@@ -78,22 +81,25 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H6',
 			'HEADER',
 			'HGROUP',
+			'HR',
 			'I',
 			'IMG',
 			'INS',
 			'LI',
-			'ISINDEX', // Deprecated
+			'ISINDEX', // Deprecated.
 			'KBD',
+			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
 			'MARK',
 			'MENU',
 			'METER',
-			'MULTICOL', // Deprecated
+			'MULTICOL', // Deprecated.
 			'NAV',
-			'NEXTID', // Deprecated
+			'NEXTID', // Deprecated.
 			'OL',
 			'OUTPUT',
 			'P',
@@ -106,7 +112,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SECTION',
 			'SLOT',
 			'SMALL',
-			'SPACER', // Deprecated
+			'SPACER', // Deprecated.
 			'SPAN',
 			'STRIKE',
 			'STRONG',
