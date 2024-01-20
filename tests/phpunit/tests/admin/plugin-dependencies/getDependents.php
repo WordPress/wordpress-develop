@@ -34,7 +34,7 @@ class Tests_Admin_WPPluginDependencies_GetDependents extends WP_PluginDependenci
 			array(
 				'dependent/dependent.php'   => array( 'dependency' ),
 				'dependent2/dependent2.php' => array( 'dependency' ),
-			),
+			)
 		);
 
 		$this->assertSame(
