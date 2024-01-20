@@ -45,6 +45,8 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
+		require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
+
 		self::$instance    = new WP_Plugin_Dependencies();
 		self::$plugins_dir = WP_PLUGIN_DIR . '/wp_plugin_dependencies_plugin';
 		@mkdir( self::$plugins_dir );
