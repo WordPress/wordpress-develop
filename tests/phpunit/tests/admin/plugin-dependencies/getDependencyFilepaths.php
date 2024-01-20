@@ -2,7 +2,7 @@
 /**
  * Tests for the WP_Plugin_Dependencies::get_dependency_filepaths() method.
  *
- * @package WP_Plugin_Dependencies
+ * @package WordPress
  */
 
 require_once __DIR__ . '/base.php';
@@ -157,5 +157,50 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepaths extends WP_PluginD
 		);
 
 		$this->assertSame( $expected, $this->call_method( 'get_dependency_filepaths' ) );
+	}
+
+	/**
+	 * Tests that an existing value for dependency filepaths is returned.
+	 */
+	public function test_should_return_existing_value_for_dependency_filepaths() {
+		$expected = array( 'dependent/dependent.php' );
+
+		$this->set_property_value( 'dependency_filepaths', $expected );
+
+		/*
+		 * If existing dependency filepaths are not returned,
+		 * they'll be built from this data.
+		 *
+		 * This data is explicitly set to ensure that no
+		 * test plugins ever interfere with this test.
+		 */
+		$this->set_property_value(
+			'dependency_slugs',
+			array( 'plugin1', 'plugin2', 'plugin3' )
+		);
+
+		$this->set_property_value(
+			'plugins',
+			array(
+				// This is flipped as paths are stored in the keys.
+				'plugin1/plugin1.php' => '',
+				'plugin2/plugin2.php' => '',
+				'plugin3/plugin3.php' => '',
+			)
+		);
+
+		$this->assertSame( $expected, $this->call_method( 'get_dependency_filepaths' ) );
+	}
+
+	/**
+	 * Tests that an empty array is returned when
+	 * no plugin directory names are stored.
+	 */
+	public function test_should_return_empty_array_for_no_plugin_dirnames() {
+		$this->set_property_value( 'plugins', array() );
+		$this->set_property_value( 'plugin_dirnames', array() );
+		$this->set_property_value( 'plugin_dirnames_cache', array() );
+
+		$this->assertSame( array(), $this->call_method( 'get_dependency_filepaths' ) );
 	}
 }

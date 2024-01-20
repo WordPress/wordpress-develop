@@ -2,7 +2,7 @@
 /**
  * Tests for the WP_Plugin_Dependencies::initialize() method.
  *
- * @package WP_Plugin_Dependencies
+ * @package WordPress
  */
 
 require_once __DIR__ . '/base.php';
