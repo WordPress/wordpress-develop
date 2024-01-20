@@ -38,10 +38,7 @@ function wp_script_modules(): WP_Script_Modules {
  * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
  *                                    to the WordPress root directory. If it is provided and the script module has
  *                                    not been registered yet, it will be registered.
- * @param array<string|array{
- *            id: string,
- *            import?: 'static'|'dynamic'
- *        }>                $deps     {
+ * @param array             $deps     {
  *                                        Optional. List of dependencies.
  *
  *                                        @type string|array $0... {
@@ -78,10 +75,7 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
  *                                    to the WordPress root directory. If it is provided and the script module has
  *                                    not been registered yet, it will be registered.
- * @param array<string|array{
- *            id: string,
- *            import?: 'static'|'dynamic'
- *        }>                $deps     {
+ * @param array             $deps     {
  *                                        Optional. List of dependencies.
  *
  *                                        @type string|array $0... {
