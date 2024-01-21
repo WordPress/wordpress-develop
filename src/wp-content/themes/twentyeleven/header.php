@@ -26,7 +26,12 @@
 <meta name="viewport" content="width=device-width" />
 <title>
 <?php
-	// Print the <title> tag based on what is being viewed.
+	/*
+	 * Print the <title> tag based on what is being viewed.
+	 *
+	 * @global int $page  WordPress paginated post page count.
+	 * @global int $paged WordPress archive pagination page count.
+	 */
 	global $page, $paged;
 
 	wp_title( '|', true, 'right' );
