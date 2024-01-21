@@ -32,6 +32,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'entities02/line0128' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
 		'entities02/line0142' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
 		'entities02/line0156' => 'Encoded characters without semicolon termination in attribute values are not handled properly',
+		'tests1/line0342'     => "Closing P tag implicitly creates opener, which we don't visit.",
 		'tests15/line0001'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/line0022'    => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests20/line0497'    => "Closing P tag implicitly creates opener, which we don't visit.",
