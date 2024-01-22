@@ -245,9 +245,9 @@ add_action( 'after_setup_theme', 'twentysixteen_setup' );
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
- * @global int $content_width Content width.
- *
  * @since Twenty Sixteen 1.0
+ *
+ * @global int $content_width Content width.
  */
 function twentysixteen_content_width() {
 	$GLOBALS['content_width'] = apply_filters( 'twentysixteen_content_width', 840 );
