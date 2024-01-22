@@ -156,14 +156,29 @@ JS;
 				'data'           => 'alert("hello")',
 				'expected_cdata' => true,
 			),
-			'impotmap'    => array(
+			'importmap'   => array(
 				'type'           => 'importmap',
-				'data'           => 'alert("hello")',
+				'data'           => '{"imports":{"bar":"http:\/\/localhost:10023\/bar.js?ver=6.5-alpha-57321"}}',
 				'expected_cdata' => false,
 			),
 			'html'        => array(
 				'type'           => 'text/html',
 				'data'           => '<div>template code</div>',
+				'expected_cdata' => false,
+			),
+			'json'        => array(
+				'type'           => 'application/json',
+				'data'           => '{}',
+				'expected_cdata' => false,
+			),
+			'ld'          => array(
+				'type'           => 'application/ld+json',
+				'data'           => '{}',
+				'expected_cdata' => false,
+			),
+			'specrules'   => array(
+				'type'           => 'speculationrules',
+				'data'           => '{}',
 				'expected_cdata' => false,
 			),
 		);
