@@ -990,7 +990,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+SOURCE':
 			case '+TRACK':
 				$this->insert_html_element( $this->state->current_token );
-				$this->state->stack_of_open_elements->pop();
 				return true;
 		}
 
