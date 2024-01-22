@@ -385,6 +385,127 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 11302
+	 */
+	public function test_bulk_edit_if_categories_unchanged() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ));
+		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
+
+		$terms1 = wp_get_post_categories( $post_ids[0] );
+		$terms2 = wp_get_post_categories( $post_ids[1] );
+		$terms3 = wp_get_post_categories( $post_ids[2] );
+
+		$indeterminate_categories = array_merge( $terms1, $terms2, $terms3 );
+
+		$request = array(
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'indeterminate_post_category' => $indeterminate_categories,
+		);
+
+		bulk_edit_posts( $request );
+
+		$updated_terms1 = wp_get_post_categories( $post_ids[0] );
+		$updated_terms2 = wp_get_post_categories( $post_ids[1] );
+		$updated_terms3 = wp_get_post_categories( $post_ids[2] );
+		
+		$this->assertSame( $terms1, $updated_terms1 );
+		$this->assertSame( $terms2, $updated_terms2 );
+		$this->assertSame( $terms3, $updated_terms3 );
+	}
+
+	/**
+	 * @ticket 11302
+	 */
+	public function test_bulk_edit_if_some_categories_added() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ));
+		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
+		$term4 = wp_create_category( 'test4' );
+
+		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+		$term1  = get_cat_ID( 'test1' );
+		$term2  = get_cat_ID( 'test2' );
+		$term3  = get_cat_ID( 'test3' );
+
+		$categories   = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
+		$categories[] = $term4;
+
+		$request = array(
+			'_status'       => -1,
+			'post'          => $post_ids,
+			'post_category' => $categories,
+		);
+
+		bulk_edit_posts( $request );
+
+		$updated_terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$updated_terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$updated_terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+
+		// Each post should have the same categories as before and add term 4.
+		$this->assertSame( array( $term1, $term2, $term4 ), $updated_terms1 );
+		$this->assertSame( array( $term2, $term3, $term4 ), $updated_terms2 );
+		$this->assertSame( array( $term1, $term3, $term4 ), $updated_terms3 );
+	}
+
+	/**
+	 * @ticket 11302
+	 */
+	public function test_bulk_edit_if_some_categories_removed() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ));
+		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
+
+		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+		$term1  = get_cat_ID( 'test1' );
+		$term2  = get_cat_ID( 'test2' );
+		$term3  = get_cat_ID( 'test3' );
+
+		// Remove term 1 from selected categories.
+		$categories = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
+		$remove_key = array_search( $term1, $categories )
+		unset( $categories[ $remove_key ] );
+
+
+		$request = array(
+			'_status'       => -1,
+			'post'          => $post_ids,
+			'post_category' => $categories,
+		);
+
+		bulk_edit_posts( $request );
+
+		$updated_terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
+		$updated_terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
+		$updated_terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
+
+		// Post 1 should only have term 2.
+		$this->assertSame( $updated_terms1, array( $term2 ) );
+		// Post 2 should be unchanged.
+		$this->assertSame( $terms2, $updated_terms2 );
+		// Post 3 should only have term 3.
+		$this->assertSame( $updated_terms3, array( $term3 ) );
+	}
+
+	/**
 	 * Tests that `bulk_edit_posts()` fires the 'bulk_edit_posts' action.
 	 *
 	 * @ticket 28112
