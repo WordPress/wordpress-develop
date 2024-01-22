@@ -393,7 +393,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$post_ids = self::factory()->post->create_many( 3 );
 
 		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
-		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ));
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ) );
 		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
 
 		$terms1 = wp_get_post_categories( $post_ids[0] );
@@ -413,7 +413,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$updated_terms1 = wp_get_post_categories( $post_ids[0] );
 		$updated_terms2 = wp_get_post_categories( $post_ids[1] );
 		$updated_terms3 = wp_get_post_categories( $post_ids[2] );
-		
+
 		$this->assertSame( $terms1, $updated_terms1 );
 		$this->assertSame( $terms2, $updated_terms2 );
 		$this->assertSame( $terms3, $updated_terms3 );
@@ -428,7 +428,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$post_ids = self::factory()->post->create_many( 3 );
 
 		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
-		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ));
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ) );
 		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
 		$term4 = wp_create_category( 'test4' );
 
@@ -469,7 +469,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$post_ids = self::factory()->post->create_many( 3 );
 
 		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
-		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ));
+		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ) );
 		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
 
 		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
@@ -483,7 +483,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$categories = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
 		$remove_key = array_search( $term1, $categories )
 		unset( $categories[ $remove_key ] );
-
 
 		$request = array(
 			'_status'       => -1,
