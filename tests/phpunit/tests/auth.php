@@ -431,8 +431,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	public function test_user_activation_key_after_successful_login() {
 		global $wpdb;
 
-		$reset_key = get_password_reset_key( $this->user );
-		$user = wp_signon(
+		$reset_key                    = get_password_reset_key( $this->user );
+		$user                         = wp_signon(
 			array(
 				'user_login'    => self::USER_LOGIN,
 				'user_password' => self::USER_PASS,
