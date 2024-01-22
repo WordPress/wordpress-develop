@@ -433,10 +433,10 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$reset_key = get_password_reset_key( $this->user );
 		$user = wp_signon(
-					array(
-						'user_login'    => self::USER_LOGIN,
-						'user_password' => self::USER_PASS,
-					)
+				array(
+					'user_login'    => self::USER_LOGIN,
+					'user_password' => self::USER_PASS,
+				)
 		);
 		$activation_key_from_database = $wpdb->get_var(
 			$wpdb->prepare( "SELECT user_activation_key FROM $wpdb->users WHERE ID = %d", $this->user->ID )
