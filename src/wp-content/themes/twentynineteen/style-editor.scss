@@ -203,6 +203,25 @@ a {
 	}
 }
 
+// Enable highlights on text when the color is selected from the color palette.
+mark {
+	&.has-primary-color {
+		color: $color__link;
+	}
+	&.has-secondary-color {
+		color: $color__border-link-hover;
+	}
+	&.has-dark-gray-color {
+		color: $color__text-main;
+	}
+	&.has-light-gray-color {
+		color: $color__text-light;
+	}
+	&.has-white-color {
+		color: #fff;
+	}
+}
+
 figcaption,
 .gallery-caption {
 	@include font-family( $font__heading );

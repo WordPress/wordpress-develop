@@ -127,7 +127,8 @@ function twentynineteen_custom_colors_css() {
 		.entry .entry-content > .has-primary-color,
 		.entry .entry-content > *[class^="wp-block-"] .has-primary-color,
 		.entry .entry-content > *[class^="wp-block-"].is-style-solid-color blockquote.has-primary-color,
-		.entry .entry-content > *[class^="wp-block-"].is-style-solid-color blockquote.has-primary-color p {
+		.entry .entry-content > *[class^="wp-block-"].is-style-solid-color blockquote.has-primary-color p,
+		.entry .entry-content mark.has-primary-color {
 			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
 
@@ -174,6 +175,7 @@ function twentynineteen_custom_colors_css() {
 		.entry .entry-content > *[class^="wp-block-"] .has-secondary-color,
 		.entry .entry-content > *[class^="wp-block-"].is-style-solid-color blockquote.has-secondary-color,
 		.entry .entry-content > *[class^="wp-block-"].is-style-solid-color blockquote.has-secondary-color p,
+		.entry .entry-content mark.has-secondary-color,
 		.comment .comment-author .fn a:hover,
 		.comment-reply-link:hover,
 		.comment-navigation .nav-previous a:hover,
@@ -213,13 +215,15 @@ function twentynineteen_custom_colors_css() {
 		 * - blockquote
 		 * - pullquote (solid color)
 		 * - buttons
+		 * - text highlights with primary color
 		 */
 		.editor-block-list__layout .editor-block-list__block a,
 		.editor-block-list__layout .editor-block-list__block .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color),
 		.editor-block-list__layout .editor-block-list__block .wp-block-button.is-style-outline:hover .wp-block-button__link:not(.has-text-color),
 		.editor-block-list__layout .editor-block-list__block .wp-block-button.is-style-outline:focus .wp-block-button__link:not(.has-text-color),
 		.editor-block-list__layout .editor-block-list__block .wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color),
-		.editor-block-list__layout .editor-block-list__block .wp-block-file .wp-block-file__textlink {
+		.editor-block-list__layout .editor-block-list__block .wp-block-file .wp-block-file__textlink,
+		.editor-styles-wrapper .wp-block mark.has-primary-color {
 			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
 
@@ -240,10 +244,11 @@ function twentynineteen_custom_colors_css() {
 			background-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
 
-		/* Hover colors */
+		/* Hover colors and text highlights with the secondary color */
 		.editor-block-list__layout .editor-block-list__block a:hover,
 		.editor-block-list__layout .editor-block-list__block a:active,
-		.editor-block-list__layout .editor-block-list__block .wp-block-file .wp-block-file__textlink:hover {
+		.editor-block-list__layout .editor-block-list__block .wp-block-file .wp-block-file__textlink:hover,
+		.editor-styles-wrapper .wp-block mark.has-secondary-color {
 			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 

@@ -826,6 +826,26 @@ a:focus {
   color: #111;
 }
 
+mark.has-primary-color {
+  color: #0073aa;
+}
+
+mark.has-secondary-color {
+  color: #005177;
+}
+
+mark.has-dark-gray-color {
+  color: #111;
+}
+
+mark.has-light-gray-color {
+  color: #767676;
+}
+
+mark.has-white-color {
+  color: #fff;
+}
+
 figcaption,
 .gallery-caption {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
