@@ -206,6 +206,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'KEYGEN' => array( 'KEYGEN' ),
 			'LINK'   => array( 'LINK' ),
 			'META'   => array( 'META' ),
+			'PARAM'  => array( 'PARAM' ),
 			'SOURCE' => array( 'SOURCE' ),
 			'TRACK'  => array( 'TRACK' ),
 			'WBR'    => array( 'WBR' ),
