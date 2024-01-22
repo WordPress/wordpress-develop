@@ -136,32 +136,32 @@ JS;
 
 	public function data_provider_to_test_cdata_wrapper_omitted_for_non_javascript_scripts() {
 		return array(
-			'no-type'  => array(
+			'no-type'     => array(
 				'type'           => null,
 				'data'           => 'alert("hello")',
 				'expected_cdata' => true,
 			),
-			'js-type'  => array(
+			'js-type'     => array(
 				'type'           => 'text/javascript',
 				'data'           => 'alert("hello")',
 				'expected_cdata' => true,
 			),
-			'js-alt-type'  => array(
+			'js-alt-type' => array(
 				'type'           => 'application/javascript',
 				'data'           => 'alert("hello")',
 				'expected_cdata' => true,
 			),
-			'module'  => array(
+			'module'      => array(
 				'type'           => 'module',
 				'data'           => 'alert("hello")',
 				'expected_cdata' => true,
 			),
-			'impotmap' => array(
+			'impotmap'    => array(
 				'type'           => 'importmap',
 				'data'           => 'alert("hello")',
 				'expected_cdata' => false,
 			),
-			'html'     => array(
+			'html'        => array(
 				'type'           => 'text/html',
 				'data'           => '<div>template code</div>',
 				'expected_cdata' => false,
