@@ -837,9 +837,8 @@ function switch_theme( $stylesheet ) {
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
 	/*
-	 * Reset globals to force refresh the next time these directories are
-	 * accessed via `get_stylesheet_directory()` / `get_template_directory()`
-	 * as long as we're not in a switched context.
+	 * Reset globals to force refresh the next time these directories are accessed 
+	 * via `locate_template()` as long as we're not in a switched context.
 	 */
 	if ( isset( $GLOBALS['switched'] ) && ! $GLOBALS['switched'] ) {
 		$stylesheet_path = null;
