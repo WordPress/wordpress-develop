@@ -698,9 +698,17 @@ function get_attachment_template() {
  * @return string The template filename if one is located.
  */
 function locate_template( $template_names, $load = false, $load_once = true, $args = array() ) {
-	$stylesheet_path = get_stylesheet_directory();
-	$template_path   = get_template_directory();
-	$is_child_theme  = $stylesheet_path !== $template_path;
+	global $stylesheet_path, $template_path;
+
+	if ( ! isset( $stylesheet_path ) ) {
+		$stylesheet_path = get_stylesheet_directory();
+	}
+
+	if ( ! isset( $template_path ) ) {
+		$template_path = get_template_directory();
+	}
+
+	$is_child_theme = $stylesheet_path !== $template_path;
 
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
