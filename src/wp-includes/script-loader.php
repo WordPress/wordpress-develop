@@ -2533,7 +2533,7 @@ function wp_enqueue_global_styles_custom_css() {
 	if ( ! empty( $custom_css ) ) {
 		wp_add_inline_style( 'global-styles', $custom_css );
 	}
-	$block_custom_css .= wp_get_global_styles_block_custom_css();
+	$block_custom_css = wp_get_global_styles_block_custom_css();
 
 	if ( ! empty( $block_custom_css ) ) {
 		wp_register_style( 'global-styles-block-custom', false );
