@@ -133,4 +133,59 @@ JS;
 			wp_get_inline_script_tag( "/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]> */" )
 		);
 	}
+
+	public function data_provider_to_test_cdata_wrapper_omitted_for_non_javascript_scripts() {
+		return array(
+			'no-type'  => array(
+				'type'           => null,
+				'data'           => 'alert("hello")',
+				'expected_cdata' => true,
+			),
+			'js-type'  => array(
+				'type'           => 'text/javascript',
+				'data'           => 'alert("hello")',
+				'expected_cdata' => true,
+			),
+			'js-alt-type'  => array(
+				'type'           => 'application/javascript',
+				'data'           => 'alert("hello")',
+				'expected_cdata' => true,
+			),
+			'module'  => array(
+				'type'           => 'module',
+				'data'           => 'alert("hello")',
+				'expected_cdata' => true,
+			),
+			'impotmap' => array(
+				'type'           => 'importmap',
+				'data'           => 'alert("hello")',
+				'expected_cdata' => false,
+			),
+			'html'     => array(
+				'type'           => 'text/html',
+				'data'           => '<div>template code</div>',
+				'expected_cdata' => false,
+			),
+		);
+	}
+
+	/**
+	 * Tests that CDATA wrapper is not added for non-JavaScript scripts.
+	 *
+	 * @ticket 60320
+	 *
+	 * @dataProvider data_provider_to_test_cdata_wrapper_omitted_for_non_javascript_scripts
+	 */
+	public function test_cdata_wrapper_omitted_for_non_javascript_scripts( $type, $data, $expected_cdata ) {
+		remove_theme_support( 'html5' );
+
+		$attrs = array();
+		if ( $type ) {
+			$attrs['type'] = $type;
+		}
+		$script = wp_get_inline_script_tag( $data, $attrs );
+		$this->assertSame( $expected_cdata, str_contains( $script, '/* <![CDATA[ */' ) );
+		$this->assertSame( $expected_cdata, str_contains( $script, '/* ]]> */' ) );
+		$this->assertStringContainsString( $data, $script );
+	}
 }
