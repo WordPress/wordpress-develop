@@ -444,7 +444,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$this->assertNotWPError( $reset_key, 'The password reset key was not created.' );
 		$this->assertNotWPError( $user, 'The user was not authenticated.' );
-		$this->assertEmpty( $user->user_activation_key, 'The `user_activation_key` was not empty on the user object returned by `wp_signon` function.' );
+		$this->assertEmpty( $activation_key_from_database, 'The `user_activation_key` was not empty on the user object returned by `wp_signon` function.' );
 		$this->assertEmpty( $activation_key_from_database, 'The `user_activation_key` was not empty in the database.' );
 	}
 
