@@ -295,6 +295,74 @@ function wp_get_global_styles_custom_css() {
 }
 
 /**
+ * Gets the global styles base custom CSS from theme.json.
+ * Logic should follow wp_get_global_styles_custom_css.
+ *
+ * @since 6.5.0
+ *
+ * @return string The global base custom CSS.
+ */
+function wp_get_global_styles_base_custom_css() {
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	$cache_key   = 'wp_get_global_styles_base_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_base_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
+ * Gets the global styles per-block custom CSS from theme.json.
+ * Logic should follow wp_get_global_styles_custom_css.
+ *
+ * @since 6.5.0
+ *
+ * @return string The global per-block custom CSS.
+ */
+function wp_get_global_styles_block_custom_css() {
+	if ( ! wp_theme_has_theme_json() ) {
+		return '';
+	}
+
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+	$cache_key   = 'wp_get_global_styles_block_custom_css';
+	$cache_group = 'theme_json';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
+	$stylesheet = $tree->get_custom_block_css();
+
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $stylesheet, $cache_group );
+	}
+
+	return $stylesheet;
+}
+
+/**
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
@@ -439,6 +507,8 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_base_custom_css', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_styles_block_custom_css', 'theme_json' );
 	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }
