@@ -243,7 +243,7 @@ window.wp = window.wp || {};
 					// Get the term label text.
 					var label = $( this ).parent().text();
 					// Set indeterminate states for the backend. Add accessible text for indeterminate inputs. 
-					$( this ).after( '<input type="hidden" name="indeterminate_post_category[]" value="' + $( this ).val() + '">' ).attr( 'aria-label', label + ': ' + wp.i18n.__( 'Some selected posts have this category' ) );
+					$( this ).after( '<input type="hidden" name="indeterminate_post_category[]" value="' + $( this ).val() + '">' ).attr( 'aria-label', label.trim() + ': ' + wp.i18n.__( 'Some selected posts have this category' ) );
 				}
 			}
 		} );
