@@ -1236,7 +1236,6 @@ class WP_Theme_JSON {
 		}
 
 		return $stylesheet;
-
 	}
 
 	/**
