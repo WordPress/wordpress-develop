@@ -110,6 +110,20 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	}
 
 	wp_set_auth_cookie( $user->ID, $credentials['remember'], $secure_cookie );
+
+	// Flush `user_activation_key` if exists after successful login.
+	global $wpdb;
+	
+	if ( ! empty( $user->user_activation_key ) ) {
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'user_activation_key' => '',
+			),
+			array( 'ID' => $user->ID )
+		);
+	}
+
 	/**
 	 * Fires after the user has successfully logged in.
 	 *
