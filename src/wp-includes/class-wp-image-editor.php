@@ -296,7 +296,7 @@ abstract class WP_Image_Editor {
 			$quality = 1;
 		}
 
-		if ( ( $quality >= 1 ) && ( $quality <= 100 ) ) {
+		if ( $quality >= 1 && $quality <= 100 ) {
 			$this->quality = $quality;
 			return true;
 		}

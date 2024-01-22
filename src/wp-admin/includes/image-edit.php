@@ -353,11 +353,7 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 		 */
 		$image = apply_filters( 'image_editor_save_pre', $image, $attachment_id );
 
-		if ( is_wp_error( $image->stream( $mime_type ) ) ) {
-			return false;
-		}
-
-		return true;
+		return ( ! is_wp_error( $image->stream( $mime_type ) ) );
 	}
 
 	/* translators: 1: $image, 2: WP_Image_Editor */

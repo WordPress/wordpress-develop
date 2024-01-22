@@ -765,11 +765,10 @@ function is_serialized_string( $data ) {
  */
 function xmlrpc_getposttitle( $content ) {
 	global $post_default_title;
-	$post_title = $post_default_title;
 	if ( preg_match( '/<title>(.+?)<\/title>/is', $content, $matchtitle ) ) {
-		$post_title = $matchtitle[1];
+		return $matchtitle[1];
 	}
-	return $post_title;
+	return $post_default_title;
 }
 
 /**

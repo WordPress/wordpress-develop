@@ -1078,17 +1078,18 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 	}
 
 	// Finally, check to make sure the file has been saved, then return the HTML.
-	if ( ! empty( $src ) ) {
-		if ( 'src' === $return_type ) {
-			return $src;
-		}
-
-		$alt  = isset( $desc ) ? esc_attr( $desc ) : '';
-		$html = "<img src='$src' alt='$alt' />";
-
-		return $html;
+	// Return error if there was a problem.
+	if ( empty( $src ) ) {
+		return new WP_Error( 'image_sideload_failed' );
 	}
-	return new WP_Error( 'image_sideload_failed' );
+	if ( 'src' === $return_type ) {
+		return $src;
+	}
+
+	$alt  = isset( $desc ) ? esc_attr( $desc ) : '';
+	$html = "<img src='$src' alt='$alt' />";
+
+	return $html;
 }
 
 /**
