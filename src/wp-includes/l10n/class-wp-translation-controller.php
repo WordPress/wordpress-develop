@@ -140,9 +140,9 @@ final class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param WP_Translation_File|string $file       Optional. Translation file instance or file name. Default all files.
+	 * @param WP_Translation_File|string $file       Optional. Translation file instance or file name. Defaults to all files.
 	 * @param string                     $textdomain Optional. Text domain. Default 'default'.
-	 * @param string                     $locale     Optional. Locale. Default all locales.
+	 * @param string                     $locale     Optional. Locale. Defaults to all locales.
 	 * @return bool True on success, false otherwise.
 	 */
 	public function unload_file( $file, string $textdomain = 'default', string $locale = null ): bool {
@@ -181,7 +181,7 @@ final class WP_Translation_Controller {
 	 * @since 6.5.0
 	 *
 	 * @param string $textdomain Optional. Text domain. Default 'default'.
-	 * @param string $locale     Optional. Locale. Default all locales.
+	 * @param string $locale     Optional. Locale. Defaults to all locales.
 	 * @return bool True on success, false otherwise.
 	 */
 	public function unload_textdomain( string $textdomain = 'default', string $locale = null ): bool {
