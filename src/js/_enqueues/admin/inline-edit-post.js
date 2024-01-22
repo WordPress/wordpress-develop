@@ -240,8 +240,10 @@ window.wp = window.wp || {};
 				// If the number is less than the number of selected posts, then it's indeterminate.
 				$( this ).prop( 'indeterminate', true );
 				if ( ! $( this ).parent().find( 'input[name="indeterminate_post_category[]"]' ).length ) {
+					// Get the term label text.
+					var label = $( this ).parent().text();
 					// Set indeterminate states for the backend. Add accessible text for indeterminate inputs. 
-					$( this ).after( '<input type="hidden" name="indeterminate_post_category[]" value="' + $( this ).val() + '">' ).attr( 'aria-label', wp.i18n.__( 'Some selected posts have this category' ) );
+					$( this ).after( '<input type="hidden" name="indeterminate_post_category[]" value="' + $( this ).val() + '">' ).attr( 'aria-label', label + ': ' + wp.i18n.__( 'Some selected posts have this category' ) );
 				}
 			}
 		} );
