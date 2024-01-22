@@ -10,6 +10,20 @@
  */
 class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
 
+	private $original_theme_features = array();
+
+	public function set_up() {
+		global $_wp_theme_features;
+		parent::set_up();
+		$this->original_theme_features = $_wp_theme_features;
+	}
+
+	public function tear_down() {
+		global $_wp_theme_features;
+		$_wp_theme_features = $this->original_theme_features;
+		parent::tear_down();
+	}
+
 	private $event_handler = <<<'JS'
 document.addEventListener( 'DOMContentLoaded', function () {
 	document.getElementById( 'elementID' )
