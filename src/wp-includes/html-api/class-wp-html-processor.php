@@ -1718,8 +1718,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'HR' === $tag_name ||
 			'IMG' === $tag_name ||
 			'INPUT' === $tag_name ||
-			'LINK' === $tag_name ||
 			'KEYGEN' === $tag_name || // Obsolete but still treated as void.
+			'LINK' === $tag_name ||
 			'META' === $tag_name ||
 			'PARAM' === $tag_name || // Obsolete but still treated as void.
 			'SOURCE' === $tag_name ||
