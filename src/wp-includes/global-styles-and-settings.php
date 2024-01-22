@@ -302,11 +302,15 @@ function wp_get_global_styles_custom_css() {
 function wp_add_global_styles_for_blocks() {
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 	$block_nodes = $tree->get_styles_block_nodes();
+
+	if ( ! wp_should_load_separate_core_block_assets() ) {
+		wp_register_style( 'global-styles-blocks', false );
+	}
 	foreach ( $block_nodes as $metadata ) {
 		$block_css = $tree->get_styles_for_block( $metadata );
 
 		if ( ! wp_should_load_separate_core_block_assets() ) {
-			wp_add_inline_style( 'global-styles', $block_css );
+			wp_add_inline_style( 'global-styles-blocks', $block_css );
 			continue;
 		}
 
@@ -335,6 +339,10 @@ function wp_add_global_styles_for_blocks() {
 				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
 		}
+	}
+
+	if ( ! wp_should_load_separate_core_block_assets() ) {
+		wp_enqueue_style( 'global-styles-blocks' );
 	}
 }
 
