@@ -133,6 +133,86 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure non-nesting tags do not nest.
+	 *
+	 * @ticket 60283
+	 *
+	 * @covers WP_HTML_Processor::step_in_body
+	 * @covers WP_HTML_Processor::is_void
+	 *
+	 * @dataProvider data_void_tags
+	 *
+	 * @param string $tag_name Name of void tag under test.
+	 */
+	public function test_cannot_nest_void_tags( $tag_name ) {
+		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}><div>" );
+
+		/*
+		 * This HTML represents the same as the following HTML,
+		 * assuming that it were provided `<img>` as the tag:
+		 *
+		 *     <html>
+		 *         <body>
+		 *             <img>
+		 *             <div></div>
+		 *         </body>
+		 *     </html>
+		 */
+
+		$found_tag = $processor->next_tag();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
+		}
+
+		$this->assertTrue(
+			$found_tag,
+			"Could not find first {$tag_name}."
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', $tag_name ),
+			$processor->get_breadcrumbs(),
+			'Found incorrect nesting of first element.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Should have found the DIV as the second tag.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV' ),
+			$processor->get_breadcrumbs(),
+			"DIV should have been a sibling of the {$tag_name}."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_void_tags() {
+		return array(
+			'AREA'   => array( 'AREA' ),
+			'BASE'   => array( 'BASE' ),
+			'BR'     => array( 'BR' ),
+			'COL'    => array( 'COL' ),
+			'EMBED'  => array( 'EMBED' ),
+			'HR'     => array( 'HR' ),
+			'IMG'    => array( 'IMG' ),
+			'INPUT'  => array( 'INPUT' ),
+			'KEYGEN' => array( 'KEYGEN' ),
+			'LINK'   => array( 'LINK' ),
+			'META'   => array( 'META' ),
+			'SOURCE' => array( 'SOURCE' ),
+			'TRACK'  => array( 'TRACK' ),
+			'WBR'    => array( 'WBR' ),
+		);
+	}
+
+	/**
 	 * Ensures that special handling of unsupported tags is cleaned up
 	 * as handling is implemented. Otherwise there's risk of leaving special
 	 * handling (that is never reached) when tag handling is implemented.
@@ -159,27 +239,21 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	public function data_unsupported_special_in_body_tags() {
 		return array(
 			'APPLET'    => array( 'APPLET' ),
-			'AREA'      => array( 'AREA' ),
 			'BASE'      => array( 'BASE' ),
 			'BASEFONT'  => array( 'BASEFONT' ),
 			'BGSOUND'   => array( 'BGSOUND' ),
 			'BODY'      => array( 'BODY' ),
-			'BR'        => array( 'BR' ),
 			'CAPTION'   => array( 'CAPTION' ),
 			'COL'       => array( 'COL' ),
 			'COLGROUP'  => array( 'COLGROUP' ),
-			'EMBED'     => array( 'EMBED' ),
 			'FORM'      => array( 'FORM' ),
 			'FRAME'     => array( 'FRAME' ),
 			'FRAMESET'  => array( 'FRAMESET' ),
 			'HEAD'      => array( 'HEAD' ),
-			'HR'        => array( 'HR' ),
 			'HTML'      => array( 'HTML' ),
 			'IFRAME'    => array( 'IFRAME' ),
 			'INPUT'     => array( 'INPUT' ),
-			'KEYGEN'    => array( 'KEYGEN' ),
 			'LINK'      => array( 'LINK' ),
-			'LISTING'   => array( 'LISTING' ),
 			'MARQUEE'   => array( 'MARQUEE' ),
 			'MATH'      => array( 'MATH' ),
 			'META'      => array( 'META' ),
@@ -192,7 +266,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'OPTION'    => array( 'OPTION' ),
 			'PARAM'     => array( 'PARAM' ),
 			'PLAINTEXT' => array( 'PLAINTEXT' ),
-			'PRE'       => array( 'PRE' ),
 			'RB'        => array( 'RB' ),
 			'RP'        => array( 'RP' ),
 			'RT'        => array( 'RT' ),
@@ -214,7 +287,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'TITLE'     => array( 'TITLE' ),
 			'TR'        => array( 'TR' ),
 			'TRACK'     => array( 'TRACK' ),
-			'WBR'       => array( 'WBR' ),
 			'XMP'       => array( 'XMP' ),
 		);
 	}
