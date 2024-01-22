@@ -414,9 +414,9 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$updated_terms2 = wp_get_post_categories( $post_ids[1] );
 		$updated_terms3 = wp_get_post_categories( $post_ids[2] );
 
-		$this->assertSame( $terms1, $updated_terms1 );
-		$this->assertSame( $terms2, $updated_terms2 );
-		$this->assertSame( $terms3, $updated_terms3 );
+		$this->assertSame( $terms1, $updated_terms1, 'Post 1 should have terms 1 and 2.' );
+		$this->assertSame( $terms2, $updated_terms2, 'Post 2 should have terms 2 and 3.' );
+		$this->assertSame( $terms3, $updated_terms3, 'Post 3 should have terms 1 and 3.' );
 	}
 
 	/**
@@ -457,9 +457,9 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$updated_terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
 
 		// Each post should have the same categories as before and add term 4.
-		$this->assertSame( array( $term1, $term2, $term4 ), $updated_terms1 );
-		$this->assertSame( array( $term2, $term3, $term4 ), $updated_terms2 );
-		$this->assertSame( array( $term1, $term3, $term4 ), $updated_terms3 );
+		$this->assertSame( array( $term1, $term2, $term4 ), $updated_terms1, 'Post should have terms 1, 2, and 4.' );
+		$this->assertSame( array( $term2, $term3, $term4 ), $updated_terms2, 'Post should have terms 2, 3, and 4.' );
+		$this->assertSame( array( $term1, $term3, $term4 ), $updated_terms3, 'Post should have terms 1, 3, and 4.' );
 	}
 
 	/**
@@ -502,11 +502,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$updated_terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
 
 		// Post 1 should only have term 2.
-		$this->assertSame( $updated_terms1, array( $term2 ) );
+		$this->assertSame( $updated_terms1, array( $term2 ), 'Post 1 should only have term 2.' );
 		// Post 2 should be unchanged.
-		$this->assertSame( $terms2, $updated_terms2 );
+		$this->assertSame( $terms2, $updated_terms2, 'Post 2 should be unchanged.' );
 		// Post 3 should only have term 3.
-		$this->assertSame( $updated_terms3, array( $term3 ) );
+		$this->assertSame( $updated_terms3, array( $term3 ), 'Post 3 should only have term 3.' );
 	}
 
 	/**
