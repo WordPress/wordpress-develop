@@ -426,26 +426,28 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$post_ids = self::factory()->post->create_many( 3 );
+		$term1    = wp_create_category( 'test1' );
+		$term2    = wp_create_category( 'test2' );
+		$term3    = wp_create_category( 'test3' );
+		$term4    = wp_create_category( 'test4' );
 
-		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
-		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ) );
-		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
-		$term4 = wp_create_category( 'test4' );
+		wp_set_post_categories( $post_ids[0], array( $term1, $term2 ) );
+		wp_set_post_categories( $post_ids[1], array( $term2, $term3 ) );
+		wp_set_post_categories( $post_ids[2], array( $term1, $term3 ) );
 
 		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
 		$terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
 		$terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
-		$term1  = get_cat_ID( 'test1' );
-		$term2  = get_cat_ID( 'test2' );
-		$term3  = get_cat_ID( 'test3' );
-
-		$categories   = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
-		$categories[] = $term4;
+		// All existing categories are indeterminate.
+		$indeterminate = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
+		// Add new category.
+		$categories[]  = $term4;
 
 		$request = array(
-			'_status'       => -1,
-			'post'          => $post_ids,
-			'post_category' => $categories,
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'post_category'               => $categories,
+			'indeterminate_post_category' => $indeterminate,
 		);
 
 		bulk_edit_posts( $request );
@@ -467,27 +469,30 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		wp_set_current_user( self::$admin_id );
 
 		$post_ids = self::factory()->post->create_many( 3 );
+		$term1    = wp_create_category( 'test1' );
+		$term2    = wp_create_category( 'test2' );
+		$term3    = wp_create_category( 'test3' );
 
-		wp_set_post_categories( $post_ids[0], array( 'test1', 'test2' ) );
-		wp_set_post_categories( $post_ids[1], array( 'test2', 'test3' ) );
-		wp_set_post_categories( $post_ids[2], array( 'test1', 'test3' ) );
+		wp_set_post_categories( $post_ids[0], array( $term1, $term2 ) );
+		wp_set_post_categories( $post_ids[1], array( $term2, $term3 ) );
+		wp_set_post_categories( $post_ids[2], array( $term1, $term3 ) );
 
 		$terms1 = wp_get_post_categories( $post_ids[0], array( 'fields' => 'ids' ) );
 		$terms2 = wp_get_post_categories( $post_ids[1], array( 'fields' => 'ids' ) );
 		$terms3 = wp_get_post_categories( $post_ids[2], array( 'fields' => 'ids' ) );
-		$term1  = get_cat_ID( 'test1' );
-		$term2  = get_cat_ID( 'test2' );
-		$term3  = get_cat_ID( 'test3' );
 
+		// Terms 2 and 3 are in indeterminate state.
+		$indeterminate = array( $term2, $term3 );
 		// Remove term 1 from selected categories.
 		$categories = array_unique( array_merge( $terms1, $terms2, $terms3 ) );
-		$remove_key = array_search( $term1, $categories, true );
+		$remove_key = array_search( $term1, $categories );
 		unset( $categories[ $remove_key ] );
 
 		$request = array(
-			'_status'       => -1,
-			'post'          => $post_ids,
-			'post_category' => $categories,
+			'_status'                     => -1,
+			'post'                        => $post_ids,
+			'post_category'               => $categories,
+			'indeterminate_post_category' => $indeterminate,
 		);
 
 		bulk_edit_posts( $request );
