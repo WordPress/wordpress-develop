@@ -752,7 +752,7 @@ function locale_stylesheet() {
  * @param string $stylesheet Stylesheet name.
  */
 function switch_theme( $stylesheet ) {
-	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars, $stylesheet_path, $template_path;
+	global $wp_theme_directories, $wp_customize, $sidebars_widgets, $wp_registered_sidebars;
 
 	$requirements = validate_theme_requirements( $stylesheet );
 	if ( is_wp_error( $requirements ) ) {
@@ -837,12 +837,11 @@ function switch_theme( $stylesheet ) {
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
 	/*
-	 * Reset globals to force refresh the next time these directories are accessed 
-	 * via `locate_template()` as long as we're not in a switched context.
+	 * Reset template globals when switching themes outside of a switched blog
+	 * context to ensure templates will be loaded from the new theme.
 	 */
-	if ( isset( $GLOBALS['switched'] ) && ! $GLOBALS['switched'] ) {
-		$stylesheet_path = null;
-		$template_path   = null;
+	if ( ! is_multisite() || ! ms_is_switched() ) {
+		wp_set_template_globals();
 	}
 
 	// Clear pattern caches.
