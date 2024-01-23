@@ -28,7 +28,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::unload
+	 * @covers ::unload_textdomain
 	 *
 	 * @return void
 	 */
@@ -40,7 +40,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load
-	 * @covers ::unload
+	 * @covers ::unload_textdomain
 	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::locate_translation
@@ -62,7 +62,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::unload
+	 * @covers ::unload_file
 	 * @covers WP_Translation_File::get_file
 	 *
 	 * @return void
@@ -77,7 +77,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::unload
+	 * @covers ::unload_textdomain
 	 * @covers ::is_textdomain_loaded
 	 *
 	 * @return void
@@ -235,7 +235,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load
-	 * @covers ::unload
+	 * @covers ::unload_file
 	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural
@@ -289,7 +289,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @covers ::set_locale
 	 * @covers ::get_locale
 	 * @covers ::load
-	 * @covers ::unload
+	 * @covers ::unload_file
 	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural
@@ -333,7 +333,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::unload
+	 * @covers ::unload_textdomain
 	 *
 	 * @return void
 	 */
@@ -411,7 +411,6 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load
-	 * @covers ::unload
 	 * @covers ::is_textdomain_loaded
 	 * @covers ::translate
 	 * @covers ::translate_plural

@@ -110,6 +110,30 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
+	public function test_load_textdomain_prefers_php_files_by_default() {
+		$load_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+
+		$instance = WP_Translation_Controller::instance();
+
+		$is_loaded = $instance->is_textdomain_loaded( 'wp-tests-domain', 'en_US' );
+
+		$unload_mo  = $instance->unload_file( DIR_TESTDATA . '/pomo/simple.mo', 'wp-tests-domain' );
+		$unload_php = $instance->unload_file( DIR_TESTDATA . '/pomo/simple.l10n.php', 'wp-tests-domain' );
+
+		$unload_successful = unload_textdomain( 'wp-tests-domain' );
+
+		$this->assertTrue( $load_successful, 'Translation not successfully loaded' );
+		$this->assertTrue( $is_loaded );
+		$this->assertFalse( $unload_mo );
+		$this->assertTrue( $unload_php );
+		$this->assertTrue( $unload_successful );
+	}
+
+	/**
+	 * @covers ::load_textdomain
+	 *
+	 * @return void
+	 */
 	public function test_load_textdomain_reads_php_files_if_filtered_format_is_unsupported() {
 		add_filter(
 			'translation_file_format',
@@ -294,6 +318,21 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 		$this->assertTrue( $is_loaded );
 		$this->assertTrue( $unload_successful_after );
 		$this->assertFalse( $is_loaded_after );
+	}
+
+	/**
+	 * @covers ::unload_file
+	 * @covers ::unload_textdomain
+	 *
+	 * @return void
+	 */
+	public function test_unload_non_existent_files_and_textdomains() {
+		$controller = new WP_Translation_Controller();
+		$this->assertFalse( $controller->unload_textdomain( 'foobarbaz' ) );
+		$this->assertFalse( $controller->unload_textdomain( 'foobarbaz', 'es_ES' ) );
+		$this->assertFalse( $controller->unload_textdomain( 'default', 'es_ES' ) );
+		$this->assertFalse( $controller->unload_file( DIR_TESTDATA . '/l10n/fa_IR.mo' ) );
+		$this->assertFalse( $controller->unload_file( DIR_TESTDATA . '/l10n/fa_IR.mo', 'es_ES' ) );
 	}
 
 	/**
