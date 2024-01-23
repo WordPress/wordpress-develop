@@ -9,7 +9,7 @@
  * Media Patent License 1.0 was not distributed with this source code in the
  * PATENTS file, you can obtain it at www.aomedia.org/license/patent.
  *
- * Note: this class is from libavifinfo - https://aomedia.googlesource.com/libavifinfo/+/refs/heads/main/avifinfo.php at b496868.
+ * Note: this class is from libavifinfo - https://aomedia.googlesource.com/libavifinfo/+/refs/heads/main/avifinfo.php at f509487.
  * It is used as a fallback to parse AVIF files when the server doesn't support AVIF,
  * primarily to identify the width and height of the image.
  *
@@ -450,7 +450,7 @@ class Parser {
       } else if ( $box->type == 'auxC' ) {
         // See AV1 Image File Format (AVIF) 4
         // at https://aomediacodec.github.io/av1-avif/#auxiliary-images
-        $kAlphaStr       = "urn:mpeg:mpegB:cicp:systems:auxiliary:alpha";
+        $kAlphaStr       = "urn:mpeg:mpegB:cicp:systems:auxiliary:alpha\0";
         $kAlphaStrLength = 44; // Includes terminating character.
         if ( $box->content_size >= $kAlphaStrLength ) {
           if ( !( $data = read( $this->handle, $kAlphaStrLength ) ) ) {

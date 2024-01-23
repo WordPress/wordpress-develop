@@ -400,7 +400,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 					'width'        => 150,
 					'height'       => 150,
 					'bit_depth'    => 8,
-					'num_channels' => 3,
+					'num_channels' => 4,
 				),
 			),
 			// Lossless AVIF.
@@ -430,7 +430,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 					'width'        => 128,
 					'height'       => 128,
 					'bit_depth'    => 12,
-					'num_channels' => 3,
+					'num_channels' => 4,
 				),
 			),
 			array(
@@ -439,7 +439,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 					'width'        => 80,
 					'height'       => 80,
 					'bit_depth'    => 8,
-					'num_channels' => 3,
+					'num_channels' => 4,
 				),
 			),
 			array(
