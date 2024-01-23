@@ -219,8 +219,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id', 'password', 'excerpt_length' ), $keys );
 	}
 
 	/**
