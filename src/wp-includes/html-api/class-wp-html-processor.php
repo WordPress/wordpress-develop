@@ -106,7 +106,7 @@
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
  *  - Lists: DD, DL, DT, LI, OL, LI.
- *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PARAM, PICTURE, SOURCE, VIDEO.
+ *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PARAM, PICTURE, SOURCE, VIDEO, TRACK.
  *  - Paragraph: BR, P.
  *  - Phrasing elements: AREA, ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
  *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
