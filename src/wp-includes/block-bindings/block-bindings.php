@@ -45,7 +45,7 @@ function wp_block_bindings() {
  *
  * @return void
  */
-function wp_block_bindings_register_source( $source_name, $source_args ) {
+function wp_block_bindings_register_source( string $source_name, array $source_args ) {
 	wp_block_bindings()->register_source( $source_name, $source_args );
 }
 
@@ -73,6 +73,6 @@ function wp_block_bindings_get_sources() {
  * @param string $source_value The value used to replace the HTML.
  * @return string The modified block content.
  */
-function wp_block_bindings_replace_html( $block_content, $block_name, $block_attr, $source_value ) {
+function wp_block_bindings_replace_html( string $block_content, string $block_name, string $block_attr, string $source_value ) {
 	return wp_block_bindings()->replace_html( $block_content, $block_name, $block_attr, $source_value );
 }

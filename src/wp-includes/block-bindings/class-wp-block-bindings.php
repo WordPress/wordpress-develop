@@ -50,7 +50,7 @@ class WP_Block_Bindings {
 	 *
 	 * @return void
 	 */
-	public function register_source( $source_name, array $source_args ) {
+	public function register_source( string $source_name, array $source_args ) {
 		$this->sources[ $source_name ] = $source_args;
 	}
 
@@ -64,7 +64,7 @@ class WP_Block_Bindings {
 	 * @param string $block_attr The attribute of the block we want to process.
 	 * @param string $source_value The value used to replace the HTML.
 	 */
-	public function replace_html( $block_content, $block_name, $block_attr, $source_value ) {
+	public function replace_html( string $block_content, string $block_name, string $block_attr, string $source_value ) {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 		if ( null === $block_type || ! isset( $block_type->attributes[ $block_attr ] ) ) {
 			return $block_content;
