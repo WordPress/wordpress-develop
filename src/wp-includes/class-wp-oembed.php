@@ -110,7 +110,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
 			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
-			'#https?://share\.viostream\.com/.*#i'         => array( 'https://play.viostream.com/oembed', true),
+			'#https?://share\.viostream\.com/.*#i'         => array( 'https://play.viostream.com/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
