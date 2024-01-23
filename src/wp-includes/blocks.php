@@ -36,6 +36,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
+ * @since 6.5.0 Add support for `viewModule` field.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
@@ -124,23 +125,20 @@ function get_block_asset_url( $path ) {
 }
 
 /**
- * Finds a script handle for the selected block metadata field. It detects
- * when a path to file was provided and optionally finds a corresponding asset
- * file with details necessary to register the script under automatically
+ * Finds a script module ID for the selected block metadata field. It detects
+ * when a path to file was provided and finds a corresponding asset file
+ * with details necessary to register the script module under an automatically
  * generated handle name. It returns unprocessed script handle otherwise.
  *
- * @since 5.5.0
- * @since 6.1.0 Added `$index` parameter.
- * @since 6.5.0 The asset file is optional.
+ * @since 6.5.0
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
  * @param int    $index      Optional. Index of the script to register when multiple items passed.
  *                           Default 0.
- * @return string|false Script handle provided directly or created through
- *                      script's registration, or false on failure.
+ * @return string|false Script module ID or false on failure.
  */
-function register_block_module_id( $metadata, $field_name, $index = 0 ) {
+function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
@@ -392,7 +390,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.1.0 Added support for `render` field.
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
- * @since 6.5.0 Added support for `allowedBlocks` and `viewStyle` fields.
+ * @since 6.5.0 Added support for `allowedBlocks`, `viewModule`, and `viewStyle` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -581,7 +579,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			$processed_modules = array();
 			if ( is_array( $modules ) ) {
 				for ( $index = 0; $index < count( $modules ); $index++ ) {
-					$result = register_block_module_id(
+					$result = register_block_script_module_id(
 						$metadata,
 						$metadata_field_name,
 						$index
@@ -591,7 +589,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 					}
 				}
 			} else {
-				$result = register_block_module_id(
+				$result = register_block_script_module_id(
 					$metadata,
 					$metadata_field_name
 				);
