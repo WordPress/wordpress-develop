@@ -23,7 +23,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		$label       = 'Test Source';
 		$apply       = function () { };
 
-		$wp_block_bindings->register_source( $source_name, $label, $apply );
+		$wp_block_bindings->register_source( $source_name, array( $label, $apply ) );
 
 		$sources = $wp_block_bindings->get_sources();
 		$this->assertArrayHasKey( $source_name, $sources );
@@ -117,7 +117,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		$apply       = function () {
 			return 'test source value';
 		};
-		$wp_block_bindings->register_source( $source_name, $label, $apply );
+		$wp_block_bindings->register_source( $source_name, array( $label, $apply ) );
 
 		$block_content = '<p>This content will be overriden</p>';
 
