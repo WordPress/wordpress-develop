@@ -1885,7 +1885,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				add_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					PHP_INT_MAX
+					20
 				);
 			}
 
@@ -1905,7 +1905,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				remove_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					PHP_INT_MAX
+					20
 				);
 			}
 		}
