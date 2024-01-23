@@ -976,10 +976,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "input"
 			 */
 			case '+INPUT':
+
+
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				$type_attribute = $this->get_attribute( 'type' );
-				if ( null === $type_attribute || 'hidden' === strtolower( $type_attribute ) ) {
+				/*
+				 * > If the token does not have an attribute with the name "type", or if it does,
+				 * > but that attribute's value is not an ASCII case-insensitive match for the
+				 * > string "hidden", then: set the frameset-ok flag to "not ok".
+				 */
+				if ( ! is_string( $type_attribute ) || 'hidden' !== strtolower( $type_attribute ) ) {
 					$this->state->frameset_ok = false;
 				}
 				return true;
