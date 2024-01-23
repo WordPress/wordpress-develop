@@ -157,7 +157,7 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		$this->assertEqualSets( array( 'context', 'id', 'excerpt_length' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id' ), $keys );
 	}
 
 	/**

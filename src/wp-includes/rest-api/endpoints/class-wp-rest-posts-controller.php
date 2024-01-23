@@ -95,12 +95,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$schema        = $this->get_item_schema();
 		$get_item_args = array(
-			'context'        => $this->get_context_param( array( 'default' => 'view' ) ),
-			'excerpt_length' => array(
+			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+		);
+		if ( isset( $schema['properties']['excerpt'] ) ) {
+			$get_item_args['excerpt_length'] = array(
 				'description' => __( 'Override the default excerpt length.' ),
 				'type'        => 'integer',
-			),
-		);
+			);
+		}
 		if ( isset( $schema['properties']['password'] ) ) {
 			$get_item_args['password'] = array(
 				'description' => __( 'The password for the post if it is password protected.' ),

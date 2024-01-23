@@ -259,7 +259,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		$this->assertEqualSets( array( 'context', 'id', 'excerpt_length' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id' ), $keys );
 	}
 
 	/**
