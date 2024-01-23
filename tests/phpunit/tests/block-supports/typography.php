@@ -913,6 +913,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests computed font size values.
 	 *
 	 * @ticket 58522
+	 * @ticket 60263
 	 *
 	 * @covers ::wp_get_computed_fluid_typography_value
 	 *
@@ -950,6 +951,16 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'scale_factor'           => 1,
 				),
 				'expected_output' => 'clamp(50px, 3.125rem + ((1vw - 3.2px) * 7.353), 100px)',
+			),
+			'returns `null` when maximum and minimum viewport width are equal' => array(
+				'args'            => array(
+					'minimum_viewport_width' => '800px',
+					'maximum_viewport_width' => '800px',
+					'minimum_font_size'      => '50px',
+					'maximum_font_size'      => '100px',
+					'scale_factor'           => 1,
+				),
+				'expected_output' => null,
 			),
 			'returns `null` when `maximum_viewport_width` is an unsupported unit' => array(
 				'args'            => array(
