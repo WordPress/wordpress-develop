@@ -472,7 +472,7 @@ class WP_Block {
 
 		if ( ! empty( $this->block_type->view_module_ids ) ) {
 			foreach ( $this->block_type->view_module_ids as $view_module_id ) {
-				wp_enqueue_module( $view_module_id );
+				wp_enqueue_script_module( $view_module_id );
 			}
 		}
 

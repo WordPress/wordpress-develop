@@ -185,7 +185,7 @@ function register_block_module_id( $metadata, $field_name, $index = 0 ) {
 
 	$module_asset        = require $module_asset_path;
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
-	$result              = wp_register_module(
+	$result              = wp_register_script_module(
 		$module_id,
 		$module_uri,
 		$module_dependencies,
