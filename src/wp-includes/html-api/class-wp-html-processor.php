@@ -976,9 +976,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "input"
 			 */
 			case '+INPUT':
-
-
-
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				$type_attribute = $this->get_attribute( 'type' );
