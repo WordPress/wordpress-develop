@@ -2283,7 +2283,7 @@ jQuery(function ($) {
                 tooltipContent.classList.add('tooltip-content');
 
 				tooltipContent.innerHTML =
-					"<div class='tooltip-arrow'></div>" + "<p>" + tooltipText + "</p>";
+					'<div class="tooltip-arrow"></div>' + '<p>' + tooltipText + '</p>';
 				tooltipContainer.appendChild(tooltipContent);
 
                 // Change event from click to hover
