@@ -183,17 +183,13 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 
 	$module_asset        = require $module_asset_path;
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
-	$result              = wp_register_script_module(
+
+	wp_register_script_module(
 		$module_id,
 		$module_uri,
 		$module_dependencies,
-		isset( $module_asset['version'] ) ? $module_asset['version'] : false,
+		isset( $module_asset['version'] ) ? $module_asset['version'] : false
 	);
-
-	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $module_dependencies, true ) ) {
-		// script translations?
-		wp_set_script_translations( $module_id, $metadata['textdomain'] );
-	}
 
 	return $module_id;
 }
