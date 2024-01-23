@@ -40,6 +40,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'ABBR',
 			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'AREA',
 			'ARTICLE',
 			'ASIDE',
 			'AUDIO',
@@ -48,6 +49,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BDO',
 			'BIG',
 			'BLINK', // Deprecated.
+			'BR',
 			'BUTTON',
 			'CANVAS',
 			'CENTER', // Neutralized.
@@ -65,6 +67,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'DL',
 			'DT',
 			'EM',
+			'EMBED',
 			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
@@ -78,22 +81,25 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H6',
 			'HEADER',
 			'HGROUP',
+			'HR',
 			'I',
 			'IMG',
 			'INS',
 			'LI',
-			'ISINDEX', // Deprecated
+			'ISINDEX', // Deprecated.
 			'KBD',
+			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
 			'MARK',
 			'MENU',
 			'METER',
-			'MULTICOL', // Deprecated
+			'MULTICOL', // Deprecated.
 			'NAV',
-			'NEXTID', // Deprecated
+			'NEXTID', // Deprecated.
 			'OL',
 			'OUTPUT',
 			'P',
@@ -106,7 +112,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SECTION',
 			'SLOT',
 			'SMALL',
-			'SPACER', // Deprecated
+			'SPACER', // Deprecated.
 			'SPAN',
 			'STRIKE',
 			'STRONG',
@@ -162,26 +168,20 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_unsupported_elements() {
 		$unsupported_elements = array(
 			'APPLET', // Deprecated.
-			'AREA',
 			'BASE',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'BR',
 			'CAPTION',
 			'COL',
 			'COLGROUP',
-			'EMBED',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
-			'HR',
 			'HTML',
 			'IFRAME',
 			'INPUT',
-			'KEYGEN', // Deprecated; void.
 			'LINK',
-			'LISTING', // Deprecated, use PRE instead.
 			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
@@ -193,14 +193,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'OPTGROUP',
 			'OPTION',
 			'PLAINTEXT', // Neutralized.
-			'PRE',
 			'RB', // Neutralized.
 			'RP',
 			'RT',
 			'RTC', // Neutralized.
 			'SCRIPT',
 			'SELECT',
-			'SOURCE',
 			'STYLE',
 			'SVG',
 			'TABLE',
@@ -213,8 +211,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'THEAD',
 			'TITLE',
 			'TR',
-			'TRACK',
-			'WBR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
