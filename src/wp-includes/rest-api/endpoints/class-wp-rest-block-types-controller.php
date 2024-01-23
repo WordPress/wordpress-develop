@@ -291,6 +291,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'editor_script_handles',
 				'script_handles',
 				'view_script_handles',
+				'view_script_modules_ids',
 				'editor_style_handles',
 				'style_handles',
 				'view_style_handles',
@@ -576,6 +577,16 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				),
 				'view_script_handles'   => array(
 					'description' => __( 'Public facing script handles.' ),
+					'type'        => array( 'array' ),
+					'default'     => array(),
+					'items'       => array(
+						'type' => 'string',
+					),
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'view_script_module_ids'   => array(
+					'description' => __( 'Public facing script module IDs.' ),
 					'type'        => array( 'array' ),
 					'default'     => array(),
 					'items'       => array(
