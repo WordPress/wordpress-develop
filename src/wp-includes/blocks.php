@@ -36,7 +36,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
- * @since 6.5.0 Add support for `viewModule` field.
+ * @since 6.5.0 Add support for `viewScriptModule` field.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
@@ -60,12 +60,12 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	}
 
 	$field_mappings = array(
-		'viewModule'   => 'view-module',
 		'editorScript' => 'editor-script',
-		'script'       => 'script',
-		'viewScript'   => 'view-script',
 		'editorStyle'  => 'editor-style',
+		'script'       => 'script',
 		'style'        => 'style',
+		'viewScript'   => 'view-script',
+		'viewScriptModule' => 'view-script-module',
 		'viewStyle'    => 'view-style',
 	);
 	$asset_handle   = str_replace( '/', '-', $block_name ) .
@@ -386,7 +386,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.1.0 Added support for `render` field.
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
- * @since 6.5.0 Added support for `allowedBlocks`, `viewModule`, and `viewStyle` fields.
+ * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -563,10 +563,9 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 
 	$module_fields = array(
-		'viewModule'   => 'view_module_ids',
+		'viewScriptModule' => 'view_script_module_ids',
 	);
 	foreach ( $module_fields as $metadata_field_name => $settings_field_name ) {
-
 		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
 			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
 		}
