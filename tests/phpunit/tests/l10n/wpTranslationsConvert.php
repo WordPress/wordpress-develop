@@ -116,9 +116,11 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @phpstan-param 'mo'|'php' $type
 	 */
 	public function test_invalid_files( string $type, string $file_contents, $expected_error = null ) {
-		$file = $this->temp_filename( $file_contents );
+		$file = $this->temp_filename();
 
 		$this->assertNotFalse( $file );
+
+		file_put_contents( $file, $file_contents );
 
 		$instance = WP_Translation_File::create( $file, $type );
 
@@ -180,8 +182,9 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @return void
 	 */
 	public function test_create_invalid_filetype() {
-		$file = $this->temp_filename( '' );
+		$file = $this->temp_filename();
 		$this->assertNotFalse( $file );
+		file_put_contents( $file, '' );
 		$this->assertFalse( WP_Translation_File::create( $file, 'invalid' ) );
 	}
 
