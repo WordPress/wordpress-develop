@@ -382,20 +382,20 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			array(
 				DIR_TESTDATA . '/images/test-image.jpg',
 				array(
-					'width'     => false,
-					'height'    => false,
-					'type'      => false,
-					'bit_depth' => false,
+					'width'        => false,
+					'height'       => false,
+					'bit_depth'    => false,
+					'num_channels' => false,
 				),
 			),
 			// Standard GIF.
 			array(
 				DIR_TESTDATA . '/images/test-image.gif',
 				array(
-					'width'     => false,
-					'height'    => false,
-					'type'      => false,
-					'bit_depth' => false,
+					'width'        => false,
+					'height'       => false,
+					'bit_depth'    => false,
+					'num_channels' => false,
 				),
 			),
 			// Animated AVIF.
