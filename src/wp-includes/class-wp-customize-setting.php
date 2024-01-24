@@ -629,16 +629,16 @@ class WP_Customize_Setting {
 		$id_base = $this->id_data['base'];
 		if ( 'option' === $this->type ) {
 			return get_option( $id_base, $default_value );
-		} elseif ( 'theme_mod' === $this->type ) {
-			return get_theme_mod( $id_base, $default_value );
-		} else {
-			/*
-			 * Any WP_Customize_Setting subclass implementing aggregate multidimensional
-			 * will need to override this method to obtain the data from the appropriate
-			 * location.
-			 */
-			return $default_value;
 		}
+		if ( 'theme_mod' === $this->type ) {
+			return get_theme_mod( $id_base, $default_value );
+		}
+		/*
+		 * Any WP_Customize_Setting subclass implementing aggregate multidimensional
+		 * will need to override this method to obtain the data from the appropriate
+		 * location.
+		 */
+		return $default_value;
 	}
 
 	/**
@@ -657,17 +657,19 @@ class WP_Customize_Setting {
 				$autoload = self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'];
 			}
 			return update_option( $id_base, $value, $autoload );
-		} elseif ( 'theme_mod' === $this->type ) {
+		}
+
+		if ( 'theme_mod' === $this->type ) {
 			set_theme_mod( $id_base, $value );
 			return true;
-		} else {
-			/*
-			 * Any WP_Customize_Setting subclass implementing aggregate multidimensional
-			 * will need to override this method to obtain the data from the appropriate
-			 * location.
-			 */
-			return false;
 		}
+
+		/*
+		 * Any WP_Customize_Setting subclass implementing aggregate multidimensional
+		 * will need to override this method to obtain the data from the appropriate
+		 * location.
+		 */
+		return false;
 	}
 
 	/**
@@ -683,28 +685,28 @@ class WP_Customize_Setting {
 		if ( 'option' === $this->type || 'theme_mod' === $this->type ) {
 			if ( ! $this->is_multidimensional_aggregated ) {
 				return $this->set_root_value( $value );
-			} else {
-				$root = self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['root_value'];
-				$root = $this->multidimensional_replace( $root, $this->id_data['keys'], $value );
-				self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['root_value'] = $root;
-				return $this->set_root_value( $root );
 			}
-		} else {
-			/**
-			 * Fires when the WP_Customize_Setting::update() method is called for settings
-			 * not handled as theme_mods or options.
-			 *
-			 * The dynamic portion of the hook name, `$this->type`, refers to the type of setting.
-			 *
-			 * @since 3.4.0
-			 *
-			 * @param mixed                $value   Value of the setting.
-			 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
-			 */
-			do_action( "customize_update_{$this->type}", $value, $this );
 
-			return has_action( "customize_update_{$this->type}" );
+			$root = self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['root_value'];
+			$root = $this->multidimensional_replace( $root, $this->id_data['keys'], $value );
+			self::$aggregated_multidimensionals[ $this->type ][ $id_base ]['root_value'] = $root;
+			return $this->set_root_value( $root );
 		}
+
+		/**
+		 * Fires when the WP_Customize_Setting::update() method is called for settings
+		 * not handled as theme_mods or options.
+		 *
+		 * The dynamic portion of the hook name, `$this->type`, refers to the type of setting.
+		 *
+		 * @since 3.4.0
+		 *
+		 * @param mixed                $value   Value of the setting.
+		 * @param WP_Customize_Setting $setting WP_Customize_Setting instance.
+		 */
+		do_action( "customize_update_{$this->type}", $value, $this );
+
+		return has_action( "customize_update_{$this->type}" );
 	}
 
 	/**
@@ -911,7 +913,8 @@ class WP_Customize_Setting {
 	final protected function multidimensional_replace( $root, $keys, $value ) {
 		if ( ! isset( $value ) ) {
 			return $root;
-		} elseif ( empty( $keys ) ) { // If there are no keys, we're replacing the root.
+		}
+		if ( empty( $keys ) ) { // If there are no keys, we're replacing the root.
 			return $value;
 		}
 

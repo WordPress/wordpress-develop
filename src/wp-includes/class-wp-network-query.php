@@ -597,8 +597,7 @@ class WP_Network_Query {
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'ASC';
-		} else {
-			return 'DESC';
 		}
+		return 'DESC';
 	}
 }

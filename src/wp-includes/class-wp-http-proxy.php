@@ -220,8 +220,7 @@ class WP_HTTP_Proxy {
 
 		if ( ! empty( $wildcard_regex ) ) {
 			return ! preg_match( $wildcard_regex, $check['host'] );
-		} else {
-			return ! in_array( $check['host'], $bypass_hosts, true );
 		}
+		return ! in_array( $check['host'], $bypass_hosts, true );
 	}
 }

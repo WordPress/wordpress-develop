@@ -293,7 +293,6 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 					break;
 				default:
 					$new_format .= $format[ $i ];
-					break;
 			}
 		}
 
@@ -739,19 +738,16 @@ function is_serialized_string( $data ) {
 		return false;
 	}
 	$data = trim( $data );
-	if ( strlen( $data ) < 4 ) {
+	if (
+		strlen( $data ) < 4 ||
+		':' !== $data[1] ||
+		! str_ends_with( $data, ';' ) ||
+		's' !== $data[0] ||
+		'"' !== substr( $data, -2, 1 )
+	) {
 		return false;
-	} elseif ( ':' !== $data[1] ) {
-		return false;
-	} elseif ( ! str_ends_with( $data, ';' ) ) {
-		return false;
-	} elseif ( 's' !== $data[0] ) {
-		return false;
-	} elseif ( '"' !== substr( $data, -2, 1 ) ) {
-		return false;
-	} else {
-		return true;
 	}
+	return true;
 }
 
 /**
@@ -770,11 +766,9 @@ function is_serialized_string( $data ) {
 function xmlrpc_getposttitle( $content ) {
 	global $post_default_title;
 	if ( preg_match( '/<title>(.+?)<\/title>/is', $content, $matchtitle ) ) {
-		$post_title = $matchtitle[1];
-	} else {
-		$post_title = $post_default_title;
+		return $matchtitle[1];
 	}
-	return $post_title;
+	return $post_default_title;
 }
 
 /**
@@ -1013,9 +1007,8 @@ function is_new_day() {
 
 	if ( $currentday !== $previousday ) {
 		return 1;
-	} else {
-		return 0;
 	}
+	return 0;
 }
 
 /**
@@ -1072,7 +1065,9 @@ function _http_build_query( $data, $prefix = null, $sep = null, $key = '', $urle
 
 		if ( null === $v ) {
 			continue;
-		} elseif ( false === $v ) {
+		}
+
+		if ( false === $v ) {
 			$v = '0';
 		}
 
@@ -1429,9 +1424,8 @@ function get_status_header_desc( $code ) {
 
 	if ( isset( $wp_header_to_desc[ $code ] ) ) {
 		return $wp_header_to_desc[ $code ];
-	} else {
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -1994,7 +1988,8 @@ function wp_get_referer() {
 function wp_get_raw_referer() {
 	if ( ! empty( $_REQUEST['_wp_http_referer'] ) && is_string( $_REQUEST['_wp_http_referer'] ) ) {
 		return wp_unslash( $_REQUEST['_wp_http_referer'] );
-	} elseif ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
+	}
+	if ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 		return wp_unslash( $_SERVER['HTTP_REFERER'] );
 	}
 
@@ -2257,9 +2252,8 @@ function get_temp_dir() {
 function wp_is_writable( $path ) {
 	if ( 'WIN' === strtoupper( substr( PHP_OS, 0, 3 ) ) ) {
 		return win_is_writable( $path );
-	} else {
-		return @is_writable( $path );
 	}
+	return @is_writable( $path );
 }
 
 /**
@@ -2282,7 +2276,8 @@ function win_is_writable( $path ) {
 	if ( '/' === $path[ strlen( $path ) - 1 ] ) {
 		// If it looks like a directory, check a random file within the directory.
 		return win_is_writable( $path . uniqid( mt_rand() ) . '.tmp' );
-	} elseif ( is_dir( $path ) ) {
+	}
+	if ( is_dir( $path ) ) {
 		// If it's a directory (and not a file), check a random file within the directory.
 		return win_is_writable( $path . '/' . uniqid( mt_rand() ) . '.tmp' );
 	}
@@ -4401,12 +4396,10 @@ function _wp_json_convert_string( $input_string ) {
 		$encoding = mb_detect_encoding( $input_string, mb_detect_order(), true );
 		if ( $encoding ) {
 			return mb_convert_encoding( $input_string, 'UTF-8', $encoding );
-		} else {
-			return mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
 		}
-	} else {
-		return wp_check_invalid_utf8( $input_string, true );
+		return mb_convert_encoding( $input_string, 'UTF-8', 'UTF-8' );
 	}
+	return wp_check_invalid_utf8( $input_string, true );
 }
 
 /**
@@ -4471,9 +4464,8 @@ function wp_send_json( $response, $status_code = null, $flags = 0 ) {
 				'response' => null,
 			)
 		);
-	} else {
-		die;
 	}
+	die;
 }
 
 /**
@@ -6517,18 +6509,18 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 		}
 
 		return strnatcasecmp( $a['t_city'], $b['t_city'] );
-	} else {
-		// Force Etc to the bottom of the list.
-		if ( 'Etc' === $a['continent'] ) {
-			return 1;
-		}
-
-		if ( 'Etc' === $b['continent'] ) {
-			return -1;
-		}
-
-		return strnatcasecmp( $a['t_continent'], $b['t_continent'] );
 	}
+
+	// Force Etc to the bottom of the list.
+	if ( 'Etc' === $a['continent'] ) {
+		return 1;
+	}
+
+	if ( 'Etc' === $b['continent'] ) {
+		return -1;
+	}
+
+	return strnatcasecmp( $a['t_continent'], $b['t_continent'] );
 }
 
 /**
@@ -6975,7 +6967,6 @@ function _wp_mysql_week( $column ) {
 		case 5:
 		case 6:
 			return "WEEK( DATE_SUB( $column, INTERVAL $start_of_week DAY ), 0 )";
-		case 0:
 		default:
 			return "WEEK( $column, 0 )";
 	}
@@ -7161,9 +7152,8 @@ function wp_debug_backtrace_summary( $ignore_class = null, $skip_frames = 0, $pr
 	}
 	if ( $pretty ) {
 		return implode( ', ', array_reverse( $caller ) );
-	} else {
-		return $caller;
 	}
+	return $caller;
 }
 
 /**
@@ -7759,7 +7749,6 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 			 *                                   shorthand string notation, such as '256M'.
 			 */
 			$filtered_limit = apply_filters( "{$context}_memory_limit", $filtered_limit );
-			break;
 	}
 
 	$filtered_limit_int = wp_convert_hr_to_bytes( $filtered_limit );
@@ -7767,15 +7756,14 @@ function wp_raise_memory_limit( $context = 'admin' ) {
 	if ( -1 === $filtered_limit_int || ( $filtered_limit_int > $wp_max_limit_int && $filtered_limit_int > $current_limit_int ) ) {
 		if ( false !== ini_set( 'memory_limit', $filtered_limit ) ) {
 			return $filtered_limit;
-		} else {
-			return false;
 		}
-	} elseif ( -1 === $wp_max_limit_int || $wp_max_limit_int > $current_limit_int ) {
+		return false;
+	}
+	if ( -1 === $wp_max_limit_int || $wp_max_limit_int > $current_limit_int ) {
 		if ( false !== ini_set( 'memory_limit', $wp_max_limit ) ) {
 			return $wp_max_limit;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	return false;
@@ -8137,7 +8125,6 @@ function wp_privacy_anonymize_data( $type, $data = '' ) {
 			break;
 		default:
 			$anonymous = '';
-			break;
 	}
 
 	/**
@@ -8333,11 +8320,10 @@ function wp_update_php_annotation( $before = '<p class="description">', $after =
 	$annotation = wp_get_update_php_annotation();
 
 	if ( $annotation ) {
-		if ( $display ) {
-			echo $before . $annotation . $after;
-		} else {
+		if ( ! $display ) {
 			return $before . $annotation . $after;
 		}
+		echo $before . $annotation . $after;
 	}
 }
 

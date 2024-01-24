@@ -247,14 +247,13 @@ function wptexturize( $text, $reset = false ) {
 			if ( str_starts_with( $curl, '<!--' ) ) {
 				// This is an HTML comment delimiter.
 				continue;
-			} else {
-				// This is an HTML element delimiter.
-
-				// Replace each & with &#038; unless it already looks like an entity.
-				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
-
-				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
+
+			// This is an HTML element delimiter.
+			// Replace each & with &#038; unless it already looks like an entity.
+			$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
+
+			_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 		} elseif ( '' === trim( $curl ) ) {
 			// This is a newline between delimiters. Performance improves when we check this.
 			continue;
@@ -330,7 +329,8 @@ function wptexturize_primes( $haystack, $needle, $prime, $open_quote, $close_quo
 	foreach ( $sentences as $key => &$sentence ) {
 		if ( ! str_contains( $sentence, $needle ) ) {
 			continue;
-		} elseif ( 0 !== $key && 0 === substr_count( $sentence, $close_quote ) ) {
+		}
+		if ( 0 !== $key && 0 === substr_count( $sentence, $close_quote ) ) {
 			$sentence = preg_replace( $quote_pattern, $flag, $sentence, -1, $count );
 			if ( $count > 1 ) {
 				// This sentence appears to have multiple closing quotes. Attempt Vulcan logic.
@@ -2555,9 +2555,8 @@ function convert_invalid_entities( $content ) {
 function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	if ( $force || (int) get_option( 'use_balanceTags' ) === 1 ) {
 		return force_balance_tags( $text );
-	} else {
-		return $text;
 	}
+	return $text;
 }
 
 /**
@@ -6009,14 +6008,13 @@ function wp_staticize_emoji( $text ) {
 		if ( ( function_exists( 'mb_check_encoding' ) && mb_check_encoding( $text, 'ASCII' ) ) || ! preg_match( '/[^\x00-\x7F]/', $text ) ) {
 			// The text doesn't contain anything that might be emoji, so we can return early.
 			return $text;
-		} else {
-			$encoded_text = wp_encode_emoji( $text );
-			if ( $encoded_text === $text ) {
-				return $encoded_text;
-			}
-
-			$text = $encoded_text;
 		}
+		$encoded_text = wp_encode_emoji( $text );
+		if ( $encoded_text === $text ) {
+			return $encoded_text;
+		}
+
+		$text = $encoded_text;
 	}
 
 	$emoji = _wp_emoji_list( 'entities' );

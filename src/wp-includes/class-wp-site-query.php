@@ -866,8 +866,7 @@ class WP_Site_Query {
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'ASC';
-		} else {
-			return 'DESC';
 		}
+		return 'DESC';
 	}
 }

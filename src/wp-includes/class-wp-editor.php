@@ -838,7 +838,8 @@ final class _WP_Editors {
 				$val      = $value ? 'true' : 'false';
 				$options .= $key . ':' . $val . ',';
 				continue;
-			} elseif ( ! empty( $value ) && is_string( $value ) && (
+			}
+			if ( ! empty( $value ) && is_string( $value ) && (
 				( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
 				( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
 				preg_match( '/^\(?function ?\(/', $value ) ) ) {

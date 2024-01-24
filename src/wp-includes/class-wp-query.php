@@ -1769,8 +1769,6 @@ class WP_Query {
 					// Default: order by post field.
 					$orderby_clause = "{$wpdb->posts}.post_" . sanitize_key( $orderby );
 				}
-
-				break;
 		}
 
 		return $orderby_clause;
@@ -1791,9 +1789,8 @@ class WP_Query {
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'ASC';
-		} else {
-			return 'DESC';
 		}
+		return 'DESC';
 	}
 
 	/**
@@ -3189,7 +3186,8 @@ class WP_Query {
 						$this->posts = $post_ids;
 
 						return $this->posts;
-					} elseif ( 'id=>parent' === $q['fields'] ) {
+					}
+					if ( 'id=>parent' === $q['fields'] ) {
 						_prime_post_parent_id_caches( $post_ids );
 
 						$post_parent_cache_keys = array();
@@ -3209,11 +3207,10 @@ class WP_Query {
 						}
 
 						return $post_parents;
-					} else {
-						_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
-						/** @var WP_Post[] */
-						$this->posts = array_map( 'get_post', $post_ids );
 					}
+					_prime_post_caches( $post_ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
+					/** @var WP_Post[] */
+					$this->posts = array_map( 'get_post', $post_ids );
 				}
 			}
 		}
@@ -3699,7 +3696,8 @@ class WP_Query {
 	public function have_posts() {
 		if ( $this->current_post + 1 < $this->post_count ) {
 			return true;
-		} elseif ( $this->current_post + 1 == $this->post_count && $this->post_count > 0 ) {
+		}
+		if ( $this->current_post + 1 == $this->post_count && $this->post_count > 0 ) {
 			/**
 			 * Fires once the loop has ended.
 			 *
@@ -3788,7 +3786,8 @@ class WP_Query {
 	public function have_comments() {
 		if ( $this->current_comment + 1 < $this->comment_count ) {
 			return true;
-		} elseif ( $this->current_comment + 1 == $this->comment_count ) {
+		}
+		if ( $this->current_comment + 1 == $this->comment_count ) {
 			$this->rewind_comments();
 		}
 
@@ -4076,9 +4075,11 @@ class WP_Query {
 
 		if ( in_array( (string) $post_obj->ID, $attachment, true ) ) {
 			return true;
-		} elseif ( in_array( $post_obj->post_title, $attachment, true ) ) {
+		}
+		if ( in_array( $post_obj->post_title, $attachment, true ) ) {
 			return true;
-		} elseif ( in_array( $post_obj->post_name, $attachment, true ) ) {
+		}
+		if ( in_array( $post_obj->post_name, $attachment, true ) ) {
 			return true;
 		}
 		return false;
@@ -4114,9 +4115,11 @@ class WP_Query {
 
 		if ( in_array( (string) $author_obj->ID, $author, true ) ) {
 			return true;
-		} elseif ( in_array( $author_obj->nickname, $author, true ) ) {
+		}
+		if ( in_array( $author_obj->nickname, $author, true ) ) {
 			return true;
-		} elseif ( in_array( $author_obj->user_nicename, $author, true ) ) {
+		}
+		if ( in_array( $author_obj->user_nicename, $author, true ) ) {
 			return true;
 		}
 
@@ -4153,9 +4156,11 @@ class WP_Query {
 
 		if ( in_array( (string) $cat_obj->term_id, $category, true ) ) {
 			return true;
-		} elseif ( in_array( $cat_obj->name, $category, true ) ) {
+		}
+		if ( in_array( $cat_obj->name, $category, true ) ) {
 			return true;
-		} elseif ( in_array( $cat_obj->slug, $category, true ) ) {
+		}
+		if ( in_array( $cat_obj->slug, $category, true ) ) {
 			return true;
 		}
 
@@ -4192,9 +4197,11 @@ class WP_Query {
 
 		if ( in_array( (string) $tag_obj->term_id, $tag, true ) ) {
 			return true;
-		} elseif ( in_array( $tag_obj->name, $tag, true ) ) {
+		}
+		if ( in_array( $tag_obj->name, $tag, true ) ) {
 			return true;
-		} elseif ( in_array( $tag_obj->slug, $tag, true ) ) {
+		}
+		if ( in_array( $tag_obj->slug, $tag, true ) ) {
 			return true;
 		}
 
@@ -4346,13 +4353,10 @@ class WP_Query {
 		// Most likely case.
 		if ( 'posts' === get_option( 'show_on_front' ) && $this->is_home() ) {
 			return true;
-		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' )
-			&& $this->is_page( get_option( 'page_on_front' ) )
-		) {
-			return true;
-		} else {
-			return false;
 		}
+		return ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' )
+			&& $this->is_page( get_option( 'page_on_front' ) )
+		);
 	}
 
 	/**
@@ -4389,13 +4393,9 @@ class WP_Query {
 	 * @return bool Whether the query is for the Privacy Policy page.
 	 */
 	public function is_privacy_policy() {
-		if ( get_option( 'wp_page_for_privacy_policy' )
+		return ( get_option( 'wp_page_for_privacy_policy' )
 			&& $this->is_page( get_option( 'wp_page_for_privacy_policy' ) )
-		) {
-			return true;
-		} else {
-			return false;
-		}
+		);
 	}
 
 	/**
@@ -4442,20 +4442,21 @@ class WP_Query {
 
 		if ( in_array( (string) $page_obj->ID, $page, true ) ) {
 			return true;
-		} elseif ( in_array( $page_obj->post_title, $page, true ) ) {
+		}
+		if ( in_array( $page_obj->post_title, $page, true ) ) {
 			return true;
-		} elseif ( in_array( $page_obj->post_name, $page, true ) ) {
+		}
+		if ( in_array( $page_obj->post_name, $page, true ) ) {
 			return true;
-		} else {
-			foreach ( $page as $pagepath ) {
-				if ( ! strpos( $pagepath, '/' ) ) {
-					continue;
-				}
-				$pagepath_obj = get_page_by_path( $pagepath );
+		}
+		foreach ( $page as $pagepath ) {
+			if ( ! strpos( $pagepath, '/' ) ) {
+				continue;
+			}
+			$pagepath_obj = get_page_by_path( $pagepath );
 
-				if ( $pagepath_obj && ( $pagepath_obj->ID == $page_obj->ID ) ) {
-					return true;
-				}
+			if ( $pagepath_obj && ( $pagepath_obj->ID == $page_obj->ID ) ) {
+				return true;
 			}
 		}
 
@@ -4552,20 +4553,21 @@ class WP_Query {
 
 		if ( in_array( (string) $post_obj->ID, $post, true ) ) {
 			return true;
-		} elseif ( in_array( $post_obj->post_title, $post, true ) ) {
+		}
+		if ( in_array( $post_obj->post_title, $post, true ) ) {
 			return true;
-		} elseif ( in_array( $post_obj->post_name, $post, true ) ) {
+		}
+		if ( in_array( $post_obj->post_name, $post, true ) ) {
 			return true;
-		} else {
-			foreach ( $post as $postpath ) {
-				if ( ! strpos( $postpath, '/' ) ) {
-					continue;
-				}
-				$postpath_obj = get_page_by_path( $postpath, OBJECT, $post_obj->post_type );
+		}
+		foreach ( $post as $postpath ) {
+			if ( ! strpos( $postpath, '/' ) ) {
+				continue;
+			}
+			$postpath_obj = get_page_by_path( $postpath, OBJECT, $post_obj->post_type );
 
-				if ( $postpath_obj && ( $postpath_obj->ID == $post_obj->ID ) ) {
-					return true;
-				}
+			if ( $postpath_obj && ( $postpath_obj->ID == $post_obj->ID ) ) {
+				return true;
 			}
 		}
 		return false;

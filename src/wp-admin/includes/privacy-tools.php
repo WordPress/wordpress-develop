@@ -27,7 +27,8 @@ function _wp_privacy_resend_request( $request_id ) {
 
 	if ( is_wp_error( $result ) ) {
 		return $result;
-	} elseif ( ! $result ) {
+	}
+	if ( ! $result ) {
 		return new WP_Error( 'privacy_request_error', __( 'Unable to initiate confirmation for personal data request.' ) );
 	}
 

@@ -208,11 +208,11 @@ if ( ! class_exists( 'MO', false ) ) :
 			$magic_big = ( (int) - 569244523 ) & 0xFFFFFFFF;
 			if ( $magic_little === $magic || $magic_little_64 === $magic ) {
 				return 'little';
-			} elseif ( $magic_big === $magic ) {
-				return 'big';
-			} else {
-				return false;
 			}
+			if ( $magic_big === $magic ) {
+				return 'big';
+			}
+			return false;
 		}
 
 		/**

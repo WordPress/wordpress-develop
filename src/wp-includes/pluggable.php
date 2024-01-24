@@ -344,7 +344,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						default:
 							// Add it to our grand headers array.
 							$headers[ trim( $name ) ] = trim( $content );
-							break;
 					}
 				}
 			}
@@ -1194,10 +1193,9 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 			if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 				exit;
-			} else {
-				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-				exit;
 			}
+			wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+			exit;
 		}
 
 		/**
@@ -1225,10 +1223,9 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 				if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 					exit;
-				} else {
-					wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-					exit;
 				}
+				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+				exit;
 			}
 
 			return; // The cookie is good, so we're done.
@@ -1345,9 +1342,8 @@ if ( ! function_exists( 'check_ajax_referer' ) ) :
 		if ( $stop && false === $result ) {
 			if ( wp_doing_ajax() ) {
 				wp_die( -1, 403 );
-			} else {
-				die( '-1' );
 			}
+			die( '-1' );
 		}
 
 		return $result;
@@ -1715,9 +1711,8 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		// If there's no email to send the comment to, bail, otherwise flip array back around for use below.
 		if ( ! count( $emails ) ) {
 			return false;
-		} else {
-			$emails = array_flip( $emails );
 		}
+		$emails = array_flip( $emails );
 
 		$switched_locale = switch_to_locale( get_locale() );
 
@@ -1782,7 +1777,6 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 				$notify_message .= __( 'You can see all comments on this post here:' ) . "\r\n";
 				/* translators: Comment notification email subject. 1: Site title, 2: Post title. */
 				$subject = sprintf( __( '[%1$s] Comment: "%2$s"' ), $blogname, $post->post_title );
-				break;
 		}
 
 		$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
@@ -1965,7 +1959,6 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 
 				/* translators: %s: Comment text. */
 				$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
-				break;
 		}
 
 		/* translators: Comment moderation. %s: Comment action URL. */
@@ -2703,9 +2696,8 @@ if ( ! function_exists( 'wp_rand' ) ) :
 				$val  = random_int( $_min, $_max );
 				if ( false !== $val ) {
 					return absint( $val );
-				} else {
-					$use_random_int_functionality = false;
 				}
+				$use_random_int_functionality = false;
 			} catch ( Error $e ) {
 				$use_random_int_functionality = false;
 			} catch ( Exception $e ) {

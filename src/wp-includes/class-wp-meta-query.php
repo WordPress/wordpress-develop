@@ -769,8 +769,6 @@ class WP_Meta_Query {
 
 				default:
 					$where = $wpdb->prepare( '%s', $meta_value );
-					break;
-
 			}
 
 			if ( $where ) {

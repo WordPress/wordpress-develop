@@ -1480,7 +1480,6 @@ class wp_xmlrpc_server extends IXR_Server {
 				if ( ! get_post_status_object( $post_data['post_status'] ) ) {
 					$post_data['post_status'] = 'draft';
 				}
-				break;
 		}
 
 		if ( ! empty( $post_data['post_password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
@@ -1700,9 +1699,8 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( ! $post_id ) {
 			if ( $update ) {
 				return new IXR_Error( 401, __( 'Sorry, the post could not be updated.' ) );
-			} else {
-				return new IXR_Error( 401, __( 'Sorry, the post could not be created.' ) );
 			}
+			return new IXR_Error( 401, __( 'Sorry, the post could not be created.' ) );
 		}
 
 		return (string) $post_id;
@@ -2992,10 +2990,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		// If we found the page then format the data.
 		if ( $page->ID && ( 'page' === $page->post_type ) ) {
 			return $this->_prepare_page( $page );
-		} else {
-			// If the page doesn't exist, indicate that.
-			return new IXR_Error( 404, __( 'Sorry, no such page.' ) );
 		}
+
+		// If the page doesn't exist, indicate that.
+		return new IXR_Error( 404, __( 'Sorry, no such page.' ) );
 	}
 
 	/**
@@ -3448,10 +3446,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( is_wp_error( $cat_id ) ) {
 			if ( 'term_exists' === $cat_id->get_error_code() ) {
 				return (int) $cat_id->get_error_data();
-			} else {
-				return new IXR_Error( 500, __( 'Sorry, the category could not be created.' ) );
 			}
-		} elseif ( ! $cat_id ) {
+			return new IXR_Error( 500, __( 'Sorry, the category could not be created.' ) );
+		}
+		if ( ! $cat_id ) {
 			return new IXR_Error( 500, __( 'Sorry, the category could not be created.' ) );
 		}
 
@@ -3920,7 +3918,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			$logged_in = false;
 			if ( $allow_anon && get_option( 'comment_registration' ) ) {
 				return new IXR_Error( 403, __( 'Sorry, you must be logged in to comment.' ) );
-			} elseif ( ! $allow_anon ) {
+			}
+			if ( ! $allow_anon ) {
 				return $this->error;
 			}
 		} else {
@@ -3995,7 +3994,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			if ( get_option( 'require_name_email' ) ) {
 				if ( strlen( $comment['comment_author_email'] ) < 6 || '' === $comment['comment_author'] ) {
 					return new IXR_Error( 403, __( 'Comment author name and email are required.' ) );
-				} elseif ( ! is_email( $comment['comment_author_email'] ) ) {
+				}
+				if ( ! is_email( $comment['comment_author_email'] ) ) {
 					return new IXR_Error( 403, __( 'A valid email address is required.' ) );
 				}
 			}
@@ -4885,14 +4885,13 @@ class wp_xmlrpc_server extends IXR_Server {
 
 		if ( $_SERVER['HTTP_HOST'] == $domain && $_SERVER['REQUEST_URI'] == $path ) {
 			return $blogs;
-		} else {
-			foreach ( (array) $blogs as $blog ) {
-				if ( str_contains( $blog['url'], $_SERVER['HTTP_HOST'] ) ) {
-					return array( $blog );
-				}
-			}
-			return array();
 		}
+		foreach ( (array) $blogs as $blog ) {
+			if ( str_contains( $blog['url'], $_SERVER['HTTP_HOST'] ) ) {
+				return array( $blog );
+			}
+		}
+		return array();
 	}
 
 	/**
@@ -5506,7 +5505,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_comments'] ) {
@@ -5519,7 +5517,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			}
 		} else {
@@ -5537,7 +5534,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_pings'] ) {
@@ -5549,7 +5545,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			}
 		} else {
@@ -5848,7 +5843,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_comments'] ) {
@@ -5861,7 +5855,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$comment_status = get_default_comment_status( $post_type );
-						break;
 				}
 			}
 		}
@@ -5877,7 +5870,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			} else {
 				switch ( (int) $content_struct['mt_allow_pings'] ) {
@@ -5889,7 +5881,6 @@ class wp_xmlrpc_server extends IXR_Server {
 						break;
 					default:
 						$ping_status = get_default_comment_status( $post_type, 'pingback' );
-						break;
 				}
 			}
 		}
@@ -5929,7 +5920,6 @@ class wp_xmlrpc_server extends IXR_Server {
 					break;
 				default:
 					$post_status = $publish ? 'publish' : 'draft';
-					break;
 			}
 		}
 
@@ -5938,7 +5928,8 @@ class wp_xmlrpc_server extends IXR_Server {
 		if ( 'publish' === $post_status || 'private' === $post_status ) {
 			if ( 'page' === $post_type && ! current_user_can( 'publish_pages' ) ) {
 				return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish this page.' ) );
-			} elseif ( ! current_user_can( 'publish_posts' ) ) {
+			}
+			if ( ! current_user_can( 'publish_posts' ) ) {
 				return new IXR_Error( 401, __( 'Sorry, you are not allowed to publish this post.' ) );
 			}
 		}
@@ -6009,10 +6000,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			// Empty value deletes, non-empty value adds/updates.
 			if ( empty( $content_struct['wp_post_thumbnail'] ) ) {
 				delete_post_thumbnail( $post_id );
-			} else {
-				if ( set_post_thumbnail( $post_id, $content_struct['wp_post_thumbnail'] ) === false ) {
-					return new IXR_Error( 404, __( 'Invalid attachment ID.' ) );
-				}
+			} elseif ( set_post_thumbnail( $post_id, $content_struct['wp_post_thumbnail'] ) === false ) {
+				return new IXR_Error( 404, __( 'Invalid attachment ID.' ) );
 			}
 			unset( $content_struct['wp_post_thumbnail'] );
 		}
@@ -6177,9 +6166,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			$resp['wp_post_thumbnail'] = get_post_thumbnail_id( $postdata['ID'] );
 
 			return $resp;
-		} else {
-			return new IXR_Error( 404, __( 'Sorry, no such post.' ) );
 		}
+		return new IXR_Error( 404, __( 'Sorry, no such post.' ) );
 	}
 
 	/**

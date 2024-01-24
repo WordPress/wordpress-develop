@@ -207,9 +207,8 @@ class WP_Tax_Query {
 	public function sanitize_relation( $relation ) {
 		if ( 'OR' === strtoupper( $relation ) ) {
 			return 'OR';
-		} else {
-			return 'AND';
 		}
+		return 'AND';
 	}
 
 	/**
@@ -633,7 +632,6 @@ class WP_Tax_Query {
 				break;
 			default:
 				$args['include'] = wp_parse_id_list( $terms );
-				break;
 		}
 
 		if ( ! is_taxonomy_hierarchical( $query['taxonomy'] ) ) {

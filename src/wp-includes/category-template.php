@@ -183,7 +183,6 @@ function get_the_category_list( $separator = '', $parents = '', $post_id = false
 					}
 					$thelist .= $category->name . '</a></li>';
 					break;
-				case '':
 				default:
 					$thelist .= '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '" ' . $rel . '>' . $category->name . '</a></li>';
 			}
@@ -209,7 +208,6 @@ function get_the_category_list( $separator = '', $parents = '', $post_id = false
 					}
 					$thelist .= "$category->name</a>";
 					break;
-				case '':
 				default:
 					$thelist .= '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '" ' . $rel . '>' . $category->name . '</a>';
 			}
@@ -680,11 +678,10 @@ function wp_list_categories( $args = '' ) {
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
-	if ( $parsed_args['echo'] ) {
-		echo $html;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $html;
 	}
+	echo $html;
 }
 
 /**
@@ -1031,7 +1028,6 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 			break;
 		default:
 			$return = implode( $args['separator'], $a );
-			break;
 	}
 
 	if ( $args['filter'] ) {
@@ -1052,9 +1048,8 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		 * @param array           $args   An array of wp_generate_tag_cloud() arguments.
 		 */
 		return apply_filters( 'wp_generate_tag_cloud', $return, $tags, $args );
-	} else {
-		return $return;
 	}
+	return $return;
 }
 
 /**

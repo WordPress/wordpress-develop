@@ -96,7 +96,6 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 		default:
 			add_filter( 'attachment_fields_to_edit', 'media_post_single_attachment_fields_to_edit', 10, 2 );
 			echo get_media_item( $id );
-			break;
 	}
 	exit;
 }

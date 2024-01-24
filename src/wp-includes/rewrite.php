@@ -653,9 +653,8 @@ function url_to_postid( $url ) {
 			$query = new WP_Query( $query );
 			if ( ! empty( $query->posts ) && $query->is_singular ) {
 				return $query->post->ID;
-			} else {
-				return 0;
 			}
+			return 0;
 		}
 	}
 	return 0;

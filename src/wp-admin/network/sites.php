@@ -125,7 +125,8 @@ if ( isset( $_GET['action'] ) ) {
 		<?php
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 		exit;
-	} elseif ( array_key_exists( $_GET['action'], $manage_actions ) ) {
+	}
+	if ( array_key_exists( $_GET['action'], $manage_actions ) ) {
 		$action = $_GET['action'];
 		check_admin_referer( $action . '_' . $id );
 	} elseif ( 'allblogs' === $_GET['action'] ) {
@@ -216,7 +217,6 @@ if ( isset( $_GET['action'] ) ) {
 								<?php
 								require_once ABSPATH . 'wp-admin/admin-footer.php';
 								exit;
-							break;
 
 							case 'spam':
 							case 'notspam':
@@ -354,7 +354,6 @@ if ( isset( $_GET['updated'] ) ) {
 			 * @param string $msg The update message. Default 'Settings saved'.
 			 */
 			$msg = apply_filters( "network_sites_updated_message_{$action}", __( 'Settings saved.' ) );
-			break;
 	}
 
 	if ( ! empty( $msg ) ) {

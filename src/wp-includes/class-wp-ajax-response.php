@@ -158,8 +158,7 @@ class WP_Ajax_Response {
 		echo '</wp_ajax>';
 		if ( wp_doing_ajax() ) {
 			wp_die();
-		} else {
-			die();
 		}
+		die();
 	}
 }

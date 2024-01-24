@@ -334,9 +334,8 @@ final class WP_Customize_Nav_Menus {
 
 		if ( empty( $items ) ) {
 			wp_send_json_error( array( 'message' => __( 'No results found.' ) ) );
-		} else {
-			wp_send_json_success( array( 'items' => $items ) );
 		}
+		wp_send_json_success( array( 'items' => $items ) );
 	}
 
 	/**
@@ -612,9 +611,10 @@ final class WP_Customize_Nav_Menus {
 		unset( $setting_id );
 
 		if ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Setting::TYPE === $setting_args['type'] ) {
-			$setting_class = 'WP_Customize_Nav_Menu_Setting';
-		} elseif ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Item_Setting::TYPE === $setting_args['type'] ) {
-			$setting_class = 'WP_Customize_Nav_Menu_Item_Setting';
+			return 'WP_Customize_Nav_Menu_Setting';
+		}
+		if ( ! empty( $setting_args['type'] ) && WP_Customize_Nav_Menu_Item_Setting::TYPE === $setting_args['type'] ) {
+			return 'WP_Customize_Nav_Menu_Item_Setting';
 		}
 		return $setting_class;
 	}
@@ -978,9 +978,8 @@ final class WP_Customize_Nav_Menus {
 
 		if ( is_wp_error( $r ) ) {
 			return $r;
-		} else {
-			return get_post( $r );
 		}
+		return get_post( $r );
 	}
 
 	/**
@@ -1046,14 +1045,13 @@ final class WP_Customize_Nav_Menus {
 				'message' => sprintf( __( '%1$s could not be created: %2$s' ), $singular_name, $error->get_error_message() ),
 			);
 			wp_send_json_error( $data );
-		} else {
-			$post = $r;
-			$data = array(
-				'post_id' => $post->ID,
-				'url'     => get_permalink( $post->ID ),
-			);
-			wp_send_json_success( $data );
 		}
+		$post = $r;
+		$data = array(
+			'post_id' => $post->ID,
+			'url'     => get_permalink( $post->ID ),
+		);
+		wp_send_json_success( $data );
 	}
 
 	/**

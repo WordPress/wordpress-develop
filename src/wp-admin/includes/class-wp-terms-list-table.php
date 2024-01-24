@@ -572,12 +572,11 @@ class WP_Terms_List_Table extends WP_List_Table {
 	public function column_description( $tag ) {
 		if ( $tag->description ) {
 			return $tag->description;
-		} else {
-			return '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
-				/* translators: Hidden accessibility text. */
-				__( 'No description' ) .
-			'</span>';
 		}
+		return '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'No description' ) .
+		'</span>';
 	}
 
 	/**

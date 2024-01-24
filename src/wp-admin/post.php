@@ -18,7 +18,8 @@ wp_reset_vars( array( 'action' ) );
 
 if ( isset( $_GET['post'] ) && isset( $_POST['post_ID'] ) && (int) $_GET['post'] !== (int) $_POST['post_ID'] ) {
 	wp_die( __( 'A post ID mismatch has been detected.' ), __( 'Sorry, you are not allowed to edit this item.' ), 400 );
-} elseif ( isset( $_GET['post'] ) ) {
+}
+if ( isset( $_GET['post'] ) ) {
 	$post_id = (int) $_GET['post'];
 } elseif ( isset( $_POST['post_ID'] ) ) {
 	$post_id = (int) $_POST['post_ID'];
@@ -321,10 +322,8 @@ switch ( $action ) {
 			if ( ! wp_delete_attachment( $post_id, $force ) ) {
 				wp_die( __( 'Error in deleting the attachment.' ) );
 			}
-		} else {
-			if ( ! wp_delete_post( $post_id, true ) ) {
-				wp_die( __( 'Error in deleting the item.' ) );
-			}
+		} elseif ( ! wp_delete_post( $post_id, true ) ) {
+			wp_die( __( 'Error in deleting the item.' ) );
 		}
 
 		wp_redirect( add_query_arg( 'deleted', 1, $sendback ) );

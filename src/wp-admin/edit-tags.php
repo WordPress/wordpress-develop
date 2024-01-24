@@ -205,7 +205,6 @@ switch ( $wp_list_table->current_action() ) {
 
 		/** This action is documented in wp-admin/edit.php */
 		$location = apply_filters( "handle_bulk_actions-{$screen}", $location, $wp_list_table->current_action(), $tags ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		break;
 }
 
 if ( ! $location && ! empty( $_REQUEST['_wp_http_referer'] ) ) {

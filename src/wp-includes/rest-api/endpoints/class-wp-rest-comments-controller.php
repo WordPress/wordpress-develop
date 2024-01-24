@@ -134,7 +134,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						__( 'Sorry, you are not allowed to read the post for this comment.' ),
 						array( 'status' => rest_authorization_required_code() )
 					);
-				} elseif ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
+				}
+				if ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
 					return new WP_Error(
 						'rest_cannot_read',
 						__( 'Sorry, you are not allowed to read comments without a post.' ),
@@ -1236,7 +1237,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				break;
 			default:
 				$normalized = $prefix . $query_param;
-				break;
 		}
 
 		return $normalized;
@@ -1263,11 +1263,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$status = 'approved';
 				break;
 
-			case 'spam':
-			case 'trash':
 			default:
 				$status = $comment_approved;
-				break;
 		}
 
 		return $status;
@@ -1305,18 +1302,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( isset( $request['author'] ) ) {
 			$user = new WP_User( $request['author'] );
 
-			if ( $user->exists() ) {
-				$prepared_comment['user_id']              = $user->ID;
-				$prepared_comment['comment_author']       = $user->display_name;
-				$prepared_comment['comment_author_email'] = $user->user_email;
-				$prepared_comment['comment_author_url']   = $user->user_url;
-			} else {
+			if ( ! $user->exists() ) {
 				return new WP_Error(
 					'rest_comment_author_invalid',
 					__( 'Invalid comment author ID.' ),
 					array( 'status' => 400 )
 				);
 			}
+			$prepared_comment['user_id']              = $user->ID;
+			$prepared_comment['comment_author']       = $user->display_name;
+			$prepared_comment['comment_author_email'] = $user->user_email;
+			$prepared_comment['comment_author_url']   = $user->user_url;
 		}
 
 		if ( isset( $request['author_name'] ) ) {
@@ -1736,7 +1732,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				break;
 			default:
 				$changed = false;
-				break;
 		}
 
 		return $changed;

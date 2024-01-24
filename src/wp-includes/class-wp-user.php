@@ -142,7 +142,8 @@ class WP_User {
 		if ( $id instanceof WP_User ) {
 			$this->init( $id->data, $site_id );
 			return;
-		} elseif ( is_object( $id ) ) {
+		}
+		if ( is_object( $id ) ) {
 			$this->init( $id, $site_id );
 			return;
 		}
@@ -677,9 +678,8 @@ class WP_User {
 		if ( preg_match( '/^level_(10|[0-9])$/i', $item, $matches ) ) {
 			$level = (int) $matches[1];
 			return max( $max, $level );
-		} else {
-			return $max;
 		}
+		return $max;
 	}
 
 	/**

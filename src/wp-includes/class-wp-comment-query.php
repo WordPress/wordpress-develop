@@ -575,7 +575,6 @@ class WP_Comment_Query {
 
 					default:
 						$status_clauses[] = $wpdb->prepare( 'comment_approved = %s', $status );
-						break;
 				}
 			}
 
@@ -796,7 +795,6 @@ class WP_Comment_Query {
 
 					default:
 						$comment_types[ $operator ][] = $wpdb->prepare( '%s', $type );
-						break;
 				}
 			}
 
@@ -975,10 +973,9 @@ class WP_Comment_Query {
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );
-		} else {
-			$comment_ids = $wpdb->get_col( $this->request );
-			return array_map( 'intval', $comment_ids );
 		}
+		$comment_ids = $wpdb->get_col( $this->request );
+		return array_map( 'intval', $comment_ids );
 	}
 
 	/**
@@ -1232,8 +1229,7 @@ class WP_Comment_Query {
 
 		if ( 'ASC' === strtoupper( $order ) ) {
 			return 'ASC';
-		} else {
-			return 'DESC';
 		}
+		return 'DESC';
 	}
 }

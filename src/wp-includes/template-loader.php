@@ -36,7 +36,9 @@ if ( is_robots() ) {
 	 */
 	do_action( 'do_robots' );
 	return;
-} elseif ( is_favicon() ) {
+}
+
+if ( is_favicon() ) {
 	/**
 	 * Fired when the template loader determines a favicon.ico request.
 	 *
@@ -44,10 +46,14 @@ if ( is_robots() ) {
 	 */
 	do_action( 'do_favicon' );
 	return;
-} elseif ( is_feed() ) {
+}
+
+if ( is_feed() ) {
 	do_feed();
 	return;
-} elseif ( is_trackback() ) {
+}
+
+if ( is_trackback() ) {
 	require ABSPATH . 'wp-trackback.php';
 	return;
 }

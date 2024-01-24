@@ -151,9 +151,8 @@ if ( ! class_exists( 'Translations', false ) ) :
 				is_array( $translated->translations ) &&
 				isset( $translated->translations[ $index ] ) ) {
 				return $translated->translations[ $index ];
-			} else {
-				return 1 === (int) $count ? $singular : $plural;
 			}
+			return 1 === (int) $count ? $singular : $plural;
 		}
 
 		/**
@@ -223,9 +222,8 @@ if ( ! class_exists( 'Translations', false ) ) :
 				$nplurals   = (int) $matches[1];
 				$expression = trim( $matches[2] );
 				return array( $nplurals, $expression );
-			} else {
-				return array( 2, 'n != 1' );
 			}
+			return array( 2, 'n != 1' );
 		}
 
 		/**

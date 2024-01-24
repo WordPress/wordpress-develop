@@ -168,7 +168,6 @@ class WP_Http_Curl {
 				if ( ! is_null( $parsed_args['body'] ) ) {
 					curl_setopt( $handle, CURLOPT_POSTFIELDS, $parsed_args['body'] );
 				}
-				break;
 		}
 
 		if ( true === $parsed_args['blocking'] ) {
@@ -281,10 +280,9 @@ class WP_Http_Curl {
 						curl_close( $handle );
 						fclose( $this->stream_handle );
 						return new WP_Error( 'http_request_failed', __( 'Failed to write request to temporary file.' ) );
-					} else {
-						curl_close( $handle );
-						return new WP_Error( 'http_request_failed', curl_error( $handle ) );
 					}
+					curl_close( $handle );
+					return new WP_Error( 'http_request_failed', curl_error( $handle ) );
 				}
 			} else {
 				$curl_error = curl_error( $handle );

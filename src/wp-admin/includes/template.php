@@ -643,14 +643,13 @@ function _list_meta_row( $entry, &$count ) {
 	++$count;
 
 	if ( is_serialized( $entry['meta_value'] ) ) {
-		if ( is_serialized_string( $entry['meta_value'] ) ) {
-			// This is a serialized string, so we should display it.
-			$entry['meta_value'] = maybe_unserialize( $entry['meta_value'] );
-		} else {
+		if ( ! is_serialized_string( $entry['meta_value'] ) ) {
 			// This is a serialized array/object so we should NOT display it.
 			--$count;
 			return '';
 		}
+		// This is a serialized string, so we should display it.
+		$entry['meta_value'] = maybe_unserialize( $entry['meta_value'] );
 	}
 
 	$entry['meta_key']   = esc_attr( $entry['meta_key'] );
@@ -948,21 +947,20 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
 		)
 	);
 
-	if ( $items ) {
-		foreach ( $items as $item ) {
-			// A page cannot be its own parent.
-			if ( $post && $post->ID && (int) $item->ID === $post->ID ) {
-				continue;
-			}
-
-			$pad      = str_repeat( '&nbsp;', $level * 3 );
-			$selected = selected( $default_page, $item->ID, false );
-
-			echo "\n\t<option class='level-$level' value='$item->ID' $selected>$pad " . esc_html( $item->post_title ) . '</option>';
-			parent_dropdown( $default_page, $item->ID, $level + 1 );
-		}
-	} else {
+	if ( ! $items ) {
 		return false;
+	}
+	foreach ( $items as $item ) {
+		// A page cannot be its own parent.
+		if ( $post && $post->ID && (int) $item->ID === $post->ID ) {
+			continue;
+		}
+
+		$pad      = str_repeat( '&nbsp;', $level * 3 );
+		$selected = selected( $default_page, $item->ID, false );
+
+		echo "\n\t<option class='level-$level' value='$item->ID' $selected>$pad " . esc_html( $item->post_title ) . '</option>';
+		parent_dropdown( $default_page, $item->ID, $level + 1 );
 	}
 }
 

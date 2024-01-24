@@ -1463,7 +1463,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				if ( ! get_post_status_object( $post_status ) ) {
 					$post_status = 'draft';
 				}
-				break;
 		}
 
 		return $post_status;
@@ -1485,16 +1484,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$result = set_post_thumbnail( $post_id, $featured_media );
 			if ( $result ) {
 				return true;
-			} else {
-				return new WP_Error(
-					'rest_invalid_featured_media',
-					__( 'Invalid featured media ID.' ),
-					array( 'status' => 400 )
-				);
 			}
-		} else {
-			return delete_post_thumbnail( $post_id );
+
+			return new WP_Error(
+				'rest_invalid_featured_media',
+				__( 'Invalid featured media ID.' ),
+				array( 'status' => 400 )
+			);
 		}
+		return delete_post_thumbnail( $post_id );
 	}
 
 	/**
@@ -2383,7 +2381,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
-			} elseif ( ! isset( $fixed_schemas[ $this->post_type ] ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			}
+			if ( ! isset( $fixed_schemas[ $this->post_type ] ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 

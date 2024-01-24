@@ -327,13 +327,11 @@ CREATE TABLE $wpdb->signups (
 		case 'ms_global':
 			$queries = $ms_global_tables;
 			break;
-		case 'all':
 		default:
 			$queries = $global_tables . $blog_tables;
 			if ( $is_multisite ) {
 				$queries .= $ms_global_tables;
 			}
-			break;
 	}
 
 	if ( isset( $old_blog_id ) ) {

@@ -49,11 +49,10 @@ function the_title( $before = '', $after = '', $display = true ) {
 
 	$title = $before . $title . $after;
 
-	if ( $display ) {
-		echo $title;
-	} else {
+	if ( ! $display ) {
 		return $title;
 	}
+	echo $title;
 }
 
 /**
@@ -96,11 +95,10 @@ function the_title_attribute( $args = '' ) {
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
 	$title = esc_attr( strip_tags( $title ) );
 
-	if ( $parsed_args['echo'] ) {
-		echo $title;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $title;
 	}
+	echo $title;
 }
 
 /**
@@ -1097,11 +1095,11 @@ function post_custom( $key = '' ) {
 
 	if ( ! isset( $custom[ $key ] ) ) {
 		return false;
-	} elseif ( 1 === count( $custom[ $key ] ) ) {
-		return $custom[ $key ][0];
-	} else {
-		return $custom[ $key ];
 	}
+	if ( 1 === count( $custom[ $key ] ) ) {
+		return $custom[ $key ][0];
+	}
+	return $custom[ $key ];
 }
 
 /**
@@ -1369,11 +1367,10 @@ function wp_list_pages( $args = '' ) {
 	 */
 	$html = apply_filters( 'wp_list_pages', $output, $parsed_args, $pages );
 
-	if ( $parsed_args['echo'] ) {
-		echo $html;
-	} else {
+	if ( ! $parsed_args['echo'] ) {
 		return $html;
 	}
+	echo $html;
 }
 
 /**
@@ -1525,11 +1522,10 @@ function wp_page_menu( $args = array() ) {
 	 */
 	$menu = apply_filters( 'wp_page_menu', $menu, $args );
 
-	if ( $args['echo'] ) {
-		echo $menu;
-	} else {
+	if ( ! $args['echo'] ) {
 		return $menu;
 	}
+	echo $menu;
 }
 
 //

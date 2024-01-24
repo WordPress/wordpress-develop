@@ -135,15 +135,9 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
 			}
-			if ( ( 1 == $ok_to_comment ) &&
-				( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
-					return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
+			return ( ( 1 == $ok_to_comment ) && ( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) );
 		}
+		return false;
 	}
 	return true;
 }
@@ -226,9 +220,11 @@ function get_comment( $comment = null, $output = OBJECT ) {
 
 	if ( OBJECT === $output ) {
 		return $_comment;
-	} elseif ( ARRAY_A === $output ) {
+	}
+	if ( ARRAY_A === $output ) {
 		return $_comment->to_array();
-	} elseif ( ARRAY_N === $output ) {
+	}
+	if ( ARRAY_N === $output ) {
 		return array_values( $_comment->to_array() );
 	}
 	return $_comment;
@@ -290,7 +286,6 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
 		default:
 			$supports = 'comments';
 			$option   = 'comment';
-			break;
 	}
 
 	// Set the status.
@@ -708,13 +703,12 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 
 		if ( $wp_error ) {
 			return new WP_Error( 'comment_duplicate', $comment_duplicate_message, 409 );
-		} else {
-			if ( wp_doing_ajax() ) {
-				die( $comment_duplicate_message );
-			}
-
-			wp_die( $comment_duplicate_message, 409 );
 		}
+		if ( wp_doing_ajax() ) {
+			die( $comment_duplicate_message );
+		}
+
+		wp_die( $comment_duplicate_message, 409 );
 	}
 
 	/**
@@ -918,22 +912,22 @@ function wp_check_comment_flood( $is_flood, $ip, $email, $date, $avoid_die = fal
 
 			if ( $avoid_die ) {
 				return true;
-			} else {
-				/**
-				 * Filters the comment flood error message.
-				 *
-				 * @since 5.2.0
-				 *
-				 * @param string $comment_flood_message Comment flood error message.
-				 */
-				$comment_flood_message = apply_filters( 'comment_flood_message', __( 'You are posting comments too quickly. Slow down.' ) );
-
-				if ( wp_doing_ajax() ) {
-					die( $comment_flood_message );
-				}
-
-				wp_die( $comment_flood_message, 429 );
 			}
+
+			/**
+			 * Filters the comment flood error message.
+			 *
+			 * @since 5.2.0
+			 *
+			 * @param string $comment_flood_message Comment flood error message.
+			 */
+			$comment_flood_message = apply_filters( 'comment_flood_message', __( 'You are posting comments too quickly. Slow down.' ) );
+
+			if ( wp_doing_ajax() ) {
+				die( $comment_flood_message );
+			}
+
+			wp_die( $comment_flood_message, 429 );
 		}
 	}
 
@@ -1734,17 +1728,20 @@ function wp_get_comment_status( $comment_id ) {
 
 	if ( null == $approved ) {
 		return false;
-	} elseif ( '1' == $approved ) {
-		return 'approved';
-	} elseif ( '0' == $approved ) {
-		return 'unapproved';
-	} elseif ( 'spam' === $approved ) {
-		return 'spam';
-	} elseif ( 'trash' === $approved ) {
-		return 'trash';
-	} else {
-		return false;
 	}
+	if ( '1' == $approved ) {
+		return 'approved';
+	}
+	if ( '0' == $approved ) {
+		return 'unapproved';
+	}
+	if ( 'spam' === $approved ) {
+		return 'spam';
+	}
+	if ( 'trash' === $approved ) {
+		return 'trash';
+	}
+	return false;
 }
 
 /**
@@ -2432,9 +2429,8 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 	if ( ! $wpdb->update( $wpdb->comments, array( 'comment_approved' => $status ), array( 'comment_ID' => $comment_old->comment_ID ) ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'db_update_error', __( 'Could not update comment status.' ), $wpdb->last_error );
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	clean_comment_cache( $comment_old->comment_ID );
@@ -2487,18 +2483,16 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if ( empty( $comment ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_comment_id', __( 'Invalid comment ID.' ) );
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	// Make sure that the comment post ID is valid (if specified).
 	if ( ! empty( $commentarr['comment_post_ID'] ) && ! get_post( $commentarr['comment_post_ID'] ) ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.' ) );
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	$filter_comment = false;
@@ -2568,9 +2562,8 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if ( is_wp_error( $data ) ) {
 		if ( $wp_error ) {
 			return $data;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	$keys = array(
@@ -2597,9 +2590,8 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
 	if ( false === $result ) {
 		if ( $wp_error ) {
 			return new WP_Error( 'db_update_error', __( 'Could not update comment in the database.' ), $wpdb->last_error );
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	// If metadata is provided, store it.
@@ -2699,7 +2691,8 @@ function wp_update_comment_count( $post_id, $do_deferred = false ) {
 	if ( wp_defer_comment_counting() ) {
 		$_deferred[] = $post_id;
 		return true;
-	} elseif ( $post_id ) {
+	}
+	if ( $post_id ) {
 		return wp_update_comment_count_now( $post_id );
 	}
 }
@@ -3157,9 +3150,8 @@ function pingback( $content, $post ) {
 function privacy_ping_filter( $sites ) {
 	if ( '0' != get_option( 'blog_public' ) ) {
 		return $sites;
-	} else {
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -3544,8 +3536,9 @@ function wp_handle_comment_submission( $comment_data ) {
 		do_action( 'comment_closed', $comment_post_id );
 
 		return new WP_Error( 'comment_closed', __( 'Sorry, comments are closed for this item.' ), 403 );
+	}
 
-	} elseif ( 'trash' === $status ) {
+	if ( 'trash' === $status ) {
 
 		/**
 		 * Fires when a comment is attempted on a trashed post.
@@ -3557,8 +3550,9 @@ function wp_handle_comment_submission( $comment_data ) {
 		do_action( 'comment_on_trash', $comment_post_id );
 
 		return new WP_Error( 'comment_on_trash' );
+	}
 
-	} elseif ( ! $status_obj->public && ! $status_obj->private ) {
+	if ( ! $status_obj->public && ! $status_obj->private ) {
 
 		/**
 		 * Fires when a comment is attempted on a post in draft mode.
@@ -3571,10 +3565,11 @@ function wp_handle_comment_submission( $comment_data ) {
 
 		if ( current_user_can( 'read_post', $comment_post_id ) ) {
 			return new WP_Error( 'comment_on_draft', __( 'Sorry, comments are not allowed for this item.' ), 403 );
-		} else {
-			return new WP_Error( 'comment_on_draft' );
 		}
-	} elseif ( post_password_required( $comment_post_id ) ) {
+		return new WP_Error( 'comment_on_draft' );
+	}
+
+	if ( post_password_required( $comment_post_id ) ) {
 
 		/**
 		 * Fires when a comment is attempted on a password-protected post.
@@ -3586,17 +3581,16 @@ function wp_handle_comment_submission( $comment_data ) {
 		do_action( 'comment_on_password_protected', $comment_post_id );
 
 		return new WP_Error( 'comment_on_password_protected' );
-
-	} else {
-		/**
-		 * Fires before a comment is posted.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param int $comment_post_id Post ID.
-		 */
-		do_action( 'pre_comment_on_post', $comment_post_id );
 	}
+
+	/**
+	 * Fires before a comment is posted.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param int $comment_post_id Post ID.
+	 */
+	do_action( 'pre_comment_on_post', $comment_post_id );
 
 	// If the user is logged in.
 	$user = wp_get_current_user();
@@ -3620,10 +3614,8 @@ function wp_handle_comment_submission( $comment_data ) {
 				add_filter( 'pre_comment_content', 'wp_filter_kses' );
 			}
 		}
-	} else {
-		if ( get_option( 'comment_registration' ) ) {
-			return new WP_Error( 'not_logged_in', __( 'Sorry, you must be logged in to comment.' ), 403 );
-		}
+	} elseif ( get_option( 'comment_registration' ) ) {
+		return new WP_Error( 'not_logged_in', __( 'Sorry, you must be logged in to comment.' ), 403 );
 	}
 
 	$comment_type = 'comment';
@@ -3631,7 +3623,8 @@ function wp_handle_comment_submission( $comment_data ) {
 	if ( get_option( 'require_name_email' ) && ! $user->exists() ) {
 		if ( '' == $comment_author_email || '' == $comment_author ) {
 			return new WP_Error( 'require_name_email', __( '<strong>Error:</strong> Please fill the required fields.' ), 200 );
-		} elseif ( ! is_email( $comment_author_email ) ) {
+		}
+		if ( ! is_email( $comment_author_email ) ) {
 			return new WP_Error( 'require_valid_email', __( '<strong>Error:</strong> Please enter a valid email address.' ), 200 );
 		}
 	}

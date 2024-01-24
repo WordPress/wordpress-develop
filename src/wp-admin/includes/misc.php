@@ -197,7 +197,8 @@ Any changes to the directives between these markers will be overwritten.'
 		if ( ! $found_marker && str_contains( $line, $start_marker ) ) {
 			$found_marker = true;
 			continue;
-		} elseif ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
+		}
+		if ( ! $found_end_marker && str_contains( $line, $end_marker ) ) {
 			$found_end_marker = true;
 			continue;
 		}
@@ -320,9 +321,8 @@ function iis7_save_url_rewrite_rules() {
 
 		if ( ! empty( $rule ) ) {
 			return iis7_add_rewrite_rule( $web_config_file, $rule );
-		} else {
-			return iis7_delete_rewrite_rule( $web_config_file );
 		}
+		return iis7_delete_rewrite_rule( $web_config_file );
 	}
 
 	return false;
@@ -794,8 +794,6 @@ function set_screen_options() {
 			if ( false === $value ) {
 				return;
 			}
-
-			break;
 	}
 
 	update_user_meta( $user->ID, $option, $value );

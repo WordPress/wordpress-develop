@@ -845,7 +845,8 @@ JS;
 					'6.3.0'
 				);
 				return false;
-			} elseif ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
+			}
+			if ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(

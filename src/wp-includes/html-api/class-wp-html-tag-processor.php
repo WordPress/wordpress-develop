@@ -787,7 +787,9 @@ class WP_HTML_Tag_Processor {
 				$this->bytes_already_parsed = $was_at;
 
 				return false;
-			} elseif (
+			}
+
+			if (
 				( 'TEXTAREA' === $tag_name || 'TITLE' === $tag_name ) &&
 				! $this->skip_rcdata( $tag_name )
 			) {
@@ -795,7 +797,9 @@ class WP_HTML_Tag_Processor {
 				$this->bytes_already_parsed = $was_at;
 
 				return false;
-			} elseif (
+			}
+
+			if (
 				(
 					'IFRAME' === $tag_name ||
 					'NOEMBED' === $tag_name ||

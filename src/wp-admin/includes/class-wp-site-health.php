@@ -1036,14 +1036,13 @@ class WP_Site_Health {
 			// If this module is a fallback for another function, check if that other function passed.
 			if ( isset( $module['fallback_for'] ) ) {
 				/*
-				 * If that other function has a failure, mark this module as required for usual operations.
 				 * If that other function hasn't failed, skip this test as it's only a fallback.
+				 * If that other function has a failure, mark this module as required for usual operations.
 				 */
-				if ( isset( $failures[ $module['fallback_for'] ] ) ) {
-					$module['required'] = true;
-				} else {
+				if ( ! isset( $failures[ $module['fallback_for'] ] ) ) {
 					continue;
 				}
+				$module['required'] = true;
 			}
 
 			if ( ! $this->test_php_extension_availability( $extension_name, $function_name, $constant_name, $class_name )
@@ -3087,12 +3086,14 @@ class WP_Site_Health {
 				'status'  => 'recommended',
 				'message' => __( 'Auto-updates for plugins and themes appear to be disabled. This will prevent your site from receiving new versions automatically when available.' ),
 			);
-		} elseif ( ! $test_plugins_enabled && $plugin_filter_present ) {
+		}
+		if ( ! $test_plugins_enabled && $plugin_filter_present ) {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => __( 'Auto-updates for plugins appear to be disabled. This will prevent your site from receiving new versions automatically when available.' ),
 			);
-		} elseif ( ! $test_themes_enabled && $theme_filter_present ) {
+		}
+		if ( ! $test_themes_enabled && $theme_filter_present ) {
 			return (object) array(
 				'status'  => 'recommended',
 				'message' => __( 'Auto-updates for themes appear to be disabled. This will prevent your site from receiving new versions automatically when available.' ),

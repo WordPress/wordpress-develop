@@ -122,9 +122,8 @@ final class WP_Customize_Selective_Refresh {
 	public function get_partial( $id ) {
 		if ( isset( $this->partials[ $id ] ) ) {
 			return $this->partials[ $id ];
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	/**
@@ -313,7 +312,8 @@ final class WP_Customize_Selective_Refresh {
 		 */
 		if ( ! is_customize_preview() ) {
 			wp_send_json_error( 'expected_customize_preview', 403 );
-		} elseif ( ! isset( $_POST['partials'] ) ) {
+		}
+		if ( ! isset( $_POST['partials'] ) ) {
 			wp_send_json_error( 'missing_partials', 400 );
 		}
 

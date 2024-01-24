@@ -104,7 +104,8 @@ class WP_Themes_List_Table extends WP_List_Table {
 				);
 
 				return;
-			} elseif ( current_user_can( 'manage_network_themes' ) ) {
+			}
+			if ( current_user_can( 'manage_network_themes' ) ) {
 				printf(
 					/* translators: %s: URL to Themes tab on Edit Site screen. */
 					__( 'You only have one theme enabled for this site right now. Visit the Network Admin to <a href="%s">enable</a> more themes.' ),
@@ -113,18 +114,19 @@ class WP_Themes_List_Table extends WP_List_Table {
 
 				return;
 			}
-			// Else, fallthrough. install_themes doesn't help if you can't enable it.
-		} else {
-			if ( current_user_can( 'install_themes' ) ) {
-				printf(
-					/* translators: %s: URL to Add Themes screen. */
-					__( 'You only have one theme installed right now. Live a little! You can choose from over 1,000 free themes in the WordPress Theme Directory at any time: just click on the <a href="%s">Install Themes</a> tab above.' ),
-					admin_url( 'theme-install.php' )
-				);
-
-				return;
-			}
 		}
+
+		// Fallthrough. install_themes doesn't help if you can't enable it.
+		if ( current_user_can( 'install_themes' ) ) {
+			printf(
+				/* translators: %s: URL to Add Themes screen. */
+				__( 'You only have one theme installed right now. Live a little! You can choose from over 1,000 free themes in the WordPress Theme Directory at any time: just click on the <a href="%s">Install Themes</a> tab above.' ),
+				admin_url( 'theme-install.php' )
+			);
+
+			return;
+		}
+
 		// Fallthrough.
 		printf(
 			/* translators: %s: Network title. */

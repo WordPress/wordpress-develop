@@ -1768,7 +1768,8 @@ function upgrade_330() {
 
 								$found = true;
 								break;
-							} elseif ( sanitize_title( $widget['name'] ) === sanitize_title( $name ) ) {
+							}
+							if ( sanitize_title( $widget['name'] ) === sanitize_title( $name ) ) {
 								$_sidebars_widgets[ $index ][ $i ] = $widget['id'];
 
 								$found = true;
@@ -3495,11 +3496,9 @@ function make_site_theme() {
 			// TODO: rm -rf the site theme directory.
 			return false;
 		}
-	} else {
-		if ( ! make_site_theme_from_default( $theme_name, $template ) ) {
-			// TODO: rm -rf the site theme directory.
-			return false;
-		}
+	} elseif ( ! make_site_theme_from_default( $theme_name, $template ) ) {
+		// TODO: rm -rf the site theme directory.
+		return false;
 	}
 
 	// Make the new site theme active.
@@ -3535,7 +3534,6 @@ function translate_level_to_role( $level ) {
 			return 'author';
 		case 1:
 			return 'contributor';
-		case 0:
 		default:
 			return 'subscriber';
 	}

@@ -1086,12 +1086,10 @@ class wpdb {
 
 			if ( defined( 'MULTISITE' ) && ( 0 === $blog_id || 1 === $blog_id ) ) {
 				return $this->base_prefix;
-			} else {
-				return $this->base_prefix . $blog_id . '_';
 			}
-		} else {
-			return $this->base_prefix;
+			return $this->base_prefix . $blog_id . '_';
 		}
+		return $this->base_prefix;
 	}
 
 	/**
@@ -1684,43 +1682,43 @@ class wpdb {
 				);
 
 				return;
-			} else {
-				/*
-				 * If we don't have the right number of placeholders,
-				 * but they were passed as individual arguments,
-				 * or we were expecting multiple arguments in an array, throw a warning.
-				 */
-				wp_load_translations_early();
-				_doing_it_wrong(
-					'wpdb::prepare',
-					sprintf(
-						/* translators: 1: Number of placeholders, 2: Number of arguments passed. */
-						__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
-						$placeholder_count,
-						$args_count
-					),
-					'4.8.3'
-				);
+			}
 
-				/*
-				 * If we don't have enough arguments to match the placeholders,
-				 * return an empty string to avoid a fatal error on PHP 8.
-				 */
-				if ( $args_count < $placeholder_count ) {
-					$max_numbered_placeholder = 0;
+			/*
+			 * If we don't have the right number of placeholders,
+			 * but they were passed as individual arguments,
+			 * or we were expecting multiple arguments in an array, throw a warning.
+			 */
+			wp_load_translations_early();
+			_doing_it_wrong(
+				'wpdb::prepare',
+				sprintf(
+					/* translators: 1: Number of placeholders, 2: Number of arguments passed. */
+					__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
+					$placeholder_count,
+					$args_count
+				),
+				'4.8.3'
+			);
 
-					for ( $i = 2, $l = $split_query_count; $i < $l; $i += 3 ) {
-						// Assume a leading number is for a numbered placeholder, e.g. '%3$s'.
-						$argnum = (int) substr( $split_query[ $i ], 1 );
+			/*
+				* If we don't have enough arguments to match the placeholders,
+				* return an empty string to avoid a fatal error on PHP 8.
+				*/
+			if ( $args_count < $placeholder_count ) {
+				$max_numbered_placeholder = 0;
 
-						if ( $max_numbered_placeholder < $argnum ) {
-							$max_numbered_placeholder = $argnum;
-						}
+				for ( $i = 2, $l = $split_query_count; $i < $l; $i += 3 ) {
+					// Assume a leading number is for a numbered placeholder, e.g. '%3$s'.
+					$argnum = (int) substr( $split_query[ $i ], 1 );
+
+					if ( $max_numbered_placeholder < $argnum ) {
+						$max_numbered_placeholder = $argnum;
 					}
+				}
 
-					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
-						return '';
-					}
+				if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
+					return '';
 				}
 			}
 		}
@@ -2027,7 +2025,9 @@ class wpdb {
 			$this->bail( $message, 'db_connect_fail' );
 
 			return false;
-		} elseif ( $this->dbh ) {
+		}
+
+		if ( $this->dbh ) {
 			if ( ! $this->has_connected ) {
 				$this->init_charset();
 			}
@@ -2276,12 +2276,11 @@ class wpdb {
 		}
 
 		if ( empty( $this->dbh ) || 2006 === $mysql_errno ) {
-			if ( $this->check_connection() ) {
-				$this->_do_query( $query );
-			} else {
+			if ( ! $this->check_connection() ) {
 				$this->insert_id = 0;
 				return false;
 			}
+			$this->_do_query( $query );
 		}
 
 		// If there is an error then take note of it.
@@ -3057,15 +3056,14 @@ class wpdb {
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
 
-		if ( $query ) {
-			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-				$this->check_current_query = false;
-			}
-
-			$this->query( $query );
-		} else {
+		if ( ! $query ) {
 			return null;
 		}
+		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+			$this->check_current_query = false;
+		}
+
+		$this->query( $query );
 
 		if ( ! isset( $this->last_result[ $y ] ) ) {
 			return null;
@@ -3073,16 +3071,18 @@ class wpdb {
 
 		if ( OBJECT === $output ) {
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
-		} elseif ( ARRAY_A === $output ) {
+		}
+		if ( ARRAY_A === $output ) {
 			return $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
-		} elseif ( ARRAY_N === $output ) {
+		}
+		if ( ARRAY_N === $output ) {
 			return $this->last_result[ $y ] ? array_values( get_object_vars( $this->last_result[ $y ] ) ) : null;
-		} elseif ( OBJECT === strtoupper( $output ) ) {
+		}
+		if ( OBJECT === strtoupper( $output ) ) {
 			// Back compat for OBJECT being previously case-insensitive.
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
-		} else {
-			$this->print_error( ' $db->get_row(string query, output type, int offset) -- Output type must be one of: OBJECT, ARRAY_A, ARRAY_N' );
 		}
+		$this->print_error( ' $db->get_row(string query, output type, int offset) -- Output type must be one of: OBJECT, ARRAY_A, ARRAY_N' );
 	}
 
 	/**
@@ -3138,21 +3138,21 @@ class wpdb {
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
 
-		if ( $query ) {
-			if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
-				$this->check_current_query = false;
-			}
-
-			$this->query( $query );
-		} else {
+		if ( ! $query ) {
 			return null;
 		}
+		if ( $this->check_current_query && $this->check_safe_collation( $query ) ) {
+			$this->check_current_query = false;
+		}
+
+		$this->query( $query );
 
 		$new_array = array();
 		if ( OBJECT === $output ) {
 			// Return an integer-keyed array of row objects.
 			return $this->last_result;
-		} elseif ( OBJECT_K === $output ) {
+		}
+		if ( OBJECT_K === $output ) {
 			/*
 			 * Return an array of row objects with keys from column 1.
 			 * (Duplicates are discarded.)
@@ -3167,7 +3167,8 @@ class wpdb {
 				}
 			}
 			return $new_array;
-		} elseif ( ARRAY_A === $output || ARRAY_N === $output ) {
+		}
+		if ( ARRAY_A === $output || ARRAY_N === $output ) {
 			// Return an integer-keyed array of...
 			if ( $this->last_result ) {
 				if ( ARRAY_N === $output ) {
@@ -3183,7 +3184,8 @@ class wpdb {
 				}
 			}
 			return $new_array;
-		} elseif ( strtoupper( $output ) === OBJECT ) {
+		}
+		if ( strtoupper( $output ) === OBJECT ) {
 			// Back compat for OBJECT being previously case-insensitive.
 			return $this->last_result;
 		}
@@ -3759,7 +3761,8 @@ class wpdb {
 		if ( ! $charset ) {
 			// Not a string column.
 			return $value;
-		} elseif ( is_wp_error( $charset ) ) {
+		}
+		if ( is_wp_error( $charset ) ) {
 			// Bail on real errors.
 			return $charset;
 		}
@@ -3896,9 +3899,8 @@ class wpdb {
 					++$i;
 				}
 				return $new_array;
-			} else {
-				return $this->col_info[ $col_offset ]->{$info_type};
 			}
+			return $this->col_info[ $col_offset ]->{$info_type};
 		}
 	}
 
@@ -3952,15 +3954,14 @@ class wpdb {
 			}
 
 			wp_die( $message );
-		} else {
-			if ( class_exists( 'WP_Error', false ) ) {
-				$this->error = new WP_Error( $error_code, $message );
-			} else {
-				$this->error = $message;
-			}
-
-			return false;
 		}
+		if ( class_exists( 'WP_Error', false ) ) {
+			$this->error = new WP_Error( $error_code, $message );
+		} else {
+			$this->error = $message;
+		}
+
+		return false;
 	}
 
 	/**
@@ -4109,9 +4110,8 @@ class wpdb {
 				if ( false !== strpos( $client_version, 'mysqlnd' ) ) {
 					$client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $client_version );
 					return version_compare( $client_version, '5.0.9', '>=' );
-				} else {
-					return version_compare( $client_version, '5.5.3', '>=' );
 				}
+				return version_compare( $client_version, '5.5.3', '>=' );
 			case 'utf8mb4_520': // @since 4.6.0
 				return version_compare( $db_version, '5.6', '>=' );
 			case 'identifier_placeholders': // @since 6.2.0

@@ -626,7 +626,8 @@ function wp_tinymce_inline_scripts() {
 			$val       = $value ? 'true' : 'false';
 			$init_obj .= $key . ':' . $val . ',';
 			continue;
-		} elseif ( ! empty( $value ) && is_string( $value ) && (
+		}
+		if ( ! empty( $value ) && is_string( $value ) && (
 			( '{' === $value[0] && '}' === $value[ strlen( $value ) - 1 ] ) ||
 			( '[' === $value[0] && ']' === $value[ strlen( $value ) - 1 ] ) ||
 			preg_match( '/^\(?function ?\(/', $value ) ) ) {
@@ -3388,9 +3389,8 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 		strtoupper( substr( $contents, -strlen( $closer ) ) ) === $closer
 	) {
 		return substr( $contents, strlen( $opener ), -strlen( $closer ) );
-	} else {
-		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
-		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
-		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
 	}
+	$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
+	_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
+	return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
 }

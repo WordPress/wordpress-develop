@@ -160,7 +160,8 @@ function has_shortcode( $content, $tag ) {
 		foreach ( $matches as $shortcode ) {
 			if ( $tag === $shortcode[2] ) {
 				return true;
-			} elseif ( ! empty( $shortcode[5] ) && has_shortcode( $shortcode[5], $tag ) ) {
+			}
+			if ( ! empty( $shortcode[5] ) && has_shortcode( $shortcode[5], $tag ) ) {
 				return true;
 			}
 		}

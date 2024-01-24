@@ -1203,9 +1203,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	protected function check_is_taxonomy_allowed( $taxonomy ) {
 		$taxonomy_obj = get_taxonomy( $taxonomy );
-		if ( $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest ) ) {
-			return true;
-		}
-		return false;
+		return ( $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest ) );
 	}
 }

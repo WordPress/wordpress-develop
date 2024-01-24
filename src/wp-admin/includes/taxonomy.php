@@ -132,9 +132,8 @@ function wp_insert_category( $catarr, $wp_error = false ) {
 	if ( '' === trim( $catarr['cat_name'] ) ) {
 		if ( ! $wp_error ) {
 			return 0;
-		} else {
-			return new WP_Error( 'cat_name', __( 'You did not enter a category name.' ) );
 		}
+		return new WP_Error( 'cat_name', __( 'You did not enter a category name.' ) );
 	}
 
 	$catarr['cat_ID'] = (int) $catarr['cat_ID'];
@@ -167,9 +166,8 @@ function wp_insert_category( $catarr, $wp_error = false ) {
 	if ( is_wp_error( $catarr['cat_ID'] ) ) {
 		if ( $wp_error ) {
 			return $catarr['cat_ID'];
-		} else {
-			return 0;
 		}
+		return 0;
 	}
 	return $catarr['cat_ID']['term_id'];
 }

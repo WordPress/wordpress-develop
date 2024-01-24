@@ -966,7 +966,8 @@ function validate_theme_requirements( $stylesheet ) {
 				$theme->display( 'Name' )
 			)
 		);
-	} elseif ( ! $compatible_php ) {
+	}
+	if ( ! $compatible_php ) {
 		return new WP_Error(
 			'theme_php_incompatible',
 			sprintf(
@@ -975,7 +976,8 @@ function validate_theme_requirements( $stylesheet ) {
 				$theme->display( 'Name' )
 			)
 		);
-	} elseif ( ! $compatible_wp ) {
+	}
+	if ( ! $compatible_wp ) {
 		return new WP_Error(
 			'theme_wp_incompatible',
 			sprintf(
@@ -1451,7 +1453,8 @@ function is_random_header_image( $type = 'any' ) {
 	} else {
 		if ( "random-$type-image" === $header_image_mod ) {
 			return true;
-		} elseif ( 'default' === $type
+		}
+		if ( 'default' === $type
 			&& empty( $header_image_mod ) && '' !== get_random_header_image()
 		) {
 			return true;
@@ -1729,11 +1732,7 @@ function get_header_video_settings() {
  * @return bool True if a custom header is set. False if not.
  */
 function has_custom_header() {
-	if ( has_header_image() || ( has_header_video() && is_header_video_active() ) ) {
-		return true;
-	}
-
-	return false;
+	return ( has_header_image() || ( has_header_video() && is_header_video_active() ) );
 }
 
 /**

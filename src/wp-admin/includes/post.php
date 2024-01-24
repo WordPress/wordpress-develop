@@ -33,15 +33,14 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 	if ( $update && ! current_user_can( 'edit_post', $post_data['ID'] ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to edit pages as this user.' ) );
-		} else {
-			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 		}
-	} elseif ( ! $update && ! current_user_can( $ptype->cap->create_posts ) ) {
+		return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
+	}
+	if ( ! $update && ! current_user_can( $ptype->cap->create_posts ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
-		} else {
-			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 		}
+		return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 	}
 
 	if ( isset( $post_data['content'] ) ) {
@@ -78,16 +77,13 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		if ( $update ) {
 			if ( 'page' === $post_data['post_type'] ) {
 				return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to edit pages as this user.' ) );
-			} else {
-				return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 			}
-		} else {
-			if ( 'page' === $post_data['post_type'] ) {
-				return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
-			} else {
-				return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
-			}
+			return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to edit posts as this user.' ) );
 		}
+		if ( 'page' === $post_data['post_type'] ) {
+			return new WP_Error( 'edit_others_pages', __( 'Sorry, you are not allowed to create pages as this user.' ) );
+		}
+		return new WP_Error( 'edit_others_posts', __( 'Sorry, you are not allowed to create posts as this user.' ) );
 	}
 
 	if ( ! empty( $post_data['post_status'] ) ) {
@@ -284,9 +280,8 @@ function edit_post( $post_data = null ) {
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
-		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 		}
+		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
 	}
 
 	if ( post_type_supports( $ptype->name, 'revisions' ) ) {
@@ -511,9 +506,8 @@ function bulk_edit_posts( $post_data = null ) {
 	if ( ! current_user_can( $ptype->cap->edit_posts ) ) {
 		if ( 'page' === $ptype->name ) {
 			wp_die( __( 'Sorry, you are not allowed to edit pages.' ) );
-		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit posts.' ) );
 		}
+		wp_die( __( 'Sorry, you are not allowed to edit posts.' ) );
 	}
 
 	if ( -1 == $post_data['_status'] ) {
@@ -896,9 +890,8 @@ function wp_write_post() {
 	if ( ! current_user_can( $ptype->cap->edit_posts ) ) {
 		if ( 'page' === $ptype->name ) {
 			return new WP_Error( 'edit_pages', __( 'Sorry, you are not allowed to create pages on this site.' ) );
-		} else {
-			return new WP_Error( 'edit_posts', __( 'Sorry, you are not allowed to create posts or drafts on this site.' ) );
 		}
+		return new WP_Error( 'edit_posts', __( 'Sorry, you are not allowed to create posts or drafts on this site.' ) );
 	}
 
 	$_POST['post_mime_type'] = '';
@@ -966,9 +959,8 @@ function write_post() {
 	$result = wp_write_post();
 	if ( is_wp_error( $result ) ) {
 		wp_die( $result->get_error_message() );
-	} else {
-		return $result;
 	}
+	return $result;
 }
 
 //
@@ -2146,13 +2138,13 @@ function wp_autosave( $post_data ) {
 	) {
 		// Drafts and auto-drafts are just overwritten by autosave for the same user if the post is not locked.
 		return edit_post( wp_slash( $post_data ) );
-	} else {
-		/*
-		 * Non-drafts or other users' drafts are not overwritten.
-		 * The autosave is stored in a special post revision for each user.
-		 */
-		return wp_create_post_autosave( wp_slash( $post_data ) );
 	}
+
+	/*
+	 * Non-drafts or other users' drafts are not overwritten.
+	 * The autosave is stored in a special post revision for each user.
+	 */
+	return wp_create_post_autosave( wp_slash( $post_data ) );
 }
 
 /**

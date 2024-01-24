@@ -275,7 +275,9 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	$ref = '';
 	if ( isset( $_GET['ref'] ) && isset( $_POST['ref'] ) && $_GET['ref'] !== $_POST['ref'] ) {
 		wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
-	} elseif ( isset( $_POST['ref'] ) ) {
+	}
+
+	if ( isset( $_POST['ref'] ) ) {
 		$ref = $_POST['ref'];
 	} elseif ( isset( $_GET['ref'] ) ) {
 		$ref = $_GET['ref'];
@@ -294,7 +296,9 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	$url = wpmu_admin_redirect_add_updated_param( $url );
 	if ( isset( $_GET['redirect'] ) && isset( $_POST['redirect'] ) && $_GET['redirect'] !== $_POST['redirect'] ) {
 		wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
-	} elseif ( isset( $_GET['redirect'] ) ) {
+	}
+
+	if ( isset( $_GET['redirect'] ) ) {
 		if ( str_starts_with( $_GET['redirect'], 's_' ) )
 			$url .= '&action=blogs&s='. esc_html( substr( $_GET['redirect'], 2 ) );
 	} elseif ( isset( $_POST['redirect'] ) ) {

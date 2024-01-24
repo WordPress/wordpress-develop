@@ -301,11 +301,10 @@ function wp_nav_menu( $args = array() ) {
 	 */
 	$nav_menu = apply_filters( 'wp_nav_menu', $nav_menu, $args );
 
-	if ( $args->echo ) {
-		echo $nav_menu;
-	} else {
+	if ( ! $args->echo ) {
 		return $nav_menu;
 	}
+	echo $nav_menu;
 }
 
 /**

@@ -745,9 +745,8 @@ function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
 	$key = _wp_translate_php_url_constant_to_key( $component );
 	if ( false !== $key && is_array( $url_parts ) && isset( $url_parts[ $key ] ) ) {
 		return $url_parts[ $key ];
-	} else {
-		return null;
 	}
+	return null;
 }
 
 /**
@@ -777,7 +776,6 @@ function _wp_translate_php_url_constant_to_key( $constant ) {
 
 	if ( isset( $translation[ $constant ] ) ) {
 		return $translation[ $constant ];
-	} else {
-		return false;
 	}
+	return false;
 }

@@ -93,9 +93,8 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		public function substr( $input_string, $start, $length ) {
 			if ( $this->is_overloaded ) {
 				return mb_substr( $input_string, $start, $length, 'ascii' );
-			} else {
-				return substr( $input_string, $start, $length );
 			}
+			return substr( $input_string, $start, $length );
 		}
 
 		/**
@@ -105,9 +104,8 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 		public function strlen( $input_string ) {
 			if ( $this->is_overloaded ) {
 				return mb_strlen( $input_string, 'ascii' );
-			} else {
-				return strlen( $input_string );
 			}
+			return strlen( $input_string );
 		}
 
 		/**
@@ -123,9 +121,8 @@ if ( ! class_exists( 'POMO_Reader', false ) ) :
 					$out[] = $this->substr( $input_string, $i, $chunk_size );
 				}
 				return $out;
-			} else {
-				return str_split( $input_string, $chunk_size );
 			}
+			return str_split( $input_string, $chunk_size );
 		}
 
 		/**

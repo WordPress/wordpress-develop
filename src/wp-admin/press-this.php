@@ -21,7 +21,8 @@ function wp_load_press_this() {
 			__( 'You need a higher level of permission.' ),
 			403
 		);
-	} elseif ( is_plugin_active( $plugin_file ) ) {
+	}
+	if ( is_plugin_active( $plugin_file ) ) {
 		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
 		$wp_press_this = new WP_Press_This_Plugin();
 		$wp_press_this->html();

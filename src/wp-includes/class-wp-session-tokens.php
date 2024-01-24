@@ -71,9 +71,8 @@ abstract class WP_Session_Tokens {
 		// If ext/hash is not present, use sha1() instead.
 		if ( function_exists( 'hash' ) ) {
 			return hash( 'sha256', $token );
-		} else {
-			return sha1( $token );
 		}
+		return sha1( $token );
 	}
 
 	/**

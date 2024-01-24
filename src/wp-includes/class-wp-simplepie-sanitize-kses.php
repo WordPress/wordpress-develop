@@ -49,8 +49,7 @@ class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 				$data = $this->registry->call( 'Misc', 'change_encoding', array( $data, 'UTF-8', $this->output_encoding ) );
 			}
 			return $data;
-		} else {
-			return parent::sanitize( $data, $type, $base );
 		}
+		return parent::sanitize( $data, $type, $base );
 	}
 }

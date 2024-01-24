@@ -1259,7 +1259,8 @@ final class WP_Theme implements ArrayAccess {
 				return $screenshot;
 			}
 			return $this->get_stylesheet_directory_uri() . '/' . $screenshot;
-		} elseif ( 0 === $screenshot ) {
+		}
+		if ( 0 === $screenshot ) {
 			return false;
 		}
 

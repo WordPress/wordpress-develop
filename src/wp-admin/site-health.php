@@ -221,15 +221,15 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 	return;
-} else {
-	wp_admin_notice(
-		__( 'The Site Health check requires JavaScript.' ),
-		array(
-			'type'               => 'error',
-			'additional_classes' => array( 'hide-if-js' ),
-		)
-	);
-	?>
+}
+wp_admin_notice(
+	__( 'The Site Health check requires JavaScript.' ),
+	array(
+		'type'               => 'error',
+		'additional_classes' => array( 'hide-if-js' ),
+	)
+);
+?>
 
 <div class="health-check-body health-check-status-tab hide-if-no-js">
 	<div class="site-status-all-clear hide">
@@ -319,6 +319,5 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	</div>
 </script>
 
-	<?php
-}
+<?php
 require_once ABSPATH . 'wp-admin/admin-footer.php';

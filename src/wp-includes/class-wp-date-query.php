@@ -1062,8 +1062,7 @@ class WP_Date_Query {
 	public function sanitize_relation( $relation ) {
 		if ( 'OR' === strtoupper( $relation ) ) {
 			return 'OR';
-		} else {
-			return 'AND';
 		}
+		return 'AND';
 	}
 }

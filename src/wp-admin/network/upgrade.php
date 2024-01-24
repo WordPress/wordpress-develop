@@ -133,7 +133,6 @@ switch ( $action ) {
 		</script>
 		<?php
 		break;
-	case 'show':
 	default:
 		if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $GLOBALS['wp_db_version'] ) :
 			?>
@@ -150,7 +149,6 @@ switch ( $action ) {
 		 * @since MU (3.0.0)
 		 */
 		do_action( 'wpmu_upgrade_page' );
-		break;
 }
 ?>
 </div>

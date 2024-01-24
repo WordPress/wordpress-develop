@@ -161,9 +161,8 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 			)
 		);
 		exit;
-	} else {
-		wp_die( $id->get_error_message() );
 	}
+	wp_die( $id->get_error_message() );
 }
 
 if ( isset( $_GET['update'] ) ) {

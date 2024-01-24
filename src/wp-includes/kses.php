@@ -909,7 +909,6 @@ function wp_kses_allowed_html( $context = '' ) {
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $allowedentitynames, $context );
 
-		case 'data':
 		default:
 			/** This filter is documented in wp-includes/kses.php */
 			return apply_filters( 'wp_kses_allowed_html', $allowedtags, $context );
@@ -1571,9 +1570,8 @@ function wp_kses_hair_parse( $attr ) {
 	if ( 1 === preg_match( $validation, $attr ) ) {
 		preg_match_all( $extraction, $attr, $attrarr );
 		return $attrarr[0];
-	} else {
-		return false;
 	}
+	return false;
 }
 
 /**
@@ -1870,9 +1868,8 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 
 	if ( $allowed ) {
 		return "$scheme:";
-	} else {
-		return '';
 	}
+	return '';
 }
 
 /**
@@ -1958,7 +1955,8 @@ function wp_kses_xml_named_entities( $matches ) {
 
 	if ( in_array( $i, $allowedxmlentitynames, true ) ) {
 		return "&$i;";
-	} elseif ( in_array( $i, $allowedentitynames, true ) ) {
+	}
+	if ( in_array( $i, $allowedentitynames, true ) ) {
 		return html_entity_decode( "&$i;", ENT_HTML5 );
 	}
 
@@ -2569,10 +2567,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				if ( empty( $url ) || wp_kses_bad_protocol( $url, $allowed_protocols ) !== $url ) {
 					$found = false;
 					break;
-				} else {
-					// Remove the whole `url(*)` bit that was matched above from the CSS.
-					$css_test_string = str_replace( $url_match, '', $css_test_string );
 				}
+				// Remove the whole `url(*)` bit that was matched above from the CSS.
+				$css_test_string = str_replace( $url_match, '', $css_test_string );
 			}
 		}
 
@@ -2705,11 +2702,7 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	$upload_host = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
 	$upload_port = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : '';
 
-	if ( str_starts_with( $url, "http://$upload_host$upload_port/" )
+	return ( str_starts_with( $url, "http://$upload_host$upload_port/" )
 		|| str_starts_with( $url, "https://$upload_host$upload_port/" )
-	) {
-		return true;
-	}
-
-	return false;
+	);
 }

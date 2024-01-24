@@ -49,7 +49,8 @@ if ( ! str_contains( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) ) {
 if ( WPMU_ACCEL_REDIRECT ) {
 	header( 'X-Accel-Redirect: ' . str_replace( WP_CONTENT_DIR, '', $file ) );
 	exit;
-} elseif ( WPMU_SENDFILE ) {
+}
+if ( WPMU_SENDFILE ) {
 	header( 'X-Sendfile: ' . $file );
 	exit;
 }

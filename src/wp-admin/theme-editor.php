@@ -91,7 +91,6 @@ foreach ( $file_types as $type ) {
 			break;
 		default:
 			$allowed_files += $theme->get_files( $type, -1 );
-			break;
 	}
 }
 

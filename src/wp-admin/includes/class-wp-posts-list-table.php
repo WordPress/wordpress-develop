@@ -238,7 +238,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( empty( $vars ) ) {
 			return true;
-		} elseif ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
+		}
+		if ( 1 === count( $vars ) && ! empty( $vars['post_type'] ) ) {
 			return $this->screen->post_type === $vars['post_type'];
 		}
 

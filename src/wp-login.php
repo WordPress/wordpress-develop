@@ -16,10 +16,9 @@ if ( force_ssl_admin() && ! is_ssl() ) {
 	if ( str_starts_with( $_SERVER['REQUEST_URI'], 'http' ) ) {
 		wp_safe_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
 		exit;
-	} else {
-		wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-		exit;
 	}
+	wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	exit;
 }
 
 /**
@@ -773,11 +772,9 @@ switch ( $action ) {
 		 */
 		$expire  = apply_filters( 'post_password_expires', time() + 10 * DAY_IN_SECONDS );
 		$referer = wp_get_referer();
-
+		$secure  = false;
 		if ( $referer ) {
 			$secure = ( 'https' === parse_url( $referer, PHP_URL_SCHEME ) );
-		} else {
-			$secure = false;
 		}
 
 		setcookie( 'wp-postpass_' . COOKIEHASH, $hasher->HashPassword( wp_unslash( $_POST['post_password'] ) ), $expire, COOKIEPATH, COOKIE_DOMAIN, $secure );
@@ -1270,7 +1267,6 @@ switch ( $action ) {
 		login_footer();
 		exit;
 
-	case 'login':
 	default:
 		$secure_cookie   = '';
 		$customize_login = isset( $_REQUEST['customize-login'] );

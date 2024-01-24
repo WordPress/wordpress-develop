@@ -599,17 +599,15 @@ function prep_atom_text_construct( $data ) {
 	if ( ! $code ) {
 		if ( ! str_contains( $data, '<' ) ) {
 			return array( 'text', $data );
-		} else {
-			$data = "<div xmlns='http://www.w3.org/1999/xhtml'>$data</div>";
-			return array( 'xhtml', $data );
 		}
+		$data = "<div xmlns='http://www.w3.org/1999/xhtml'>$data</div>";
+		return array( 'xhtml', $data );
 	}
 
 	if ( ! str_contains( $data, ']]>' ) ) {
 		return array( 'html', "<![CDATA[$data]]>" );
-	} else {
-		return array( 'html', htmlspecialchars( $data ) );
 	}
+	return array( 'html', htmlspecialchars( $data ) );
 }
 
 /**

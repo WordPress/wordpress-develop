@@ -510,11 +510,11 @@ class WP_oEmbed {
 		// JSON is preferred to XML.
 		if ( ! empty( $providers['json'] ) ) {
 			return $providers['json'];
-		} elseif ( ! empty( $providers['xml'] ) ) {
-			return $providers['xml'];
-		} else {
-			return false;
 		}
+		if ( ! empty( $providers['xml'] ) ) {
+			return $providers['xml'];
+		}
+		return false;
 	}
 
 	/**

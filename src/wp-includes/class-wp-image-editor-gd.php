@@ -186,8 +186,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imagedestroy( $this->image );
 			$this->image = $resized;
 			return true;
-
-		} elseif ( is_wp_error( $resized ) ) {
+		}
+		if ( is_wp_error( $resized ) ) {
 			return $resized;
 		}
 

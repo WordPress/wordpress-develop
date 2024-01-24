@@ -133,9 +133,8 @@ function get_post_format_string( $slug ) {
 	$strings = get_post_format_strings();
 	if ( ! $slug ) {
 		return $strings['standard'];
-	} else {
-		return ( isset( $strings[ $slug ] ) ) ? $strings[ $slug ] : '';
 	}
+	return ( isset( $strings[ $slug ] ) ) ? $strings[ $slug ] : '';
 }
 
 /**
@@ -198,10 +197,9 @@ function _post_format_link( $link, $term, $taxonomy ) {
 	}
 	if ( $wp_rewrite->get_extra_permastruct( $taxonomy ) ) {
 		return str_replace( "/{$term->slug}", '/' . str_replace( 'post-format-', '', $term->slug ), $link );
-	} else {
-		$link = remove_query_arg( 'post_format', $link );
-		return add_query_arg( 'post_format', str_replace( 'post-format-', '', $term->slug ), $link );
 	}
+	$link = remove_query_arg( 'post_format', $link );
+	return add_query_arg( 'post_format', str_replace( 'post-format-', '', $term->slug ), $link );
 }
 
 /**

@@ -411,8 +411,8 @@ switch ( $action ) {
 						$locations = get_nav_menu_locations();
 
 						foreach ( $locations as $location => $menu_id ) {
-								$locations[ $location ] = $nav_menu_selected_id;
-								break; // There should only be 1.
+							$locations[ $location ] = $nav_menu_selected_id;
+							break; // There should only be 1.
 						}
 
 						set_theme_mod( 'nav_menu_locations', $locations );

@@ -211,9 +211,8 @@ class WP_Dependencies {
 			if ( ! $keep_going ) { // Either item or its dependencies don't exist.
 				if ( $recursion ) {
 					return false; // Abort this branch.
-				} else {
-					continue; // We're at the top level. Move on to the next one.
 				}
+				continue; // We're at the top level. Move on to the next one.
 			}
 
 			if ( $queued ) { // Already grabbed it and its dependencies.

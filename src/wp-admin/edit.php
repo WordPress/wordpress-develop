@@ -180,10 +180,8 @@ if ( $doaction ) {
 					if ( ! wp_delete_attachment( $post_id ) ) {
 						wp_die( __( 'Error in deleting the attachment.' ) );
 					}
-				} else {
-					if ( ! wp_delete_post( $post_id ) ) {
-						wp_die( __( 'Error in deleting the item.' ) );
-					}
+				} elseif ( ! wp_delete_post( $post_id ) ) {
+					wp_die( __( 'Error in deleting the item.' ) );
 				}
 				++$deleted;
 			}
@@ -220,14 +218,15 @@ if ( $doaction ) {
 			 *                         comments, terms, links, plugins, attachments, or users.
 			 */
 			$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $doaction, $post_ids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-			break;
 	}
 
 	$sendback = remove_query_arg( array( 'action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view' ), $sendback );
 
 	wp_redirect( $sendback );
 	exit;
-} elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+}
+
+if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	exit;
 }

@@ -226,10 +226,6 @@ final class WP_Site {
 				return (int) $this->blog_id;
 			case 'network_id':
 				return (int) $this->site_id;
-			case 'blogname':
-			case 'siteurl':
-			case 'post_count':
-			case 'home':
 			default: // Custom properties added by 'site_details' filter.
 				if ( ! did_action( 'ms_loaded' ) ) {
 					return null;
@@ -264,10 +260,7 @@ final class WP_Site {
 			case 'siteurl':
 			case 'post_count':
 			case 'home':
-				if ( ! did_action( 'ms_loaded' ) ) {
-					return false;
-				}
-				return true;
+				return (bool) did_action( 'ms_loaded' );
 			default: // Custom properties added by 'site_details' filter.
 				if ( ! did_action( 'ms_loaded' ) ) {
 					return false;

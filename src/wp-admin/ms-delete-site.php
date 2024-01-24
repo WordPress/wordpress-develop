@@ -27,9 +27,8 @@ if ( isset( $_GET['h'] ) && '' !== $_GET['h'] && false !== get_option( 'delete_b
 				get_network()->site_name
 			)
 		);
-	} else {
-		wp_die( __( 'Sorry, the link you clicked is stale. Please select another option.' ) );
 	}
+	wp_die( __( 'Sorry, the link you clicked is stale. Please select another option.' ) );
 }
 
 $blog = get_site();
