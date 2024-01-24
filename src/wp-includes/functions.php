@@ -3355,8 +3355,8 @@ function wp_get_image_mime( $file ) {
 		/**
 		 * Add AVIF fallback detection when image library doesn't support AVIF.
 		 *
-		 * Detection based on section 4.3.1 File-type box Definition of the ISO/IEC 14496-12
-		 * specification, https://see aomediacodec.github.io/av1-avif/v1.1.0.html#brands.
+		 * Detection based on section 4.3.1 File-type box definition of the ISO/IEC 14496-12
+		 * specification and the AV1-AVIF spec, see https://aomediacodec.github.io/av1-avif/v1.1.0.html#brands.
 		 */
 
 		 // Divide the header string into 4 byte groups.
