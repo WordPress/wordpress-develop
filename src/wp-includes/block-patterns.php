@@ -377,10 +377,6 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			// The actual pattern content is the output of the file.
-			if ( ! file_exists( $file_path ) ) {
-				continue;
-			}
 			$pattern_data['file_path'] = $file_path;
 
 			// Translate the pattern metadata.
