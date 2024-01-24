@@ -253,7 +253,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'HEAD'      => array( 'HEAD' ),
 			'HTML'      => array( 'HTML' ),
 			'IFRAME'    => array( 'IFRAME' ),
-			'INPUT'     => array( 'INPUT' ),
 			'LINK'      => array( 'LINK' ),
 			'MARQUEE'   => array( 'MARQUEE' ),
 			'MATH'      => array( 'MATH' ),
