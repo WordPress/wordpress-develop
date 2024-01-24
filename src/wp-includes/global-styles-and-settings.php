@@ -303,7 +303,7 @@ function wp_add_global_styles_for_blocks() {
 	if ( ! wp_should_load_separate_core_block_assets() ) {
 		return;
 	}
-	
+
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 	$block_nodes = $tree->get_styles_block_nodes();
 	foreach ( $block_nodes as $metadata ) {

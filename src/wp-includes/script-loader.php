@@ -2516,7 +2516,7 @@ function wp_enqueue_global_styles() {
 
 /**
  * Enqueues block global styles when separate core block assets are disabled.
- * 
+ *
  * @since 6.5.0
  */
 function wp_enqueue_block_global_styles() {
