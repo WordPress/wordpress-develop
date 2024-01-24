@@ -5595,18 +5595,19 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  * }
  */
 function wp_get_avif_info( $filename ) {
-	if ( 'image/avif' !== wp_get_image_mime( $filename ) ) {
-		return compact( 'width', 'height', 'type' );
-	}
-
-	// Parse the file using libavifinfo's PHP implementation.
-	require_once ABSPATH . WPINC . '/class-avif-info.php';
 	$results = array(
 		'width'        => false,
 		'height'       => false,
 		'bit_depth'    => false,
 		'num_channels' => false,
 	);
+
+	if ( 'image/avif' !== wp_get_image_mime( $filename ) ) {
+		return $results;
+	}
+
+	// Parse the file using libavifinfo's PHP implementation.
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
 
 	$handle = fopen( $filename, 'rb' );
 	if ( $handle ) {
