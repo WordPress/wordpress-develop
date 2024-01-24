@@ -104,11 +104,6 @@ wp_set_lang_dir();
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
 require ABSPATH . WPINC . '/functions.php';
-require ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
-require ABSPATH . WPINC . '/l10n/class-wp-translations.php';
-require ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
-require ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
-require ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 
 /**
  * @since 0.71
@@ -219,7 +214,6 @@ require ABSPATH . WPINC . '/block-supports/typography.php';
 require ABSPATH . WPINC . '/block-supports/settings.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/fonts.php';
-require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();

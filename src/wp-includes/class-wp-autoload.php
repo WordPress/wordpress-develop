@@ -109,6 +109,7 @@ final class WP_Autoload {
 		'wp_rewrite'                                  => 'wp-includes/class-wp-rewrite.php',
 		'wp_role'                                     => 'wp-includes/class-wp-role.php',
 		'wp_roles'                                    => 'wp-includes/class-wp-roles.php',
+		'wp_script_modules'                           => 'wp-includes/class-wp-script-modules.php',
 		'wp_scripts'                                  => 'wp-includes/class-wp-scripts.php',
 		'wp_session_tokens'                           => 'wp-includes/class-wp-session-tokens.php',
 		'wp_simplepie_file'                           => 'wp-includes/class-wp-simplepie-file.php',
@@ -204,6 +205,13 @@ final class WP_Autoload {
 		'ixr_request'                                 => 'wp-includes/IXR/class-IXR-request.php',
 		'ixr_server'                                  => 'wp-includes/IXR/class-IXR-server.php',
 		'ixr_value'                                   => 'wp-includes/IXR/class-IXR-value.php',
+
+		/* Classes in the wp-includes/l10n folder. */
+		'wp_translation_controller'                   => 'wp-includes/l10n/class-wp-translation-controller.php',
+		'wp_translation_file_mo'                      => 'wp-includes/l10n/class-wp-translation-file-mo.php',
+		'wp_translation_file_php'                     => 'wp-includes/l10n/class-wp-translation-file-php.php',
+		'wp_translation_file'                         => 'wp-includes/l10n/class-wp-translation-file.php',
+		'wp_translations'                             => 'wp-includes/l10n/class-wp-translations.php',
 
 		/* Classes in the wp-includes/pomo folder. */
 		'translation_entry'                           => 'wp-includes/pomo/entry.php',
