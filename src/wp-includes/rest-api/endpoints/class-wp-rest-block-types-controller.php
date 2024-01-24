@@ -240,6 +240,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 * @since 5.9.0 Renamed `$block_type` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 6.3.0 Added `selectors` field.
+	 * @since 6.5.0 Added `view_script_module_ids` field.
 	 *
 	 * @param WP_Block_Type   $item    Block type data.
 	 * @param WP_REST_Request $request Full details about the request.
