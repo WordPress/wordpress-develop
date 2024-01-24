@@ -2344,6 +2344,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $filter_count );
 	}
 
+	/**
+	 * @ticket 59043
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
 	public function test_prepare_item_override_excerpt_length() {
 		wp_set_current_user( self::$editor_id );
 
@@ -2365,10 +2370,13 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_param( 'excerpt_length', 43 );
 		$response = $endpoint->prepare_item_for_response( get_post( $post_id ), $request );
 		$data     = $response->get_data();
-		$this->assertArrayHasKey( 'excerpt', $data );
+		$this->assertArrayHasKey( 'excerpt', $data, 'Response must contain an "excerpt" key.' );
 
 		// 43 words plus the ellipsis added via the 'excerpt_more' filter.
-		$this->assertCount( 44, explode( ' ', $data['excerpt']['rendered'] ) );
+		$this->assertCount( 44,
+			explode( ' ', $data['excerpt']['rendered'] ),
+			'Incorrect word count in the excerpt. Expected the excerpt to contain 44 words (43 words plus an ellipsis), but a different word count was found.'
+		);
 	}
 
 	public function test_create_item() {
