@@ -289,14 +289,14 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_handles_passed_register_block_script_module_ids() {
 		$metadata = array(
-			'script' => array( 'test-id', 'test-id-1' ),
+			'script' => array( 'test-id', 'test-id-other' ),
 		);
 
-		$result = register_block_script_handle( $metadata, 'viewScriptModule' );
+		$result = register_block_script_module_id( $metadata, 'viewScriptModule' );
 		$this->assertSame( 'test-id', $result );
 
-		$result = register_block_script_handle( $metadata, 'viewScriptModule', 1 );
-		$this->assertSame( 'test-id-2', $result, 1 );
+		$result = register_block_script_module_id( $metadata, 'viewScriptModule', 1 );
+		$this->assertSame( 'test-id-other', $result );
 	}
 
 	/**
@@ -342,14 +342,14 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	public function test_handles_passed_register_block_script_handles() {
 		$metadata = array(
-			'script' => array( 'test-script-handle', 'test-script-handle-2' ),
+			'script' => array( 'test-script-handle', 'test-script-handle-other' ),
 		);
 
 		$result = register_block_script_handle( $metadata, 'script' );
 		$this->assertSame( 'test-script-handle', $result );
 
 		$result = register_block_script_handle( $metadata, 'script', 1 );
-		$this->assertSame( 'test-script-handle-2', $result, 1 );
+		$this->assertSame( 'test-script-handle-other', $result );
 	}
 
 	/**
