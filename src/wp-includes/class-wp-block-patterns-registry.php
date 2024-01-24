@@ -190,11 +190,11 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		$pattern            = $this->registered_patterns[ $pattern_name ];
+		$pattern = $this->registered_patterns[ $pattern_name ];
 		if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
 			ob_start();
 			include $pattern['file_path'];
-			$pattern['content'] = ob_get_clean();
+			$pattern['content']                                    = ob_get_clean();
 			$this->registered_patterns[ $pattern_name ]['content'] = $pattern['content'];
 		}
 
@@ -220,7 +220,7 @@ final class WP_Block_Patterns_Registry {
 		);
 		$hooked_blocks = get_hooked_blocks();
 		foreach ( $patterns as $index => $pattern ) {
-			if ( ! $pattern['content'] && isset( $pattern['file_path'] ) ) {
+			if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
 				ob_start();
 				include $pattern['file_path'];
 				$pattern['content'] = ob_get_clean();
