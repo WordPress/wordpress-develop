@@ -258,6 +258,45 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 60233
+	 */
+	public function test_field_not_found_register_block_script_module_id() {
+		$result = register_block_script_module_id( array(), 'viewScriptModule' );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 60233
+	 */
+	public function test_empty_string_value_do_not_register_block_script_module_id() {
+		$metadata = array( 'viewScriptHandle' => '' );
+		$result   = register_block_script_module_id( $metadata, 'viewScriptHandle' );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 60233
+	 */
+	public function test_empty_array_value_do_not_register_block_script_module_id() {
+		$metadata = array( 'viewScriptModule' => array() );
+		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 60233
+	 */
+	public function test_wrong_array_index_do_not_register_block_script_module_id() {
+		$metadata = array( 'viewScriptModule' => array( 'test-module_id' ) );
+		$result   = register_block_script_module_id( $metadata, 'script', 1 );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
 	 * @expectedIncorrectUsage register_block_script_module_id
 	 * @ticket 60233
 	 */
