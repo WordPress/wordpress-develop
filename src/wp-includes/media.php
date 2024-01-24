@@ -5595,10 +5595,6 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  * }
  */
 function wp_get_avif_info( $filename ) {
-	$width  = false;
-	$height = false;
-	$type   = false;
-
 	if ( 'image/avif' !== wp_get_image_mime( $filename ) ) {
 		return compact( 'width', 'height', 'type' );
 	}
