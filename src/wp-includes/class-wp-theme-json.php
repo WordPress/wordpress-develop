@@ -1201,44 +1201,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Returns the global styles base custom CSS.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @return string The global styles base custom CSS.
-	 */
-	public function get_custom_base_css() {
-		return isset( $this->theme_json['styles']['css'] ) ? $this->theme_json['styles']['css'] : '';
-	}
-
-
-	/**
-	 * Returns the global styles per-block custom CSS.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @return string The global styles per-block custom CSS.
-	 */
-	public function get_custom_block_css() {
-		$stylesheet = '';
-
-		// Add the global styles block CSS.
-		if ( isset( $this->theme_json['styles']['blocks'] ) ) {
-			foreach ( $this->theme_json['styles']['blocks'] as $name => $node ) {
-				$custom_block_css = isset( $this->theme_json['styles']['blocks'][ $name ]['css'] )
-					? $this->theme_json['styles']['blocks'][ $name ]['css']
-					: null;
-				if ( $custom_block_css ) {
-					$selector    = static::$blocks_metadata[ $name ]['selector'];
-					$stylesheet .= $this->process_blocks_custom_css( $custom_block_css, $selector );
-				}
-			}
-		}
-
-		return $stylesheet;
-	}
-
-	/**
 	 * Returns the page templates of the active theme.
 	 *
 	 * @since 5.9.0

@@ -601,6 +601,8 @@ add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 
 add_action( 'wp_enqueue_scripts', 'wp_add_global_styles_for_blocks' );
 
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_global_styles' );
+
 // Global styles custom CSS.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
 

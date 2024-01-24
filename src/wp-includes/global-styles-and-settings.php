@@ -54,7 +54,7 @@ function wp_get_global_settings( $path = array(), $context = array() ) {
 	 * is always fresh from the potential modifications done via hooks
 	 * that can use dynamic data (modify the stylesheet depending on some option,
 	 * settings depending on user permissions, etc.).
-	 * See some of the existing hooks to modify theme.json behaviour:
+	 * See some of the existing hooks to modify theme.json behavior:
 	 * https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
 	 *
 	 * A different alternative considered was to invalidate the cache upon certain
@@ -295,92 +295,19 @@ function wp_get_global_styles_custom_css() {
 }
 
 /**
- * Gets the global styles base custom CSS from theme.json.
- * Logic should follow wp_get_global_styles_custom_css.
- *
- * @since 6.5.0
- *
- * @return string The global base custom CSS.
- */
-function wp_get_global_styles_base_custom_css() {
-	if ( ! wp_theme_has_theme_json() ) {
-		return '';
-	}
-
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
-	$cache_key   = 'wp_get_global_styles_base_custom_css';
-	$cache_group = 'theme_json';
-	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
-		if ( $cached ) {
-			return $cached;
-		}
-	}
-
-	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
-	$stylesheet = $tree->get_custom_base_css();
-
-	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
-	}
-
-	return $stylesheet;
-}
-
-/**
- * Gets the global styles per-block custom CSS from theme.json.
- * Logic should follow wp_get_global_styles_custom_css.
- *
- * @since 6.5.0
- *
- * @return string The global per-block custom CSS.
- */
-function wp_get_global_styles_block_custom_css() {
-	if ( ! wp_theme_has_theme_json() ) {
-		return '';
-	}
-
-	$can_use_cached = ! wp_is_development_mode( 'theme' );
-
-	$cache_key   = 'wp_get_global_styles_block_custom_css';
-	$cache_group = 'theme_json';
-	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
-		if ( $cached ) {
-			return $cached;
-		}
-	}
-
-	$tree       = WP_Theme_JSON_Resolver::get_merged_data();
-	$stylesheet = $tree->get_custom_block_css();
-
-	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $stylesheet, $cache_group );
-	}
-
-	return $stylesheet;
-}
-
-/**
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
  */
 function wp_add_global_styles_for_blocks() {
+	if ( ! wp_should_load_separate_core_block_assets() ) {
+		return;
+	}
+	
 	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
 	$block_nodes = $tree->get_styles_block_nodes();
-
-	if ( ! wp_should_load_separate_core_block_assets() ) {
-		wp_register_style( 'global-styles-blocks', false );
-	}
 	foreach ( $block_nodes as $metadata ) {
 		$block_css = $tree->get_styles_for_block( $metadata );
-
-		if ( ! wp_should_load_separate_core_block_assets() ) {
-			wp_add_inline_style( 'global-styles-blocks', $block_css );
-			continue;
-		}
 
 		$stylesheet_handle = 'global-styles';
 		if ( isset( $metadata['name'] ) ) {
@@ -407,10 +334,6 @@ function wp_add_global_styles_for_blocks() {
 				wp_add_inline_style( $stylesheet_handle, $block_css );
 			}
 		}
-	}
-
-	if ( ! wp_should_load_separate_core_block_assets() ) {
-		wp_enqueue_style( 'global-styles-blocks' );
 	}
 }
 
@@ -507,8 +430,6 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_styles_base_custom_css', 'theme_json' );
-	wp_cache_delete( 'wp_get_global_styles_block_custom_css', 'theme_json' );
 	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
 }

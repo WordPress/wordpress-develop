@@ -2515,6 +2515,31 @@ function wp_enqueue_global_styles() {
 }
 
 /**
+ * Enqueues block global styles when separate core block assets are disabled.
+ * 
+ * @since 6.5.0
+ */
+function wp_enqueue_block_global_styles() {
+	if ( wp_should_load_separate_core_block_assets() ) {
+		return;
+	}
+
+	$tree        = WP_Theme_JSON_Resolver::get_merged_data();
+	$block_nodes = $tree->get_styles_block_nodes();
+
+	wp_register_style( 'global-styles-blocks', false );
+
+	foreach ( $block_nodes as $metadata ) {
+		$block_css = $tree->get_styles_for_block( $metadata );
+		wp_add_inline_style( 'global-styles-blocks', $block_css );
+	}
+
+	wp_enqueue_style( 'global-styles-blocks' );
+
+	wp_enqueue_global_styles();
+}
+
+/**
  * Enqueues the global styles custom css defined via theme.json.
  *
  * @since 6.2.0
@@ -2528,17 +2553,10 @@ function wp_enqueue_global_styles_custom_css() {
 	remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 
 	$custom_css  = wp_get_custom_css();
-	$custom_css .= wp_get_global_styles_base_custom_css();
+	$custom_css .= wp_get_global_styles_custom_css();
 
 	if ( ! empty( $custom_css ) ) {
 		wp_add_inline_style( 'global-styles', $custom_css );
-	}
-	$block_custom_css = wp_get_global_styles_block_custom_css();
-
-	if ( ! empty( $block_custom_css ) ) {
-		wp_register_style( 'global-styles-block-custom', false );
-		wp_add_inline_style( 'global-styles-block-custom', $block_custom_css );
-		wp_enqueue_style( 'global-styles-block-custom' );
 	}
 }
 
