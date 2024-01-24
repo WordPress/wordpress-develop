@@ -185,7 +185,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50328
-	 * @ticket 60233
 	 */
 	public function test_generate_block_asset_handle_core_block() {
 		$block_name = 'core/paragraph';
@@ -203,6 +202,35 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			generate_block_asset_handle( $block_name, 'viewScript', 99 )
 		);
 		$this->assertSame(
+			'wp-block-paragraph-editor-2',
+			generate_block_asset_handle( $block_name, 'editorStyle', 1 )
+		);
+		$this->assertSame(
+			'wp-block-paragraph',
+			generate_block_asset_handle( $block_name, 'style' )
+		);
+	}
+
+	/**
+	 * @ticket 60233
+	 */
+	public function test_generate_block_asset_handle_core_block_module() {
+		$block_name = 'core/paragraph';
+
+		$this->assertSame(
+			'wp-block-paragraph-editor-script-module',
+			generate_block_asset_handle( $block_name, 'editorScriptModule' )
+		);
+		$this->assertSame(
+			'wp-block-paragraph-editor-script-module-2',
+			generate_block_asset_handle( $block_name, 'editorScriptModule', 1 )
+		);
+		$this->assertSame(
+			'wp-block-paragraph-editor-script-module-100',
+			generate_block_asset_handle( $block_name, 'editorScriptModule', 99 )
+		);
+
+		$this->assertSame(
 			'wp-block-paragraph-view-script-module',
 			generate_block_asset_handle( $block_name, 'viewScriptModule' )
 		);
@@ -214,13 +242,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'wp-block-paragraph-view-script-module-100',
 			generate_block_asset_handle( $block_name, 'viewScriptModule', 99 )
 		);
+
 		$this->assertSame(
-			'wp-block-paragraph-editor-2',
-			generate_block_asset_handle( $block_name, 'editorStyle', 1 )
+			'wp-block-paragraph-script-module',
+			generate_block_asset_handle( $block_name, 'scriptModule' )
 		);
 		$this->assertSame(
-			'wp-block-paragraph',
-			generate_block_asset_handle( $block_name, 'style' )
+			'wp-block-paragraph-script-module-2',
+			generate_block_asset_handle( $block_name, 'scriptModule', 1 )
+		);
+		$this->assertSame(
+			'wp-block-paragraph-script-module-100',
+			generate_block_asset_handle( $block_name, 'scriptModule', 99 )
 		);
 	}
 
