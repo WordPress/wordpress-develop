@@ -101,7 +101,7 @@ final class WP_Block_Patterns_Registry {
 			return false;
 		}
 
-		if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
+		if ( ! isset( $pattern_properties['file_path'] ) || ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Pattern content must be a string.' ),
@@ -191,6 +191,13 @@ final class WP_Block_Patterns_Registry {
 		}
 
 		$pattern            = $this->registered_patterns[ $pattern_name ];
+		if ( ! $pattern['content'] && isset( $pattern['file_path'] ) ) {
+			ob_start();
+			include $pattern['file_path'];
+			$pattern['content'] = ob_get_clean();
+			$this->registered_patterns[ $pattern_name ]['content'] = $pattern['content'];
+		}
+
 		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
 
 		return $pattern;
@@ -213,6 +220,16 @@ final class WP_Block_Patterns_Registry {
 		);
 		$hooked_blocks = get_hooked_blocks();
 		foreach ( $patterns as $index => $pattern ) {
+			if ( ! $pattern['content'] && isset( $pattern['file_path'] ) ) {
+				ob_start();
+				include $pattern['file_path'];
+				$pattern['content'] = ob_get_clean();
+				if ( $outside_init_only ) {
+					$this->registered_patterns_outside_init[ $index ]['content'] = $pattern['content'];
+				} else {
+					$this->registered_patterns[ $index ]['content'] = $pattern['content'];
+				}
+			}
 			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
 		}
 		return $patterns;
