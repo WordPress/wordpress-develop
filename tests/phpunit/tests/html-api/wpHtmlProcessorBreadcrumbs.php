@@ -180,7 +180,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'HEAD',
 			'HTML',
 			'IFRAME',
-			'INPUT',
 			'LINK',
 			'MARQUEE', // Deprecated.
 			'MATH',
