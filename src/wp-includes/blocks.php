@@ -36,7 +36,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
- * @since 6.5.0 Add support for `viewScriptModule` field.
+ * @since 6.5.0 Added support for `viewScriptModule` field.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
