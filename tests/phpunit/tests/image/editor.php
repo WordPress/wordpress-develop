@@ -362,8 +362,11 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test wp_get_avif_info.
 	 *
 	 * @ticket 51228
+	 *
 	 * @dataProvider data_wp_get_avif_info
 	 *
+	 * @param string $file     The path to the AVIF file for testing.
+	 * @param array  $expected The expected AVIF file information.
 	 */
 	public function test_wp_get_avif_info( $file, $expected ) {
 		$file_data = wp_get_avif_info( $file );
