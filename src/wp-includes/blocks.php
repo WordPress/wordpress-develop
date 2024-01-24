@@ -53,6 +53,9 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 		if ( str_starts_with( $field_name, 'view' ) ) {
 			$asset_handle .= '-view';
 		}
+		if ( str_ends_with( strtolower( $field_name ), 'scriptmodule' ) ) {
+			$asset_handle .= '-script-module';
+		}
 		if ( $index > 0 ) {
 			$asset_handle .= '-' . ( $index + 1 );
 		}
