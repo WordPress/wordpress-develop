@@ -2373,7 +2373,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertArrayHasKey( 'excerpt', $data, 'Response must contain an "excerpt" key.' );
 
 		// 43 words plus the ellipsis added via the 'excerpt_more' filter.
-		$this->assertCount( 44,
+		$this->assertCount(
+			44,
 			explode( ' ', $data['excerpt']['rendered'] ),
 			'Incorrect word count in the excerpt. Expected the excerpt to contain 44 words (43 words plus an ellipsis), but a different word count was found.'
 		);
