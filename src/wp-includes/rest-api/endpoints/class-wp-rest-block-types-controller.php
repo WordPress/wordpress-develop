@@ -291,7 +291,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'editor_script_handles',
 				'script_handles',
 				'view_script_handles',
-				'view_script_modules_ids',
+				'view_script_module_ids',
 				'editor_style_handles',
 				'style_handles',
 				'view_style_handles',
