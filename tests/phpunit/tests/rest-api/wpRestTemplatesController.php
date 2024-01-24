@@ -119,6 +119,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => 0,
 				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
 			),
 			$this->find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
@@ -164,6 +166,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => 0,
 				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
 			),
 			$data
 		);
@@ -201,6 +205,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => 0,
 				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
 			),
 			$data
 		);
@@ -241,6 +247,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$data     = $response->get_data();
 		unset( $data['content'] );
 		unset( $data['_links'] );
+		$author_name = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
 
 		$this->assertSameSetsWithIndex(
 			array(
@@ -261,6 +268,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $post->post_modified ),
+				'author_text'     => $author_name,
+				'original_source' => 'user',
 			),
 			$data
 		);
@@ -442,6 +451,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
 			),
 			$data
 		);
@@ -490,6 +501,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => false,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
 			),
 			$data
 		);
@@ -542,6 +555,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $modified ),
+				'author_text'     => 'Test Blog',
+				'original_source' => 'site',
 			),
 			$data
 		);
