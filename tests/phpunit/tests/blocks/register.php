@@ -263,8 +263,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_missing_asset_file_register_block_script_module_id() {
 		$metadata = array(
-			'file'   => __FILE__,
-			'name'   => 'unit-tests/test-block',
+			'file'             => __FILE__,
+			'name'             => 'unit-tests/test-block',
 			'viewScriptModule' => 'file:./blocks/notice/missing-asset.js',
 		);
 		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
@@ -304,8 +304,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_success_register_block_script_module_id() {
 		$metadata = array(
-			'file'   => DIR_TESTDATA . '/blocks/notice/block.json',
-			'name'   => 'unit-tests/test-block',
+			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'             => 'unit-tests/test-block',
 			'viewScriptModule' => 'file:./block.js',
 		);
 		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
