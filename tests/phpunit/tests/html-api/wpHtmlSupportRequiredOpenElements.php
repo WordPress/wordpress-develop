@@ -120,13 +120,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
-
-		// These elements are specific to list item scope.
-		$this->ensure_support_is_added_everywhere( 'OL' );
-		$this->ensure_support_is_added_everywhere( 'UL' );
-
-		// This element is the only element that depends on list item scope.
-		$this->ensure_support_is_added_everywhere( 'LI' );
 	}
 
 	/**

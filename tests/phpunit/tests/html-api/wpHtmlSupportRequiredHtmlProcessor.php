@@ -58,9 +58,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::generate_implied_end_tags
 	 */
 	public function test_generate_implied_end_tags_needs_support() {
-		$this->ensure_support_is_added_everywhere( 'DD' );
-		$this->ensure_support_is_added_everywhere( 'DT' );
-		$this->ensure_support_is_added_everywhere( 'LI' );
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
 		$this->ensure_support_is_added_everywhere( 'OPTION' );
 		$this->ensure_support_is_added_everywhere( 'RB' );
@@ -82,9 +79,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	public function test_generate_implied_end_tags_thoroughly_needs_support() {
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
 		$this->ensure_support_is_added_everywhere( 'COLGROUP' );
-		$this->ensure_support_is_added_everywhere( 'DD' );
-		$this->ensure_support_is_added_everywhere( 'DT' );
-		$this->ensure_support_is_added_everywhere( 'LI' );
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
 		$this->ensure_support_is_added_everywhere( 'OPTION' );
 		$this->ensure_support_is_added_everywhere( 'RB' );

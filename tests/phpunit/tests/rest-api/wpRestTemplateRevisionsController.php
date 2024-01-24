@@ -154,9 +154,6 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			)
 		);
 		wp_set_post_terms( self::$template_post_2->ID, self::TEST_THEME, 'wp_theme' );
-
-		var_dump( self::$template_post->ID );
-		var_dump( self::$template_post_2->ID );
 	}
 
 	/**

@@ -38,8 +38,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 		$supported_elements = array(
 			'A',
 			'ABBR',
-			'ACRONYM', // Neutralized
+			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'AREA',
 			'ARTICLE',
 			'ASIDE',
 			'AUDIO',
@@ -47,13 +48,15 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'BDI',
 			'BDO',
 			'BIG',
-			'BLINK', // Deprecated
+			'BLINK', // Deprecated.
+			'BR',
 			'BUTTON',
 			'CANVAS',
-			'CENTER', // Neutralized
+			'CENTER', // Neutralized.
 			'CITE',
 			'CODE',
 			'DATA',
+			'DD',
 			'DATALIST',
 			'DFN',
 			'DEL',
@@ -62,7 +65,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'DIR',
 			'DIV',
 			'DL',
+			'DT',
 			'EM',
+			'EMBED',
 			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
@@ -76,21 +81,26 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H6',
 			'HEADER',
 			'HGROUP',
+			'HR',
 			'I',
 			'IMG',
 			'INS',
-			'ISINDEX', // Deprecated
+			'LI',
+			'ISINDEX', // Deprecated.
 			'KBD',
+			'KEYGEN', // Deprecated.
 			'LABEL',
 			'LEGEND',
+			'LISTING', // Deprecated.
 			'MAIN',
 			'MAP',
 			'MARK',
 			'MENU',
 			'METER',
-			'MULTICOL', // Deprecated
+			'MULTICOL', // Deprecated.
 			'NAV',
-			'NEXTID', // Deprecated
+			'NEXTID', // Deprecated.
+			'OL',
 			'OUTPUT',
 			'P',
 			'PICTURE',
@@ -102,7 +112,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SECTION',
 			'SLOT',
 			'SMALL',
-			'SPACER', // Deprecated
+			'SPACER', // Deprecated.
 			'SPAN',
 			'STRIKE',
 			'STRONG',
@@ -112,6 +122,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'TIME',
 			'TT',
 			'U',
+			'UL',
 			'VAR',
 			'VIDEO',
 		);
@@ -156,50 +167,37 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'APPLET', // Deprecated
-			'AREA',
+			'APPLET', // Deprecated.
 			'BASE',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BODY',
-			'BR',
 			'CAPTION',
 			'COL',
 			'COLGROUP',
-			'DD',
-			'DT',
-			'EMBED',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
-			'HR',
 			'HTML',
 			'IFRAME',
-			'INPUT',
-			'KEYGEN', // Deprecated; void
-			'LI',
 			'LINK',
-			'LISTING', // Deprecated, use PRE instead.
-			'MARQUEE', // Deprecated
+			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
-			'NOBR', // Neutralized
-			'NOEMBED', // Neutralized
-			'NOFRAMES', // Neutralized
+			'NOBR', // Neutralized.
+			'NOEMBED', // Neutralized.
+			'NOFRAMES', // Neutralized.
 			'NOSCRIPT',
 			'OBJECT',
-			'OL',
 			'OPTGROUP',
 			'OPTION',
-			'PLAINTEXT', // Neutralized
-			'PRE',
-			'RB', // Neutralized
+			'PLAINTEXT', // Neutralized.
+			'RB', // Neutralized.
 			'RP',
 			'RT',
-			'RTC', // Neutralized
+			'RTC', // Neutralized.
 			'SCRIPT',
 			'SELECT',
-			'SOURCE',
 			'STYLE',
 			'SVG',
 			'TABLE',
@@ -212,9 +210,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'THEAD',
 			'TITLE',
 			'TR',
-			'TRACK',
-			'UL',
-			'WBR',
 			'XMP', // Deprecated, use PRE instead.
 		);
 
@@ -348,6 +343,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			),
 			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
 			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
+			'LI after unclosed LI'                  => array( '<li>one<li>two<li target>three', array( 'HTML', 'BODY', 'LI' ), 3 ),
+			'LI in UL in LI'                        => array( '<ul><li>one<ul><li target>two', array( 'HTML', 'BODY', 'UL', 'LI', 'UL', 'LI' ), 1 ),
+			'DD and DT mutually close, LI self-closes (dt 2)' => array( '<dd><dd><dt><dt target><dd><li><li>', array( 'HTML', 'BODY', 'DT' ), 2 ),
+			'DD and DT mutually close, LI self-closes (dd 3)' => array( '<dd><dd><dt><dt><dd target><li><li>', array( 'HTML', 'BODY', 'DD' ), 3 ),
+			'DD and DT mutually close, LI self-closes (li 1)' => array( '<dd><dd><dt><dt><dd><li target><li>', array( 'HTML', 'BODY', 'DD', 'LI' ), 1 ),
+			'DD and DT mutually close, LI self-closes (li 2)' => array( '<dd><dd><dt><dt><dd><li><li target>', array( 'HTML', 'BODY', 'DD', 'LI' ), 2 ),
 
 			// H1 - H6 close out _any_ H1 - H6 when encountering _any_ of H1 - H6, making this section surprising.
 			'EM inside H3 after unclosed P'         => array( '<p><h3><em target>Important Message</em></h3>', array( 'HTML', 'BODY', 'H3', 'EM' ), 1 ),

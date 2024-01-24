@@ -48,8 +48,9 @@ require_once ABSPATH . WPINC . '/plugin.php';
  * If not already configured, `$blog_id` will default to 1 in a single site
  * configuration. In multisite, it will be overridden by default in ms-settings.php.
  *
- * @global int $blog_id
  * @since 2.0.0
+ *
+ * @global int $blog_id
  */
 global $blog_id;
 
@@ -103,10 +104,16 @@ wp_set_lang_dir();
 require ABSPATH . WPINC . '/formatting.php';
 require ABSPATH . WPINC . '/meta.php';
 require ABSPATH . WPINC . '/functions.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 
 /**
- * @global wpdb $wpdb WordPress database abstraction object.
  * @since 0.71
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 global $wpdb;
 // Include the wpdb class and, if present, a db.php database drop-in.
@@ -212,6 +219,8 @@ require ABSPATH . WPINC . '/block-supports/typography.php';
 require ABSPATH . WPINC . '/block-supports/settings.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/fonts.php';
+require ABSPATH . WPINC . '/class-wp-script-modules.php';
+require ABSPATH . WPINC . '/script-modules.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
@@ -225,6 +234,7 @@ $GLOBALS['wp_embed'] = new WP_Embed();
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  */
 $GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+$GLOBALS['wp_textdomain_registry']->init();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {
@@ -368,8 +378,9 @@ do_action( 'sanitize_comment_cookies' );
 /**
  * WordPress Query object
  *
- * @global WP_Query $wp_the_query WordPress Query object.
  * @since 2.0.0
+ *
+ * @global WP_Query $wp_the_query WordPress Query object.
  */
 $GLOBALS['wp_the_query'] = new WP_Query();
 
@@ -377,40 +388,45 @@ $GLOBALS['wp_the_query'] = new WP_Query();
  * Holds the reference to {@see $wp_the_query}.
  * Use this global for WordPress queries
  *
- * @global WP_Query $wp_query WordPress Query object.
  * @since 1.5.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  */
 $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
 
 /**
  * Holds the WordPress Rewrite object for creating pretty URLs
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  * @since 1.5.0
+ *
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 $GLOBALS['wp_rewrite'] = new WP_Rewrite();
 
 /**
  * WordPress Object
  *
- * @global WP $wp Current WordPress environment instance.
  * @since 2.0.0
+ *
+ * @global WP $wp Current WordPress environment instance.
  */
 $GLOBALS['wp'] = new WP();
 
 /**
  * WordPress Widget Factory Object
  *
- * @global WP_Widget_Factory $wp_widget_factory
  * @since 2.8.0
+ *
+ * @global WP_Widget_Factory $wp_widget_factory
  */
 $GLOBALS['wp_widget_factory'] = new WP_Widget_Factory();
 
 /**
  * WordPress User Roles
  *
- * @global WP_Roles $wp_roles WordPress role management object.
  * @since 2.0.0
+ *
+ * @global WP_Roles $wp_roles WordPress role management object.
  */
 $GLOBALS['wp_roles'] = new WP_Roles();
 
@@ -437,8 +453,9 @@ unset( $locale_file );
 /**
  * WordPress Locale object for loading locale domain date and various strings.
  *
- * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @since 2.1.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
 $GLOBALS['wp_locale'] = new WP_Locale();
 
@@ -451,6 +468,8 @@ $GLOBALS['wp_locale'] = new WP_Locale();
  */
 $GLOBALS['wp_locale_switcher'] = new WP_Locale_Switcher();
 $GLOBALS['wp_locale_switcher']->init();
+
+WP_Translation_Controller::instance()->set_locale( $locale );
 
 // Load the functions for the active theme, for both parent and child theme if applicable.
 foreach ( wp_get_active_and_valid_themes() as $theme ) {
