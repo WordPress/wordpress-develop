@@ -203,15 +203,15 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			generate_block_asset_handle( $block_name, 'viewScript', 99 )
 		);
 		$this->assertSame(
-			'unit-tests-my-block-view-script-module',
+			'wp-block-paragraph-view-script-module',
 			generate_block_asset_handle( $block_name, 'viewScriptModule' )
 		);
 		$this->assertSame(
-			'unit-tests-my-block-view-script-module-2',
+			'wp-block-paragraph-view-script-module-2',
 			generate_block_asset_handle( $block_name, 'viewScriptModule', 1 )
 		);
 		$this->assertSame(
-			'unit-tests-my-block-view-script-module-100',
+			'wp-block-paragraph-view-script-module-100',
 			generate_block_asset_handle( $block_name, 'viewScriptModule', 99 )
 		);
 		$this->assertSame(
@@ -316,11 +316,11 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_handle_passed_register_block_script_module_id() {
 		$metadata = array(
-			'viewScriptModule' => 'test-id',
+			'viewScriptModule' => 'test-script-module-id',
 		);
 		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
 
-		$this->assertSame( 'test-script-handle', $result );
+		$this->assertSame( 'test-script-module-id', $result );
 	}
 
 	/**
@@ -328,7 +328,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_handles_passed_register_block_script_module_ids() {
 		$metadata = array(
-			'script' => array( 'test-id', 'test-id-other' ),
+			'viewScriptModule' => array( 'test-id', 'test-id-other' ),
 		);
 
 		$result = register_block_script_module_id( $metadata, 'viewScriptModule' );
@@ -349,7 +349,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
 
-		$this->assertSame( 'tests-notice-view-script-module', $result );
+		$this->assertSame( 'unit-tests-test-block-view-script-module', $result );
 
 		// Test the behavior directly within the unit test
 		$this->assertFalse(
