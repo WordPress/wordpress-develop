@@ -6,9 +6,6 @@
  * @group i18n
  */
 class WP_Translations_Tests extends WP_UnitTestCase {
-	/**
-	 * @return void
-	 */
 	public function tear_down() {
 		unload_textdomain( 'wp-tests-domain' );
 
@@ -19,8 +16,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	 * @covers ::__construct
 	 * @covers ::__get
 	 * @covers ::make_entry
-	 *
-	 * @return void
 	 */
 	public function test_get_entries() {
 		global $l10n;
@@ -58,8 +53,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	/**
 	 * @covers ::__get
 	 * @covers ::make_entry
-	 *
-	 * @return void
 	 */
 	public function test_get_entries_plural() {
 		global $l10n;
@@ -99,8 +92,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	/**
 	 * @covers ::__get
 	 * @covers ::make_entry
-	 *
-	 * @return void
 	 */
 	public function test_get_entries_context() {
 		global $l10n;
@@ -145,8 +136,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__get
-	 *
-	 * @return void
 	 */
 	public function test_get_headers() {
 		global $l10n;
@@ -174,8 +163,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::__get
-	 *
-	 * @return void
 	 */
 	public function test_getter_unsupported_property() {
 		global $l10n;
@@ -191,8 +178,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::translate
-	 *
-	 * @return void
 	 */
 	public function test_translate() {
 		global $l10n;
@@ -214,8 +199,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::translate_plural
-	 *
-	 * @return void
 	 */
 	public function test_translate_plural() {
 		global $l10n;
@@ -239,8 +222,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::translate_plural
-	 *
-	 * @return void
 	 */
 	public function test_translate_plural_missing() {
 		global $l10n;
@@ -265,8 +246,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 	 * @covers ::translate_plural
 	 *
 	 * @ticket 41257
-	 *
-	 * @return void
 	 */
 	public function test_translate_invalid_edge_cases() {
 		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );

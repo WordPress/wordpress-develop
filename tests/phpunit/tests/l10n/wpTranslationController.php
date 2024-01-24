@@ -5,9 +5,6 @@
  * @group i18n
  */
 class WP_Translation_Controller_Tests extends WP_UnitTestCase {
-	/**
-	 * @return void
-	 */
 	public function tear_down() {
 		remove_all_filters( 'translation_file_format' );
 		unload_textdomain( 'wp-tests-domain' );
@@ -21,8 +18,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 * @covers WP_Translation_Controller::get_entries
 	 * @covers WP_Translation_Controller::get_headers
 	 * @covers WP_Translation_Controller::normalize_header
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain() {
 		global $l10n;
@@ -73,8 +68,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 * @covers WP_Translation_Controller::get_entries
 	 * @covers WP_Translation_Controller::get_headers
 	 * @covers WP_Translation_Controller::normalize_header
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_existing_override() {
 		add_filter( 'override_load_textdomain', '__return_true' );
@@ -93,8 +86,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_php_files() {
 		$load_php_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.l10n.php' );
@@ -107,8 +98,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_prefers_php_files_by_default() {
 		$load_successful = load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
@@ -131,8 +120,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_reads_php_files_if_filtered_format_is_unsupported() {
 		add_filter(
@@ -158,8 +145,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_existing_translation_is_kept() {
 		global $l10n;
@@ -183,8 +168,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_loads_existing_translation() {
 		global $l10n;
@@ -205,8 +188,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_loads_existing_translation_mo_files() {
 		global $l10n;
@@ -236,8 +217,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::load_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_load_textdomain_loads_existing_translation_php_files() {
 		global $l10n;
@@ -268,8 +247,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 * @covers WP_Translation_Controller::get_entries
 	 * @covers WP_Translation_Controller::get_headers
 	 * @covers WP_Translation_Controller::normalize_header
-	 *
-	 * @return void
 	 */
 	public function test_unload_textdomain() {
 		global $l10n;
@@ -296,8 +273,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::unload_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_unload_textdomain_existing_override() {
 		add_filter( 'override_unload_textdomain', '__return_true' );
@@ -323,8 +298,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	/**
 	 * @covers ::unload_file
 	 * @covers ::unload_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_unload_non_existent_files_and_textdomains() {
 		$controller = new WP_Translation_Controller();
@@ -338,8 +311,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	/**
 	 * @covers ::load_textdomain
 	 * @covers ::unload_textdomain
-	 *
-	 * @return void
 	 */
 	public function test_switch_to_locale_translations_stay_loaded_default_textdomain() {
 		switch_to_locale( 'es_ES' );
@@ -363,8 +334,6 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 	 * @covers ::load_textdomain
 	 * @covers ::unload_textdomain
 	 * @covers ::change_locale
-	 *
-	 * @return void
 	 */
 	public function test_switch_to_locale_translations_stay_loaded_custom_textdomain() {
 		$this->assertSame( 'en_US', WP_Translation_Controller::instance()->get_locale() );
