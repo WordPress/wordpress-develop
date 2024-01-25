@@ -3217,6 +3217,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @param array $styles An array with style definitions.
 	 * @param array $path   Path to the desired properties.
+	 *
 	 */
 	public function test_get_property_value_should_return_string_for_invalid_paths_or_null_values( $styles, $path ) {
 		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
