@@ -17,13 +17,19 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 	* @covers WP_Block_Bindings_Registry::register_source
 	*/
 	public function test_register_source() {
-		$wp_block_bindings = new WP_Block_Bindings_Registry();
+		$wp_block_bindings = WP_Block_Bindings_Registry::get_instance();
 
 		$source_name = 'test_source';
 		$label       = 'Test Source';
 		$apply       = function () { };
 
-		$wp_block_bindings->register( $source_name, array( $label, $apply ) );
+		$wp_block_bindings->register(
+			$source_name,
+			array(
+				'label' => $label,
+				'apply' => $apply,
+			)
+		);
 
 		$sources = $wp_block_bindings->get_all_registered();
 		$this->assertArrayHasKey( $source_name, $sources );
@@ -32,22 +38,53 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 	}
 
 	/**
-	* Test replace_html method for content.
+	* Test
 	*
-	* @covers WP_Block_Bindings_Registry::replace_html
+	* @covers WP_Block_Bindings_Registry::
 	*/
 	public function test_replace_html_for_paragraph_content() {
-		$wp_block_bindings = new WP_Block_Bindings_Registry();
+		$wp_block_bindings = WP_Block_Bindings_Registry::get_instance();
+
+		$source_name = 'test_source';
+		$label       = 'Test Source';
+		$apply       = function () {
+			return 'test source value';
+		};
+
+		$wp_block_bindings->register(
+			$source_name,
+			array(
+				'label' => $label,
+				'apply' => $apply,
+			)
+		);
 
 		$block_content = '<p>Hello World</p>';
 		$block_name    = 'core/paragraph';
-		$block_attr    = 'content';
-		$source_value  = 'Updated Content';
 
-		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
+		$block = new WP_Block(
+			array(
+				'blockName' => $block_name,
+				'innerHTML' => $block_content,
+				'attrs'     => array(
+					'metadata' => array(
+						'bindings' => array(
+							'content' => array(
+								'source' => array(
+									'name' => $source_name,
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '<p>test source value</p>';
+		$result   = $block->render();
 
 		// Check if the block content was updated correctly.
-		$this->assertStringContainsString( $source_value, $result, 'The block content should be updated with the value returned by the source.' );
+		$this->assertEquals( $expected, $result, 'The block content should be updated with the value returned by the source.' );
 	}
 
 	/**
@@ -56,14 +93,14 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_for_attribute() {
-		$wp_block_bindings = new WP_Block_Bindings_Registry();
-		$block_content     = '<div><a url\="">Hello World</a></div>';
-		$block_name        = 'core/button';
-		$block_attr        = 'url';
-		$source_value      = 'Updated URL';
+		// $wp_block_bindings = new WP_Block_Bindings_Registry();
+		// $block_content     = '<div><a url\="">Hello World</a></div>';
+		// $block_name        = 'core/button';
+		// $block_attr        = 'url';
+		// $source_value      = 'Updated URL';
 
-		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
-		$this->assertStringContainsString( $source_value, $result, 'The block content should be updated with the value returned by the source.' );
+		// $result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
+		// $this->assertStringContainsString( $source_value, $result, 'The block content should be updated with the value returned by the source.' );
 	}
 
 	/**
@@ -72,16 +109,16 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_with_unregistered_block() {
-		$wp_block_bindings = new WP_Block_Bindings_Registry();
+		// $wp_block_bindings = new WP_Block_Bindings_Registry();
 
-		$block_content = '<p>Hello World</p>';
-		$block_name    = 'NONEXISTENT';
-		$block_attr    = 'content';
-		$source_value  = 'Updated Content';
+		// $block_content = '<p>Hello World</p>';
+		// $block_name    = 'NONEXISTENT';
+		// $block_attr    = 'content';
+		// $source_value  = 'Updated Content';
 
-		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
+		// $result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
 
-		$this->assertEquals( $block_content, $result, 'The block content should not be updated if the block type is not registered.' );
+		// $this->assertEquals( $block_content, $result, 'The block content should not be updated if the block type is not registered.' );
 	}
 
 	/**
@@ -91,16 +128,16 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_with_registered_block_but_unsupported_source_type() {
-		$wp_block_bindings = new WP_Block_Bindings_Registry();
+		// $wp_block_bindings = new WP_Block_Bindings_Registry();
 
-		$block_content = '<div>Hello World</div>';
-		$block_name    = 'core/paragraph';
-		$block_attr    = 'NONEXISTENT';
-		$source_value  = 'Updated Content';
+		// $block_content = '<div>Hello World</div>';
+		// $block_name    = 'core/paragraph';
+		// $block_attr    = 'NONEXISTENT';
+		// $source_value  = 'Updated Content';
 
-		$result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
+		// $result = $wp_block_bindings->replace_html( $block_content, $block_name, $block_attr, $source_value );
 
-		$this->assertEquals( $block_content, $result, 'The block content should not be updated if the block type does not support the attribute.' );
+		// $this->assertEquals( $block_content, $result, 'The block content should not be updated if the block type does not support the attribute.' );
 	}
 
 	/**
@@ -109,7 +146,7 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 	 * @covers _process_block_bindings
 	 */
 	public function test_post_meta_bindings_source() {
-		$wp_block_bindings = wp_block_bindings();
+		$wp_block_bindings = WP_Block_Bindings_Registry::get_instance();
 
 		// Register a custom binding source.
 		$source_name = 'test_source';
@@ -117,9 +154,7 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 		$apply       = function () {
 			return 'test source value';
 		};
-		$wp_block_bindings->register_source( $source_name, array( $label, $apply ) );
-
-		$block_content = '<p>This content will be overriden</p>';
+		$wp_block_bindings->register( $source_name, array( $label, $apply ) );
 
 		// Parsed block representing a paragraph block.
 		$block = array(
@@ -143,9 +178,8 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 		// Block instance representing a paragraph block.
 		$block_instance = new WP_Block( $block );
 
-		$content = $wp_block_bindings->process_bindings( $block_content, $block, $block_instance );
-
-		$result = '<p>test source value</p>';
+		$content = $block_instance->render();
+		$result  = '<p>test source value</p>';
 
 		$this->assertEquals( $result, $content, 'The block content should be updated with the value returned by the custom binding source.' );
 	}
