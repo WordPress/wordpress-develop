@@ -222,6 +222,9 @@ final class WP_Block_Patterns_Registry {
 		);
 		$hooked_blocks = get_hooked_blocks();
 		foreach ( $patterns as $index => $pattern ) {
+			if ( ! isset( $pattern['name'] ) ) {
+				continue;
+			}
 			if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
 				ob_start();
 				include $pattern['file_path'];
