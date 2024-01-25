@@ -19,7 +19,14 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @param bool  $expected The expected result.
 	 */
 	public function test_is_wp_version_compatible( $required, $expected ) {
+		// Clear error handler so test continues after wp_trigger_error().
+		set_error_handler(
+			function () {
+				return true;
+			}
+		);
 		$this->assertSame( $expected, is_wp_version_compatible( $required ) );
+		restore_error_handler();
 	}
 
 	/**
