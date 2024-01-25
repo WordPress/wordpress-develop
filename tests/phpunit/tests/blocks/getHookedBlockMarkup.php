@@ -31,8 +31,16 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 		);
 
 		$actual = get_hooked_block_markup( self::HOOKED_BLOCK, self::HOOKED_BLOCK_TYPE, $anchor_block );
-		$this->assertSame( array( self::HOOKED_BLOCK_TYPE ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
-		$this->assertSame( '<!-- wp:' . self::HOOKED_BLOCK['blockName'] . ' /-->', $actual );
+		$this->assertSame(
+			array( self::HOOKED_BLOCK_TYPE ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"Hooked block type wasn't added to ignoredHookedBlocks metadata."
+		);
+		$this->assertSame(
+			'<!-- wp:' . self::HOOKED_BLOCK['blockName'] . ' /-->',
+			$actual,
+			"Markup for hooked block wasn't generated correctly."
+		);
 	}
 
 	/**
@@ -53,8 +61,16 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 		);
 
 		$actual = get_hooked_block_markup( self::HOOKED_BLOCK, self::HOOKED_BLOCK_TYPE, $anchor_block );
-		$this->assertSame( array( self::HOOKED_BLOCK_TYPE ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
-		$this->assertSame( '', $actual );
+		$this->assertSame(
+			array( self::HOOKED_BLOCK_TYPE ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"ignoredHookedBlocks metadata shouldn't have been modified."
+		);
+		$this->assertSame(
+			'',
+			$actual,
+			"No markup should've been generated for ignored hooked block."
+		);
 	}
 
 	/**
@@ -82,7 +98,15 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 		);
 
 		$actual = get_hooked_block_markup( $other_hooked_block, $other_hooked_block_type, $anchor_block );
-		$this->assertSame( array( self::HOOKED_BLOCK_TYPE, $other_hooked_block_type ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
-		$this->assertSame( '<!-- wp:' . $other_hooked_block_type . ' /-->', $actual );
+		$this->assertSame(
+			array( self::HOOKED_BLOCK_TYPE, $other_hooked_block_type ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"Newly hooked block should've been added to ignoredHookedBlocks metadata while retaining previously ignored one."
+		);
+		$this->assertSame(
+			'<!-- wp:' . $other_hooked_block_type . ' /-->',
+			$actual,
+			"Markup for newly hooked block should've been generated."
+		);
 	}
 }
