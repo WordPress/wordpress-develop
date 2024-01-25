@@ -110,7 +110,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom'                   => '18.2.0',
 		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
-		'lodash'                      => '4.17.19',
+		'lodash'                      => '4.17.21',
 		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
@@ -1881,6 +1881,8 @@ function wp_prototype_before_jquery( $js_array ) {
  * These localizations require information that may not be loaded even by init.
  *
  * @since 2.5.0
+ *
+ * @global array $shortcode_tags
  */
 function wp_just_in_time_script_localization() {
 
@@ -2584,7 +2586,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
 		return false;
 	}
 
@@ -2877,7 +2879,17 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 *
 	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
 	 */
-	if ( ! $is_html5 ) {
+	if (
+		! $is_html5 &&
+		(
+			! isset( $attributes['type'] ) ||
+			'module' === $attributes['type'] ||
+			str_contains( $attributes['type'], 'javascript' ) ||
+			str_contains( $attributes['type'], 'ecmascript' ) ||
+			str_contains( $attributes['type'], 'jscript' ) ||
+			str_contains( $attributes['type'], 'livescript' )
+		)
+	) {
 		/*
 		 * If the string `]]>` exists within the JavaScript it would break
 		 * out of any wrapping CDATA section added here, so to start, it's
