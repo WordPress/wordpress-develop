@@ -933,6 +933,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * Ensure embedding is with links in the data.
+	 *
+	 * @ticket 43439
 	 */
 	public function test_link_embedding_with_links() {
 		$data = array(
