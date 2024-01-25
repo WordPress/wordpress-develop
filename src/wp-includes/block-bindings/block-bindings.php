@@ -31,9 +31,13 @@
  * @return void
  */
 function wp_block_bindings_register_source( $source_name, array $source_properties ) {
-	WP_Block_Bindings_Registry::get_instance()->register( $source_name, $source_properties );
+	add_action(
+		'init',
+		function () use ( $source_name, $source_properties ) {
+			WP_Block_Bindings_Registry::get_instance()->register( $source_name, $source_properties );
+		}
+	);
 }
-
 
 /**
  * Retrieves the list of registered block sources.
