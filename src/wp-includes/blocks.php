@@ -845,7 +845,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
 		 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
 		 */
-		$hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
 
 		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
 		// so we need to pass the original $hooked_block_type as well.
