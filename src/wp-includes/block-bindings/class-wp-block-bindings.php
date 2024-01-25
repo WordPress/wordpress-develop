@@ -1,6 +1,6 @@
 <?php
 /**
- * Block Bindings API: WP_Block_Bindings class.
+ * Block Bindings API: WP_Block_Bindings_Registry class.
  *
  * Support for overriding content in blocks by connecting them to different sources.
  *

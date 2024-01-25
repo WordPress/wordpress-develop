@@ -1,31 +1,31 @@
 <?php
 /**
- * Unit tests covering WP_Block_Bindings functionality.
+ * Unit tests covering WP_Block_Bindings_Registry functionality.
  *
  * @group block-bindings
  *
- * @covers WP_Block_Bindings
+ * @covers WP_Block_Bindings_Registry
  *
  * @since 6.5.0
  * @package WordPress
  */
-class WP_Block_Bindings_Test extends WP_UnitTestCase {
+class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 
 	/**
 	* Test register_source method.
 	*
-	* @covers WP_Block_Bindings::register_source
+	* @covers WP_Block_Bindings_Registry::register_source
 	*/
 	public function test_register_source() {
-		$wp_block_bindings = new WP_Block_Bindings();
+		$wp_block_bindings = new WP_Block_Bindings_Registry();
 
 		$source_name = 'test_source';
 		$label       = 'Test Source';
 		$apply       = function () { };
 
-		$wp_block_bindings->register_source( $source_name, array( $label, $apply ) );
+		$wp_block_bindings->register( $source_name, array( $label, $apply ) );
 
-		$sources = $wp_block_bindings->get_sources();
+		$sources = $wp_block_bindings->get_all_registered();
 		$this->assertArrayHasKey( $source_name, $sources );
 		$this->assertEquals( $label, $sources[ $source_name ]['label'], 'The label should match the one in the registered source' );
 		$this->assertEquals( $apply, $sources[ $source_name ]['apply'], 'The apply callback should match the one in the registered source' );
@@ -34,10 +34,10 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 	/**
 	* Test replace_html method for content.
 	*
-	* @covers WP_Block_Bindings::replace_html
+	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_for_paragraph_content() {
-		$wp_block_bindings = new WP_Block_Bindings();
+		$wp_block_bindings = new WP_Block_Bindings_Registry();
 
 		$block_content = '<p>Hello World</p>';
 		$block_name    = 'core/paragraph';
@@ -53,10 +53,10 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 	/**
 	* Test replace_html method for attributes.
 	*
-	* @covers WP_Block_Bindings::replace_html
+	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_for_attribute() {
-		$wp_block_bindings = new WP_Block_Bindings();
+		$wp_block_bindings = new WP_Block_Bindings_Registry();
 		$block_content     = '<div><a url\="">Hello World</a></div>';
 		$block_name        = 'core/button';
 		$block_attr        = 'url';
@@ -69,10 +69,10 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 	/**
 	* Test case for scenarios where block type is not registered.
 	*
-	* @covers WP_Block_Bindings::replace_html
+	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_with_unregistered_block() {
-		$wp_block_bindings = new WP_Block_Bindings();
+		$wp_block_bindings = new WP_Block_Bindings_Registry();
 
 		$block_content = '<p>Hello World</p>';
 		$block_name    = 'NONEXISTENT';
@@ -88,10 +88,10 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 	* Test case for scenarios where block is registered but attribute does not
 	* exist on block type.
 	*
-	* @covers WP_Block_Bindings::replace_html
+	* @covers WP_Block_Bindings_Registry::replace_html
 	*/
 	public function test_replace_html_with_registered_block_but_unsupported_source_type() {
-		$wp_block_bindings = new WP_Block_Bindings();
+		$wp_block_bindings = new WP_Block_Bindings_Registry();
 
 		$block_content = '<div>Hello World</div>';
 		$block_name    = 'core/paragraph';
