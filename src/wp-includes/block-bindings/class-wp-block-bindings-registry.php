@@ -63,7 +63,7 @@ class WP_Block_Bindings_Registry {
 	}
 
 	/**
-	 * Retrieves the list of registered block sources.
+	 * Retrieves the list of registered block bindings sources.
 	 *
 	 * @since 6.5.0
 	 *
@@ -71,6 +71,34 @@ class WP_Block_Bindings_Registry {
 	 */
 	public function get_all_registered() {
 		return $this->sources;
+	}
+
+	/**
+	 * Retrieves a registered block bindings source.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $source_name The name of the source.
+	 * @return bool True if the source is registered, false otherwise.
+	 */
+	public function get_registered( $source_name ) {
+		if ( ! $this->is_registered( $source_name ) ) {
+			return null;
+		}
+
+		return $this->sources[ $source_name ];
+	}
+
+	/**
+	 * Checks if a block source is registered.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $source_name The name of the source.
+	 * @return bool True if the source is registered, false otherwise.
+	 */
+	public function is_registered( $source_name ) {
+		return isset( $this->sources[ $source_name ] );
 	}
 
 	/**
