@@ -375,6 +375,8 @@ require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
 
+WP_Script_Modules::get_instance()->add_hooks();
+
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 /**

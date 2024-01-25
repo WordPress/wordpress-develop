@@ -9,25 +9,6 @@
  */
 
 /**
- * Retrieves the main WP_Script_Modules instance.
- *
- * This function provides access to the WP_Script_Modules instance, creating one
- * if it doesn't exist yet.
- *
- * @since 6.5.0
- *
- * @return WP_Script_Modules The main WP_Script_Modules instance.
- */
-function wp_script_modules(): WP_Script_Modules {
-	static $instance = null;
-	if ( is_null( $instance ) ) {
-		$instance = new WP_Script_Modules();
-		$instance->add_hooks();
-	}
-	return $instance;
-}
-
-/**
  * Registers the script module if no script module with that script module
  * identifier has already been registered.
  *
@@ -59,7 +40,7 @@ function wp_script_modules(): WP_Script_Modules {
  *                                    If $version is set to null, no version is added.
  */
 function wp_register_script_module( string $id, string $src, array $deps = array(), $version = false ) {
-	wp_script_modules()->register( $id, $src, $deps, $version );
+	WP_Script_Modules::get_instance()->register( $id, $src, $deps, $version );
 }
 
 /**
@@ -96,7 +77,7 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  *                                    If $version is set to null, no version is added.
  */
 function wp_enqueue_script_module( string $id, string $src = '', array $deps = array(), $version = false ) {
-	wp_script_modules()->enqueue( $id, $src, $deps, $version );
+	WP_Script_Modules::get_instance()->enqueue( $id, $src, $deps, $version );
 }
 
 /**
@@ -107,5 +88,5 @@ function wp_enqueue_script_module( string $id, string $src = '', array $deps = a
  * @param string $id The identifier of the script module.
  */
 function wp_dequeue_script_module( string $id ) {
-	wp_script_modules()->dequeue( $id );
+	WP_Script_Modules::get_instance()->dequeue( $id );
 }

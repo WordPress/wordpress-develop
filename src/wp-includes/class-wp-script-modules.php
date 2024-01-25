@@ -31,6 +31,31 @@ class WP_Script_Modules {
 	private $enqueued_before_registered = array();
 
 	/**
+	 * Container for the main instance of the class.
+	 *
+	 * @since 6.5.0
+	 * @var WP_Script_Modules|null
+	 */
+	private static $instance = null;
+
+	/**
+	 * Utility method to retrieve the main instance of the class.
+	 *
+	 * The instance will be created if it does not exist yet.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return WP_Script_Modules The main instance.
+	 */
+	public static function get_instance(): WP_Script_Modules {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
