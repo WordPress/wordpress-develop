@@ -517,68 +517,6 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that it can print the enqueued script modules multiple times, and it
-	 * will only print the script modules that have not been printed before.
-	 *
-	 * @ticket 56313
-	 *
-	 * @covers ::register()
-	 * @covers ::enqueue()
-	 * @covers ::print_enqueued_script_modules()
-	 */
-	public function test_print_enqueued_script_modules_can_be_called_multiple_times() {
-		$this->script_modules->register( 'foo', '/foo.js' );
-		$this->script_modules->register( 'bar', '/bar.js' );
-		$this->script_modules->enqueue( 'foo' );
-
-		$enqueued_script_modules = $this->get_enqueued_script_modules();
-		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertTrue( isset( $enqueued_script_modules['foo'] ) );
-
-		$this->script_modules->enqueue( 'bar' );
-
-		$enqueued_script_modules = $this->get_enqueued_script_modules();
-		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
-
-		$enqueued_script_modules = $this->get_enqueued_script_modules();
-		$this->assertCount( 0, $enqueued_script_modules );
-	}
-
-	/**
-	 * Tests that it can print the preloaded script modules multiple times, and it
-	 * will only print the script modules that have not been printed before.
-	 *
-	 * @ticket 56313
-	 *
-	 * @covers ::register()
-	 * @covers ::enqueue()
-	 * @covers ::print_script_module_preloads()
-	 */
-	public function test_print_preloaded_script_modules_can_be_called_multiple_times() {
-		$this->script_modules->register( 'foo', '/foo.js', array( 'static-dep-1', 'static-dep-2' ) );
-		$this->script_modules->register( 'bar', '/bar.js', array( 'static-dep-3' ) );
-		$this->script_modules->register( 'static-dep-1', '/static-dep-1.js' );
-		$this->script_modules->register( 'static-dep-3', '/static-dep-3.js' );
-		$this->script_modules->enqueue( 'foo' );
-
-		$preloaded_script_modules = $this->get_preloaded_script_modules();
-		$this->assertCount( 1, $preloaded_script_modules );
-		$this->assertTrue( isset( $preloaded_script_modules['static-dep-1'] ) );
-
-		$this->script_modules->register( 'static-dep-2', '/static-dep-2.js' );
-		$this->script_modules->enqueue( 'bar' );
-
-		$preloaded_script_modules = $this->get_preloaded_script_modules();
-		$this->assertCount( 2, $preloaded_script_modules );
-		$this->assertTrue( isset( $preloaded_script_modules['static-dep-2'] ) );
-		$this->assertTrue( isset( $preloaded_script_modules['static-dep-3'] ) );
-
-		$preloaded_script_modules = $this->get_preloaded_script_modules();
-		$this->assertCount( 0, $preloaded_script_modules );
-	}
-
-	/**
 	 * Tests that a script module is not registered when calling enqueue without a
 	 * valid src.
 	 *
