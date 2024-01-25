@@ -4304,6 +4304,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$theme_json->set_spacing_sizes();
+
+		restore_error_handler();
+
 		$this->assertSame( $expected_output, _wp_array_get( $theme_json->get_raw_data(), array( 'settings', 'spacing', 'spacingSizes', 'default' ) ) );
 	}
 
