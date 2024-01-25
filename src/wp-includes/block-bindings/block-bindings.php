@@ -63,16 +63,17 @@ function wp_block_bindings_get_sources() {
 
 
 /**
- * Replaces the HTML content of a block based on the provided source value.
+* Wrapper for the WP_Block_Bindings process method, which is used
+ * process mappings between an attribute of a block and a source.
+ * Please see the WP_Block_Bindings::process method for more details.
  *
+ * @access public
  * @since 6.5.0
  *
- * @param string $block_content Block content.
- * @param string $block_name The name of the block to process.
- * @param string $block_attr The attribute of the block we want to process.
- * @param string $source_value The value used to replace the HTML.
- * @return string The modified block content.
+ * @param string   $block_content Block content.
+ * @param array    $block The full block, including name and attributes.
+ * @param WP_Block $block_instance The block instance.
  */
-function wp_block_bindings_replace_html( string $block_content, string $block_name, string $block_attr, string $source_value ) {
-	return wp_block_bindings()->replace_html( $block_content, $block_name, $block_attr, $source_value );
+function wp_block_bindings_process_bindings( $block_content, $block, $block_instance ) {
+	return wp_block_bindings()->process_bindings( $block_content, $block, $block_instance );
 }

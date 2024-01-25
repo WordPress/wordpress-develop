@@ -143,7 +143,7 @@ class WP_Block_Bindings_Test extends WP_UnitTestCase {
 		// Block instance representing a paragraph block.
 		$block_instance = new WP_Block( $block );
 
-		$content = _process_block_bindings( $block_content, $block, $block_instance );
+		$content = $wp_block_bindings->process_bindings( $block_content, $block, $block_instance );
 
 		$result = '<p>test source value</p>';
 

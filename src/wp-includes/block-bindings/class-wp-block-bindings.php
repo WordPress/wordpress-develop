@@ -55,6 +55,99 @@ class WP_Block_Bindings {
 	}
 
 	/**
+	 * Processes the block bindings in block's attributes.
+	 *
+	 * A block might contain bindings in its attributes. Bindings are mappings
+	 * between an attribute of the block and a source. A "source" is a function
+	 * registered with `wp_block_bindings_register_source()` that defines how to
+	 * retrieve a value from outside the block, e.g. from post meta.
+	 *
+	 * This function will process those bindings and replace the HTML with the value of the binding.
+	 * The value is retrieved from the source of the binding.
+	 *
+	 * ### Example
+	 *
+	 * The "bindings" property for an Image block might look like this:
+	 *
+	 * ```json
+	 * {
+	 *   "metadata": {
+	 *     "bindings": {
+	 *       "title": {
+	 *         "source": {
+	 *           "name": "post_meta",
+	 *           "attributes": { "value": "text_custom_field" }
+	 *         }
+	 *       },
+	 *       "url": {
+	 *         "source": {
+	 *           "name": "post_meta",
+	 *           "attributes": { "value": "url_custom_field" }
+	 *         }
+	 *       }
+	 *     }
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * The above example will replace the `title` and `url` attributes of the Image
+	 * block with the values of the `text_custom_field` and `url_custom_field` post meta.
+	 *
+	 * @access private
+	 * @since 6.5.0
+	 *
+	 * @param string   $block_content Block content.
+	 * @param array    $block The full block, including name and attributes.
+	 * @param WP_Block $block_instance The block instance.
+	 */
+	private function process( $block_content, $block, $block_instance ) {
+
+		// Allowed blocks that support block bindings.
+		// TODO: Look for a mechanism to opt-in for this. Maybe adding a property to block attributes?
+		$allowed_blocks = array(
+			'core/paragraph' => array( 'content' ),
+			'core/heading'   => array( 'content' ),
+			'core/image'     => array( 'url', 'title', 'alt' ),
+			'core/button'    => array( 'url', 'text' ),
+		);
+
+		// If the block doesn't have the bindings property or isn't one of the allowed block types, return.
+		if ( ! isset( $block['attrs']['metadata']['bindings'] ) || ! isset( $allowed_blocks[ $block_instance->name ] ) ) {
+			return $block_content;
+		}
+
+		$modified_block_content = $block_content;
+		foreach ( $block['attrs']['metadata']['bindings'] as $binding_attribute => $binding_source ) {
+
+			// If the attribute is not in the list, process next attribute.
+			if ( ! in_array( $binding_attribute, $allowed_blocks[ $block_instance->name ], true ) ) {
+				continue;
+			}
+			// If no source is provided, or that source is not registered, process next attribute.
+			if ( ! isset( $binding_source['source'] ) || ! isset( $binding_source['source']['name'] ) || ! isset( $this->sources[ $binding_source['source']['name'] ] ) ) {
+				continue;
+			}
+
+			$source_callback = $this->sources[ $binding_source['source']['name'] ]['apply'];
+			// Get the value based on the source.
+			if ( ! isset( $binding_source['source']['attributes'] ) ) {
+				$source_args = array();
+			} else {
+				$source_args = $binding_source['source']['attributes'];
+			}
+			$source_value = $source_callback( $source_args, $block_instance, $binding_attribute );
+			// If the value is null, process next attribute.
+			if ( is_null( $source_value ) ) {
+				continue;
+			}
+
+			// Process the HTML based on the block and the attribute.
+			$modified_block_content = $this->replace_html( $modified_block_content, $block_instance->name, $binding_attribute, $source_value );
+		}
+		return $modified_block_content;
+	}
+
+	/**
 	 * Depending on the block attributes, replace the HTML based on the value returned by the source.
 	 *
 	 * @since 6.5.0
@@ -64,7 +157,7 @@ class WP_Block_Bindings {
 	 * @param string $block_attr The attribute of the block we want to process.
 	 * @param string $source_value The value used to replace the HTML.
 	 */
-	public function replace_html( string $block_content, string $block_name, string $block_attr, string $source_value ) {
+	private function replace_html( string $block_content, string $block_name, string $block_attr, string $source_value ) {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 		if ( null === $block_type || ! isset( $block_type->attributes[ $block_attr ] ) ) {
 			return $block_content;
@@ -168,4 +261,21 @@ class WP_Block_Bindings {
 	public function get_sources() {
 		return $this->sources;
 	}
+
+	/**
+	 * Wrapper for the WP_Block_Bindings process method, which is used
+	 * process mappings between an attribute of a block and a source.
+	 * Please see the WP_Block_Bindings::process method for more details.
+	 *
+	 * @access public
+	 * @since 6.5.0
+	 *
+	 * @param string   $block_content Block content.
+	 * @param array    $block The full block, including name and attributes.
+	 * @param WP_Block $block_instance The block instance.
+	 */
+	public function process_bindings( $block_content, $block, $block_instance ) {
+		return $this->process( $block_content, $block, $block_instance );
+	}
+
 }
