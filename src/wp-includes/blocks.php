@@ -800,15 +800,15 @@ function get_hooked_block_markup( $hooked_block, $hooked_block_type, &$anchor_bl
  * @since 6.5.0
  * @access private
  *
- * @param array                   $anchor_block      The anchor block.
- * @param string                  $relative_position The relative position of the hooked blocks.
- *                                                   Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                   $hooked_blocks     An array of hooked blocks, grouped by anchor block and relative position.
- * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
+ * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                  $relative_position   The relative position of the hooked blocks.
+ *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks       An array of hooked blocks, grouped by anchor block and relative position.
+ * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
  * @return string
  */
-function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_blocks, $context ) {
-	$anchor_block_type  = $anchor_block['blockName'];
+function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
 	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 		: array();
@@ -828,7 +828,7 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 
 	$markup = '';
 	foreach ( $hooked_block_types as $hooked_block_type ) {
-		$hooked_block = array(
+		$parsed_hooked_block = array(
 			'blockName'    => $hooked_block_type,
 			'attrs'        => array(),
 			'innerBlocks'  => array(),
@@ -840,16 +840,16 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param array                   $hooked_block      The parsed block array for the given hooked block type.
-		 * @param string                  $relative_position The relative position of the hooked block.
-		 * @param array                   $anchor_block      The anchor block, in parsed block array format.
-		 * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
+		 * @param array                   $parsed_hooked_block The parsed block array for the given hooked block type.
+		 * @param string                  $relative_position   The relative position of the hooked block.
+		 * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
+		 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
 		 */
-		$hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $hooked_block, $relative_position, $anchor_block, $context );
+		$hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
 
 		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
 		// so we need to pass the original $hooked_block_type as well.
-		$markup .= get_hooked_block_markup( $hooked_block, $hooked_block_type, $anchor_block );
+		$markup .= get_hooked_block_markup( $parsed_hooked_block, $hooked_block_type, $parsed_anchor_block );
 	}
 
 	return $markup;
