@@ -8,21 +8,6 @@
  * @package WordPress
  */
 
-/**
- * Retrieves the singleton instance of WP_Block_Bindings.
- *
- * @since 6.5.0
- *
- * @return WP_Block_Bindings The WP_Block_Bindings instance.
- */
-function wp_block_bindings() {
-	static $instance = null;
-	if ( is_null( $instance ) ) {
-		$instance = new WP_Block_Bindings_Registry();
-	}
-	return $instance;
-}
-
 
 /**
  * Registers a new source for block bindings.
@@ -46,7 +31,7 @@ function wp_block_bindings() {
  * @return void
  */
 function wp_block_bindings_register_source( $source_name, array $source_args ) {
-	wp_block_bindings()->register_block_bindings_source( $source_name, $source_args );
+	WP_Block_Bindings_Registry::get_instance()->register_block_bindings_source( $source_name, $source_args );
 }
 
 
@@ -58,7 +43,7 @@ function wp_block_bindings_register_source( $source_name, array $source_args ) {
  * @return array The list of registered block sources.
  */
 function wp_block_bindings_get_all_registered() {
-	return wp_block_bindings()->get_all_registered();
+	return WP_Block_Bindings_Registry::get_instance()->get_all_registered();
 }
 
 
@@ -75,5 +60,5 @@ function wp_block_bindings_get_all_registered() {
  * @param WP_Block $block_instance The block instance.
  */
 function wp_block_bindings_process_bindings( $block_content, $block, $block_instance ) {
-	return wp_block_bindings()->process_bindings( $block_content, $block, $block_instance );
+	return WP_Block_Bindings_Registry::get_instance()->process_bindings( $block_content, $block, $block_instance );
 }

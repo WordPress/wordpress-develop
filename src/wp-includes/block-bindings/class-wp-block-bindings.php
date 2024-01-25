@@ -25,6 +25,14 @@ class WP_Block_Bindings_Registry {
 	private $sources = array();
 
 	/**
+	 * Container for the main instance of the class.
+	 *
+	 * @since 6.5.0
+	 * @var WP_Block_Bindings_Registry|null
+	 */
+	private static $instance = null;
+
+	/**
 	 * Function to register a new block binding source.
 	 *
 	 * Sources are used to override block's original attributes with a value
@@ -278,4 +286,20 @@ class WP_Block_Bindings_Registry {
 		return $this->process( $block_content, $block, $block_instance );
 	}
 
+	/**
+	 * Utility method to retrieve the main instance of the class.
+	 *
+	 * The instance will be created if it does not exist yet.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return WP_Block_Bindings_Registry The WP_Block_Bindings_Registry instance.
+	 */
+	public static function get_instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
 }
