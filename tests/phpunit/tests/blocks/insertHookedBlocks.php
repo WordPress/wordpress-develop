@@ -11,21 +11,9 @@
  * @group block-hooks
  */
 class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
-	const ANCHOR_BLOCK_TYPE = 'tests/anchor-block';
-
-	const HOOKED_BLOCK_TYPE = 'tests/hooked-block';
-	const HOOKED_BLOCK      = array(
-		'blockName'    => 'tests/different-hooked-block',
-		'attrs'        => array(),
-		'innerContent' => array(),
-	);
-
+	const ANCHOR_BLOCK_TYPE       = 'tests/anchor-block';
+	const HOOKED_BLOCK_TYPE       = 'tests/hooked-block';
 	const OTHER_HOOKED_BLOCK_TYPE = 'tests/other-hooked-block';
-	const OTHER_HOOKED_BLOCK      = array(
-		'blockName'    => self::OTHER_HOOKED_BLOCK_TYPE,
-		'attrs'        => array(),
-		'innerContent' => array(),
-	);
 
 	const HOOKED_BLOCKS = array(
 		self::ANCHOR_BLOCK_TYPE => array(
