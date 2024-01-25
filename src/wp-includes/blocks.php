@@ -842,7 +842,7 @@ function insert_hooked_blocks( &$anchor_block, $relative_position, $hooked_block
 		 *
 		 * @param array                   $hooked_block      The parsed block array for the given hooked block type.
 		 * @param string                  $relative_position The relative position of the hooked block.
-		 * @param array                   $anchor_block      The anchor block.
+		 * @param array                   $anchor_block      The anchor block, in parsed block array format.
 		 * @param WP_Block_Template|array $context           The block template, template part, or pattern that the anchor block belongs to.
 		 */
 		$hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $hooked_block, $relative_position, $anchor_block, $context );
