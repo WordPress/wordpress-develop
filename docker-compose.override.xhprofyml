@@ -1,0 +1,49 @@
+services:
+
+  ##
+  # The PHP container.
+  ##
+  php:
+    image: spacedmonkey/php-xhprof:${LOCAL_PHP-latest}
+
+    depends_on:
+      - mysql
+      - xhgui
+
+  xhgui:
+    # https://hub.docker.com/r/spacedmonkey/xhgui/tags
+    image: spacedmonkey/xhgui:latest
+    restart: always
+    environment:
+      - XHGUI_MONGO_HOSTNAME=mongo
+      - XHGUI_MONGO_DATABASE=xhprof
+    ports:
+      - "8142:80"
+    depends_on:
+      - mongo
+    networks:
+      - wpdevnet
+
+  mongo:
+    # https://hub.docker.com/r/spacedmonkey/mongodb/tags
+    image: spacedmonkey/mongodb:latest
+    # (case sensitive) engine: mmapv1, rocksdb, wiredTiger, inMemory
+    command: --storageEngine=wiredTiger
+    restart: always
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - wpdevnet
+
+volumes:
+  # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
+  mysql: {}
+  webroot-share:
+  mongodb:
+
+networks:
+  # Creating our own network allows us to connect between containers using their service name.
+  wpdevnet:
+    driver: bridge

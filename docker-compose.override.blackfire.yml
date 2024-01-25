@@ -1,0 +1,24 @@
+services:
+  wordpress-develop:
+    depends_on:
+      - php
+      - blackfire
+
+  php:
+    image: spacedmonkey/php-blackfire:${LOCAL_PHP-latest}
+    environment:
+      - PHP_BLACKFIRE=1
+      - BLACKFIRE_CLIENT_ID=${BLACKFIRE_CLIENT_ID-}
+      - BLACKFIRE_CLIENT_TOKEN=${BLACKFIRE_CLIENT_TOKEN-}
+
+  blackfire:
+    image: blackfire/blackfire:2
+    networks:
+      - wpdevnet
+    ports: ["8307"]
+    environment:
+      BLACKFIRE_LOG_LEVEL: 4
+      BLACKFIRE_SERVER_ID: 03424e4c-7981-4942-addb-233c73694fc5
+      BLACKFIRE_SERVER_TOKEN: 34e5704da87f1223b3cbdb605bfb0d62dc0c5bd05aa54bee7667f880f8435f40
+      BLACKFIRE_CLIENT_ID: 4dc40046-3147-43de-b653-d8fc81af89d4
+      BLACKFIRE_CLIENT_TOKEN: 05ba27e41bdc213ec87c1babc9cf09667245e27f61e7080d7cf2246f05cae739
