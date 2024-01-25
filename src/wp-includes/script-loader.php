@@ -2586,7 +2586,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
 		return false;
 	}
 
@@ -2879,7 +2879,17 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 *
 	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
 	 */
-	if ( ! $is_html5 ) {
+	if (
+		! $is_html5 &&
+		(
+			! isset( $attributes['type'] ) ||
+			'module' === $attributes['type'] ||
+			str_contains( $attributes['type'], 'javascript' ) ||
+			str_contains( $attributes['type'], 'ecmascript' ) ||
+			str_contains( $attributes['type'], 'jscript' ) ||
+			str_contains( $attributes['type'], 'livescript' )
+		)
+	) {
 		/*
 		 * If the string `]]>` exists within the JavaScript it would break
 		 * out of any wrapping CDATA section added here, so to start, it's
