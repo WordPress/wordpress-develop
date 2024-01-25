@@ -43,7 +43,7 @@ class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @param string   $source_name   The name of the source.
-	 * @param array    $source_args   The array of arguments that are used to register a source. The array has two elements:
+	 * @param array    $source_properties   The array of arguments that are used to register a source. The array has two elements:
 	 *                                1. string   $label        The label of the source.
 	 *                                2. callback $apply        A callback
 	 *                                executed when the source is processed during
@@ -58,8 +58,8 @@ class WP_Block_Bindings_Registry {
 	 *
 	 * @return void
 	 */
-	public function register( $source_name, array $source_args ) {
-		$this->sources[ $source_name ] = $source_args;
+	public function register( $source_name, array $source_properties ) {
+		$this->sources[ $source_name ] = $source_properties;
 	}
 
 	/**
