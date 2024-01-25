@@ -10,8 +10,8 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @covers ::instance
 	 */
 	public function test_get_instance() {
-		$instance  = WP_Translation_Controller::instance();
-		$instance2 = WP_Translation_Controller::instance();
+		$instance  = WP_Translation_Controller::get_instance();
+		$instance2 = WP_Translation_Controller::get_instance();
 
 		$this->assertSame( $instance, $instance2 );
 	}
