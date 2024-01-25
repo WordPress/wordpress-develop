@@ -116,12 +116,12 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 			'attrs'        => array(
 				'layout' => array(
 					'type' => 'constrained',
-				)
+				),
 			),
 			'innerContent' => array(),
 		);
 
-		$filter = function( $parsed_hooked_block, $relative_position, $parsed_anchor_block ) {
+		$filter = function ( $parsed_hooked_block, $relative_position, $parsed_anchor_block ) {
 			// Is the hooked block adjacent to the anchor block?
 			if ( 'before' !== $relative_position && 'after' !== $relative_position ) {
 				return $parsed_hooked_block;
@@ -135,9 +135,9 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 
 			return $parsed_hooked_block;
 		};
-		add_filter( 'hooked_block_' . SELF::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		remove_filter( 'hooked_block_' . SELF::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 
 		$this->assertSame(
 			array( self::HOOKED_BLOCK_TYPE ),
@@ -163,13 +163,13 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 			'attrs'        => array(
 				'layout' => array(
 					'type' => 'constrained',
-				)
+				),
 			),
 			'innerContent' => array(),
 		);
 
-		$filter = function( $parsed_hooked_block ) {
-			if ( SELF::HOOKED_BLOCK_TYPE !== $parsed_hooked_block['blockName'] ) {
+		$filter = function ( $parsed_hooked_block ) {
+			if ( self::HOOKED_BLOCK_TYPE !== $parsed_hooked_block['blockName'] ) {
 				return $parsed_hooked_block;
 			}
 
@@ -181,13 +181,13 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 				'innerContent' => array(
 					'<div class="wp-block-group">',
 					null,
-					'</div>'
+					'</div>',
 				),
 			);
 		};
-		add_filter( 'hooked_block_' . SELF::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		remove_filter( 'hooked_block_' . SELF::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 
 		$this->assertSame(
 			array( self::HOOKED_BLOCK_TYPE ),
