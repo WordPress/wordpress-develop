@@ -804,7 +804,7 @@ function get_hooked_block_markup( $hooked_block, $hooked_block_type, &$anchor_bl
  * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
  * @param string                  $relative_position   The relative position of the hooked blocks.
  *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                   $hooked_blocks       An array of hooked blocks, grouped by anchor block and relative position.
+ * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
  * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
  * @return string
  */
