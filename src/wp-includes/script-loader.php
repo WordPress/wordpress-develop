@@ -2478,6 +2478,10 @@ function wp_filter_out_block_nodes( $nodes ) {
  * @since 5.8.0
  */
 function wp_enqueue_global_styles() {
+	if ( is_admin() ) {
+		return;
+	}
+
 	$separate_assets  = wp_should_load_separate_core_block_assets();
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
