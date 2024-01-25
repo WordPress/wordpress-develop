@@ -166,6 +166,7 @@ class WP_Script_Modules {
 		add_action( $position, array( $this, 'print_import_map' ) );
 		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
+		add_action( 'wp_footer', array( $this, 'print_import_map_polyfill' ), 11 );
 	}
 
 	/**
@@ -224,6 +225,32 @@ class WP_Script_Modules {
 			);
 		}
 	}
+
+	/**
+	 * Prints the necessary script to load import map polyfill for browsers that
+	 * do not support import maps.
+	 *
+	 * @since 6.5.0
+	 */
+	public function print_import_map_polyfill() {
+		$test = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
+		$src  = includes_url( 'js/dist/vendor/wp-polyfill-importmap.min.js' );
+
+		echo (
+		// Test presence of feature...
+		'<script>( ' . $test . ' ) || ' .
+		/*
+		 * ...appending polyfill on any failures. Cautious viewers may balk
+		 * at the `document.write`. Its caveat of synchronous mid-stream
+		 * blocking write is exactly the behavior we need though.
+		 */
+		'document.write( \'<script src="' .
+		$src .
+		'"></scr\' + \'ipt>\' );</script>'
+		);
+	}
+
+
 
 	/**
 	 * Returns the import map array.
