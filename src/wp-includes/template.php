@@ -720,7 +720,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		wp_set_template_globals();
 	}
 
-	$is_child_theme = $wp_stylesheet_path !== $wp_template_path;
+	$is_child_theme = is_child_theme();
 
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
