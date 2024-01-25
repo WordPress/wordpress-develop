@@ -118,4 +118,49 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		$this->assertSame( array( self::HOOKED_BLOCK_TYPE ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 		$this->assertSame( '<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' {"layout":{"type":"constrained"}} /-->', $actual );
 	}
+
+	/**
+	 * @ticket 59572
+	 * @ticket 60126
+	 *
+	 * @covers ::insert_hooked_blocks
+	 */
+	public function test_insert_hooked_blocks_filter_can_wrap_block() {
+		$anchor_block = array(
+			'blockName'    => self::ANCHOR_BLOCK_TYPE,
+			'attrs'        => array(
+				'layout' => array(
+					'type' => 'constrained',
+				)
+			),
+			'innerContent' => array(),
+		);
+
+		$filter = function( $parsed_hooked_block ) {
+			if ( SELF::HOOKED_BLOCK_TYPE !== $parsed_hooked_block['blockName'] ) {
+				return $parsed_hooked_block;
+			}
+
+			// Wrap the block in a Group block.
+			return array(
+				'blockName' => 'core/group',
+				'attrs'     => array(),
+				'innerBlocks' => array( $parsed_hooked_block ),
+				'innerContent' => array(
+					'<div class="wp-block-group">',
+					null,
+					'</div>'
+				),
+			);
+		};
+		add_filter( 'hooked_block_' . SELF::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
+		remove_filter( 'hooked_block_' . SELF::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+
+		$this->assertSame( array( self::HOOKED_BLOCK_TYPE ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
+		$this->assertSame(
+			'<!-- wp:group --><div class="wp-block-group"><!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /--></div><!-- /wp:group -->',
+			$actual
+		);
+	}
 }
