@@ -1310,6 +1310,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Tests that switch_to_blog() uses the original template path.
 	 *
 	 * @ticket 60290
+	 *
 	 * @group ms-required
 	 *
 	 * @covers ::locate_template
@@ -1324,7 +1325,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		switch_theme( 'block-theme' );
 		$new_template_path = locate_template( 'index.php' );
 
-		// Cleanup
+		// Cleanup.
 		restore_current_blog();
 		switch_theme( $old_theme->get_stylesheet() );
 
