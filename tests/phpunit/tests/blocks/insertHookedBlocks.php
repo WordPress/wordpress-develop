@@ -175,9 +175,9 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 
 			// Wrap the block in a Group block.
 			return array(
-				'blockName' => 'core/group',
-				'attrs'     => array(),
-				'innerBlocks' => array( $parsed_hooked_block ),
+				'blockName'    => 'core/group',
+				'attrs'        => array(),
+				'innerBlocks'  => array( $parsed_hooked_block ),
 				'innerContent' => array(
 					'<div class="wp-block-group">',
 					null,
