@@ -45,20 +45,3 @@ function wp_block_bindings_register_source( $source_name, array $source_args ) {
 function wp_block_bindings_get_all_registered() {
 	return WP_Block_Bindings_Registry::get_instance()->get_all_registered();
 }
-
-
-/**
-* Wrapper for the WP_Block_Bindings process method, which is used
- * process mappings between an attribute of a block and a source.
- * Please see the WP_Block_Bindings::process method for more details.
- *
- * @access public
- * @since 6.5.0
- *
- * @param string   $block_content Block content.
- * @param array    $block The full block, including name and attributes.
- * @param WP_Block $block_instance The block instance.
- */
-function wp_block_bindings_process_bindings( $block_content, $block, $block_instance ) {
-	return WP_Block_Bindings_Registry::get_instance()->process_bindings( $block_content, $block, $block_instance );
-}
