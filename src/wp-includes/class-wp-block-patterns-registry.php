@@ -223,6 +223,12 @@ final class WP_Block_Patterns_Registry {
 		$hooked_blocks = get_hooked_blocks();
 		foreach ( $patterns as $index => $pattern ) {
 			if ( ! isset( $pattern['name'] ) ) {
+				unset( $patterns[ $index ] );
+				if ( $outside_init_only ) {
+					unset( $this->registered_patterns_outside_init[ $index ] );
+				} else {
+					unset( $this->registered_patterns[ $index ] );
+				}
 				continue;
 			}
 			if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
