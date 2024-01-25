@@ -18,7 +18,7 @@
 function wp_block_bindings() {
 	static $instance = null;
 	if ( is_null( $instance ) ) {
-		$instance = new WP_Block_Bindings();
+		$instance = new WP_Block_Bindings_Registry();
 	}
 	return $instance;
 }
@@ -45,8 +45,8 @@ function wp_block_bindings() {
  *
  * @return void
  */
-function wp_block_bindings_register_source( string $source_name, array $source_args ) {
-	wp_block_bindings()->register_source( $source_name, $source_args );
+function wp_block_bindings_register_source( $source_name, array $source_args ) {
+	wp_block_bindings()->register_block_bindings_source( $source_name, $source_args );
 }
 
 
@@ -57,8 +57,8 @@ function wp_block_bindings_register_source( string $source_name, array $source_a
  *
  * @return array The list of registered block sources.
  */
-function wp_block_bindings_get_sources() {
-	return wp_block_bindings()->get_sources();
+function wp_block_bindings_get_all_registered() {
+	return wp_block_bindings()->get_all_registered();
 }
 
 

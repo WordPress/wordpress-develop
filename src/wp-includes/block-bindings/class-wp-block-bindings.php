@@ -13,7 +13,7 @@
  *
  *  @since 6.5.0
  */
-class WP_Block_Bindings {
+class WP_Block_Bindings_Registry {
 
 	/**
 	 * Holds the registered block bindings sources, keyed by source identifier.
@@ -50,7 +50,7 @@ class WP_Block_Bindings {
 	 *
 	 * @return void
 	 */
-	public function register_source( string $source_name, array $source_args ) {
+	public function register_block_bindings_source( $source_name, array $source_args ) {
 		$this->sources[ $source_name ] = $source_args;
 	}
 
@@ -59,7 +59,7 @@ class WP_Block_Bindings {
 	 *
 	 * A block might contain bindings in its attributes. Bindings are mappings
 	 * between an attribute of the block and a source. A "source" is a function
-	 * registered with `wp_block_bindings_register_source()` that defines how to
+	 * registered with `$this->register_block_bindings_source()` that defines how to
 	 * retrieve a value from outside the block, e.g. from post meta.
 	 *
 	 * This function will process those bindings and replace the HTML with the value of the binding.
@@ -258,7 +258,7 @@ class WP_Block_Bindings {
 	 *
 	 * @return array The array of registered sources.
 	 */
-	public function get_sources() {
+	public function get_all_registered() {
 		return $this->sources;
 	}
 
