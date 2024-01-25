@@ -3210,7 +3210,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @param array $styles An array with style definitions.
 	 * @param array $path   Path to the desired properties.
-	 *
 	 */
 	public function test_get_property_value_should_return_string_for_invalid_paths_or_null_values( $styles, $path ) {
 		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
@@ -4938,5 +4937,34 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$this->assertEquals( $small_font, $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Block variations: font-size' );
 		$this->assertEquals( $secondary_color, $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Block variations: color' );
+	}
+
+	/**
+	 * Tests that a custom root selector is correctly applied when generating a stylesheet.
+	 *
+	 * @ticket 60343
+	 */
+	public function test_get_stylesheet_custom_root_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'color' => array(
+						'text' => 'teal',
+					),
+				),
+			),
+			'default'
+		);
+
+		$options = array( 'root_selector' => '.custom' );
+		$actual  = $theme_json->get_stylesheet( array( 'styles' ), null, $options );
+
+		// Results also include root site blocks styles which hard code
+		// `body { margin: 0;}`.
+		$this->assertEquals(
+			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.custom{color: teal;}',
+			$actual
+		);
 	}
 }
