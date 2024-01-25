@@ -196,6 +196,9 @@
     'attributes' => array(
       'ref' => array(
         'type' => 'number'
+      ),
+      'overrides' => array(
+        'type' => 'object'
       )
     ),
     'supports' => array(
@@ -219,6 +222,9 @@
       'link'
     ),
     'textdomain' => 'default',
+    'usesContext' => array(
+      'pattern/overrides'
+    ),
     'attributes' => array(
       'tagName' => array(
         'type' => 'string',
@@ -1513,6 +1519,9 @@
         ),
         'enableContrastChecker' => false
       ),
+      'dimensions' => array(
+        'aspectRatio' => true
+      ),
       'typography' => array(
         'fontSize' => true,
         'lineHeight' => true,
@@ -1735,7 +1744,6 @@
       ),
       'interactivity' => true
     ),
-    'viewScript' => 'file:./view.min.js',
     'editorStyle' => 'wp-block-file-editor',
     'style' => 'wp-block-file'
   ),
@@ -2065,6 +2073,7 @@
         )
       ),
       'dimensions' => array(
+        'aspectRatio' => true,
         'minHeight' => true
       ),
       '__experimentalBorder' => array(
@@ -2114,6 +2123,9 @@
       'subtitle'
     ),
     'textdomain' => 'default',
+    'usesContext' => array(
+      'pattern/overrides'
+    ),
     'attributes' => array(
       'textAlign' => array(
         'type' => 'string'
@@ -2253,7 +2265,8 @@
     'usesContext' => array(
       'allowResize',
       'imageCrop',
-      'fixedHeight'
+      'fixedHeight',
+      'pattern/overrides'
     ),
     'description' => 'Insert an image to make a visual statement.',
     'keywords' => array(
@@ -2392,8 +2405,7 @@
       )
     ),
     'editorStyle' => 'wp-block-image-editor',
-    'style' => 'wp-block-image',
-    'viewScript' => 'file:./view.min.js'
+    'style' => 'wp-block-image'
   ),
   'latest-comments' => array(
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
@@ -3135,7 +3147,6 @@
       'interactivity' => true,
       'renaming' => false
     ),
-    'viewScript' => 'file:./view.min.js',
     'editorStyle' => 'wp-block-navigation-editor',
     'style' => 'wp-block-navigation'
   ),
@@ -3436,7 +3447,8 @@
     ),
     'textdomain' => 'default',
     'usesContext' => array(
-      'postId'
+      'postId',
+      'pattern/overrides'
     ),
     'attributes' => array(
       'align' => array(
@@ -3474,7 +3486,6 @@
           'text' => true
         )
       ),
-      '__experimentalConnections' => true,
       'spacing' => array(
         'margin' => true,
         'padding' => true,
@@ -4042,7 +4053,17 @@
       'arrow' => array(
         'type' => 'string',
         'default' => 'none'
+      ),
+      'inSameTerm' => array(
+        'type' => 'boolean'
+      ),
+      'taxonomy' => array(
+        'type' => 'string',
+        'default' => ''
       )
+    ),
+    'usesContext' => array(
+      'postType'
     ),
     'supports' => array(
       'reusable' => false,
@@ -4348,6 +4369,10 @@
           'text' => true
         )
       ),
+      'spacing' => array(
+        'margin' => true,
+        'padding' => true
+      ),
       'typography' => array(
         'fontSize' => true,
         'lineHeight' => true,
@@ -4444,8 +4469,7 @@
       'layout' => true
     ),
     'editorStyle' => 'wp-block-query-editor',
-    'style' => 'wp-block-query',
-    'viewScript' => 'file:./view.min.js'
+    'style' => 'wp-block-query'
   ),
   'query-no-results' => array(
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
@@ -5046,7 +5070,6 @@
       ),
       'html' => false
     ),
-    'viewScript' => 'file:./view.min.js',
     'editorStyle' => 'wp-block-search-editor',
     'style' => 'wp-block-search'
   ),
