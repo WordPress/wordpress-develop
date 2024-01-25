@@ -101,13 +101,15 @@ final class WP_Block_Patterns_Registry {
 			return false;
 		}
 
-		if ( ! isset( $pattern_properties['file_path'] ) && ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'Pattern content must be a string.' ),
-				'5.5.0'
-			);
-			return false;
+		if ( ! isset( $pattern_properties['file_path'] ) ) {
+			if ( ! isset( $pattern_properties['content'] ) || ! is_string( $pattern_properties['content'] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Pattern content must be a string.' ),
+					'5.5.0'
+				);
+				return false;
+			}
 		}
 
 		$pattern = array_merge(
