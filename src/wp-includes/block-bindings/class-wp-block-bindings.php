@@ -58,7 +58,7 @@ class WP_Block_Bindings_Registry {
 	 *
 	 * @return void
 	 */
-	public function register_block_bindings_source( $source_name, array $source_args ) {
+	public function register( $source_name, array $source_args ) {
 		$this->sources[ $source_name ] = $source_args;
 	}
 
@@ -67,7 +67,7 @@ class WP_Block_Bindings_Registry {
 	 *
 	 * A block might contain bindings in its attributes. Bindings are mappings
 	 * between an attribute of the block and a source. A "source" is a function
-	 * registered with `$this->register_block_bindings_source()` that defines how to
+	 * registered with `$this->register()` that defines how to
 	 * retrieve a value from outside the block, e.g. from post meta.
 	 *
 	 * This function will process those bindings and replace the HTML with the value of the binding.

@@ -31,7 +31,7 @@
  * @return void
  */
 function wp_block_bindings_register_source( $source_name, array $source_args ) {
-	WP_Block_Bindings_Registry::get_instance()->register_block_bindings_source( $source_name, $source_args );
+	WP_Block_Bindings_Registry::get_instance()->register( $source_name, $source_args );
 }
 
 
