@@ -246,7 +246,7 @@ class WP_Script_Modules {
 			* at the `document.write`. Its caveat of synchronous mid-stream
 			* blocking write is exactly the behavior we need though.
 			*/
-			'document.write( \'<script src="' .
+			'document.write( \'<script id="wp-js-module-importmap" src="' .
 			$src .
 			'"></scr\' + \'ipt>\' );</script>'
 			);
