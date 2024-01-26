@@ -5145,7 +5145,10 @@ function map_deep( $value, $callback ) {
 	} elseif ( is_object( $value ) ) {
 		$object_vars = get_object_vars( $value );
 		foreach ( $object_vars as $property_name => $property_value ) {
-			$value->$property_name = map_deep( $property_value, $callback );
+			$reflection_property = new ReflectionProperty( $value, $property_name );
+			if ( ! $reflection_property->isReadOnly() ) {
+				$value->$property_name = map_deep( $property_value, $callback );
+			}
 		}
 	} else {
 		$value = call_user_func( $callback, $value );
