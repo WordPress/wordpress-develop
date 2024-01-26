@@ -256,8 +256,6 @@ class WP_Block {
 		$block_bindings_sources = wp_block_bindings_get_all_registered();
 		$modified_block_content = $block_content;
 		foreach ( $block['attrs']['metadata']['bindings'] as $binding_attribute => $binding_source ) {
-
-
 			// If the attribute is not in the list, process next attribute.
 			if ( ! in_array( $binding_attribute, $allowed_blocks[ $this->name ], true ) ) {
 				continue;

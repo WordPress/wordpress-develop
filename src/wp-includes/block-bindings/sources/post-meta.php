@@ -16,8 +16,8 @@ function post_meta_source_callback( $source_attrs ) {
 
 	// If a post isn't public, we need to prevent
 	// unauthorized users from accessing the post meta.
-	$post = get_post($post_id);
-	if ( ( $post && $post->post_status != 'publish' && ! current_user_can( 'read_post', $post_id ) ) || post_password_required( $post_id ) ) {
+	$post = get_post( $post_id );
+	if ( ( $post && 'publish' !== $post->post_status && ! current_user_can( 'read_post', $post_id ) ) || post_password_required( $post_id ) ) {
 		return null;
 	}
 
@@ -27,7 +27,7 @@ function post_meta_source_callback( $source_attrs ) {
 wp_block_bindings_register_source(
 	'core/post_meta',
 	array(
-		'label' => __( 'Post Meta' ),
-		'get_value_callback' => 'post_meta_source_callback',
+		'label'              => __( 'Post Meta' ),
+		'get_value_callback' => 'post_meta_source_callback'
 	),
 );

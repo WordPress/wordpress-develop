@@ -58,7 +58,7 @@ class WP_Block_Bindings_Registry {
 	 * @return boolean Whether the registration was successful.
 	 */
 	public function register( $source_name, array $source_properties ) {
-		if( ! isset( $this->sources[ $source_name ] ) ) {
+		if ( ! isset( $this->sources[ $source_name ] ) ) {
 			$this->sources[ $source_name ] = $source_properties;
 			return true;
 		}
