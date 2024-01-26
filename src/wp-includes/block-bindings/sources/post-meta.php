@@ -27,7 +27,7 @@ function post_meta_source_callback( $source_attrs ) {
 wp_block_bindings_register_source(
 	'core/post-meta',
 	array(
-		'label'              => __( 'Post Meta' ),
+		'label'              => _x( 'Post Meta', 'Post metadata to be read and used to substitute block content' ),
 		'get_value_callback' => 'post_meta_source_callback'
 	),
 );
