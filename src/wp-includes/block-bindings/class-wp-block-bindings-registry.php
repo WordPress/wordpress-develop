@@ -55,7 +55,7 @@ class WP_Block_Bindings_Registry {
 	 *                                            - @param object $source_attrs: Object containing source ID used to look up the override value, i.e. {"value": "{ID}"}.
 	 *                                            - @param object $block_instance: The block instance.
 	 *                                            - @param string $attribute_name: The name of an attribute used to retrieve an override value from the block context.
-	 *                                        The callback should return a string that will be used to override the block's original value, or null.
+	 *                                        The callback has a mixed return type; it may return a string to override the block's original value, null, false to remove an attribtute, etc.
 	 * }
 	 * @return boolean Whether the registration was successful.
 	 */
