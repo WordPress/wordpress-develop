@@ -113,8 +113,14 @@ function render_block_core_navigation_submenu( $attributes, $content, $block ) {
 	// If submenu icons are set to show, we also render a submenu button, so the submenu can be opened on click.
 	if ( ! $open_on_click ) {
 		$item_url = isset( $attributes['url'] ) ? $attributes['url'] : '';
-		// Start appending HTML attributes to anchor tag.
-		$html .= '<a class="wp-block-navigation-item__content"';
+		if ( empty( $item_url ) ) {
+			$tag = 'button';
+		} else {
+			$tag = 'a';
+		}
+
+		// Start appending HTML attributes.
+		$html .= '<' . $tag . ' class="wp-block-navigation-item__content"';
 
 		// The href attribute on a and area elements is not required;
 		// when those elements do not have href attributes they do not create hyperlinks.
@@ -148,8 +154,8 @@ function render_block_core_navigation_submenu( $attributes, $content, $block ) {
 
 		$html .= $label;
 
-		$html .= '</a>';
-		// End anchor tag content.
+		$html .= '</' . $tag . '>';
+		// End tag content.
 
 		if ( $show_submenu_indicators ) {
 			// The submenu icon is rendered in a button here
