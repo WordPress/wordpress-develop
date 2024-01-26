@@ -18,6 +18,6 @@ wp_block_bindings_register_source(
 	'core/pattern_attributes',
 	array(
 		'label' => __( 'Pattern Attributes' ),
-		'apply' => 'pattern_source_callback',
+		'get_value_callback' => 'pattern_source_callback',
 	)
 );

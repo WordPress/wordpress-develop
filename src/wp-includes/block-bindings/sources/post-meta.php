@@ -21,6 +21,6 @@ wp_block_bindings_register_source(
 	'core/post_meta',
 	array(
 		'label' => __( 'Post Meta' ),
-		'apply' => 'post_meta_source_callback',
+		'get_value_callback' => 'post_meta_source_callback',
 	),
 );

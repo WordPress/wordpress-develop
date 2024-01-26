@@ -44,11 +44,10 @@ class WP_Block_Bindings_Registry {
 	 *
 	 * @param string   $source_name   The name of the source.
 	 * @param array    $source_properties   The array of arguments that are used to register a source. The array has two elements:
-	 *                                1. string   $label        The label of the source.
-	 *                                2. callback $apply        A callback
-	 *                                executed when the source is processed during
-	 *                                block rendering. The callback should have the
-	 *                                following signature:
+	 *                                1. string   $label                     The label of the source.
+	 *                                2. callback $get_value_callback        A callback executed when
+	 *                                the source is processed during block rendering.
+	 *                                The callback should have the following signature:
 	 *
 	 *                                  `function (object $source_attrs, object $block_instance, string $attribute_name): string`
 	 *                                          - @param object $source_attrs: Object containing source ID used to look up the override value, i.e. {"value": "{ID}"}.
