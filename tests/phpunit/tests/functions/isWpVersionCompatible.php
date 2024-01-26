@@ -12,6 +12,8 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * Tests is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 *
 	 * @ticket 54257
 	 *
@@ -19,14 +21,14 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @param bool  $expected The expected result.
 	 */
 	public function test_is_wp_version_compatible( $required, $expected ) {
-		// Clear error handler so test continues after wp_trigger_error().
-		set_error_handler(
-			function () {
-				return true;
-			}
-		);
+		// Suppress E_USER_NOTICE, which will be raised when required value is not real WP version.
+		$original_error_reporting = error_reporting();
+		error_reporting( $original_error_reporting & ~E_USER_NOTICE );
+
 		$this->assertSame( $expected, is_wp_version_compatible( $required ) );
-		restore_error_handler();
+
+		// Reset error reporting.
+		error_reporting( $original_error_reporting );
 	}
 
 	/**
