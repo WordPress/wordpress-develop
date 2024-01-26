@@ -253,19 +253,21 @@ class WP_Block {
 			return $block_content;
 		}
 
+		$block_bindings_sources = wp_block_bindings_get_all_registered();
 		$modified_block_content = $block_content;
 		foreach ( $block['attrs']['metadata']['bindings'] as $binding_attribute => $binding_source ) {
+
 
 			// If the attribute is not in the list, process next attribute.
 			if ( ! in_array( $binding_attribute, $allowed_blocks[ $this->name ], true ) ) {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
-			if ( ! isset( $binding_source['source'] ) || ! isset( $binding_source['source']['name'] ) || ! isset( $this->sources[ $binding_source['source']['name'] ] ) ) {
+			if ( ! isset( $binding_source['source'] ) || ! isset( $binding_source['source']['name'] ) || ! isset( $block_bindings_sources[ $binding_source['source']['name'] ] ) ) {
 				continue;
 			}
 
-			$source_callback = $this->sources[ $binding_source['source']['name'] ]['apply'];
+			$source_callback = $block_bindings_sources[ $binding_source['source']['name'] ]['apply'];
 			// Get the value based on the source.
 			if ( ! isset( $binding_source['source']['attributes'] ) ) {
 				$source_args = array();
