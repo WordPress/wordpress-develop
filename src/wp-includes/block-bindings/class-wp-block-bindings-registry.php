@@ -56,10 +56,14 @@ class WP_Block_Bindings_Registry {
 	 *                                          - @param string $attribute_name: The name of an attribute used to retrieve an override value from the block context.
 	 *                                 The callback should return a string that will be used to override the block's original value.
 	 *
-	 * @return void
+	 * @return boolean Whether the registration was successful.
 	 */
 	public function register( $source_name, array $source_properties ) {
-		$this->sources[ $source_name ] = $source_properties;
+		if( ! isset( $this->sources[ $source_name ] ) ) {
+			$this->sources[ $source_name ] = $source_properties;
+			return true;
+		}
+		return false;
 	}
 
 	/**
