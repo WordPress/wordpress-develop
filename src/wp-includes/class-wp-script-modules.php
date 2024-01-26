@@ -235,19 +235,17 @@ class WP_Script_Modules {
 	public function print_import_map_polyfill() {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
-			$test = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
-			$src  = add_query_arg( 'ver', get_bloginfo( 'version' ), includes_url( 'js/dist/vendor/wp-polyfill-importmap.min.js' ) );
-			echo (
-			// Test presence of feature...
-			'<script>( ' . $test . ' ) || ' .
-			/*
-			* ...appending polyfill on any failures. Cautious viewers may balk
-			* at the `document.write`. Its caveat of synchronous mid-stream
-			* blocking write is exactly the behavior we need though.
-			*/
-			'document.write( \'<script id="wp-js-module-importmap" src="' .
-			$src .
-			'"></scr\' + \'ipt>\' );</script>'
+			global $wp_scripts;
+			wp_print_inline_script_tag(
+				wp_get_script_polyfill(
+					$wp_scripts,
+					array(
+						'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")' => 'wp-polyfill-importmap',
+					)
+				),
+				array(
+					'id' => 'wp-polyfill-importmap',
+				)
 			);
 		}
 	}
