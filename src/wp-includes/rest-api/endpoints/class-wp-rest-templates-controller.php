@@ -829,7 +829,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			case 'user':
 				$author = get_user_by( 'id', $template_object->author );
 				if ( ! $author ) {
-					return __( 'Unknown author', 'gutenberg' );
+					return __( 'Unknown author' );
 				}
 				return $author->get( 'display_name' );
 		}
@@ -1061,12 +1061,12 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'author_text'     => array(
 					'type'        => 'string',
-					'description' => __( 'Human readable text for the author.', 'gutenberg' ),
+					'description' => __( 'Human readable text for the author.' ),
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'original_source' => array(
-					'description' => __( 'Where the template originally comes from e.g. \'theme\'', 'gutenberg' ),
+					'description' => __( 'Where the template originally comes from e.g. \'theme\'' ),
 					'type'        => 'string',
 					'readonly'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
