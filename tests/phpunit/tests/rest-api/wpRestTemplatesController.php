@@ -430,6 +430,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
+		$author_name = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
+
 		$this->assertSame(
 			array(
 				'id'             => 'default//my_custom_template',
@@ -451,8 +453,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $modified ),
-				'author_text'     => 'Test Blog',
-				'original_source' => 'site',
+				'author_text'     => $author_name,
+				'original_source' => 'user',
 			),
 			$data
 		);
@@ -480,6 +482,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
+		$author_name = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
+
 		$this->assertSame(
 			array(
 				'id'             => 'default//404',
@@ -501,8 +505,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => false,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $modified ),
-				'author_text'     => 'Test Blog',
-				'original_source' => 'site',
+				'author_text'     => $author_name,
+				'original_source' => 'user',
 			),
 			$data
 		);
@@ -534,6 +538,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
+		$author_name = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
+
 		$this->assertSame(
 			array(
 				'id'             => 'default//my_custom_template_raw',
@@ -555,8 +561,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				'is_custom'      => true,
 				'author'         => self::$admin_id,
 				'modified'       => mysql_to_rfc3339( $modified ),
-				'author_text'     => 'Test Blog',
-				'original_source' => 'site',
+				'author_text'     => $author_name,
+				'original_source' => 'user',
 			),
 			$data
 		);
@@ -732,8 +738,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'is_custom', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
-		$this->assertArrayHasKey( 'author_text', 'Test Blog' );
-		$this->assertArrayHasKey( 'original_source', 'site' );
+		$this->assertArrayHasKey( 'author_text', $properties );
+		$this->assertArrayHasKey( 'original_source', $properties );
 	}
 
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
@@ -768,6 +774,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$data                 = $response->get_data();
 		$modified             = get_post( $data['wp_id'] )->post_modified;
 		$expected['modified'] = mysql_to_rfc3339( $modified );
+		$expected['author_text']     = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
+		$expected['original_source'] = 'user';
+
+
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
 
@@ -799,8 +809,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'has_theme_file' => false,
 			'is_custom'      => false,
 			'author'         => null,
-			'author_text'     => 'Test Blog',
-			'original_source' => 'site',
 		);
 
 		return array(
