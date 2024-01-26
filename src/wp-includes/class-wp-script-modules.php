@@ -244,7 +244,7 @@ class WP_Script_Modules {
 					)
 				),
 				array(
-					'id' => 'wp-polyfill-importmap',
+					'id' => 'wp-load-polyfill-importmap',
 				)
 			);
 		}
