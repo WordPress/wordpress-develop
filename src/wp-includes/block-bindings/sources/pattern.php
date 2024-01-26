@@ -15,7 +15,7 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
 }
 
 wp_block_bindings_register_source(
-	'pattern_attributes',
+	'core/pattern_attributes',
 	array(
 		'label' => __( 'Pattern Attributes' ),
 		'apply' => 'pattern_source_callback',

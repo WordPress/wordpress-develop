@@ -18,7 +18,7 @@ function post_meta_source_callback( $source_attrs ) {
 }
 
 wp_block_bindings_register_source(
-	'post_meta',
+	'core/post_meta',
 	array(
 		'label' => __( 'Post Meta' ),
 		'apply' => 'post_meta_source_callback',
