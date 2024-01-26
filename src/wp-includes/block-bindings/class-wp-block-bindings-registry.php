@@ -43,18 +43,20 @@ class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @param string   $source_name   The name of the source.
-	 * @param array    $source_properties   The array of arguments that are used to register a source. The array has two elements:
-	 *                                1. string   $label                     The label of the source.
-	 *                                2. callback $get_value_callback        A callback executed when
-	 *                                the source is processed during block rendering.
-	 *                                The callback should have the following signature:
+	 * @param array    $source_properties {
+	 *     The array of arguments that are used to register a source. We use an array so that we can easily extend
+	 *     the API to pass additional arguments in the future. For now, it should be comprised of two elements:
 	 *
-	 *                                  `function (object $source_attrs, object $block_instance, string $attribute_name): string`
-	 *                                          - @param object $source_attrs: Object containing source ID used to look up the override value, i.e. {"value": "{ID}"}.
-	 *                                          - @param object $block_instance: The block instance.
-	 *                                          - @param string $attribute_name: The name of an attribute used to retrieve an override value from the block context.
-	 *                                 The callback should return a string that will be used to override the block's original value.
+	 *     @type string $label                The label of the source.
+	 *     @type callback $get_value_callback A callback executed when the source is processed during block rendering.
+	 *                                        The callback should have the following signature:
 	 *
+	 *                                        `function (object $source_attrs, object $block_instance, string $attribute_name): string`
+	 *                                            - @param object $source_attrs: Object containing source ID used to look up the override value, i.e. {"value": "{ID}"}.
+	 *                                            - @param object $block_instance: The block instance.
+	 *                                            - @param string $attribute_name: The name of an attribute used to retrieve an override value from the block context.
+	 *                                        The callback should return a string that will be used to override the block's original value, or null.
+	 * }
 	 * @return boolean Whether the registration was successful.
 	 */
 	public function register( $source_name, array $source_properties ) {
