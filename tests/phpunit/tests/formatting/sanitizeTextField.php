@@ -13,6 +13,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 	 * @dataProvider data_sanitize_text_field
 	 */
 	public function test_sanitize_text_field( $str, $expected ) {
+		$filter = new MockAction();
 		if ( is_array( $expected ) ) {
 			$expected_oneline   = $expected['oneline'];
 			$expected_multiline = $expected['multiline'];
@@ -20,8 +21,12 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			$expected_oneline   = $expected;
 			$expected_multiline = $expected;
 		}
+		add_filter( 'sanitize_text_field', array( $filter, 'filter' ) );
 		$this->assertSame( $expected_oneline, sanitize_text_field( $str ) );
+		$this->assertSame( 1, $filter->get_call_count(), 'The sanitize_text_field filter was not called'  );
+		add_filter( 'sanitize_textarea_field', array( $filter, 'filter' ) );
 		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $str ) );
+		$this->assertSame( 2, $filter->get_call_count(), 'The sanitize_textarea_field filter was not called' );
 	}
 
 	public function data_sanitize_text_field() {
