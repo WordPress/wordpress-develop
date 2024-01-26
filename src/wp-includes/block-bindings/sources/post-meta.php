@@ -14,6 +14,13 @@ function post_meta_source_callback( $source_attrs ) {
 		$post_id = get_the_ID();
 	}
 
+	// If a post isn't public, we need to prevent
+	// unauthorized users from accessing the post meta.
+	$post = get_post($post_id);
+	if ( ( $post && $post->post_status != 'publish' && ! current_user_can( 'read_post', $post_id ) ) || post_password_required( $post_id ) ) {
+		return null;
+	}
+
 	return get_post_meta( $post_id, $source_attrs['value'], true );
 }
 
