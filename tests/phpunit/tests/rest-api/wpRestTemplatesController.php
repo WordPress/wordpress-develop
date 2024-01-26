@@ -102,23 +102,23 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame(
 			array(
-				'id'             => 'default//my_template',
-				'theme'          => 'default',
-				'slug'           => 'my_template',
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => 'Description of my template.',
-				'title'          => array(
+				'id'              => 'default//my_template',
+				'theme'           => 'default',
+				'slug'            => 'my_template',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Description of my template.',
+				'title'           => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'status'         => 'publish',
-				'wp_id'          => self::$post->ID,
-				'has_theme_file' => false,
-				'is_custom'      => true,
-				'author'         => 0,
-				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
+				'status'          => 'publish',
+				'wp_id'           => self::$post->ID,
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => 0,
+				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -149,23 +149,23 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame(
 			array(
-				'id'             => 'default//my_template',
-				'theme'          => 'default',
-				'slug'           => 'my_template',
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => 'Description of my template.',
-				'title'          => array(
+				'id'              => 'default//my_template',
+				'theme'           => 'default',
+				'slug'            => 'my_template',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Description of my template.',
+				'title'           => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'status'         => 'publish',
-				'wp_id'          => self::$post->ID,
-				'has_theme_file' => false,
-				'is_custom'      => true,
-				'author'         => 0,
-				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
+				'status'          => 'publish',
+				'wp_id'           => self::$post->ID,
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => 0,
+				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -188,23 +188,23 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame(
 			array(
-				'id'             => 'default//my_template',
-				'theme'          => 'default',
-				'slug'           => 'my_template',
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => 'Description of my template.',
-				'title'          => array(
+				'id'              => 'default//my_template',
+				'theme'           => 'default',
+				'slug'            => 'my_template',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Description of my template.',
+				'title'           => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'status'         => 'publish',
-				'wp_id'          => self::$post->ID,
-				'has_theme_file' => false,
-				'is_custom'      => true,
-				'author'         => 0,
-				'modified'       => mysql_to_rfc3339( self::$post->post_modified ),
+				'status'          => 'publish',
+				'wp_id'           => self::$post->ID,
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => 0,
+				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -251,23 +251,23 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'id'             => "{$theme_dir}//{$template}",
-				'theme'          => $theme_dir,
-				'slug'           => $template,
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => $args['post_excerpt'],
-				'title'          => array(
+				'id'              => "{$theme_dir}//{$template}",
+				'theme'           => $theme_dir,
+				'slug'            => $template,
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => $args['post_excerpt'],
+				'title'           => array(
 					'raw'      => $args['post_title'],
 					'rendered' => $args['post_title'],
 				),
-				'status'         => 'publish',
-				'wp_id'          => $post->ID,
-				'has_theme_file' => false,
-				'is_custom'      => true,
-				'author'         => self::$admin_id,
-				'modified'       => mysql_to_rfc3339( $post->post_modified ),
+				'status'          => 'publish',
+				'wp_id'           => $post->ID,
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => self::$admin_id,
+				'modified'        => mysql_to_rfc3339( $post->post_modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -434,25 +434,25 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame(
 			array(
-				'id'             => 'default//my_custom_template',
-				'theme'          => 'default',
-				'content'        => array(
+				'id'              => 'default//my_custom_template',
+				'theme'           => 'default',
+				'content'         => array(
 					'raw' => 'Content',
 				),
-				'slug'           => 'my_custom_template',
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => 'Just a description',
-				'title'          => array(
+				'slug'            => 'my_custom_template',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Just a description',
+				'title'           => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'status'         => 'publish',
-				'has_theme_file' => false,
-				'is_custom'      => true,
-				'author'         => self::$admin_id,
-				'modified'       => mysql_to_rfc3339( $modified ),
+				'status'          => 'publish',
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => self::$admin_id,
+				'modified'        => mysql_to_rfc3339( $modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -486,25 +486,25 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame(
 			array(
-				'id'             => 'default//404',
-				'theme'          => 'default',
-				'content'        => array(
+				'id'              => 'default//404',
+				'theme'           => 'default',
+				'content'         => array(
 					'raw' => '',
 				),
-				'slug'           => '404',
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => 'Template shown when no content is found.',
-				'title'          => array(
+				'slug'            => '404',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Template shown when no content is found.',
+				'title'           => array(
 					'raw'      => '404',
 					'rendered' => '404',
 				),
-				'status'         => 'publish',
-				'has_theme_file' => false,
-				'is_custom'      => false,
-				'author'         => self::$admin_id,
-				'modified'       => mysql_to_rfc3339( $modified ),
+				'status'          => 'publish',
+				'has_theme_file'  => false,
+				'is_custom'       => false,
+				'author'          => self::$admin_id,
+				'modified'        => mysql_to_rfc3339( $modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -542,25 +542,25 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertSame(
 			array(
-				'id'             => 'default//my_custom_template_raw',
-				'theme'          => 'default',
-				'content'        => array(
+				'id'              => 'default//my_custom_template_raw',
+				'theme'           => 'default',
+				'content'         => array(
 					'raw' => 'Content',
 				),
-				'slug'           => 'my_custom_template_raw',
-				'source'         => 'custom',
-				'origin'         => null,
-				'type'           => 'wp_template',
-				'description'    => 'Just a description',
-				'title'          => array(
+				'slug'            => 'my_custom_template_raw',
+				'source'          => 'custom',
+				'origin'          => null,
+				'type'            => 'wp_template',
+				'description'     => 'Just a description',
+				'title'           => array(
 					'raw'      => 'My Template',
 					'rendered' => 'My Template',
 				),
-				'status'         => 'publish',
-				'has_theme_file' => false,
-				'is_custom'      => true,
-				'author'         => self::$admin_id,
-				'modified'       => mysql_to_rfc3339( $modified ),
+				'status'          => 'publish',
+				'has_theme_file'  => false,
+				'is_custom'       => true,
+				'author'          => self::$admin_id,
+				'modified'        => mysql_to_rfc3339( $modified ),
 				'author_text'     => $author_name,
 				'original_source' => 'user',
 			),
@@ -770,13 +770,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates' );
 		$request->set_body_params( $body_params );
-		$response             = rest_get_server()->dispatch( $request );
-		$data                 = $response->get_data();
-		$modified             = get_post( $data['wp_id'] )->post_modified;
-		$expected['modified'] = mysql_to_rfc3339( $modified );
+		$response                    = rest_get_server()->dispatch( $request );
+		$data                        = $response->get_data();
+		$modified                    = get_post( $data['wp_id'] )->post_modified;
+		$expected['modified']        = mysql_to_rfc3339( $modified );
 		$expected['author_text']     = get_user_by( 'id', self::$admin_id )->get( 'display_name' );
 		$expected['original_source'] = 'user';
-
 
 		unset( $data['_links'] );
 		unset( $data['wp_id'] );
