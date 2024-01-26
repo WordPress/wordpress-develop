@@ -375,7 +375,7 @@ require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/block-bindings/block-bindings.php';
-require ABSPATH . WPINC . '/block-bindings/class-wp-block-bindings.php';
+require ABSPATH . WPINC . '/block-bindings/class-wp-block-bindings-registry.php';
 require ABSPATH . WPINC . '/block-bindings/sources/post-meta.php';
 require ABSPATH . WPINC . '/block-bindings/sources/pattern.php';
 
