@@ -267,7 +267,7 @@ class WP_Block {
 				continue;
 			}
 
-			$source_callback = $this->sources[ $binding_source['source']['name'] ]['get_value_callback'];
+			$source_callback = $block_bindings_sources[ $binding_source['source']['name'] ]['get_value_callback'];
 			// Get the value based on the source.
 			if ( ! isset( $binding_source['source']['attributes'] ) ) {
 				$source_args = array();
