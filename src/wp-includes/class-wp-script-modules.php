@@ -236,8 +236,7 @@ class WP_Script_Modules {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
 			$test = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
-			$src  = includes_url( 'js/dist/vendor/wp-polyfill-importmap.min.js' );
-
+			$src  = add_query_arg( 'ver', get_bloginfo( 'version' ), includes_url( 'js/dist/vendor/wp-polyfill-importmap.min.js' ) );
 			echo (
 			// Test presence of feature...
 			'<script>( ' . $test . ' ) || ' .
