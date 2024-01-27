@@ -23,7 +23,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 		}
 		add_filter( 'sanitize_text_field', array( $filter, 'filter' ) );
 		$this->assertSame( $expected_oneline, sanitize_text_field( $str ) );
-		$this->assertSame( 1, $filter->get_call_count(), 'The sanitize_text_field filter was not called'  );
+		$this->assertSame( 1, $filter->get_call_count(), 'The sanitize_text_field filter was not called' );
 		add_filter( 'sanitize_textarea_field', array( $filter, 'filter' ) );
 		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $str ) );
 		$this->assertSame( 2, $filter->get_call_count(), 'The sanitize_textarea_field filter was not called' );
