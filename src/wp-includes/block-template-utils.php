@@ -125,11 +125,11 @@ function get_default_block_template_types() {
 		),
 		'single'         => array(
 			'title'       => _x( 'Single Posts', 'Template name' ),
-			'description' => __( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.' ),
+			'description' => __( 'Displays a single post on your website unless a custom template has been applied to that post or a dedicated template exists.' ),
 		),
 		'page'           => array(
 			'title'       => _x( 'Pages', 'Template name' ),
-			'description' => __( 'Display all static pages unless a custom template has been applied or a dedicated template exists.' ),
+			'description' => __( 'Displays a static page unless a custom template has been applied to that page or a dedicated template exists.' ),
 		),
 		'archive'        => array(
 			'title'       => _x( 'All Archives', 'Template name' ),
@@ -224,14 +224,21 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
+	static $template_path_list = array();
+	if ( isset( $template_path_list[ $base_directory ] ) ) {
+		return $template_path_list[ $base_directory ];
+	}
 	$path_list = array();
-	if ( file_exists( $base_directory ) ) {
+	try {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
 			$path_list[] = $path;
 		}
+	} catch ( Exception $e ) {
+		// Do nothing.
 	}
+	$template_path_list[ $base_directory ] = $path_list;
 	return $path_list;
 }
 

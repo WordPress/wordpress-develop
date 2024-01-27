@@ -229,7 +229,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$testdir = DIR_TESTDATA . '/images/';
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Test non-existing file, file name should be unchanged.' );
 
 		// Ensure correct images exist.
@@ -724,30 +724,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
-	}
-
-	/**
-	 * @ticket 43977
-	 * @dataProvider data_wp_parse_list
-	 */
-	public function test_wp_parse_list( $expected, $actual ) {
-		$this->assertSame( $expected, array_values( wp_parse_list( $actual ) ) );
-	}
-
-	public function data_wp_parse_list() {
-		return array(
-			array( array( '1', '2', '3', '4' ), '1,2,3,4' ),
-			array( array( 'apple', 'banana', 'carrot', 'dog' ), 'apple,banana,carrot,dog' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1, 2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), ',1,2,apple,banana' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2,apple,banana,' ),
-			array( array( '1', '2', 'apple', 'banana' ), '1,2 ,apple,banana' ),
-			array( array(), '' ),
-			array( array(), ',' ),
-			array( array(), ',,' ),
-		);
 	}
 
 	/**

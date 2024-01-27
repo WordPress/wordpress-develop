@@ -4284,7 +4284,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Encodes a variable into JSON, with some sanity checks.
+ * Encodes a variable into JSON, with some confidence checks.
  *
  * @since 4.1.0
  * @since 5.3.0 No longer handles support for PHP < 5.6.
@@ -4300,7 +4300,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );
 
-	// If json_encode() was successful, no need to do more sanity checking.
+	// If json_encode() was successful, no need to do more confidence checking.
 	if ( false !== $json ) {
 		return $json;
 	}
@@ -4315,7 +4315,7 @@ function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 }
 
 /**
- * Performs sanity checks on data that shall be encoded to JSON.
+ * Performs confidence checks on data that shall be encoded to JSON.
  *
  * @ignore
  * @since 4.1.0
@@ -8876,6 +8876,7 @@ function wp_get_admin_notice( $message, $args = array() ) {
  *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
  *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
  *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type string[] $attributes         Optional. Additional attributes for the notice div. Default empty array.
  *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
  * }
  */

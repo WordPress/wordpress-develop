@@ -3352,4 +3352,41 @@ HTML
 
 		);
 	}
+
+	/**
+	 * @ticket 60048
+	 *
+	 * @covers ::wp_default_packages_vendor
+	 *
+	 * @dataProvider data_wp_default_packages_vendor
+	 */
+	public function test_wp_default_packages_vendor( $script ) {
+		global $wp_scripts;
+		$package_json = $this->_scripts_from_package_json();
+
+		wp_default_packages_vendor( $wp_scripts );
+
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
+	}
+
+	public function data_wp_default_packages_vendor() {
+		return array(
+			array( 'script' => 'lodash' ),
+			array( 'script' => 'moment' ),
+			array( 'script' => 'react' ),
+			array( 'script' => 'react-dom' ),
+			array( 'script' => 'regenerator-runtime' ),
+		);
+	}
+
+	/**
+	 * Helper to return dependencies from package.json.
+	 */
+	private function _scripts_from_package_json() {
+		$package = file_get_contents( ABSPATH . '../package.json' );
+		$data    = json_decode( $package, true );
+
+		$provider = array();
+		return $data['dependencies'];
+	}
 }
