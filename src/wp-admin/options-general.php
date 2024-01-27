@@ -185,7 +185,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $roles_to_exclude Array of roles to exclude from the default_role dropdown
+	 * @param array $roles_to_exclude Array of roles to exclude from the default_role dropdown.
 	 */
 	$roles_to_exclude = (array) apply_filters( 'default_user_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
 	?>
