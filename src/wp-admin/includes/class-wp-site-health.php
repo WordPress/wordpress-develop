@@ -1981,7 +1981,7 @@ class WP_Site_Health {
 				'label' => __( 'Security' ),
 				'color' => 'blue',
 			),
-			'description' => '<p>' . __( 'The combination of open registration and the default user role is acceptable.' ) . '</p>',
+			'description' => '<p>' . __( 'The combination of open registration setting and the default user role may lead to security issues.' ) . '</p>',
 			'actions'     => '',
 			'test'        => 'privileged_default_role_with_open_registration',
 		);
