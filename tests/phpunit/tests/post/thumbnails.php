@@ -455,7 +455,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 58212
 	 *
-	 * @covers::_wp_post_thumbnail_context_filter
+	 * @covers ::_wp_post_thumbnail_context_filter
 	 */
 	public function test_wp_post_thumbnail_context_filter_should_return_the_post_thumbnail() {
 		$this->assertSame( 'the_post_thumbnail', _wp_post_thumbnail_context_filter( 'wp_get_attachment_image' ) );
