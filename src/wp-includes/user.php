@@ -123,7 +123,9 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 			array(
 				'user_activation_key' => '',
 			),
-			array( 'ID' => $user->ID )
+			array( 'ID' => $user->ID ),
+			array( '%s' ),
+			array( '%d' )
 		);
 
 		// Empty user_activation_key object.
