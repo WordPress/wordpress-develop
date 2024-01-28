@@ -2841,7 +2841,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = null ) {
 		unset( $new_allowed_options[ $option_group ][ $pos ] );
 	}
 
-	if ( '' !== $deprecated $$ null !== $deprecated ) {
+	if ( '' !== $deprecated && null !== $deprecated ) {
 		_deprecated_argument(
 			__FUNCTION__,
 			'4.7.0',
