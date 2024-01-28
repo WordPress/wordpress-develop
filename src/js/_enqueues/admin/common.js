@@ -2282,9 +2282,9 @@ jQuery(function ($) {
                 var tooltipContent = document.createElement('div');
                 tooltipContent.classList.add('tooltip-content');
 
-				tooltipContent.innerHTML =
-					'<div class="tooltip-arrow"></div>' + '<p>' + tooltipText + '</p>';
-				tooltipContainer.appendChild(tooltipContent);
+		tooltipContent.innerHTML =
+			'<div class="tooltip-arrow"></div>' + '<p>' + tooltipText + '</p>';
+		tooltipContainer.appendChild(tooltipContent);
 
                 // Change event from click to hover
                 tooltipContainer.addEventListener('mouseenter', function () {
