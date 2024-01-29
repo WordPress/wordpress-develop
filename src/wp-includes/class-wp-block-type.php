@@ -228,7 +228,7 @@ class WP_Block_Type {
 	/**
 	 * Block type front end only style handles.
 	 *
-	 * @since 6.x.x
+	 * @since 6.5.0
 	 * @var string[]
 	 */
 	public $view_style_handles = array();
@@ -275,7 +275,7 @@ class WP_Block_Type {
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
 	 * @since 6.3.0 Added the `selectors` property.
 	 * @since 6.4.0 Added the `block_hooks` property.
-	 * @since 6.x.x Added the `view_style_handles` property.
+	 * @since 6.5.0 Added the `view_style_handles` property.
 	 *
 	 * @see register_block_type()
 	 *
