@@ -12,20 +12,33 @@
 class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 
 	/**
-	* Test
+	 * Set up before each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function set_up() {
+		foreach ( get_all_registered_block_bindings_sources() as $source_name => $source_properties ) {
+			unregister_block_bindings_source( $source_name );
+		}
+
+		parent::set_up();
+	}
+
+	/**
+	* Test if the block content is updated with the value returned by the source.
+	*
+	* @since 6.5.0
 	*
 	* @covers WP_Block_Bindings_Registry::
 	*/
 	public function test_replace_html_for_paragraph_content() {
-		$wp_block_bindings = WP_Block_Bindings_Registry::get_instance();
-
-		$source_name        = 'test_source';
+		$source_name        = 'test/source';
 		$label              = 'Test Source';
 		$get_value_callback = function () {
 			return 'test source value';
 		};
 
-		$wp_block_bindings->register(
+		register_block_bindings_source(
 			$source_name,
 			array(
 				'label'              => $label,
@@ -34,7 +47,7 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 		);
 
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":{"name":"test_source","attributes":{"value":"text_custom_field"}}}}}} --><p>This should not appear</p><!-- /wp:paragraph -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":{"name":"test/source","attributes":{"value":"text_custom_field"}}}}}} --><p>This should not appear</p><!-- /wp:paragraph -->
 HTML;
 
 		$parsed_blocks = parse_blocks( $block_content );
