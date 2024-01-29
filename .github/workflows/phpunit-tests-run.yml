@@ -146,6 +146,7 @@ jobs:
           docker-compose run --rm php php -m
           docker-compose run --rm php php -i
           docker-compose run --rm php locale -a
+          node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --version
 
       - name: Install WordPress
         run: npm run env:install
