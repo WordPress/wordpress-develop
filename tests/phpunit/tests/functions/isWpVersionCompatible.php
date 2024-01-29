@@ -9,6 +9,21 @@
  */
 class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
+	 * A notice expected during the tests.
+	 *
+	 * @var string
+	 */
+	private $expected_notice = '';
+
+	/**
+	 * Resets the `$expected_notice` property after each test runs.
+	 */
+	public function tear_down() {
+		$this->expected_notice = '';
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
@@ -43,45 +58,55 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 
 		return array(
 			// Happy paths.
-			'the same version'          => array(
+			'the same version'                => array(
 				'required' => $wp_version,
 				'expected' => true,
 			),
-			'a lower required version'  => array(
+			'a lower required version'        => array(
 				'required' => $lower_version,
 				'expected' => true,
 			),
-			'a higher required version' => array(
+			'a higher required version'       => array(
 				'required' => $higher_version,
 				'expected' => false,
 			),
 
+			// Acceptable versions containing '.0'.
+			'correct version ending with x.0' => array(
+				'required' => '5.0',
+				'expected' => true,
+			),
+			'correct version with x.0.x in middle of version' => array(
+				'required' => '5.0.1',
+				'expected' => true,
+			),
+
 			// Falsey values.
-			'false'                     => array(
+			'false'                           => array(
 				'required' => false,
 				'expected' => true,
 			),
-			'null'                      => array(
+			'null'                            => array(
 				'required' => null,
 				'expected' => true,
 			),
-			'0 int'                     => array(
+			'0 int'                           => array(
 				'required' => 0,
 				'expected' => true,
 			),
-			'0.0 float'                 => array(
+			'0.0 float'                       => array(
 				'required' => 0.0,
 				'expected' => true,
 			),
-			'0 string'                  => array(
+			'0 string'                        => array(
 				'required' => '0',
 				'expected' => true,
 			),
-			'empty string'              => array(
+			'empty string'                    => array(
 				'required' => '',
 				'expected' => true,
 			),
-			'empty array'               => array(
+			'empty array'                     => array(
 				'required' => array(),
 				'expected' => true,
 			),
@@ -89,9 +114,9 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests is_wp_version_compatible() silent version fix.
+	 * Tests that is_wp_version_compatible() throws a notice for incorrect version numbering.
 	 *
-	 * @dataProvider data_is_wp_version_compatible_silent_fix
+	 * @dataProvider data_is_wp_version_compatible_should_throw_a_notice
 	 *
 	 * @ticket 59448
 	 *
@@ -99,17 +124,25 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @param string $wp       The value for the $wp_version global variable.
 	 * @param bool   $expected The expected result.
 	 */
-	public function test_is_wp_version_compatible_silent_fix( $required, $wp, $expected ) {
+	public function test_is_wp_version_compatible_should_throw_a_notice( $required, $wp, $expected ) {
 		global $wp_version;
-
 		$original_version = $wp_version;
 		$wp_version       = $wp;
-		$actual           = is_wp_version_compatible( $required );
+
+		$this->override_error_handler();
+		$actual = is_wp_version_compatible( $required );
+		restore_error_handler();
 
 		// Reset the version before the assertion in case of failure.
 		$wp_version = $original_version;
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, 'The expected result was not returned.' );
+
+		$this->assertStringStartsWith(
+			E_USER_NOTICE . " is_wp_version_compatible(): `$required` Not a valid WordPress version string.",
+			$this->expected_notice,
+			'The expected notice was not thrown.'
+		);
 	}
 
 	/**
@@ -117,28 +150,57 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_wp_version_compatible_silent_fix() {
+	public function data_is_wp_version_compatible_should_throw_a_notice() {
 		return array(
-			'improper trailing x.x.0'         => array(
+			'an incorrect trailing .0 and the same version' => array(
 				'required' => '5.2.0',
 				'wp'       => '5.2',
 				'expected' => true,
 			),
-			'incorrect trailing x.0.0'        => array(
+			'an incorrect trailing .0 and the same x.0 version' => array(
 				'required' => '5.0.0',
 				'wp'       => '5.0',
 				'expected' => true,
 			),
-			'correct version ending with x.0' => array(
-				'required' => '5.0',
-				'wp'       => '5.0',
+			'an incorrect trailing .0 and an earlier version' => array(
+				'required' => '5.0.0',
+				'wp'       => '4.0',
+				'expected' => false,
+			),
+			'an incorrect trailing .0 and an earlier x.0 version' => array(
+				'required' => '5.0.0',
+				'wp'       => '4.0',
+				'expected' => false,
+			),
+			'an incorrect trailing .0 and a later version' => array(
+				'required' => '5.0.0',
+				'wp'       => '6.0',
 				'expected' => true,
 			),
-			'correct version with x.0.x in middle of version' => array(
-				'required' => '5.0.1',
-				'wp'       => '5.0.1',
+			'an incorrect trailing .0 and a later x.0 version' => array(
+				'required' => '5.0.0',
+				'wp'       => '6.0',
 				'expected' => true,
 			),
+		);
+	}
+
+	/**
+	 * Overrides the error handler to store the error data in a property.
+	 *
+	 * @throws Exception If a non-E_USER_NOTICE is thrown.
+	 */
+	private function override_error_handler() {
+		set_error_handler(
+			function ( $errno, $errstr ) {
+				restore_error_handler();
+				if ( E_USER_NOTICE === $errno ) {
+					$this->expected_notice = $errno . ' ' . $errstr;
+				} else {
+					throw new Exception( $errstr, $errno );
+				}
+			},
+			E_ALL
 		);
 	}
 
