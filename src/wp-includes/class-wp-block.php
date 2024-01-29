@@ -253,7 +253,7 @@ class WP_Block {
 			return $block_content;
 		}
 
-		$block_bindings_sources = wp_block_bindings_get_all_registered();
+		$block_bindings_sources = get_all_registered_block_bindings_sources();
 		$modified_block_content = $block_content;
 		foreach ( $block['attrs']['metadata']['bindings'] as $binding_attribute => $binding_source ) {
 			// If the attribute is not in the list, process next attribute.
