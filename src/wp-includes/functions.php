@@ -8735,14 +8735,18 @@ function is_wp_version_compatible( $required ) {
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );
 
-	if ( is_string( $required ) && substr_count( $required, '.' ) > 1 && str_ends_with( $required, '.0' ) ) {
-		$passed   = $required;
-		$required = preg_replace( '/\.0/', '', $passed, 1 );
-		wp_trigger_error(
-			__FUNCTION__,
-			/* translators: 1: Version string sent to function, 2: Version string returned from function. */
-			sprintf( __( '`%1$s` Not a valid WordPress version string. `%2$s` is assumed.' ), $passed, $required )
-		);
+	if ( is_string( $required ) ) {
+		$passed  = $required;
+		$trimmed = trim( $required );
+
+		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
+			$required = preg_replace( '/\.0$/', '', $trimmed, 1 );
+			wp_trigger_error(
+				__FUNCTION__,
+				/* translators: 1: Version string sent to function, 2: Version string returned from function. */
+				sprintf( __( '`%1$s` Not a valid WordPress version string. `%2$s` is assumed.' ), $passed, $required )
+			);
+		}
 	}
 
 	return empty( $required ) || version_compare( $version, $required, '>=' );

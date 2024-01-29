@@ -162,6 +162,21 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 				'wp'       => '5.0',
 				'expected' => true,
 			),
+			'an incorrect trailing .0 and space and same x.0 version' => array(
+				'required' => '5.0.0 ',
+				'wp'       => '5.0',
+				'expected' => true,
+			),
+			'incorrect preceding and trailing spaces trailing .0' => array(
+				'required' => ' 5.0.0 ',
+				'wp'       => '5.0',
+				'expected' => true,
+			),
+			'an incorrect trailing .0 on x.0.x version'    => array(
+				'required' => '5.0.1.0',
+				'wp'       => '5.0.1',
+				'expected' => true,
+			),
 			'an incorrect trailing .0 and an earlier version' => array(
 				'required' => '5.0.0',
 				'wp'       => '4.0',
