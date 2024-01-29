@@ -5105,5 +5105,4 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$sanitized_theme_json = $theme_json->get_raw_data();
 		$this->assertSameSetsWithIndex( $expected_sanitized, $sanitized_theme_json, 'Sanitized theme.json does not match' );
 	}
-
 }
