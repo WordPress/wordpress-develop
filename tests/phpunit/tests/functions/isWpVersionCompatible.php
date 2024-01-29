@@ -12,8 +12,6 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * Tests is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 *
 	 * @ticket 54257
 	 *
@@ -21,14 +19,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @param bool  $expected The expected result.
 	 */
 	public function test_is_wp_version_compatible( $required, $expected ) {
-		// Suppress E_USER_NOTICE, which will be raised when required value is not real WP version.
-		$original_error_reporting = error_reporting();
-		error_reporting( $original_error_reporting & ~E_USER_NOTICE );
-
 		$this->assertSame( $expected, is_wp_version_compatible( $required ) );
-
-		// Reset error reporting.
-		error_reporting( $original_error_reporting );
 	}
 
 	/**
@@ -94,30 +85,69 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 				'required' => array(),
 				'expected' => true,
 			),
+		);
+	}
 
+	/**
+	 * Tests is_wp_version_compatible() silent version fix.
+	 *
+	 * @dataProvider data_is_wp_version_compatible_silent_fix
+	 *
+	 * @ticket 59448
+	 *
+	 * @param mixed $required The minimum required WordPress version.
+	 * @param string $wp      The value for the $wp_version global variable.
+	 * @param bool  $expected The expected result.
+	 */
+	public function test_is_wp_version_compatible_silent_fix( $required, $wp, $expected ) {
+		global $wp_version;
+
+		$original_version = $wp_version;
+		$wp_version       = $wp;
+		$actual           = is_wp_version_compatible( $required );
+
+		// Reset the version before the assertion in case of failure.
+		$wp_version = $original_version;
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_is_wp_version_compatible_silent_fix() {
+		return array(
 			// Improper WP version.
-			'improper trailing x.x.0'   => array(
+			'improper trailing x.x.0'  => array(
 				'required' => '5.2.0',
+				'wp'       => '5.2',
 				'expected' => true,
 			),
-			'correct version'           => array(
+			'correct version'          => array(
 				'required' => '5.2',
+				'wp'       => '5.2',
 				'expected' => true,
 			),
-			'incorrect trailing x.0.0'  => array(
+			'incorrect trailing x.0.0' => array(
 				'required' => '5.0.0',
+				'wp'       => '5.0',
 				'expected' => true,
 			),
-			'correct version x.0'       => array(
+			'correct version x.0'      => array(
 				'required' => '5.0',
+				'wp'       => '5.0',
 				'expected' => true,
 			),
-			'correct version x.0.1'     => array(
+			'correct version x.0.1'    => array(
 				'required' => '5.0.1',
+				'wp'       => '5.0.1',
 				'expected' => true,
 			),
-			'correct version x.1.1'     => array(
+			'correct version x.1.1'    => array(
 				'required' => '5.1.1',
+				'wp'       => '5.1.1',
 				'expected' => true,
 			),
 		);
