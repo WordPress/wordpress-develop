@@ -9,6 +9,21 @@
  */
 class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
+	 * A notice expected during the tests.
+	 *
+	 * @var string
+	 */
+	private $expected_notice = '';
+
+	/**
+	 * Resets the `$expected_notice` property after each test runs.
+	 */
+	public function tear_down() {
+		$this->expected_notice = '';
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
@@ -99,9 +114,9 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests is_wp_version_compatible() silent version fix.
+	 * Tests that is_wp_version_compatible() throws a notice for incorrect version numbering.
 	 *
-	 * @dataProvider data_is_wp_version_compatible_silent_fix
+	 * @dataProvider data_is_wp_version_compatible_should_throw_a_notice
 	 *
 	 * @ticket 59448
 	 *
@@ -109,17 +124,25 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @param string $wp       The value for the $wp_version global variable.
 	 * @param bool   $expected The expected result.
 	 */
-	public function test_is_wp_version_compatible_silent_fix( $required, $wp, $expected ) {
+	public function test_is_wp_version_compatible_should_throw_a_notice( $required, $wp, $expected ) {
 		global $wp_version;
-
 		$original_version = $wp_version;
 		$wp_version       = $wp;
-		$actual           = is_wp_version_compatible( $required );
+
+		$this->override_error_handler();
+		$actual = is_wp_version_compatible( $required );
+		restore_error_handler();
 
 		// Reset the version before the assertion in case of failure.
 		$wp_version = $original_version;
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $expected, $actual, 'The expected result was not returned.' );
+
+		$this->assertStringStartsWith(
+			E_USER_NOTICE . " is_wp_version_compatible(): `$required` Not a valid WordPress version string.",
+			$this->expected_notice,
+			'The expected notice was not thrown.'
+		);
 	}
 
 	/**
@@ -149,6 +172,18 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 				'wp'       => '5.0.1',
 				'expected' => true,
 			),
+		);
+	}
+
+	/**
+	 * Overrides the error handler to store the error data in a property.
+	 */
+	private function override_error_handler() {
+		set_error_handler(
+			function ( $errno, $errstr ) {
+				$this->expected_notice = $errno . ' ' . $errstr;
+			},
+			E_USER_NOTICE
 		);
 	}
 
