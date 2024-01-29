@@ -2,18 +2,19 @@
 /**
  * Block Bindings API: WP_Block_Bindings_Registry class.
  *
- * Support for overriding content in blocks by connecting them to different sources.
+ * Supports overriding content in blocks by connecting them to different sources.
  *
  * @package WordPress
  * @subpackage Block Bindings
+ * @since 6.5.0
  */
 
 /**
- * Core class used to define supported blocks, register sources, and populate HTML with content from those sources.
+ * Core class used for interacting with block binding sources.
  *
  *  @since 6.5.0
  */
-class WP_Block_Bindings_Registry {
+final class WP_Block_Bindings_Registry {
 
 	/**
 	 * Holds the registered block bindings sources, keyed by source identifier.
@@ -33,7 +34,7 @@ class WP_Block_Bindings_Registry {
 	private static $instance = null;
 
 	/**
-	 * Function to register a new block binding source.
+	 * Registers a new block binding source.
 	 *
 	 * Sources are used to override block's original attributes with a value
 	 * coming from the source. Once a source is registered, it can be used by a
@@ -42,7 +43,7 @@ class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string   $source_name   The name of the source.
+	 * @param string   $source_name       The name of the source.
 	 * @param array    $source_properties {
 	 *     The array of arguments that are used to register a source. We use an array so that we can easily extend
 	 *     the API to pass additional arguments in the future. For now, it should be comprised of two elements:
@@ -51,11 +52,11 @@ class WP_Block_Bindings_Registry {
 	 *     @type callback $get_value_callback A callback executed when the source is processed during block rendering.
 	 *                                        The callback should have the following signature:
 	 *
-	 *                                        `function (object $source_attrs, object $block_instance, string $attribute_name): string`
-	 *                                            - @param object $source_attrs: Object containing source ID used to look up the override value, i.e. {"value": "{ID}"}.
+	 *                                        `function (object $source_args, object $block_instance, string $attribute_name): mixed`
+	 *                                            - @param object $source_args: Object containing source arguments used to look up the override value, i.e. {"key": "foo"}.
 	 *                                            - @param object $block_instance: The block instance.
 	 *                                            - @param string $attribute_name: The name of an attribute used to retrieve an override value from the block context.
-	 *                                        The callback has a mixed return type; it may return a string to override the block's original value, null, false to remove an attribtute, etc.
+	 *                                        The callback has a mixed return type; it may return a string to override the block's original value, null, false to remove an attribute, etc.
 	 * }
 	 * @return boolean Whether the registration was successful.
 	 */
@@ -68,7 +69,7 @@ class WP_Block_Bindings_Registry {
 	}
 
 	/**
-	 * Retrieves the list of registered block bindings sources.
+	 * Retrieves the list of all registered block bindings sources.
 	 *
 	 * @since 6.5.0
 	 *
@@ -84,7 +85,7 @@ class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @param string $source_name The name of the source.
-	 * @return bool True if the source is registered, false otherwise.
+	 * @return array|null The registered block binding source, or `null` if it is not registered.
 	 */
 	public function get_registered( $source_name ) {
 		if ( ! $this->is_registered( $source_name ) ) {
@@ -95,12 +96,12 @@ class WP_Block_Bindings_Registry {
 	}
 
 	/**
-	 * Checks if a block source is registered.
+	 * Checks if a block binding source is registered.
 	 *
 	 * @since 6.5.0
 	 *
 	 * @param string $source_name The name of the source.
-	 * @return bool True if the source is registered, false otherwise.
+	 * @return bool `true` if the block binding source is registered, `false` otherwise.
 	 */
 	public function is_registered( $source_name ) {
 		return isset( $this->sources[ $source_name ] );
@@ -113,7 +114,7 @@ class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return WP_Block_Bindings_Registry The WP_Block_Bindings_Registry instance.
+	 * @return WP_Block_Bindings_Registry The main instance.
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
