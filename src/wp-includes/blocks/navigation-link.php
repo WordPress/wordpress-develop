@@ -428,12 +428,14 @@ function register_block_core_navigation_link() {
 			'variation_callback' => 'build_navigation_link_block_variations',
 		)
 	);
+
+	// Register actions for all post types and taxonomies, to add variations when they are registered.
+	// All post types/taxonomies registered before register_block_core_navigation_link, will be handled by that function.
+	add_action( 'registered_post_type', 'block_core_navigation_link_register_post_type_variation', 10, 2 );
+	add_action( 'registered_taxonomy', 'block_core_navigation_link_register_taxonomy_variation', 10, 3 );
 }
 add_action( 'init', 'register_block_core_navigation_link' );
-// Register actions for all post types and taxonomies, to add variations when they are registered.
-// All post types/taxonomies registered before register_block_core_navigation_link, will be handled by that function.
-// add_action( 'registered_post_type', 'block_core_navigation_link_register_post_type_variation', 10, 2 );
-// add_action( 'registered_taxonomy', 'block_core_navigation_link_register_taxonomy_variation', 10, 3 );
+
 // Handle unregistering of post types and taxonomies and remove the variations.
 add_action( 'unregistered_post_type', 'block_core_navigation_link_unregister_post_type_variation' );
 add_action( 'unregistered_taxonomy', 'block_core_navigation_link_unregister_taxonomy_variation' );
