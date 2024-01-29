@@ -10,9 +10,18 @@
  *
  * @group html-api
  *
- * @coversDefaultClass WP_HTML_Processor
+ * @covers WP_HTML_Active_Formatting_Elements
+ * @covers WP_HTML_Attribute_Token
+ * @covers WP_HTML_Open_Elements
+ * @covers WP_HTML_Processor
+ * @covers WP_HTML_Processor_State
+ * @covers WP_HTML_Span
+ * @covers WP_HTML_Tag_Processor
+ * @covers WP_HTML_Text_Replacement
+ * @covers WP_HTML_Token
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
+
 
 	/**
 	 * The HTML Processor only accepts HTML in document <body>.
