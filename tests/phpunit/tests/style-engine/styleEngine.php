@@ -184,6 +184,23 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_aspect_ratio_style'              => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'aspectRatio' => '4/3',
+						'minHeight'   => 'unset',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'aspect-ratio:4/3;min-height:50vh;',
+					'declarations' => array(
+						'aspect-ratio' => '4/3',
+						'min-height'   => 'unset',
+					),
+				),
+			),
+
 			'inline_valid_shadow_style'                    => array(
 				'block_styles'    => array(
 					'shadow' => 'inset 5em 1em gold',
