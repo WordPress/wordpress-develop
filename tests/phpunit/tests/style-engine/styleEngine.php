@@ -193,7 +193,8 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'aspect-ratio:4/3;min-height:50vh;',
+					'classnames'   => 'has-aspect-ratio',
+					'css'          => 'aspect-ratio:4/3;min-height:unset;',
 					'declarations' => array(
 						'aspect-ratio' => '4/3',
 						'min-height'   => 'unset',
