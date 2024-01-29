@@ -9,7 +9,7 @@
  *
  * @group html-api
  *
- * @coversDefaultClass WP_HTML_Processor
+ * @covers WP_HTML_Processor
  */
 class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
@@ -28,8 +28,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * the callee that it should be using those static methods instead.
 	 *
 	 * @ticket 58517
-	 *
-	 * @covers WP_HTML_Processor::__construct
 	 */
 	public function test_warns_that_the_static_creator_methods_should_be_called_instead_of_the_public_constructor() {
 		$this->setExpectedIncorrectUsage( 'WP_HTML_Processor::__construct' );
@@ -48,8 +46,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * is no tag matched or open.
 	 *
 	 * @ticket 59167
-	 *
-	 * @covers WP_HTML_Processor::get_tag
 	 */
 	public function test_get_tag_is_null_once_document_is_finished() {
 		$p = WP_HTML_Processor::create_fragment( '<div class="test">Test</div>' );
@@ -72,9 +68,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * inside an open LI element.
 	 *
 	 * @ticket 58517
-	 *
-	 * @covers WP_HTML_Processor::next_tag
-	 * @covers WP_HTML_Processor::seek
 	 */
 	public function test_clear_to_navigate_after_seeking() {
 		$p = WP_HTML_Processor::create_fragment( '<div one><strong></strong></div><p><strong two></strong></p>' );
@@ -122,8 +115,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * before the HTML Processor handles situations with unclosed formats requiring it.
 	 *
 	 * @ticket 58517
-	 *
-	 * @covers WP_HTML_Processor::reconstruct_active_formatting_elements
 	 */
 	public function test_fails_to_reconstruct_formatting_elements() {
 		$p = WP_HTML_Processor::create_fragment( '<p><em>One<p><em>Two<p><em>Three<p><em>Four' );
@@ -136,9 +127,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * Ensure non-nesting tags do not nest.
 	 *
 	 * @ticket 60283
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 * @covers WP_HTML_Processor::is_void
 	 *
 	 * @dataProvider data_void_tags
 	 *
@@ -221,8 +209,6 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 60092
 	 *
 	 * @dataProvider data_unsupported_special_in_body_tags
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @param string $tag_name Name of the tag to test.
 	 */

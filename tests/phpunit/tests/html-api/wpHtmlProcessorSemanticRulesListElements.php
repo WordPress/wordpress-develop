@@ -10,7 +10,7 @@
  *
  * @group html-api
  *
- * @coversDefaultClass WP_HTML_Processor
+ * @covers WP_HTML_Processor
  */
 class Tests_HtmlApi_WpHtmlProcessorSemanticRulesListElements extends WP_UnitTestCase {
 	/*******************************************************************

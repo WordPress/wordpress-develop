@@ -21,7 +21,7 @@
  *
  * @group html-api
  *
- * @coversDefaultClass WP_HTML_Processor
+ * @covers WP_HTML_Processor
  */
 class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	/**
@@ -54,8 +54,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 * @since 6.4.0
 	 *
 	 * @ticket 58907
-	 *
-	 * @covers WP_HTML_Processor::generate_implied_end_tags
 	 */
 	public function test_generate_implied_end_tags_needs_support() {
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
@@ -73,8 +71,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 * @since 6.4.0
 	 *
 	 * @ticket 58907
-	 *
-	 * @covers WP_HTML_Processor::generate_implied_end_tags_thoroughly
 	 */
 	public function test_generate_implied_end_tags_thoroughly_needs_support() {
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
