@@ -170,9 +170,9 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		$this->registry->register( $source_three_name, $source_three_properties );
 
 		$expected = array(
-			array_merge( array( 'name' => $source_one_name ), $source_one_properties ),
-			array_merge( array( 'name' => $source_two_name ), $source_two_properties ),
-			array_merge( array( 'name' => $source_three_name ), $source_three_properties ),
+			$source_one_name   => array_merge( array( 'name' => $source_one_name ), $source_one_properties ),
+			$source_two_name   => array_merge( array( 'name' => $source_two_name ), $source_two_properties ),
+			$source_three_name => array_merge( array( 'name' => $source_three_name ), $source_three_properties ),
 		);
 
 		$registered = $this->registry->get_all_registered();
@@ -230,7 +230,6 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 60282
 	 *
-	 * @covers WP_Block_Bindings_Registry::register
 	 * @covers WP_Block_Bindings_Registry::is_registered
 	 */
 	public function test_is_registered_for_unknown_source() {
