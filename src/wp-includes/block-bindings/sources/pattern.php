@@ -14,7 +14,7 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
 	return _wp_array_get( $block_instance->context, array( 'pattern/overrides', $block_id, $attribute_name ), null );
 }
 
-wp_block_bindings_register_source(
+register_block_bindings_source(
 	'core/pattern-attributes',
 	array(
 		'label'              => __( 'Pattern Attributes' ),
