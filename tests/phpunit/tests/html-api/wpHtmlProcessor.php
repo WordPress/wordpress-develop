@@ -9,8 +9,14 @@
  *
  * @group html-api
  *
+ * @covers WP_HTML_Active_Formatting_Elements
+ * @covers WP_HTML_Open_Elements
  * @covers WP_HTML_Processor
+ * @covers WP_HTML_Processor_State
+ * @covers WP_HTML_Token
  */
+
+
 class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensure that the HTML Processor's public constructor function warns a developer to call

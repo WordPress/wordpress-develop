@@ -9,6 +9,8 @@
 /**
  * @group html-api
  *
+ * @covers WP_HTML_Attribute_Token
+ * @covers WP_HTML_Span
  * @covers WP_HTML_Tag_Processor
  */
 class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
