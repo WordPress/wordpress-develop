@@ -617,6 +617,7 @@ class Tests_WpScriptModules extends WP_UnitTestCase {
 		$this->assertEquals( '', $import_map_polyfill );
 
 		// Polyfill is not empty when a module is registered.
+		wp_register_script( 'wp-polyfill-importmap', '/wp-polyfill-importmap.js', array(), '1.0' );
 		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
 		$this->script_modules->register( 'dep', '/dep.js' );
 		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map_polyfill' ) );
@@ -625,5 +626,6 @@ class Tests_WpScriptModules extends WP_UnitTestCase {
 		$id = $p->get_attribute( 'id' );
 
 		$this->assertEquals( 'wp-load-polyfill-importmap', $id );
+		wp_deregister_script( 'wp-polyfill-importmap' );
 	}
 }
