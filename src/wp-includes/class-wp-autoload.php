@@ -37,6 +37,7 @@ final class WP_Autoload {
 		'wp_admin_bar'                                => 'wp-includes/class-wp-admin-bar.php',
 		'wp_ajax_response'                            => 'wp-includes/class-wp-ajax-response.php',
 		'wp_application_passwords'                    => 'wp-includes/class-wp-application-passwords.php',
+		'wp_block_bindings_registry'                  => 'wp-includes/class-wp-block-bindings-registry.php',
 		'wp_block_editor_context'                     => 'wp-includes/class-wp-block-editor-context.php',
 		'wp_block_list'                               => 'wp-includes/class-wp-block-list.php',
 		'wp_block_parser_block'                       => 'wp-includes/class-wp-block-parser-block.php',

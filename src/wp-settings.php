@@ -192,7 +192,6 @@ require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/rest-api.php';
 require ABSPATH . WPINC . '/sitemaps.php';
-require ABSPATH . WPINC . '/class-wp-block-bindings-registry.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
