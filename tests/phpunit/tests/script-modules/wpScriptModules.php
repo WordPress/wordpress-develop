@@ -604,11 +604,26 @@ class Tests_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Tests that the import map polyfill is not enqueued when there are no
 	 * modules registered.
+	 *
+	 * @ticket 60348
+	 *
+	 * @covers ::print_import_map_polyfill()
 	 */
 
 	public function test_wp_print_import_map_polyfill() {
 		// Polyfill is empty when no modules are registered.
 		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map_polyfill' ) );
-		$this->assertEmpty( $import_map_polyfill );
+
+		$this->assertEquals( '', $import_map_polyfill );
+
+		// Polyfill is not empty when a module is registered.
+		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map_polyfill' ) );
+		$p                   = new WP_HTML_Tag_Processor( $import_map_polyfill );
+		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
+		$id = $p->get_attribute( 'id' );
+
+		$this->assertEquals( 'wp-load-polyfill-importmap', $id );
 	}
 }
