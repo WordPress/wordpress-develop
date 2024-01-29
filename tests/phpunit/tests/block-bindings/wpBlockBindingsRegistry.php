@@ -141,6 +141,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 60282
 	 *
+	 * @covers WP_Block_Bindings_Registry::register
 	 * @covers WP_Block_Bindings_Registry::unregister
 	 */
 	public function test_unregister_block_source() {
