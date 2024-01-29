@@ -187,13 +187,20 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 
 	/**
 	 * Overrides the error handler to store the error data in a property.
+	 *
+	 * @throws Exception If a non-E_USER_NOTICE is thrown.
 	 */
 	private function override_error_handler() {
 		set_error_handler(
 			function ( $errno, $errstr ) {
-				$this->expected_notice = $errno . ' ' . $errstr;
+				restore_error_handler();
+				if ( E_USER_NOTICE === $errno ) {
+					$this->expected_notice = $errno . ' ' . $errstr;
+				} else {
+					throw new Exception( $errstr, $errno );
+				}
 			},
-			E_USER_NOTICE
+			E_ALL
 		);
 	}
 
