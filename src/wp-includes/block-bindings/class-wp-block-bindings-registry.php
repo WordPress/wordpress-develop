@@ -45,18 +45,20 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @param string   $source_name       The name of the source.
 	 * @param array    $source_properties {
-	 *     The array of arguments that are used to register a source. We use an array so that we can easily extend
-	 *     the API to pass additional arguments in the future. For now, it should be comprised of two elements:
+	 *     The array of arguments that are used to register a source.
 	 *
-	 *     @type string $label                The label of the source.
+	 *     @type string   $label              The label of the source.
 	 *     @type callback $get_value_callback A callback executed when the source is processed during block rendering.
 	 *                                        The callback should have the following signature:
 	 *
-	 *                                        `function (object $source_args, object $block_instance, string $attribute_name): mixed`
-	 *                                            - @param object $source_args: Object containing source arguments used to look up the override value, i.e. {"key": "foo"}.
-	 *                                            - @param object $block_instance: The block instance.
-	 *                                            - @param string $attribute_name: The name of an attribute used to retrieve an override value from the block context.
-	 *                                        The callback has a mixed return type; it may return a string to override the block's original value, null, false to remove an attribute, etc.
+	 *                                        `function ($source_args, $block_instance,$attribute_name): mixed`
+	 *                                            - @param array    $source_args    Array containing source arguments
+	 *                                                                              used to look up the override value,
+	 *                                                                              i.e. {"key": "foo"}.
+	 *                                            - @param WP_Block $block_instance The block instance.
+	 *                                            - @param string   $attribute_name The name of an attribute .
+	 *                                        The callback has a mixed return type; it may return a string to override
+	 *                                        the block's original value, null, false to remove an attribute, etc.
 	 * }
 	 * @return boolean Whether the registration was successful.
 	 */
