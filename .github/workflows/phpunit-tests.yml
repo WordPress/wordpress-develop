@@ -36,7 +36,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: youknowriad/wordpress-develop/.github/workflows/phpunit-tests-run.yml@update/packages-65
+    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -88,7 +88,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: youknowriad/wordpress-develop/.github/workflows/phpunit-tests-run.yml@update/packages-65
+    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
     permissions:
       contents: read
     secrets: inherit
