@@ -120,22 +120,22 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	public function data_is_wp_version_compatible_silent_fix() {
 		return array(
 			// Improper WP version.
-			'improper trailing x.x.0'  => array(
+			'improper trailing x.x.0'         => array(
 				'required' => '5.2.0',
 				'wp'       => '5.2',
 				'expected' => true,
 			),
-			'incorrect trailing x.0.0' => array(
+			'incorrect trailing x.0.0'        => array(
 				'required' => '5.0.0',
 				'wp'       => '5.0',
 				'expected' => true,
 			),
-			'correct version ending with x.0'      => array(
+			'correct version ending with x.0' => array(
 				'required' => '5.0',
 				'wp'       => '5.0',
 				'expected' => true,
 			),
-			'correct version with x.0.x in middle of version'    => array(
+			'correct version with x.0.x in middle of version' => array(
 				'required' => '5.0.1',
 				'wp'       => '5.0.1',
 				'expected' => true,
