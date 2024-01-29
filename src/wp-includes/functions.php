@@ -8740,7 +8740,7 @@ function is_wp_version_compatible( $required ) {
 		$required = preg_replace( '/\.0/', '', $passed, 1 );
 		wp_trigger_error(
 			__FUNCTION__,
-			/* translators: %s: Version string sent to function. */
+			/* translators: 1: Version string sent to function, 2: Version string returned from function. */
 			sprintf( __( '`%1$s` Not a valid WordPress version string. `%2$s` is assumed.' ), $passed, $required )
 		);
 	}
