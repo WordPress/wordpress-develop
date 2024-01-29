@@ -37,8 +37,8 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 *
 	 * @ticket 60282
 	 *
-	 * @covers register_block_bindings_source
-	 * @covers get_all_registered_block_bindings_sources
+	 * @covers ::register_block_bindings_source
+	 * @covers ::get_all_registered_block_bindings_sources
 	 */
 	public function test_get_all_registered() {
 		$source_one_name       = 'test/source-one';
@@ -68,7 +68,8 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 *
 	 * @ticket 60282
 	 *
-	 * @covers WP_Block_Bindings_Registry::unregister
+	 * @covers ::register_block_bindings_source
+	 * @covers ::unregister_block_bindings_source
 	 */
 	public function test_unregister_block_source() {
 		register_block_bindings_source( self::TEST_SOURCE_NAME, self::TEST_SOURCE_PROPERTIES );
