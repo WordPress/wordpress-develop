@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Script_Modules
  */
-class Tests_WP_Script_Modules extends WP_UnitTestCase {
+class Tests_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Script_Modules.
 	 *
@@ -599,5 +599,16 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
+	}
+
+	/**
+	 * Tests that the import map polyfill is not enqueued when there are no
+	 * modules registered.
+	 */
+
+	public function test_wp_print_import_map_polyfill() {
+		// Polyfill is empty when no modules are registered.
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map_polyfill' ) );
+		$this->assertEmpty( $import_map_polyfill );
 	}
 }
