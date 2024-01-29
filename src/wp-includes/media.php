@@ -5523,7 +5523,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		! empty( $info ) &&
 		// Some PHP versions return 0x0 sizes from `getimagesize` for unrecognized image formats, including AVIFs.
 		! ( empty( $info[0] ) && empty( $info[1] ) )
-		) {
+	) {
 		return $info;
 	}
 
