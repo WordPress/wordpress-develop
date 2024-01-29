@@ -43,45 +43,55 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 
 		return array(
 			// Happy paths.
-			'the same version'          => array(
+			'the same version'                => array(
 				'required' => $wp_version,
 				'expected' => true,
 			),
-			'a lower required version'  => array(
+			'a lower required version'        => array(
 				'required' => $lower_version,
 				'expected' => true,
 			),
-			'a higher required version' => array(
+			'a higher required version'       => array(
 				'required' => $higher_version,
 				'expected' => false,
 			),
 
+			// Acceptable versions containing '.0'.
+			'correct version ending with x.0' => array(
+				'required' => '5.0',
+				'expected' => true,
+			),
+			'correct version with x.0.x in middle of version' => array(
+				'required' => '5.0.1',
+				'expected' => true,
+			),
+
 			// Falsey values.
-			'false'                     => array(
+			'false'                           => array(
 				'required' => false,
 				'expected' => true,
 			),
-			'null'                      => array(
+			'null'                            => array(
 				'required' => null,
 				'expected' => true,
 			),
-			'0 int'                     => array(
+			'0 int'                           => array(
 				'required' => 0,
 				'expected' => true,
 			),
-			'0.0 float'                 => array(
+			'0.0 float'                       => array(
 				'required' => 0.0,
 				'expected' => true,
 			),
-			'0 string'                  => array(
+			'0 string'                        => array(
 				'required' => '0',
 				'expected' => true,
 			),
-			'empty string'              => array(
+			'empty string'                    => array(
 				'required' => '',
 				'expected' => true,
 			),
-			'empty array'               => array(
+			'empty array'                     => array(
 				'required' => array(),
 				'expected' => true,
 			),
