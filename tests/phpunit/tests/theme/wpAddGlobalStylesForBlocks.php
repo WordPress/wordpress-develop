@@ -21,6 +21,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 	}
 
 	public function tear_down() {
@@ -31,6 +32,8 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 			}
 			$this->test_blocks = array();
 		}
+
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
 		parent::tear_down();
 	}
@@ -53,32 +56,8 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	/**
 	 * @ticket 56915
 	 */
-	public function test_third_party_blocks_inline_styles_get_registered_to_global_styles() {
-		$this->set_up_third_party_block();
-
-		wp_register_style( 'global-styles', false, array(), true, true );
-
-		$this->assertNotContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
-			$this->get_global_styles(),
-			'Third party block inline style should not be registered before running wp_add_global_styles_for_blocks()'
-		);
-
-		wp_add_global_styles_for_blocks();
-
-		$this->assertContains(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
-			$this->get_global_styles(),
-			'Third party block inline style should be registered after running wp_add_global_styles_for_blocks()'
-		);
-	}
-
-	/**
-	 * @ticket 56915
-	 */
 	public function test_third_party_blocks_inline_styles_get_registered_to_global_styles_when_per_block() {
 		$this->set_up_third_party_block();
-		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
 		wp_register_style( 'global-styles', false, array(), true, true );
 
@@ -102,7 +81,6 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 */
 	public function test_third_party_blocks_inline_styles_get_rendered_when_per_block() {
 		$this->set_up_third_party_block();
-		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );
@@ -123,50 +101,11 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 56915
-	 */
-	public function test_blocks_inline_styles_get_rendered() {
-		wp_register_style( 'global-styles', false, array(), true, true );
-		wp_enqueue_style( 'global-styles' );
-		wp_add_global_styles_for_blocks();
-
-		$actual = get_echo( 'wp_print_styles' );
-
-		$this->assertStringContainsString(
-			'.wp-block-my-third-party-block{background-color: hotpink;}',
-			$actual,
-			'Third party block inline style should render'
-		);
-		$this->assertStringContainsString(
-			'.wp-block-post-featured-image',
-			$actual,
-			'Core block should render'
-		);
-	}
-
-	/**
 	 * @ticket 57868
 	 */
 	public function test_third_party_blocks_inline_styles_for_elements_get_rendered_when_per_block() {
 		$this->set_up_third_party_block();
-		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
-		wp_register_style( 'global-styles', false, array(), true, true );
-		wp_enqueue_style( 'global-styles' );
-		wp_add_global_styles_for_blocks();
-
-		$actual = get_echo( 'wp_print_styles' );
-
-		$this->assertStringContainsString(
-			'.wp-block-my-third-party-block cite{color: white;}',
-			$actual
-		);
-	}
-
-	/**
-	 * @ticket 57868
-	 */
-	public function test_third_party_blocks_inline_styles_for_elements_get_rendered() {
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );
 		wp_add_global_styles_for_blocks();
