@@ -191,7 +191,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensure non-nesting tags do not nest when processing tokens.
 	 *
-	 * @ticket 60283
+	 * @ticket 60382
 	 *
 	 * @dataProvider data_void_tags
 	 *
