@@ -13,8 +13,6 @@
  */
 class Tests_WpScriptModules extends WP_UnitTestCase {
 
-	private $old_wp_scripts;
-
 	/**
 	 * Instance of WP_Script_Modules.
 	 *
@@ -27,21 +25,8 @@ class Tests_WpScriptModules extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-
-		// Set up the WP_Scripts instance.
-		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
-		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
-		$GLOBALS['wp_scripts']                  = new WP_Scripts();
-		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
-
 		// Set up the WP_Script_Modules instance.
 		$this->script_modules = new WP_Script_Modules();
-	}
-
-	public function tear_down() {
-		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
-		add_action( 'wp_default_scripts', 'wp_default_scripts' );
-		parent::tear_down();
 	}
 
 	/**
