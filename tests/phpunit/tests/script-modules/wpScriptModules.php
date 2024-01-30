@@ -612,9 +612,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers ::print_import_map_polyfill()
 	 */
 
-	public function test_wp_print_import_map_polyfill() {
+	public function test_wp_print_import_map_has_polyfill() {
 		// Polyfill is empty when no modules are registered.
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map_polyfill' ) );
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
 
 		$this->assertEquals( '', $import_map_polyfill );
 
@@ -623,7 +623,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
 		$this->script_modules->register( 'dep', '/dep.js' );
-		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map_polyfill' ) );
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
 		$p                   = new WP_HTML_Tag_Processor( $import_map_polyfill );
 		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
 		$id = $p->get_attribute( 'id' );
