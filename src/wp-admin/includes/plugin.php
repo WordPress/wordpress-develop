@@ -1400,12 +1400,14 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  *                               to be compatible with sanitize_key().
  * @param callable  $callback    Optional. The function to be called to output the content for this page.
  * @param int|float $position    Optional. The position in the menu order this item should appear.
- * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ * @return string|false The resulting page's hook_suffix. False if the user does not have the capability
+ *                      required or if a slug parameter is empty.
  */
 function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
 		$_registered_pages, $_parent_pages;
 
+	// Return if one of the slug parameters is empty.
 	if ( empty( $parent_slug ) || empty( $menu_slug ) ) {
 		return false;
 	}
