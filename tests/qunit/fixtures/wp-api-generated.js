@@ -6940,6 +6940,11 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "featured_media": {
+                            "description": "The ID of the featured media for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "comment_status": {
                             "description": "Whether or not comments are open on the post.",
                             "type": "string",
@@ -7139,6 +7144,11 @@ mockedApiResponse.Schema = {
                         },
                         "author": {
                             "description": "The ID for the author of the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "featured_media": {
+                            "description": "The ID of the featured media for the post.",
                             "type": "integer",
                             "required": false
                         },
@@ -12206,6 +12216,7 @@ mockedApiResponse.MediaCollection = [
             "rendered": "REST API Client Fixture: Attachment"
         },
         "author": 0,
+        "featured_media": 0,
         "comment_status": "open",
         "ping_status": "closed",
         "template": "",
@@ -12267,6 +12278,7 @@ mockedApiResponse.MediaModel = {
         "rendered": "REST API Client Fixture: Attachment"
     },
     "author": 0,
+    "featured_media": 0,
     "comment_status": "open",
     "ping_status": "closed",
     "template": "",
