@@ -14,8 +14,6 @@
  * to hook into the process.
  *
  * @since 2.8.0
- *
- * @see SimplePie_File
  */
 #[AllowDynamicProperties]
 class WP_SimplePie_File extends SimplePie_File {
@@ -64,7 +62,7 @@ class WP_SimplePie_File extends SimplePie_File {
 				$args['headers'] = $this->headers;
 			}
 
-			if ( SIMPLEPIE_USERAGENT != $this->useragent ) { // Use default WP user agent unless custom has been specified.
+			if ( SIMPLEPIE_USERAGENT !== $this->useragent ) { // Use default WP user agent unless custom has been specified.
 				$args['user-agent'] = $this->useragent;
 			}
 

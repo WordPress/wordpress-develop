@@ -1,7 +1,6 @@
 /**
  * External dependencies
  */
-const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 
 /**
@@ -12,7 +11,7 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
+const { baseDir, getBaseConfig, normalizeJoin, stylesTransform } = require( './shared' );
 const {
 	isDynamic,
 	toDirectoryName,
@@ -62,28 +61,76 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		noErrorOnMissing: true,
 	} ) );
 
+	const baseConfig = getBaseConfig( env );
 	const config = {
-		...baseConfig( env ),
+		...baseConfig,
 		entry: {
-			'file/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/file/view` ),
-			'navigation/view': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view` ),
-			'navigation/view-modal': normalizeJoin(baseDir, `node_modules/@wordpress/block-library/build-module/navigation/view-modal` ),
+			'navigation/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/navigation/view' ),
+			'image/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/image/view' ),
+			'query/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/query/view' ),
+			'file/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/file/view' ),
+			'search/view': normalizeJoin( baseDir, 'node_modules/@wordpress/block-library/build-module/search/view' ),
 		},
 		output: {
 			devtoolNamespace: 'wp',
-			filename: `[name]${ suffix }.js`,
-			path: normalizeJoin(baseDir, `${ buildTarget }/blocks` ),
+			filename: `./blocks/[name]${ suffix }.js`,
+			path: normalizeJoin( baseDir, buildTarget ),
+			chunkLoadingGlobal: `__WordPressPrivateInteractivityAPI__`,
+		},
+		resolve: {
+			alias: {
+				'@wordpress/interactivity': normalizeJoin( baseDir, 'node_modules/@wordpress/interactivity/src/index.js' ),
+			},
+		},
+		optimization: {
+			...baseConfig.optimization,
+			runtimeChunk: {
+				name: 'private-interactivity',
+			},
+			splitChunks: {
+				cacheGroups: {
+					interactivity: {
+						name: 'private-interactivity',
+						test: /^(?!.*[\\/]block-library[\\/]).*$/,
+						filename: `./js/dist/interactivity${suffix}.js`,
+						chunks: 'all',
+						minSize: 0,
+						priority: -10,
+					},
+				},
+			},
+		},
+		module: {
+			rules: [
+				{
+					test: /\.(j|t)sx?$/,
+					use: [
+						{
+							loader: require.resolve( 'babel-loader' ),
+							options: {
+								cacheDirectory: process.env.BABEL_CACHE_DIRECTORY || true,
+								babelrc: false,
+								configFile: false,
+								presets: [
+									[
+										'@babel/preset-react',
+										{
+											runtime: 'automatic',
+											importSource: 'preact',
+										},
+									],
+								],
+							},
+						},
+					],
+				},
+			],
 		},
 		plugins: [
-			new DefinePlugin( {
-				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
-				'process.env.IS_GUTENBERG_PLUGIN': false,
-				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
-					process.env.FORCE_REDUCED_MOTION,
-				),
-			} ),
+			...baseConfig.plugins,
 			new DependencyExtractionPlugin( {
 				injectPolyfill: false,
+				useDefaults: false,
 			} ),
 			new CopyWebpackPlugin( {
 				patterns: [

@@ -123,15 +123,22 @@ class WP_Scripts extends WP_Dependencies {
 	public $default_dirs;
 
 	/**
-	 * Holds a string which contains the type attribute for script tag.
+	 * Holds a mapping of dependents (as handles) for a given script handle.
+	 * Used to optimize recursive dependency tree checks.
 	 *
-	 * If the active theme does not declare HTML5 support for 'script',
-	 * then it initializes as `type='text/javascript'`.
-	 *
-	 * @since 5.3.0
-	 * @var string
+	 * @since 6.3.0
+	 * @var array
 	 */
-	private $type_attr = '';
+	private $dependents_map = array();
+
+	/**
+	 * Holds a reference to the delayed (non-blocking) script loading strategies.
+	 * Used by methods that validate loading strategies.
+	 *
+	 * @since 6.3.0
+	 * @var string[]
+	 */
+	private $delayed_strategies = array( 'defer', 'async' );
 
 	/**
 	 * Constructor.
@@ -149,14 +156,6 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 3.4.0
 	 */
 	public function init() {
-		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-		&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'script' )
-		) {
-			$this->type_attr = " type='text/javascript'";
-		}
-
 		/**
 		 * Fires when the WP_Scripts instance is initialized.
 		 *
@@ -227,21 +226,27 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		printf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
+		wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-extra" ) );
 
-		// CDATA is not needed for HTML 5.
-		if ( $this->type_attr ) {
-			echo "/* <![CDATA[ */\n";
+		return true;
+	}
+
+	/**
+	 * Checks whether all dependents of a given handle are in the footer.
+	 *
+	 * If there are no dependents, this is considered the same as if all dependents were in the footer.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $handle Script handle.
+	 * @return bool Whether all dependents are in the footer.
+	 */
+	private function are_all_dependents_in_footer( $handle ) {
+		foreach ( $this->get_dependents( $handle ) as $dep ) {
+			if ( isset( $this->groups[ $dep ] ) && 0 === $this->groups[ $dep ] ) {
+				return false;
+			}
 		}
-
-		echo "$output\n";
-
-		if ( $this->type_attr ) {
-			echo "/* ]]> */\n";
-		}
-
-		echo "</script>\n";
-
 		return true;
 	}
 
@@ -284,29 +289,46 @@ class WP_Scripts extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src         = $obj->src;
-		$cond_before = '';
-		$cond_after  = '';
-		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$src               = $obj->src;
+		$strategy          = $this->get_eligible_loading_strategy( $handle );
+		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
+		$cond_before       = '';
+		$cond_after        = '';
+		$conditional       = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+
+		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
+			$intended_strategy = '';
+		}
+
+		/*
+		 * Move this script to the footer if:
+		 * 1. The script is in the header group.
+		 * 2. The current output is the header.
+		 * 3. The intended strategy is delayed.
+		 * 4. The actual strategy is not delayed.
+		 * 5. All dependent scripts are in the footer.
+		 */
+		if (
+			0 === $group &&
+			0 === $this->groups[ $handle ] &&
+			$intended_strategy &&
+			! $this->is_delayed_strategy( $strategy ) &&
+			$this->are_all_dependents_in_footer( $handle )
+		) {
+			$this->in_footer[] = $handle;
+			return false;
+		}
 
 		if ( $conditional ) {
 			$cond_before = "<!--[if {$conditional}]>\n";
 			$cond_after  = "<![endif]-->\n";
 		}
 
-		$before_handle = $this->print_inline_script( $handle, 'before', false );
-		$after_handle  = $this->print_inline_script( $handle, 'after', false );
+		$before_script = $this->get_inline_script_tag( $handle, 'before' );
+		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
 
-		if ( $before_handle ) {
-			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
-		}
-
-		if ( $after_handle ) {
-			$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
-		}
-
-		if ( $before_handle || $after_handle ) {
-			$inline_script_tag = $cond_before . $before_handle . $after_handle . $cond_after;
+		if ( $before_script || $after_script ) {
+			$inline_script_tag = $cond_before . $before_script . $after_script . $cond_after;
 		} else {
 			$inline_script_tag = '';
 		}
@@ -319,7 +341,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = sprintf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $translations );
+			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		if ( $this->do_concat ) {
@@ -333,7 +355,10 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
-			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations_stop_concat ) ) {
+			if (
+				$this->in_default_dir( $srce )
+				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
+			) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
@@ -375,7 +400,7 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && 0 === strpos( $src, $this->content_url ) ) ) {
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
 			$src = $this->base_url . $src;
 		}
 
@@ -384,15 +409,25 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
-		$src = esc_url( apply_filters( 'script_loader_src', $src, $handle ) );
+		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
 
 		if ( ! $src ) {
 			return true;
 		}
 
-		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
-		$tag .= $after_handle . $cond_after;
+		$attr = array(
+			'src' => $src,
+			'id'  => "{$handle}-js",
+		);
+		if ( $strategy ) {
+			$attr[ $strategy ] = true;
+		}
+		if ( $intended_strategy ) {
+			$attr['data-wp-strategy'] = $intended_strategy;
+		}
+		$tag  = $translations . $cond_before . $before_script;
+		$tag .= wp_get_script_tag( $attr );
+		$tag .= $after_script . $cond_after;
 
 		/**
 		 * Filters the HTML script tag of an enqueued script.
@@ -445,29 +480,97 @@ class WP_Scripts extends WP_Dependencies {
 	 * Prints inline scripts registered for a specific handle.
 	 *
 	 * @since 4.5.0
+	 * @deprecated 6.3.0 Use methods get_inline_script_tag() or get_inline_script_data() instead.
 	 *
-	 * @param string $handle   Name of the script to add the inline script to.
+	 * @param string $handle   Name of the script to print inline scripts for.
 	 *                         Must be lowercase.
 	 * @param string $position Optional. Whether to add the inline script
 	 *                         before the handle or after. Default 'after'.
-	 * @param bool   $display  Optional. Whether to print the script
-	 *                         instead of just returning it. Default true.
-	 * @return string|false Script on success, false otherwise.
+	 * @param bool   $display  Optional. Whether to print the script tag
+	 *                         instead of just returning the script data. Default true.
+	 * @return string|false Script data on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $display = true ) {
-		$output = $this->get_data( $handle, $position );
+		_deprecated_function( __METHOD__, '6.3.0', 'WP_Scripts::get_inline_script_data() or WP_Scripts::get_inline_script_tag()' );
 
+		$output = $this->get_inline_script_data( $handle, $position );
 		if ( empty( $output ) ) {
 			return false;
 		}
 
-		$output = trim( implode( "\n", $output ), "\n" );
-
 		if ( $display ) {
-			printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
+			echo $this->get_inline_script_tag( $handle, $position );
+		}
+		return $output;
+	}
+
+	/**
+	 * Gets data for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to get data for.
+	 *                         Must be lowercase.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
+	 * @return string Inline script, which may be empty string.
+	 */
+	public function get_inline_script_data( $handle, $position = 'after' ) {
+		$data = $this->get_data( $handle, $position );
+		if ( empty( $data ) || ! is_array( $data ) ) {
+			return '';
 		}
 
-		return $output;
+		return trim( implode( "\n", $data ), "\n" );
+	}
+
+	/**
+	 * Gets unaliased dependencies.
+	 *
+	 * An alias is a dependency whose src is false. It is used as a way to bundle multiple dependencies in a single
+	 * handle. This in effect flattens an alias dependency tree.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string[] $deps Dependency handles.
+	 * @return string[] Unaliased handles.
+	 */
+	private function get_unaliased_deps( array $deps ) {
+		$flattened = array();
+		foreach ( $deps as $dep ) {
+			if ( ! isset( $this->registered[ $dep ] ) ) {
+				continue;
+			}
+
+			if ( $this->registered[ $dep ]->src ) {
+				$flattened[] = $dep;
+			} elseif ( $this->registered[ $dep ]->deps ) {
+				array_push( $flattened, ...$this->get_unaliased_deps( $this->registered[ $dep ]->deps ) );
+			}
+		}
+		return $flattened;
+	}
+
+	/**
+	 * Gets tags for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to get associated inline script tag for.
+	 *                         Must be lowercase.
+	 * @param string $position Optional. Whether to get tag for inline
+	 *                         scripts in the before or after position. Default 'after'.
+	 * @return string Inline script, which may be empty string.
+	 */
+	public function get_inline_script_tag( $handle, $position = 'after' ) {
+		$js = $this->get_inline_script_data( $handle, $position );
+		if ( empty( $js ) ) {
+			return '';
+		}
+
+		$id = "{$handle}-js-{$position}";
+
+		return wp_get_inline_script_tag( $js, compact( 'id' ) );
 	}
 
 	/**
@@ -626,7 +729,7 @@ class WP_Scripts extends WP_Dependencies {
 JS;
 
 		if ( $display ) {
-			printf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
+			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		return $output;
@@ -702,16 +805,222 @@ JS;
 			return true;
 		}
 
-		if ( 0 === strpos( $src, '/' . WPINC . '/js/l10n' ) ) {
+		if ( str_starts_with( $src, '/' . WPINC . '/js/l10n' ) ) {
 			return false;
 		}
 
 		foreach ( (array) $this->default_dirs as $test ) {
-			if ( 0 === strpos( $src, $test ) ) {
+			if ( str_starts_with( $src, $test ) ) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * This overrides the add_data method from WP_Dependencies, to support normalizing of $args.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle Name of the item. Should be unique.
+	 * @param string $key    The data key.
+	 * @param mixed  $value  The data value.
+	 * @return bool True on success, false on failure.
+	 */
+	public function add_data( $handle, $key, $value ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return false;
+		}
+
+		if ( 'strategy' === $key ) {
+			if ( ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $strategy, 2: $handle */
+						__( 'Invalid strategy `%1$s` defined for `%2$s` during script registration.' ),
+						$value,
+						$handle
+					),
+					'6.3.0'
+				);
+				return false;
+			} elseif ( ! $this->registered[ $handle ]->src && $this->is_delayed_strategy( $value ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: $strategy, 2: $handle */
+						__( 'Cannot supply a strategy `%1$s` for script `%2$s` because it is an alias (it lacks a `src` value).' ),
+						$value,
+						$handle
+					),
+					'6.3.0'
+				);
+				return false;
+			}
+		}
+		return parent::add_data( $handle, $key, $value );
+	}
+
+	/**
+	 * Gets all dependents of a script.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return string[] Script handles.
+	 */
+	private function get_dependents( $handle ) {
+		// Check if dependents map for the handle in question is present. If so, use it.
+		if ( isset( $this->dependents_map[ $handle ] ) ) {
+			return $this->dependents_map[ $handle ];
+		}
+
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding dependents of the script passed to this method.
+		foreach ( $this->registered as $registered_handle => $args ) {
+			if ( in_array( $handle, $args->deps, true ) ) {
+				$dependents[] = $registered_handle;
+			}
+		}
+
+		// Add the handles dependents to the map to ease future lookups.
+		$this->dependents_map[ $handle ] = $dependents;
+
+		return $dependents;
+	}
+
+	/**
+	 * Checks if the strategy passed is a valid delayed (non-blocking) strategy.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $strategy The strategy to check.
+	 * @return bool True if $strategy is one of the delayed strategies, otherwise false.
+	 */
+	private function is_delayed_strategy( $strategy ) {
+		return in_array(
+			$strategy,
+			$this->delayed_strategies,
+			true
+		);
+	}
+
+	/**
+	 * Gets the best eligible loading strategy for a script.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle The script handle.
+	 * @return string The best eligible loading strategy.
+	 */
+	private function get_eligible_loading_strategy( $handle ) {
+		$intended = (string) $this->get_data( $handle, 'strategy' );
+
+		// Bail early if there is no intended strategy.
+		if ( ! $intended ) {
+			return '';
+		}
+
+		/*
+		 * If the intended strategy is 'defer', limit the initial list of eligible
+		 * strategies, since 'async' can fallback to 'defer', but not vice-versa.
+		 */
+		$initial = ( 'defer' === $intended ) ? array( 'defer' ) : null;
+
+		$eligible = $this->filter_eligible_strategies( $handle, $initial );
+
+		// Return early once we know the eligible strategy is blocking.
+		if ( empty( $eligible ) ) {
+			return '';
+		}
+
+		return in_array( 'async', $eligible, true ) ? 'async' : 'defer';
+	}
+
+	/**
+	 * Filter the list of eligible loading strategies for a script.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string              $handle   The script handle.
+	 * @param string[]|null       $eligible Optional. The list of strategies to filter. Default null.
+	 * @param array<string, true> $checked  Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @return string[] A list of eligible loading strategies that could be used.
+	 */
+	private function filter_eligible_strategies( $handle, $eligible = null, $checked = array() ) {
+		// If no strategies are being passed, all strategies are eligible.
+		if ( null === $eligible ) {
+			$eligible = $this->delayed_strategies;
+		}
+
+		// If this handle was already checked, return early.
+		if ( isset( $checked[ $handle ] ) ) {
+			return $eligible;
+		}
+
+		// Mark this handle as checked.
+		$checked[ $handle ] = true;
+
+		// If this handle isn't registered, don't filter anything and return.
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return $eligible;
+		}
+
+		// If the handle is not enqueued, don't filter anything and return.
+		if ( ! $this->query( $handle, 'enqueued' ) ) {
+			return $eligible;
+		}
+
+		$is_alias          = (bool) ! $this->registered[ $handle ]->src;
+		$intended_strategy = $this->get_data( $handle, 'strategy' );
+
+		// For non-alias handles, an empty intended strategy filters all strategies.
+		if ( ! $is_alias && empty( $intended_strategy ) ) {
+			return array();
+		}
+
+		// Handles with inline scripts attached in the 'after' position cannot be delayed.
+		if ( $this->has_inline_script( $handle, 'after' ) ) {
+			return array();
+		}
+
+		// If the intended strategy is 'defer', filter out 'async'.
+		if ( 'defer' === $intended_strategy ) {
+			$eligible = array( 'defer' );
+		}
+
+		$dependents = $this->get_dependents( $handle );
+
+		// Recursively filter eligible strategies for dependents.
+		foreach ( $dependents as $dependent ) {
+			// Bail early once we know the eligible strategy is blocking.
+			if ( empty( $eligible ) ) {
+				return array();
+			}
+
+			$eligible = $this->filter_eligible_strategies( $dependent, $eligible, $checked );
+		}
+
+		return $eligible;
+	}
+
+	/**
+	 * Gets data for inline scripts registered for a specific handle.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string $handle   Name of the script to get data for. Must be lowercase.
+	 * @param string $position The position of the inline script.
+	 * @return bool Whether the handle has an inline script (either before or after).
+	 */
+	private function has_inline_script( $handle, $position = null ) {
+		if ( $position && in_array( $position, array( 'before', 'after' ), true ) ) {
+			return (bool) $this->get_data( $handle, $position );
+		}
+
+		return (bool) ( $this->get_data( $handle, 'before' ) || $this->get_data( $handle, 'after' ) );
 	}
 
 	/**

@@ -236,7 +236,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$selective_refreshable_widgets = $this->manager->widgets->get_selective_refreshable_widgets();
 		$this->assertIsArray( $selective_refreshable_widgets );
-		$this->assertSame( count( $wp_widget_factory->widgets ), count( $selective_refreshable_widgets ) );
+		$this->assertCount( count( $wp_widget_factory->widgets ), $selective_refreshable_widgets );
 		$this->assertArrayHasKey( 'text', $selective_refreshable_widgets );
 		$this->assertTrue( $selective_refreshable_widgets['text'] );
 		$this->assertArrayHasKey( 'search', $selective_refreshable_widgets );
@@ -556,7 +556,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	private function get_test_widget_control_args() {
 		global $wp_registered_widgets;
-		require_once ABSPATH . '/wp-admin/includes/widgets.php';
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 		$widget_id = 'search-2';
 		$widget    = $wp_registered_widgets[ $widget_id ];
 		$args      = array(

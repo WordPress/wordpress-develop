@@ -18,7 +18,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	/**
 	 * @ticket 44317
 	 *
-	 * @dataProvider get_bad_status_codes
+	 * @dataProvider data_wp_redirect_bad_status_code
 	 *
 	 * @covers ::wp_redirect
 	 *
@@ -31,7 +31,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		wp_redirect( $location, $status );
 	}
 
-	public function get_bad_status_codes() {
+	public function data_wp_redirect_bad_status_code() {
 		return array(
 			// Tests for bad arguments.
 			array( '/wp-admin', 404 ),
@@ -73,7 +73,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider valid_url_provider
+	 * @dataProvider data_wp_validate_redirect_valid_url
 	 *
 	 * @covers ::wp_validate_redirect
 	 */
@@ -81,16 +81,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_validate_redirect( $url ) );
 	}
 
-	/**
-	 * @dataProvider invalid_url_provider
-	 *
-	 * @covers ::wp_validate_redirect
-	 */
-	public function test_wp_validate_redirect_invalid_url( $url ) {
-		$this->assertEquals( false, wp_validate_redirect( $url, false ) );
-	}
-
-	public function valid_url_provider() {
+	public function data_wp_validate_redirect_valid_url() {
 		return array(
 			array( 'http://example.com', 'http://example.com' ),
 			array( 'http://example.com/', 'http://example.com/' ),
@@ -106,7 +97,16 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		);
 	}
 
-	public function invalid_url_provider() {
+	/**
+	 * @dataProvider data_wp_validate_redirect_invalid_url
+	 *
+	 * @covers ::wp_validate_redirect
+	 */
+	public function test_wp_validate_redirect_invalid_url( $url ) {
+		$this->assertEquals( false, wp_validate_redirect( $url, false ) );
+	}
+
+	public function data_wp_validate_redirect_invalid_url() {
 		return array(
 			// parse_url() fails.
 			array( '' ),
@@ -176,7 +176,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47980
-	 * @dataProvider relative_url_provider
+	 * @dataProvider data_wp_validate_redirect_relative_url
 	 *
 	 * @covers ::wp_validate_redirect
 	 */
@@ -211,7 +211,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *      string Expected destination.
 	 * }
 	 */
-	public function relative_url_provider() {
+	public function data_wp_validate_redirect_relative_url() {
 		return array(
 			array(
 				'/',

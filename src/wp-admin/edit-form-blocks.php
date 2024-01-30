@@ -31,7 +31,7 @@ $current_screen->is_block_editor( true );
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	static function( $classes ) {
+	static function ( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -203,7 +203,7 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
-	'supportsLayout'       => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'       => wp_theme_has_theme_json(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
@@ -271,7 +271,7 @@ wp_enqueue_style( 'wp-edit-post' );
  */
 do_action( 'enqueue_block_editor_assets' );
 
-// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
+// In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 
@@ -319,27 +319,45 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php // JavaScript is disabled. ?>
 	<div class="wrap hide-if-js block-editor-no-js">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
-		<div class="notice notice-error notice-alt">
-			<p>
-				<?php
-					$message = sprintf(
-						/* translators: %s: A link to install the Classic Editor plugin. */
-						__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or try the <a href="%s">Classic Editor plugin</a>.' ),
-						esc_url( wp_nonce_url( self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ), 'save_wporg_username_' . get_current_user_id() ) )
-					);
+		<?php
+		if ( file_exists( WP_PLUGIN_DIR . '/classic-editor/classic-editor.php' ) ) {
+			// If Classic Editor is already installed, provide a link to activate the plugin.
+			$installed           = true;
+			$plugin_activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=classic-editor/classic-editor.php', 'activate-plugin_classic-editor/classic-editor.php' );
+			$message             = sprintf(
+				/* translators: %s: Link to activate the Classic Editor plugin. */
+				__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or activate the <a href="%s">Classic Editor plugin</a>.' ),
+				esc_url( $plugin_activate_url )
+			);
+		} else {
+			// If Classic Editor is not installed, provide a link to install it.
+			$installed          = false;
+			$plugin_install_url = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=classic-editor' ), 'install-plugin_classic-editor' );
+			$message            = sprintf(
+				/* translators: %s: Link to install the Classic Editor plugin. */
+				__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or install the <a href="%s">Classic Editor plugin</a>.' ),
+				esc_url( $plugin_install_url )
+			);
+		}
 
-					/**
-					 * Filters the message displayed in the block editor interface when JavaScript is
-					 * not enabled in the browser.
-					 *
-					 * @since 5.0.3
-					 *
-					 * @param string  $message The message being displayed.
-					 * @param WP_Post $post    The post being edited.
-					 */
-					echo apply_filters( 'block_editor_no_javascript_message', $message, $post );
-					?>
-			</p>
-		</div>
+		/**
+		 * Filters the message displayed in the block editor interface when JavaScript is
+		 * not enabled in the browser.
+		 *
+		 * @since 5.0.3
+		 * @since 6.4.0 Added `$installed` parameter.
+		 *
+		 * @param string  $message   The message being displayed.
+		 * @param WP_Post $post      The post being edited.
+		 * @param bool    $installed Whether the classic editor is installed.
+		 */
+		$message = apply_filters( 'block_editor_no_javascript_message', $message, $post, $installed );
+		wp_admin_notice(
+			$message,
+			array(
+				'type' => 'error',
+			)
+		);
+		?>
 	</div>
 </div>

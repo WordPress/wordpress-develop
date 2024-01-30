@@ -174,9 +174,9 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 
 		$wp_query->max_num_comment_pages = 7;
 
-		$this->assertEquals( 7, get_comment_pages_count() );
-		$this->assertEquals( 7, get_comment_pages_count( null, null, null ) );
-		$this->assertEquals( 0, get_comment_pages_count( array(), null, null ) );
+		$this->assertSame( 7, get_comment_pages_count() );
+		$this->assertSame( 7, get_comment_pages_count( null, null, null ) );
+		$this->assertSame( 0, get_comment_pages_count( array(), null, null ) );
 
 		$wp_query->max_num_comment_pages = $org_max_num_comment_pages;
 	}

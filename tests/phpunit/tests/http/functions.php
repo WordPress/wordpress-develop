@@ -20,8 +20,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$this->assertIsArray( $response );
 
-		$this->assertSame( 'image/jpeg', $headers['content-type'] );
-		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -65,8 +65,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['content-type'] );
-		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -86,8 +86,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$headers = wp_remote_retrieve_headers( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['content-type'] );
-		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -216,9 +216,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_get_cookie_host_only() {
 		// Emulate WP_Http::request() internals.
-		$requests_response = new Requests_Response();
+		$requests_response = new WpOrg\Requests\Response();
 
-		$requests_response->cookies['test'] = Requests_Cookie::parse( 'test=foo; domain=.wordpress.org' );
+		$requests_response->cookies['test'] = WpOrg\Requests\Cookie::parse( 'test=foo; domain=.wordpress.org' );
 
 		$requests_response->cookies['test']->flags['host-only'] = false; // https://github.com/WordPress/Requests/issues/306
 
@@ -231,7 +231,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( $cookie->domain, 'wordpress.org' );
 		$this->assertFalse( $cookie->host_only, 'host-only flag not set' );
 
-		// Regurgitate (Requests_Cookie -> WP_Http_Cookie -> Requests_Cookie).
+		// Regurgitate (WpOrg\Requests\Cookie -> WP_Http_Cookie -> WpOrg\Requests\Cookie).
 		$cookies = WP_Http::normalize_cookies( wp_remote_retrieve_cookies( $response ) );
 		$this->assertFalse( $cookies['test']->flags['host-only'], 'host-only flag data lost' );
 	}

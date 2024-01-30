@@ -59,14 +59,20 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$url_list      = $posts_provider->get_url_list( 1, 'page' );
 		$sitemap_entry = array_shift( $url_list );
 
-		$this->assertArrayHasKey( 'lastmod', $sitemap_entry );
+		$this->assertEqualSetsWithIndex(
+			array(
+				'loc'     => home_url( '/' ),
+				'lastmod' => '2000-01-01',
+			),
+			$sitemap_entry
+		);
 	}
 
 	/**
 	 * Callback for 'wp_sitemaps_posts_show_on_front_entry' filter.
 	 */
 	public function _show_on_front_entry( $sitemap_entry ) {
-		$sitemap_entry['lastmod'] = wp_date( DATE_W3C, time() );
+		$sitemap_entry['lastmod'] = '2000-01-01';
 
 		return $sitemap_entry;
 	}
@@ -93,7 +99,10 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$expected = array();
 
 		foreach ( $post_ids as $post_id ) {
-			$expected[] = array( 'loc' => home_url( "?p={$post_id}" ) );
+			$expected[] = array(
+				'loc'     => home_url( "?p={$post_id}" ),
+				'lastmod' => get_post_modified_time( DATE_W3C, true, $post_id ),
+			);
 		}
 
 		// Check that the URL list is still in the order of the post IDs (i.e., sticky post wasn't moved to the front).

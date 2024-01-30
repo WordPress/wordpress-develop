@@ -13,6 +13,8 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
+
+		update_option( 'wp_attachment_pages_enabled', 1 );
 	}
 
 	/**
@@ -204,6 +206,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?author=%d', '/author/canonical-author/' ),
 			// array( '/?author=%d&year=2008', '/2008/?author=3'),
 			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
+			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
 
 			// Feeds.
 			array( '/?feed=atom', '/feed/atom/' ),
@@ -247,7 +250,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test short-circuit filter.
 		add_filter(
 			'pre_redirect_guess_404_permalink',
-			static function() {
+			static function () {
 				return 'wp';
 			}
 		);
@@ -374,5 +377,113 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertNull( $url );
 
 		delete_option( 'page_on_front' );
+	}
+
+	/**
+	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
+	 *
+	 * @ticket 55955
+	 */
+	public function test_feed_canonical_with_not_exists_query() {
+		// Set a NOT EXISTS tax_query on the global query.
+		$global_query        = $GLOBALS['wp_query'];
+		$GLOBALS['wp_query'] = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'post_format',
+						'operator' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+		// Restore original global.
+		$GLOBALS['wp_query'] = $global_query;
+
+		$this->assertNull( $url );
+	}
+
+	/**
+	 * Test canonical redirects for attachment pages when the option is disabled.
+	 *
+	 * @ticket 57913
+	 * @ticket 59866
+	 *
+	 * @dataProvider data_canonical_attachment_page_redirect_with_option_disabled
+	 */
+	public function test_canonical_attachment_page_redirect_with_option_disabled( $expected, $user = null, $parent_post_status = '' ) {
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		if ( '' !== $parent_post_status ) {
+			$parent_post_id = self::factory()->post->create(
+				array(
+					'post_status' => $parent_post_status,
+				)
+			);
+		} else {
+			$parent_post_id = 0;
+		}
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+
+		$attachment_id   = $this->_make_attachment( $upload, $parent_post_id );
+		$attachment_url  = wp_get_attachment_url( $attachment_id );
+		$attachment_page = get_permalink( $attachment_id );
+
+		// Set as anonymous/logged out user.
+		if ( null !== $user ) {
+			wp_set_current_user( $user );
+		}
+
+		$this->go_to( $attachment_page );
+
+		$url = redirect_canonical( $attachment_page, false );
+		if ( is_string( $expected ) ) {
+			$expected = str_replace( '%%attachment_url%%', $attachment_url, $expected );
+		}
+
+		$this->assertSame( $expected, $url );
+	}
+
+	/**
+	 * Data provider for test_canonical_attachment_page_redirect_with_option_disabled().
+	 *
+	 * @return array[]
+	 */
+	public function data_canonical_attachment_page_redirect_with_option_disabled() {
+		return array(
+			'logged out user, no parent'      => array(
+				'%%attachment_url%%',
+				0,
+			),
+			'logged in user, no parent'       => array(
+				'%%attachment_url%%',
+			),
+			'logged out user, private parent' => array(
+				null,
+				0,
+				'private',
+			),
+			'logged in user, private parent'  => array(
+				'%%attachment_url%%',
+				null,
+				'private',
+			),
+			'logged out user, public parent'  => array(
+				'%%attachment_url%%',
+				0,
+				'publish',
+			),
+			'logged in user, public parent'   => array(
+				'%%attachment_url%%',
+				null,
+				'publish',
+			),
+		);
 	}
 }

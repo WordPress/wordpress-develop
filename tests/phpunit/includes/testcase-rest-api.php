@@ -3,7 +3,7 @@
 abstract class WP_Test_REST_TestCase extends WP_UnitTestCase {
 	protected function assertErrorResponse( $code, $response, $status = null ) {
 
-		if ( is_a( $response, 'WP_REST_Response' ) ) {
+		if ( $response instanceof WP_REST_Response ) {
 			$response = $response->as_error();
 		}
 

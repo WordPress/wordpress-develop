@@ -316,17 +316,27 @@ function install_dashboard() {
  */
 function install_search_form( $deprecated = true ) {
 	$type = isset( $_REQUEST['type'] ) ? wp_unslash( $_REQUEST['type'] ) : 'term';
-	$term = isset( $_REQUEST['s'] ) ? wp_unslash( $_REQUEST['s'] ) : '';
+	$term = isset( $_REQUEST['s'] ) ? urldecode( wp_unslash( $_REQUEST['s'] ) ) : '';
 	?>
 	<form class="search-form search-plugins" method="get">
 		<input type="hidden" name="tab" value="search" />
-		<label class="screen-reader-text" for="typeselector"><?php _e( 'Search plugins by:' ); ?></label>
+		<label class="screen-reader-text" for="typeselector">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Search plugins by:' );
+			?>
+		</label>
 		<select name="type" id="typeselector">
 			<option value="term"<?php selected( 'term', $type ); ?>><?php _e( 'Keyword' ); ?></option>
 			<option value="author"<?php selected( 'author', $type ); ?>><?php _e( 'Author' ); ?></option>
 			<option value="tag"<?php selected( 'tag', $type ); ?>><?php _ex( 'Tag', 'Plugin Installer' ); ?></option>
 		</select>
-		<label class="screen-reader-text" for="search-plugins"><?php _e( 'Search Plugins' ); ?></label>
+		<label class="screen-reader-text" for="search-plugins">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Search Plugins' );
+			?>
+		</label>
 		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
 		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
 	</form>
@@ -344,7 +354,12 @@ function install_plugins_upload() {
 	<p class="install-help"><?php _e( 'If you have a plugin in a .zip format, you may install or update it by uploading it here.' ); ?></p>
 	<form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-plugin' ) ); ?>">
 		<?php wp_nonce_field( 'plugin-upload' ); ?>
-		<label class="screen-reader-text" for="pluginzip"><?php _e( 'Plugin zip file' ); ?></label>
+		<label class="screen-reader-text" for="pluginzip">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Plugin zip file' );
+			?>
+		</label>
 		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
 		<?php submit_button( __( 'Install Now' ), '', 'install-plugin-submit', false ); ?>
 	</form>
@@ -395,7 +410,7 @@ function display_plugins_table() {
 		case 'install_plugins_featured':
 			printf(
 				/* translators: %s: https://wordpress.org/plugins/ */
-				'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may automatically install plugins from the <a href="%s">WordPress Plugin Directory</a> or upload a plugin in .zip format by clicking the button at the top of this page.' ) . '</p>',
+				'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins in the <a href="%s">WordPress Plugin Directory</a> right from here, or upload a plugin in .zip format by clicking the button at the top of this page.' ) . '</p>',
 				__( 'https://wordpress.org/plugins/' )
 			);
 			break;
@@ -471,8 +486,10 @@ function install_plugin_install_status( $api, $loop = false ) {
 				}
 			} else {
 				$key = array_keys( $installed_plugin );
-				// Use the first plugin regardless of the name.
-				// Could have issues for multiple plugins in one directory if they share different version numbers.
+				/*
+				 * Use the first plugin regardless of the name.
+				 * Could have issues for multiple plugins in one directory if they share different version numbers.
+				 */
 				$key = reset( $key );
 
 				$update_file = $api->slug . '/' . $key;
@@ -800,37 +817,54 @@ function install_plugin_information() {
 	$tested_wp      = ( empty( $api->tested ) || version_compare( get_bloginfo( 'version' ), $api->tested, '<=' ) );
 
 	if ( ! $compatible_php ) {
-		echo '<div class="notice notice-error notice-alt"><p>';
-		_e( '<strong>Error:</strong> This plugin <strong>requires a newer version of PHP</strong>.' );
+		$compatible_php_notice_message  = '<p>';
+		$compatible_php_notice_message .= __( '<strong>Error:</strong> This plugin <strong>requires a newer version of PHP</strong>.' );
+
 		if ( current_user_can( 'update_php' ) ) {
-			printf(
+			$compatible_php_notice_message .= sprintf(
 				/* translators: %s: URL to Update PHP page. */
 				' ' . __( '<a href="%s" target="_blank">Click here to learn more about updating PHP</a>.' ),
 				esc_url( wp_get_update_php_url() )
-			);
-
-			wp_update_php_annotation( '</p><p><em>', '</em>' );
+			) . wp_update_php_annotation( '</p><p><em>', '</em>', false );
 		} else {
-			echo '</p>';
+			$compatible_php_notice_message .= '</p>';
 		}
-		echo '</div>';
+
+		wp_admin_notice(
+			$compatible_php_notice_message,
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt' ),
+				'paragraph_wrap'     => false,
+			)
+		);
 	}
 
 	if ( ! $tested_wp ) {
-		echo '<div class="notice notice-warning notice-alt"><p>';
-		_e( '<strong>Warning:</strong> This plugin <strong>has not been tested</strong> with your current version of WordPress.' );
-		echo '</p></div>';
+		wp_admin_notice(
+			__( '<strong>Warning:</strong> This plugin <strong>has not been tested</strong> with your current version of WordPress.' ),
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'notice-alt' ),
+			)
+		);
 	} elseif ( ! $compatible_wp ) {
-		echo '<div class="notice notice-error notice-alt"><p>';
-		_e( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
+		$compatible_wp_notice_message = __( '<strong>Error:</strong> This plugin <strong>requires a newer version of WordPress</strong>.' );
 		if ( current_user_can( 'update_core' ) ) {
-			printf(
+			$compatible_wp_notice_message .= sprintf(
 				/* translators: %s: URL to WordPress Updates screen. */
 				' ' . __( '<a href="%s" target="_parent">Click here to update WordPress</a>.' ),
 				esc_url( self_admin_url( 'update-core.php' ) )
 			);
 		}
-		echo '</p></div>';
+
+		wp_admin_notice(
+			$compatible_wp_notice_message,
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt' ),
+			)
+		);
 	}
 
 	foreach ( (array) $api->sections as $section_name => $content ) {

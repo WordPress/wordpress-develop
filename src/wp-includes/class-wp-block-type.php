@@ -113,9 +113,26 @@ class WP_Block_Type {
 	 * Block variations.
 	 *
 	 * @since 5.8.0
-	 * @var array[]
+	 * @since 6.5.0 Only accessible through magic getter. null by default.
+	 * @var array[]|null
 	 */
-	public $variations = array();
+	private $variations = null;
+
+	/**
+	 * Block variations callback.
+	 *
+	 * @since 6.5.0
+	 * @var callable|null
+	 */
+	public $variation_callback = null;
+
+	/**
+	 * Custom CSS selectors for theme.json style generation.
+	 *
+	 * @since 6.3.0
+	 * @var array
+	 */
+	public $selectors = array();
 
 	/**
 	 * Supported features.
@@ -164,6 +181,18 @@ class WP_Block_Type {
 	 * @var string[]|null
 	 */
 	public $provides_context = null;
+
+	/**
+	 * Block hooks for this block type.
+	 *
+	 * A block hook is specified by a block type and a relative position.
+	 * The hooked block will be automatically inserted in the given position
+	 * next to the "anchor" block whenever the latter is encountered.
+	 *
+	 * @since 6.4.0
+	 * @var string[]
+	 */
+	public $block_hooks = array();
 
 	/**
 	 * Block type editor only script handles.
@@ -222,11 +251,13 @@ class WP_Block_Type {
 	/**
 	 * Attributes supported by every block.
 	 *
-	 * @since 6.0.0
+	 * @since 6.0.0 Added `lock`.
+	 * @since 6.5.0 Added `metadata`.
 	 * @var array
 	 */
 	const GLOBAL_ATTRIBUTES = array(
-		'lock' => array( 'type' => 'object' ),
+		'lock'     => array( 'type' => 'object' ),
+		'metadata' => array( 'type' => 'object' ),
 	);
 
 	/**
@@ -245,6 +276,8 @@ class WP_Block_Type {
 	 * @since 6.1.0 Added the `editor_script_handles`, `script_handles`, `view_script_handles,
 	 *              `editor_style_handles`, and `style_handles` properties.
 	 *              Deprecated the `editor_script`, `script`, `view_script`, `editor_style`, and `style` properties.
+	 * @since 6.3.0 Added the `selectors` property.
+	 * @since 6.4.0 Added the `block_hooks` property.
 	 *
 	 * @see register_block_type()
 	 *
@@ -268,12 +301,15 @@ class WP_Block_Type {
 	 *     @type string|null   $textdomain               The translation textdomain.
 	 *     @type array[]       $styles                   Alternative block styles.
 	 *     @type array[]       $variations               Block variations.
+	 *     @type array         $selectors                Custom CSS selectors for theme.json style generation.
 	 *     @type array|null    $supports                 Supported features.
 	 *     @type array|null    $example                  Structured data for the block preview.
 	 *     @type callable|null $render_callback          Block type render callback.
+	 *     @type callable|null $variation_callback       Block type variations callback.
 	 *     @type array|null    $attributes               Block type attributes property schemas.
 	 *     @type string[]      $uses_context             Context values inherited by blocks of this type.
 	 *     @type string[]|null $provides_context         Context provided by blocks of this type.
+	 *     @type string[]      $block_hooks              Block hooks.
 	 *     @type string[]      $editor_script_handles    Block type editor only script handles.
 	 *     @type string[]      $script_handles           Block type front end and editor script handles.
 	 *     @type string[]      $view_script_handles      Block type front end only script handles.
@@ -295,15 +331,27 @@ class WP_Block_Type {
 	 *
 	 * @param string $name Deprecated property name.
 	 *
-	 * @return string|null|void The value read from the new property if the first item in the array provided,
-	 *                          null when value not found, or void when unknown property name provided.
+	 * @return string|string[]|null|void The value read from the new property if the first item in the array provided,
+	 *                                   null when value not found, or void when unknown property name provided.
 	 */
 	public function __get( $name ) {
-		if ( ! in_array( $name, $this->deprecated_properties ) ) {
+		if ( 'variations' === $name ) {
+			return $this->get_variations();
+		}
+
+		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return;
 		}
 
 		$new_name = $name . '_handles';
+
+		if ( ! property_exists( $this, $new_name ) || ! is_array( $this->{$new_name} ) ) {
+			return null;
+		}
+
+		if ( count( $this->{$new_name} ) > 1 ) {
+			return $this->{$new_name};
+		}
 		return isset( $this->{$new_name}[0] ) ? $this->{$new_name}[0] : null;
 	}
 
@@ -315,11 +363,15 @@ class WP_Block_Type {
 	 *
 	 * @param string $name Deprecated property name.
 	 *
-	 * @return boolean Returns true when for the new property the first item in the array exists,
-	 *                     or false otherwise.
+	 * @return bool Returns true when for the new property the first item in the array exists,
+	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
-		if ( ! in_array( $name, $this->deprecated_properties ) ) {
+		if ( 'variations' === $name ) {
+			return true;
+		}
+
+		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			return false;
 		}
 
@@ -338,8 +390,34 @@ class WP_Block_Type {
 	 * @param mixed  $value Property value.
 	 */
 	public function __set( $name, $value ) {
-		if ( ! in_array( $name, $this->deprecated_properties ) ) {
+		if ( 'variations' === $name ) {
+			$this->variations = $value;
+			return;
+		}
+
+		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			$this->{$name} = $value;
+			return;
+		}
+
+		$new_name = $name . '_handles';
+
+		if ( is_array( $value ) ) {
+			$filtered = array_filter( $value, 'is_string' );
+
+			if ( count( $filtered ) !== count( $value ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s: The '$value' argument. */
+							__( 'The %s argument must be a string or a string array.' ),
+							'<code>$value</code>'
+						),
+						'6.1.0'
+					);
+			}
+
+			$this->{$new_name} = array_values( $filtered );
 			return;
 		}
 
@@ -347,8 +425,7 @@ class WP_Block_Type {
 			return;
 		}
 
-		$new_name             = $name . '_handles';
-		$this->{$new_name}[0] = $value;
+		$this->{$new_name} = array( $value );
 	}
 
 	/**
@@ -485,5 +562,31 @@ class WP_Block_Type {
 		return is_array( $this->attributes ) ?
 			$this->attributes :
 			array();
+	}
+
+	/**
+	 * Get block variations.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return array[]
+	 */
+	public function get_variations() {
+		if ( ! isset( $this->variations ) ) {
+			$this->variations = array();
+			if ( is_callable( $this->variation_callback ) ) {
+				$this->variations = call_user_func( $this->variation_callback );
+			}
+		}
+
+		/**
+		 * Filters the registered variations for a block type.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array         $variations Array of registered variations for a block type.
+		 * @param WP_Block_Type $block_type The full block type object.
+		 */
+		return apply_filters( 'get_block_type_variations', $this->variations, $this );
 	}
 }

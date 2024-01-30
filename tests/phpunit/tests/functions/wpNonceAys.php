@@ -5,7 +5,8 @@
  *
  * @since 5.9.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_nonce_ays
  */
 class Tests_Functions_wpNonceAys extends WP_UnitTestCase {

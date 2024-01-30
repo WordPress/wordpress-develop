@@ -431,16 +431,17 @@ function dmp_filter( $a ) {
 	return $a;
 }
 
-function get_echo( $callable, $args = array() ) {
+function get_echo( $callback, $args = array() ) {
 	ob_start();
-	call_user_func_array( $callable, $args );
+	call_user_func_array( $callback, $args );
 	return ob_get_clean();
 }
 
 // Recursively generate some quick assertEquals() tests based on an array.
-function gen_tests_array( $name, $array ) {
+function gen_tests_array( $name, $expected_data ) {
 	$out = array();
-	foreach ( $array as $k => $v ) {
+
+	foreach ( $expected_data as $k => $v ) {
 		if ( is_numeric( $k ) ) {
 			$index = (string) $k;
 		} else {
@@ -455,16 +456,17 @@ function gen_tests_array( $name, $array ) {
 			$out[] = gen_tests_array( "{$name}[{$index}]", $v );
 		}
 	}
+
 	return implode( "\n", $out ) . "\n";
 }
 
 /**
- * Use to create objects by yourself
+ * Use to create objects by yourself.
  */
 class MockClass extends stdClass {}
 
 /**
- * Drops all tables from the WordPress database
+ * Drops all tables from the WordPress database.
  */
 function drop_tables() {
 	global $wpdb;
@@ -554,7 +556,6 @@ class WpdbExposedMethodsForTesting extends wpdb {
 	public function __construct() {
 		global $wpdb;
 		$this->dbh         = $wpdb->dbh;
-		$this->use_mysqli  = $wpdb->use_mysqli;
 		$this->is_mysql    = $wpdb->is_mysql;
 		$this->ready       = true;
 		$this->field_types = $wpdb->field_types;

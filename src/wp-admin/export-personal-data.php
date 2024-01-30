@@ -13,6 +13,9 @@ if ( ! current_user_can( 'export_others_personal_data' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to export personal data on this site.' ) );
 }
 
+// Used in the HTML title tag.
+$title = __( 'Export Personal Data' );
+
 // Contextual help - choose Help on the top right of admin panel to preview this.
 get_current_screen()->add_help_tab(
 	array(
@@ -59,8 +62,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-export-personal-data-screen/">Documentation on Export Personal Data</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-export-personal-data-screen/">Documentation on Export Personal Data</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 // Handle list table actions.

@@ -145,12 +145,41 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks if the terms for a post can be read.
+	 *
+	 * @since 6.0.3
+	 *
+	 * @param WP_Post         $post    Post object.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool Whether the terms for the post can be read.
+	 */
+	public function check_read_terms_permission_for_post( $post, $request ) {
+		// If the requested post isn't associated with this taxonomy, deny access.
+		if ( ! is_object_in_taxonomy( $post->post_type, $this->taxonomy ) ) {
+			return false;
+		}
+
+		// Grant access if the post is publicly viewable.
+		if ( is_post_publicly_viewable( $post ) ) {
+			return true;
+		}
+
+		// Otherwise grant access if the post is readable by the logged in user.
+		if ( current_user_can( 'read_post', $post->ID ) ) {
+			return true;
+		}
+
+		// Otherwise, deny access.
+		return false;
+	}
+
+	/**
 	 * Checks if a request has access to read terms in the specified taxonomy.
 	 *
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, otherwise false or WP_Error object.
+	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
 		$tax_obj = get_taxonomy( $this->taxonomy );
@@ -165,6 +194,30 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to edit terms in this taxonomy.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
+		}
+
+		if ( ! empty( $request['post'] ) ) {
+			$post = get_post( $request['post'] );
+
+			if ( ! $post ) {
+				return new WP_Error(
+					'rest_post_invalid_id',
+					__( 'Invalid post ID.' ),
+					array(
+						'status' => 400,
+					)
+				);
+			}
+
+			if ( ! $this->check_read_terms_permission_for_post( $post, $request ) ) {
+				return new WP_Error(
+					'rest_forbidden_context',
+					__( 'Sorry, you are not allowed to view terms for this post.' ),
+					array(
+						'status' => rest_authorization_required_code(),
+					)
+				);
+			}
 		}
 
 		return true;
@@ -364,7 +417,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
@@ -754,7 +807,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return object Term object.
 	 */
 	public function prepare_item_for_database( $request ) {
-		$prepared_term = new stdClass;
+		$prepared_term = new stdClass();
 
 		$schema = $this->get_item_schema();
 		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
