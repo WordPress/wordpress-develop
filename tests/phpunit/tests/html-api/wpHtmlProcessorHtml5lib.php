@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Unit tests covering WP_HTML_Processor functionality.
+ * Unit tests covering HTML API functionality.
+ *
+ * @todo add descriptive paragraph here.
  *
  * @package WordPress
  * @subpackage HTML-API
