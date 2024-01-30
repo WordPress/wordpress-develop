@@ -13,8 +13,6 @@
  * @group html-api
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
-
-
 	/**
 	 * The HTML Processor only accepts HTML in document <body>.
 	 * Do not run tests that look for anything in document <head>.
