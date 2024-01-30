@@ -40,21 +40,6 @@ class Tests_Theme_WpEnqueueBlockGlobalStyles extends WP_Theme_UnitTestCase {
      * @ticket 56915
      * @ticket 60280
      */
-    public function test_third_party_blocks_inline_styles_not_register_to_global_styles() {
-        switch_theme( 'block-theme' );
-
-        wp_enqueue_block_global_styles();
-
-        $this->assertNotContains(
-            '.wp-block-my-third-party-block{background-color: hotpink;}',
-            $this->get_global_styles_blocks()
-        );
-    }
-
-    /**
-     * @ticket 56915
-     * @ticket 60280
-     */
     public function test_third_party_blocks_inline_styles_get_registered_to_global_styles() {
         $this->set_up_third_party_block();
 
