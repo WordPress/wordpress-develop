@@ -48,6 +48,9 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
+		unload_textdomain( 'internationalized-plugin' );
+		unload_textdomain( 'internationalized-theme' );
+
 		parent::tear_down();
 	}
 

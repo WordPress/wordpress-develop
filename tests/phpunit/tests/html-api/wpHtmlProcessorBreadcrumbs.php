@@ -37,20 +37,37 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	public function data_single_tag_of_supported_elements() {
 		$supported_elements = array(
 			'A',
+			'ABBR',
+			'ACRONYM', // Neutralized.
 			'ADDRESS',
+			'AREA',
 			'ARTICLE',
 			'ASIDE',
+			'AUDIO',
 			'B',
+			'BDI',
+			'BDO',
 			'BIG',
+			'BLINK', // Deprecated.
+			'BR',
 			'BUTTON',
-			'CENTER', // Neutralized
+			'CANVAS',
+			'CENTER', // Neutralized.
+			'CITE',
 			'CODE',
+			'DATA',
+			'DD',
+			'DATALIST',
+			'DFN',
+			'DEL',
 			'DETAILS',
 			'DIALOG',
 			'DIR',
 			'DIV',
 			'DL',
+			'DT',
 			'EM',
+			'EMBED',
 			'FIELDSET',
 			'FIGCAPTION',
 			'FIGURE',
@@ -64,21 +81,50 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H6',
 			'HEADER',
 			'HGROUP',
+			'HR',
 			'I',
 			'IMG',
+			'INS',
+			'LI',
+			'ISINDEX', // Deprecated.
+			'KBD',
+			'KEYGEN', // Deprecated.
+			'LABEL',
+			'LEGEND',
+			'LISTING', // Deprecated.
 			'MAIN',
+			'MAP',
+			'MARK',
 			'MENU',
+			'METER',
+			'MULTICOL', // Deprecated.
 			'NAV',
+			'NEXTID', // Deprecated.
+			'OL',
+			'OUTPUT',
 			'P',
+			'PICTURE',
+			'PROGRESS',
+			'Q',
+			'RUBY',
+			'SAMP',
 			'SEARCH',
 			'SECTION',
+			'SLOT',
 			'SMALL',
+			'SPACER', // Deprecated.
 			'SPAN',
 			'STRIKE',
 			'STRONG',
+			'SUB',
 			'SUMMARY',
+			'SUP',
+			'TIME',
 			'TT',
 			'U',
+			'UL',
+			'VAR',
+			'VIDEO',
 		);
 
 		$data = array();
@@ -121,83 +167,38 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 */
 	public function data_unsupported_elements() {
 		$unsupported_elements = array(
-			'ABBR',
-			'ACRONYM', // Neutralized
-			'APPLET', // Deprecated
-			'AREA',
-			'AUDIO',
+			'APPLET', // Deprecated.
 			'BASE',
-			'BDI',
-			'BDO',
 			'BGSOUND', // Deprecated; self-closing if self-closing flag provided, otherwise normal.
-			'BLINK', // Deprecated
 			'BODY',
-			'BR',
-			'CANVAS',
 			'CAPTION',
-			'CITE',
 			'COL',
 			'COLGROUP',
-			'DATA',
-			'DATALIST',
-			'DD',
-			'DEL',
-			'DEFN',
-			'DT',
-			'EMBED',
 			'FORM',
 			'FRAME',
 			'FRAMESET',
 			'HEAD',
-			'HR',
 			'HTML',
 			'IFRAME',
-			'INPUT',
-			'INS',
-			'ISINDEX', // Deprecated
-			'KBD',
-			'KEYGEN', // Deprecated; void
-			'LABEL',
-			'LEGEND',
-			'LI',
 			'LINK',
-			'LISTING', // Deprecated, use PRE instead.
-			'MAP',
-			'MARK',
-			'MARQUEE', // Deprecated
+			'MARQUEE', // Deprecated.
 			'MATH',
 			'META',
-			'METER',
-			'MULTICOL', // Deprecated
-			'NEXTID', // Deprecated
-			'NOBR', // Neutralized
-			'NOEMBED', // Neutralized
-			'NOFRAMES', // Neutralized
+			'NOBR', // Neutralized.
+			'NOEMBED', // Neutralized.
+			'NOFRAMES', // Neutralized.
 			'NOSCRIPT',
 			'OBJECT',
-			'OL',
 			'OPTGROUP',
 			'OPTION',
-			'OUTPUT',
-			'PICTURE',
-			'PLAINTEXT', // Neutralized
-			'PRE',
-			'PROGRESS',
-			'Q',
-			'RB', // Neutralized
+			'PLAINTEXT', // Neutralized.
+			'RB', // Neutralized.
 			'RP',
 			'RT',
-			'RTC', // Neutralized
-			'RUBY',
-			'SAMP',
+			'RTC', // Neutralized.
 			'SCRIPT',
 			'SELECT',
-			'SLOT',
-			'SOURCE',
-			'SPACER', // Deprecated
 			'STYLE',
-			'SUB',
-			'SUP',
 			'SVG',
 			'TABLE',
 			'TBODY',
@@ -207,19 +208,9 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'TFOOT',
 			'TH',
 			'THEAD',
-			'TIME',
 			'TITLE',
 			'TR',
-			'TRACK',
-			'UL',
-			'VAR',
-			'VIDEO',
-			'WBR',
 			'XMP', // Deprecated, use PRE instead.
-
-			// Made up elements, custom elements.
-			'X-NOT-AN-HTML-ELEMENT',
-			'HUMAN-TIME',
 		);
 
 		$data = array();
@@ -352,6 +343,12 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			),
 			'MAIN inside MAIN inside SPAN'          => array( '<span><main><main target>', array( 'HTML', 'BODY', 'SPAN', 'MAIN', 'MAIN' ), 1 ),
 			'MAIN next to unclosed P'               => array( '<p><main target>', array( 'HTML', 'BODY', 'MAIN' ), 1 ),
+			'LI after unclosed LI'                  => array( '<li>one<li>two<li target>three', array( 'HTML', 'BODY', 'LI' ), 3 ),
+			'LI in UL in LI'                        => array( '<ul><li>one<ul><li target>two', array( 'HTML', 'BODY', 'UL', 'LI', 'UL', 'LI' ), 1 ),
+			'DD and DT mutually close, LI self-closes (dt 2)' => array( '<dd><dd><dt><dt target><dd><li><li>', array( 'HTML', 'BODY', 'DT' ), 2 ),
+			'DD and DT mutually close, LI self-closes (dd 3)' => array( '<dd><dd><dt><dt><dd target><li><li>', array( 'HTML', 'BODY', 'DD' ), 3 ),
+			'DD and DT mutually close, LI self-closes (li 1)' => array( '<dd><dd><dt><dt><dd><li target><li>', array( 'HTML', 'BODY', 'DD', 'LI' ), 1 ),
+			'DD and DT mutually close, LI self-closes (li 2)' => array( '<dd><dd><dt><dt><dd><li><li target>', array( 'HTML', 'BODY', 'DD', 'LI' ), 2 ),
 
 			// H1 - H6 close out _any_ H1 - H6 when encountering _any_ of H1 - H6, making this section surprising.
 			'EM inside H3 after unclosed P'         => array( '<p><h3><em target>Important Message</em></h3>', array( 'HTML', 'BODY', 'H3', 'EM' ), 1 ),
@@ -360,6 +357,10 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'H4 inside H2'                          => array( '<h2><span>Major<h4 target>Minor</h3></span>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H4' ), 1 ),
 			'H5 after unclosed H4 inside H2'        => array( '<h2><span>Major<h4>Minor</span></h3><h5 target>', array( 'HTML', 'BODY', 'H2', 'SPAN', 'H5' ), 1 ),
 			'H5 after H4 inside H2'                 => array( '<h2><span>Major<h4>Minor</h4></span></h3><h5 target>', array( 'HTML', 'BODY', 'H5' ), 1 ),
+
+			// Custom elements.
+			'WP-EMOJI'                              => array( '<div><wp-emoji target></wp-emoji></div>', array( 'HTML', 'BODY', 'DIV', 'WP-EMOJI' ), 1 ),
+			'WP-EMOJI then IMG'                     => array( '<div><wp-emoji></wp-emoji><img target></div>', array( 'HTML', 'BODY', 'DIV', 'IMG' ), 1 ),
 		);
 	}
 
@@ -513,7 +514,11 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::seek
 	 */
 	public function test_can_seek_back_and_forth() {
-		$p = WP_HTML_Processor::create_fragment( '<div><p one><div><p><div two><p><div><p><div><p three>' );
+		$p = WP_HTML_Processor::create_fragment(
+			<<<'HTML'
+<div>text<p one>more stuff<div><![CDATA[this is not real CDATA]]><p><!-- hi --><div two><p><div><p>three comes soon<div><p three>' );
+HTML
+		);
 
 		// Find first tag of interest.
 		while ( $p->next_tag() && null === $p->get_attribute( 'one' ) ) {

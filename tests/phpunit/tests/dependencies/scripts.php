@@ -3366,7 +3366,7 @@ HTML
 
 		wp_default_packages_vendor( $wp_scripts );
 
-		$this->assertEquals( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
 	}
 
 	public function data_wp_default_packages_vendor() {
