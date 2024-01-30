@@ -102,6 +102,13 @@ You may want to restart the environment if you've made changes to the configurat
 npm run env:restart
 ```
 
+#### To reset the development environment
+
+You can reset the environment back to before build:dev was run if your environment seems broken, or you have issues after configuration changes . Reset the environment with:
+
+```
+npm run env:reset
+```
 #### To stop the development environment
 
 You can stop the environment when you're not using it to preserve your computer's power and resources:
