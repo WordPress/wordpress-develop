@@ -2717,6 +2717,8 @@ HTML
 	}
 
 	/**
+	 * Ensures that non-tag syntax starting with `<` is consumed inside a text node.
+	 *
 	 * @ticket 60385
 	 */
 	public function test_single_text_node_with_taglike_text() {
