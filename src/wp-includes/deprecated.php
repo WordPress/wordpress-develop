@@ -6249,7 +6249,7 @@ function the_block_template_skip_link() {
  * @global WP_Scripts $wp_scripts
  */
 function block_core_query_ensure_interactivity_dependency() {
-	_deprecated_function( __FUNCTION__, '6.5.0', 'Used wp_register_script_module instead' );
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
 	global $wp_scripts;
 	if (
 		isset( $wp_scripts->registered['wp-block-query-view'] ) &&
@@ -6268,7 +6268,7 @@ function block_core_query_ensure_interactivity_dependency() {
  * @global WP_Scripts $wp_scripts
  */
 function block_core_file_ensure_interactivity_dependency() {
-	_deprecated_function( __FUNCTION__, '6.5.0', 'Used wp_register_script_module instead' );
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
 	global $wp_scripts;
 	if (
 		isset( $wp_scripts->registered['wp-block-file-view'] ) &&
@@ -6287,7 +6287,7 @@ function block_core_file_ensure_interactivity_dependency() {
  * @global WP_Scripts $wp_scripts
  */
 function block_core_image_ensure_interactivity_dependency() {
-	_deprecated_function( __FUNCTION__, '6.5.0', 'Used wp_register_script_module instead' );
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
 	global $wp_scripts;
 	if (
 		isset( $wp_scripts->registered['wp-block-image-view'] ) &&
