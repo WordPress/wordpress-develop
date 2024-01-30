@@ -1,7 +1,6 @@
 <?php
 /**
  * @group themes
- * @ticket 52294
  *
  * @covers ::add_editor_style
  */
@@ -19,6 +18,8 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	/**
 	 * Tests the default editor styles in RTL mode.
 	 *
+	 * @ticket 52294
+	 *
 	 * @return void
 	 */
 	public function test_add_editor_style_default() {
@@ -29,7 +30,9 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * run default setting in rtl mode.
+	 * Runs default setting in rtl mode.
+	 *
+	 * @ticket 52294
 	 *
 	 * @return void
 	 */
@@ -46,7 +49,9 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * run default setting in rtl mode and replace.
+	 * Runs default setting in rtl mode and replace.
+	 *
+	 * @ticket 52294
 	 *
 	 * @return void
 	 */
@@ -63,7 +68,9 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * run with custom path.
+	 * Runs with custom path.
+	 *
+	 * @ticket 52294
 	 *
 	 * @return void
 	 */
@@ -75,7 +82,9 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * run with custom path in rtl mode.
+	 * Runs with custom path in rtl mode.
+	 *
+	 * @ticket 52294
 	 *
 	 * @return void
 	 */
@@ -91,7 +100,9 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * run with custom path in rtl mode and replace.
+	 * Runs with custom path in rtl mode and replace.
+	 *
+	 * @ticket 52294
 	 *
 	 * @return void
 	 */
@@ -107,15 +118,21 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	}
 
 	/**
-	 * check that theme fetures are set by add_editor_style().
+	 * Checks that theme fetures are set by add_editor_style().
+	 *
+	 * @ticket 52294
 	 *
 	 * @return void
 	 */
 	public function test_add_editor_style_sets_theme_support() {
 		global $_wp_theme_features;
+		$old_value = $_wp_theme_features['editor-style'];
 		unset( $_wp_theme_features['editor-style'] );
+
 		add_editor_style();
 
 		$this->assertContains( 'editor-style', array_keys( $_wp_theme_features ) );
+
+		$_wp_theme_features['editor-style'] = $old_value;
 	}
 }

@@ -2181,7 +2181,7 @@ function add_editor_style( $stylesheet = 'editor-style.css', $rtl_mode = 'add' )
 	if ( is_rtl() ) {
 		$rtl_stylesheet = str_replace( '.css', '-rtl.css', $stylesheet[0] );
 
-		if ( 'replace' === strtolower( trim( $rtl_mode ) ) ) {
+		if ( is_string( $rtl_mode ) && 'replace' === strtolower( trim( $rtl_mode ) ) ) {
 			$stylesheet[0] = $rtl_stylesheet;
 		} else {
 			$stylesheet[] = $rtl_stylesheet;
