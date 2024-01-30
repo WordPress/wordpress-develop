@@ -6,6 +6,10 @@
  * @package WordPress
  */
 function post_meta_source_callback( $source_attrs ) {
+	if ( ! isset( $source_attrs['key'] ) ) {
+		return null;
+	}
+
 	// Use the postId attribute if available
 	if ( isset( $source_attrs['postId'] ) ) {
 		$post_id = $source_attrs['postId'];
@@ -21,7 +25,7 @@ function post_meta_source_callback( $source_attrs ) {
 		return null;
 	}
 
-	return get_post_meta( $post_id, $source_attrs['value'], true );
+	return get_post_meta( $post_id, $source_attrs['key'], true );
 }
 
 register_block_bindings_source(

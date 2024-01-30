@@ -211,16 +211,12 @@ class WP_Block {
 	 *   "metadata": {
 	 *     "bindings": {
 	 *       "title": {
-	 *         "source": {
-	 *           "name": "post_meta",
-	 *           "attributes": { "value": "text_custom_field" }
-	 *         }
+	 *         "source": "post_meta",
+	 *         "args": { "key": "text_custom_field" }
 	 *       },
 	 *       "url": {
-	 *         "source": {
-	 *           "name": "post_meta",
-	 *           "attributes": { "value": "url_custom_field" }
-	 *         }
+	 *         "source": "post_meta",
+	 *         "args": { "key": "url_custom_field" }
 	 *       }
 	 *     }
 	 *   }
@@ -261,16 +257,16 @@ class WP_Block {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
-			if ( ! isset( $binding_source['source'] ) || ! isset( $binding_source['source']['name'] ) || ! isset( $block_bindings_sources[ $binding_source['source']['name'] ] ) ) {
+			if ( ! isset( $binding_source['source'] ) || ! is_string( $binding_source['source'] ) || ! isset( $block_bindings_sources[ $binding_source['source'] ] ) ) {
 				continue;
 			}
 
-			$source_callback = $block_bindings_sources[ $binding_source['source']['name'] ]['get_value_callback'];
+			$source_callback = $block_bindings_sources[ $binding_source['source'] ]['get_value_callback'];
 			// Get the value based on the source.
-			if ( ! isset( $binding_source['source']['attributes'] ) ) {
+			if ( ! isset( $binding_source['source']['args'] ) ) {
 				$source_args = array();
 			} else {
-				$source_args = $binding_source['source']['attributes'];
+				$source_args = $binding_source['source']['args'];
 			}
 			$source_value = $source_callback( $source_args, $this, $binding_attribute );
 			// If the value is null, process next attribute.
