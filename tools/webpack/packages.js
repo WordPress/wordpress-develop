@@ -122,8 +122,6 @@ module.exports = function (
 			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js':
 			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
-		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
-		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-importmap.min.js': 'es-module-shims/dist/es-module-shims.wasm.js',
 	};
 

@@ -228,7 +228,8 @@ class WP_Script_Modules {
 
 	/**
 	 * Prints the necessary script to load import map polyfill for browsers that
-	 * do not support import maps.
+	 * do not support import maps. It is only printed when there is an import
+	 * map to print.
 	 *
 	 * @since 6.5.0
 	 */
@@ -249,8 +250,6 @@ class WP_Script_Modules {
 			);
 		}
 	}
-
-
 
 	/**
 	 * Returns the import map array.

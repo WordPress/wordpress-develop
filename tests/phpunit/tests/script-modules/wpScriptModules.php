@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Script_Modules
  */
-class Tests_WpScriptModules extends WP_UnitTestCase {
+class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 	/**
 	 * Instance of WP_Script_Modules.
