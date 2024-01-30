@@ -1681,7 +1681,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'rendered', $properties['title']['properties'] );
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
-		$this->assertArrayHasKey( 'thumbnail', $properties );
+		$this->assertArrayHasKey( 'featured_media', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
