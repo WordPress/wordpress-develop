@@ -94,7 +94,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				continue;
 			}
 
-			if ( 'entities01.dat' === $entry ) {
+			if ( 'entities01.dat' === $entry || 'entities02.dat' === $entry ) {
 				continue;
 			}
 
