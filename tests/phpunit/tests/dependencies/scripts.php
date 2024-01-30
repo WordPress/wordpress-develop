@@ -3111,6 +3111,7 @@ HTML
 	 *
 	 * @covers ::wp_get_script_polyfill
 	 *
+	 * @global WP_Scripts $wp_scripts WP_Scripts instance.
 	 * @param string $script_name Script name.
 	 * @param string $test_script Conditional that checks browser compatibility.
 	 * @param string $script_url  Script source URL.

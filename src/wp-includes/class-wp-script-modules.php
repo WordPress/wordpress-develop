@@ -231,6 +231,7 @@ class WP_Script_Modules {
 	 * do not support import maps. It is only printed when there is an import
 	 * map to print.
 	 *
+	 * @global WP_Scripts $wp_scripts The WP_Scripts object for printing inline scripts.
 	 * @since 6.5.0
 	 */
 	public function print_import_map_polyfill() {
