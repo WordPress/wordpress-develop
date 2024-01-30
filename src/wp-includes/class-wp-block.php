@@ -196,7 +196,7 @@ class WP_Block {
 	 *
 	 * A block might contain bindings in its attributes. Bindings are mappings
 	 * between an attribute of the block and a source. A "source" is a function
-	 * registered with `$this->register()` that defines how to
+	 * registered with `register_block_bindings_source()` that defines how to
 	 * retrieve a value from outside the block, e.g. from post meta.
 	 *
 	 * This function will process those bindings and replace the HTML with the value of the binding.
