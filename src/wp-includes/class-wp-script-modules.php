@@ -166,7 +166,6 @@ class WP_Script_Modules {
 		add_action( $position, array( $this, 'print_import_map' ) );
 		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
-		add_action( 'wp_footer', array( $this, 'print_import_map_polyfill' ), 11 );
 	}
 
 	/**
@@ -211,30 +210,10 @@ class WP_Script_Modules {
 	/**
 	 * Prints the import map using a script tag with a type="importmap" attribute.
 	 *
+	 * @global WP_Scripts $wp_scripts The WP_Scripts object for printing the polyfill.
 	 * @since 6.5.0
 	 */
 	public function print_import_map() {
-		$import_map = $this->get_import_map();
-		if ( ! empty( $import_map['imports'] ) ) {
-			wp_print_inline_script_tag(
-				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
-				array(
-					'type' => 'importmap',
-					'id'   => 'wp-importmap',
-				)
-			);
-		}
-	}
-
-	/**
-	 * Prints the necessary script to load import map polyfill for browsers that
-	 * do not support import maps. It is only printed when there is an import
-	 * map to print.
-	 *
-	 * @global WP_Scripts $wp_scripts The WP_Scripts object for printing inline scripts.
-	 * @since 6.5.0
-	 */
-	public function print_import_map_polyfill() {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
 			global $wp_scripts;
@@ -247,6 +226,13 @@ class WP_Script_Modules {
 				),
 				array(
 					'id' => 'wp-load-polyfill-importmap',
+				)
+			);
+			wp_print_inline_script_tag(
+				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
+				array(
+					'type' => 'importmap',
+					'id'   => 'wp-importmap',
 				)
 			);
 		}
