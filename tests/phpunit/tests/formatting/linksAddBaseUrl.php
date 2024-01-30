@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 /**
  * Tests for the links_add_base_url function.
@@ -7,14 +7,14 @@
  *
  * @covers ::links_add_base_url
  */
-class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase{
+class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60389
 	 *
 	 * @dataProvider data_links_add_base_url
 	 */
-	public function test_links_add_base_url($content, $base, $attrs, $expected) {
+	public function test_links_add_base_url( $content, $base, $attrs, $expected ) {
 		if( $attrs ){
 			$this->assertSame( $expected, links_add_base_url( $content, $base, $attrs ) );
 		} else {
