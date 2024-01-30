@@ -557,8 +557,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( '<script>abc</script>' );
 
 		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer' );
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <script> tag opener is a tag closer' );
+		$this->assertFalse(
+			$p->next_tag( array( 'tag_closers' => 'visit' ) ),
+			'Should not have found closing SCRIPT tag when closing an opener.'
+		);
 
 		$p = new WP_HTML_Tag_Processor( 'abc</script>' );
 		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer when there was no tag opener' );
@@ -566,8 +568,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( '<textarea>abc</textarea>' );
 
 		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer' );
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <textarea> tag opener is a tag closer' );
+		$this->assertFalse(
+			$p->next_tag( array( 'tag_closers' => 'visit' ) ),
+			'Should not have found closing TEXTAREA when closing an opener.'
+		);
 
 		$p = new WP_HTML_Tag_Processor( 'abc</textarea>' );
 		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer when there was no tag opener' );
@@ -575,8 +579,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$p = new WP_HTML_Tag_Processor( '<title>abc</title>' );
 
 		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer' );
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <title> tag opener is a tag closer' );
+		$this->assertFalse(
+			$p->next_tag( array( 'tag_closers' => 'visit' ) ),
+			'Should not have found closing TITLE when closing an opener.'
+		);
 
 		$p = new WP_HTML_Tag_Processor( 'abc</title>' );
 		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
@@ -2357,6 +2363,7 @@ HTML;
 			'No tags'                => array( 'this is nothing more than a text node' ),
 			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
 			'Empty tag closer'       => array( '</>' ),
+			'CDATA as HTML comment'  => array( '<![CDATA[this closes at the first &gt;]>' ),
 			'Processing instruction' => array( '<?xml version="1.0"?>' ),
 			'Combination XML-like'   => array( '<!DOCTYPE xml><?xml version=""?><!-- this is not a real document. --><![CDATA[it only serves as a test]]>' ),
 		);
@@ -2410,7 +2417,6 @@ HTML;
 			'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
 			'Partial CDATA'                        => array( '<![CDA' ),
 			'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
-			'Partially closed CDATA]>'             => array( '<![CDATA[cannot escape]>' ),
 			'Unclosed IFRAME'                      => array( '<iframe><div>' ),
 			'Unclosed NOEMBED'                     => array( '<noembed><div>' ),
 			'Unclosed NOFRAMES'                    => array( '<noframes><div>' ),
@@ -2507,7 +2513,7 @@ HTML;
 			),
 			'tag inside of CDATA'      => array(
 				'input'    => '<![CDATA[This <is> a <strong id="yes">HTML Tag</strong>]]><span>test</span>',
-				'expected' => '<![CDATA[This <is> a <strong id="yes">HTML Tag</strong>]]><span class="firstTag" foo="bar">test</span>',
+				'expected' => '<![CDATA[This <is> a <strong class="firstTag" foo="bar" id="yes">HTML Tag</strong>]]><span class="secondTag">test</span>',
 			),
 		);
 	}

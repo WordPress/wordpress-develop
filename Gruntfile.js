@@ -1033,6 +1033,7 @@ module.exports = function(grunt) {
 				cwd: SOURCE_DIR,
 				src: [
 					'wp-{admin,includes}/images/**/*.{png,jpg,gif,jpeg}',
+					'wp-content/themes/**/*.{png,jpg,gif,jpeg}',
 					'wp-includes/js/tinymce/skins/wordpress/images/*.{png,jpg,gif,jpeg}'
 				],
 				dest: SOURCE_DIR
@@ -1565,7 +1566,9 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
-			'build/wp-includes/js/dist/components.js'
+			'build/wp-includes/js/dist/components.js',
+			'build/wp-includes/js/dist/block-editor.js',
+			'build/wp-includes/js/dist/block-editor.min.js'
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.

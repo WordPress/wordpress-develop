@@ -3,7 +3,7 @@
 /**
  * Tests for plugin_basename()
  *
- * @group function
+ * @group functions
  * @group plugins
  *
  * @covers ::plugin_basename
