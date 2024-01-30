@@ -1567,10 +1567,6 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
-			'build/wp-includes/js/dist/block-editor.js',
-			'build/wp-includes/js/dist/block-editor.min.js',
-			'build/wp-includes/js/dist/vendor/wp-polyfill-importmap.js',
-			'build/wp-includes/js/dist/vendor/wp-polyfill-importmap.min.js'
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
@@ -1593,10 +1589,10 @@ module.exports = function(grunt) {
 					encoding: 'utf8',
 				} );
 				// `data:` URLs are allowed:
-				const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+				const doesNotHaveSourceMap = ! /^\/\/# sourceMappingURL=((?!data:).)/m.test(contents);
 
 				assert(
-					match === null,
+					doesNotHaveSourceMap,
 					`The ${ file } file must not contain a sourceMappingURL.`
 				);
 			} );
