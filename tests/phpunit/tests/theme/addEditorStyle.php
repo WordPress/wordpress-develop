@@ -74,7 +74,7 @@ class Tests_Theme_addEditorStyle extends WP_UnitTestCase {
 	 *
 	 * @return void
 	 */
-	function test_add_editor_style_custom_path() {
+	public function test_add_editor_style_custom_path() {
 		global $editor_styles;
 
 		add_editor_style( './assets/css/style-editor.css' );
