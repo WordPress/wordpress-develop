@@ -7,7 +7,7 @@
  *
  * @covers ::links_add_base_url
  */
-class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase{
+class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60389
