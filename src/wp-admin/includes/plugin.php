@@ -1406,6 +1406,10 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
 		$_registered_pages, $_parent_pages;
 
+	if ( empty( $parent_slug ) || empty( $menu_slug ) ) {
+		return false;
+	}
+
 	$menu_slug   = plugin_basename( $menu_slug );
 	$parent_slug = plugin_basename( $parent_slug );
 
