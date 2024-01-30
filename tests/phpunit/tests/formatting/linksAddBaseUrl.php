@@ -15,7 +15,7 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 	 * @dataProvider data_links_add_base_url
 	 */
 	public function test_links_add_base_url( $content, $base, $attrs, $expected ) {
-		if( $attrs ){
+		if( $attrs ) {
 			$this->assertSame( $expected, links_add_base_url( $content, $base, $attrs ) );
 		} else {
 			$this->assertSame( $expected, links_add_base_url( $content, $base ) );
