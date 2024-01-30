@@ -11,7 +11,7 @@
  *
  * @covers register_block_bindings_source
  */
-class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
+class WP_Block_Bindings_Test extends WP_UnitTestCase {
 
 	/**
 	 * Set up before each test.
@@ -51,7 +51,7 @@ class WP_Block_Bindings_Registry_Test extends WP_UnitTestCase {
 		);
 
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":{"name":"test/source","attributes":{"value":"text_custom_field"}}}}}} --><p>This should not appear</p><!-- /wp:paragraph -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":{"name":"test/source"}}}}} --><p>This should not appear</p><!-- /wp:paragraph -->
 HTML;
 
 		$parsed_blocks = parse_blocks( $block_content );
