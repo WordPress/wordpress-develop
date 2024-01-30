@@ -1536,7 +1536,7 @@ class WP_HTML_Tag_Processor {
 				 * @see https://html.spec.whatwg.org/#tag-open-state
 				 */
 				if ( strlen( $html ) > $at + 1 ) {
-					$next_character = $html[ $at + 1 ];
+					$next_character  = $html[ $at + 1 ];
 					$at_another_node =
 						$next_character === '!' ||
 						$next_character === '/' ||
