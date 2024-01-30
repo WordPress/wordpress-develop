@@ -485,6 +485,27 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$expected = array(
 			array(
 				'version'  => 2,
+				'title'    => 'variation-a',
+				'settings' => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'light',
+											'name'  => 'Light',
+											'color' => '#f2f2f2',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			array(
+				'version'  => 2,
 				'title'    => 'variation-b',
 				'settings' => array(
 					'blocks' => array(
@@ -535,7 +556,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		wp_recursive_ksort( $data );
 		wp_recursive_ksort( $expected );
 
-		$this->assertSameSets( $data, $expected );
+		$this->assertSameSets( $expected, $data );
 	}
 
 	/**
