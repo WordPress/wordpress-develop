@@ -142,8 +142,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$indent_level = count( $p->get_breadcrumbs() );
 
-					$t       = strtolower( $p->get_tag() );
-					$output .= str_repeat( $indent, $indent_level - 1 ) . "<{$t}>\n";
+					$tag_name = strtolower( $p->get_tag() );
+					$output  .= str_repeat( $indent, $indent_level - 1 ) . "<{$tag_name}>\n";
 
 					$attribute_names = $p->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
