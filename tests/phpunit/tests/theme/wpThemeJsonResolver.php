@@ -20,20 +20,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	protected static $administrator_id;
 
 	/**
-	 * Theme root directory.
-	 *
-	 * @var string
-	 */
-	private $theme_root;
-
-	/**
-	 * Original theme directory.
-	 *
-	 * @var string
-	 */
-	private $orig_theme_dir;
-
-	/**
 	 * WP_Theme_JSON_Resolver::$blocks_cache property.
 	 *
 	 * @var ReflectionProperty
@@ -60,6 +46,25 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @var WP_Theme_JSON
 	 */
 	private static $property_core_orig_value;
+
+	/**
+	 * Theme root directory.
+	 *
+	 * @var string
+	 */
+	private $theme_root;
+
+	/**
+	 * Original theme directory.
+	 *
+	 * @var string
+	 */
+	private $orig_theme_dir;
+
+	/**
+	 * @var array|null
+	 */
+	private $queries;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
@@ -98,7 +103,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
-
+		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -140,7 +145,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 		$this->assertSame( 'block-theme', wp_get_theme()->get( 'TextDomain' ) );
 		$this->assertSame( 'Motyw blokowy', $theme_data->get_data()['title'] );
-		$this->assertSameSets(
+		$this->assertSame(
 			array(
 				'color'      => array(
 					'custom'         => false,
@@ -218,12 +223,13 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$custom_templates = $theme_data->get_custom_templates();
 		$this->assertArrayHasKey( 'page-home', $custom_templates );
 		$this->assertSame(
-			$custom_templates['page-home'],
 			array(
 				'title'     => 'Szablon strony głównej',
 				'postTypes' => array( 'page' ),
-			)
+			),
+			$custom_templates['page-home']
 		);
+
 		$this->assertSameSets(
 			array(
 				'small-header' => array(
@@ -233,9 +239,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			),
 			$theme_data->get_template_parts()
 		);
+
 		$this->assertSame(
 			'Wariant motywu blokowego',
-			$style_variations[1]['title']
+			$style_variations[2]['title']
 		);
 	}
 
@@ -257,8 +264,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or does not match
-	 * the all registered blocks.
+	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or
+	 * does not match the all registered blocks.
 	 *
 	 * Though this is a non-public method, it is vital to other functionality.
 	 * Therefore, tests are provided to validate it functions as expected.
@@ -331,8 +338,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or does not match
-	 * the all registered blocks.
+	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or
+	 * does not match the all registered blocks.
 	 *
 	 * Though this is a non-public method, it is vital to other functionality.
 	 * Therefore, tests are provided to validate it functions as expected.
@@ -596,7 +603,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates(),
 			array(
 				'page-home'                   => array(
 					'title'     => 'Homepage',
@@ -606,7 +612,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 					'title'     => 'Custom Single Post template',
 					'postTypes' => array( 'post' ),
 				),
-			)
+			),
+			WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates()
 		);
 	}
 
@@ -817,7 +824,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		register_block_type(
 			'my/block-with-styles',
 			array(
-				'api_version' => 2,
+				'api_version' => 3,
 				'attributes'  => array(
 					'borderColor' => array(
 						'type' => 'string',
@@ -983,7 +990,28 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$actual_settings   = WP_Theme_JSON_Resolver::get_style_variations();
 		$expected_settings = array(
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'title'    => 'variation-a',
+				'settings' => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'dark',
+											'name'  => 'Dark',
+											'color' => '#010101',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'title'    => 'variation-b',
 				'settings' => array(
 					'blocks' => array(
@@ -1004,7 +1032,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				),
 			),
 			array(
-				'version'  => 2,
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'title'    => 'Block theme variation',
 				'settings' => array(
 					'color' => array(
