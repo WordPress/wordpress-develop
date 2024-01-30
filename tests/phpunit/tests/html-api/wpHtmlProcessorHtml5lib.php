@@ -94,12 +94,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				continue;
 			}
 
-			// These tests contain no tags, which isn't yet
-			// supported by the HTML API.
-			if ( 'comments01.dat' === $entry ) {
-				continue;
-			}
-
 			foreach ( self::parse_html5_dat_testfile( $test_dir . $entry ) as $k => $test ) {
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, -4 );
