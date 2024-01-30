@@ -5423,10 +5423,11 @@ function wp_html_excerpt( $str, $count, $more = null ) {
  * @param array  $attrs   The attributes which should be processed.
  * @return string The processed content.
  */
-function links_add_base_url( $content, $base, $attrs = array( 'src', 'href' ) ) {
+function links_add_base_url( $content, $base, $attrs = null ) {
 	global $_links_add_base;
 	$_links_add_base = $base;
-	$attrs           = implode( '|', (array) $attrs );
+
+	$attrs = implode( '|', ( is_array( $attrs ) && ! empty( $attrs ) ) ? $attrs : array( 'src', 'href' ) );
 	return preg_replace_callback( "!($attrs)=(['\"])(.+?)\\2!i", '_links_add_base', $content );
 }
 
