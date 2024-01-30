@@ -1559,7 +1559,10 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Build assertions for the lack of source maps in JavaScript files.
+	 * Compiled JavaScript files may link to sourcemaps. In some cases,
+	 * the source map may not be available, which can cause 404 errors when
+	 * browsers try to download the sourcemap from the referenced URLs.
+	 * Ensure that sourcemap links are not included in JavaScript files.
 	 *
 	 * @ticket 24994
 	 * @ticket 46218
