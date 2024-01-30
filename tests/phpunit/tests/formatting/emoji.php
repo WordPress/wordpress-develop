@@ -106,9 +106,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'&#x1f642;',
 			),
 			array(
-				// Skin tone, gender, ZWJ, emoji selector.
-				'👮🏼‍♀️',
-				'&#x1f46e;&#x1f3fc;&#x200d;&#x2640;&#xfe0f;',
+				// Bird, ZWJ, black large squre, emoji selector.
+				'🐦‍⬛',
+				'&#x1f426;&#x200d;&#x2b1b;',
 			),
 			array(
 				// Unicode 10.
