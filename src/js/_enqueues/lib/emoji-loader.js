@@ -234,7 +234,7 @@
 				/*
 				 * Four and twenty blackbirds baked in a pie.
 				 *
-				 * To test for Emoji 14.0 support, try to render a new emoji: Blackbird.
+				 * To test for Emoji 15.0 support, try to render a new emoji: Blackbird.
 				 *
 				 * The Blackbird is a ZWJ sequence combining 🐦 Bird and ⬛ large black square.,
 				 *
