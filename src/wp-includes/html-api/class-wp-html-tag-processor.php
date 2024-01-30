@@ -1538,9 +1538,9 @@ class WP_HTML_Tag_Processor {
 				if ( strlen( $html ) > $at + 1 ) {
 					$next_character  = $html[ $at + 1 ];
 					$at_another_node =
-						$next_character === '!' ||
-						$next_character === '/' ||
-						$next_character === '?' ||
+						'!' === $next_character ||
+						'/' === $next_character ||
+						'?' === $next_character ||
 						( 'A' <= $next_character && $next_character <= 'z' );
 					if ( ! $at_another_node ) {
 						++$at;
