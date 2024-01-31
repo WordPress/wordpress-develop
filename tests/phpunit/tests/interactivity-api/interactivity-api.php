@@ -187,6 +187,7 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$class                = new ReflectionClass( 'WP_Interactivity_API' );
 		$directive_processors = $class->getProperty( 'directive_processors' );
 		$directive_processors->setAccessible( true );
+		$old_directive_processors = $directive_processors->getValue();
 		$directive_processors->setValue( null, array( 'data-wp-test' => array( $this, 'data_wp_test_processor' ) ) );
 		$html                               = '<div data-wp-test></div>';
 		$this->data_wp_test_processor_count = 0;
@@ -213,5 +214,6 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		do_blocks( $post_content );
 		$this->assertEquals( 2, $this->data_wp_test_processor_count );
 		unregister_block_type( 'test/custom-directive-block' );
+		$directive_processors->setValue( null, $old_directive_processors );
 	}
 }
