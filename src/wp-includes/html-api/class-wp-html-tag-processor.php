@@ -1752,6 +1752,10 @@ class WP_HTML_Tag_Processor {
 				 *
 				 * @todo Track whether the Tag Processor is inside a foreign element
 				 *       and require the proper closing `]]>` in those cases.
+				 *
+				 * (from token_starts_at) 01234567_89A
+				 *                        <[CDATA[…]]>
+				 *                        A9876543_210 (back from closer_at)
 				 */
 				if (
 					$this->token_length >= 10 &&
@@ -1762,7 +1766,8 @@ class WP_HTML_Tag_Processor {
 					'T' === $html[ $this->token_starts_at + 6 ] &&
 					'A' === $html[ $this->token_starts_at + 7 ] &&
 					'[' === $html[ $this->token_starts_at + 8 ] &&
-					']' === $html[ $closer_at - 1 ]
+					']' === $html[ $closer_at - 1 ] &&
+					']' === $html[ $closer_at - 2 ]
 				) {
 					$this->parser_state    = self::STATE_COMMENT;
 					$this->comment_type    = self::COMMENT_AS_CDATA_LOOKALIKE;
