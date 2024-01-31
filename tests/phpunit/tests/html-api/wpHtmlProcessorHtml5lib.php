@@ -46,6 +46,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests15/line0022'           => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests2/line0317'            => 'HTML entities may be mishandled.',
 		'tests2/line0408'            => 'HTML entities may be mishandled.',
+		'tests2/line0650'            => 'Whitespace only test never enters "in body" parsing mode.',
 		'tests20/line0497'           => "Closing P tag implicitly creates opener, which we don't visit.",
 		'tests23/line0001'           => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/line0041'           => 'Unimplemented: Reconstruction of active formatting elements.',
