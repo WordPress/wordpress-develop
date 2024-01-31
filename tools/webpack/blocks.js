@@ -91,33 +91,28 @@ module.exports = function (
 		noErrorOnMissing: true,
 	} ) );
 
+	// Todo: This list need of entry points need to be automatically fetched from the package
+	// We shouldn't have to maintain it manually.
+	const interactiveBlocks = [
+		'navigation',
+		'image',
+		'query',
+		'file',
+		'search',
+	];
+
 	const baseConfig = getBaseConfig( env );
 	const config = {
 		...baseConfig,
-		// Todo: This list need of entry points need to be automatically fetched from the package
-		// We shouldn't have to maintain it manually.
-		entry: {
-			navigation: normalizeJoin(
-				baseDir,
-				'node_modules/@wordpress/block-library/build-module/navigation/view'
-			),
-			image: normalizeJoin(
-				baseDir,
-				'node_modules/@wordpress/block-library/build-module/image/view'
-			),
-			query: normalizeJoin(
-				baseDir,
-				'node_modules/@wordpress/block-library/build-module/query/view'
-			),
-			file: normalizeJoin(
-				baseDir,
-				'node_modules/@wordpress/block-library/build-module/file/view'
-			),
-			search: normalizeJoin(
-				baseDir,
-				'node_modules/@wordpress/block-library/build-module/search/view'
-			),
-		},
+		entry: interactiveBlocks.reduce(( memo, blockName ) => {
+			memo[ blockName ] = {
+				import: normalizeJoin(
+					baseDir,
+					`node_modules/@wordpress/block-library/build-module/${ blockName }/view`
+				),
+			};
+			return memo;
+		}, {}),
 		experiments: {
 			outputModule: true,
 		},
@@ -134,33 +129,6 @@ module.exports = function (
 		externals: {
 			'@wordpress/interactivity': '@wordpress/interactivity',
 			'@wordpress/interactivity-router': 'import @wordpress/interactivity-router',
-		},
-		module: {
-			rules: [
-				{
-					test: /\.(j|t)sx?$/,
-					use: [
-						{
-							loader: require.resolve( 'babel-loader' ),
-							options: {
-								cacheDirectory:
-									process.env.BABEL_CACHE_DIRECTORY || true,
-								babelrc: false,
-								configFile: false,
-								presets: [
-									[
-										'@babel/preset-react',
-										{
-											runtime: 'automatic',
-											importSource: 'preact',
-										},
-									],
-								],
-							},
-						},
-					],
-				},
-			],
 		},
 		plugins: [
 			...baseConfig.plugins,
