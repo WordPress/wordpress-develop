@@ -3,7 +3,14 @@
 /**
  * Unit tests covering HTML API functionality.
  *
- * @todo add descriptive paragraph here.
+ * This test suite runs a set of tests on the HTML API using a third-party suite of test fixtures.
+ * A third-party test suite allows the HTML API's behavior to be compared against an external
+ * standard. Without a third-party, there is risk of oversight or misinterpretation of the standard
+ * being implemented in application code and in tests. html5lib-tests is used by other projects like
+ * browsers or other HTML parsers for the same purpose of validating behavior against an
+ * external reference.
+ *
+ * See the README file at DIR_TESTDATA / html5lib-tests for details on the third-party suite.
  *
  * @package WordPress
  * @subpackage HTML-API
