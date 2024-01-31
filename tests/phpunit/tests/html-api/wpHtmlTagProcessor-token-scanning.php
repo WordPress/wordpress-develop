@@ -350,7 +350,7 @@ HTML
 	/**
 	 * Ensures that normative CDATA sections are properly parsed.
 	 *
-	 * @ticket tbd
+	 * @ticket 60406
 	 *
 	 * @since 6.5.0
 	 *
@@ -369,7 +369,7 @@ HTML
 		$this->assertSame(
 			WP_HTML_Processor::COMMENT_AS_INVALID_HTML,
 			$processor->get_comment_type(),
-			'Should have detected a CDATA-like invalid comment.'
+			'Should have detected invalid HTML comment.'
 		);
 
 		$this->assertSame(
