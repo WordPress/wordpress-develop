@@ -17,7 +17,7 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
 register_block_bindings_source(
 	'core/pattern-overrides',
 	array(
-		'label'              => _x( 'Pattern Attributes', '' ),
+		'label'              => _x( 'Pattern Overrides', 'block bindings source' ),
 		'get_value_callback' => 'pattern_source_callback',
 	)
 );
