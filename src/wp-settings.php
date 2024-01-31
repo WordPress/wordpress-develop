@@ -376,7 +376,6 @@ require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
 require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
-require ABSPATH . WPINC . '/interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
