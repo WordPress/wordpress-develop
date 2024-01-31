@@ -138,15 +138,20 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 			switch ( $p->get_token_type() ) {
 				case '#tag':
+					$tag_name = strtolower( $p->get_tag() );
+
 					if ( $p->is_tag_closer() ) {
 						--$indent_level;
 						break;
 					}
 
-					$indent_level = count( $p->get_breadcrumbs() );
+					$tag_indent = count( $p->get_breadcrumbs() ) - 1;
 
-					$tag_name = strtolower( $p->get_tag() );
-					$output  .= str_repeat( $indent, $indent_level - 1 ) . "<{$tag_name}>\n";
+					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
+						$indent_level = $tag_indent + 1;
+					}
+
+					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
 
 					$attribute_names = $p->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
@@ -161,9 +166,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							if ( true === $val ) {
 								$val = '';
 							}
-							$output .= str_repeat( $indent, $indent_level ) . "{$attribute_name}=\"{$val}\"\n";
+							$output .= str_repeat( $indent, $tag_indent + 1 ) . "{$attribute_name}=\"{$val}\"\n";
 						}
 					}
+
 					break;
 
 				case '#text':
