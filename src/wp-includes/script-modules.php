@@ -22,7 +22,6 @@ function wp_script_modules(): WP_Script_Modules {
 	return WP_Script_Modules::get_instance();
 }
 
-
 /**
  * Registers the script module if no script module with that script module
  * identifier has already been registered.
