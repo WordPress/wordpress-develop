@@ -34,7 +34,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_single_tag_of_supported_elements() {
+	public static function data_single_tag_of_supported_elements() {
 		$supported_elements = array(
 			'A',
 			'ABBR',
@@ -165,7 +165,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_unsupported_elements() {
+	public static function data_unsupported_elements() {
 		$unsupported_elements = array(
 			'APPLET', // Deprecated.
 			'BASE',
@@ -244,7 +244,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_unsupported_markup() {
+	public static function data_unsupported_markup() {
 		return array(
 			'A with formatting following unclosed A' => array(
 				'<a><strong>Click <a supported><big unsupported>Here</big></a></strong></a>',
@@ -310,7 +310,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_html_target_with_breadcrumbs() {
+	public static function data_html_target_with_breadcrumbs() {
 		return array(
 			'Simple IMG tag'                        => array( '<img target>', array( 'HTML', 'BODY', 'IMG' ), 1 ),
 			'Two sibling IMG tags'                  => array( '<img><img target>', array( 'HTML', 'BODY', 'IMG' ), 2 ),
@@ -393,7 +393,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_html_with_breadcrumbs_of_various_specificity() {
+	public static function data_html_with_breadcrumbs_of_various_specificity() {
 		return array(
 			// Test with void elements.
 			'Inner IMG'                               => array( '<div><span><figure><img target></figure></span></div>', array( 'span', 'figure', 'img' ), true ),

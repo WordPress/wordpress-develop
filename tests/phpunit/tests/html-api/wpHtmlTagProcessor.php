@@ -77,7 +77,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_has_self_closing_flag() {
+	public static function data_has_self_closing_flag() {
 		return array(
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
 			'Self-closing flag on non-void HTML element' => array( '<div />', true ),
@@ -259,7 +259,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_attribute_name_case_variants() {
+	public static function data_attribute_name_case_variants() {
 		return array(
 			array( 'DATA-enabled' ),
 			array( 'data-enabled' ),
@@ -724,7 +724,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return string[][].
 	 */
-	public function data_set_attribute_prevents_xss() {
+	public static function data_set_attribute_prevents_xss() {
 		return array(
 			array( '"' ),
 			array( '&quot;' ),
@@ -1146,7 +1146,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_html_with_duplicated_attributes() {
+	public static function data_html_with_duplicated_attributes() {
 		return array(
 			'Double attributes'               => array( '<div id=one id=two>', 'id' ),
 			'Triple attributes'               => array( '<div id=one id=two id=three>', 'id' ),
@@ -1801,7 +1801,7 @@ HTML;
 	 *
 	 * @return array[].
 	 */
-	public function data_next_tag_ignores_script_tag_contents() {
+	public static function data_next_tag_ignores_script_tag_contents() {
 		return array(
 			'Simple script tag'                          => array(
 				'<script><span class="d-none d-md-inline">Back to notifications</span></script><div></div>',
@@ -1878,7 +1878,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
+	public static function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
 		return array(
 			'Invalid tag openers as normal text'           => array(
 				'<ul><li><div class=start>I <3 when outflow > inflow</div><img class=end></li></ul>',
@@ -1917,7 +1917,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_next_tag_ignores_contents_of_rcdata_tag() {
+	public static function data_next_tag_ignores_contents_of_rcdata_tag() {
 		return array(
 			'simple textarea'                          => array(
 				'rcdata_then_div' => '<textarea><span class="d-none d-md-inline">Back to notifications</span></textarea><div></div>',
@@ -1996,7 +1996,7 @@ HTML;
 	 *
 	 * @return array[].
 	 */
-	public function data_next_tag_ignores_contents_of_rawtext_tags() {
+	public static function data_next_tag_ignores_contents_of_rawtext_tags() {
 		return array(
 			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
 			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
@@ -2135,7 +2135,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_html_with_variations_of_class_values_and_sought_class_names() {
+	public static function data_html_with_variations_of_class_values_and_sought_class_names() {
 		return array(
 			'Tag without any classes'      => array( '<div>', 'foo', false ),
 			'Tag with boolean class'       => array( '<img class>', 'foo', false ),
@@ -2202,7 +2202,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_html_with_unclosed_comments() {
+	public static function data_html_with_unclosed_comments() {
 		return array(
 			'Shortest open valid comment'      => array( '<!--' ),
 			'Basic truncated comment'          => array( '<!-- this ends --' ),
@@ -2237,7 +2237,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_abruptly_closed_empty_comments() {
+	public static function data_abruptly_closed_empty_comments() {
 		return array(
 			'Empty comment with two dashes only' => array( '<hr><!--><hr id=after>' ),
 			'Empty comment with two dashes only, improperly closed' => array( '<hr><!--!><hr id=inside>--><hr id=after>' ),
@@ -2276,7 +2276,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_skips_contents_of_script_and_rcdata_regions() {
+	public static function data_skips_contents_of_script_and_rcdata_regions() {
 		return array(
 			'Balanced SCRIPT tags'                => array( '<script>console.log("<div>");</script><div target><div>' ),
 			'Unexpected SCRIPT closer after DIV'  => array( 'console.log("<div target>")</script><div><div>' ),
@@ -2357,7 +2357,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_html_without_tags() {
+	public static function data_html_without_tags() {
 		return array(
 			'DOCTYPE declaration'    => array( '<!DOCTYPE html>Just some HTML' ),
 			'No tags'                => array( 'this is nothing more than a text node' ),
@@ -2400,7 +2400,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_incomplete_syntax_elements() {
+	public static function data_incomplete_syntax_elements() {
 		return array(
 			'Incomplete tag name'                  => array( '<swit' ),
 			'Incomplete tag (no attributes)'       => array( '<div' ),
@@ -2485,7 +2485,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_updating_attributes() {
+	public static function data_updating_attributes() {
 		return array(
 			'tags inside of a comment' => array(
 				'input'    => '<!-- this is a comment. no <strong>tags</strong> allowed --><span>test</span>',
@@ -2549,7 +2549,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_updating_attributes_in_malformed_html() {
+	public static function data_updating_attributes_in_malformed_html() {
 		return array(
 			'Invalid entity inside attribute value'        => array(
 				'input'    => '<img src="https://s0.wp.com/i/atat.png" title="&; First &lt;title&gt; is &notit;" TITLE="second title" title="An Imperial &imperial; AT-AT"><span>test</span>',

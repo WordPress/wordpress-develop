@@ -79,7 +79,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_article_container_group() {
+	public static function data_article_container_group() {
 		$group = array();
 
 		foreach (
@@ -274,7 +274,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_heading_elements() {
+	public static function data_heading_elements() {
 		return array(
 			'H1' => array( 'H1' ),
 			'H2' => array( 'H2' ),
@@ -328,7 +328,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_heading_combinations() {
+	public static function data_heading_combinations() {
 		$headings = array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' );
 
 		$combinations = array();

@@ -193,7 +193,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_void_tags() {
+	public static function data_void_tags() {
 		return array(
 			'AREA'   => array( 'AREA' ),
 			'BASE'   => array( 'BASE' ),
@@ -237,7 +237,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_unsupported_special_in_body_tags() {
+	public static function data_unsupported_special_in_body_tags() {
 		return array(
 			'APPLET'    => array( 'APPLET' ),
 			'BASE'      => array( 'BASE' ),
