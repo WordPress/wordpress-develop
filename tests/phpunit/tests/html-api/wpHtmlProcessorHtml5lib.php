@@ -120,8 +120,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
 	public static function build_html5_treelike_string( $fragment_context, $html ) {
-		$p = WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" );
-		if ( null === $p ) {
+		$processor = WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" );
+		if ( null === $processor ) {
 			return null;
 		}
 
@@ -131,21 +131,21 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$indent_level = 2;
 		$indent       = '  ';
 
-		while ( $p->next_token() ) {
-			if ( $p->get_last_error() !== null ) {
+		while ( $processor->next_token() ) {
+			if ( $processor->get_last_error() !== null ) {
 				return null;
 			}
 
-			switch ( $p->get_token_type() ) {
+			switch ( $processor->get_token_type() ) {
 				case '#tag':
-					$tag_name = strtolower( $p->get_tag() );
+					$tag_name = strtolower( $processor->get_tag() );
 
-					if ( $p->is_tag_closer() ) {
+					if ( $processor->is_tag_closer() ) {
 						--$indent_level;
 						break;
 					}
 
-					$tag_indent = count( $p->get_breadcrumbs() ) - 1;
+					$tag_indent = count( $processor->get_breadcrumbs() ) - 1;
 
 					if ( ! WP_HTML_Processor::is_void( $tag_name ) ) {
 						$indent_level = $tag_indent + 1;
@@ -153,12 +153,12 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
 
-					$attribute_names = $p->get_attribute_names_with_prefix( '' );
+					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
 						sort( $attribute_names, SORT_STRING );
 
 						foreach ( $attribute_names as $attribute_name ) {
-							$val = $p->get_attribute( $attribute_name );
+							$val = $processor->get_attribute( $attribute_name );
 							/*
 							 * Attributes with no value are `true` with the HTML API,
 							 * We map use the empty string value in the tree structure.
@@ -173,7 +173,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					break;
 
 				case '#text':
-					$output .= str_repeat( $indent, $indent_level ) . "\"{$p->get_modifiable_text()}\"\n";
+					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
 					break;
 
 				case '#cdata-section':
@@ -184,7 +184,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 				case '#comment':
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$p->get_modifiable_text()} -->\n";
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
 					break;
 
 				case '#doctype':
@@ -198,11 +198,11 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 		}
 
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $p->get_last_error() ) {
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
 			return null;
 		}
 
-		if ( $p->paused_at_incomplete_token() ) {
+		if ( $processor->paused_at_incomplete_token() ) {
 			return null;
 		}
 
