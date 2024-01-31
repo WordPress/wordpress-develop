@@ -1046,19 +1046,28 @@ module.exports = function(grunt) {
 						{
 							match: /\/\/ START: emoji arrays[\S\s]*\/\/ END: emoji arrays/g,
 							replacement: function() {
-								var regex, files,
+								var regex, files, ghCli,
 									partials, partialsSet,
 									entities, emojiArray;
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
+								// Ensure that the GitHub CLI is installed.
+								ghCli = spawn( 'gh', [ '--version' ] );
+								if ( 0 !== ghCli.status ) {
+									grunt.fatal( 'Emoji precommit script requires GitHub CLI. See https://cli.github.com/.' );
+								}
+
 								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'svn', [ 'ls', 'https://github.com/jdecked/twemoji.git/trunk/assets/svg' ] );
+								files = spawn( 'gh', [ 'api', 'repos/jdecked/twemoji/contents/assets/svg' ] );
+
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
 								}
 
 								entities = files.stdout.toString();
+								entities = JSON.parse( entities );
+								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + "\n"; }, '' );
 
 								// Tidy up the file list.
 								entities = entities.replace( /\.svg/g, '' );
