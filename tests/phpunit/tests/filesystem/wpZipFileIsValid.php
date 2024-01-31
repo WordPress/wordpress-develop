@@ -31,11 +31,14 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a valid zip file is valid.
+	 * Test zip file validity is correctly determined.
 	 *
 	 * @ticket 60398
 	 *
 	 * @dataProvider data_zip_file_validity
+	 *
+	 * @param string $file     The zip file to test.
+	 * @param bool   $expected Whether the zip file is expected to be valid.
 	 */
 	public function test_zip_file_validity( $file, $expected ) {
 		$zip_file = self::$test_data_dir . $file;
@@ -44,11 +47,16 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_zip_file_is_valid( $zip_file ), "Expected archive to be {$expected_message}." );
 	}
 
+	/**
+	 * Data provider for test_zip_file_validity().
+	 *
+	 * @return array[]
+	 */
 	public function data_zip_file_validity() {
 		return array(
-			array( 'archive.zip', true ),
-			array( 'archive-macos.zip', true ),
-			array( 'archive-invalid.zip', false ),
+			'valid zip file'                               => array( 'archive.zip', true ),
+			'valid zip file created by macOS context menu' => array( 'archive-macos.zip', true ),
+			'invalid zip file'                             => array( 'archive-invalid.zip', false ),
 		);
 	}
 }
