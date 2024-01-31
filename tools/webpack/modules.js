@@ -53,32 +53,11 @@ module.exports = function (
 			},
 			environment: { module: true },
 		},
-		module: {
-			rules: [
-				{
-					test: /\.(j|t)sx?$/,
-					use: [
-						{
-							loader: require.resolve( 'babel-loader' ),
-							options: {
-								cacheDirectory:
-									process.env.BABEL_CACHE_DIRECTORY || true,
-								babelrc: false,
-								configFile: false,
-								presets: [
-									[
-										'@babel/preset-react',
-										{
-											runtime: 'automatic',
-											importSource: 'preact',
-										},
-									],
-								],
-							},
-						},
-					],
-				},
-			],
+		externalsType: 'module',
+		externals: {
+			'@wordpress/interactivity': '@wordpress/interactivity',
+			'@wordpress/interactivity-router':
+				'import @wordpress/interactivity-router',
 		},
 		plugins: [
 			...baseConfig.plugins,

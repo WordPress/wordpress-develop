@@ -378,6 +378,7 @@ require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/block-bindings/sources/post-meta.php';
 require ABSPATH . WPINC . '/block-bindings/sources/pattern.php';
+require ABSPATH . WPINC . '/interactivity-api.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 

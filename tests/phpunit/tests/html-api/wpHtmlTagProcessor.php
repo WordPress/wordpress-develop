@@ -2715,4 +2715,16 @@ HTML
 		$result = $p->next_tag();
 		$this->assertFalse( $result, 'Did not handle "</ " html properly.' );
 	}
+
+	/**
+	 * Ensures that non-tag syntax starting with `<` is consumed inside a text node.
+	 *
+	 * @ticket 60385
+	 */
+	public function test_single_text_node_with_taglike_text() {
+		$p = new WP_HTML_Tag_Processor( 'test< /A>' );
+		$p->next_token();
+		$this->assertSame( '#text', $p->get_token_type(), 'Did not find text node.' );
+		$this->assertSame( 'test< /A>', $p->get_modifiable_text(), 'Did not find complete text node.' );
+	}
 }

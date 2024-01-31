@@ -474,6 +474,12 @@ class WP_Block {
 			}
 		}
 
+		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
+			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
+				wp_enqueue_style( $view_style_handle );
+			}
+		}
+
 		// Process the block bindings for this block, if any are registered. This
 		// will replace the block content with the value from a registered binding source.
 		$block_content = $this->process_block_bindings( $block_content );
