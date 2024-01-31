@@ -256,7 +256,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 						'fetchpriority' => 'high',
 					),
 				),
-			)
+			),
 		);
 	}
 }
