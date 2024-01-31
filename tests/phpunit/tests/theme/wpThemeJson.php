@@ -530,12 +530,19 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'typography' => array(
 						'fontFamilies' => array(
 							array(
-								'slug'       => 'small',
-								'fontFamily' => '14px',
+								'name'       => 'Arial',
+								'slug'       => 'arial',
+								'fontFamily' => 'Arial, serif',
+							),
+						),
+						'fontSizes'    => array(
+							array(
+								'slug' => 'small',
+								'size' => '14px',
 							),
 							array(
-								'slug'       => 'big',
-								'fontFamily' => '41px',
+								'slug' => 'big',
+								'size' => '41px',
 							),
 						),
 					),
