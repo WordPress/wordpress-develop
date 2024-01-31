@@ -36,7 +36,9 @@ concurrency:
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
-permissions: {}
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
   # Compiles a list of props for a pull request.
@@ -47,10 +49,6 @@ jobs:
   props-bot:
     name: Generate a list of props
     runs-on: ubuntu-latest
-    permissions:
-      # The action needs permission `write` permission for PRs in order to add a comment.
-      pull-requests: write
-      contents: read
     timeout-minutes: 20
     # The job should only run if:
     #
