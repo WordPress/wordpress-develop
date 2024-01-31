@@ -1578,7 +1578,6 @@ function wp_zip_file_is_valid( $file ) {
 	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
 
 	$archive          = new PclZip( $file );
-	// var_dump( $archive, $archive->properties() );
 	$archive_is_valid = is_array( $archive->properties() );
 
 	return $archive_is_valid;
