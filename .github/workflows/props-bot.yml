@@ -4,7 +4,7 @@ on:
   # This event runs anytime a PR is (re)opened, updated, or labeled.
   # GitHub does not allow filtering the `labeled` event by a specific label.
   # However, the logic below will short-circuit the workflow when the `props-bot` label is not the one being added.
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - synchronize
@@ -36,9 +36,7 @@ concurrency:
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
-permissions:
-  pull-requests: write
-  contents: read
+permissions: {}
 
 jobs:
   # Compiles a list of props for a pull request.
@@ -49,6 +47,10 @@ jobs:
   props-bot:
     name: Generate a list of props
     runs-on: ubuntu-latest
+    permissions:
+      # The action needs permission `write` permission for PRs in order to add a comment.
+      pull-requests: write
+      contents: read
     timeout-minutes: 20
     # The job should only run if:
     #
