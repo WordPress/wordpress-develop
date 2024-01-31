@@ -19,7 +19,7 @@ function wp_interactivity_register_script_modules() {
 	wp_register_script_module(
 		'@wordpress/interactivity-router',
 		includes_url( '/js/dist/interactivity-router.min.js' ),
-		array( '@wordpress/interactivity' ),
+		array( '@wordpress/interactivity' )
 	);
 }
 
