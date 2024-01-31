@@ -1567,7 +1567,7 @@ function wp_zip_file_is_valid( $file ) {
 	/** This filter is documented in wp-admin/includes/file.php */
 	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
 		$archive          = new ZipArchive();
-		$archive_is_valid = $archive->open( $file, ZIPARCHIVE::CHECKCONS );
+		$archive_is_valid = $archive->open( $file, ZipArchive::CHECKCONS );
 		if ( true === $archive_is_valid ) {
 			$archive->close();
 			return true;
