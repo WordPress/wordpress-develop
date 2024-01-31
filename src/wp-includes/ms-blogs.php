@@ -395,12 +395,19 @@ function get_blog_option( $id, $option, $default_value = false ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $id     A blog ID. Can be null to refer to the current blog.
- * @param string $option Name of option to add. Expected to not be SQL-escaped.
- * @param mixed  $value  Option value, can be anything. Expected to not be SQL-escaped.
+ * @param int    $id            A blog ID. Can be null to refer to the current blog.
+ * @param string $option        Name of option to add. Expected to not be SQL-escaped.
+ * @param mixed  $value         Option value, can be anything. Expected to not be SQL-escaped.
+ * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up.
+ *                              Accepts 'yes'|true to enable or 'no'|false to disable.
+ *                              Autoloading too many options can lead to performance problems, especially if the
+ *                              options are not frequently used. For options which are accessed across several places
+ *                              in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                              For options which are accessed only on few specific URLs, it is recommended
+ *                              to not autoload them, by using 'no'|false. Default 'yes'.
  * @return bool True if the option was added, false otherwise.
  */
-function add_blog_option( $id, $option, $value ) {
+function add_blog_option( $id, $option, $value, $autoload = 'yes' ) {
 	$id = (int) $id;
 
 	if ( empty( $id ) ) {
@@ -408,11 +415,11 @@ function add_blog_option( $id, $option, $value ) {
 	}
 
 	if ( get_current_blog_id() == $id ) {
-		return add_option( $option, $value );
+		return add_option( $option, $value, '', $autoload );
 	}
 
 	switch_to_blog( $id );
-	$return = add_option( $option, $value );
+	$return = add_option( $option, $value, '', $autoload );
 	restore_current_blog();
 
 	return $return;
@@ -450,13 +457,20 @@ function delete_blog_option( $id, $option ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $id         The blog ID.
- * @param string $option     The option key.
- * @param mixed  $value      The option value.
- * @param mixed  $deprecated Not used.
+ * @param int         $id         The blog ID.
+ * @param string      $option     The option key.
+ * @param mixed       $value      The option value.
+ * @param mixed       $deprecated Not used.
+ * @param string|bool $autoload   Optional. Whether to load the option when WordPress starts up.
+ *                                Accepts 'yes'|true to enable or 'no'|false to disable.
+ *                                Autoloading too many options can lead to performance problems, especially if the
+ *                                options are not frequently used. For options which are accessed across several places
+ *                                in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                                For options which are accessed only on few specific URLs, it is recommended
+ *                                to not autoload them, by using 'no'|false. Default 'yes'.
  * @return bool True if the value was updated, false otherwise.
  */
-function update_blog_option( $id, $option, $value, $deprecated = null ) {
+function update_blog_option( $id, $option, $value, $deprecated = null, $autoload = null ) {
 	$id = (int) $id;
 
 	if ( null !== $deprecated ) {
@@ -464,11 +478,11 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	}
 
 	if ( get_current_blog_id() == $id ) {
-		return update_option( $option, $value );
+		return update_option( $option, $value, $autoload );
 	}
 
 	switch_to_blog( $id );
-	$return = update_option( $option, $value );
+	$return = update_option( $option, $value, $autoload );
 	restore_current_blog();
 
 	return $return;
