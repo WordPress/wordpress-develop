@@ -454,7 +454,7 @@ class Tests_WP_Error_Handling extends \WP_UnitTestCase {
 	public function test_wp_exception_handler_bad_tostring() {
 		global $_wp_error_handling_previous_exception_handler;
 
-		$ex = new class ( '<i>Some exception</i>' ) extends \Exception {
+		$ex = new class( '<i>Some exception</i>' ) extends \Exception {
 			public function __toString() {
 				throw new \Exception( 'Error in __toString()' );
 			}
