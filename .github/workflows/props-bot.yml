@@ -31,7 +31,7 @@ on:
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ contains( fromJSON( '["pull_request", "pull_request_review", "pull_request_review_comment"]' ), github.event_name ) && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ contains( fromJSON( '["pull_request_target", "pull_request_review", "pull_request_review_comment"]' ), github.event_name ) && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -61,7 +61,7 @@ jobs:
     if: |
       contains( fromJSON( '["pull_request_review", "pull_request_review_comment"]' ), github.event_name ) ||
       ( github.event_name == 'issue_comment' && github.event.issue.pull_request ) ||
-      github.event_name == 'pull_request' && github.event.action != 'labeled' ||
+      github.event_name == 'pull_request_target' && github.event.action != 'labeled' ||
       'props-bot' == github.event.label.name
 
     steps:
