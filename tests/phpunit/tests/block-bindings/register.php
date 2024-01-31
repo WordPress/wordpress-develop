@@ -26,7 +26,6 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 			if ( str_starts_with( $source_name, 'test/' ) ) {
 				unregister_block_bindings_source( $source_name );
 			}
-			unregister_block_bindings_source( $source_name );
 		}
 
 		parent::tear_down();
