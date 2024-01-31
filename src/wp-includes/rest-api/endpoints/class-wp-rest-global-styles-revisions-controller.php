@@ -247,56 +247,6 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	}
 
 	/**
-	 * Retrieves one global styles revision from the collection.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
-	 */
-	public function get_item( $request ) {
-		$parent = $this->get_parent( $request['parent'] );
-		if ( is_wp_error( $parent ) ) {
-			return $parent;
-		}
-
-		$revision = $this->get_revision( $request['id'] );
-		if ( is_wp_error( $revision ) ) {
-			return $revision;
-		}
-
-		$response = $this->prepare_item_for_response( $revision, $request );
-		return rest_ensure_response( $response );
-	}
-
-	/**
-	 * Gets the global styles revision, if the ID is valid.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param int $id Supplied ID.
-	 * @return WP_Post|WP_Error Revision post object if ID is valid, WP_Error otherwise.
-	 */
-	protected function get_revision( $id ) {
-		$error = new WP_Error(
-			'rest_post_invalid_id',
-			__( 'Invalid global styles revision ID.' ),
-			array( 'status' => 404 )
-		);
-
-		if ( (int) $id <= 0 ) {
-			return $error;
-		}
-
-		$revision = get_post( (int) $id );
-		if ( empty( $revision ) || empty( $revision->ID ) || 'revision' !== $revision->post_type ) {
-			return $error;
-		}
-
-		return $revision;
-	}
-
-	/**
 	 * Prepares the revision for the REST response.
 	 *
 	 * @since 6.3.0
