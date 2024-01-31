@@ -23,9 +23,9 @@ function wp_interactivity_process_directives_of_interactive_blocks( $parsed_bloc
 	static $root_interactive_block = null;
 
 	/*
-		* Checks whether a root interactive block is already annotated for
-		* processing, and if it is, it ignores the subsequent ones.
-		*/
+	 * Checks whether a root interactive block is already annotated for
+	 * processing, and if it is, it ignores the subsequent ones.
+	 */
 	if ( null === $root_interactive_block ) {
 		$block_name = $parsed_block['blockName'];
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
@@ -35,9 +35,9 @@ function wp_interactivity_process_directives_of_interactive_blocks( $parsed_bloc
 			$root_interactive_block = array( $block_name, md5( serialize( $parsed_block ) ) );
 
 			/*
-				* Adds a filter to process the root interactive block once it has
-				* finished rendering.
-				*/
+			 * Adds a filter to process the root interactive block once it has
+			 * finished rendering.
+			 */
 			$process_interactive_blocks = static function ( $content, $parsed_block ) use ( &$root_interactive_block, &$process_interactive_blocks ) {
 				// Checks whether the current block is the root interactive block.
 				list($root_block_name, $root_block_md5) = $root_interactive_block;
@@ -52,9 +52,9 @@ function wp_interactivity_process_directives_of_interactive_blocks( $parsed_bloc
 			};
 
 			/*
-				* Uses a priority of 20 to ensure that other filters can add additional
-				* directives before the processing starts.
-				*/
+			 * Uses a priority of 20 to ensure that other filters can add additional
+			 * directives before the processing starts.
+			 */
 			add_filter( 'render_block', $process_interactive_blocks, 20, 2 );
 		}
 	}
