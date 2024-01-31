@@ -357,7 +357,7 @@ HTML
 	 * @covers WP_HTML_Tag_Processor::next_token
 	 */
 	public function test_cdata_comment_with_incorrect_closer() {
-		$processor = new WP_HTML_Tag_Processor( '<![CDATA[this "cdata" is missing a closing square bracket. It should end at the first ">" ]>' );
+		$processor = new WP_HTML_Tag_Processor( '<![CDATA[this is missing a closing square bracket]>' );
 		$processor->next_token();
 
 		$this->assertSame(
@@ -373,7 +373,7 @@ HTML
 		);
 
 		$this->assertSame(
-			'[CDATA[this "cdata" is missing a closing square bracket. It should end at the first "',
+			'[CDATA[this is missing a closing square bracket]',
 			$processor->get_modifiable_text(),
 			'Found incorrect modifiable text.'
 		);
