@@ -190,8 +190,21 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					break;
 
 				case '#comment':
+					switch ( $processor->get_comment_type() ) {
+						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
+						case WP_HTML_Processor::COMMENT_AS_HTML_COMMENT:
+							$commentTextContent = $processor->get_modifiable_text();
+							break;
+
+						case WP_HTML_Processor::COMMENT_AS_CDATA_LOOKALIKE:
+							$commentTextContent = "[CDATA[{$processor->get_modifiable_text()}]]";
+							break;
+
+						default:
+							throw new Exception( "Unhandled comment type for tree construction: {$processor->get_comment_type()}" );
+					}
 					// Comments must be "<" then "!-- " then the data then " -->".
-					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$processor->get_modifiable_text()} -->\n";
+					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$commentTextContent} -->\n";
 					break;
 
 				case '#doctype':
