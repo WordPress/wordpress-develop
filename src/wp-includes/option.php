@@ -1193,7 +1193,6 @@ function wp_determine_option_autoload_value( $option, $value, $autoload ) {
 	 *                           database, false will be set as 'auto-off', and null will be set as 'auto'.
 	 * @param string    $option  The passed option name.
 	 * @param mixed     $value   The passed option value to be saved.
-	 *        null will allow the size of the $autoload to be set 'auto-off' for large values.
 	 */
 	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value );
 	if ( is_bool( $autoload ) ) {
