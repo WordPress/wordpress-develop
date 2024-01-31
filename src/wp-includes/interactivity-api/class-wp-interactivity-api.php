@@ -60,7 +60,8 @@ class WP_Interactivity_API {
 	 * @param string $store_namespace The unique store namespace identifier.
 	 * @param array  $state           Optional. The array that will be merged with the existing state for the specified
 	 *                                store namespace.
-	 * @return array The current state for the specified store namespace.
+	 * @return array The current state for the specified store namespace. This will be the updated state if a $state
+	 *               argument was provided.
 	 */
 	public function state( string $store_namespace, array $state = null ): array {
 		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {
@@ -87,7 +88,8 @@ class WP_Interactivity_API {
 	 * @param string $store_namespace The unique store namespace identifier.
 	 * @param array  $config          Optional. The array that will be merged with the existing configuration for the
 	 *                                specified store namespace.
-	 * @return array The current configuration for the specified store namespace.
+	 * @return array The configuration for the specified store namespace. This will be the updated configuration if a
+	 *               $config argument was provided.
 	 */
 	public function config( string $store_namespace, array $config = null ): array {
 		if ( ! isset( $this->config_data[ $store_namespace ] ) ) {

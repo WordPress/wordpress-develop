@@ -109,7 +109,8 @@ function wp_interactivity_process_directives( $html ) {
  * @param string $store_namespace The unique store namespace identifier.
  * @param array  $state           Optional. The array that will be merged with the existing state for the specified
  *                                store namespace.
- * @return array The current state for the specified store namespace.
+ * @return array The state for the specified store namespace. This will be the updated state if a $state argument was
+ *               provided.
  */
 function wp_interactivity_state( $store_namespace, $state = null ) {
 	return wp_interactivity()->state( $store_namespace, $state );
@@ -127,8 +128,9 @@ function wp_interactivity_state( $store_namespace, $state = null ) {
  * @param string $store_namespace The unique store namespace identifier.
  * @param array  $config          Optional. The array that will be merged with the existing configuration for the
  *                                specified store namespace.
- * @return array The current configuration for the specified store namespace.
+ * @return array The configuration for the specified store namespace. This will be the updated configuration if a
+ *               $config argument was provided.
  */
-function wp_interactivity_config( $store_namespace, $initial_state = null ) {
-	return wp_interactivity()->config( $store_namespace, $initial_state );
+function wp_interactivity_config( $store_namespace, $config = null ) {
+	return wp_interactivity()->config( $store_namespace, $config );
 }
