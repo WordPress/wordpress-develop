@@ -398,6 +398,12 @@ HTML
 			"Should have found a bogus comment but found {$processor->get_token_name()} instead."
 		);
 
+		$this->assertSame(
+			WP_HTML_Processor::COMMENT_AS_INVALID_HTML,
+			$processor->get_comment_type(),
+			'Should have detected invalid HTML comment.'
+		);
+
 		$this->assertNull(
 			$processor->get_tag(),
 			'Should not have been able to query tag name on non-element token.'
