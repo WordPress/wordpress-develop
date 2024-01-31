@@ -2,6 +2,12 @@ blockquote {
 	padding: 0;
 	position: relative;
 	margin: var(--global--spacing-vertical) 0 var(--global--spacing-vertical) var(--global--spacing-horizontal);
+	letter-spacing: var(--heading--letter-spacing-h4);
+	font-family: var(--quote--font-family);
+	font-size: var(--quote--font-size);
+	font-style: var(--quote--font-style);
+	font-weight: var(--quote--font-weight);
+	line-height: var(--quote--line-height);
 
 	> * {
 		margin-top: var(--global--spacing-unit);
@@ -17,19 +23,18 @@ blockquote {
 	}
 
 	p {
-		letter-spacing: var(--heading--letter-spacing-h4);
-		font-family: var(--quote--font-family);
-		font-size: var(--quote--font-size);
-		font-style: var(--quote--font-style);
-		font-weight: var(--quote--font-weight);
-		line-height: var(--quote--line-height);
+		letter-spacing: inherit;
+		font-family: inherit;
+		font-size: inherit;
+		font-style: inherit;
+		font-weight: inherit;
+		line-height: inherit;
 	}
 
 	cite,
 	footer {
 		font-weight: normal;
 		color: var(--global--color-primary);
-		font-size: var(--global--font-size-xs);
 		letter-spacing: var(--global--letter-spacing);
 	}
 
@@ -57,8 +62,6 @@ blockquote {
 
 	&:before {
 		content: "\201C";
-		font-size: var(--quote--font-size);
-		line-height: var(--quote--line-height);
 		position: absolute;
 		left: calc(-0.5 * var(--global--spacing-horizontal));
 	}
@@ -67,7 +70,6 @@ blockquote {
 	cite,
 	footer {
 		color: var(--global--color-primary);
-		font-size: var(--global--font-size-xs);
 		font-style: var(--quote--font-style-cite);
 	}
 

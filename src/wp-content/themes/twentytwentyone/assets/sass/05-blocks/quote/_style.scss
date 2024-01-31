@@ -3,14 +3,17 @@
 
 	&:before {
 		content: "\201C";
-		font-size: var(--quote--font-size);
-		line-height: var(--quote--line-height);
 		left: 8px;
 	}
 
 	.wp-block-quote__citation,
 	cite,
 	footer {
+		font-family: inherit;
+		font-style: inherit;
+		font-weight: inherit;
+		line-height: inherit;
+		letter-spacing: inherit;
 
 		.has-background &,
 		[class*="background-color"] &,
@@ -18,6 +21,19 @@
 		.wp-block-cover[style*="background-image"] & {
 			color: currentColor;
 		}
+	}
+
+	&:where(:not([style*="font-style"])) .wp-block-quote__citation,
+	&:where(:not([style*="font-style"])) cite,
+	&:where(:not([style*="font-style"])) footer {
+		font-style: var(--quote--font-style-cite);
+	}
+
+	// The cite has a lighter font-weight than the rest of the quote.
+	&:where(:not([style*="font-weight"])) .wp-block-quote__citation,
+	&:where(:not([style*="font-weight"])) cite,
+	&:where(:not([style*="font-weight"])) footer {
+		font-weight: normal;
 	}
 
 	/**
@@ -36,9 +52,6 @@
 		// Align the quote left of the text.
 		p:before {
 			content: "\201D";
-			font-size: var(--quote--font-size);
-			font-weight: normal;
-			line-height: var(--quote--line-height);
 			margin-right: 5px;
 		}
 	}
@@ -51,6 +64,7 @@
 		}
 	}
 
+	// The large style has been removed but the CSS is kept for backwards compatibility.
 	&.is-large,
 	&.is-style-large {
 		padding-left: 0;
