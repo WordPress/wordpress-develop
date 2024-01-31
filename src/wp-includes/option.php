@@ -606,7 +606,7 @@ function wp_load_alloptions( $force_cache = false ) {
 
 	if ( ! $alloptions ) {
 		$suppress      = $wpdb->suppress_errors();
-		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( 'yes', 'on', 'auto-on', 'auto' )" );
+		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( wp_autoload_values_to_autoload( true ) )" );
 
 		if ( ! $alloptions_db ) {
 			$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
@@ -3028,4 +3028,30 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 	}
 
 	return $registered[ $option ]['default'];
+}
+
+/**
+ * Converts the values that trigger autoloading from the options table to a string or an array.
+ *
+ * The values that trigger autoloading are filtered through the 'wp_autoload_values_to_autoload' hook, allowing customization.
+ *
+ * @since 5.6.0
+ *
+ * @param bool $as_string Optional. Whether to return the values as a string or an array. Default false.
+ *
+ * @return string|array The values that trigger autoloading.
+ */
+function wp_autoload_values_to_autoload( $as_string = false ) {
+	/**
+	 * Filter: allows the values use to trigger a value to be autoloaded from the options table
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param array $default values to trigger autoloading option.
+	 *
+	 * @return array $values to trigger autoloading option.
+	 */
+	$values = apply_filters( 'wp_autoload_values_to_autoload', array( 'yes', 'on', 'auto-on', 'auto' ) );
+
+	return ( $as_string ) ? "'" . implode( "', '", $values ) . "'" : $values;
 }
