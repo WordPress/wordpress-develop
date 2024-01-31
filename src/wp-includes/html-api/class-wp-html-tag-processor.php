@@ -1753,9 +1753,13 @@ class WP_HTML_Tag_Processor {
 				 * @todo Track whether the Tag Processor is inside a foreign element
 				 *       and require the proper closing `]]>` in those cases.
 				 *
-				 * (from token_starts_at) 01234567_89A
-				 *                        <[CDATA[…]]>
-				 *                        A9876543_210 (back from closer_at)
+				 * The indices in the following lookup correspond to this text:
+				 *
+				 * (token_starts_at) 01234567_89A
+				 *
+				 *                   <[CDATA[…]]>
+				 *
+				 *                   A9876543_210 (closer_at)
 				 */
 				if (
 					$this->token_length >= 10 &&
