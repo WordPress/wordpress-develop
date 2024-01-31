@@ -1022,7 +1022,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	}
 
 	if ( ! wp_installing() ) {
-		if ( 'on' === $autoload || 'auto-on' === $autoload || 'auto' === $autoload || 'yes' === $autoload ) {
+		if ( in_array( $autoload, wp_autoload_values_to_autoload(), true ) ) {
 			$alloptions            = wp_load_alloptions( true );
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
