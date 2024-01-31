@@ -1116,7 +1116,6 @@ function delete_option( $option ) {
 		} else {
 			wp_cache_delete( $option, 'options' );
 		}
-
 	}
 
 	if ( $result ) {
