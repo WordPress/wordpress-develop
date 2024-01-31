@@ -279,7 +279,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'caption' => true,
 			),
 			'dimensions' => array(
-				'minHeight' => true,
+				'aspectRatio' => true,
+				'minHeight'   => true,
 			),
 			'position'   => array(
 				'sticky' => true,
@@ -316,7 +317,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'caption' => true,
 					),
 					'dimensions' => array(
-						'minHeight' => true,
+						'aspectRatio' => true,
+						'minHeight'   => true,
 					),
 					'position'   => array(
 						'sticky' => true,
@@ -495,6 +497,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56611
 	 * @ticket 58549
 	 * @ticket 58550
+	 * @ticket 60365
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
@@ -567,6 +570,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 					'blocks'   => array(
+						'core/cover'        => array(
+							'dimensions' => array(
+								'aspectRatio' => '16/9',
+							),
+						),
 						'core/group'        => array(
 							'color'    => array(
 								'gradient' => 'var:preset|gradient|custom-gradient',
@@ -645,7 +653,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$variables = 'body{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}body .is-layout-grid{display: grid;}body .is-layout-grid > *{margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}.wp-block-heading{color: #123456;}.wp-block-heading a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-post-excerpt{column-count: 2;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}';
+		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}body .is-layout-grid{display: grid;}body .is-layout-grid > *{margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-cover{min-height: unset;aspect-ratio: 16/9;}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}.wp-block-heading{color: #123456;}.wp-block-heading a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-post-excerpt{column-count: 2;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}';
 		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
 		$all       = $variables . $styles . $presets;
 		$this->assertSame( $all, $theme_json->get_stylesheet() );
