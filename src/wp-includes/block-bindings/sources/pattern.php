@@ -1,7 +1,7 @@
 <?php
 /**
  * The "pattern" source for the Block Bindings API. This source is used by the
- * Partially Synced Patterns.
+ * Pattern Overrides.
  *
  * @since 6.5.0
  * @package WordPress
@@ -15,7 +15,7 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
 }
 
 register_block_bindings_source(
-	'core/pattern-attributes',
+	'core/pattern-overrides',
 	array(
 		'label'              => _x( 'Pattern Attributes', '' ),
 		'get_value_callback' => 'pattern_source_callback',
