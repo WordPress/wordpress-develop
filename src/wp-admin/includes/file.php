@@ -1563,6 +1563,14 @@ function wp_trusted_keys() {
 	return apply_filters( 'wp_trusted_keys', $trusted_keys );
 }
 
+/**
+ * Test whether the given file is a valid Zip file.
+ *
+ * @since x.x.x
+ *
+ * @param string $file Full path to the ZIP file.
+ * @return bool Whether the file is a valid ZIP file.
+ */
 function wp_zip_file_is_valid( $file ) {
 	/** This filter is documented in wp-admin/includes/file.php */
 	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
