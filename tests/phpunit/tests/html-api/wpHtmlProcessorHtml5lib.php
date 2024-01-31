@@ -139,7 +139,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$indent       = '  ';
 
 		while ( $processor->next_token() ) {
-			if ( $processor->get_last_error() !== null ) {
+			if ( ! is_null( $processor->get_last_error() ) ) {
 				return null;
 			}
 
@@ -203,10 +203,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				case '#funky-comment':
 					break;
 			}
-		}
-
-		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
-			return null;
 		}
 
 		if ( $processor->paused_at_incomplete_token() ) {
