@@ -2817,7 +2817,7 @@ class WP_Site_Health {
 					'test'  => 'available_updates_disk_space',
 				),
 				'privileged_default_role_with_open_registration' => array(
-					'label' => __( 'Open Registration with Default Administrator Privileges' ),
+					'label' => __( 'Open Registration with privileged default role' ),
 					'test'  => 'privileged_default_role_with_open_registration',
 				),
 			),
