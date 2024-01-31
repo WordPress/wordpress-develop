@@ -183,12 +183,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
 					break;
 
-				case '#cdata-section':
-					break;
-
-				case '#processing-instruction':
-					break;
-
 				case '#comment':
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
@@ -201,20 +195,14 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 							break;
 
 						default:
-							throw new Exception( "Unhandled comment type for tree construction: {$processor->get_comment_type()}" );
+							throw new Error( "Unhandled comment type for tree construction: {$processor->get_comment_type()}" );
 					}
 					// Comments must be "<" then "!-- " then the data then " -->".
 					$output .= str_repeat( $indent, $indent_level ) . "<!-- {$commentTextContent} -->\n";
 					break;
 
-				case '#doctype':
-					break;
-
-				case '#presumptuous-tag':
-					break;
-
-				case '#funky-comment':
-					break;
+				default:
+					throw new Error( "Unhandled token type for tree construction: {$processor->get_token_type()}" );
 			}
 		}
 
