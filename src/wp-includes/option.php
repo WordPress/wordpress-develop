@@ -827,12 +827,12 @@ function update_option( $option, $value, $autoload = null ) {
 	);
 
 	if ( null !== $autoload ) {
-		$update_args['autoload'] = wp_determine_option_autoload_value( $option, $serialized_value, $autoload );
+		$update_args['autoload'] = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
 	} else {
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
-			$autoload = wp_determine_option_autoload_value( $option, $serialized_value, $autoload );
+			$autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
 			if ( $autoload !== $raw_autoload ) {
 				$update_args['autoload'] = $autoload;
 			}
@@ -1004,7 +1004,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 
 	$serialized_value = maybe_serialize( $value );
 
-	$autoload = wp_determine_option_autoload_value( $option, $serialized_value, $autoload );
+	$autoload = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
 
 	/**
 	 * Fires before an option is added.
@@ -1156,21 +1156,23 @@ function delete_option( $option ) {
  * It will return `auto-on` to indicate autoloading, `auto-off` to indicate not autoloading, or `auto` if no clear
  * decision could be made.
  *
+ * @param string $option          The name of the option.
+ * @param mixed $value            The value of the option to check its autoload value.
+ * @param mixed $serialized_value The serialized value of the option to check its autoload value.
+ * @param bool|null $autoload     The autoload value to check.
+ *                                Accepts 'on'|true to enable or 'off'|false to disable, or
+ *                                'auto-on', 'auto-off', or 'auto' for internal purposes.
+ *                                Any other autoload value will be forced to either 'auto-on',
+ *                                'auto-off', or 'auto'.
+ *                                'yes' and 'no' are supported for backward compatibility.
+ *
+ * @return string Returns the original $autoload value if explicit, or 'auto-on', 'auto-off',
+ *                or 'auto' depending on default heuristics.
  * @since 6.5.0
  * @access private
  *
- * @param string    $option   The name of the option.
- * @param mixed     $value    The value of the option to check its autoload value.
- * @param bool|null $autoload The autoload value to check.
- *                            Accepts 'on'|true to enable or 'off'|false to disable, or
- *                            'auto-on', 'auto-off', or 'auto' for internal purposes.
- *                            Any other autoload value will be forced to either 'auto-on',
- *                            'auto-off', or 'auto'.
- *                            'yes' and 'no' are supported for backward compatibility.
- * @return string Returns the original $autoload value if explicit, or 'auto-on', 'auto-off',
- *                or 'auto' depending on default heuristics.
  */
-function wp_determine_option_autoload_value( $option, $value, $autoload ) {
+function wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload ) {
 
 	// Check if autoload is a boolean.
 	if ( is_bool( $autoload ) ) {
@@ -1196,7 +1198,7 @@ function wp_determine_option_autoload_value( $option, $value, $autoload ) {
 	 * @param string    $option  The passed option name.
 	 * @param mixed     $value   The passed option value to be saved.
 	 */
-	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value );
+	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value, $serialized_value );
 	if ( is_bool( $autoload ) ) {
 		return $autoload ? 'auto-on' : 'auto-off';
 	}
@@ -1210,13 +1212,14 @@ function wp_determine_option_autoload_value( $option, $value, $autoload ) {
  * @since 6.5.0
  * @access private
  *
- *@param bool|null $default The default autoload value to set. Returning true will be set as 'auto-on' in the
- *                           database, false will be set as 'auto-off', and null will be set as 'auto'.
- * @param string    $option  The passed option name.
- * @param mixed     $value   The passed option value to be saved.
+ *@param bool|null $default_setting The default autoload value to set. Returning true will be set as 'auto-on' in the
+ *                                  database, false will be set as 'auto-off', and null will be set as 'auto'.
+ * @param string   $option  The passed option name.
+ * @param mixed    $value   The passed option value to be saved.
+ * @param mixed    $serialized_value the passed serialized option value to be saved.
  * @return bool|null Potentially modified $default.
  */
-function wp_filter_default_autoload_value_via_option_size( $default, $option, $value ) {
+function wp_filter_default_autoload_value_via_option_size( $default_setting, $option, $value, $serialized_value ) {
 	/**
 	 * Filters the maximum size of option value in bytes.
 	 *
@@ -1226,13 +1229,13 @@ function wp_filter_default_autoload_value_via_option_size( $default, $option, $v
 	 * @param string $option          The name of the option.
 	 */
 	$max_option_size = (int) apply_filters( 'wp_max_autoloaded_option_size', 150000, $option );
-	$size            = ! empty( $value ) ? strlen( $value ) : 0;
+	$size            = ! empty( $serialized_value ) ? strlen( $serialized_value ) : 0;
 
 	if ( $size > $max_option_size ) {
 		return false;
 	}
 
-	return $default;
+	return $default_setting;
 }
 
 /**

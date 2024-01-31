@@ -20,7 +20,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @param $expected
 	 */
 	public function test_get_autoload_value_values( $autoload, $expected ) {
-		$test = wp_determine_option_autoload_value( null, '', $autoload );
+		$test = wp_determine_option_autoload_value( null, '', '', $autoload );
 		$this->assertSame( $expected, $test );
 	}
 
@@ -53,7 +53,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @ticket 42441
 	 */
 	public function test_small_option() {
-		$test = wp_determine_option_autoload_value( 'foo', 'bar', null );
+		$test = wp_determine_option_autoload_value( 'foo', 'bar', 'bar', null );
 		$this->assertSame( 'auto', $test );
 	}
 
@@ -61,8 +61,9 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @ticket 42441
 	 */
 	public function test_large_option() {
-		$value = maybe_serialize( file( DIR_TESTDATA . '/formatting/entities.txt' ) );
-		$test  = wp_determine_option_autoload_value( 'foo', $value, null );
+		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$serialized_value = maybe_serialize( $value );
+		$test  = wp_determine_option_autoload_value( 'foo', $value, $serialized_value, null );
 		$this->assertSame( 'auto-off', $test );
 	}
 
@@ -70,8 +71,9 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @ticket 42441
 	 */
 	public function test_large_option_json() {
-		$value = maybe_serialize( file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' ) );
-		$test  = wp_determine_option_autoload_value( 'foo', $value, null );
+		$value = file( DIR_TESTDATA . '/themedir1/block-theme/theme.json' );
+		$serialized_value = maybe_serialize( $value );
+		$test  = wp_determine_option_autoload_value( 'foo', $value, $serialized_value, null );
 		$this->assertSame( 'auto-off', $test );
 	}
 
