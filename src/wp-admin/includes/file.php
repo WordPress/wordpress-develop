@@ -1574,9 +1574,6 @@ function wp_zip_file_is_valid( $file ) {
 		}
 	}
 
-	// Demonstrate ZipArchive bug with MacOS generated files.
-	return false;
-
 	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
 	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
 
