@@ -1,0 +1,135 @@
+/**
+*  Converts a hex value into the rgb equivalent.
+*
+* @param {string} hex - the hexadecimal value to convert
+* @return {string} comma separated rgb values
+*/
+/**
+ * Colors
+ */
+/**
+ * Breakpoints & Media Queries
+ */
+/**
+ * SCSS Variables.
+ *
+ * Please use variables from this sheet to ensure consistency across the UI.
+ * Don't add to this sheet unless you're pretty sure the value will be reused in many places.
+ * For example, don't add rules to this sheet that affect block visuals. It's purely for UI.
+ */
+/**
+*  Converts a hex value into the rgb equivalent.
+*
+* @param {string} hex - the hexadecimal value to convert
+* @return {string} comma separated rgb values
+*/
+/**
+ * Colors
+ */
+/**
+ * Fonts & basic variables.
+ */
+/**
+ * Grid System.
+ * https://make.wordpress.org/design/2019/10/31/proposal-a-consistent-spacing-system-for-wordpress/
+ */
+/**
+ * Dimensions.
+ */
+/**
+ * Shadows.
+ */
+/**
+ * Editor widths.
+ */
+/**
+ * Block & Editor UI.
+ */
+/**
+ * Block paddings.
+ */
+/**
+ * React Native specific.
+ * These variables do not appear to be used anywhere else.
+ */
+/**
+*  Converts a hex value into the rgb equivalent.
+*
+* @param {string} hex - the hexadecimal value to convert
+* @return {string} comma separated rgb values
+*/
+/**
+ * Long content fade mixin
+ *
+ * Creates a fading overlay to signify that the content is longer
+ * than the space allows.
+ */
+/**
+ * Breakpoint mixins
+ */
+/**
+ * Focus styles.
+ */
+/**
+ * Applies editor left position to the selector passed as argument
+ */
+/**
+ * Styles that are reused verbatim in a few places
+ */
+/**
+ * Allows users to opt-out of animations via OS-level preferences.
+ */
+/**
+ * Reset default styles for JavaScript UI based pages.
+ * This is a WP-admin agnostic reset
+ */
+/**
+ * Reset the WP Admin page styles for Gutenberg-like pages.
+ */
+.wp-block-form-input__label {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  margin-bottom: 0.5em;
+  /*
+  Small tweak to left-align the checkbox.
+  Even though `:has` is not currently supported in Firefox, this is a small tweak
+  and does not affect the functionality of the block or the user's experience.
+  There will be a minor inconsistency between browsers. However, it's more important to provide
+  a better experience for 80+% of users, until Firefox catches up and supports `:has`.
+  */
+}
+.wp-block-form-input__label.is-label-inline {
+  flex-direction: row;
+  gap: 0.5em;
+  align-items: center;
+}
+.wp-block-form-input__label.is-label-inline .wp-block-form-input__label-content {
+  margin-bottom: 0.5em;
+}
+.wp-block-form-input__label:has(input[type=checkbox]) {
+  width: -moz-fit-content;
+  width: fit-content;
+  flex-direction: row-reverse;
+}
+
+.wp-block-form-input__label-content {
+  width: -moz-fit-content;
+  width: fit-content;
+}
+
+.wp-block-form-input__input {
+  padding: 0 0.5em;
+  font-size: 1em;
+  margin-bottom: 0.5em;
+}
+.wp-block-form-input__input[type=text], .wp-block-form-input__input[type=password], .wp-block-form-input__input[type=date], .wp-block-form-input__input[type=datetime], .wp-block-form-input__input[type=datetime-local], .wp-block-form-input__input[type=email], .wp-block-form-input__input[type=month], .wp-block-form-input__input[type=number], .wp-block-form-input__input[type=search], .wp-block-form-input__input[type=tel], .wp-block-form-input__input[type=time], .wp-block-form-input__input[type=url], .wp-block-form-input__input[type=week] {
+  min-height: 2em;
+  line-height: 2;
+  border: 1px solid;
+}
+
+textarea.wp-block-form-input__input {
+  min-height: 10em;
+}

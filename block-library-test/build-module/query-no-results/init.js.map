@@ -1,0 +1,1 @@
+{"version":3,"names":["init"],"sources":["@wordpress/block-library/src/query-no-results/init.js"],"sourcesContent":["/**\n * Internal dependencies\n */\nimport { init } from './';\n\nexport default init();\n"],"mappings":"AAAA;AACA;AACA;AACA,SAASA,IAAI,QAAQ,IAAI;AAEzB,eAAeA,IAAI,CAAC,CAAC"}

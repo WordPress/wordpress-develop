@@ -1,0 +1,105 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+/**
+ * Internal dependencies
+ */
+const metadata = {
+  $schema: "https://schemas.wp.org/trunk/block.json",
+  apiVersion: 3,
+  name: "core/comments-title",
+  title: "Comments Title",
+  category: "theme",
+  ancestor: ["core/comments"],
+  description: "Displays a title with the number of comments.",
+  textdomain: "default",
+  usesContext: ["postId", "postType"],
+  attributes: {
+    textAlign: {
+      type: "string"
+    },
+    showPostTitle: {
+      type: "boolean",
+      "default": true
+    },
+    showCommentsCount: {
+      type: "boolean",
+      "default": true
+    },
+    level: {
+      type: "number",
+      "default": 2
+    }
+  },
+  supports: {
+    anchor: false,
+    align: true,
+    html: false,
+    __experimentalBorder: {
+      radius: true,
+      color: true,
+      width: true,
+      style: true
+    },
+    color: {
+      gradients: true,
+      __experimentalDefaultControls: {
+        background: true,
+        text: true
+      }
+    },
+    spacing: {
+      margin: true,
+      padding: true
+    },
+    typography: {
+      fontSize: true,
+      lineHeight: true,
+      __experimentalFontFamily: true,
+      __experimentalFontWeight: true,
+      __experimentalFontStyle: true,
+      __experimentalTextTransform: true,
+      __experimentalTextDecoration: true,
+      __experimentalLetterSpacing: true,
+      __experimentalDefaultControls: {
+        fontSize: true,
+        __experimentalFontFamily: true,
+        __experimentalFontStyle: true,
+        __experimentalFontWeight: true
+      }
+    }
+  }
+};
+const {
+  attributes,
+  supports
+} = metadata;
+var _default = exports.default = [{
+  attributes: {
+    ...attributes,
+    singleCommentLabel: {
+      type: 'string'
+    },
+    multipleCommentsLabel: {
+      type: 'string'
+    }
+  },
+  supports,
+  migrate: oldAttributes => {
+    const {
+      singleCommentLabel,
+      multipleCommentsLabel,
+      ...newAttributes
+    } = oldAttributes;
+    return newAttributes;
+  },
+  isEligible: ({
+    multipleCommentsLabel,
+    singleCommentLabel
+  }) => multipleCommentsLabel || singleCommentLabel,
+  save: () => null
+}];
+//# sourceMappingURL=deprecated.js.map

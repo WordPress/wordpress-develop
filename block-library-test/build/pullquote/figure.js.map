@@ -1,0 +1,1 @@
+{"version":3,"names":["Figure","exports"],"sources":["@wordpress/block-library/src/pullquote/figure.js"],"sourcesContent":["export const Figure = 'figure';\n"],"mappings":";;;;;;AAAO,MAAMA,MAAM,GAAAC,OAAA,CAAAD,MAAA,GAAG,QAAQ"}

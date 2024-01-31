@@ -1,0 +1,1 @@
+{"version":3,"names":["_","require","_default","exports","default","init"],"sources":["@wordpress/block-library/src/term-description/init.js"],"sourcesContent":["/**\n * Internal dependencies\n */\nimport { init } from './';\n\nexport default init();\n"],"mappings":";;;;;;AAGA,IAAAA,CAAA,GAAAC,OAAA;AAHA;AACA;AACA;AAFA,IAAAC,QAAA,GAAAC,OAAA,CAAAC,OAAA,GAKe,IAAAC,MAAI,EAAC,CAAC"}

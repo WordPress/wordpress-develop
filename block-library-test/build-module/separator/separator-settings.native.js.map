@@ -1,0 +1,1 @@
+{"version":3,"names":["SeparatorSettings"],"sources":["@wordpress/block-library/src/separator/separator-settings.native.js"],"sourcesContent":["// Mobile has no separator settings at this time, so render nothing.\nconst SeparatorSettings = () => null;\nexport default SeparatorSettings;\n"],"mappings":"AAAA;AACA,MAAMA,iBAAiB,GAAGA,CAAA,KAAM,IAAI;AACpC,eAAeA,iBAAiB"}

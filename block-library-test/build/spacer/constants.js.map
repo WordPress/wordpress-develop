@@ -1,0 +1,1 @@
+{"version":3,"names":["MIN_SPACER_SIZE","exports"],"sources":["@wordpress/block-library/src/spacer/constants.js"],"sourcesContent":["export const MIN_SPACER_SIZE = 0;\n"],"mappings":";;;;;;AAAO,MAAMA,eAAe,GAAAC,OAAA,CAAAD,eAAA,GAAG,CAAC"}
