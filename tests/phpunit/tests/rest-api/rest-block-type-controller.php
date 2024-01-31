@@ -550,6 +550,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 47620
 	 * @ticket 57585
 	 * @ticket 59346
+	 * @ticket 60403
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -557,7 +558,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 31, $properties );
+		$this->assertCount( 32, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
@@ -577,6 +578,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'example', $properties );
 		$this->assertArrayHasKey( 'variations', $properties );
 		$this->assertArrayHasKey( 'block_hooks', $properties );
+		$this->assertArrayHasKey( 'allowed_blocks', $properties );
 		$this->assertArrayHasKey( 'editor_script_handles', $properties );
 		$this->assertArrayHasKey( 'script_handles', $properties );
 		$this->assertArrayHasKey( 'view_script_handles', $properties );

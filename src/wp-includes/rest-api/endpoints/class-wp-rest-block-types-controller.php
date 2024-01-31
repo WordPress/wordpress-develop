@@ -295,6 +295,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 				'view_style_handles',
 				'variations',
 				'block_hooks',
+				'allowed_blocks',
 			),
 			$deprecated_fields
 		);
@@ -737,6 +738,17 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'default'           => array(),
 					'context'           => array( 'embed', 'view', 'edit' ),
 					'readonly'          => true,
+				),
+				'allowed_blocks'        => array(
+					'description' => __( 'Allowed child block types.' ),
+					'type'        => array( 'array', 'null' ),
+					'items'       => array(
+						'type'    => 'string',
+						'pattern' => self::NAME_PATTERN,
+					),
+					'default'     => null,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			),
 		);
