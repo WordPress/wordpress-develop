@@ -348,6 +348,38 @@ HTML
 	}
 
 	/**
+	 * Ensures that normative CDATA sections are properly parsed.
+	 *
+	 * @ticket tbd
+	 *
+	 * @since 6.5.0
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_token
+	 */
+	public function test_cdata_comment_with_incorrect_closer() {
+		$processor = new WP_HTML_Tag_Processor( '<![CDATA[this "cdata" is missing a closing square bracket. It should end at the first ">" ]>' );
+		$processor->next_token();
+
+		$this->assertSame(
+			'#comment',
+			$processor->get_token_name(),
+			"Should have found comment token but found {$processor->get_token_name()} instead."
+		);
+
+		$this->assertSame(
+			WP_HTML_Processor::COMMENT_AS_INVALID_HTML,
+			$processor->get_comment_type(),
+			'Should have detected a CDATA-like invalid comment.'
+		);
+
+		$this->assertSame(
+			'[CDATA[this "cdata" is missing a closing square bracket. It should end at the first "',
+			$processor->get_modifiable_text(),
+			'Found incorrect modifiable text.'
+		);
+	}
+
+	/**
 	 * Ensures that abruptly-closed CDATA sections are properly parsed as comments.
 	 *
 	 * @ticket 60170
