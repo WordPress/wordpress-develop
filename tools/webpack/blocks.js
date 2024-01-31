@@ -123,7 +123,7 @@ module.exports = function (
 		},
 		output: {
 			devtoolNamespace: 'wp',
-			filename: `./blocks/[name]${ suffix }.js`,
+			filename: `./blocks/[name]/view${ suffix }.js`,
 			path: normalizeJoin( baseDir, buildTarget ),
 			library: {
 				type: 'module',
@@ -133,6 +133,7 @@ module.exports = function (
 		externalsType: 'module',
 		externals: {
 			'@wordpress/interactivity': '@wordpress/interactivity',
+			'@wordpress/interactivity-router': 'import @wordpress/interactivity-router',
 		},
 		module: {
 			rules: [
