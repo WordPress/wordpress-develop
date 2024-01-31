@@ -1178,8 +1178,10 @@ function wp_determine_option_autoload_value( $option, $value, $autoload ) {
 	}
 
 	switch ( $autoload ) {
+		case 'on':
 		case 'yes':
 			return 'on';
+		case 'off':
 		case 'no':
 			return 'off';
 	}
