@@ -1563,6 +1563,30 @@ function wp_trusted_keys() {
 	return apply_filters( 'wp_trusted_keys', $trusted_keys );
 }
 
+function wp_zip_file_is_valid( $file ) {
+	/** This filter is documented in wp-admin/includes/file.php */
+	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
+		$archive          = new ZipArchive();
+		$archive_is_valid = $archive->open( $file, ZIPARCHIVE::CHECKCONS );
+		if ( true === $archive_is_valid ) {
+			$archive->close();
+			return true;
+		}
+	}
+
+	// Demonstrate ZipArchive bug with MacOS generated files.
+	return false;
+
+	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
+	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
+
+	$archive          = new PclZip( $file );
+	// var_dump( $archive, $archive->properties() );
+	$archive_is_valid = is_array( $archive->properties() );
+
+	return $archive_is_valid;
+}
+
 /**
  * Unzips a specified ZIP file to a location on the filesystem via the WordPress
  * Filesystem Abstraction.
