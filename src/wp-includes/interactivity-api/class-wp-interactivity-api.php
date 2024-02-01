@@ -577,7 +577,7 @@ class WP_Interactivity_API {
 				 * attribute value is not empty because if it is, it doesn't need to
 				 * update the attribute value.
 				 */
-				if ( $style_property_value || ( ! $style_property_value && $style_attribute_value ) ) {
+				if ( $style_property_value || $style_attribute_value ) {
 					$style_attribute_value = $this->set_style_property( $style_attribute_value, $style_property, $style_property_value );
 					/*
 					 * If the style attribute value is not empty, it sets it. Otherwise,
