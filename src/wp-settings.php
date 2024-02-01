@@ -380,6 +380,8 @@ require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
 
+wp_script_modules()->add_hooks();
+
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 /**
