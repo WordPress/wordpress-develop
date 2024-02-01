@@ -57,6 +57,7 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 			'valid zip file'                               => array( 'archive.zip', true ),
 			'valid zip file created by macOS context menu' => array( 'archive-macos.zip', true ),
 			'invalid zip file'                             => array( 'archive-invalid.zip', false ),
+			'invalid file extension'                       => array( 'archive-invalid-ext.md', false ),
 		);
 	}
 }
