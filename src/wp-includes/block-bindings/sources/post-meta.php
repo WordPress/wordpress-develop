@@ -28,6 +28,12 @@ function post_meta_source_callback( $source_attrs ) {
 	return get_post_meta( $post_id, $source_attrs['key'], true );
 }
 
+/**
+ * Registers the "post_meta" source for the Block Bindings API.
+ *
+ * @access private
+ * @since 6.5.0
+ */
 function gutenberg_register_block_bindings_post_meta_source() {
 	register_block_bindings_source(
 		'core/post-meta',

@@ -14,6 +14,13 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
 	return _wp_array_get( $block_instance->context, array( 'pattern/overrides', $block_id, $attribute_name ), null );
 }
 
+
+/**
+ * Registers the "pattern" source for the Block Bindings API.
+ *
+ * @access private
+ * @since 6.5.0
+ */
 function register_block_bindings_pattern_overrides_source() {
 	register_block_bindings_source(
 		'core/pattern-overrides',
