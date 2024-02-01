@@ -1017,7 +1017,12 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Sets up the plugin download to come locally instead of downloading it from .org
+	 * Sets up the plugin repository requests to use local data.
+	 *
+	 * Request to the plugin repository are mocked to avoid external HTTP requests so
+	 * the test suite does not produce false negatives due to network failures.
+	 *
+	 * Both the plugin zip file and the plugin API response are mocked.
 	 *
 	 * @since 5.5.0
 	 */
@@ -1031,6 +1036,20 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 				}
 
 				return $reply;
+			},
+			10,
+			3
+		);
+
+		add_filter(
+			'plugins_api',
+			function ( $bypass, $action, $args ) {
+				// Only mock the plugin_information (link-manager) request.
+				if ( 'plugin_information' !== $action || 'link-manager' !== $args->slug ) {
+					return $bypass;
+				}
+				$http_response = file_get_contents( DIR_TESTDATA . '/plugins/link-manager.json' );
+				return json_decode( $http_response );
 			},
 			10,
 			3
