@@ -66,7 +66,7 @@ class WP_Interactivity_API {
 	 * @return array The current state for the specified store namespace. This will be the updated state if a $state
 	 *               argument was provided.
 	 */
-	public function state( string $store_namespace, array $state = null ): array {
+	public function state( string $store_namespace, array $state = array() ): array {
 		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {
 			$this->state_data[ $store_namespace ] = array();
 		}
@@ -94,7 +94,7 @@ class WP_Interactivity_API {
 	 * @return array The configuration for the specified store namespace. This will be the updated configuration if a
 	 *               $config argument was provided.
 	 */
-	public function config( string $store_namespace, array $config = null ): array {
+	public function config( string $store_namespace, array $config = array() ): array {
 		if ( ! isset( $this->config_data[ $store_namespace ] ) ) {
 			$this->config_data[ $store_namespace ] = array();
 		}
