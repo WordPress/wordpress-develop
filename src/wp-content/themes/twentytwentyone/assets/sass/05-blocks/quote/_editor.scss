@@ -45,6 +45,7 @@
 	&:where(:not([style*="font-style"])) .wp-block-quote__citation {
 		font-style: var(--quote--font-style-cite);
 	}
+
 	// The cite has a lighter font-weight than the rest of the quote.
 	&:where(:not([style*="font-weight"])) .wp-block-quote__citation {
 		font-weight: normal;
