@@ -74,7 +74,7 @@ class WP_Block_Type {
 	 * @since 6.5.0
 	 * @var string[]|null
 	 */
-	public allowed_blocks = null;
+	public $allowed_blocks = null;
 
 	/**
 	 * Block type icon.
