@@ -955,6 +955,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 	$plugins_dir = trailingslashit( $plugins_dir );
 
 	$plugin_translations = wp_get_installed_translations( 'plugins' );
+	$all_plugin_data     = get_option( 'plugin_data', array() );
 
 	$errors = array();
 
@@ -999,6 +1000,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			$errors[] = $plugin_file;
 			continue;
 		}
+		unset( $all_plugin_data[ $plugin_file ] );
 
 		$plugin_slug = dirname( $plugin_file );
 
@@ -1047,6 +1049,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
 	}
+	update_option( 'plugin_data', $all_plugin_data );
 
 	return true;
 }
