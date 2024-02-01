@@ -50,14 +50,14 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * Theme root directory.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	private $theme_root;
 
 	/**
 	 * Original theme directory.
 	 *
-	 * @var string
+	 * @var array|null
 	 */
 	private $orig_theme_dir;
 
@@ -820,8 +820,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @param string $block_styles_text  Message.
 	 * @param bool   $theme_palette      Whether the theme palette is present.
 	 * @param string $theme_palette_text Message.
-	 * @param bool   $user_palette        Whether the user palette is present.
-	 * @param string $user_palette_text   Message.
+	 * @param bool   $user_palette       Whether the user palette is present.
+	 * @param string $user_palette_text  Message.
 	 */
 	public function test_get_merged_data_returns_origin( $origin, $core_palette, $core_palette_text, $block_styles, $block_styles_text, $theme_palette, $theme_palette_text, $user_palette, $user_palette_text ) {
 		// Make sure there is data from the blocks origin.
@@ -888,7 +888,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 57824
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
-	 *
 	 */
 	public function test_get_merged_data_returns_origin_proper() {
 		// Make sure the theme has a theme.json
@@ -925,7 +924,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_get_merged_data_returns_origin.
 	 *
 	 * @return array[]
 	 */
