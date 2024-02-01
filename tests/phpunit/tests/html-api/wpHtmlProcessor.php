@@ -189,6 +189,59 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure non-nesting tags do not nest when processing tokens.
+	 *
+	 * @ticket 60382
+	 *
+	 * @dataProvider data_void_tags
+	 *
+	 * @param string $tag_name Name of void tag under test.
+	 */
+	public function test_cannot_nest_void_tags_next_token( $tag_name ) {
+		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}><div>" );
+
+		/*
+		 * This HTML represents the same as the following HTML,
+		 * assuming that it were provided `<img>` as the tag:
+		 *
+		 *     <html>
+		 *         <body>
+		 *             <img>
+		 *             <div></div>
+		 *         </body>
+		 *     </html>
+		 */
+
+		$found_tag = $processor->next_token();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
+		}
+
+		$this->assertTrue(
+			$found_tag,
+			"Could not find first {$tag_name}."
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', $tag_name ),
+			$processor->get_breadcrumbs(),
+			'Found incorrect nesting of first element.'
+		);
+
+		$this->assertTrue(
+			$processor->next_token(),
+			'Should have found the DIV as the second tag.'
+		);
+
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV' ),
+			$processor->get_breadcrumbs(),
+			"DIV should have been a sibling of the {$tag_name}."
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
