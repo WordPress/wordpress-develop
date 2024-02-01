@@ -291,8 +291,8 @@ class WP_Interactivity_API {
 		}
 
 		$store = array(
-			'state'   => isset( $this->state_data[ $ns ] ) ? $this->state_data[ $ns ] : array(),
-			'context' => isset( $context[ $ns ] ) ? $context[ $ns ] : array(),
+			'state'   => $this->state_data[ $ns ] ?? array(),
+			'context' => $context[ $ns ] ?? array(),
 		);
 
 		// Checks if the reference path is preceded by a negation operator (!).
@@ -418,9 +418,7 @@ class WP_Interactivity_API {
 		 * independently of whether the previous `data-wp-interactive` definition
 		 * contained a valid namespace.
 		 */
-		$namespace_stack[] = isset( $decoded_json['namespace'] )
-			? $decoded_json['namespace']
-			: end( $namespace_stack );
+		$namespace_stack[] = $decoded_json['namespace'] ?? end( $namespace_stack );
 	}
 
 	/**
