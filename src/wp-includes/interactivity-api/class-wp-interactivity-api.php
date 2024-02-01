@@ -7,7 +7,7 @@
  */
 
 /**
- * Class used to process the Interactivity API in the server.
+ * Class used to process the Interactivity API on the server.
  */
 class WP_Interactivity_API {
 	/**
@@ -292,7 +292,7 @@ class WP_Interactivity_API {
 			'context' => isset( $context[ $ns ] ) ? $context[ $ns ] : array(),
 		);
 
-		// Checks if the reference path is preceded by a negator operator (!).
+		// Checks if the reference path is preceded by a negation operator (!).
 		$should_negate_value = '!' === $path[0];
 		$path                = $should_negate_value ? substr( $path, 1 ) : $path;
 
@@ -307,7 +307,7 @@ class WP_Interactivity_API {
 			}
 		}
 
-		// Returns the opposite if it contains a negator operator (!).
+		// Returns the opposite if it contains a negation operator (!).
 		return $should_negate_value ? ! $current : $current;
 	}
 
@@ -340,7 +340,7 @@ class WP_Interactivity_API {
 	 * If the value doesn't contain an explicit namespace, it returns the
 	 * default one. If the value contains a JSON object instead of a reference
 	 * path, the function tries to parse it and return the resulting array. If
-	 * the value contains strings that reprenset booleans ("true" and "false"),
+	 * the value contains strings that represent booleans ("true" and "false"),
 	 * numbers ("1" and "1.2") or "null", the function also transform them to
 	 * regular booleans, numbers and `null`.
 	 *
