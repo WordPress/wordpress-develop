@@ -5,6 +5,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  *
  * @coversDefaultClass WP_Interactivity_API_Directives_Processor
@@ -12,6 +14,8 @@
 class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	/**
 	 * Tests the `get_content_between_balanced_tags` method on standard tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
@@ -32,6 +36,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	/**
 	 * Tests the `get_content_between_balanced_tags` method on an empty tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
 	public function test_get_content_between_balanced_tags_empty_tag() {
@@ -45,6 +51,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	 * Tests the `get_content_between_balanced_tags` method with a self-closing
 	 * tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
 	public function test_get_content_between_balanced_tags_self_closing_tag() {
@@ -56,6 +64,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `get_content_between_balanced_tags` method with nested tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
@@ -75,6 +85,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	 * Tests the `get_content_between_balanced_tags` method when no tags are
 	 * present.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
 	public function test_get_content_between_balanced_tags_no_tags() {
@@ -86,6 +98,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `get_content_between_balanced_tags` method with unbalanced tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
@@ -116,6 +130,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	 * Tests the `get_content_between_balanced_tags` method when called on a
 	 * closing tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::get_content_between_balanced_tags
 	 */
 	public function test_get_content_between_balanced_tags_on_closing_tag() {
@@ -128,6 +144,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `set_content_between_balanced_tags` method on standard tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
@@ -155,6 +173,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	 * Tests the `set_content_between_balanced_tags` method when called on a
 	 * closing tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
 	public function test_set_content_between_balanced_tags_on_closing_tag() {
@@ -170,6 +190,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	/**
 	 * Tests the `set_content_between_balanced_tags` method on multiple calls to
 	 * the same tag.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
@@ -188,6 +210,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	/**
 	 * Tests the `set_content_between_balanced_tags` method on combinations with
 	 * set_attribute calls.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
@@ -213,6 +237,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	 * Tests the `set_content_between_balanced_tags` method where the existing
 	 * content includes tags.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
 	public function test_set_content_between_balanced_tags_with_existing_tags() {
@@ -228,6 +254,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	 * Tests the `set_content_between_balanced_tags` method where the new content
 	 * includes tags.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
 	public function test_set_content_between_balanced_tags_with_new_tags() {
@@ -241,6 +269,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `set_content_between_balanced_tags` method with an empty string.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
@@ -263,6 +293,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	/**
 	 * Tests the `set_content_between_balanced_tags` method on self-closing tags.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
 	public function test_set_content_between_balanced_tags_self_closing_tag() {
@@ -277,6 +309,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	/**
 	 * Tests the `set_content_between_balanced_tags` method on a non-existent tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
 	public function test_set_content_between_balanced_tags_non_existent_tag() {
@@ -290,6 +324,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `set_content_between_balanced_tags` method with unbalanced tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_content_between_balanced_tags
 	 */
@@ -328,6 +364,8 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 
 	/**
 	 * Tests the is_void method.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::is_void
 	 */

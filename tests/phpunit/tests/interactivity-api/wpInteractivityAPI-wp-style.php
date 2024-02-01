@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
@@ -49,6 +51,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `set_style_property` correctly sets style properties.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_style_property
 	 */
@@ -101,6 +105,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that `set_style_property` works correctly with falsy values, removing
 	 * or ignoring them as appropriate.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::set_style_property
 	 */
@@ -155,6 +161,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive sets a style attribute with
 	 * correct property and value.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_sets_style_attribute() {
@@ -166,6 +174,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive applies multiple style properties
 	 * correctly.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -182,6 +192,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive correctly handles different style
 	 * property values.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -208,6 +220,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive sets a new style property when
 	 * another already exists.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_sets_style_property_when_style_attribute_exists() {
@@ -219,6 +233,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive overwrites an existing style
 	 * property with a new value.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -232,6 +248,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive doesn't add a style property when
 	 * the directive value is false.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_doesnt_add_style_attribute_on_false() {
@@ -243,6 +261,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive doesn't modify existing style
 	 * properties when directive value is false.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -256,6 +276,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive keeps an existing style property
 	 * with a matching value.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_keeps_style_property_when_style_property_exists() {
@@ -267,6 +289,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive maintains style properties even
 	 * when they aren't the only ones present.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -280,6 +304,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive removes the style attribute when
 	 * it contains only one property which is being removed.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_removes_style_attribute_when_style_property_exists_and_is_the_only_one() {
@@ -291,6 +317,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive removes a style property when it's
 	 * not the only one present and the directive value is false.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -304,6 +332,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive does not remove an empty style
 	 * attribute.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_doesnt_remove_empty_style_attribute() {
@@ -315,6 +345,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive does not change the style
 	 * attribute when the directive suffix is empty.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -328,6 +360,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive does not change the style
 	 * attribute when the value of the directive is empty.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_doesnt_change_style_attribute_with_empty_value() {
@@ -339,6 +373,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive doesn't apply changes if no value
 	 * is provided for the style property.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -352,6 +388,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * Tests that the `data-wp-style` directive functions correctly with multiple
 	 * identical directives.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_works_with_multiple_directives() {
@@ -363,6 +401,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive doesn't apply any changes when the
 	 * state value is true.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -376,6 +416,8 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-style` directive doesn't add a style property for
 	 * various falsy values in the state.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */

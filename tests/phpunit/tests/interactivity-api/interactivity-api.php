@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  */
 class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
@@ -64,6 +66,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests processing of a single interactive block.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_single_interactive_block() {
@@ -77,6 +81,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests processing of multiple interactive blocks in parallel along with a
 	 * non-interactive block.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
@@ -102,6 +108,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests processing of an interactive block inside a non-interactive block.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_inside_non_interactive_block() {
@@ -119,6 +127,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests processing of multiple interactive blocks nested inside a
 	 * non-interactive block.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
@@ -140,6 +150,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests processing of a single interactive block directive nested inside
 	 * multiple non-interactive blocks.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
@@ -164,6 +176,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	 * Tests processing of directives for an interactive block containing a
 	 * non-interactive block without directives.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
@@ -183,6 +197,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	/**
 	 * Tests processing of directives for an interactive block containing a
 	 * non-interactive block with directives.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
@@ -204,6 +220,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	 * Tests processing of directives for an interactive block containing nested
 	 * interactive and non-interactive blocks, checking proper propagation of
 	 * context.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
@@ -255,6 +273,8 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	 *
 	 * This ensures that nested blocks do not trigger additional processing of the
 	 * same directives, leading to incorrect behavior or performance issues.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */

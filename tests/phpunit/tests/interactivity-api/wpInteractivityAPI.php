@@ -5,6 +5,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  *
  * @coversDefaultClass WP_Interactivity_API
@@ -29,6 +31,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that the state and config methods return an empty array at the
 	 * beginning.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::state
 	 * @covers ::config
 	 */
@@ -40,6 +44,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests that the state and config methods can change the state and
 	 * configuration.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::state
 	 * @covers ::config
@@ -58,6 +64,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 
 	/**
 	 * Tests that different initial states and configurations can be merged.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::state
 	 * @covers ::config
@@ -97,6 +105,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that existing keys in the initial state and configuration can be
 	 * overwritten.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::state
 	 * @covers ::config
 	 */
@@ -119,6 +129,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests that existing indexed arrays in the initial state and configuration
 	 * are replaced, not merged.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::state
 	 * @covers ::config
@@ -155,6 +167,10 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that the initial state and config are correctly printed on the
 	 * client-side.
 	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::state
+	 * @covers ::config
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_and_config_is_correctly_printed() {
@@ -183,6 +199,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that the wp-interactivity-data script is not printed if both state
 	 * and config are empty.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_and_config_dont_print_when_empty() {
@@ -193,6 +211,9 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests that the config is not printed if it's empty.
 	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::state
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_config_not_printed_when_empty() {
@@ -204,6 +225,9 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests that the state is not printed if it's empty.
 	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::config
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_not_printed_when_empty() {
@@ -218,6 +242,10 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that special characters in the initial state and configuration are
 	 * properly escaped.
 	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::state
+	 * @covers ::config
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_and_config_escape_special_characters() {
@@ -235,6 +263,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 
 	/**
 	 * Tests extracting directive values from different string formats.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::extract_directive_value
 	 */
@@ -297,6 +327,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests extracting directive values with empty or invalid input.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::extract_directive_value
 	 */
 	public function test_extract_directive_value_empty_values() {
@@ -329,6 +361,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests extracting directive values from invalid JSON strings.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::extract_directive_value
 	 */
 	public function test_extract_directive_value_invalid_json() {
@@ -347,6 +381,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests the ability to extract prefix and suffix from a directive attribute
 	 * name.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::extract_prefix_and_suffix
 	 */
@@ -368,6 +404,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that the `process_directives` method doesn't change the HTML if it
 	 * doesn't contain directives.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_do_nothing_without_directives() {
@@ -384,6 +422,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that the `process_directives` method changes the HTML if it contains
 	 * directives.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_changes_html_with_balanced_tags() {
@@ -398,6 +438,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests how `process_directives` handles HTML with unknown directives.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_doesnt_fail_with_unknown_directives() {
@@ -408,6 +450,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 
 	/**
 	 * Tests that directives are processed in the correct order.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -434,6 +478,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests that the `process_directives` returns the same HTML if it contains
 	 * unbalanced tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -488,6 +534,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Tests that the `evaluate` method operates correctly for valid expressions.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::evaluate
 	 */
 	public function test_evaluate_value() {
@@ -505,8 +553,10 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `evaluate` method operates correctly when used with negation
-	 * (!).
+	 * Tests that the `evaluate` method operates correctly when used with the
+	 * negation operator (!).
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::evaluate
 	 */
@@ -526,6 +576,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `evaluate` method with non-existent paths.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::evaluate
 	 */
@@ -551,6 +603,8 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 
 	/**
 	 * Tests the `evaluate` method for retrieving nested values.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::evaluate
 	 */

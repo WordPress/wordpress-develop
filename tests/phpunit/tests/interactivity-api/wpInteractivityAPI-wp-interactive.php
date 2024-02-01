@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
@@ -43,6 +45,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	 * Tests that a default namespace is applied when using the
 	 * `data-wp-interactive` directive.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_interactive_sets_a_default_namespace() {
@@ -58,6 +62,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	/**
 	 * Tests that the most recent `data-wp-interactive` directive replaces the
 	 * previous default namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -80,6 +86,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	 * Tests that a `data-wp-interactive` directive without a namespace does not
 	 * replace the previously established default namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_interactive_without_namespace_doesnt_replace_the_previous_default_namespace() {
@@ -100,6 +108,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty value for `data-wp-interactive` does not replace the
 	 * previously established default namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -122,6 +132,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	 * Tests that a `data-wp-interactive` directive with no assigned value does
 	 * not replace the previously established default namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_interactive_without_value_doesnt_replace_the_previous_default_namespace() {
@@ -142,6 +154,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	/**
 	 * Tests that multiple `data-wp-interactive` directives work correctly.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_interactive_works_with_multiple_directives() {
@@ -158,6 +172,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	 * Tests that a custom namespace can override the default one provided by a
 	 * `data-wp-interactive` directive.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_interactive_namespace_can_be_override_by_custom_one() {
@@ -173,6 +189,8 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-interactive` setting is reset appropriately after a
 	 * closing HTML tag.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */

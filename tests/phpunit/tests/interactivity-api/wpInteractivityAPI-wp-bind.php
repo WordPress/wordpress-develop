@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
@@ -51,6 +53,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests setting an attribute via `data-wp-bind`.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_sets_attribute() {
@@ -61,6 +65,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 
 	/**
 	 * Tests replacing an existing attribute via `data-wp-bind`.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -73,6 +79,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests setting a numerical value as an attribute via `data-wp-bind`.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_sets_number_value() {
@@ -83,6 +91,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 
 	/**
 	 * Tests that true strings are set properly as attribute values.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -96,6 +106,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests that false strings are set properly as attribute values.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_sets_false_string() {
@@ -107,6 +119,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `data-wp-bind` ignores directives with no suffix.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -120,6 +134,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` does nothing when referencing non-existent
 	 * references.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_doesnt_do_anything_on_non_existent_references() {
@@ -131,6 +147,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests that `data-wp-bind` ignores directives with empty values.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_ignores_empty_value() {
@@ -141,6 +159,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `data-wp-bind` ignores directives without values.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -154,6 +174,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` works with multiple instances of the same
 	 * directive on a tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_works_with_multiple_same_directives() {
@@ -166,6 +188,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests that `data-wp-bind` works with multiple instances of different
 	 * directives on a tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_works_with_multiple_different_directives() {
@@ -177,6 +201,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 
 	/**
 	 * Tests adding boolean attributes to a tag using `data-wp-bind`.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -191,6 +217,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests replacing a pre-existing boolean attribute on a tag using
 	 * `data-wp-bind`.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_replaces_existing_attribute_if_true() {
@@ -203,6 +231,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests that boolean attributes are not added when bound to false or null
 	 * values.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -222,6 +252,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests removing boolean attributes from a tag using `data-wp-bind` and a
 	 * false or null value.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_removes_boolean_attribute_if_false_or_null() {
@@ -237,6 +269,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests adding values to aria or data attributes when the condition evaluates
 	 * to true.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -255,6 +289,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests replacing values in aria or data attributes when the condition
 	 * evaluates to true.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -276,6 +312,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests adding the value 'false' to aria or data attributes when the
 	 * condition evaluates to false.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_adds_value_if_false_in_aria_or_data_attributes() {
@@ -294,6 +332,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * Tests replacing values in aria or data attributes when the condition
 	 * evaluates to false.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_replaces_value_if_false_in_aria_or_data_attributes() {
@@ -311,6 +351,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests removing values from aria or data attributes when the value is null.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_bind_removes_value_if_null_in_aria_or_data_attributes() {
@@ -325,6 +367,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 
 	/**
 	 * Tests handling of bindings within nested tags.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */

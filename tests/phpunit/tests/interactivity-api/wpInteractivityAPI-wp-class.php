@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
@@ -47,6 +49,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that `data-wp-class` adds a class when the condition is true.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_sets_class_name() {
@@ -58,6 +62,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that `data-wp-class` can add multiple classes based on true
 	 * conditions.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -74,6 +80,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests handling of adding one and not adding another class based on
 	 * different boolean values.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -99,6 +107,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that `data-wp-class` adds new classes alongside existing ones.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_sets_class_name_when_class_attribute_exists() {
@@ -109,6 +119,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 
 	/**
 	 * Tests that no class is added when the associated state is false.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -122,6 +134,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * Tests that existing class names are preserved when the directive condition
 	 * is false.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_doesnt_add_class_name_on_false() {
@@ -133,6 +147,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that existing class names remain intact when they should be re-added
 	 * as per their directive.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -146,6 +162,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * Tests preservation of existing class names, even when one is repeated in a
 	 * directive that evaluates to true.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_keeps_class_name_when_class_name_exists_and_is_not_the_only_one() {
@@ -157,6 +175,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that a class attribute with only one class name is removed when the
 	 * directive evaluates to false.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -170,6 +190,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * Tests that one of several class names is removed when its directive
 	 * evaluates to false.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_removes_class_name_when_class_name_exists_and_is_not_the_only_one() {
@@ -181,6 +203,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that an empty class attribute is not removed even if a directive
 	 * evaluates to false.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -194,6 +218,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * Tests that the class attribute remains unchanged if the data-wp-class
 	 * suffix is empty.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_doesnt_change_class_attribute_with_empty_directive_suffix() {
@@ -205,6 +231,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that the class attribute is not altered if the value of the
 	 * `data-wp-class` directive is empty.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -218,6 +246,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * Tests that an existing class attribute is not affected by a `data-wp-class`
 	 * directive without a value.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_doesnt_change_class_attribute_without_value() {
@@ -230,6 +260,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * Tests that multiple directives for the same class yield the correct result
 	 * when the condition is true.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_class_works_with_multiple_directives() {
@@ -241,6 +273,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests setting class names based on truthy values other than just true
 	 * booleans.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -264,6 +298,8 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that class attributes aren't set for falsy values other than just
 	 * false booleans.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */

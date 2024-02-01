@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @since 6.5.0
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
@@ -41,6 +43,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive can set a context in a custom
 	 * namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_sets_a_context_in_a_custom_namespace() {
@@ -56,6 +60,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive can set a context in the same
 	 * tag.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -76,6 +82,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive merges context in the same
 	 * custom namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -98,6 +106,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive overwrites context in the same
 	 * custom namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_overwrites_context_in_the_same_custom_namespace() {
@@ -115,6 +125,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive replaces the old context after a
 	 * closing tag in the same custom namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -137,6 +149,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive merges context in different
 	 * custom namespaces.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_merges_context_in_different_custom_namespaces() {
@@ -158,6 +172,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive doesn't throw on malformed
 	 * context objects.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_doesnt_throw_on_malformed_context_objects() {
@@ -173,6 +189,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive doesn't overwrite context on
 	 * malformed context objects.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -195,6 +213,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive doesn't throw on an empty
 	 * context object.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_doesnt_throw_on_empty_context() {
@@ -210,6 +230,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive doesn't overwrite the context on
 	 * empty context directive.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -232,6 +254,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive doesn't throw on context without
 	 * value.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_doesnt_throw_on_context_without_value() {
@@ -247,6 +271,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive doesn't overwrite context on
 	 * context without value.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -268,6 +294,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive works with multiple directives.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_works_with_multiple_directives() {
@@ -284,6 +312,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive doesn't work without any
 	 * namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_doesnt_work_without_any_namespace() {
@@ -298,6 +328,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the `data-wp-context` directive works with a default namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -316,6 +348,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the `data-wp-context` directive overrides a default namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -338,6 +372,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive overrides the default namespace
 	 * with the same namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_overrides_default_namespace_with_same_namespace() {
@@ -356,6 +392,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive works with nested default
 	 * namespaces.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -388,6 +426,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive works with a default namespace
 	 * in the same tag.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_works_with_default_namespace_in_the_same_tag() {
@@ -408,6 +448,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive merges the context in the same
 	 * default namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
@@ -433,6 +475,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	 * Tests that the `data-wp-context` directive overwrites context in the same
 	 * default namespace.
 	 *
+	 * @ticket 60356
+	 *
 	 * @covers ::process_directives
 	 */
 	public function test_wp_context_directive_overwrites_context_in_the_same_default_namespace() {
@@ -453,6 +497,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests that the `data-wp-context` directive replaces the old context after
 	 * the closing tag in the same default namespace.
+	 *
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
