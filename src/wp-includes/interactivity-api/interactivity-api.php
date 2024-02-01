@@ -4,6 +4,7 @@
  *
  * @package WordPress
  * @subpackage Interactivity API
+ * @since 6.5.0
  */
 
 /**

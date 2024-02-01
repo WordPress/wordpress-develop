@@ -4,10 +4,13 @@
  *
  * @package WordPress
  * @subpackage Interactivity API
+ * @since 6.5.0
  */
 
 /**
  * Class used to process the Interactivity API on the server.
+ *
+ * @since 6.5.0
  */
 class WP_Interactivity_API {
 	/**

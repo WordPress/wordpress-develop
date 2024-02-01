@@ -4,17 +4,22 @@
  *
  * @package WordPress
  * @subpackage Interactivity API
+ * @since 6.5.0
  */
 
 /**
  * Class used to iterate over the tags of an HTML string and help process the
  * directive attributes.
  *
+ * @since 6.5.0
+ *
  * @access private
  */
 class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Returns the content between two balanced tags.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @access private
 	 *
@@ -40,6 +45,8 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 
 	/**
 	 * Sets the content between two balanced tags.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @access private
 	 *
@@ -70,6 +77,8 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	 * Returns a pair of bookmarks for the current opening tag and the matching
 	 * closing tag.
 	 *
+	 * @since 6.5.0
+	 *
 	 * @return array|null A pair of bookmarks, or null if there's no matching closing tag.
 	 */
 	private function get_balanced_tag_bookmarks() {
@@ -95,6 +104,8 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	 * until it finds the matching closing tag, respecting any in-between content,
 	 * including nested tags of the same name. Returns false when called on a
 	 * closing or void tag, or if no matching closing tag was found.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @return bool Whether a matching closing tag was found.
 	 */
@@ -129,6 +140,8 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 
 	/**
 	 * Checks whether the current tag is void.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @access private
 	 *
