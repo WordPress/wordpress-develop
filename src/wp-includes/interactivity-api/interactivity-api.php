@@ -68,21 +68,20 @@ add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interac
  * Retrieves the main WP_Interactivity_API instance.
  *
  * It provides access to the WP_Interactivity_API instance, creating one if it
- * doesn't exist yet. It also registers the hooks and necessary script
- * modules.
+ * doesn't exist yet.
+ *
+ * @global WP_Interactivity_API $wp_interactivity
  *
  * @since 6.5.0
  *
  * @return WP_Interactivity_API The main WP_Interactivity_API instance.
  */
-function wp_interactivity() {
-	static $instance = null;
-	if ( is_null( $instance ) ) {
-		$instance = new WP_Interactivity_API();
-		$instance->add_hooks();
-		$instance->register_script_modules();
+function wp_interactivity(): WP_Interactivity_API {
+	global $wp_interactivity;
+	if ( ! ( $wp_interactivity instanceof WP_Interactivity_API ) ) {
+		$wp_interactivity = new WP_Interactivity_API();
 	}
-	return $instance;
+	return $wp_interactivity;
 }
 
 /**
