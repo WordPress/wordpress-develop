@@ -216,6 +216,9 @@ require ABSPATH . WPINC . '/block-supports/settings.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/script-modules.php';
+require ABSPATH . WPINC . '/interactivity-api.php';
+
+wp_script_modules()->add_hooks();
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 

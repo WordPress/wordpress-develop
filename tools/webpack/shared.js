@@ -96,7 +96,10 @@ const BUNDLED_PACKAGES = [
 	'@wordpress/interactivity',
 	'@wordpress/sync',
 ];
-const MODULES = [ '@wordpress/interactivity' ];
+const MODULES = [
+	'@wordpress/interactivity',
+	'@wordpress/interactivity-router',
+];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 
 module.exports = {

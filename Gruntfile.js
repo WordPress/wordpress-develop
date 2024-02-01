@@ -1559,16 +1559,18 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Build assertions for the lack of source maps in JavaScript files.
+	 * Compiled JavaScript files may link to sourcemaps. In some cases,
+	 * the source map may not be available, which can cause 404 errors when
+	 * browsers try to download the sourcemap from the referenced URLs.
+	 * Ensure that sourcemap links are not included in JavaScript files.
 	 *
 	 * @ticket 24994
 	 * @ticket 46218
+	 * @ticket 60348
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
-			'build/wp-includes/js/dist/block-editor.js',
-			'build/wp-includes/js/dist/block-editor.min.js'
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
@@ -1591,10 +1593,10 @@ module.exports = function(grunt) {
 					encoding: 'utf8',
 				} );
 				// `data:` URLs are allowed:
-				const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+				const doesNotHaveSourceMap = ! /^\/\/# sourceMappingURL=((?!data:).)/m.test(contents);
 
 				assert(
-					match === null,
+					doesNotHaveSourceMap,
 					`The ${ file } file must not contain a sourceMappingURL.`
 				);
 			} );
