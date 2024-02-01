@@ -62,7 +62,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 
 	return $parsed_block;
 }
-add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interactive_blocks', 10, 1 );
+add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interactive_blocks' );
 
 /**
  * Retrieves the main WP_Interactivity_API instance.
