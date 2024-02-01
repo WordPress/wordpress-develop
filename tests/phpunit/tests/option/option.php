@@ -280,6 +280,110 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test cases for testing whether update_option() will add a non-existent option.
+	 */
+	public function data_option_values() {
+		return array(
+			array( '1' ),
+			array( 1 ),
+			array( 1.0 ),
+			array( true ),
+			array( 'true' ),
+			array( '0' ),
+			array( 0 ),
+			array( 0.0 ),
+			array( false ),
+			array( '' ),
+			array( null ),
+			array( array() ),
+		);
+	}
+
+	/**
+	 * Tests that a non-existent option is added only when the pre-filter matches the default 'false'.
+	 *
+	 * @ticket 22192
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_false_pre_filter_adds_missing_option( $option ) {
+		// Filter the old option value to `false`.
+		add_filter( 'pre_option_foo', '__return_false' );
+
+		/*
+		 * When the option is equal to the filtered version, update option will bail early.
+		 * Otherwise, The pre-filter will make the old option `false`, which is equal to the
+		 *  default value. This causes an add_option() to be triggered.
+		 */
+		if ( false === $option ) {
+			$this->assertFalse( update_option( 'foo', $option ) );
+		} else {
+			$this->assertTrue( update_option( 'foo', $option ) );
+		}
+	}
+
+	/**
+	 * Tests that a non-existent option is never added when the pre-filter is not 'false'.
+	 *
+	 * @ticket 22192
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_truthy_pre_filter_does_not_add_missing_option( $option ) {
+		// Filter the old option value to `true`.
+		add_filter( 'pre_option_foo', '__return_true' );
+
+		$this->assertFalse( update_option( 'foo', $option ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 22192
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_false_pre_filter_updates_option( $option ) {
+		// Add the option with a value that is different than any updated.
+		add_option( 'foo', 'bar' );
+
+		// Force a return value of false.
+		add_filter( 'pre_option_foo', '__return_false' );
+
+		// This should succeed, since the pre-filtered option will be treated as the default.
+		$this->assertTrue( update_option( 'foo', $option ) );
+	}
+
+	/**
+	 * Tests that an existing option is updated even when its pre filter returns the same value.
+	 *
+	 * @ticket 22192
+	 * @dataProvider data_option_values
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_with_true_pre_filter_updates_option( $option ) {
+		// Add the option with a value that is different than any updated.
+		add_option( 'foo', 'bar' );
+
+		// Force a return value of true.
+		add_filter( 'pre_option_foo', '__return_true' );
+
+		/*
+		 * Option `true` is the same as the filtered old value, so it will fail.
+		 * All other options should update.
+		 */
+		if ( true === $option ) {
+			$this->assertFalse( update_option( 'foo', $option ) );
+		} else {
+			$this->assertTrue( update_option( 'foo', $option ) );
+		}
+	}
+
+	/**
 	 * Options should be autoloaded unless they were added with "no" or `false`.
 	 *
 	 * @ticket 31119
