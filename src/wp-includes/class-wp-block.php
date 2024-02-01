@@ -291,7 +291,7 @@ class WP_Block {
 	 * @param string $source_value The value used to replace the HTML.
 	 */
 	private function replace_html( string $block_content, string $block_name, string $block_attr, string $source_value ) {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
+		$block_type = $this->block_type;
 		if ( null === $block_type || ! isset( $block_type->attributes[ $block_attr ] ) ) {
 			return $block_content;
 		}
