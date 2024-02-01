@@ -173,6 +173,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @covers ::translate_plural
 	 * @covers ::locate_translation
 	 * @covers ::get_files
+	 * @covers WP_Translation_File::translate
 	 *
 	 * @dataProvider data_simple_example_files
 	 *
