@@ -268,7 +268,7 @@ class WP_Block {
 			} else {
 				$source_args = $binding_source['args'];
 			}
-			$source_value = $source_callback( $source_args, $this, $binding_attribute );
+			$source_value = call_user_func_array( $source_callback, array( $source_args, $this, $binding_attribute ) );
 			// If the value is null, process next attribute.
 			if ( is_null( $source_value ) ) {
 				continue;
