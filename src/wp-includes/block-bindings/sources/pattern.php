@@ -21,7 +21,7 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
  * @access private
  * @since 6.5.0
  */
-function register_block_bindings_pattern_overrides_source() {
+function _register_block_bindings_pattern_overrides_source() {
 	register_block_bindings_source(
 		'core/pattern-overrides',
 		array(
