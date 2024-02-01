@@ -31,4 +31,4 @@ function _register_block_bindings_pattern_overrides_source() {
 	);
 }
 
-add_action( 'init', 'register_block_bindings_pattern_overrides_source' );
+add_action( 'init', '_register_block_bindings_pattern_overrides_source' );

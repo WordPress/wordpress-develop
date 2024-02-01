@@ -34,7 +34,7 @@ function post_meta_source_callback( $source_attrs ) {
  * @access private
  * @since 6.5.0
  */
-function _gutenberg_register_block_bindings_post_meta_source() {
+function _register_block_bindings_post_meta_source() {
 	register_block_bindings_source(
 		'core/post-meta',
 		array(
@@ -44,4 +44,4 @@ function _gutenberg_register_block_bindings_post_meta_source() {
 	);
 }
 
-add_action( 'init', 'gutenberg_register_block_bindings_post_meta_source' );
+add_action( 'init', '_register_block_bindings_post_meta_source' );
