@@ -14,10 +14,14 @@ function pattern_source_callback( $source_attrs, $block_instance, $attribute_nam
 	return _wp_array_get( $block_instance->context, array( 'pattern/overrides', $block_id, $attribute_name ), null );
 }
 
-register_block_bindings_source(
-	'core/pattern-overrides',
-	array(
-		'label'              => _x( 'Pattern Overrides', 'block bindings source' ),
-		'get_value_callback' => 'pattern_source_callback',
-	)
-);
+function register_block_bindings_pattern_overrides_source() {
+	register_block_bindings_source(
+		'core/pattern-overrides',
+		array(
+			'label'              => _x( 'Pattern Overrides', 'block bindings source' ),
+			'get_value_callback' => 'pattern_source_callback',
+		)
+	);
+}
+
+add_action( 'init', 'register_block_bindings_pattern_overrides_source' );
