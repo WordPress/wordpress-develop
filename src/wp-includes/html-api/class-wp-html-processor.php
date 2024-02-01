@@ -1574,6 +1574,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'BGSOUND' === $tag_name || // Deprecated; self-closing if self-closing flag provided, otherwise normal.
 			'BIG' === $tag_name ||
 			'BLINK' === $tag_name || // Deprecated.
+			'BLOCKQUOTE' === $tag_name ||
 			'BODY' === $tag_name ||
 			'BR' === $tag_name ||
 			'BUTTON' === $tag_name ||
@@ -1618,6 +1619,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'HTML' === $tag_name ||
 			'I' === $tag_name ||
 			'IFRAME' === $tag_name ||
+			'IMAGE' === $tag_name ||
 			'IMG' === $tag_name ||
 			'INPUT' === $tag_name ||
 			'INS' === $tag_name ||
@@ -1650,6 +1652,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'OPTION' === $tag_name ||
 			'OUTPUT' === $tag_name ||
 			'P' === $tag_name ||
+			'PARAM' === $tag_name ||
 			'PICTURE' === $tag_name ||
 			'PLAINTEXT' === $tag_name || // Neutralized.
 			'PRE' === $tag_name ||
@@ -1660,6 +1663,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'RT' === $tag_name ||
 			'RTC' === $tag_name || // Neutralized.
 			'RUBY' === $tag_name ||
+			'S' === $tag_name ||
 			'SAMP' === $tag_name ||
 			'SCRIPT' === $tag_name ||
 			'SEARCH' === $tag_name ||
