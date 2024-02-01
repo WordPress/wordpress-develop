@@ -6,5 +6,6 @@ return [
 			'contextoriginal with context' => ['translation with context'],
 			'plural0' . "\0" . 'plural1' => ['translation0', 'translation1'],
 			'contextplural0 with context' . "\0" . 'plural1 with context' => ['translation0 with context', 'translation1 with context'],
+			'Product' . "\0" . 'Products' => 'Produkt' . "\0" . 'Produkte',
 		],
 ];

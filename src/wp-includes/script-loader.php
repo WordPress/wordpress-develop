@@ -96,6 +96,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'lodash',
 		'wp-polyfill-fetch',
 		'wp-polyfill-formdata',
+		'wp-polyfill-importmap',
 		'wp-polyfill-node-contains',
 		'wp-polyfill-url',
 		'wp-polyfill-dom-rect',
@@ -120,6 +121,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
 		'wp-polyfill'                 => '3.15.0',
+		'wp-polyfill-importmap'       => '1.8.2',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -1714,7 +1716,7 @@ function wp_default_styles( $styles ) {
 	);
 
 	$package_styles = array(
-		'block-editor'         => array( 'wp-components' ),
+		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
 		'components'           => array(),
@@ -1726,17 +1728,20 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-commands',
+			'wp-preferences',
 		),
 		'editor'               => array(
 			'wp-components',
 			'wp-block-editor',
 			'wp-reusable-blocks',
 			'wp-patterns',
+			'wp-preferences',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'patterns'             => array( 'wp-components' ),
+		'preferences'          => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 		'widgets'              => array(
 			'wp-components',
@@ -1748,6 +1753,7 @@ function wp_default_styles( $styles ) {
 			'wp-block-library',
 			'wp-reusable-blocks',
 			'wp-patterns',
+			'wp-preferences',
 		),
 		'customize-widgets'    => array(
 			'wp-widgets',
@@ -1756,12 +1762,14 @@ function wp_default_styles( $styles ) {
 			'wp-block-library',
 			'wp-reusable-blocks',
 			'wp-patterns',
+			'wp-preferences',
 		),
 		'edit-site'            => array(
 			'wp-components',
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-commands',
+			'wp-preferences',
 		),
 	);
 
