@@ -31,14 +31,14 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test zip file validity is correctly determined.
+	 * Tests ZIP file validity is correctly determined.
 	 *
 	 * @ticket 60398
 	 *
 	 * @dataProvider data_zip_file_validity
 	 *
-	 * @param string $file     The zip file to test.
-	 * @param bool   $expected Whether the zip file is expected to be valid.
+	 * @param string $file     The ZIP file to test.
+	 * @param bool   $expected Whether the ZIP file is expected to be valid.
 	 */
 	public function test_zip_file_validity( $file, $expected ) {
 		$zip_file = self::$test_data_dir . $file;
@@ -48,7 +48,7 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_zip_file_validity().
+	 * Data provider.
 	 *
 	 * @return array[]
 	 */

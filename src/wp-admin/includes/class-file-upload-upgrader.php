@@ -70,9 +70,7 @@ class File_Upload_Upgrader {
 			}
 
 			if ( 'pluginzip' === $form || 'themezip' === $form ) {
-				$archive_is_valid = wp_zip_file_is_valid( $file['file'] );
-
-				if ( true !== $archive_is_valid ) {
+ 				if ( ! wp_zip_file_is_valid( $file['file'] ) ) {
 					wp_delete_file( $file['file'] );
 					wp_die( __( 'Incompatible Archive.' ) );
 				}

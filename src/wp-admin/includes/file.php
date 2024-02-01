@@ -1564,7 +1564,7 @@ function wp_trusted_keys() {
 }
 
 /**
- * Test whether the given file is a valid Zip file.
+ * Determines whether the given file is a valid ZIP file.
  *
  * @since x.x.x
  *
