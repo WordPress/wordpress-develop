@@ -71,8 +71,8 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 			array(
 				new Translation_Entry(
 					array(
+						'is_plural'    => true,
 						'singular'     => 'one dragon',
-						'plural'       => '%d dragons',
 						'translations' => array(
 							'oney dragoney',
 							'twoey dragoney',
@@ -119,7 +119,6 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 					array(
 						'is_plural'    => true,
 						'singular'     => 'one dragon',
-						'plural'       => '%d dragons',
 						'context'      => 'dragonland',
 						'translations' => array(
 							'oney dragoney',
