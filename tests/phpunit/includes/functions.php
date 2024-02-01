@@ -339,10 +339,15 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
+	// Block types.
 	require __DIR__ . '/unregister-blocks-hooks.php';
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_widget_group' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+
+	// Block binding sources.
+	remove_action( 'init', '_register_block_bindings_pattern_overrides_source' );
+	remove_action( 'init', '_register_block_bindings_post_meta_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
