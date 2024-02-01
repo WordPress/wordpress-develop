@@ -557,7 +557,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 30, $properties );
+		$this->assertCount( 31, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
@@ -582,6 +582,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'view_script_handles', $properties );
 		$this->assertArrayHasKey( 'editor_style_handles', $properties );
 		$this->assertArrayHasKey( 'style_handles', $properties );
+		$this->assertArrayHasKey( 'view_style_handles', $properties, 'schema must contain view_style_handles' );
 		$this->assertArrayHasKey( 'is_dynamic', $properties );
 		// Deprecated properties.
 		$this->assertArrayHasKey( 'editor_script', $properties );
@@ -732,6 +733,35 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( $block_type->is_dynamic() ) {
 			$this->assertArrayHasKey( 'https://api.w.org/render-block', $links );
 		}
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_variation_callback() {
+		$block_type = 'test/block';
+		$settings   = array(
+			'title'              => true,
+			'variation_callback' => array( $this, 'mock_variation_callback' ),
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSameSets( $this->mock_variation_callback(), $data['variations'] );
+	}
+
+	/**
+	 * Mock variation callback.
+	 *
+	 * @return array
+	 */
+	public function mock_variation_callback() {
+		return array(
+			array( 'name' => 'var1' ),
+			array( 'name' => 'var2' ),
+		);
 	}
 
 	/**

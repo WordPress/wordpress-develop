@@ -5436,7 +5436,7 @@ function _wp_theme_json_webfonts_handler() {
 		$settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
 
 		// If in the editor, add webfonts defined in variations.
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( is_admin() || wp_is_rest_endpoint() ) {
 			$variations = WP_Theme_JSON_Resolver::get_style_variations();
 			foreach ( $variations as $variation ) {
 				// Skip if fontFamilies are not defined in the variation.
@@ -6238,4 +6238,61 @@ function the_block_template_skip_link() {
 	}() );
 	</script>
 	<?php
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ *
+ * @global WP_Scripts $wp_scripts
+ */
+function block_core_query_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+	global $wp_scripts;
+	if (
+		isset( $wp_scripts->registered['wp-block-query-view'] ) &&
+		! in_array( 'wp-interactivity', $wp_scripts->registered['wp-block-query-view']->deps, true )
+	) {
+		$wp_scripts->registered['wp-block-query-view']->deps[] = 'wp-interactivity';
+	}
+}
+
+/**
+ * Ensure that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ *
+ * @global WP_Scripts $wp_scripts
+ */
+function block_core_file_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+	global $wp_scripts;
+	if (
+		isset( $wp_scripts->registered['wp-block-file-view'] ) &&
+		! in_array( 'wp-interactivity', $wp_scripts->registered['wp-block-file-view']->deps, true )
+	) {
+		$wp_scripts->registered['wp-block-file-view']->deps[] = 'wp-interactivity';
+	}
+}
+
+/**
+ * Ensures that the view script has the `wp-interactivity` dependency.
+ *
+ * @since 6.4.0
+ * @deprecated 6.5.0
+ *
+ * @global WP_Scripts $wp_scripts
+ */
+function block_core_image_ensure_interactivity_dependency() {
+	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_register_script_module' );
+	global $wp_scripts;
+	if (
+		isset( $wp_scripts->registered['wp-block-image-view'] ) &&
+		! in_array( 'wp-interactivity', $wp_scripts->registered['wp-block-image-view']->deps, true )
+	) {
+		$wp_scripts->registered['wp-block-image-view']->deps[] = 'wp-interactivity';
+	}
 }
