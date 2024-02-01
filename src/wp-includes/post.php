@@ -8150,3 +8150,38 @@ function wp_create_initial_post_meta() {
 		)
 	);
 }
+
+/**
+ * Registers the footnotes meta field for post types that support it.
+ *
+ * @internal
+ * @since 6.5.0
+ *
+ * @link https://github.com/WordPress/gutenberg/pull/57353
+ */
+function _wp_register_footnotes_meta_field() {
+	$post_types = get_post_types(
+		array(
+			'show_in_rest' => true,
+			'public'       => true,
+		)
+	);
+	foreach ( $post_types as $post_type ) {
+		// Only register the meta field if the post type supports the editor, custom fields, and revisions.
+		if ( post_type_supports( $post_type, 'editor' ) && post_type_supports( $post_type, 'custom-fields' ) && post_type_supports( $post_type, 'revisions' ) && post_type_supports( $post_type, 'footnotes' ) ) {
+			$post_type_meta_keys = get_registered_meta_keys( 'post', $post_type );
+			if ( ! isset( $post_type_meta_keys['footnotes'] ) ) {
+				register_post_meta(
+					$post_type,
+					'footnotes',
+					array(
+						'show_in_rest'      => true,
+						'single'            => true,
+						'type'              => 'string',
+						'revisions_enabled' => true,
+					)
+				);
+			}
+		}
+	}
+}

@@ -669,6 +669,9 @@ final class WP_Post_Type {
 					add_post_type_support( $this->name, $args );
 				}
 			}
+			if ( post_type_supports( $this->name, 'editor' ) && post_type_supports( $this->name, 'custom-fields' ) && post_type_supports( $this->name, 'revisions' ) && ! post_type_supports( $this->name, 'footnotes' ) ) {
+				add_post_type_support( $this->name, 'footnotes' );
+			}
 			unset( $this->supports );
 		} elseif ( false !== $this->supports ) {
 			// Add default features.

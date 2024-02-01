@@ -734,6 +734,9 @@ add_action( 'init', 'wp_register_persisted_preferences_meta' );
 // CPT wp_block custom postmeta field.
 add_action( 'init', 'wp_create_initial_post_meta' );
 
+// Registers the footnotes meta field for post types that support it.
+add_action( 'init', '_wp_register_footnotes_meta_field', 100 );
+
 // Include revisioned meta when considering whether a post revision has changed.
 add_filter( 'wp_save_post_revision_post_has_changed', 'wp_check_revisioned_meta_fields_have_changed', 10, 3 );
 
