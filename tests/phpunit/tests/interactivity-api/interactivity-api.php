@@ -52,12 +52,20 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tear down.
+	 */
 	public function tear_down() {
 		unregister_block_type( 'test/interactive-block' );
 		unregister_block_type( 'test/non-interactive-block' );
 		parent::tear_down();
 	}
 
+	/**
+	 * Tests processing of a single interactive block.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_single_interactive_block() {
 		$post_content    = '<!-- wp:test/interactive-block { "block": 1 } /-->';
 		$rendered_blocks = do_blocks( $post_content );
@@ -66,11 +74,18 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of multiple interactive blocks in parallel along with a
+	 * non-interactive block.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_multiple_interactive_blocks_in_paralell() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } /-->
 			<!-- wp:test/interactive-block { "block": 2 } /-->
 			<!-- wp:test/non-interactive-block { "block": 3, "hasDirective": true } /-->
+			<!-- wp:test/interactive-block { "block": 4 } /-->
 		';
 		$rendered_blocks = do_blocks( $post_content );
 		$p               = new WP_HTML_Tag_Processor( $rendered_blocks );
@@ -80,8 +95,15 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
 		$p->next_tag( array( 'class_name' => 'non-interactive/block-3' ) );
 		$this->assertNull( $p->get_attribute( 'value' ) );
+		$p->next_tag( array( 'class_name' => 'interactive/block-4' ) );
+		$this->assertEquals( '4', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of an interactive block inside a non-interactive block.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_interactive_block_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
@@ -94,6 +116,12 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '2', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of multiple interactive blocks nested inside a
+	 * non-interactive block.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_multple_interactive_blocks_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
@@ -109,6 +137,12 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '3', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of a single interactive block directive nested inside
+	 * multiple non-interactive blocks.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_interactive_block_inside_multple_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
@@ -126,6 +160,12 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '4', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of directives for an interactive block containing a
+	 * non-interactive block without directives.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
@@ -140,6 +180,12 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of directives for an interactive block containing a
+	 * non-interactive block with directives.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_with_directives() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
@@ -154,6 +200,13 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Tests processing of directives for an interactive block containing nested
+	 * interactive and non-interactive blocks, checking proper propagation of
+	 * context.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_processs_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
@@ -175,14 +228,36 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		$this->assertEquals( '1', $p->get_attribute( 'value' ) );
 	}
 
+	/**
+	 * Counter for the number of times the test directive processor is called.
+	 *
+	 * @var int
+	 */
 	private $data_wp_test_processor_count = 0;
 
+	/**
+	 * Test directive processor callback.
+	 *
+	 * Increments the $data_wp_test_processor_count every time a tag that is not a
+	 * tag closer is processed.
+	 *
+	 * @param WP_HTML_Tag_Processor $p Instance of the processor handling the current HTML tag.
+	 */
 	public function data_wp_test_processor( $p ) {
 		if ( ! $p->is_tag_closer() ) {
 			$this->data_wp_test_processor_count = $this->data_wp_test_processor_count + 1;
 		}
 	}
 
+	/**
+	 * Tests that directives are only processed once for the root interactive
+	 * blocks.
+	 *
+	 * This ensures that nested blocks do not trigger additional processing of the
+	 * same directives, leading to incorrect behavior or performance issues.
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
 	public function test_process_directives_only_process_the_root_interactive_blocks() {
 		$class                = new ReflectionClass( 'WP_Interactivity_API' );
 		$directive_processors = $class->getProperty( 'directive_processors' );
