@@ -54,10 +54,20 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 	 */
 	public function data_zip_file_validity() {
 		return array(
-			'valid zip file'                               => array( 'archive.zip', true ),
-			'valid zip file created by macOS context menu' => array( 'archive-macos.zip', true ),
-			'invalid zip file'                             => array( 'archive-invalid.zip', false ),
-			'invalid file extension'                       => array( 'archive-invalid-ext.md', false ),
+			'standard zip'           => array( 'archive.zip', true ),
+			'large zip'              => array( 'archive-large.zip', true ),
+			'commented zip'          => array( 'archive-comment.zip', true ),
+			'cp866 zip'              => array( 'archive-cp866.zip', true ),
+			'directory entry'        => array( 'archive-directory-entry.zip', true ),
+			'encrypted'              => array( 'archive-encrypted.zip', true ),
+			'flags-set'              => array( 'archive-flags-set.zip', true ),
+			'uncompressed'           => array( 'archive-uncompressed.zip', true ),
+			'crx'                    => array( 'archive.crx', true ),
+			'macos generated'        => array( 'archive-macos.zip', true ),
+
+			'invalid zip file'       => array( 'archive-invalid.zip', false ),
+			'invalid file extension' => array( 'archive-invalid-ext.md', false ),
+			'non-existent file'      => array( 'archive-non-existent.zip', false ),
 		);
 	}
 }
