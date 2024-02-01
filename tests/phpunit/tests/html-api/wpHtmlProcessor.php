@@ -52,12 +52,12 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::get_tag
 	 */
 	public function test_get_tag_is_null_once_document_is_finished() {
-		$p = WP_HTML_Processor::create_fragment( '<div class="test">Test</div>' );
-		$p->next_tag();
-		$this->assertSame( 'DIV', $p->get_tag() );
+		$processor = WP_HTML_Processor::create_fragment( '<div class="test">Test</div>' );
+		$processor->next_tag();
+		$this->assertSame( 'DIV', $processor->get_tag() );
 
-		$this->assertFalse( $p->next_tag() );
-		$this->assertNull( $p->get_tag() );
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertNull( $processor->get_tag() );
 	}
 
 	/**
@@ -77,44 +77,44 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::seek
 	 */
 	public function test_clear_to_navigate_after_seeking() {
-		$p = WP_HTML_Processor::create_fragment( '<div one><strong></strong></div><p><strong two></strong></p>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div one><strong></strong></div><p><strong two></strong></p>' );
 
-		while ( $p->next_tag() ) {
+		while ( $processor->next_tag() ) {
 			// Create a bookmark before entering a stack of elements and formatting elements.
-			if ( null !== $p->get_attribute( 'one' ) ) {
-				$this->assertTrue( $p->set_bookmark( 'one' ) );
+			if ( null !== $processor->get_attribute( 'one' ) ) {
+				$this->assertTrue( $processor->set_bookmark( 'one' ) );
 				continue;
 			}
 
 			// Create a bookmark inside of that stack.
-			if ( null !== $p->get_attribute( 'two' ) ) {
-				$p->set_bookmark( 'two' );
+			if ( null !== $processor->get_attribute( 'two' ) ) {
+				$processor->set_bookmark( 'two' );
 				break;
 			}
 		}
 
 		// Ensure that it's possible to seek back to the outside location.
-		$this->assertTrue( $p->seek( 'one' ), 'Could not seek to earlier-seen location.' );
-		$this->assertSame( 'DIV', $p->get_tag(), "Should have jumped back to DIV but found {$p->get_tag()} instead." );
+		$this->assertTrue( $processor->seek( 'one' ), 'Could not seek to earlier-seen location.' );
+		$this->assertSame( 'DIV', $processor->get_tag(), "Should have jumped back to DIV but found {$processor->get_tag()} instead." );
 
 		/*
 		 * Ensure that the P element from the inner location isn't still on the stack of open elements.
 		 * If it were, then the first STRONG element, inside the outer DIV would match the next call.
 		 */
-		$this->assertTrue( $p->next_tag( array( 'breadcrumbs' => array( 'P', 'STRONG' ) ) ), 'Failed to find given location after seeking.' );
+		$this->assertTrue( $processor->next_tag( array( 'breadcrumbs' => array( 'P', 'STRONG' ) ) ), 'Failed to find given location after seeking.' );
 
 		// Only if the stack is properly managed will the processor advance to the inner STRONG element.
-		$this->assertTrue( $p->get_attribute( 'two' ), "Found the wrong location given the breadcrumbs, at {$p->get_tag()}." );
+		$this->assertTrue( $processor->get_attribute( 'two' ), "Found the wrong location given the breadcrumbs, at {$processor->get_tag()}." );
 
 		// Ensure that in seeking backwards the processor reports the correct full set of breadcrumbs.
-		$this->assertTrue( $p->seek( 'one' ), 'Failed to jump back to first bookmark.' );
-		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $p->get_breadcrumbs(), 'Found wrong set of breadcrumbs navigating to node "one".' );
+		$this->assertTrue( $processor->seek( 'one' ), 'Failed to jump back to first bookmark.' );
+		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs(), 'Found wrong set of breadcrumbs navigating to node "one".' );
 
 		// Ensure that in seeking forwards the processor reports the correct full set of breadcrumbs.
-		$this->assertTrue( $p->seek( 'two' ), 'Failed to jump forward to second bookmark.' );
-		$this->assertTrue( $p->get_attribute( 'two' ), "Found the wrong location given the bookmark, at {$p->get_tag()}." );
+		$this->assertTrue( $processor->seek( 'two' ), 'Failed to jump forward to second bookmark.' );
+		$this->assertTrue( $processor->get_attribute( 'two' ), "Found the wrong location given the bookmark, at {$processor->get_tag()}." );
 
-		$this->assertSame( array( 'HTML', 'BODY', 'P', 'STRONG' ), $p->get_breadcrumbs(), 'Found wrong set of bookmarks navigating to node "two".' );
+		$this->assertSame( array( 'HTML', 'BODY', 'P', 'STRONG' ), $processor->get_breadcrumbs(), 'Found wrong set of bookmarks navigating to node "two".' );
 	}
 
 	/**
@@ -126,10 +126,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Processor::reconstruct_active_formatting_elements
 	 */
 	public function test_fails_to_reconstruct_formatting_elements() {
-		$p = WP_HTML_Processor::create_fragment( '<p><em>One<p><em>Two<p><em>Three<p><em>Four' );
+		$processor = WP_HTML_Processor::create_fragment( '<p><em>One<p><em>Two<p><em>Three<p><em>Four' );
 
-		$this->assertTrue( $p->next_tag( 'EM' ), 'Could not find first EM.' );
-		$this->assertFalse( $p->next_tag( 'EM' ), 'Should have aborted before finding second EM as it required reconstructing the first EM.' );
+		$this->assertTrue( $processor->next_tag( 'EM' ), 'Could not find first EM.' );
+		$this->assertFalse( $processor->next_tag( 'EM' ), 'Should have aborted before finding second EM as it required reconstructing the first EM.' );
 	}
 
 	/**
@@ -246,7 +246,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_void_tags() {
+	public static function data_void_tags() {
 		return array(
 			'AREA'   => array( 'AREA' ),
 			'BASE'   => array( 'BASE' ),
@@ -290,7 +290,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_unsupported_special_in_body_tags() {
+	public static function data_unsupported_special_in_body_tags() {
 		return array(
 			'APPLET'    => array( 'APPLET' ),
 			'BASE'      => array( 'BASE' ),

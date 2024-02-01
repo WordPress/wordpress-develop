@@ -295,7 +295,7 @@ HTML
 	 *
 	 * @return array[].
 	 */
-	public function data_rawtext_elements() {
+	public static function data_rawtext_elements() {
 		return array(
 			'IFRAME'   => array( 'IFRAME' ),
 			'NOEMBED'  => array( 'NOEMBED' ),
@@ -580,7 +580,7 @@ HTML
 	 *
 	 * @return array[].
 	 */
-	public function data_common_comments() {
+	public static function data_common_comments() {
 		return array(
 			'Shortest comment'        => array( '<!-->', '' ),
 			'Short comment'           => array( '<!--->', '' ),
