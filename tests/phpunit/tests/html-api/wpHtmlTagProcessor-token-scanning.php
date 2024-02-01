@@ -443,6 +443,13 @@ HTML
 	public function test_basic_cdata_in_foreign_content() {
 		$processor = new WP_HTML_Tag_Processor( '<svg><![CDATA[this is >&gt; real CDATA]]></svg>' );
 		$processor->next_token();
+
+		// Artificially set flag; this should be done in the HTML Processor.
+		$reflector                 = new ReflectionClass( $processor );
+		$is_inside_foreign_content = $reflector->getProperty( 'is_inside_foreign_content' );
+		$is_inside_foreign_content->setAccessible( true );
+		$is_inside_foreign_content->setValue( $processor, true );
+
 		$processor->next_token();
 
 		$this->assertSame(
