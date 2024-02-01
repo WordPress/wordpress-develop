@@ -508,6 +508,54 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `process_directives` returns the same HTML if it finds an
+	 * SVG tag.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_process_directives_doesnt_change_html_if_contains_svgs() {
+		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
+		$html           = '
+			<div data-wp-bind--id="myPlugin::state.id">
+				<svg height="100" width="100">
+					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+				</svg> 
+			</div>
+		';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Tests that the `process_directives` returns the same HTML if it finds an
+	 * MathML tag.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_process_directives_doesnt_change_html_if_contains_math() {
+		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
+		$html           = '
+			<div data-wp-bind--id="myPlugin::state.id">
+				<math>
+					<mi>x</mi>
+					<mo>=</mo>
+					<mi>1</mi>
+				</math>
+			</div>
+		';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( 'id' ) );
+	}
+
+	/**
 	 * Invokes the private `evaluate` method of WP_Interactivity_API class.
 	 *
 	 * @param string $directive_value The directive attribute value to evaluate.

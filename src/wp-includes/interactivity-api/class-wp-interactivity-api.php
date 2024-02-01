@@ -191,6 +191,11 @@ class WP_Interactivity_API {
 		while ( $p->next_tag( array( 'tag_closers' => 'visit' ) ) && false === $unbalanced ) {
 			$tag_name = $p->get_tag();
 
+			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
+				$unbalanced = true;
+				break;
+			}
+
 			if ( $p->is_tag_closer() ) {
 				list( $opening_tag_name, $directives_prefixes ) = end( $tag_stack );
 
@@ -202,7 +207,7 @@ class WP_Interactivity_API {
 					 * stops processing it.
 					 */
 					$unbalanced = true;
-					continue;
+					break;
 				} else {
 					// Remove the last tag from the stack.
 					array_pop( $tag_stack );
