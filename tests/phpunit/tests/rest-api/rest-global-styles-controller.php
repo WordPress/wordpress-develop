@@ -483,7 +483,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertSame( 'My new global styles title', $data['title']['raw'] );
 	}
 
-
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::update_item
 	 * @ticket 54516
