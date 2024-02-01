@@ -452,12 +452,9 @@ class WP_Interactivity_API {
 		 * previous context with the new one.
 		 */
 		if ( is_string( $namespace_value ) ) {
-			array_push(
-				$context_stack,
-				array_replace_recursive(
-					end( $context_stack ) !== false ? end( $context_stack ) : array(),
-					array( $namespace_value => is_array( $decoded_json ) ? $decoded_json : array() )
-				)
+			$context_stack[] = array_replace_recursive(
+				end( $context_stack ) !== false ? end( $context_stack ) : array(),
+				array( $namespace_value => is_array( $decoded_json ) ? $decoded_json : array() )
 			);
 		} else {
 			/*
@@ -465,7 +462,7 @@ class WP_Interactivity_API {
 			 * It needs to do so because the function pops out the current context
 			 * from the stack whenever it finds a `data-wp-context`'s closing tag.
 			 */
-			array_push( $context_stack, end( $context_stack ) );
+			$context_stack[] = end( $context_stack );
 		}
 	}
 
@@ -635,7 +632,7 @@ class WP_Interactivity_API {
 		}
 
 		// Add the new/modified property at the end of the list.
-		array_push( $result, $new_style_property );
+		$result[] = $new_style_property;
 
 		return implode( '', $result );
 	}
