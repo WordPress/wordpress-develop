@@ -156,6 +156,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'unit-tests-my-block-style',
 			generate_block_asset_handle( $block_name, 'style' )
 		);
+		// @ticket 59673
+		$this->assertSame(
+			'unit-tests-my-block-view-style',
+			generate_block_asset_handle( $block_name, 'viewStyle' ),
+			'asset handle for viewStyle is not generated correctly'
+		);
 	}
 
 	/**
@@ -439,9 +445,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 */
 	public function test_success_register_block_style_handle() {
 		$metadata = array(
-			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
-			'name'  => 'unit-tests/test-block',
-			'style' => 'file:./block.css',
+			'file'      => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'      => 'unit-tests/test-block',
+			'style'     => 'file:./block.css',
+			'viewStyle' => 'file:./block-view.css',
 		);
 		$result   = register_block_style_handle( $metadata, 'style' );
 
@@ -452,6 +459,17 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
+
+		// Test viewStyle property
+		$result = register_block_style_handle( $metadata, 'viewStyle' );
+		$this->assertSame( 'unit-tests-test-block-view-style', $result );
+
+		// @ticket 59673
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-view.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-view-style', 'path' ) ),
+			'viewStyle asset path is not correct'
 		);
 
 		// Test the behavior directly within the unit test
@@ -837,11 +855,24 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			array( 'tests-notice-style', 'tests-notice-style-2' ),
 			$result->style_handles
 		);
+		// @ticket 59673
+		$this->assertSameSets(
+			array( 'tests-notice-view-style' ),
+			$result->view_style_handles,
+			'parsed view_style_handles is not correct'
+		);
 
 		// @ticket 50328
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
 			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
+
+		// @ticket 59673
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-view.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-view-style', 'path' ) ),
+			'viewStyle asset path is not correct'
 		);
 
 		// @ticket 53148

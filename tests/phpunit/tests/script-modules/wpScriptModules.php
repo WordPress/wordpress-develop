@@ -11,7 +11,8 @@
  *
  * @coversDefaultClass WP_Script_Modules
  */
-class Tests_WP_Script_Modules extends WP_UnitTestCase {
+class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
+
 	/**
 	 * Instance of WP_Script_Modules.
 	 *
@@ -24,6 +25,7 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		// Set up the WP_Script_Modules instance.
 		$this->script_modules = new WP_Script_Modules();
 	}
 
@@ -599,5 +601,38 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
+	}
+
+	/**
+	 * @ticket 60348
+	 *
+	 * @covers ::print_import_map_polyfill()
+	 */
+	public function test_wp_print_import_map_has_no_polyfill_when_no_modules_registered() {
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+
+		$this->assertEquals( '', $import_map_polyfill );
+	}
+
+	/**
+	 * @ticket 60348
+	 *
+	 * @covers ::print_import_map_polyfill()
+	 */
+	public function test_wp_print_import_map_has_polyfill_when_modules_registered() {
+		$script_name = 'wp-polyfill-importmap';
+		wp_register_script( $script_name, '/wp-polyfill-importmap.js' );
+
+		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+
+		wp_deregister_script( $script_name );
+
+		$p = new WP_HTML_Tag_Processor( $import_map_polyfill );
+		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
+		$id = $p->get_attribute( 'id' );
+
+		$this->assertEquals( 'wp-load-polyfill-importmap', $id );
 	}
 }
