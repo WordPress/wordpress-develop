@@ -244,8 +244,12 @@ class WP_Block {
 			'core/button'    => array( 'url', 'text' ),
 		);
 
-		// If the block doesn't have the bindings property or isn't one of the allowed block types, return.
-		if ( ! isset( $block['attrs']['metadata']['bindings'] ) || ! isset( $allowed_blocks[ $this->name ] ) ) {
+		// If the block doesn't have the bindings property, isn't one of the allowed
+		// block types, or the bindings property is not an array, return the block content.
+		if ( ! isset( $block['attrs']['metadata']['bindings'] ) ||
+				! is_array( $block['attrs']['metadata']['bindings'] ) ||
+				! isset( $allowed_blocks[ $this->name ] )
+				) {
 			return $block_content;
 		}
 
