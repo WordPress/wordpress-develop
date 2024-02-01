@@ -1067,7 +1067,7 @@ module.exports = function(grunt) {
 
 								entities = files.stdout.toString();
 								entities = JSON.parse( entities );
-								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + "\n"; }, '' );
+								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
 								entities = entities.replace( /\.svg/g, '' );
