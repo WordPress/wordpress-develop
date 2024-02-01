@@ -20,7 +20,7 @@
  * @param array $parsed_block The parsed block.
  * @return array The same parsed block.
  */
-function wp_interactivity_process_directives_of_interactive_blocks( $parsed_block ) {
+function wp_interactivity_process_directives_of_interactive_blocks( array $parsed_block ): array {
 	static $root_interactive_block = null;
 
 	/*
@@ -94,7 +94,7 @@ function wp_interactivity() {
  * @param string $html The HTML content to process.
  * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
  */
-function wp_interactivity_process_directives( $html ) {
+function wp_interactivity_process_directives( string $html ): string {
 	return wp_interactivity()->process_directives( $html );
 }
 
