@@ -1019,10 +1019,10 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Sets up the plugin repository requests to use local data.
 	 *
-	 * Request to the plugin repository are mocked to avoid external HTTP requests so
+	 * Requests to the plugin repository are mocked to avoid external HTTP requests so
 	 * the test suite does not produce false negatives due to network failures.
 	 *
-	 * Both the plugin zip file and the plugin API response are mocked.
+	 * Both the plugin ZIP file and the plugin API response are mocked.
 	 *
 	 * @since 5.5.0
 	 */
