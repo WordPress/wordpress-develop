@@ -41,6 +41,13 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	private static $admin;
 
 	/**
+	 * JSON decoded response from the WordPress.org plugin API.
+	 *
+	 * @var stdClass
+	 */
+	private static $plugin_api_decoded_response;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.5.0
@@ -67,6 +74,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( is_multisite() ) {
 			grant_super_admin( self::$super_admin );
 		}
+
+		self::$plugin_api_decoded_response = json_decode( file_get_contents( DIR_TESTDATA . '/plugins/link-manager.json' ) );
 	}
 
 	/**
@@ -1048,8 +1057,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 				if ( 'plugin_information' !== $action || 'link-manager' !== $args->slug ) {
 					return $bypass;
 				}
-				$http_response = file_get_contents( DIR_TESTDATA . '/plugins/link-manager.json' );
-				return json_decode( $http_response );
+				return self::$plugin_api_decoded_response;
 			},
 			10,
 			3
