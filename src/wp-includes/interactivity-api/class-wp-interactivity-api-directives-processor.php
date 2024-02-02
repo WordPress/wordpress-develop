@@ -17,6 +17,24 @@
  */
 class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	/**
+	 * List of thags whose closer tag is not visited by the WP_HTML_Tag_Processor.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var string[]
+	 */
+	const TAGS_THAT_DONT_VISIT_CLOSER_TAG = array(
+		'SCRIPT',
+		'IFRAME',
+		'NOEMBED',
+		'NOFRAMES',
+		'STYLE',
+		'TEXTAREA',
+		'TITLE',
+		'XMP',
+	);
+
+	/**
 	 * Returns the content between two balanced tags.
 	 *
 	 * @since 6.5.0
@@ -101,9 +119,10 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	 * Finds the matching closing tag for an opening tag.
 	 *
 	 * When called while the processor is on an open tag, it traverses the HTML
-	 * until it finds the matching closing tag, respecting any in-between content,
+	 * until it finds the matching closer tag, respecting any in-between content,
 	 * including nested tags of the same name. Returns false when called on a
-	 * closing or void tag, or if no matching closing tag was found.
+	 * closer tag, a tag that doesn't have a closer tag (void), a tag that
+	 * doesn't visit the closer tag, or if no matching closing tag was found.
 	 *
 	 * @since 6.5.0
 	 *
@@ -113,7 +132,7 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 		$depth    = 0;
 		$tag_name = $this->get_tag();
 
-		if ( $this->is_void() ) {
+		if ( ! $this->has_and_visits_its_closer_tag() ) {
 			return false;
 		}
 
@@ -139,16 +158,17 @@ class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Checks whether the current tag is void.
+	 * Checks whether the current tag has and visits a closer tag.
 	 *
 	 * @since 6.5.0
 	 *
 	 * @access private
 	 *
-	 * @return bool Whether the current tag is void or not.
+	 * @return bool Whether the current tag has a closer tag.
 	 */
-	public function is_void(): bool {
+	public function has_and_visits_its_closer_tag(): bool {
 		$tag_name = $this->get_tag();
-		return WP_HTML_Processor::is_void( null !== $tag_name ? $tag_name : '' );
+		return ! WP_HTML_Processor::is_void( null !== $tag_name ? $tag_name : '' ) &&
+			! in_array( $tag_name, self::TAGS_THAT_DONT_VISIT_CLOSER_TAG, true );
 	}
 }

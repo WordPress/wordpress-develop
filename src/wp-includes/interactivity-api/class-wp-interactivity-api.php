@@ -236,10 +236,10 @@ class WP_Interactivity_API {
 				}
 
 				/*
-				 * If this is not a void element, it adds it to the tag stack so it can
-				 * process its closing tag and check for unbalanced tags.
+				 * If this tag will visit its closer tag, it adds it to the tag stack
+				 * so it can process its closing tag and check for unbalanced tags.
 				 */
-				if ( ! $p->is_void() ) {
+				if ( $p->has_and_visits_its_closer_tag() ) {
 					$tag_stack[] = array( $tag_name, $directives_prefixes );
 				}
 			}

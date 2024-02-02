@@ -363,45 +363,53 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the is_void method.
+	 * Tests the `has_and_visits_its_closer_tag` method.
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::is_void
+	 * @covers ::has_and_visits_its_closer_tag
 	 */
-	public function test_is_void_element() {
-		$void_elements = array( 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr' );
-		foreach ( $void_elements as $tag_name ) {
+	public function test_has_and_visits_its_closer_tag() {
+		$void_tags = array( 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr' );
+		foreach ( $void_tags as $tag_name ) {
 			$content = "<{$tag_name} id={$tag_name}>";
 			$p       = new WP_Interactivity_API_Directives_Processor( $content );
 			$p->next_tag();
-			$this->assertTrue( $p->is_void() );
+			$this->assertFalse( $p->has_and_visits_its_closer_tag() );
 		}
 
-		$non_void_elements = array( 'div', 'span', 'p', 'script', 'style' );
-		foreach ( $non_void_elements as $tag_name ) {
+		$tags_that_dont_visit_closing_tag = array( 'script', 'iframe', 'textarea', 'iframe', 'style' );
+		foreach ( $tags_that_dont_visit_closing_tag as $tag_name ) {
 			$content = "<{$tag_name} id={$tag_name}>Some content</{$tag_name}>";
 			$p       = new WP_Interactivity_API_Directives_Processor( $content );
 			$p->next_tag();
-			$this->assertFalse( $p->is_void() );
+			$this->assertFalse( $p->has_and_visits_its_closer_tag() );
+		}
+
+		$tags_that_visit_closing_tag = array( 'div', 'span', 'p', 'h1', 'main' );
+		foreach ( $tags_that_visit_closing_tag as $tag_name ) {
+			$content = "<{$tag_name} id={$tag_name}>Some content</{$tag_name}>";
+			$p       = new WP_Interactivity_API_Directives_Processor( $content );
+			$p->next_tag();
+			$this->assertTrue( $p->has_and_visits_its_closer_tag() );
 		}
 
 		// Test an upercase tag.
 		$content = '<IMG src="example.jpg">';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertTrue( $p->is_void() );
+		$this->assertFalse( $p->has_and_visits_its_closer_tag() );
 
 		// Test an empty string.
 		$content = '';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertFalse( $p->is_void() );
+		$this->assertTrue( $p->has_and_visits_its_closer_tag() );
 
 		// Test on text nodes.
 		$content = 'This is just some text';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertFalse( $p->is_void() );
+		$this->assertTrue( $p->has_and_visits_its_closer_tag() );
 	}
 }
