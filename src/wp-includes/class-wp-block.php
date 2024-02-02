@@ -274,7 +274,7 @@ class WP_Block {
 			$source_args     = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
 			$source_value    = call_user_func_array( $source_callback, array( $source_args, $this, $attribute_name ) );
 
-			// If the value is not null, process the HTML based on the block and the attribute
+			// If the value is not null, process the HTML based on the block and the attribute.
 			if ( ! is_null( $source_value ) ) {
 				$modified_block_content = $this->replace_html( $modified_block_content, $attribute_name, $source_value );
 			}
