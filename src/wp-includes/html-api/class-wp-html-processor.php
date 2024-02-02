@@ -1095,7 +1095,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '+MATH':
 				$this->reconstruct_active_formatting_elements();
-				$this->state->current_token->namespace = 'math';
+				$this->state->current_token->namespace = 'mathml';
 				$this->insert_html_element( $this->state->current_token );
 				return true;
 
@@ -1216,6 +1216,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return true;
 				}
 			}
+		}
+	}
+
+	/**
+	 * @todo …
+	 */
+	public function get_namespace() {
+		switch ( $this->parser_state ) {
+			case self::STATE_MATCHED_TAG:
+				return $this->state->current_token->namespace;
+			default:
+				return null;
 		}
 	}
 
@@ -1362,7 +1374,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				( 'MI' === $tag_name || 'MO' === $tag_name || 'MN' === $tag_name || 'MS' === $tag_name || 'MTEXT' === $tag_name )
 			) {
 				$this->state->current_token->integration_node_type = 'mathml';
-			} elseif ( 'mathml' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
+			} elseif ( 'mathml' === $current_node->namespace && 'ANNOTATION-XML' === $tag_name ) {
 				$encoding = $this->get_attribute( 'encoding' );
 
 				if ( is_string( $encoding ) ) {
