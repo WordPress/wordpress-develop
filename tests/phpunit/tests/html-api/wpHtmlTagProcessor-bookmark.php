@@ -440,7 +440,7 @@ HTML;
 	 * Ensures that it's possible to seek to an earlier location in a document even
 	 * after reaching the end of a document, when most functionality shuts down.
 	 *
-	 * @ticket 57348
+	 * @ticket 60428
 	 *
 	 * @dataProvider data_incomplete_html_with_target_nodes_for_seeking
 	 *
