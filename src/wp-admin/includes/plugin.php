@@ -1251,7 +1251,7 @@ function uninstall_plugin( $plugin ) {
 	if ( isset( $uninstallable_plugins[ $file ] ) ) {
 		$callable = $uninstallable_plugins[ $file ];
 		unset( $uninstallable_plugins[ $file ] );
-		update_option( 'uninstall_plugins', $uninstallable_plugins );
+		$wp_internal_uninstallable_plugins_new_option_value = $uninstallable_plugins;
 		unset( $uninstallable_plugins );
 
 		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $file );
@@ -1268,6 +1268,9 @@ function uninstall_plugin( $plugin ) {
 		 * @since 2.7.0
 		 */
 		do_action( "uninstall_{$file}" );
+
+		// Only remove it after the action finished to ensure the plugin stays uninstallable if the uninstall times out/crashes.
+		update_option( 'uninstall_plugins', $wp_internal_uninstallable_plugins_new_option_value );
 	}
 }
 
