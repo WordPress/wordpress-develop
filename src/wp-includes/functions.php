@@ -3111,12 +3111,14 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			$mime_to_ext = apply_filters(
 				'getimagesize_mimes_to_exts',
 				array(
-					'image/jpeg' => 'jpg',
-					'image/png'  => 'png',
-					'image/gif'  => 'gif',
-					'image/bmp'  => 'bmp',
-					'image/tiff' => 'tif',
-					'image/webp' => 'webp',
+					'image/jpeg'               => 'jpg',
+					'image/png'                => 'png',
+					'image/gif'                => 'gif',
+					'image/bmp'                => 'bmp',
+					'image/tiff'               => 'tif',
+					'image/webp'               => 'webp',
+					'image/x-icon'             => 'ico',
+					'image/vnd.microsoft.icon' => 'ico',
 				)
 			);
 
