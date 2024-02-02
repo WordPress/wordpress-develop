@@ -1559,15 +1559,13 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
+		$dependency_note = __( 'Note: this plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
 		printf(
-			'<div class="required-by"><p><strong>%1$s</strong> %2$s</p></div>',
+			'<div class="required-by"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
 			__( 'Required by:' ),
-			esc_html( implode( ' | ', $dependent_names ) )
+			esc_html( implode( ' | ', $dependent_names ) ),
+			$dependency_note
 		);
-
-		echo '<div><p>';
-		_e( 'Note: this plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
-		echo '</p></div>';
 	}
 
 	/**
