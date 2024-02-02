@@ -22,6 +22,11 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	/**
 	 * @var string
 	 */
+	const TEMPLATE_NAME_2 = 'my_template_2';
+
+	/**
+	 * @var string
+	 */
 	const PARENT_POST_TYPE = 'wp_template';
 
 	/**
@@ -50,6 +55,15 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @var WP_Post
 	 */
 	private static $template_post;
+
+	/**
+	 * Template post.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var WP_Post
+	 */
+	private static $template_post_2;
 
 	/**
 	 * @var array
@@ -123,6 +137,23 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 				'post_content' => 'Content revision #5',
 			)
 		);
+
+		// Create a new template post to test the get_item method.
+		self::$template_post_2 = $factory->post->create_and_get(
+			array(
+				'post_type'    => self::PARENT_POST_TYPE,
+				'post_name'    => self::TEMPLATE_NAME_2,
+				'post_title'   => 'My Template 2',
+				'post_content' => 'Content 2',
+				'post_excerpt' => 'Description of my template 2',
+				'tax_input'    => array(
+					'wp_theme' => array(
+						self::TEST_THEME,
+					),
+				),
+			)
+		);
+		wp_set_post_terms( self::$template_post_2->ID, self::TEST_THEME, 'wp_theme' );
 	}
 
 	/**
@@ -337,6 +368,23 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @ticket 59875
+	 */
+	public function test_get_item_invalid_parent_id() {
+		wp_set_current_user( self::$admin_id );
+		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME_2 . '/revisions/' . $revision_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
+
+		$expected_message = 'The revision does not belong to the specified parent with id of "' . self::$template_post_2->ID . '"';
+		$this->assertSame( $expected_message, $response->as_error()->get_error_messages()[0], 'The message must contain the correct parent ID.' );
+	}
+
+	/**
 	 * @covers WP_REST_Template_Revisions_Controller::prepare_item_for_response
 	 * @ticket 56922
 	 */
@@ -401,7 +449,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 16, $properties );
+		$this->assertCount( 18, $properties );
 		$this->assertArrayHasKey( 'id', $properties, 'ID key should exist in properties.' );
 		$this->assertArrayHasKey( 'slug', $properties, 'Slug key should exist in properties.' );
 		$this->assertArrayHasKey( 'theme', $properties, 'Theme key should exist in properties.' );
@@ -417,6 +465,8 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
 		$this->assertArrayHasKey( 'is_custom', $properties, 'is_custom key should exist in properties.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
+		$this->assertArrayHasKey( 'author_text', $properties, 'Parent key should exist in properties.' );
+		$this->assertArrayHasKey( 'original_source', $properties, 'Parent key should exist in properties.' );
 	}
 
 	/**
