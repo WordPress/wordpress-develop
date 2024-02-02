@@ -1362,7 +1362,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				( 'MI' === $tag_name || 'MO' === $tag_name || 'MN' === $tag_name || 'MS' === $tag_name || 'MTEXT' === $tag_name )
 			) {
 				$this->state->current_token->integration_node_type = 'mathml';
-			} elseif ( 'math' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
+			} elseif ( 'math' === $current_node->namespace && 'ANNOTATION-XML' === $tag_name ) {
 				$encoding = $this->get_attribute( 'encoding' );
 
 				if ( is_string( $encoding ) ) {
