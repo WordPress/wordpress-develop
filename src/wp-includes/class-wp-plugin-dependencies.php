@@ -516,20 +516,9 @@ class WP_Plugin_Dependencies {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
-		global $wp_filesystem;
+		$all_plugin_data = get_option( 'plugin_data', array() );
 
-		if ( ! $wp_filesystem ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
-		}
-
-		self::get_plugins();
-		$plugins_dir     = trailingslashit( $wp_filesystem->wp_plugins_dir() );
-		$default_headers = array( 'RequiresPlugins' => 'Requires Plugins' );
-
-		foreach ( array_keys( self::$plugins ) as $plugin ) {
-			$header = get_file_data( $plugins_dir . $plugin, $default_headers, 'plugin' );
-
+		foreach ( $all_plugin_data as $plugin => $header ) {
 			if ( '' === $header['RequiresPlugins'] ) {
 				continue;
 			}
