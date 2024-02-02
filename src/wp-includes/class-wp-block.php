@@ -265,7 +265,7 @@ class WP_Block {
 				continue;
 			}
 
-			$block_binding_source = get_registered_block_bindings_source( $block_binding['source'] );
+			$block_binding_source = get_block_bindings_source( $block_binding['source'] );
 			if ( null === $block_binding_source ) {
 				continue;
 			}
