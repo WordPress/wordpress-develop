@@ -257,7 +257,7 @@ final class WP_Autoload {
 		'simplepie_cache_mysql'                       => 'wp-includes/SimplePie/Cache/MySQL.php',
 		'simplepie_cache_redis'                       => 'wp-includes/SimplePie/Cache/Redis.php',
 		'simplepie_content_type_sniffer'              => 'wp-includes/SimplePie/Content/Type/Sniffer.php',
-		'simplepie_Decode_html_entities'              => 'wp-includes/SimplePie/Decode/HTML/Entities.php',
+		'simplepie_decode_html_entities'              => 'wp-includes/SimplePie/Decode/HTML/Entities.php',
 		'simplepie_http_parser'                       => 'wp-includes/SimplePie/HTTP/Parser.php',
 		'simplepie_net_ipv6'                          => 'wp-includes/SimplePie/Net/IPv6.php',
 		'simplepie_parse_date'                        => 'wp-includes/SimplePie/Parse/Date.php',
