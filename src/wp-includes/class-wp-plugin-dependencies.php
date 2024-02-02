@@ -504,10 +504,17 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 */
 	protected static function get_plugins() {
-		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		if ( ! empty( self::$plugins ) ) {
+			return self::$plugins;
 		}
-		self::$plugins = get_plugins();
+
+		$all_plugin_data = get_option( 'plugin_data', array() );
+
+		if ( empty( $all_plugin_data ) ) {
+			$all_plugin_data = get_plugins();
+		}
+
+		self::$plugins = $all_plugin_data;
 	}
 
 	/**
