@@ -495,7 +495,8 @@ final class WP_Autoload {
 		$class_name = strtolower( $class_name );
 
 		// Bail early if the class is not a WP class.
-		if ( ! isset( static::CLASSES_PATHS[ $class_name ] ) ) {
+		// Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
+		if ( empty( static::CLASSES_PATHS[ $class_name ] ) ) {
 			return false;
 		}
 
