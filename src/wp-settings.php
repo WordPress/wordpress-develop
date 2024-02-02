@@ -501,14 +501,16 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 		$update_plugin_data = true;
 	}
 
-	$plugin_headers = $all_plugin_data[ $plugin_file ];
-	$error_message  = '';
-	$requirements   = array(
-		'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
-		'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+	$plugin_headers   = $all_plugin_data[ $plugin_file ];
+	$errors           = array();
+	$requirements     = array(
+		'requires'         => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+		'requires_php'     => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires_plugins' => ! empty( $plugin_headers['RequiresPlugins'] ) ? $plugin_headers['RequiresPlugins'] : '',
 	);
-	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
-	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
+	$compatible_wp    = is_wp_version_compatible( $requirements['requires'] );
+	$compatible_php   = is_php_version_compatible( $requirements['requires_php'] );
+	$dependencies_met = ! WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file );
 
 	$php_update_message = '</p><p>' . sprintf(
 		/* translators: %s: URL to Update PHP page. */
@@ -522,8 +524,16 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 		$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 	}
 
+	if ( ! $dependencies_met ) {
+		$errors[] = sprintf(
+			/* translators: %s: The plugin's name. */
+			_x( '%s has unmet dependencies.', 'plugin' ),
+			$plugin_headers['Name']
+		);
+	}
+
 	if ( ! $compatible_wp && ! $compatible_php ) {
-		$error_message = sprintf(
+		$errors[] = sprintf(
 			/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
 			_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
 			get_bloginfo( 'version' ),
@@ -533,7 +543,7 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 			$requirements['requires_php']
 		) . $php_update_message;
 	} elseif ( ! $compatible_php ) {
-		$error_message = sprintf(
+		$errors[] = sprintf(
 			/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
 			_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
 			PHP_VERSION,
@@ -541,7 +551,7 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 			$requirements['requires_php']
 		) . $php_update_message;
 	} elseif ( ! $compatible_wp ) {
-		$error_message = sprintf(
+		$errors[] = sprintf(
 			/* translators: 1: Current WordPress version, 2: Plugin name, 3: Required WordPress version. */
 			_x( '<strong>Error:</strong> Current WordPress version (%1$s) does not meet minimum requirements for %2$s. The plugin requires WordPress %3$s.', 'plugin' ),
 			get_bloginfo( 'version' ),
@@ -550,14 +560,17 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 		);
 	}
 
-	if ( '' !== $error_message ) {
-		$failed_plugins[ $plugin_file ] = wp_get_admin_notice(
-			$error_message,
-			array(
-				'type'        => 'error',
-				'dismissible' => true,
-			)
-		);
+	if ( ! empty( $errors ) ) {
+		$failed_plugins[ $plugin_file ] = '';
+		foreach ( $errors as $error ) {
+			$failed_plugins[ $plugin_file ] .= wp_get_admin_notice(
+				$error,
+				array(
+					'type'        => 'error',
+					'dismissible' => true,
+				)
+			);
+		}
 		continue;
 	}
 
