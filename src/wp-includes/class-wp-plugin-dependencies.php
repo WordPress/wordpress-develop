@@ -7,8 +7,6 @@
  * @since 6.5.0
  */
 
-require_once ABSPATH . '/wp-admin/includes/plugin.php';
-
 /**
  * Core class for installing plugin dependencies.
  *
@@ -142,8 +140,9 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has active dependents.
 	 */
 	public static function has_active_dependents( $plugin_file ) {
-		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 
+		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 		foreach ( $dependents as $dependent ) {
 			if ( is_plugin_active( $dependent ) ) {
 				return true;
@@ -218,6 +217,8 @@ class WP_Plugin_Dependencies {
 		if ( ! isset( self::$dependencies[ $plugin_file ] ) ) {
 			return false;
 		}
+
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
@@ -463,6 +464,8 @@ class WP_Plugin_Dependencies {
 			wp_send_json_success( $status );
 		}
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+
 		$inactive_dependencies = array();
 		foreach ( $dependencies as $dependency ) {
 			if ( false === self::$plugin_dirnames[ $dependency ] || is_plugin_inactive( self::$plugin_dirnames[ $dependency ] ) ) {
@@ -511,6 +514,7 @@ class WP_Plugin_Dependencies {
 		$all_plugin_data = get_option( 'plugin_data', array() );
 
 		if ( empty( $all_plugin_data ) ) {
+			require_once ABSPATH . '/wp-admin/includes/plugin.php';
 			$all_plugin_data = get_plugins();
 		}
 
@@ -596,6 +600,7 @@ class WP_Plugin_Dependencies {
 			return $all_dependents;
 		}
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 		foreach ( $dependents as $dependent ) {
 			if ( is_plugin_active( $dependent ) ) {
 				$all_dependents[] = $dependent;
@@ -624,6 +629,7 @@ class WP_Plugin_Dependencies {
 			array()
 		);
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 		foreach ( self::$dependencies as $dependent => $dependencies ) {
 			// Skip dependents that are no longer installed or aren't active.
 			if ( ! array_key_exists( $dependent, self::$plugins ) || is_plugin_inactive( $dependent ) ) {
