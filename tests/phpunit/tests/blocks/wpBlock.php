@@ -59,6 +59,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 * @ticket 59797
 	 */
 	public function test_constructor_assigns_block_type_from_registry() {
 		$block_type_settings = array(
@@ -83,6 +84,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 					'default' => 10,
 				),
 				'lock'      => array( 'type' => 'object' ),
+				'metadata'  => array( 'type' => 'object' ),
 			),
 			$block->block_type->attributes
 		);

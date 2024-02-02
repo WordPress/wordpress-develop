@@ -1147,17 +1147,6 @@ ul.cat-checklist {
 	overflow-y: scroll;
 }
 
-ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
-	content: '';
-	border-top: 2px solid grey;
-	width: 65%;
-	height: 2px;
-	position: absolute;
-	top: calc( 50% + 1px );
-	left: 50%;
-	transform: translate( -50%, -50% );
-}
-
 #bulk-titles .ntdelbutton,
 #bulk-titles .ntdeltitle,
 .inline-edit-row fieldset ul.cat-checklist label {
@@ -2152,6 +2141,11 @@ div.action-links,
 		display: block;
 		width: auto;
 		padding: 10px 9px; /* reset from other list tables that have a label at this width */
+	}
+
+	#wpbody-content .wp-list-table.plugins .plugin-deleted-tr td,
+	#wpbody-content .wp-list-table.plugins .no-items td {
+		display: table-cell;
 	}
 
 	/* Plugin description hidden via Screen Options */

@@ -615,6 +615,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$processor->add_class( $class_name );
 		}
 		return $processor->get_updated_html();
+	} elseif ( ! $block_supports_layout ) {
+		// Ensure layout classnames are not injected if there is no layout support.
+		return $block_content;
 	}
 
 	$global_settings = wp_get_global_settings();
@@ -638,7 +641,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * for features like the enhanced pagination of the Query block.
 	 */
 	$container_class = wp_unique_prefixed_id(
-		'wp-container-' . sanitize_title( $block['blockName'] ) . '-layout-'
+		'wp-container-' . sanitize_title( $block['blockName'] ) . '-is-layout-'
 	);
 
 	// Set the correct layout type for blocks using legacy content width.
@@ -796,12 +799,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	 * are still present in the wrapper as they are in this example. Frequently, additional classes
 	 * will also be present; rarely should classes be removed.
 	 *
-	 * @TODO: Find a better way to match the first inner block. If it's possible to identify where the
-	 *        first inner block starts, then it will be possible to find the last tag before it starts
-	 *        and then that tag, if an opening tag, can be solidly identified as a wrapping element.
-	 *        Can some unique value or class or ID be added to the inner blocks when they process
-	 *        so that they can be extracted here safely without guessing? Can the block rendering function
-	 *        return information about where the rendered inner blocks start?
+	 * @todo Find a better way to match the first inner block. If it's possible to identify where the
+	 *       first inner block starts, then it will be possible to find the last tag before it starts
+	 *       and then that tag, if an opening tag, can be solidly identified as a wrapping element.
+	 *       Can some unique value or class or ID be added to the inner blocks when they process
+	 *       so that they can be extracted here safely without guessing? Can the block rendering function
+	 *       return information about where the rendered inner blocks start?
 	 *
 	 * @var string|null
 	 */
@@ -834,7 +837,8 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			break;
 		}
 
-		if ( false !== strpos( $processor->get_attribute( 'class' ), $inner_block_wrapper_classes ) ) {
+		$class_attribute = $processor->get_attribute( 'class' );
+		if ( is_string( $class_attribute ) && str_contains( $class_attribute, $inner_block_wrapper_classes ) ) {
 			break;
 		}
 	} while ( $processor->next_tag() );
@@ -883,17 +887,45 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$replace_regex   = sprintf(
+	/*
+	 * This filter runs after the layout classnames have been added to the block, so they
+	 * have to be removed from the outer wrapper and then added to the inner.
+	 */
+	$layout_classes = array();
+	$processor      = new WP_HTML_Tag_Processor( $block_content );
+
+	if ( $processor->next_tag( array( 'class_name' => 'wp-block-group' ) ) ) {
+		foreach ( $processor->class_list() as $class_name ) {
+			if ( str_contains( $class_name, 'is-layout-' ) ) {
+				$layout_classes[] = $class_name;
+				$processor->remove_class( $class_name );
+			}
+		}
+	}
+
+	$content_without_layout_classes = $processor->get_updated_html();
+	$replace_regex                  = sprintf(
 		'/(^\s*<%1$s\b[^>]*wp-block-group[^>]*>)(.*)(<\/%1$s>\s*$)/ms',
 		preg_quote( $tag_name, '/' )
 	);
-	$updated_content = preg_replace_callback(
+	$updated_content                = preg_replace_callback(
 		$replace_regex,
 		static function ( $matches ) {
 			return $matches[1] . '<div class="wp-block-group__inner-container">' . $matches[2] . '</div>' . $matches[3];
 		},
-		$block_content
+		$content_without_layout_classes
 	);
+
+	// Add layout classes to inner wrapper.
+	if ( ! empty( $layout_classes ) ) {
+		$processor = new WP_HTML_Tag_Processor( $updated_content );
+		if ( $processor->next_tag( array( 'class_name' => 'wp-block-group__inner-container' ) ) ) {
+			foreach ( $layout_classes as $class_name ) {
+				$processor->add_class( $class_name );
+			}
+		}
+		$updated_content = $processor->get_updated_html();
+	}
 	return $updated_content;
 }
 

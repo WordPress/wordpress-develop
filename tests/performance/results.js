@@ -8,8 +8,12 @@ const { join } = require( 'node:path' );
 const { median, getResultsFilename } = require( './utils' );
 
 const testSuites = [
+    'admin',
+    'admin-l10n',
     'home-classic-theme',
+    'home-classic-theme-l10n',
     'home-block-theme',
+    'home-block-theme-l10n',
 ];
 
 console.log( '\n>> 🎉 Results 🎉 \n' );

@@ -2,9 +2,9 @@
 Contributors: wordpressdotorg
 Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
 Requires at least: 4.7
-Tested up to: 6.3
+Tested up to: 6.4
 Requires PHP: 5.2.4
-Stable tag: 2.6
+Stable tag: 2.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,7 +25,7 @@ For more information about Twenty Nineteen please go to https://wordpress.org/do
 
 == Copyright ==
 
-Twenty Nineteen WordPress Theme, Copyright 2018-2023 WordPress.org
+Twenty Nineteen WordPress Theme, Copyright 2018-2024 WordPress.org
 Twenty Nineteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 == Changelog ==
+
+= 2.7 =
+* Released: November 7, 2023
+
+https://codex.wordpress.org/Twenty_Nineteen_Theme_Changelog#Version_2.7
 
 = 2.6 =
 * Released: August 8, 2023
@@ -127,7 +132,7 @@ Initial release
 
 == Resources ==
 * normalize.css, © 2012-2018 Nicolas Gallagher and Jonathan Neal, MIT
-* Underscores, © 2012-2023 Automattic, Inc., GNU GPL v2 or later
+* Underscores, © 2012-2024 Automattic, Inc., GNU GPL v2 or later
 * Bundled block pattern images:
 	* Abstract Background by HD Wallpapers, CC0. https://stocksnap.io/photo/abstract-background-0SRRVNMKBX
 	* Abstract Waves by HD Wallpapers, CC0. https://stocksnap.io/photo/abstract-waves-0KREGLTZQ3
