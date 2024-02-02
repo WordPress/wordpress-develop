@@ -922,7 +922,7 @@ final class WP_Post_Type {
 			return null;
 		}
 
-		if ( 'attachment' === $this->name ) {
+		if ( in_array( $this->name, array( 'attachment', 'wp_global_styles' ), true ) ) {
 			return null;
 		}
 

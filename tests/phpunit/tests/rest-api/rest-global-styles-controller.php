@@ -225,7 +225,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			// Themes deep in subdirectories.
 			'2 subdirectories deep'  => array(
 				'theme_dirname' => 'subdir/subsubdir/mytheme',
-				'expected'      => 'rest_post_invalid_id',
+				'expected'      => 'rest_global_styles_not_found',
 			),
 		);
 	}
@@ -322,7 +322,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+		$this->assertErrorResponse( 'rest_global_styles_not_found', $response, 404 );
 	}
 
 	/**
@@ -431,7 +431,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+		$this->assertErrorResponse( 'rest_global_styles_not_found', $response, 404 );
 	}
 
 	/**
