@@ -242,7 +242,7 @@ class WP_Plugin_Dependencies {
 		$dependent_names = array();
 
 		if ( empty( self::$plugins ) ) {
-			self::$plugins = get_plugins();
+			self::$plugins = self::get_plugins();
 		}
 
 		$slug = self::convert_to_slug( $plugin_file );
