@@ -39,7 +39,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 			 * Adds a filter to process the root interactive block once it has
 			 * finished rendering.
 			 */
-			$process_interactive_blocks = static function ( $content, $parsed_block ) use ( &$root_interactive_block, &$process_interactive_blocks ) {
+			$process_interactive_blocks = static function ( string $content, array $parsed_block ) use ( &$root_interactive_block, &$process_interactive_blocks ): string {
 				// Checks whether the current block is the root interactive block.
 				list($root_block_name, $root_block_md5) = $root_interactive_block;
 				if ( $root_block_name === $parsed_block['blockName'] && md5( serialize( $parsed_block ) ) === $root_block_md5 ) {
