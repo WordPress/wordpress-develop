@@ -453,14 +453,14 @@ final class WP_Autoload {
 	 */
 	public static function register() {
 		// Bail early if already registered.
-		if ( static::$registered ) {
+		if ( self::$registered ) {
 			return;
 		}
 
-		static::register_external_bundled();
-		static::register_core();
+		self::register_external_bundled();
+		self::register_core();
 
-		static::$registered = true;
+		self::$registered = true;
 	}
 
 	/**
@@ -496,7 +496,7 @@ final class WP_Autoload {
 
 		// Bail early if the class is not a WP class.
 		// Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
-		if ( empty( static::CLASSES_PATHS[ $class_name ] ) ) {
+		if ( empty( self::CLASSES_PATHS[ $class_name ] ) ) {
 			return false;
 		}
 
@@ -505,10 +505,10 @@ final class WP_Autoload {
 		 * to ensure that constants are defined.
 		 */
 		if ( str_starts_with( $class_name, 'simplepie' ) ) {
-			require_once ABSPATH . static::CLASSES_PATHS['simplepie'];
+			require_once ABSPATH . self::CLASSES_PATHS['simplepie'];
 		}
 
-		require_once ABSPATH . static::CLASSES_PATHS[ $class_name ];
+		require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
 		return true;
 	}
 }
