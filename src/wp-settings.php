@@ -379,6 +379,8 @@ require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
+require ABSPATH . WPINC . '/block-bindings/sources/post-meta.php';
+require ABSPATH . WPINC . '/block-bindings/sources/pattern.php';
 
 wp_script_modules()->add_hooks();
 wp_interactivity()->add_hooks();
