@@ -159,7 +159,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 						$indent_level = $tag_indent + 1;
 					}
 
-					$output .= str_repeat( $indent, $tag_indent ) . "<{$tag_name}>\n";
+					$namespace = $processor->get_namespace();
+					$namespace = $namespace === 'html' ? '' : "{$namespace} ";
+
+					$output .= str_repeat( $indent, $tag_indent ) . "<{$namespace}{$tag_name}>\n";
 
 					$attribute_names = $processor->get_attribute_names_with_prefix( '' );
 					if ( $attribute_names ) {
