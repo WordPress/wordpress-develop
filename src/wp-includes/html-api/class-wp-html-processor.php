@@ -422,25 +422,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Ensures internal accounting is maintained for HTML semantic rules while
-	 * the underlying Tag Processor class is seeking to a bookmark.
+	 * Advances to the next token in the document.
 	 *
-	 * This doesn't currently have a way to represent non-tags and doesn't process
-	 * semantic rules for text nodes. For access to the raw tokens consider using
-	 * WP_HTML_Tag_Processor instead.
+	 * @since 6.5.0
 	 *
-	 * @since 6.5.0 Added for internal support; do not use.
-	 *
-	 * @access private
-	 *
-	 * @return bool
+	 * @return bool Whether a token was found.
 	 */
 	public function next_token() {
-		$found_a_token = parent::next_token();
-
-		$this->step( self::PROCESS_CURRENT_NODE );
-
-		return $found_a_token;
+		return $this->step();
 	}
 
 	/**
@@ -501,7 +490,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Steps through the HTML document and stop at the next tag, if any.
+	 * Steps through the HTML document and stop at the next token, if any.
 	 *
 	 * @since 6.4.0
 	 *
@@ -511,7 +500,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see self::REPROCESS_CURRENT_NODE
 	 *
 	 * @param string $node_to_process Whether to parse the next node or reprocess the current node.
-	 * @return bool Whether a tag was matched.
+	 * @return bool Whether a token was matched.
 	 */
 	public function step( $node_to_process = self::PROCESS_NEXT_NODE ) {
 		// Refuse to proceed if there was a previous error.
