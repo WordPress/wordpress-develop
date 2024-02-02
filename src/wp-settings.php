@@ -586,7 +586,11 @@ if ( ! empty( $failed_plugins ) ) {
 	add_action(
 		'admin_notices',
 		function () use ( $failed_plugins ) {
-			echo implode( '', $failed_plugins );
+			global $pagenow;
+
+			if ( 'index.php' === $pagenow || 'plugins.php' === $pagenow ) {
+				echo implode( '', $failed_plugins );
+			}
 		}
 	);
 }
