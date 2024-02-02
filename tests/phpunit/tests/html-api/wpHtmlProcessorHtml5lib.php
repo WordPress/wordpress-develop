@@ -203,7 +203,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					break;
 
 				default:
-					throw new Error( "Unhandled token type for tree construction: {$processor->get_token_type()}" );
+					$serialized_token_type = var_export( $processor->get_token_type(), true );
+					throw new Error( "Unhandled token type for tree construction: {$serialized_token_type}" );
 			}
 		}
 
