@@ -101,18 +101,18 @@
  *
  *  - Containers: ADDRESS, BLOCKQUOTE, DETAILS, DIALOG, DIV, FOOTER, HEADER, MAIN, MENU, SPAN, SUMMARY.
  *  - Custom elements: All custom elements are supported. :)
- *  - Form elements: BUTTON, DATALIST, FIELDSET, LABEL, LEGEND, METER, PROGRESS, SEARCH.
+ *  - Form elements: BUTTON, DATALIST, FIELDSET, INPUT, LABEL, LEGEND, METER, PROGRESS, SEARCH.
  *  - Formatting elements: B, BIG, CODE, EM, FONT, I, PRE, SMALL, STRIKE, STRONG, TT, U, WBR.
  *  - Heading elements: H1, H2, H3, H4, H5, H6, HGROUP.
  *  - Links: A.
- *  - Lists: DD, DL, DT, LI, OL, LI.
- *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, VIDEO.
+ *  - Lists: DD, DL, DT, LI, OL, UL.
+ *  - Media elements: AUDIO, CANVAS, EMBED, FIGCAPTION, FIGURE, IMG, MAP, PICTURE, SOURCE, TRACK, VIDEO.
  *  - Paragraph: BR, P.
- *  - Phrasing elements: AREA, ABBR, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
+ *  - Phrasing elements: ABBR, AREA, BDI, BDO, CITE, DATA, DEL, DFN, INS, MARK, OUTPUT, Q, SAMP, SUB, SUP, TIME, VAR.
  *  - Sectioning elements: ARTICLE, ASIDE, HR, NAV, SECTION.
  *  - Templating elements: SLOT.
  *  - Text decoration: RUBY.
- *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, KEYGEN, LISTING, MULTICOL, NEXTID, SPACER.
+ *  - Deprecated elements: ACRONYM, BLINK, CENTER, DIR, ISINDEX, KEYGEN, LISTING, MULTICOL, NEXTID, PARAM, SPACER.
  *
  * ### Supported markup
  *
@@ -148,17 +148,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @var int
 	 */
 	const MAX_BOOKMARKS = 100;
-
-	/**
-	 * Static query for instructing the Tag Processor to visit every token.
-	 *
-	 * @access private
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var array
-	 */
-	const VISIT_EVERYTHING = array( 'tag_closers' => 'visit' );
 
 	/**
 	 * Holds the working state of the parser, including the stack of
@@ -425,6 +414,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Ensures internal accounting is maintained for HTML semantic rules while
+	 * the underlying Tag Processor class is seeking to a bookmark.
+	 *
+	 * This doesn't currently have a way to represent non-tags and doesn't process
+	 * semantic rules for text nodes. For access to the raw tokens consider using
+	 * WP_HTML_Tag_Processor instead.
+	 *
+	 * @since 6.5.0 Added for internal support; do not use.
+	 *
+	 * @access private
+	 *
+	 * @return bool
+	 */
+	public function next_token() {
+		$found_a_token = parent::next_token();
+
+		if ( '#tag' === $this->get_token_type() ) {
+			$this->step( self::PROCESS_CURRENT_NODE );
+		}
+
+		return $found_a_token;
+	}
+
+	/**
 	 * Indicates if the currently-matched tag matches the given breadcrumbs.
 	 *
 	 * A "*" represents a single tag wildcard, where any tag matches, but not no tags.
@@ -500,7 +513,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
+		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
 			/*
 			 * Void elements still hop onto the stack of open elements even though
 			 * there's no corresponding closing tag. This is important for managing
@@ -519,8 +532,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if ( $top_node && self::is_void( $top_node->node_name ) ) {
 				$this->state->stack_of_open_elements->pop();
 			}
+		}
 
-			parent::next_tag( self::VISIT_EVERYTHING );
+		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
+			while ( parent::next_token() && '#tag' !== $this->get_token_type() ) {
+				continue;
+			}
 		}
 
 		// Finish stepping when there are no more tokens in the document.
@@ -973,6 +990,23 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > A start tag whose tag name is "input"
+			 */
+			case '+INPUT':
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				$type_attribute = $this->get_attribute( 'type' );
+				/*
+				 * > If the token does not have an attribute with the name "type", or if it does,
+				 * > but that attribute's value is not an ASCII case-insensitive match for the
+				 * > string "hidden", then: set the frameset-ok flag to "not ok".
+				 */
+				if ( ! is_string( $type_attribute ) || 'hidden' !== strtolower( $type_attribute ) ) {
+					$this->state->frameset_ok = false;
+				}
+				return true;
+
+			/*
 			 * > A start tag whose tag name is "hr"
 			 */
 			case '+HR':
@@ -981,6 +1015,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
+				return true;
+
+			/*
+			 * > A start tag whose tag name is one of: "param", "source", "track"
+			 */
+			case '+PARAM':
+			case '+SOURCE':
+			case '+TRACK':
+				$this->insert_html_element( $this->state->current_token );
 				return true;
 		}
 
@@ -1015,7 +1058,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'HEAD':
 			case 'HTML':
 			case 'IFRAME':
-			case 'INPUT':
 			case 'LINK':
 			case 'MARQUEE':
 			case 'MATH':
@@ -1027,7 +1069,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'OBJECT':
 			case 'OPTGROUP':
 			case 'OPTION':
-			case 'PARAM':
 			case 'PLAINTEXT':
 			case 'RB':
 			case 'RP':
@@ -1036,7 +1077,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'SARCASM':
 			case 'SCRIPT':
 			case 'SELECT':
-			case 'SOURCE':
 			case 'STYLE':
 			case 'SVG':
 			case 'TABLE':
@@ -1049,7 +1089,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case 'THEAD':
 			case 'TITLE':
 			case 'TR':
-			case 'TRACK':
 			case 'XMP':
 				$this->last_error = self::ERROR_UNSUPPORTED;
 				throw new WP_HTML_Unsupported_Exception( "Cannot process {$tag_name} element." );
@@ -1712,8 +1751,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			'HR' === $tag_name ||
 			'IMG' === $tag_name ||
 			'INPUT' === $tag_name ||
-			'LINK' === $tag_name ||
 			'KEYGEN' === $tag_name || // Obsolete but still treated as void.
+			'LINK' === $tag_name ||
 			'META' === $tag_name ||
 			'PARAM' === $tag_name || // Obsolete but still treated as void.
 			'SOURCE' === $tag_name ||
@@ -1743,6 +1782,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @var string
 	 */
 	const REPROCESS_CURRENT_NODE = 'reprocess-current-node';
+
+	/**
+	 * Indicates that the current HTML token should be processed without advancing the parser.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var string
+	 */
+	const PROCESS_CURRENT_NODE = 'process-current-node';
 
 	/**
 	 * Indicates that the parser encountered unsupported markup and has bailed.
