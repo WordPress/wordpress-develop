@@ -57,8 +57,8 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 			$source_one_name         => array_merge( array( 'name' => $source_one_name ), $source_one_properties ),
 			$source_two_name         => array_merge( array( 'name' => $source_two_name ), $source_two_properties ),
 			$source_three_name       => array_merge( array( 'name' => $source_three_name ), $source_three_properties ),
-			'core/post-meta'         => get_registered_block_bindings_source( 'core/post-meta'),
-			'core/pattern-overrides' => get_registered_block_bindings_source( 'core/pattern-overrides'),
+			'core/post-meta'         => get_registered_block_bindings_source( 'core/post-meta' ),
+			'core/pattern-overrides' => get_registered_block_bindings_source( 'core/pattern-overrides' ),
 		);
 
 		$registered = get_all_registered_block_bindings_sources();
