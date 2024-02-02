@@ -547,17 +547,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			! $adjusted_current_node ||
 			'html' === $adjusted_current_node->namespace ||
 			(
-				'mathml' === $adjusted_current_node->integration_node_type &&
+				'math' === $adjusted_current_node->integration_node_type &&
 				! $this->is_tag_closer() &&
 				'MGLYPH' !== $token_name &&
 				'MALIGNMARK' !== $token_name
 			) ||
 			(
-				'mathml' === $adjusted_current_node->integration_node_type &&
+				'math' === $adjusted_current_node->integration_node_type &&
 				'#text' === $token_name
 			) ||
 			(
-				'mathml' === $adjusted_current_node->integration_node_type &&
+				'math' === $adjusted_current_node->integration_node_type &&
 				'ANNOTATION-XML' === $adjusted_current_node->node_name &&
 				! $this->is_tag_closer() &&
 				'SVG' === $token_name
@@ -1361,11 +1361,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			) {
 				$this->state->current_token->integration_node_type = 'html';
 			} elseif (
-				'mathml' === $current_node->namespace &&
+				'math' === $current_node->namespace &&
 				( 'MI' === $tag_name || 'MO' === $tag_name || 'MN' === $tag_name || 'MS' === $tag_name || 'MTEXT' === $tag_name )
 			) {
-				$this->state->current_token->integration_node_type = 'mathml';
-			} elseif ( 'mathml' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
+				$this->state->current_token->integration_node_type = 'math';
+			} elseif ( 'math' === $current_node->namespace && 'ANNOTATION-XML' === $tag_name ) {
 				$encoding = $this->get_attribute( 'encoding' );
 
 				if ( is_string( $encoding ) ) {
@@ -1911,7 +1911,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function is_mathml_integration_point() {
 		$token = $this->state->current_token;
 
-		if ( 'mathml' !== $token->namespace || 'M' !== $token->node_name[0] ) {
+		if ( 'math' !== $token->namespace || 'M' !== $token->node_name[0] ) {
 			return false;
 		}
 
@@ -1958,7 +1958,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			);
 		}
 
-		if ( 'mathml' === $token->namespace ) {
+		if ( 'math' === $token->namespace ) {
 			if ( 'ANNOTATION-XML' !== $tag_name ) {
 				return false;
 			}
