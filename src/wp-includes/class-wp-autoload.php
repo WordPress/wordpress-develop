@@ -505,10 +505,10 @@ final class WP_Autoload {
 		 * to ensure that constants are defined.
 		 */
 		if ( str_starts_with( $class_name, 'simplepie' ) ) {
-			require_once ABSPATH . static::CLASSES_PATHS['simplepie'];
+			require ABSPATH . static::CLASSES_PATHS['simplepie'];
 		}
 
-		require_once ABSPATH . static::CLASSES_PATHS[ $class_name ];
+		require ABSPATH . static::CLASSES_PATHS[ $class_name ];
 		return true;
 	}
 }
