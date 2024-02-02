@@ -42,7 +42,9 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string   $source_name       The name of the source.
+	 * @param string   $source_name       The name of the source. It must be a string containing a namespace prefix, i.e.
+	 *                                    `my-plugin/my-custom-source`. It must only contain lowercase alphanumeric
+	 *                                    characters, the forward slash `/` and dashes.
 	 * @param array    $source_properties {
 	 *     The array of arguments that are used to register a source.
 	 *
@@ -116,7 +118,7 @@ final class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @param string $source_name Block bindings source name including namespace.
-	 * @return array|false The unregistred block bindings source on success and `false` otherwise.
+	 * @return array|false The unregistered block bindings source on success and `false` otherwise.
 	 */
 	public function unregister( $source_name ) {
 		if ( ! $this->is_registered( $source_name ) ) {

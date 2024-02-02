@@ -20,4 +20,7 @@ msgid_plural "plural1 with context"
 msgstr[0] "translation0 with context"
 msgstr[1] "translation1 with context"
 
-
+msgid "Product"
+msgid_plural "Products"
+msgstr[0] "Produkt"
+msgstr[1] "Produkte"
