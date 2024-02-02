@@ -2130,6 +2130,86 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Runs the reset the insertion mode appropriately algorithm.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encoutering unsupported nodes.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately
+	 */
+	private function reset_insertion_mode() {
+		foreach ( $this->state->stack_of_open_elements->walk_up() as $node ) {
+			switch ( $node->node_name ) {
+				case 'SELECT':
+					foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
+						switch ( $ancestor ) {
+							// > If ancestor is a table node, switch the insertion mode to "in select in table" and return.
+							case 'TABLE':
+								$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
+								return;
+							// > If ancestor is a template node, jump to the step below labeled done.
+							case 'TEMPLATE':
+								break 2;
+						}
+					}
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
+					return;
+
+				case 'TD':
+				case 'TH':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CELL;
+					return;
+
+				case 'TR':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
+					return;
+
+				case 'TBODY':
+				case 'THEAD':
+				case 'TFOOT':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
+					return;
+
+				case 'CAPTION':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION;
+					return;
+
+				case 'COLGROUP':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP;
+					return;
+
+				case 'TABLE':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
+					return;
+
+				case 'TEMPLATE':
+					$this->last_error = self::ERROR_UNSUPPORTED;
+					throw new WP_HTML_Unsupported_Exception( 'Cannot reset insertion mode at TEMPLATE node.' );
+
+				case 'HEAD':
+					$this->last_error = self::ERROR_UNSUPPORTED;
+					throw new WP_HTML_Unsupported_Exception( 'Cannot reset insertion mode at HEAD node.' );
+
+				case 'BODY':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+					return;
+
+				case 'FRAMESET':
+					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET;
+					return;
+
+				case 'HTML':
+					$this->last_error = self::ERROR_UNSUPPORTED;
+					throw new WP_HTML_Unsupported_Exception( 'Cannot reset insertion mode at HTML node.' );
+			}
+		}
+
+		$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_BODY;
+		return;
+	}
+
+	/**
 	 * Runs the adoption agency algorithm.
 	 *
 	 * @since 6.4.0
