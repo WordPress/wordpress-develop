@@ -487,7 +487,7 @@ final class WP_Autoload {
 	/**
 	 * Autoload a WordPress class.
 	 *
-	 * @param string $class Class name.
+	 * @param string $class_name Class name.
 	 * @return bool True if the class was loaded, false otherwise.
 	 */
 	public static function autoload_core( $class_name ) {
