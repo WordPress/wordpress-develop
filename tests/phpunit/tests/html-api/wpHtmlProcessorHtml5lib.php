@@ -138,13 +138,33 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		// Initially, assume we're 2 levels deep at: html > body > [position]
 		$indent_level = 2;
 		$indent       = '  ';
+		$text_buffer  = '';
 
 		while ( $processor->next_token() ) {
 			if ( ! is_null( $processor->get_last_error() ) ) {
 				return null;
 			}
 
+			// Flush out any text before moving on to another tag.
 			switch ( $processor->get_token_type() ) {
+				case '#cdata-section':
+				case '#text':
+					$text_buffer .= $processor->get_modifiable_text();
+					break;
+
+				default:
+					if ( 0 < strlen( $text_buffer ) ) {
+						$output     .= str_repeat( $indent, $indent_level ) . "\"{$text_buffer}\"\n";
+						$text_buffer = '';
+					}
+					break;
+			}
+
+			switch ( $processor->get_token_type() ) {
+				case '#cdata-section':
+				case '#text':
+					break;
+
 				case '#tag':
 					$tag_name = strtolower( $processor->get_tag() );
 
@@ -183,11 +203,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					break;
 
-				case '#cdata-section':
-				case '#text':
-					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
-					break;
-
 				case '#comment':
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
@@ -215,6 +230,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 		if ( $processor->paused_at_incomplete_token() ) {
 			return null;
+		}
+
+		if ( 0 < strlen( $text_buffer ) ) {
+			$output .= str_repeat( $indent, $indent_level ) . "\"{$text_buffer}\"\n";
 		}
 
 		// Tests always end with a trailing newline.
