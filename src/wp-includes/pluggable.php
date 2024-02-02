@@ -1415,6 +1415,10 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 
 		$location = wp_sanitize_redirect( $location );
 
+		if ( _wp_is_self_redirect( $location ) ) {
+			return false;
+		}
+
 		if ( ! $is_IIS && 'cgi-fcgi' !== PHP_SAPI ) {
 			status_header( $status ); // This causes problems on IIS and some FastCGI setups.
 		}
@@ -1626,9 +1630,50 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 
 		if ( isset( $lp['host'] ) && ( ! in_array( $lp['host'], $allowed_hosts, true ) && strtolower( $wpp['host'] ) !== $lp['host'] ) ) {
 			$location = $fallback_url;
+		} elseif ( _wp_is_self_redirect( $location ) ) {
+			$location = $fallback_url;
 		}
 
 		return $location;
+	}
+endif;
+
+if ( ! function_exists( '_wp_is_self_redirect' ) ) :
+	/**
+	 * checks whether the URL would cause a redirect loop
+	 *
+	 * @since 6.6.0
+	 *
+	 * @access private
+	 *
+	 * @param string $location     The redirect to validate.
+	 * @return bool whether the location is equal to the current request URL with identical request method
+	 */
+	function _wp_is_self_redirect( $location ) {
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+			return false;
+		}
+
+		// Allow redirects from http to https,
+		// but not the reverse, as this is a common redirect loop cause
+		if ( ! is_ssl() && substr( $location, 0, 5 ) === 'https' ) {
+			return false;
+		}
+
+		if ( ! isset( $_SERVER['HTTP_HOST'] ) ) {
+			return false;
+		}
+
+		if (
+			preg_match(
+				'#^(?>https?)?(?>:?//)?(?>' . preg_quote( wp_unslash( $_SERVER['HTTP_HOST'] ), '#' ) . ')?' . preg_quote( wp_unslash( $_SERVER['REQUEST_URI'] ), '#' ) . '$#',
+				$location
+			)
+		) {
+			return true;
+		}
+
+		return false;
 	}
 endif;
 
