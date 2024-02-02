@@ -7,6 +7,8 @@
  * @since 6.5.0
  */
 
+require_once ABSPATH . '/wp-admin/includes/plugin.php';
+
 /**
  * Core class for installing plugin dependencies.
  *
