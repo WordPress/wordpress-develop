@@ -491,7 +491,7 @@ final class WP_Autoload {
 	 * @return bool True if the class was loaded, false otherwise.
 	 */
 	public static function autoload_core( $class_name ) {
-		// Lowercase the classname to accomodate for WP classes written with wrong cases.
+		// Lowercase the classname to accommodate for WP classes written with wrong cases.
 		$class_name = strtolower( $class_name );
 
 		// Bail early if the class is not a WP class.
