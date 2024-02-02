@@ -361,6 +361,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	public function next_tag( $query = null ) {
 		if ( null === $query ) {
 			while ( $this->step() ) {
+				if ( '#tag' !== $this->get_token_type() ) {
+					continue;
+				}
+
 				if ( ! $this->is_tag_closer() ) {
 					return true;
 				}
@@ -384,6 +388,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( ! ( array_key_exists( 'breadcrumbs', $query ) && is_array( $query['breadcrumbs'] ) ) ) {
 			while ( $this->step() ) {
+				if ( '#tag' !== $this->get_token_type() ) {
+					continue;
+				}
+
 				if ( ! $this->is_tag_closer() ) {
 					return true;
 				}
@@ -430,9 +438,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	public function next_token() {
 		$found_a_token = parent::next_token();
 
-		if ( '#tag' === $this->get_token_type() ) {
-			$this->step( self::PROCESS_CURRENT_NODE );
-		}
+		$this->step( self::PROCESS_CURRENT_NODE );
 
 		return $found_a_token;
 	}
@@ -529,25 +535,32 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 *        is provided in the opening tag, otherwise it expects a tag closer.
 			 */
 			$top_node = $this->state->stack_of_open_elements->current_node();
-			if ( $top_node && self::is_void( $top_node->node_name ) ) {
+			if (
+				$top_node &&
+				(
+					self::is_void( $top_node->node_name ) ||
+					$top_node->node_name[0] < 'A' ||
+					$top_node->node_name[0] > 'Z'
+				)
+			) {
 				$this->state->stack_of_open_elements->pop();
 			}
 		}
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
-			while ( parent::next_token() && '#tag' !== $this->get_token_type() ) {
-				continue;
-			}
+			parent::next_token();
 		}
 
-		// Finish stepping when there are no more tokens in the document.
-		if ( null === $this->get_tag() ) {
+		if (
+			WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state ||
+			WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state
+		) {
 			return false;
 		}
 
 		$this->state->current_token = new WP_HTML_Token(
 			$this->bookmark_tag(),
-			$this->get_tag(),
+			$this->get_token_name(),
 			$this->is_tag_closer(),
 			$this->release_internal_bookmark_on_destruct
 		);
@@ -591,10 +604,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
 	 */
 	public function get_breadcrumbs() {
-		if ( ! $this->get_tag() ) {
-			return null;
-		}
-
 		$breadcrumbs = array();
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $stack_item ) {
 			$breadcrumbs[] = $stack_item->node_name;
@@ -619,11 +628,37 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function step_in_body() {
-		$tag_name = $this->get_tag();
-		$op_sigil = $this->is_tag_closer() ? '-' : '+';
-		$op       = "{$op_sigil}{$tag_name}";
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
 
 		switch ( $op ) {
+			case '#comment':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			case 'html':
+				// Ignore DOCTYPE declarations.
+				return $this->step();
+
+			case '#text':
+				$text_at     = $this->bookmarks[ $this->state->current_token->bookmark_name ]->start;
+				$text_length = $this->bookmarks[ $this->state->current_token->bookmark_name ]->length;
+
+				if ( 1 === $text_length && "\x00" === $this->html[ $text_at ] ) {
+					// Ignore this token.
+					return $this->step();
+				}
+
+				if ( strspn( $this->html, " \t\n\f\r", $text_at, $text_length ) !== $text_length ) {
+					$this->state->frameset_ok = false;
+				}
+
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
 			/*
 			 * > A start tag whose tag name is "button"
 			 */
@@ -1151,10 +1186,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|false Name of created bookmark, or false if unable to create.
 	 */
 	private function bookmark_tag() {
-		if ( ! $this->get_tag() ) {
-			return false;
-		}
-
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
 			throw new Exception( 'could not allocate bookmark' );
