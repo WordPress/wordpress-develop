@@ -1220,6 +1220,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * @todo …
+	 */
+	public function get_namespace() {
+		switch ( $this->parser_state ) {
+			case self::STATE_MATCHED_TAG:
+				return $this->state->current_token->namespace;
+			default:
+				return null;
+		}
+	}
+
+	/**
 	 * Parses next element in foreign content.
 	 *
 	 * This internal function performs the 'in foreign content' logic
