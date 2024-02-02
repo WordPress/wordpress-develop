@@ -80,7 +80,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			$this->markTestSkipped( self::SKIP_TESTS[ $this->dataName() ] );
 		}
 
-		$processed_tree = self::build_html5_treelike_string( $fragment_context, $html );
+		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
 			$this->markTestIncomplete( 'Test includes unsupported markup.' );
@@ -127,7 +127,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $html             Given test HTML.
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
-	public static function build_html5_treelike_string( $fragment_context, $html ) {
+	private static function build_tree_representation( $fragment_context, $html ) {
 		$processor = WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" );
 		if ( null === $processor ) {
 			return null;
