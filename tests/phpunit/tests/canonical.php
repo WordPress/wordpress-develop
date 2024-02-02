@@ -491,14 +491,19 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * @ticket 4463
 	 * @dataProvider data_test_redirect_pretty_search_results
 	 */
-	public function test_redirect_pretty_search_results( $input_url, $expected ) {
+	public function test_redirect_pretty_search_results( $input_url, $expected, $query ) {
 		$this->set_permalink_structure( '/%postname%/' );
 
+		// Go to the pretty search URL and check that it redirects to the expected URL.
 		$this->go_to( $input_url );
 		$this->assertSame(
 			sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $expected ),
 			redirect_canonical( sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $input_url ), false )
 		);
+
+		// Go to the redirected URL and check that the search query is set correctly.
+		$this->go_to( $expected );
+		$this->assertSame( get_query_var( 's' ), $query );
 	}
 
 	/**
@@ -514,22 +519,37 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			'simple search'                                => array(
 				'input_url' => '/search/hello',
 				'expected'  => '/?s=hello',
+				'query'     => 'hello',
 			),
 			'paged search'                                 => array(
 				'input_url' => '/search/hello/page/2',
 				'expected'  => '/?s=hello&paged=2',
+				'query'     => 'hello',
 			),
 			'feed search with both "feed" and "type" args' => array(
 				'input_url' => '/search/hello/feed/rss2',
 				'expected'  => '/?s=hello&feed=rss2',
+				'query'     => 'hello',
 			),
 			'feed search with only "type" arg'             => array(
 				'input_url' => '/search/hello/rss2',
 				'expected'  => '/?s=hello&feed=rss2',
+				'query'     => 'hello',
 			),
 			'feed search with only "feed" arg'             => array(
 				'input_url' => '/search/hello/feed',
 				'expected'  => '/?s=hello&feed=rss2',
+				'query'     => 'hello',
+			),
+			'paged feed search'                            => array(
+				'input_url' => '/search/hello/feed/rss2/page/2',
+				'expected'  => '/?s=hello&feed=rss2&paged=2',
+				'query'     => 'hello',
+			),
+			'search with encoded characters'               => array(
+				'input_url' => '/search/F%C3%BCnf%2Bbar/',
+				'expected'  => '/?s=F%C3%BCnf%2Bbar',
+				'query'     => 'Fünf bar',
 			),
 		);
 	}
