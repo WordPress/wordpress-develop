@@ -1344,12 +1344,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BR':
 			case '-P':
 				// @todo Indicate a parse error once it's possible.
-				while ( null !== ( $current_node = $this->state->stack_of_open_elements->current_node() ) ) {
-					if ( null === $current_node->integration_node_type || 'html' === $current_node->namespace ) {
-						break;
-					}
-
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				while ( $current_node && null === $current_node->integration_node_type && 'html' !== $current_node->namespace ) {
 					$this->state->stack_of_open_elements->pop();
+					$current_node = $this->state->stack_of_open_elements->current_node();
 				}
 
 				return $this->step( self::REPROCESS_CURRENT_NODE );
@@ -1362,8 +1360,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			// @todo Adjust foreign attributes; this probably should be done in get_attribute().
 
 			// @todo This is the adjusted current node, will it ever not be this?
-			$current_node = $this->state->stack_of_open_elements->current_node();
-			$this->state->current_token = $current_node->namespace;
+			$current_node                          = $this->state->stack_of_open_elements->current_node();
+			$this->state->current_token->namespace = $current_node->namespace;
+
+			if (
+				'svg' === $current_node->namespace &&
+				( 'DESC' === $tag_name || 'FOREIGNOBJECT' === $tag_name || 'TITLE' === $tag_name )
+			) {
+				$this->state->current_token->integration_node_type = 'html';
+			} elseif (
+				'mathml' === $current_node->namespace &&
+				( 'MI' === $tag_name || 'MO' === $tag_name || 'MN' === $tag_name || 'MS' === $tag_name || 'MTEXT' === $tag_name )
+			) {
+				$this->state->current_token->integration_node_type = 'mathml';
+			} elseif ( 'mathml' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
+				$encoding = $this->get_attribute( 'encoding' );
+
+				if ( is_string( $encoding ) ) {
+					$encoding = strtolower( $encoding );
+
+					if ( 'text/html' === $encoding || 'application/xhtml+xml' === $encoding ) {
+						$this->state->current_token->integration_node_type = 'html';
+					}
+				}
+			}
 
 			// @todo There should be a false `onlyAddToElementStack` parameter that does stuff.
 			$this->insert_html_element( $this->state->current_token );
@@ -1413,7 +1433,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				goto in_foreign_content_end_tag_loop;
 			}
 
-			return $this->step( self::REPROCESS_CURRENT_NODE );
+			return $this->step( self::PROCESS_CURRENT_NODE );
 		}
 	}
 
