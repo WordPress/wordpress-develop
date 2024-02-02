@@ -538,6 +538,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if (
 				$top_node &&
 				(
+					( 'html' !== $top_node->namespace && $top_node->has_self_closing_flag ) ||
 					self::is_void( $top_node->node_name ) ||
 					$top_node->node_name[0] < 'A' ||
 					$top_node->node_name[0] > 'Z'
@@ -558,14 +559,53 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
+		$token_name = $this->get_token_name();
+
 		$this->state->current_token = new WP_HTML_Token(
 			$this->bookmark_tag(),
-			$this->get_token_name(),
+			$token_name,
 			$this->is_tag_closer(),
 			$this->release_internal_bookmark_on_destruct
 		);
 
+		// @todo This is the context node in a fragment but it seems to be the same in practice.
+		$adjusted_current_node = $this->state->stack_of_open_elements->current_node();
+
 		try {
+			// @see https://html.spec.whatwg.org/#tree-construction-dispatcher
+			$parse_in_foreign_content = ! (
+				! $adjusted_current_node ||
+				'html' === $adjusted_current_node->namespace ||
+				(
+					'mathml' === $adjusted_current_node->integration_node_type &&
+					! $this->is_tag_closer() &&
+					'MGLYPH' !== $token_name &&
+					'MALIGNMARK' !== $token_name
+				) ||
+				(
+					'mathml' === $adjusted_current_node->integration_node_type &&
+					'#text' === $token_name
+				) ||
+				(
+					'mathml' === $adjusted_current_node->integration_node_type &&
+					'ANNOTATION-XML' === $adjusted_current_node->node_name &&
+					! $this->is_tag_closer() &&
+					'SVG' === $token_name
+				) ||
+				(
+					'html' === $adjusted_current_node->integration_node_type &&
+					! $this->is_tag_closer()
+				) ||
+				(
+					'html' === $adjusted_current_node->integration_node_type &&
+					'#text' === $token_name
+				)
+			);
+
+			if ( $parse_in_foreign_content ) {
+				return $this->step_in_foreign_content();
+			}
+
 			switch ( $this->state->insertion_mode ) {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
 					return $this->step_in_body();
@@ -1060,6 +1100,24 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+TRACK':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
+
+			/*
+			 * > A start tag whose tag name is "math"
+			 */
+			case '+MATH':
+				$this->reconstruct_active_formatting_elements();
+				$this->state->current_token->namespace = 'math';
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "svg"
+			 */
+			case '+SVG':
+				$this->reconstruct_active_formatting_elements();
+				$this->state->current_token->namespace = 'svg';
+				$this->insert_html_element( $this->state->current_token );
+				return true;
 		}
 
 		/*
@@ -1169,6 +1227,213 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return true;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Parses next element in foreign content.
+	 *
+	 * This internal function performs the 'in foreign content' logic
+	 * for the generalized WP_HTML_Processor::step() function. This is
+	 * not a distinct insertion mode.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see WP_HTML_Processor::step
+	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_foreign_content() {
+		$tag_name   = $this->get_token_name();
+		$token_type = $this->get_token_type();
+		$op_sigil   = '#tag' === $token_type ? ( $this->is_tag_closer() ? '-' : '+' ) : '';
+		$op         = "{$op_sigil}{$tag_name}";
+
+		/*
+		 * > A start tag whose name is "font", if the token has any attributes named "color", "face", or "size"
+		 */
+		if (
+			'+FONT' === $op &&
+			(
+				null !== $this->get_attribute( 'color' ) ||
+				null !== $this->get_attribute( 'face' ) ||
+				null !== $this->get_attribute( 'size' )
+			)
+		) {
+			// @todo Indicate a parse error once it's possible.
+			while ( null !== ( $current_node = $this->state->stack_of_open_elements->current_node() ) ) {
+				if ( null === $current_node->integration_node_type || 'html' === $current_node->namespace ) {
+					break;
+				}
+
+				$this->state->stack_of_open_elements->pop();
+			}
+
+			return $this->step( self::REPROCESS_CURRENT_NODE );
+		}
+
+		switch ( $op ) {
+			case '#comment':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			case 'html':
+				// Ignore DOCTYPE declarations.
+				return $this->step();
+
+			case '#text':
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "b", "big", "blockquote", "body", "br", "center",
+			 * > "code", "dd", "div", "dl", "dt", "em", "embed", "h1", "h2", "h3", "h4", "h5",
+			 * > "h6", "head", "hr", "i", "img", "li", "listing", "menu", "meta", "nobr", "ol",
+			 * > "p", "pre", "ruby", "s", "small", "span", "strong", "strike", "sub", "sup",
+			 * > "table", "tt", "u", "ul", "var"
+			 *
+			 * > An end tag whose tag name is "br", "p"
+			 */
+			case '+B':
+			case '+BIG':
+			case '+BLOCKQUOTE':
+			case '+BODY':
+			case '+BR':
+			case '+CENTER':
+			case '+CODE':
+			case '+DD':
+			case '+DIV':
+			case '+DL':
+			case '+DT':
+			case '+EM':
+			case '+EMBED':
+			case '+H1':
+			case '+H2':
+			case '+H3':
+			case '+H4':
+			case '+H5':
+			case '+H6':
+			case '+HEAD':
+			case '+HR':
+			case '+I':
+			case '+IMG':
+			case '+LI':
+			case '+LISTING':
+			case '+MENU':
+			case '+META':
+			case '+NOBR':
+			case '+OL':
+			case '+P':
+			case '+PRE':
+			case '+RUBY':
+			case '+S':
+			case '+SMALL':
+			case '+SPAN':
+			case '+STRONG':
+			case '+STRIKE':
+			case '+SUB':
+			case '+SUP':
+			case '+TABLE':
+			case '+TT':
+			case '+U':
+			case '+UL':
+			case '+VAR':
+			case '-BR':
+			case '-P':
+				// @todo Indicate a parse error once it's possible.
+				$current_node = $this->state->stack_of_open_elements->current_node();
+				while ( $current_node && null === $current_node->integration_node_type && 'html' !== $current_node->namespace ) {
+					$this->state->stack_of_open_elements->pop();
+					$current_node = $this->state->stack_of_open_elements->current_node();
+				}
+
+				return $this->step( self::REPROCESS_CURRENT_NODE );
+		}
+
+		/*
+		 * > Any other start tag
+		 */
+		if ( ! $this->is_tag_closer() ) {
+			// @todo Adjust foreign attributes; this probably should be done in get_attribute().
+
+			// @todo This is the adjusted current node, will it ever not be this?
+			$current_node                          = $this->state->stack_of_open_elements->current_node();
+			$this->state->current_token->namespace = $current_node->namespace;
+
+			if (
+				'svg' === $current_node->namespace &&
+				( 'DESC' === $tag_name || 'FOREIGNOBJECT' === $tag_name || 'TITLE' === $tag_name )
+			) {
+				$this->state->current_token->integration_node_type = 'html';
+			} elseif (
+				'mathml' === $current_node->namespace &&
+				( 'MI' === $tag_name || 'MO' === $tag_name || 'MN' === $tag_name || 'MS' === $tag_name || 'MTEXT' === $tag_name )
+			) {
+				$this->state->current_token->integration_node_type = 'mathml';
+			} elseif ( 'mathml' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
+				$encoding = $this->get_attribute( 'encoding' );
+
+				if ( is_string( $encoding ) ) {
+					$encoding = strtolower( $encoding );
+
+					if ( 'text/html' === $encoding || 'application/xhtml+xml' === $encoding ) {
+						$this->state->current_token->integration_node_type = 'html';
+					}
+				}
+			}
+
+			// @todo There should be a false `onlyAddToElementStack` parameter that does stuff.
+			$this->insert_html_element( $this->state->current_token );
+			return true;
+		}
+
+		/*
+		 * > An end tag whose name is "script", if the current node is an SVG script element.
+		 */
+		// @todo Does this rule matter here?
+
+		/*
+		 * > Any other end tag
+		 */
+		if ( $this->is_tag_closer() ) {
+			$node = $this->state->stack_of_open_elements->current_node();
+			if ( $tag_name !== $node->node_name ) {
+				// @todo Indicate a parse error once it's possible.
+			}
+			in_foreign_content_end_tag_loop:
+			if ( $node === $this->state->stack_of_open_elements->stack[0] ) {
+				// @todo should this return $this->step() instead?
+				return true;
+			}
+
+			/*
+			 * > If node's tag name, converted to ASCII lowercase, is the same as the tag name
+			 * > of the token, pop elements from the stack of open elements until node has
+			 * > been popped from the stack, and then return.
+			 */
+			if ( $node->node_name === $tag_name ) {
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+					$this->state->stack_of_open_elements->pop();
+					if ( $node === $item ) {
+						// @todo should this return $this->step() instead?
+						return true;
+					}
+				}
+			}
+
+			foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $item ) {
+				$node = $item;
+				break;
+			}
+
+			if ( 'html' !== $node->namespace ) {
+				goto in_foreign_content_end_tag_loop;
+			}
+
+			return $this->step( self::PROCESS_CURRENT_NODE );
 		}
 	}
 
@@ -1641,6 +1906,82 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/*
 	 * HTML Specification Helpers
 	 */
+
+	/**
+	 * Indicates if the current token is a MathML integration point.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @see https://html.spec.whatwg.org/#mathml-text-integration-point
+	 *
+	 * @return bool Whether the current token is a MathML integration point.
+	 */
+	private function is_mathml_integration_point() {
+		$token = $this->state->current_token;
+
+		if ( 'mathml' !== $token->namespace || 'M' !== $token->node_name[0] ) {
+			return false;
+		}
+
+		$tag_name = $token->node_name;
+
+		return (
+			'MI' === $tag_name ||
+			'MO' === $tag_name ||
+			'MN' === $tag_name ||
+			'MS' === $tag_name ||
+			'MTEXT' === $tag_name
+		);
+	}
+
+	/**
+	 * Indicates if the current token is an HTML integration point.
+	 *
+	 * Note that this method must be an instance method with access
+	 * to the current token, since it needs to examine the attributes
+	 * of the currently-matched tag, if it's in the MathML namespace.
+	 * Otherwise it would be required to scan the HTML and ensure that
+	 * no other accounting is overlooked.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @see https://html.spec.whatwg.org/#html-integration-point
+	 *
+	 * @return bool Whether the current token is an HTML integration point.
+	 */
+	private function is_html_integration_point() {
+		$token = $this->state->current_token;
+
+		if ( 'html' === $token->namespace ) {
+			return false;
+		}
+
+		$tag_name = $token->node_name;
+
+		if ( 'svg' === $token->namespace ) {
+			return (
+				'DESC' === $tag_name ||
+				'FOREIGNOBJECT' === $tag_name ||
+				'TITLE' === $tag_name
+			);
+		}
+
+		if ( 'mathml' === $token->namespace ) {
+			if ( 'ANNOTATION-XML' !== $tag_name ) {
+				return false;
+			}
+
+			$encoding = $this->get_attribute( 'encoding' );
+
+			return (
+				is_string( $encoding ) &&
+				(
+					0 === strcasecmp( $encoding, 'application/xhtml+xml' ) ||
+					0 === strcasecmp( $encoding, 'text/html' )
+				)
+			);
+		}
+	}
 
 	/**
 	 * Returns whether an element of a given name is in the HTML special category.
