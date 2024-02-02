@@ -184,4 +184,8 @@ class WP_HTML_Active_Formatting_Elements {
 			yield $this->stack[ $i ];
 		}
 	}
+
+	public function set_marker() {
+		$this->push( new WP_HTML_Token( null, 'marker', false ) );
+	}
 }
