@@ -1358,11 +1358,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			) {
 				$this->state->current_token->integration_node_type = 'html';
 			} elseif (
-				'mathml' === $current_node->namespace &&
+				'math' === $current_node->namespace &&
 				( 'MI' === $tag_name || 'MO' === $tag_name || 'MN' === $tag_name || 'MS' === $tag_name || 'MTEXT' === $tag_name )
 			) {
 				$this->state->current_token->integration_node_type = 'mathml';
-			} elseif ( 'mathml' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
+			} elseif ( 'math' === $current_node->namespace && 'ANNOTATION_XML' === $tag_name ) {
 				$encoding = $this->get_attribute( 'encoding' );
 
 				if ( is_string( $encoding ) ) {
@@ -1908,7 +1908,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function is_mathml_integration_point() {
 		$token = $this->state->current_token;
 
-		if ( 'mathml' !== $token->namespace || 'M' !== $token->node_name[0] ) {
+		if ( 'math' !== $token->namespace || 'M' !== $token->node_name[0] ) {
 			return false;
 		}
 
@@ -1955,7 +1955,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			);
 		}
 
-		if ( 'mathml' === $token->namespace ) {
+		if ( 'math' === $token->namespace ) {
 			if ( 'ANNOTATION-XML' !== $tag_name ) {
 				return false;
 			}
