@@ -624,22 +624,16 @@ class WP_Object_Cache {
 	}
 
 	/**
-	 * Echoes the stats of the caching.
-	 *
-	 * Gives the cache hits, and cache misses. Also prints every cached group,
-	 * key and the data.
+	 * Displays the number of cache hits and misses of the current request so far.
 	 *
 	 * @since 2.0.0
 	 */
 	public function stats() {
+		$hit_percentage = 0 === $this->cache_hits ? 0 : round( $this->cache_hits / ( $this->cache_hits + $this->cache_misses ) * 100, 2 );
 		echo '<p>';
-		echo "<strong>Cache Hits:</strong> {$this->cache_hits}<br />";
-		echo "<strong>Cache Misses:</strong> {$this->cache_misses}<br />";
+		echo "<strong>Cache Hits:</strong> {$this->cache_hits}<br>";
+		echo "<strong>Cache Misses:</strong> {$this->cache_misses}<br>";
+		echo "<strong>Hit Percentage:</strong> {$hit_percentage}%<br>";
 		echo '</p>';
-		echo '<ul>';
-		foreach ( $this->cache as $group => $cache ) {
-			echo '<li><strong>Group:</strong> ' . esc_html( $group ) . ' - ( ' . number_format( strlen( serialize( $cache ) ) / KB_IN_BYTES, 2 ) . 'k )</li>';
-		}
-		echo '</ul>';
 	}
 }
