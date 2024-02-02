@@ -830,7 +830,6 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							);
 						}
 					}
-
 				} else {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $compatible_php && $compatible_wp ) {
