@@ -183,6 +183,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 
 					break;
 
+				case '#cdata-section':
 				case '#text':
 					$output .= str_repeat( $indent, $indent_level ) . "\"{$processor->get_modifiable_text()}\"\n";
 					break;
@@ -191,6 +192,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					switch ( $processor->get_comment_type() ) {
 						case WP_HTML_Processor::COMMENT_AS_ABRUPTLY_CLOSED_COMMENT:
 						case WP_HTML_Processor::COMMENT_AS_HTML_COMMENT:
+						case WP_HTML_Processor::COMMENT_AS_INVALID_HTML:
 							$comment_text_content = $processor->get_modifiable_text();
 							break;
 
