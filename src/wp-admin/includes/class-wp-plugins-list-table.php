@@ -754,6 +754,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
 
+		$has_dependents         = WP_Plugin_Dependencies::has_dependents( $plugin_file );
 		$has_active_dependents  = WP_Plugin_Dependencies::has_active_dependents( $plugin_file );
 		$has_unmet_dependencies = WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file );
 
@@ -797,27 +798,57 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			}
 
 			if ( $screen->in_admin( 'network' ) ) {
-				if ( $is_active && false === $has_active_dependents ) {
+				if ( $is_active ) {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
-						$actions['deactivate'] = sprintf(
-							'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
-							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ),
-							esc_attr( $plugin_id_attr ),
-							/* translators: %s: Plugin name. */
-							esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
-							__( 'Network Deactivate' )
-						);
+						if ( $has_active_dependents ) {
+							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
+
+							$screen_reader_text = sprintf(
+								__( 'This plugin cannot be deactivated as %s depends on it.' ),
+								esc_html( array_shift( $dependent_names ) )
+							);
+
+							$actions['deactivate'] = __( 'Deactivate' ) .
+								'<span class="screen-reader-text">' .
+								$screen_reader_text .
+								'</span>';
+
+						} else {
+							$deactivate_url = 'plugins.php?action=deactivate' .
+								'&amp;plugin=' . urlencode( $plugin_file ) .
+								'&amp;plugin_status=' . $context .
+								'&amp;paged=' . $page .
+								'&amp;s=' . $s;
+
+							$actions['deactivate'] = sprintf(
+								'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
+								wp_nonce_url( $deactivate_url, 'deactivate-plugin_' . $plugin_file ),
+								esc_attr( $plugin_id_attr ),
+								/* translators: %s: Plugin name. */
+								esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
+								__( 'Network Deactivate' )
+							);
+						}
 					}
+
 				} else {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate']  = __( 'Network Activate' );
-								$actions['activate'] .= '<span class="screen-reader-text">' . __( 'Cannot activate due to unmet dependencies' ) . '</span>';
+								$actions['activate']  = __( 'Network Activate' ) .
+									'<span class="screen-reader-text">' .
+									__( 'This plugin cannot be activated as it has unmet dependencies.' ) .
+									'</span>';
 							} else {
+								$activate_url = 'plugins.php?action=activate' .
+									'&amp;plugin=' . urlencode( $plugin_file ) .
+									'&amp;plugin_status=' . $context .
+									'&amp;paged=' . $page .
+									'&amp;s=' . $s;
+
 								$actions['activate'] = sprintf(
 									'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s</a>',
-									wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
+									wp_nonce_url( $activate_url, 'activate-plugin_' . $plugin_file ),
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
@@ -832,15 +863,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						}
 					}
 
-					if ( current_user_can( 'delete_plugins' ) && false === $has_active_dependents && ! is_plugin_active( $plugin_file ) ) {
-						$actions['delete'] = sprintf(
-							'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
-							wp_nonce_url( 'plugins.php?action=delete-selected&amp;checked[]=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'bulk-plugins' ),
-							esc_attr( $plugin_id_attr ),
-							/* translators: %s: Plugin name. */
-							esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
-							__( 'Delete' )
-						);
+					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
+						if ( $has_dependents ) {
+							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
+
+							$screen_reader_text = sprintf(
+								__( 'This plugin cannot be deleted as %s depends on it.' ),
+								esc_html( array_shift( $dependent_names ) )
+							);
+
+							$actions['delete'] = __( 'Delete' ) .
+								'<span class="screen-reader-text">' .
+								$screen_reader_text .
+								'</span>';
+						} else {
+							$delete_url = 'plugins.php?action=delete-selected' .
+								'&amp;checked[]=' . urlencode( $plugin_file ) .
+								'&amp;plugin_status=' . $context .
+								'&amp;paged=' . $page .
+								'&amp;s=' . $s;
+
+							$actions['delete'] = sprintf(
+								'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
+								wp_nonce_url( $delete_url, 'bulk-plugins' ),
+								esc_attr( $plugin_id_attr ),
+								/* translators: %s: Plugin name. */
+								esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
+								__( 'Delete' )
+							);
+						}
 					}
 				}
 			} else {
@@ -853,21 +904,47 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						'network_only' => __( 'Network Only' ),
 					);
 				} elseif ( $is_active ) {
-					if ( current_user_can( 'deactivate_plugin', $plugin_file ) && false === $has_active_dependents ) {
-						$actions['deactivate'] = sprintf(
-							'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
-							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ),
-							esc_attr( $plugin_id_attr ),
-							/* translators: %s: Plugin name. */
-							esc_attr( sprintf( _x( 'Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
-							__( 'Deactivate' )
-						);
+					if ( current_user_can( 'deactivate_plugin', $plugin_file ) ) {
+						if ( $has_active_dependents ) {
+							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
+
+							$screen_reader_text = sprintf(
+								__( 'This plugin cannot be deactivated as %s depends on it.' ),
+								esc_html( array_shift( $dependent_names ) )
+							);
+
+							$actions['deactivate'] = __( 'Deactivate' ) .
+								'<span class="screen-reader-text">' .
+								$screen_reader_text .
+								'</span>';
+						} else {
+							$deactivate_url = 'plugins.php?action=deactivate' .
+								'&amp;plugin=' . urlencode( $plugin_file ) .
+								'&amp;plugin_status=' . $context .
+								'&amp;paged=' . $page .
+								'&amp;s=' . $s;
+
+							$actions['deactivate'] = sprintf(
+								'<a href="%s" id="deactivate-%s" aria-label="%s">%s</a>',
+								wp_nonce_url( $deactivate_url, 'deactivate-plugin_' . $plugin_file ),
+								esc_attr( $plugin_id_attr ),
+								/* translators: %s: Plugin name. */
+								esc_attr( sprintf( _x( 'Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
+								__( 'Deactivate' )
+							);
+						}
 					}
 
 					if ( current_user_can( 'resume_plugin', $plugin_file ) && is_plugin_paused( $plugin_file ) ) {
+						$resume_url = 'plugins.php?action=resume' .
+							'&amp;plugin=' . urlencode( $plugin_file ) .
+							'&amp;plugin_status=' . $context .
+							'&amp;paged=' . $page .
+							'&amp;s=' . $s;
+
 						$actions['resume'] = sprintf(
 							'<a href="%s" id="resume-%s" class="resume-link" aria-label="%s">%s</a>',
-							wp_nonce_url( 'plugins.php?action=resume&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'resume-plugin_' . $plugin_file ),
+							wp_nonce_url( $resume_url, 'resume-plugin_' . $plugin_file ),
 							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
 							esc_attr( sprintf( _x( 'Resume %s', 'plugin' ), $plugin_data['Name'] ) ),
@@ -878,12 +955,20 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate']  = __( 'Activate' );
-								$actions['activate'] .= '<span class="screen-reader-text">' . __( 'Cannot activate due to unmet dependencies' ) . '</span>';
+								$actions['activate']  = __( 'Activate' ) .
+									'<span class="screen-reader-text">' .
+									__( 'This plugin cannot be activated as it has unmet dependencies.' ) .
+									'</span>';
 							} else {
+								$activate_url = 'plugins.php?action=activate' .
+									'&amp;plugin=' . urlencode( $plugin_file ) .
+									'&amp;plugin_status=' . $context .
+									'&amp;paged=' . $page .
+									'&amp;s=' . $s;
+
 								$actions['activate'] = sprintf(
 									'<a href="%s" id="activate-%s" class="edit" aria-label="%s">%s</a>',
-									wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
+									wp_nonce_url( $activate_url, 'activate-plugin_' . $plugin_file ),
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
@@ -898,15 +983,35 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						}
 					}
 
-					if ( ! is_multisite() && current_user_can( 'delete_plugins' ) && false === $has_active_dependents ) {
-						$actions['delete'] = sprintf(
-							'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
-							wp_nonce_url( 'plugins.php?action=delete-selected&amp;checked[]=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'bulk-plugins' ),
-							esc_attr( $plugin_id_attr ),
-							/* translators: %s: Plugin name. */
-							esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
-							__( 'Delete' )
-						);
+					if ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
+						if ( $has_dependents ) {
+							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
+
+							$screen_reader_text = sprintf(
+								__( 'This plugin cannot be deleted as %s depends on it.' ),
+								esc_html( array_shift( $dependent_names ) )
+							);
+
+							$actions['delete'] = __( 'Delete' ) .
+								'<span class="screen-reader-text">' .
+								$screen_reader_text .
+								'</span>';
+						} else {
+							$delete_url = 'plugins.php?action=delete-selected' .
+								'&amp;checked[]=' . urlencode( $plugin_file ) .
+								'&amp;plugin_status=' . $context .
+								'&amp;paged=' . $page .
+								'&amp;s=' . $s;
+
+							$actions['delete'] = sprintf(
+								'<a href="%s" id="delete-%s" class="delete" aria-label="%s">%s</a>',
+								wp_nonce_url( $delete_url, 'bulk-plugins' ),
+								esc_attr( $plugin_id_attr ),
+								/* translators: %s: Plugin name. */
+								esc_attr( sprintf( _x( 'Delete %s', 'plugin' ), $plugin_data['Name'] ) ),
+								__( 'Delete' )
+							);
+						}
 					}
 				} // End if $is_active.
 			} // End if $screen->in_admin( 'network' ).
@@ -1003,15 +1108,21 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$checkbox_id = 'checkbox_' . md5( $plugin_file );
 		$disabled    = '';
 
-		if ( WP_Plugin_Dependencies::has_active_dependents( $plugin_file ) || WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file ) ) {
+		if ( $has_active_dependents || $has_unmet_dependencies ) {
 			$disabled = 'disabled';
 		}
 
-		if ( $restrict_network_active || $restrict_network_only || in_array( $status, array( 'mustuse', 'dropins' ), true ) || ! $compatible_php ) {
+		if (
+			$restrict_network_active ||
+			$restrict_network_only ||
+			in_array( $status, array( 'mustuse', 'dropins' ), true ) ||
+			! $compatible_php
+		) {
 			$checkbox = '';
 		} else {
 			$checkbox = sprintf(
-				'<label class="label-covers-full-cell" for="%1$s"><span class="screen-reader-text">%2$s</span></label>' .
+				'<label class="label-covers-full-cell" for="%1$s">' .
+				'<span class="screen-reader-text">%2$s</span></label>' .
 				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" ' . $disabled . '/>',
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
@@ -1025,8 +1136,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$plugin_name = $plugin_data['Name'];
 		}
 
-		if ( ! empty( $totals['upgrade'] ) && ! empty( $plugin_data['update'] )
-			|| ! $compatible_php || ! $compatible_wp
+		if (
+			! empty( $totals['upgrade'] ) &&
+			! empty( $plugin_data['update'] ) ||
+			! $compatible_php ||
+			! $compatible_wp
 		) {
 			$class .= ' update';
 		}
@@ -1075,15 +1189,19 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						<div class='$class second plugin-version-author-uri'>";
 
 					$plugin_meta = array();
+
 					if ( ! empty( $plugin_data['Version'] ) ) {
 						/* translators: %s: Plugin version number. */
 						$plugin_meta[] = sprintf( __( 'Version %s' ), $plugin_data['Version'] );
 					}
+
 					if ( ! empty( $plugin_data['Author'] ) ) {
 						$author = $plugin_data['Author'];
+
 						if ( ! empty( $plugin_data['AuthorURI'] ) ) {
 							$author = '<a href="' . $plugin_data['AuthorURI'] . '">' . $plugin_data['Author'] . '</a>';
 						}
+
 						/* translators: %s: Plugin author name. */
 						$plugin_meta[] = sprintf( __( 'By %s' ), $author );
 					}
@@ -1167,7 +1285,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					echo '</div>';
 
-					if ( WP_Plugin_Dependencies::has_dependents( $plugin_file ) ) {
+					if ( $has_dependents ) {
 						$this->add_dependents_to_dependency_plugin_row( $plugin_file );
 					}
 
@@ -1443,10 +1561,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		printf(
-			'<div class="required-by"><strong>%1$s</strong> %2$s</div>',
+			'<div class="required-by"><p><strong>%1$s</strong> %2$s</p></div>',
 			__( 'Required by:' ),
 			esc_html( implode( ' | ', $dependent_names ) )
 		);
+
+		echo '<div><p>';
+		_e( 'Note: this plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+		echo '</p></div>';
 	}
 
 	/**
@@ -1469,10 +1591,14 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		printf(
-			'<div class="requires"><strong>%1$s</strong> %2$s</div>',
+			'<div class="requires"><p><strong>%1$s</strong> %2$s</p></div>',
 			__( 'Requires:' ),
 			implode( ' | ', $links )
 		);
+
+		echo '<div><p>';
+		_e( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
+		echo '</p></div>';
 	}
 
 	/**
