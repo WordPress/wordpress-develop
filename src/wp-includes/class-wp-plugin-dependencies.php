@@ -771,6 +771,10 @@ class WP_Plugin_Dependencies {
 			self::$plugin_dirnames       = array();
 			self::$plugin_dirnames_cache = self::$plugins;
 
+			if ( empty( self::$plugins ) ) {
+				self::get_plugins();
+			}
+
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
 				$slug                           = self::convert_to_slug( $plugin );
 				self::$plugin_dirnames[ $slug ] = $plugin;
