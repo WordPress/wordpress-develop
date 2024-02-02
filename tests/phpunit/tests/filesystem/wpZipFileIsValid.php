@@ -64,6 +64,8 @@ class Tests_Filesystem_WpZipFileIsValid extends WP_UnitTestCase {
 			'uncompressed zip'       => array( 'archive-uncompressed.zip', true ),
 			'crx zip'                => array( 'archive.crx', true ),
 			'macos generated zip'    => array( 'archive-macos.zip', true ),
+			'gnome generated zip'    => array( 'archive-gnome.zip', true ),
+			'ubuntu nautilus zip'    => array( 'archive-ubuntu-nautilus.zip', true ),
 
 			'invalid zip file'       => array( 'archive-invalid.zip', false ),
 			'invalid file extension' => array( 'archive-invalid-ext.md', false ),
