@@ -503,7 +503,7 @@ final class WP_Autoload {
 		 * SimplePie classes should additionally load the `wp-includes/class-simplepie.php` file
 		 * to ensure that constants are defined.
 		 */
-		if ( 0 === strpos( $class_name, 'simplepie' ) ) {
+		if ( str_starts_with( $class_name, 'simplepie' ) ) {
 			require_once ABSPATH . static::CLASSES_PATHS['simplepie'];
 		}
 
