@@ -148,14 +148,16 @@ class WP_Interactivity_API {
 	 * @since 6.5.0
 	 */
 	public function register_script_modules() {
+		$suffix = wp_scripts_get_suffix();
+
 		wp_register_script_module(
 			'@wordpress/interactivity',
-			includes_url( 'js/dist/interactivity.min.js' )
+			includes_url( "js/dist/interactivity{$suffix}.js" )
 		);
 
 		wp_register_script_module(
 			'@wordpress/interactivity-router',
-			includes_url( 'js/dist/interactivity-router.min.js' ),
+			includes_url( "js/dist/interactivity-router{$suffix}.js" ),
 			array( '@wordpress/interactivity' )
 		);
 	}
