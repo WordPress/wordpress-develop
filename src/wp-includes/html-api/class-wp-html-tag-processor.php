@@ -1751,10 +1751,11 @@ class WP_HTML_Tag_Processor {
 						return false;
 					}
 
-					$this->parser_state   = self::STATE_CDATA_NODE;
-					$this->text_starts_at = $at + 9;
-					$this->text_length    = $closer_at - $this->text_starts_at;
-					$this->token_length   = $closer_at + 3 - $this->token_starts_at;
+					$this->parser_state         = self::STATE_CDATA_NODE;
+					$this->text_starts_at       = $at + 9;
+					$this->text_length          = $closer_at - $this->text_starts_at;
+					$this->token_length         = $closer_at + 3 - $this->token_starts_at;
+					$this->bytes_already_parsed = $closer_at + 3;
 					return true;
 				}
 
