@@ -298,7 +298,7 @@ function wp_get_global_styles_custom_css() {
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
- * 
+ *
  * @global WP_Styles $wp_styles
  */
 function wp_add_global_styles_for_blocks() {
@@ -318,7 +318,7 @@ function wp_add_global_styles_for_blocks() {
 
 		/*
 		 * When `wp_should_load_separate_core_block_assets()` is true, block styles are
-		 * enqueued for each block on the page in class WP_Block's render function. 
+		 * enqueued for each block on the page in class WP_Block's render function.
 		 * This means there will be a handle in the styles queue for each of those blocks.
 		 * Block-specific global styles should be attached to the global-styles handle, but
 		 * only for blocks on the page, thus we check if the block's handle is in the queue
@@ -327,9 +327,9 @@ function wp_add_global_styles_for_blocks() {
 		 */
 		if ( isset( $metadata['name'] ) ) {
 			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
-				$block_name        = str_replace( 'core/', '', $metadata['name'] );
+				$block_name   = str_replace( 'core/', '', $metadata['name'] );
 				$block_handle = 'wp-block-' . $block_name;
-				if (in_array($block_handle, $wp_styles->queue)) {
+				if ( in_array( $block_handle, $wp_styles->queue ) ) {
 					wp_add_inline_style( $stylesheet_handle, $block_css );
 				}
 			} else {
@@ -342,9 +342,9 @@ function wp_add_global_styles_for_blocks() {
 			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
 			if ( $block_name ) {
 				if ( str_starts_with( $block_name, 'core/' ) ) {
-					$block_name        = str_replace( 'core/', '', $block_name );
+					$block_name   = str_replace( 'core/', '', $block_name );
 					$block_handle = 'wp-block-' . $block_name;
-					if (in_array($block_handle, $wp_styles->queue)) {
+					if ( in_array( $block_handle, $wp_styles->queue ) ) {
 						wp_add_inline_style( $stylesheet_handle, $block_css );
 					}
 				} else {
