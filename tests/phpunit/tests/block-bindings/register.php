@@ -17,15 +17,26 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	);
 
 	/**
+	 * Set up before each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function set_up() {
+		foreach ( get_all_registered_block_bindings_sources() as $source_name => $source_properties ) {
+			unregister_block_bindings_source( $source_name );
+		}
+
+		parent::set_up();
+	}
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 6.5.0
 	 */
 	public function tear_down() {
 		foreach ( get_all_registered_block_bindings_sources() as $source_name => $source_properties ) {
-			if ( str_starts_with( $source_name, 'test/' ) ) {
-				unregister_block_bindings_source( $source_name );
-			}
+			unregister_block_bindings_source( $source_name );
 		}
 
 		parent::tear_down();
