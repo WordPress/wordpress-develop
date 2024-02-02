@@ -523,22 +523,60 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 *        special since it's only self-closing if the self-closing flag
 			 *        is provided in the opening tag, otherwise it expects a tag closer.
 			 */
-			$top_node = $this->state->stack_of_open_elements->current_node();
+			$bottom_node = $this->state->stack_of_open_elements->current_node();
 			if (
-				$top_node &&
+				$bottom_node &&
 				(
-					( 'html' !== $top_node->namespace && $top_node->has_self_closing_flag ) ||
-					self::is_void( $top_node->node_name ) ||
-					$top_node->node_name[0] < 'A' ||
-					$top_node->node_name[0] > 'Z'
+					( 'html' !== $bottom_node->namespace && $bottom_node->has_self_closing_flag ) ||
+					self::is_void( $bottom_node->node_name ) ||
+					$bottom_node->node_name[0] < 'A' ||
+					$bottom_node->node_name[0] > 'Z'
 				)
 			) {
 				$this->state->stack_of_open_elements->pop();
 			}
 		}
 
+		$token_name = $this->get_token_name();
+
+		// @todo This is the context node in a fragment but it seems to be the same in practice.
+		$adjusted_current_node = $this->state->stack_of_open_elements->current_node();
+
+		// @see https://html.spec.whatwg.org/#tree-construction-dispatcher
+		$parse_in_foreign_content = ! (
+			! $adjusted_current_node ||
+			'html' === $adjusted_current_node->namespace ||
+			(
+				'mathml' === $adjusted_current_node->integration_node_type &&
+				! $this->is_tag_closer() &&
+				'MGLYPH' !== $token_name &&
+				'MALIGNMARK' !== $token_name
+			) ||
+			(
+				'mathml' === $adjusted_current_node->integration_node_type &&
+				'#text' === $token_name
+			) ||
+			(
+				'mathml' === $adjusted_current_node->integration_node_type &&
+				'ANNOTATION-XML' === $adjusted_current_node->node_name &&
+				! $this->is_tag_closer() &&
+				'SVG' === $token_name
+			) ||
+			(
+				'html' === $adjusted_current_node->integration_node_type &&
+				! $this->is_tag_closer()
+			) ||
+			(
+				'html' === $adjusted_current_node->integration_node_type &&
+				'#text' === $token_name
+			)
+		);
+
+		$this->is_inside_foreign_content = $parse_in_foreign_content;
+
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			parent::next_token();
+			$token_name = $this->get_token_name();
 		}
 
 		if (
@@ -548,8 +586,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$token_name = $this->get_token_name();
-
 		$this->state->current_token = new WP_HTML_Token(
 			$this->bookmark_tag(),
 			$token_name,
@@ -557,39 +593,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$this->release_internal_bookmark_on_destruct
 		);
 
-		// @todo This is the context node in a fragment but it seems to be the same in practice.
-		$adjusted_current_node = $this->state->stack_of_open_elements->current_node();
-
 		try {
-			// @see https://html.spec.whatwg.org/#tree-construction-dispatcher
-			$parse_in_foreign_content = ! (
-				! $adjusted_current_node ||
-				'html' === $adjusted_current_node->namespace ||
-				(
-					'mathml' === $adjusted_current_node->integration_node_type &&
-					! $this->is_tag_closer() &&
-					'MGLYPH' !== $token_name &&
-					'MALIGNMARK' !== $token_name
-				) ||
-				(
-					'mathml' === $adjusted_current_node->integration_node_type &&
-					'#text' === $token_name
-				) ||
-				(
-					'mathml' === $adjusted_current_node->integration_node_type &&
-					'ANNOTATION-XML' === $adjusted_current_node->node_name &&
-					! $this->is_tag_closer() &&
-					'SVG' === $token_name
-				) ||
-				(
-					'html' === $adjusted_current_node->integration_node_type &&
-					! $this->is_tag_closer()
-				) ||
-				(
-					'html' === $adjusted_current_node->integration_node_type &&
-					'#text' === $token_name
-				)
-			);
 
 			if ( $parse_in_foreign_content ) {
 				return $this->step_in_foreign_content();
@@ -1265,18 +1269,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			)
 		) {
 			// @todo Indicate a parse error once it's possible.
-			while ( null !== ( $current_node = $this->state->stack_of_open_elements->current_node() ) ) {
-				if ( null === $current_node->integration_node_type || 'html' === $current_node->namespace ) {
-					break;
-				}
-
+			$current_node = $this->state->stack_of_open_elements->current_node();
+			while ( $current_node && null === $current_node->integration_node_type && 'html' !== $current_node->namespace ) {
 				$this->state->stack_of_open_elements->pop();
+				$current_node = $this->state->stack_of_open_elements->current_node();
 			}
 
 			return $this->step( self::REPROCESS_CURRENT_NODE );
 		}
 
 		switch ( $op ) {
+			case '#cdata-section':
 			case '#comment':
 				$this->insert_html_element( $this->state->current_token );
 				return true;
