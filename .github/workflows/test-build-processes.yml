@@ -106,7 +106,8 @@ jobs:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
 
-  # Calls the Pull Request Commenting workflow to leave a comment detailing how to test the PR within WordPress Playground.
+  # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
+  # leave a comment detailing how to test the PR within WordPress Playground.
   playground-comment:
     name: Leave WordPress Playground details
     runs-on: ubuntu-latest
@@ -117,21 +118,16 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
 
     steps:
-      - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr-number
+          echo ${{ github.event.number }} > ./pr-number/NR
+
+      - name: Upload PR number as artifact
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
-          retries: 2
-          retry-exempt-status-codes: 418
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'pull-request-comments.yml',
-              ref: 'trunk',
-              inputs: {
-                pr_number: '${{ github.event.number }}'
-              }
-            });
+          name: pr-number
+          path: pr-number/
 
   slack-notifications:
     name: Slack Notifications
@@ -139,7 +135,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos, playground-comment ]
+    needs: [ test-core-build-process, test-core-build-process-macos, test-gutenberg-build-process, test-gutenberg-build-process-macos ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
@@ -154,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-    needs: [ playground-comment ]
+    needs: [ slack-notifications ]
     if: |
       always() &&
       github.repository == 'WordPress/wordpress-develop' &&
@@ -167,7 +163,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418
