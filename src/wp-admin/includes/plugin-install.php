@@ -895,6 +895,8 @@ function install_plugin_information() {
 	}
 	echo "</div>\n";
 
+	wp_print_request_filesystem_credentials_modal();
+
 	iframe_footer();
 	exit;
 }
