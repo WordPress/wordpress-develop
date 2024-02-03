@@ -468,7 +468,7 @@
 				$updateRow.find( '.plugin-title strong' ).text()
 			);
 		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-			$card    = $( '.plugin-card-' + args.slug );
+			$card    = $( '.plugin-card-' + args.slug + ', #plugin-information-footer' );
 			$message = $card.find( '.update-now' ).addClass( 'updating-message' );
 			message    = sprintf(
 				/* translators: %s: Plugin name and version. */
@@ -528,7 +528,7 @@
 			// Clear the "time to next auto-update" text.
 			$pluginRow.find( '.auto-update-time' ).empty();
 		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-			$updateMessage = $( '.plugin-card-' + response.slug ).find( '.update-now' )
+			$updateMessage = $( '.plugin-card-' + response.slug+ ', #plugin-information-footer' ).find( '.update-now' )
 				.removeClass( 'updating-message' )
 				.addClass( 'button-disabled updated-message' );
 		}
@@ -548,7 +548,9 @@
 
 		wp.a11y.speak( __( 'Update completed successfully.' ) );
 
-		wp.updates.decrementCount( 'plugin' );
+		if ( 'plugin_install_from_iframe' !== $updateMessage.attr( 'id' ) ) {
+			wp.updates.decrementCount( 'plugin' );
+		}
 
 		$document.trigger( 'wp-plugin-update-success', response );
 	};
