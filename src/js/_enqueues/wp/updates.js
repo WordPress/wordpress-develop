@@ -852,6 +852,9 @@
 			.addClass( 'activate-now button-primary' )
 			.attr( 'href', response.activateUrl );
 
+		wp.a11y.speak( __( 'Plugin dependencies check completed successfully.' ) );
+		$document.trigger( 'wp-check-plugin-dependencies-success', response );
+
 		if ( 'plugins-network' === pagenow ) {
 			$message.attr(
 				'aria-label',
@@ -958,6 +961,9 @@
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' );
+
+		wp.a11y.speak( __( 'Activation completed successfully.' ) );
+		$document.trigger( 'wp-plugin-activate-success', response );
 
 		$message
 			.removeClass( 'activating-message' )
