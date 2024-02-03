@@ -896,6 +896,7 @@ function install_plugin_information() {
 	echo "</div>\n";
 
 	wp_print_request_filesystem_credentials_modal();
+	wp_print_admin_notice_templates();
 
 	iframe_footer();
 	exit;
