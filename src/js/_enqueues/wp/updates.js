@@ -2148,6 +2148,11 @@
 				errorMessage = __( 'Installation failed: %s' );
 				break;
 
+			case 'check-dependencies':
+				/* translators: %s: Error string for a failed dependencies check. */
+				errorMessage = __( 'Dependencies check failed: %s' );
+				break;
+
 			case 'activate':
 				/* translators: %s: Error string for a failed activation. */
 				errorMessage = __( 'Activation failed: %s' );
