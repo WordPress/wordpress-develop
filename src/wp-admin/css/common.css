@@ -1500,6 +1500,18 @@ div.error {
 	background-color: #f0f6fc;
 }
 
+#plugin-information-footer .update-now:not(.button-disabled):before {
+	color: #d63638;
+	content: "\f463";
+	display: inline-block;
+	font: normal 20px/1 dashicons;
+	margin: -3px 5px 0 -2px;
+	speak: never;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	vertical-align: middle;
+}
+
 .update-message p:before,
 .updating-message p:before,
 .updated-message p:before,
@@ -1677,9 +1689,14 @@ p.auto-update-status {
 #plugin-information-footer .button.installed:before,
 #plugin-information-footer .button.installing:before,
 #plugin-information-footer .button.updating-message:before,
+#plugin-information-footer .button.updated-message:before,
 #plugin-information-footer .button.activated-message:before,
 #plugin-information-footer .button.activating-message:before {
 	margin: 9px 5px 0 -2px;
+}
+
+#plugin-information-footer .button.update-now.updating-message:before {
+	margin: -3px 5px 0 -2px;
 }
 
 .button-primary.updating-message:before,
