@@ -856,6 +856,98 @@
 	};
 
 	/**
+	 * Sends an Ajax request to the server to activate a plugin.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}                 args         Arguments.
+	 * @param {string}                 args.name    The name of the plugin.
+	 * @param {string}                 args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {string}                 args.plugin  The plugin file, relative to the plugins directory.
+	 * @param {activatePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.activatePluginSuccess
+	 * @param {activatePluginError=}   args.error   Optional. Error callback. Default: wp.updates.activatePluginError
+	 * @return {$.promise} A jQuery promise that represents the request,
+	 *                     decorated with an abort() method.
+	 */
+	wp.updates.activatePlugin = function( args ) {
+		args = _.extend( {
+			success: wp.updates.activatePluginSuccess,
+			error: wp.updates.activatePluginError
+		}, args );
+
+		wp.a11y.speak( __( 'Activating... please wait.' ) );
+		$document.trigger( 'wp-activating-plugin', args );
+
+		return wp.updates.ajax( 'activate-plugin', args );
+	}
+
+	/**
+	 * Updates the UI appropriately after a successful plugin activation.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object} response             Response from the server.
+	 * @param {string} response.slug        Slug of the activated plugin.
+	 * @param {string} response.pluginName  Name of the activated plugin.
+	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
+	 */
+	wp.updates.activatePluginSuccess = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' );
+
+		$message
+			.removeClass( 'activating-message' )
+			.addClass( 'activated-message button-disabled' )
+			.text( _x( 'Activated!', 'plugin' ) );
+
+		setTimeout( function() {
+			$message.removeClass( 'activated-message' )
+			.text( _x( 'Active', 'plugin' ) );
+		}, 1000 );
+	}
+
+	/**
+	 * Updates the UI appropriately after a failed plugin activation.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}  response              Response from the server.
+	 * @param {string}  response.slug         Slug of the plugin to be activated.
+	 * @param {string=} response.pluginName   Optional. Name of the plugin to be activated.
+	 * @param {string}  response.errorCode    Error code for the error that occurred.
+	 * @param {string}  response.errorMessage The error that occurred.
+	 */
+	wp.updates.activatePluginError = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' );
+
+		if ( ! wp.updates.isValidResponse( response, 'activate' ) ) {
+			return;
+		}
+
+		errorMessage = sprintf(
+			/* translators: %s: Error string for a failed activation. */
+			__( 'Activation failed: %s' ),
+			response.errorMessage
+		);
+
+		wp.a11y.speak( errorMessage, 'assertive' );
+		$document.trigger( 'wp-plugin-activate-error', response );
+
+		$message
+			.removeClass( 'install-now installed activating-message' )
+			.addClass( 'button-disabled' )
+			.attr(
+				'aria-label',
+				sprintf(
+					/* translators: %s: Plugin name. */
+					_x( '%s activation failed', 'plugin' ),
+					response.pluginName
+				)
+			)
+			.text( __( 'Activation failed.' ) )
+		.text( __( 'Activate' ) );
+	}
+
+	/**
 	 * Updates the UI appropriately after a successful importer install.
 	 *
 	 * @since 4.6.0
@@ -1993,6 +2085,11 @@
 				errorMessage = __( 'Installation failed: %s' );
 				break;
 
+			case 'activate':
+				/* translators: %s: Error string for a failed activation. */
+				errorMessage = __( 'Activation failed: %s' );
+				break;
+
 			case 'delete':
 				/* translators: %s: Error string for a failed deletion. */
 				errorMessage = __( 'Deletion failed: %s' );
@@ -2048,7 +2145,7 @@
 	};
 
 	$( function() {
-		var $pluginFilter        = $( '#plugin-filter' ),
+		var $pluginFilter        = $( '#plugin-filter, #plugin-information-footer' ),
 			$bulkActionForm      = $( '#bulk-action-form' ),
 			$filesystemForm      = $( '#request-filesystem-credentials-form' ),
 			$filesystemModal     = $( '#request-filesystem-credentials-dialog' ),
@@ -2263,6 +2360,44 @@
 				slug: $button.data( 'slug' )
 			} );
 		} );
+
+		/**
+		 * Click handler for plugin activations in plugin activation view.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param {Event} event Event interface.
+		 */
+		$pluginFilter.on( 'click', '.activate-now', function( event ) {
+			var $activateButton = $( event.target );
+
+			event.preventDefault();
+
+			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
+				return;
+			}
+
+			$activateButton
+				.removeClass( 'activate-now button-primary' )
+				.addClass( 'activating-message' )
+				.attr(
+					'aria-label',
+					sprintf(
+						/* translators: %s: Plugin name. */
+						_x( 'Activating %s', 'plugin' ),
+						$activateButton.data( 'name' )
+					)
+				)
+				.text( _x( 'Activating...', 'plugin' ) );
+
+			wp.updates.activatePlugin(
+				{
+					name: $activateButton.data( 'name' ),
+					slug: $activateButton.data( 'slug' ),
+					plugin: $activateButton.data( 'plugin' )
+				}
+			);
+		});
 
 		/**
 		 * Click handler for importer plugins installs in the Import screen.
