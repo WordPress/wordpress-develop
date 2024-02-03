@@ -738,58 +738,9 @@
 
 		if ( response.activateUrl ) {
 			setTimeout( function() {
-
-				wp.updates.ajax(
-					'check_plugin_dependencies',
-					{
-							slug: response.slug,
-							success: function() {
-								// Transform the 'Install' button into an 'Activate' button.
-								$message.removeClass( 'install-now installed button-disabled updated-message' )
-								.addClass( 'activate-now button-primary' )
-								.attr( 'href', response.activateUrl );
-
-								if ( 'plugins-network' === pagenow ) {
-									$message
-									.attr(
-										'aria-label',
-										sprintf(
-										/* translators: %s: Plugin name. */
-											_x( 'Network Activate %s', 'plugin' ),
-											response.pluginName
-										)
-									)
-									  .text( __( 'Network Activate' ) );
-								} else {
-									$message
-									.attr(
-										'aria-label',
-										sprintf(
-										/* translators: %s: Plugin name. */
-											_x( 'Activate %s', 'plugin' ),
-											response.pluginName
-										)
-									)
-									.text( __( 'Activate' ) );
-								}
-							},
-							error: function( error ) {
-								$message
-								.removeClass( 'install-now installed updated-message' )
-								.addClass( 'activate-now button-primary' )
-								.attr(
-									'aria-label',
-									sprintf(
-									/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
-										_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
-										response.pluginName,
-										error.errorMessage
-									)
-								)
-								.text( __( 'Activate' ) );
-						}
-					}
-				);
+				wp.updates.checkPluginDependencies( {
+					slug: response.slug
+				} );
 			}, 1000 );
 		}
 	};
@@ -854,6 +805,118 @@
 
 		$document.trigger( 'wp-plugin-install-error', response );
 	};
+
+	/**
+	 * Sends an Ajax request to the server to check a plugin's dependencies.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}                          args         Arguments.
+	 * @param {string}                          args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {checkPluginDependenciesSuccess=} args.success Optional. Success callback. Default: wp.updates.checkPluginDependenciesSuccess
+	 * @param {checkPluginDependenciesError=}   args.error   Optional. Error callback. Default: wp.updates.checkPluginDependenciesError
+	 * @return {$.promise} A jQuery promise that represents the request,
+	 *                     decorated with an abort() method.
+	 */
+	wp.updates.checkPluginDependencies = function( args ) {
+		args = _.extend( {
+			success: wp.updates.checkPluginDependenciesSuccess,
+			error: wp.updates.checkPluginDependenciesError
+		}, args );
+
+		wp.a11y.speak( __( 'Checking plugin dependencies... please wait.' ) );
+		$document.trigger( 'wp-checking-plugin-dependencies', args );
+
+		return wp.updates.ajax( 'check_plugin_dependencies', args );
+	}
+
+	/**
+	 * Updates the UI appropriately after a successful plugin dependencies check.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object} response             Response from the server.
+	 * @param {string} response.slug        Slug of the checked plugin.
+	 * @param {string} response.pluginName  Name of the checked plugin.
+	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
+	 * @param {string} response.activateUrl URL to activate the just checked plugin.
+	 */
+	wp.updates.checkPluginDependenciesSuccess = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' );
+
+		// Transform the 'Install' button into an 'Activate' button.
+		$message
+			.removeClass( 'install-now installed button-disabled updated-message' )
+			.addClass( 'activate-now button-primary' )
+			.attr( 'href', response.activateUrl );
+
+		if ( 'plugins-network' === pagenow ) {
+			$message.attr(
+				'aria-label',
+				sprintf(
+				/* translators: %s: Plugin name. */
+					_x( 'Network Activate %s', 'plugin' ),
+					response.pluginName
+				)
+			).text( __( 'Network Activate' ) );
+		} else {
+			$message
+				.attr(
+					'aria-label',
+					sprintf(
+					/* translators: %s: Plugin name. */
+						_x( 'Activate %s', 'plugin' ),
+						response.pluginName
+					)
+				)
+				.attr( 'data-name', response.pluginName )
+				.attr( 'data-slug', response.slug )
+				.attr( 'data-plugin', response.plugin )
+				.text( _x( 'Activate', 'plugin' ) );
+		}
+	}
+
+	/**
+	 * Updates the UI appropriately after a failed plugin dependencies check.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}  response              Response from the server.
+	 * @param {string}  response.slug         Slug of the plugin to be checked.
+	 * @param {string=} response.pluginName   Optional. Name of the plugin to be checked.
+	 * @param {string}  response.errorCode    Error code for the error that occurred.
+	 * @param {string}  response.errorMessage The error that occurred.
+	 */
+	wp.updates.checkPluginDependenciesError = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' );
+
+		if ( ! wp.updates.isValidResponse( response, 'check-dependencies' ) ) {
+			return;
+		}
+
+		errorMessage = sprintf(
+			/* translators: %s: Error string for a failed activation. */
+			__( 'Activation failed: %s' ),
+			response.errorMessage
+		);
+
+		wp.a11y.speak( errorMessage, 'assertive' );
+		$document.trigger( 'wp-check-plugin-dependencies-error', response );
+
+		$message
+			.removeClass( 'install-now installed updated-message' )
+			.addClass( 'activate-now button-primary' )
+			.attr(
+				'aria-label',
+				sprintf(
+					/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
+					_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
+					response.pluginName,
+					response.errorMessage
+				)
+			)
+			.text( __( 'Activate' ) );
+	}
 
 	/**
 	 * Sends an Ajax request to the server to activate a plugin.
