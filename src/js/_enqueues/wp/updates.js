@@ -754,7 +754,7 @@
 									.attr(
 										'aria-label',
 										sprintf(
-										/* translators: %s: Plugin name. */
+											/* translators: %s: Plugin name. */
 											_x( 'Network Activate %s', 'plugin' ),
 											response.pluginName
 										)
