@@ -801,16 +801,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				if ( $is_active ) {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $has_active_dependents ) {
-							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
-
-							$screen_reader_text = sprintf(
-								__( 'This plugin cannot be deactivated as %s depends on it.' ),
-								esc_html( array_shift( $dependent_names ) )
-							);
-
 							$actions['deactivate'] = __( 'Deactivate' ) .
 								'<span class="screen-reader-text">' .
-								$screen_reader_text .
+								__( 'You cannot deactivate this plugin as other plugins require it.' ) .
 								'</span>';
 
 						} else {
@@ -836,7 +829,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							if ( $has_unmet_dependencies ) {
 								$actions['activate']  = __( 'Network Activate' ) .
 									'<span class="screen-reader-text">' .
-									__( 'This plugin cannot be activated as it has unmet dependencies.' ) .
+									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
 							} else {
 								$activate_url = 'plugins.php?action=activate' .
@@ -864,16 +857,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
 						if ( $has_dependents ) {
-							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
-
-							$screen_reader_text = sprintf(
-								__( 'This plugin cannot be deleted as %s depends on it.' ),
-								esc_html( array_shift( $dependent_names ) )
-							);
-
 							$actions['delete'] = __( 'Delete' ) .
 								'<span class="screen-reader-text">' .
-								$screen_reader_text .
+								__( 'You cannot delete this plugin as other plugins require it.' ) .
 								'</span>';
 						} else {
 							$delete_url = 'plugins.php?action=delete-selected' .
@@ -905,16 +891,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				} elseif ( $is_active ) {
 					if ( current_user_can( 'deactivate_plugin', $plugin_file ) ) {
 						if ( $has_active_dependents ) {
-							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
-
-							$screen_reader_text = sprintf(
-								__( 'This plugin cannot be deactivated as %s depends on it.' ),
-								esc_html( array_shift( $dependent_names ) )
-							);
-
 							$actions['deactivate'] = __( 'Deactivate' ) .
 								'<span class="screen-reader-text">' .
-								$screen_reader_text .
+								__( 'You cannot deactivate this plugin as other plugins depend on it.' ) .
 								'</span>';
 						} else {
 							$deactivate_url = 'plugins.php?action=deactivate' .
@@ -956,7 +935,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							if ( $has_unmet_dependencies ) {
 								$actions['activate']  = __( 'Activate' ) .
 									'<span class="screen-reader-text">' .
-									__( 'This plugin cannot be activated as it has unmet dependencies.' ) .
+									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
 							} else {
 								$activate_url = 'plugins.php?action=activate' .
@@ -984,16 +963,9 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					if ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
 						if ( $has_dependents ) {
-							$dependent_names = WP_Plugin_Dependencies::get_dependent_names( $plugin_file );
-
-							$screen_reader_text = sprintf(
-								__( 'This plugin cannot be deleted as %s depends on it.' ),
-								esc_html( array_shift( $dependent_names ) )
-							);
-
 							$actions['delete'] = __( 'Delete' ) .
 								'<span class="screen-reader-text">' .
-								$screen_reader_text .
+								__( 'You cannot delete this plugin as other plugins require it.' ) .
 								'</span>';
 						} else {
 							$delete_url = 'plugins.php?action=delete-selected' .
@@ -1295,7 +1267,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					/**
 					 * Fires after plugin row meta.
 					 *
-					 * @since 6.4.0
+					 * @since 6.5.0
 					 *
 					 * @param string $plugin_file Refer to {@see 'plugin_row_meta'} filter.
 					 * @param array  $plugin_data Refer to {@see 'plugin_row_meta'} filter.
@@ -1548,7 +1520,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Prints a list of other plugins that depend on the plugin.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param string $dependency The dependency's filepath, relative to the plugins directory.
 	 */
@@ -1571,7 +1543,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Prints a list of other plugins that the plugin depends on.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param string $dependent The dependent plugin's filepath, relative to the plugins directory.
 	 */
@@ -1587,21 +1559,20 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}
 
-		printf(
-			'<div class="requires"><p><strong>%1$s</strong> %2$s</p></div>',
-			__( 'Requires:' ),
-			implode( ' | ', $links )
-		);
+		$dependency_note = __( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
 
-		echo '<div><p>';
-		_e( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
-		echo '</p></div>';
+		printf(
+			'<div class="requires"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
+			__( 'Requires:' ),
+			implode( ' | ', $links ),
+			$dependency_note
+		);
 	}
 
 	/**
 	 * Returns a 'View details' like link for a dependency.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param string $name The dependency's name.
 	 * @param string $slug The dependency's slug.
@@ -1624,7 +1595,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	/**
 	 * Returns a 'View details' link for the plugin.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param string $name The plugin's name.
 	 * @param string $slug The plugin's slug.
