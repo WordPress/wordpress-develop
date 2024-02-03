@@ -2961,10 +2961,6 @@
 
 				case 'install-plugin':
 				case 'update-plugin':
-					/* jscs:disable requireCamelCaseOrUpperCaseIdentifiers */
-					window.tb_remove();
-					/* jscs:enable */
-
 					message.data = wp.updates._addCallbacks( message.data, message.action );
 
 					wp.updates.queue.push( message );
