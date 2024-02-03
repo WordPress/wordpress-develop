@@ -668,7 +668,7 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.installPlugin = function( args ) {
-		var $card    = $( '.plugin-card-' + args.slug ),
+		var $card    = $( '.plugin-card-' + args.slug + ', #plugin-information-footer' ),
 			$message = $card.find( '.install-now' );
 
 		args = _.extend( {
@@ -717,7 +717,7 @@
 	 * @param {string} response.activateUrl URL to activate the just installed plugin.
 	 */
 	wp.updates.installPluginSuccess = function( response ) {
-		var $message = $( '.plugin-card-' + response.slug ).find( '.install-now' );
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' );
 
 		$message
 			.removeClass( 'updating-message' )
@@ -806,7 +806,7 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.installPluginError = function( response ) {
-		var $card   = $( '.plugin-card-' + response.slug ),
+		var $card   = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ),
 			$button = $card.find( '.install-now' ),
 			errorMessage;
 
