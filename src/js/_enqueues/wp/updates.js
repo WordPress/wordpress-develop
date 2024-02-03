@@ -2790,35 +2790,6 @@
 		} );
 
 		/**
-		 * Click handler for installing a plugin from the details modal on `plugin-install.php`.
-		 *
-		 * @since 4.6.0
-		 *
-		 * @param {Event} event Event interface.
-		 */
-		$( '#plugin_install_from_iframe' ).on( 'click', function( event ) {
-			var target = window.parent === window ? null : window.parent,
-				install;
-
-			$.support.postMessage = !! window.postMessage;
-
-			if ( false === $.support.postMessage || null === target || -1 !== window.parent.location.pathname.indexOf( 'index.php' ) ) {
-				return;
-			}
-
-			event.preventDefault();
-
-			install = {
-				action: 'install-plugin',
-				data:   {
-					slug: $( this ).data( 'slug' )
-				}
-			};
-
-			target.postMessage( JSON.stringify( install ), window.location.origin );
-		} );
-
-		/**
 		 * Handles postMessage events.
 		 *
 		 * @since 4.2.0
