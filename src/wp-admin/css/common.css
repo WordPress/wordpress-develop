@@ -1512,6 +1512,10 @@ div.error {
 	vertical-align: middle;
 }
 
+#plugin-information-footer .notice {
+    margin-top: -5px;
+}
+
 .update-message p:before,
 .updating-message p:before,
 .updated-message p:before,
