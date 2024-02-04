@@ -15,7 +15,7 @@
  *
  * @access private
  */
-class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
+final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * List of thags whose closer tag is not visited by the WP_HTML_Tag_Processor.
 	 *

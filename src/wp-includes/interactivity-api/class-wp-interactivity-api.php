@@ -12,7 +12,7 @@
  *
  * @since 6.5.0
  */
-class WP_Interactivity_API {
+final class WP_Interactivity_API {
 	/**
 	 * Holds the mapping of directive attribute names to their processor methods.
 	 *
