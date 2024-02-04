@@ -1295,6 +1295,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
+				return true;
 
 			/*
 			 * > An end tag whose tag name is "br"
@@ -1793,6 +1794,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->insert_html_element(
 					new WP_HTML_Token( null, 'TBODY', false )
 				);
+				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY;
 				return $this->step( self::REPROCESS_CURRENT_NODE );
 
 			/*
@@ -1870,13 +1872,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case "+FORM":
 				if (
 					$this->state->stack_of_open_elements->has_element_in_scope( 'TEMPLATE' ) ||
-
+					$this->has_element_pointer( 'FORM' )
 				) {
+					return $this->step();
 				}
+				$this->insert_html_element( $this->state->current_token );
+				$this->set_element_pointer( 'FORM' );
+				return true;
 
 			/*
 			 * > An end-of-file token
 			 */
+
 			/*
 			 * > Anything else
 			 * > Parse error. Enable foster parenting, process the token using the rules for the
@@ -2479,6 +2486,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function has_bookmark( $bookmark_name ) {
 		return parent::has_bookmark( "_{$bookmark_name}" );
+	}
+
+	private function set_element_pointer( string $tag_name ) {
+		return parent::set_bookmark( "element_pointer_{$tag_name}" );
+	}
+
+	private function has_element_pointer( string $tag_name ) {
+		return parent::has_bookmark( "element_pointer_{$tag_name}" );
 	}
 
 	/*
