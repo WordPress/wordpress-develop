@@ -827,7 +827,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate']  = __( 'Network Activate' ) .
+								$actions['activate'] = __( 'Network Activate' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
@@ -933,7 +933,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate']  = __( 'Activate' ) .
+								$actions['activate'] = __( 'Activate' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
