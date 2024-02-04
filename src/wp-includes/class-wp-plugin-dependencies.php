@@ -529,9 +529,11 @@ class WP_Plugin_Dependencies {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
-		$all_plugin_data = get_option( 'plugin_data', array() );
+		if ( empty( self::$plugins ) ) {
+			self::get_plugins();
+		}
 
-		foreach ( $all_plugin_data as $plugin => $header ) {
+		foreach ( self::$plugins as $plugin => $header ) {
 			if ( '' === $header['RequiresPlugins'] ) {
 				continue;
 			}
@@ -776,10 +778,6 @@ class WP_Plugin_Dependencies {
 		if ( empty( self::$plugin_dirnames ) || self::$plugin_dirnames_cache !== self::$plugins ) {
 			self::$plugin_dirnames       = array();
 			self::$plugin_dirnames_cache = self::$plugins;
-
-			if ( empty( self::$plugins ) ) {
-				self::get_plugins();
-			}
 
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
 				$slug                           = self::convert_to_slug( $plugin );
