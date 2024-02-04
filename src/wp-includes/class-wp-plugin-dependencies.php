@@ -696,8 +696,16 @@ class WP_Plugin_Dependencies {
 	 * Retrieves and stores dependency plugin data from the WordPress.org Plugin API.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @global string $pagenow The filename of the current screen.
 	 */
 	protected static function get_dependency_api_data() {
+		global $pagenow;
+
+		if ( ! is_admin() || ( 'plugins.php' !== $pagenow && 'plugin-install.php' !== $pagenow ) ) {
+			return;
+		}
+
 		self::$dependency_api_data = (array) get_site_transient( 'wp_plugin_dependencies_plugin_data' );
 		foreach ( self::$dependency_slugs as $slug ) {
 			// Set transient for individual data, remove from self::$dependency_api_data if transient expired.
