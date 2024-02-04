@@ -404,12 +404,12 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 		$content = '';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertTrue( $p->has_and_visits_its_closer_tag() );
+		$this->assertFalse( $p->has_and_visits_its_closer_tag() );
 
 		// Test on text nodes.
 		$content = 'This is just some text';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
-		$this->assertTrue( $p->has_and_visits_its_closer_tag() );
+		$this->assertFalse( $p->has_and_visits_its_closer_tag() );
 	}
 }

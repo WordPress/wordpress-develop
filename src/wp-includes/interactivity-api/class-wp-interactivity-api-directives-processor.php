@@ -168,7 +168,9 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 */
 	public function has_and_visits_its_closer_tag(): bool {
 		$tag_name = $this->get_tag();
-		return ! WP_HTML_Processor::is_void( null !== $tag_name ? $tag_name : '' ) &&
-			! in_array( $tag_name, self::TAGS_THAT_DONT_VISIT_CLOSER_TAG, true );
+		return null !== $tag_name && (
+			! WP_HTML_Processor::is_void( $tag_name ) &&
+			! in_array( $tag_name, self::TAGS_THAT_DONT_VISIT_CLOSER_TAG, true )
+		);
 	}
 }
