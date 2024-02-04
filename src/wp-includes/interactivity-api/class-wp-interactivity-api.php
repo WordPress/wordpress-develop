@@ -398,7 +398,7 @@ final class WP_Interactivity_API {
 	 * Processes the `data-wp-interactive` directive.
 	 *
 	 * It adds the default store namespace defined in the directive value to the
-	 * stack so it's available for the nested interactivity elements.
+	 * stack so that it's available for the nested interactivity elements.
 	 *
 	 * @since 6.5.0
 	 *
@@ -432,8 +432,8 @@ final class WP_Interactivity_API {
 	/**
 	 * Processes the `data-wp-context` directive.
 	 *
-	 * It adds the context defined in the directive value to the stack so it's
-	 * available for the nested interactivity elements.
+	 * It adds the context defined in the directive value to the stack so that
+	 * it's available for the nested interactivity elements.
 	 *
 	 * @since 6.5.0
 	 *

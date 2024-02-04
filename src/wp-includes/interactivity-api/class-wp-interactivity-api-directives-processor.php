@@ -17,7 +17,7 @@
  */
 final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Processor {
 	/**
-	 * List of thags whose closer tag is not visited by the WP_HTML_Tag_Processor.
+	 * List of tags whose closer tag is not visited by the WP_HTML_Tag_Processor.
 	 *
 	 * @since 6.5.0
 	 *
