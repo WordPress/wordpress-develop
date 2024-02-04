@@ -416,7 +416,8 @@ final class WP_Interactivity_API {
 	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
 		// In closing tags, it removes the last namespace from the stack.
 		if ( $p->is_tag_closer() ) {
-			return array_pop( $namespace_stack );
+			array_pop( $namespace_stack );
+			return;
 		}
 
 		// Tries to decode the `data-wp-interactive` attribute value.
@@ -451,7 +452,8 @@ final class WP_Interactivity_API {
 	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
 		// In closing tags, it removes the last context from the stack.
 		if ( $p->is_tag_closer() ) {
-			return array_pop( $context_stack );
+			array_pop( $context_stack );
+			return;
 		}
 
 		$attribute_value = $p->get_attribute( 'data-wp-context' );
