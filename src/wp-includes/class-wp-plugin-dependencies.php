@@ -140,8 +140,9 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has active dependents.
 	 */
 	public static function has_active_dependents( $plugin_file ) {
-		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 
+		$dependents = self::get_dependents( self::convert_to_slug( $plugin_file ) );
 		foreach ( $dependents as $dependent ) {
 			if ( is_plugin_active( $dependent ) ) {
 				return true;
@@ -217,6 +218,8 @@ class WP_Plugin_Dependencies {
 			return false;
 		}
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
 
@@ -240,7 +243,7 @@ class WP_Plugin_Dependencies {
 		$dependent_names = array();
 
 		if ( empty( self::$plugins ) ) {
-			self::$plugins = get_plugins();
+			self::$plugins = self::get_plugins();
 		}
 
 		$slug = self::convert_to_slug( $plugin_file );
@@ -461,6 +464,8 @@ class WP_Plugin_Dependencies {
 			wp_send_json_success( $status );
 		}
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+
 		$inactive_dependencies = array();
 		foreach ( $dependencies as $dependency ) {
 			if ( false === self::$plugin_dirnames[ $dependency ] || is_plugin_inactive( self::$plugin_dirnames[ $dependency ] ) ) {
@@ -502,10 +507,18 @@ class WP_Plugin_Dependencies {
 	 * @since 6.5.0
 	 */
 	protected static function get_plugins() {
-		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		if ( ! empty( self::$plugins ) ) {
+			return self::$plugins;
 		}
-		self::$plugins = get_plugins();
+
+		$all_plugin_data = get_option( 'plugin_data', array() );
+
+		if ( empty( $all_plugin_data ) ) {
+			require_once ABSPATH . '/wp-admin/includes/plugin.php';
+			$all_plugin_data = get_plugins();
+		}
+
+		self::$plugins = $all_plugin_data;
 	}
 
 	/**
@@ -516,20 +529,9 @@ class WP_Plugin_Dependencies {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
-		global $wp_filesystem;
+		$all_plugin_data = get_option( 'plugin_data', array() );
 
-		if ( ! $wp_filesystem ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
-		}
-
-		self::get_plugins();
-		$plugins_dir     = trailingslashit( $wp_filesystem->wp_plugins_dir() );
-		$default_headers = array( 'RequiresPlugins' => 'Requires Plugins' );
-
-		foreach ( array_keys( self::$plugins ) as $plugin ) {
-			$header = get_file_data( $plugins_dir . $plugin, $default_headers, 'plugin' );
-
+		foreach ( $all_plugin_data as $plugin => $header ) {
 			if ( '' === $header['RequiresPlugins'] ) {
 				continue;
 			}
@@ -598,6 +600,7 @@ class WP_Plugin_Dependencies {
 			return $all_dependents;
 		}
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 		foreach ( $dependents as $dependent ) {
 			if ( is_plugin_active( $dependent ) ) {
 				$all_dependents[] = $dependent;
@@ -626,6 +629,7 @@ class WP_Plugin_Dependencies {
 			array()
 		);
 
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 		foreach ( self::$dependencies as $dependent => $dependencies ) {
 			// Skip dependents that are no longer installed or aren't active.
 			if ( ! array_key_exists( $dependent, self::$plugins ) || is_plugin_inactive( $dependent ) ) {
@@ -773,6 +777,10 @@ class WP_Plugin_Dependencies {
 			self::$plugin_dirnames       = array();
 			self::$plugin_dirnames_cache = self::$plugins;
 
+			if ( empty( self::$plugins ) ) {
+				self::get_plugins();
+			}
+
 			foreach ( array_keys( self::$plugins ) as $plugin ) {
 				$slug                           = self::convert_to_slug( $plugin );
 				self::$plugin_dirnames[ $slug ] = $plugin;
@@ -889,6 +897,9 @@ class WP_Plugin_Dependencies {
 	 * @return string The plugin's slug.
 	 */
 	private static function convert_to_slug( $plugin_file ) {
+		if ( 'hello.php' === $plugin_file ) {
+			return 'hello-dolly';
+		}
 		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
 	}
 }
