@@ -411,6 +411,16 @@ final class WP_Autoload {
 	private static $registered = false;
 
 	/**
+	 * Whether SimplePie has been loaded or not.
+	 *
+	 * @static
+	 * @access private
+	 *
+	 * @var bool
+	 */
+	private static $simplepie_loaded = false;
+
+	/**
 	 * Register the autoloader.
 	 *
 	 * @return void
@@ -435,7 +445,6 @@ final class WP_Autoload {
 	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
-		require_once ABSPATH . 'wp-includes/class-simplepie.php';
 
 		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
 	}
@@ -463,6 +472,13 @@ final class WP_Autoload {
 		if ( str_starts_with( $class_name, 'avifinfo' ) ) {
 			// This file contains multiple classes, so we need to use require_once.
 			require_once ABSPATH . 'wp-includes/class-avif-info.php';
+			return true;
+		}
+
+		// Load SimplePie classes.
+		if ( str_starts_with( $class_name, 'simplepie' ) && ! self::$simplepie_loaded ) {
+			require_once ABSPATH . 'wp-includes/class-simplepie.php';
+			self::$simplepie_loaded = true;
 			return true;
 		}
 
