@@ -352,6 +352,7 @@ function get_plugins( $plugin_folder = '' ) {
 
 	$cache_plugins[ $plugin_folder ] = $wp_plugins;
 	wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
+	update_option( 'plugin_data', $wp_plugins );
 
 	return $wp_plugins;
 }
@@ -954,6 +955,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 	$plugins_dir = trailingslashit( $plugins_dir );
 
 	$plugin_translations = wp_get_installed_translations( 'plugins' );
+	$all_plugin_data     = get_option( 'plugin_data', array() );
 
 	$errors = array();
 
@@ -998,6 +1000,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			$errors[] = $plugin_file;
 			continue;
 		}
+		unset( $all_plugin_data[ $plugin_file ] );
 
 		$plugin_slug = dirname( $plugin_file );
 
@@ -1046,6 +1049,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
 	}
+	update_option( 'plugin_data', $all_plugin_data );
 
 	return true;
 }
@@ -1117,13 +1121,14 @@ function validate_plugin( $plugin ) {
 /**
  * Validates the plugin requirements for WordPress version and PHP version.
  *
- * Uses the information from `Requires at least` and `Requires PHP` headers
+ * Uses the information from `Requires at least`, `Requires PHP` and `Requires Plugins` headers
  * defined in the plugin's main PHP file.
  *
  * @since 5.2.0
  * @since 5.3.0 Added support for reading the headers from the plugin's
  *              main PHP file, with `readme.txt` as a fallback.
  * @since 5.8.0 Removed support for using `readme.txt` as a fallback.
+ * @since 6.5.0 Added support for the 'Requires Plugins' header.
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return true|WP_Error True if requirements are met, WP_Error on failure.
@@ -1132,8 +1137,9 @@ function validate_plugin_requirements( $plugin ) {
 	$plugin_headers = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
 
 	$requirements = array(
-		'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
-		'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires'         => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+		'requires_php'     => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires_plugins' => ! empty( $plugin_headers['RequiresPlugins'] ) ? $plugin_headers['RequiresPlugins'] : '',
 	);
 
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
@@ -1185,6 +1191,31 @@ function validate_plugin_requirements( $plugin ) {
 				$plugin_headers['Name'],
 				$requirements['requires']
 			) . '</p>'
+		);
+	}
+
+	if ( WP_Plugin_Dependencies::has_unmet_dependencies( $plugin ) ) {
+		$dependencies       = WP_Plugin_Dependencies::get_dependencies( $plugin );
+		$unmet_dependencies = array();
+
+		foreach ( $dependencies as $dependency ) {
+			$dependency_file = WP_Plugin_Dependencies::get_dependency_filepath( $dependency );
+
+			if ( false === $dependency_file ) {
+				$unmet_dependencies['not_installed'][] = $dependency;
+			} elseif ( is_plugin_inactive( $dependency_file ) ) {
+				$unmet_dependencies['inactive'][] = $dependency;
+			}
+		}
+
+		return new WP_Error(
+			'plugin_missing_dependencies',
+			'<p>' . sprintf(
+				/* translators: %s: Plugin name. */
+				_x( '<strong>Error:</strong> %s requires plugins that are not installed or activated.', 'plugin' ),
+				$plugin_headers['Name']
+			) . '</p>',
+			$unmet_dependencies
 		);
 	}
 
