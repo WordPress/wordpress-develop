@@ -438,7 +438,15 @@ if ( ! function_exists( 'array_is_list' ) ) {
 			return true;
 		}
 
-		return false;
+		$next_key = -1;
+
+		foreach ( $arr as $k => $v ) {
+			if ( ++$next_key !== $k ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
 
