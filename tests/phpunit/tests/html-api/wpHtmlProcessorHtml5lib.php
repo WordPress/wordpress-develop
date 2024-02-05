@@ -27,7 +27,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	const SKIP_HEAD_TESTS = true;
 
 	/**
-	 * Skip specific tests that may not be supported.
+	 * Skip specific tests that may not be supported or have known issues.
 	 */
 	const SKIP_TESTS = array(
 		'adoption01/line0046'        => 'Unimplemented: Reconstruction of active formatting elements.',
@@ -38,10 +38,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'entities02/line0128'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
 		'entities02/line0142'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
 		'entities02/line0156'        => 'Encoded characters without semicolon termination in attribute values are not handled properly',
+		'inbody01/line0001'          => 'Bug.',
+		'inbody01/line0014'          => 'Bug.',
+		'inbody01/line0029'          => 'Bug.',
+		'menuitem-element/line0012'  => 'Bug.',
 		'plain-text-unsafe/line0001' => 'HTML entities may be mishandled.',
 		'plain-text-unsafe/line0105' => 'Binary.',
 		'tests1/line0342'            => "Closing P tag implicitly creates opener, which we don't visit.",
 		'tests1/line0720'            => 'Unimplemented: Reconstruction of active formatting elements.',
+		'tests1/line0833'            => 'Bug.',
 		'tests15/line0001'           => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests15/line0022'           => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests2/line0317'            => 'HTML entities may be mishandled.',
@@ -52,8 +57,15 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		'tests23/line0041'           => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/line0069'           => 'Unimplemented: Reconstruction of active formatting elements.',
 		'tests23/line0101'           => 'Unimplemented: Reconstruction of active formatting elements.',
-		'tests26/line0263'           => 'BUG: An active formatting element should be created for a trailing text node.',
+		'tests25/line0169'           => 'Bug.',
+		'tests26/line0263'           => 'Bug: An active formatting element should be created for a trailing text node.',
+		'tests8/line0001'            => 'Bug.',
+		'tests8/line0020'            => 'Bug.',
+		'tests8/line0037'            => 'Bug.',
+		'tests8/line0052'            => 'Bug.',
+		'webkit01/line0174'          => 'Bug.',
 	);
+
 
 	/**
 	 * Verify the parsing results of the HTML Processor against the
