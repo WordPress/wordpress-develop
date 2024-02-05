@@ -69,10 +69,21 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 		return array( $font_face_id, $font_path );
 	}
 
-	protected function upload_font_file( $font_filename ) {
-		$font_file_path = DIR_TESTDATA . 'fonts/' . $font_filename;
+	public function get_expected_font_mime_types() {
+		$php_7_ttf_mime_type = PHP_VERSION_ID >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';
 
-		add_filter( 'upload_mimes', array( 'WP_Font_Library', 'set_allowed_mime_types' ) );
+		return array(
+			'otf'   => 'application/vnd.ms-opentype',
+			'ttf'   => PHP_VERSION_ID >= 70400 ? 'font/sfnt' : $php_7_ttf_mime_type,
+			'woff'  => PHP_VERSION_ID >= 80100 ? 'font/woff' : 'application/font-woff',
+			'woff2' => PHP_VERSION_ID >= 80100 ? 'font/woff2' : 'application/font-woff2',
+		);
+	}
+
+	protected function upload_font_file( $font_filename ) {
+		$font_file_path = DIR_TESTDATA . '/fonts/' . $font_filename;
+
+		add_filter( 'upload_mimes', array( $this, 'get_expected_font_mime_types' ) );
 		add_filter( 'upload_dir', 'wp_get_font_dir' );
 		$font_file = wp_upload_bits(
 			$font_filename,
@@ -80,7 +91,7 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 			file_get_contents( $font_file_path )
 		);
 		remove_filter( 'upload_dir', 'wp_get_font_dir' );
-		remove_filter( 'upload_mimes', array( 'WP_Font_Library', 'set_allowed_mime_types' ) );
+		remove_filter( 'upload_mimes', array( $this, 'get_expected_font_mime_types' ) );
 
 		return $font_file;
 	}
