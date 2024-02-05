@@ -25,7 +25,7 @@ class Tests_Compat_arrayIsList extends WP_UnitTestCase {
 	 * @param array $arr      The array.
 	 */
 	public function test_array_is_list( $expected, $arr ) {
-		$this->assertSame( $expected, array_is_list2( $arr ) );
+		$this->assertSame( $expected, array_is_list( $arr ) );
 	}
 
 	/**
