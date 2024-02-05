@@ -459,6 +459,13 @@ final class WP_Autoload {
 		// Lowercase the classname to accommodate for WP classes written with wrong cases.
 		$class_name = strtolower( $class_name );
 
+		// Load Avifinfo classes.
+		if ( str_starts_with( $class_name, 'avifinfo' ) ) {
+			// This file contains multiple classes, so we need to use require_once.
+			require_once ABSPATH . 'wp-includes/class-avif-info.php';
+			return true;
+		}
+
 		// Bail early if the class is not a WP class.
 		// Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
 		if ( empty( self::CLASSES_PATHS[ $class_name ] ) ) {
