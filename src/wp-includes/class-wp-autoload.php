@@ -27,7 +27,6 @@ final class WP_Autoload {
 		'pop3'                                        => 'wp-includes/class-pop3.php',
 		'services_json'                               => 'wp-includes/class-json.php',
 		'services_json_error'                         => 'wp-includes/class-json.php',
-		'simplepie'                                   => 'wp-includes/class-simplepie.php',
 		'walker_categorydropdown'                     => 'wp-includes/class-walker-category-dropdown.php',
 		'walker_category'                             => 'wp-includes/class-walker-category.php',
 		'walker_comment'                              => 'wp-includes/class-walker-comment.php',
@@ -227,41 +226,6 @@ final class WP_Autoload {
 		'translations'                                => 'wp-includes/pomo/translations.php',
 		'gettext_translations'                        => 'wp-includes/pomo/translations.php',
 		'noop_translations'                           => 'wp-includes/pomo/translations.php',
-
-		/* Classes in the wp-includes/SimplePie folder. */
-		'simplepie_author'                            => 'wp-includes/SimplePie/Author.php',
-		'simplepie_cache'                             => 'wp-includes/SimplePie/Cache.php',
-		'simplepie_caption'                           => 'wp-includes/SimplePie/Caption.php',
-		'simplepie_category'                          => 'wp-includes/SimplePie/Category.php',
-		'simplepie_copyright'                         => 'wp-includes/SimplePie/Copyright.php',
-		'simplepie_core'                              => 'wp-includes/SimplePie/Core.php',
-		'simplepie_credit'                            => 'wp-includes/SimplePie/Credit.php',
-		'simplepie_enclosure'                         => 'wp-includes/SimplePie/Enclosure.php',
-		'simplepie_exception'                         => 'wp-includes/SimplePie/Exception.php',
-		'simplepie_file'                              => 'wp-includes/SimplePie/File.php',
-		'simplepie_gzdecode'                          => 'wp-includes/SimplePie/gzdecode.php',
-		'simplepie_iri'                               => 'wp-includes/SimplePie/IRI.php',
-		'simplepie_item'                              => 'wp-includes/SimplePie/Item.php',
-		'simplepie_locator'                           => 'wp-includes/SimplePie/Locator.php',
-		'simplepie_misc'                              => 'wp-includes/SimplePie/Misc.php',
-		'simplepie_parser'                            => 'wp-includes/SimplePie/Parser.php',
-		'simplepie_rating'                            => 'wp-includes/SimplePie/Rating.php',
-		'simplepie_registry'                          => 'wp-includes/SimplePie/Registry.php',
-		'simplepie_restriction'                       => 'wp-includes/SimplePie/Restriction.php',
-		'simplepie_sanitize'                          => 'wp-includes/SimplePie/Sanitize.php',
-		'simplepie_source'                            => 'wp-includes/SimplePie/Source.php',
-		'simplepie_cache_db'                          => 'wp-includes/SimplePie/Cache/DB.php',
-		'simplepie_cache_file'                        => 'wp-includes/SimplePie/Cache/File.php',
-		'simplepie_cache_memcache'                    => 'wp-includes/SimplePie/Cache/Memcache.php',
-		'simplepie_cache_memcached'                   => 'wp-includes/SimplePie/Cache/Memcached.php',
-		'simplepie_cache_mysql'                       => 'wp-includes/SimplePie/Cache/MySQL.php',
-		'simplepie_cache_redis'                       => 'wp-includes/SimplePie/Cache/Redis.php',
-		'simplepie_content_type_sniffer'              => 'wp-includes/SimplePie/Content/Type/Sniffer.php',
-		'simplepie_decode_html_entities'              => 'wp-includes/SimplePie/Decode/HTML/Entities.php',
-		'simplepie_http_parser'                       => 'wp-includes/SimplePie/HTTP/Parser.php',
-		'simplepie_net_ipv6'                          => 'wp-includes/SimplePie/Net/IPv6.php',
-		'simplepie_parse_date'                        => 'wp-includes/SimplePie/Parse/Date.php',
-		'simplepie_xml_declaration_parser'            => 'wp-includes/SimplePie/XML/Declaration/Parser.php',
 
 		/* Classes in the wp-includes/Text folder. */
 		'text_diff'                                   => 'wp-includes/Text/Diff.php',
@@ -471,6 +435,7 @@ final class WP_Autoload {
 	public static function register_external_bundled() {
 		require_once ABSPATH . 'wp-includes/Requests/src/Autoload.php';
 		require_once ABSPATH . 'wp-includes/sodium_compat/autoload.php';
+		require_once ABSPATH . 'wp-includes/class-simplepie.php';
 
 		spl_autoload_register( array( '\WpOrg\Requests\Autoload', 'load' ) );
 	}
@@ -500,15 +465,7 @@ final class WP_Autoload {
 			return false;
 		}
 
-		/*
-		 * SimplePie classes should additionally load the `wp-includes/class-simplepie.php` file
-		 * to ensure that constants are defined.
-		 */
-		if ( str_starts_with( $class_name, 'simplepie' ) ) {
-			require_once ABSPATH . self::CLASSES_PATHS['simplepie'];
-		}
-
-		require_once ABSPATH . self::CLASSES_PATHS[ $class_name ];
+		require ABSPATH . self::CLASSES_PATHS[ $class_name ];
 		return true;
 	}
 }
