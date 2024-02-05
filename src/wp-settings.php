@@ -409,9 +409,9 @@ wp_plugin_directory_constants();
 
 $GLOBALS['wp_plugin_paths'] = array();
 
-// Load and initialize WP_Plugin_Dendencies.
+// Load and initialize WP_Plugin_Dependencies.
+require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 if ( ! defined( 'WP_RUN_CORE_TESTS' ) ) {
-	require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 	WP_Plugin_Dependencies::initialize();
 }
 
