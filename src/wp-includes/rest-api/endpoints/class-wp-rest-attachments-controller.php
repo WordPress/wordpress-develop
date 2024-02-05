@@ -341,9 +341,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function handle_featured_media( $featured_media, $post_id ) {
 		$post_type         = get_post_type( $post_id );
-		$thumbnail_support = current_theme_supports( 'post-thumbnails', $post_type ) && post_type_supports( $post_type, 'thumbnail' ) || 'revision' === $post_type;
+		$thumbnail_support = current_theme_supports( 'post-thumbnails', $post_type ) && post_type_supports( $post_type, 'thumbnail' );
 
-		if ( ! $thumbnail_support && 'attachment' === $post_type && get_post_mime_type( $post_id ) ) {
+		// Similar check as in wp_insert_post().
+		if ( ! $thumbnail_support && get_post_mime_type( $post_id ) ) {
 			if ( wp_attachment_is( 'audio', $post_id ) ) {
 				$thumbnail_support = post_type_supports( 'attachment:audio', 'thumbnail' ) || current_theme_supports( 'post-thumbnails', 'attachment:audio' );
 			} elseif ( wp_attachment_is( 'video', $post_id ) ) {
