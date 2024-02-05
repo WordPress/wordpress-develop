@@ -12,10 +12,46 @@
 /**
  * Registers a new block bindings source.
  *
- * Sources are used to override block's original attributes with a value
- * coming from the source. Once a source is registered, it can be used by a
- * block by setting its `metadata.bindings` attribute to a value that refers
- * to the source.
+ * Registering a source consists of defining a **name** for that source as well as a callback function
+ * which specifies how to get a value from that source and pass it to a block attribute.
+ *
+ * Once a source is registered, any block that supports the Block Bindings API can use a value
+ * from that source by setting its `metadata.bindings` attribute to a value that refers to the source.
+ *
+ * Note that `register_block_bindings_source()` should be called from a handler attached to the `init` hook.
+ *
+ * ## Example
+ *
+ *     function my_plugin_register_block_bindings_sources() {
+ *       register_block_bindings_source( 'my-plugin/my-custom-source', array(
+ *         'label'              => __( 'My Custom Source', 'my-plugin' ),
+ *         'get_value_callback' => 'my_plugin_get_custom_source_value',
+ *       ) );
+ *     }
+ *     add_action( 'init', 'my_plugin_register_block_bindings_sources' );
+ *
+ *     function my_plugin_get_custom_source_value( array $source_args, $block_instance, string $attribute_name ) {
+ *       // Your custom logic to get the value from the source.
+ *     }
+ *
+ * ### Usage in a block
+ *
+ * In a block's `metadata.bindings` attribute, you can specify the source and
+ * its arguments. Such a block will use the source to override the block
+ * attribute's value. For example:
+ *
+ *     <!-- wp:paragraph {
+ *       "metadata": {
+ *         "bindings": {
+ *           "content": {
+ *             "source": "my-plugin/my-custom-source",
+ *             "args": {
+ *               "key": "you can pass any custom arguments here"
+ *             }
+ *           }
+ *         }
+ *       }
+ *     } --><!-- /wp:paragraph -->
  *
  * @since 6.5.0
  *
