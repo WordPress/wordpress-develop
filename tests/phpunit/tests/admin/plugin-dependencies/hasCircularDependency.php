@@ -113,7 +113,7 @@ class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDe
 					'Name'            => 'Dependency 1',
 					'RequiresPlugins' => 'dependency2',
 				),
-			),
+			)
 		);
 
 		self::$instance::initialize();
