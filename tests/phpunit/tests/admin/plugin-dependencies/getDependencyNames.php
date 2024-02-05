@@ -92,8 +92,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 		$this->set_property_value(
 			'plugins',
 			array(
-				'dependent/dependent.php'   => array( 'RequiresPlugins' => 'dependency, dependency2' ),
-				'dependency/dependency.php' => array(
+				'dependent/dependent.php'     => array( 'RequiresPlugins' => 'dependency, dependency2' ),
+				'dependency/dependency.php'   => array(
 					'Name'            => 'Dependency 1',
 					'RequiresPlugins' => '',
 				),
