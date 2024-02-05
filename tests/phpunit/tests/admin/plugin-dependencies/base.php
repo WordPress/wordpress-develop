@@ -34,6 +34,13 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	);
 
 	/**
+	 * An array of reflected class members.
+	 *
+	 * @var ReflectionMethod[]|ReflectionProperty[]
+	 */
+	protected static $reflected_members = array();
+
+	/**
 	 * Sets up the WP_Plugin_Dependencies instance before any tests run.
 	 */
 	public static function set_up_before_class() {
@@ -41,6 +48,15 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 
 		require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 		self::$instance = new WP_Plugin_Dependencies();
+	}
+
+	/**
+	 * Empties the '$reflected_members' property after all tests run.
+	 */
+	public static function tear_down_after_class() {
+		self::$reflected_members = array();
+
+		parent::tear_down_after_class();
 	}
 
 	/**
@@ -61,10 +77,13 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @param mixed  $value The new value.
 	 */
 	public function set_property_value( $property, $value ) {
-		$reflection_property = new ReflectionProperty( self::$instance, $property );
-		$reflection_property->setAccessible( true );
-		$reflection_property->setValue( self::$instance, $value );
-		$reflection_property->setAccessible( false );
+		if ( ! isset( self::$reflected_members[ $property ] ) ) {
+			self::$reflected_members[ $property ] = new ReflectionProperty( self::$instance, $property );
+		}
+
+		self::$reflected_members[ $property ]->setAccessible( true );
+		self::$reflected_members[ $property ]->setValue( self::$instance, $value );
+		self::$reflected_members[ $property ]->setAccessible( false );
 	}
 
 	/**
@@ -74,10 +93,14 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @return mixed The value of the property.
 	 */
 	public function get_property_value( $property ) {
-		$reflection_property = new ReflectionProperty( self::$instance, $property );
-		$reflection_property->setAccessible( true );
-		$value = $reflection_property->getValue( self::$instance );
-		$reflection_property->setAccessible( false );
+		if ( ! isset( self::$reflected_members[ $property ] ) ) {
+			self::$reflected_members[ $property ] = new ReflectionProperty( self::$instance, $property );
+		}
+
+		self::$reflected_members[ $property ]->setAccessible( true );
+		$value = self::$reflected_members[ $property ]->getValue( self::$instance );
+		self::$reflected_members[ $property ]->setAccessible( false );
+
 		return $value;
 	}
 
@@ -90,10 +113,14 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @return mixed The result of the method call.
 	 */
 	protected function call_method( $method, ...$args ) {
-		$reflection_method = new ReflectionMethod( self::$instance, $method );
-		$reflection_method->setAccessible( true );
-		$value = $reflection_method->invokeArgs( self::$instance, $args );
-		$reflection_method->setAccessible( false );
+		if ( ! isset( self::$reflected_members[ $method ] ) ) {
+			self::$reflected_members[ $method ] = new ReflectionMethod( self::$instance, $method );
+		}
+
+		self::$reflected_members[ $method ]->setAccessible( true );
+		$value = self::$reflected_members[ $method ]->invokeArgs( self::$instance, $args );
+		self::$reflected_members[ $method ]->setAccessible( false );
+
 		return $value;
 	}
 }
