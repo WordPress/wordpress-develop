@@ -413,15 +413,14 @@ wp_plugin_directory_constants();
 $GLOBALS['wp_plugin_paths'] = array();
 
 /*
- * For-Core plugins compatibility handler.
+ * Compatibility handler for for-core plugins.
  *
- * "For-Core" are approved plugins being developed specifically to be merged into
+ * "For-core" are approved plugins being developed specifically to be merged into
  * Core, e.g. Gutenberg and feature plugins.
  *
- * As these "for-Core" plugins are frequently released, the handler identifies
+ * As these "for-core" plugins are frequently released, the handler identifies
  * each's minimum compatible version, detects the version of each that is activated,
- * and deactivates and does not load each that is incompatible (less than the
- * minimum version).
+ * and deactivates and does not load each incompatible plugin.
  *
  * This handler is done at the activated plugin loading loops to ensure
  * sites stay running (to avoid fatal errors) and experiences are expected (by
@@ -429,146 +428,127 @@ $GLOBALS['wp_plugin_paths'] = array();
  *
  * @since 6.5.0
  */
-global $_wp_for_core_plugins_compat_version, $_wp_activated_plugins_to_compat_check, $_wp_maybe_flag_plugin_for_compat_check, $_wp_deactivate_incompatible_plugins;
+global $_found_incompatible_for_core_plugins, $_is_plugin_compatible_with_wp, $_handle_incompatible_for_core_plugins;
 
-// List of For-Core plugins' compatible version definitions.
-$_wp_for_core_plugins_compat_version = array(
-	'gutenberg/gutenberg.php' => array(
-		'name'                       => 'Gutenberg',
-		'minimum_compatible_version' => '17.6',
-	),
-);
-
-// Found activated for-Core plugins to do the compatibility check.
-$_wp_activated_plugins_to_compat_check = array();
-
-/*
- * Flags the plugin for compatibility check if it's in the for-Core list.
+/**
+ * Gets the for-core plugin's minimum compatible version.
  *
  * @since 6.5.0
  *
- * @param string  $plugin      The plugin to check.
- * @param string  $plugin_file The plugin's file.
- * @param array   $plugins     The list of active and valid plugins to be loaded.
+ * @param string $plugin Plugin path relative to the plugins' directory.
+ * @return string Returns the minimum version if it's a for-core plugin, otherwise an empty string.
  */
-$_wp_maybe_flag_plugin_for_compat_check = static function ( $plugin, $plugin_file, $plugins ) {
-	global $_wp_for_core_plugins_compat_version, $_wp_activated_plugins_to_compat_check;
+function _get_for_core_plugin_min_wp_compat_version( $plugin ) {
+	static $plugin_data = array(
+		'gutenberg/gutenberg.php' => array(
+			'name'                       => 'Gutenberg',
+			'minimum_compatible_version' => '17.7',
+		),
+	);
 
-	if ( ! isset( $_wp_for_core_plugins_compat_version[ $plugin ] ) ) {
-		return;
+	if ( ! isset( $plugin_data[ $plugin ] ) ) {
+		return '';
 	}
 
-	// Get the last index value, as this is where this plugin is stored in the $plugins array.
-	end( $plugins );
-	$plugins_index = key( $plugins );
+	return $plugin_data[ $plugin ]['minimum_compatible_version'];
+}
 
-	$_wp_activated_plugins_to_compat_check[ $plugin ] = array(
-		'file'                  => $plugin_file,
-		'deactivated_version'   => '',
-		'index_plugins_to_load' => $plugins_index,
+// Found incompatible for-core plugins.
+$_found_incompatible_for_core_plugins = array();
+
+/**
+ * Checks if the given plugin is compatible with this WordPress version.
+ *
+ * @since 6.5.0
+ *
+ * @global $_wp_for_core_plugins_compat_version
+ * @global $_found_incompatible_for_core_plugins
+ *
+ * @param string $plugin_absolute_path Absolute path to the plugin's file.
+ */
+$_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path ) use ( $_wp_for_core_plugins_compat_version ) {
+	global $_found_incompatible_for_core_plugins;
+
+	static $plugins_dir_strlen;
+	if ( empty( $plugins_dir_strlen ) ) {
+		$plugins_dir_strlen = strlen( WP_PLUGIN_DIR . '/' );
+	}
+
+	$plugin = substr( $plugin_absolute_path, $plugins_dir_strlen );
+
+	// Not a for-core plugin.
+	if ( ! isset( $_wp_for_core_plugins_compat_version[ $plugin ] ) ) {
+		return true;
+	}
+
+	// The plugin is already marked as incompatible.
+	if ( isset( $_found_incompatible_for_core_plugins[ $plugin ] ) ) {
+		return false;
+	}
+
+	// Get the Name and Version from the plugin's header.
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	$plugin_data = get_plugin_data(
+		$plugin_absolute_path,
+		array(
+			'Name'    => 'Plugin Name',
+			'Version' => 'Version',
+		),
+		'plugin'
 	);
+
+	// Whoops, something went wrong. Bail out.
+	if ( ! ( isset( $plugin_data['Version'] ) && isset( $plugin_data['Name'] ) ) ) {
+		return true;
+	}
+
+	// If compatible, bail out.
+	$min_compat_version = $_wp_for_core_plugins_compat_version[ $plugin ]['minimum_compatible_version'];
+	if ( version_compare( $plugin_data['Version'], $min_compat_version, '>=' ) ) {
+		return true;
+	}
+
+	// Found an incompatible for-core plugin. Add it to the found global for later batch processing.
+	$_found_incompatible_for_core_plugins[ $plugin ] = array(
+		'plugin_absolute_path' => $plugin_absolute_path,
+		'plugin_name'          => $plugin_data['Name'],
+		'version_deactivated'  => $plugin_data['Version'],
+		'version_compatible'   => $min_compat_version,
+	);
+
+	return false;
 };
 
 /**
- * On WordPress load, deactivate any incompatible for-Core plugins.
+ * Handle incompatible for-core plugins.
  *
- * Also removes the incompatible plugins from the given list of plugins to load,
- * i.e. to prevent these plugins from being loaded into memory by the plugin
- * loader loops.
+ * The handler does the following:
+ *     * Removes incompatible plugins from the "active_plugins" option.
+ *     * Stores incompatible plugins in "wp_force_deactivation_incompatible_plugins" option, which is used
+ *       in wp-admin to notify the user.
  *
  * @since 6.5.0
  *
- * @param array $plugins_to_load Activate and valid plugins to load. (Passed by reference.)
+ * @global $_found_incompatible_for_core_plugins
  */
-$_wp_deactivate_incompatible_plugins = static function ( &$plugins_to_load ) {
-	global $_wp_for_core_plugins_compat_version, $_wp_activated_plugins_to_compat_check;
-
-	// Bail out if there are no active plugins for compatibility check.
-	if ( empty( $_wp_activated_plugins_to_compat_check ) || empty( $plugins_to_load ) ) {
-		return;
-	}
+$_handle_incompatible_for_core_plugins = static function () {
+	global $_found_incompatible_for_core_plugins;
 
 	$active_plugins           = (array) get_option( 'active_plugins', array() );
 	$active_plugins_by_plugin = array_flip( $active_plugins );
-	$found_incompatibles      = array();
 
-	/*
-	 * Loop through the plugins to do the compatibility check.
-	 * Deactivate each incompatible plugin.
-	 */
-	foreach ( $_wp_activated_plugins_to_compat_check as $plugin => $plugin_info ) {
-
-		$index_plugins_to_load = $plugin_info['index_plugins_to_load'];
-
-		if ( ! isset( $plugins_to_load[ $index_plugins_to_load ] ) ) {
-			return;
-		}
-
-		// Get the Name and Version from the plugin's header.
-		$plugin_data = get_file_data(
-			$plugins_to_load[ $index_plugins_to_load ],
-			array(
-				'Name'    => 'Plugin Name',
-				'Version' => 'Version',
-			),
-			'plugin'
-		);
-
-		// Whoops, something went wrong. Bail out.
-		if ( ! ( isset( $plugin_data['Version'] ) && isset( $plugin_data['Name'] ) ) ) {
-			return;
-		}
-
-		// Check if compatible. If yes, bail out.
-		$min_compat_version = $_wp_for_core_plugins_compat_version[ $plugin ]['minimum_compatible_version'];
-		if ( version_compare( $plugin_data['Version'], $min_compat_version, '>=' ) ) {
-			return;s
-		}
-
-		// Add the plugin to found incompatibles.
-		$found_incompatibles[ $plugin ] = array(
-			'plugin_name'         => $plugin_data['Name'],
-			'version_deactivated' => $plugin_data['Version'],
-			'version_compatible'  => $min_compat_version,
-		);
-
-		// Remove it from the 'active_plugins' option.
-		unset( $active_plugins[ $active_plugins_by_plugin[ $plugin ] ] );
-
-		// Remove it from the plugins to be loaded.
-		unset( $plugins_to_load[ $index_plugins_to_load ] );
-	}
-
-	if ( empty( $found_incompatibles ) ) {
-		return;
+	// Remove each of the found incompatible plugins from the "active_plugins" option.
+	foreach ( $_found_incompatible_for_core_plugins as $plugin_slug => $plugin ) {
+		unset( $active_plugins[ $active_plugins_by_plugin[ $plugin_slug ] ] );
 	}
 
 	// Update the 'active plugins' option, which no longer includes the incompatible plugins.
 	update_option( 'active_plugins', $active_plugins );
 
 	// Update the list of incompatible plugins to notify user in the admin.
-	$incompatible_plugins = (array) get_option( 'wp_force_deactivation_incompatible_plugins', array() );
-	$incompatible_plugins = array_merge( $incompatible_plugins, $found_incompatibles );
-	update_option( 'wp_force_deactivation_incompatible_plugins', $incompatible_plugins );
+	update_option( 'wp_force_deactivation_incompatible_plugins', $_found_incompatible_for_core_plugins );
 };
-
-/*
- * Removes the for-Core plugins compatiblity handler.
- *
- * Unsets each of the global variables, removing them from memory and usage.
- *
- * @since 6.5.0
- */
-$_wp_remove_for_core_compat_handler = static function () {
-	global $_wp_for_core_plugins_compat_version, $_wp_activated_plugins_to_compat_check, $_wp_maybe_flag_plugin_for_compat_check, $_wp_deactivate_incompatible_plugins;
-	unset(
-		$_wp_for_core_plugins_compat_version,
-		$_wp_activated_plugins_to_compat_check,
-		$_wp_maybe_flag_plugin_for_compat_check,
-		$_wp_deactivate_incompatible_plugins
-	);
-};
-// End of the for-Core compatibility handler.
+// End of the for-core plugins compatibility handler.
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {
@@ -590,6 +570,16 @@ unset( $mu_plugin, $_wp_plugin_file );
 // Load network activated plugins.
 if ( is_multisite() ) {
 	foreach ( wp_get_active_network_plugins() as $network_plugin ) {
+
+		/*
+		 * If the plugin is incompatible with this WordPress version, skip loading it.
+		 *
+		 * @since 6.5.0
+		 */
+		if ( ! $_is_plugin_compatible_with_wp( $network_plugin ) ) {
+			continue;
+		}
+
 		wp_register_plugin_realpath( $network_plugin );
 
 		$_wp_plugin_file = $network_plugin;
@@ -607,7 +597,6 @@ if ( is_multisite() ) {
 	}
 	unset( $network_plugin, $_wp_plugin_file );
 }
-$_wp_activated_plugins_to_compat_check = array();
 
 /**
  * Fires once all must-use and network-activated plugins have loaded.
@@ -645,9 +634,17 @@ if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 }
 
 // Load active plugins.
-$_active_and_valid_plugins_to_load = wp_get_active_and_valid_plugins();
-$_wp_deactivate_incompatible_plugins( $_active_and_valid_plugins_to_load );
-foreach ( $_active_and_valid_plugins_to_load as $plugin ) {
+foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
+
+	/*
+	 * If the plugin is incompatible with this WordPress version, skip loading it.
+	 *
+	 * @since 6.5.0
+	 */
+	if ( ! $_is_plugin_compatible_with_wp( $plugin ) ) {
+		continue;
+	}
+
 	wp_register_plugin_realpath( $plugin );
 
 	$_wp_plugin_file = $plugin;
@@ -663,8 +660,16 @@ foreach ( $_active_and_valid_plugins_to_load as $plugin ) {
 	 */
 	do_action( 'plugin_loaded', $plugin );
 }
-unset( $plugin, $_wp_plugin_file, $_active_and_valid_plugins_to_load );
-$_wp_remove_for_core_compat_handler();
+$_handle_incompatible_for_core_plugins();
+unset(
+	$plugin,
+	$_wp_plugin_file,
+	// Remove the for-core compatibility handler.
+	$_wp_for_core_plugins_compat_version,
+	$_wp_activated_plugins_to_compat_check,
+	$_is_plugin_compatible_with_wp,
+	$_handle_incompatible_for_core_plugins
+);
 
 // Load pluggable functions.
 require ABSPATH . WPINC . '/pluggable.php';

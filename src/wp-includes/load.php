@@ -971,8 +971,6 @@ function wp_get_mu_plugins() {
  * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
-	global $_wp_maybe_flag_plugin_for_compat_check;
-
 	$plugins        = array();
 	$active_plugins = (array) get_option( 'active_plugins', array() );
 
@@ -995,13 +993,7 @@ function wp_get_active_and_valid_plugins() {
 			// Not already included as a network plugin.
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 		) {
-			$plugin_file = WP_PLUGIN_DIR . '/' . $plugin;
-			$plugins[]   = $plugin_file;
-
-			// Check if the plugin is a for-Core plugin and, if yes, flag it for a later compatibility check.
-			if ( ! empty( $_wp_maybe_flag_plugin_for_compat_check ) && is_callable( $_wp_maybe_flag_plugin_for_compat_check ) ) {
-				$_wp_maybe_flag_plugin_for_compat_check( $plugin, $plugin_file, $plugins );
-			}
+			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
 		}
 	}
 
