@@ -895,6 +895,9 @@ function install_plugin_information() {
 	}
 	echo "</div>\n";
 
+	wp_print_request_filesystem_credentials_modal();
+	wp_print_admin_notice_templates();
+
 	iframe_footer();
 	exit;
 }
@@ -1028,8 +1031,11 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						}
 
 						$button = sprintf(
-							'<a href="%1$s" class="button button-primary activate-now" aria-label="%2$s">%3$s</a>',
+							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s">%6$s</a>',
 							esc_url( $activate_url ),
+							esc_attr( $name ),
+							esc_attr( $data->slug ),
+							esc_attr( $status['file'] ),
 							esc_attr( sprintf( $button_label, $name ) ),
 							$button_text
 						);

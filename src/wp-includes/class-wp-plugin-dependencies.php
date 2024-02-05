@@ -438,6 +438,7 @@ class WP_Plugin_Dependencies {
 			wp_send_json_error(
 				array(
 					'slug'         => '',
+					'pluginName'   => '',
 					'errorCode'    => 'no_plugin_specified',
 					'errorMessage' => __( 'No plugin specified.' ),
 				)
@@ -456,9 +457,26 @@ class WP_Plugin_Dependencies {
 			wp_send_json_error( $status );
 		}
 
-		$plugin_file  = self::$plugin_dirnames[ $slug ];
-		$dependencies = self::get_dependencies( $plugin_file );
+		$plugin_file          = self::$plugin_dirnames[ $slug ];
+		$status['pluginName'] = self::$plugins[ $plugin_file ]['Name'];
+		$status['plugin']     = $plugin_file;
 
+		if ( current_user_can( 'activate_plugin', $plugin_file ) && is_plugin_inactive( $plugin_file ) ) {
+			$status['activateUrl'] = add_query_arg(
+				array(
+					'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $plugin_file ),
+					'action'   => 'activate',
+					'plugin'   => $plugin_file,
+				),
+				is_multisite() ? network_admin_url( 'plugins.php' ) : admin_url( 'plugins.php' )
+			);
+		}
+
+		if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
+			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
+		}
+
+		$dependencies = self::get_dependencies( $plugin_file );
 		if ( empty( $dependencies ) ) {
 			$status['message'] = __( 'The plugin has no required plugins.' );
 			wp_send_json_success( $status );
