@@ -46,10 +46,10 @@ final class WP_Font_Collection {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string        $slug         Font collection slug.
-	 * @param array|string  $data_or_file Font collection data array or a path/URL to a JSON file
-	 *                                    containing the font collection.
-	 *                                    See {@see wp_register_font_collection()} for the supported fields.
+	 * @param string       $slug         Font collection slug.
+	 * @param array|string $data_or_file Font collection data array or a path/URL to a JSON file
+	 *                                   containing the font collection.
+	 *                                   See {@see wp_register_font_collection()} for the supported fields.
 	 */
 	public function __construct( $slug, $data_or_file ) {
 		$this->slug = sanitize_title( $slug );
@@ -160,7 +160,7 @@ final class WP_Font_Collection {
 
 			$data = json_decode( wp_remote_retrieve_body( $response ), true );
 			if ( empty( $data ) ) {
-				return new WP_Error( 'font_collection_decode_error', __( 'Error decoding the font collection data from the REST response JSON.' ) );
+				return new WP_Error( 'font_collection_decode_error', __( 'Error decoding the font collection data from the HTTP response JSON.' ) );
 			}
 
 			// Make sure the data is valid before storing it in a transient.
@@ -191,8 +191,8 @@ final class WP_Font_Collection {
 		foreach ( $required_properties as $property ) {
 			if ( empty( $data[ $property ] ) ) {
 				$message = sprintf(
-				// translators: 1: Font collection slug, 2: Missing property name.
-					__( 'Font collection "%1$s" has missing or empty property: "%2$s."' ),
+					// translators: 1: Font collection slug, 2: Missing property name, e.g. "font_families".
+					__( 'Font collection "%1$s" has missing or empty property: "%2$s".' ),
 					$this->slug,
 					$property
 				);
@@ -224,25 +224,25 @@ final class WP_Font_Collection {
 						'preview'    => 'sanitize_url',
 						'fontFace'   => array(
 							array(
-								'fontFamily'          => 'sanitize_text_field',
-								'fontStyle'           => 'sanitize_text_field',
-								'fontWeight'          => 'sanitize_text_field',
-								'src'                 => function ( $value ) {
+								'fontFamily'            => 'sanitize_text_field',
+								'fontStyle'             => 'sanitize_text_field',
+								'fontWeight'            => 'sanitize_text_field',
+								'src'                   => function ( $value ) {
 									return is_array( $value )
 										? array_map( 'sanitize_text_field', $value )
 										: sanitize_text_field( $value );
 								},
-								'preview'             => 'sanitize_url',
-								'fontDisplay'         => 'sanitize_text_field',
-								'fontStretch'         => 'sanitize_text_field',
-								'ascentOverride'      => 'sanitize_text_field',
-								'descentOverride'     => 'sanitize_text_field',
-								'fontVariant'         => 'sanitize_text_field',
-								'fontFeatureSettings' => 'sanitize_text_field',
+								'preview'               => 'sanitize_url',
+								'fontDisplay'           => 'sanitize_text_field',
+								'fontStretch'           => 'sanitize_text_field',
+								'ascentOverride'        => 'sanitize_text_field',
+								'descentOverride'       => 'sanitize_text_field',
+								'fontVariant'           => 'sanitize_text_field',
+								'fontFeatureSettings'   => 'sanitize_text_field',
 								'fontVariationSettings' => 'sanitize_text_field',
-								'lineGapOverride'     => 'sanitize_text_field',
-								'sizeAdjust'          => 'sanitize_text_field',
-								'unicodeRange'        => 'sanitize_text_field',
+								'lineGapOverride'       => 'sanitize_text_field',
+								'sizeAdjust'            => 'sanitize_text_field',
+								'unicodeRange'          => 'sanitize_text_field',
 							),
 						),
 					),
