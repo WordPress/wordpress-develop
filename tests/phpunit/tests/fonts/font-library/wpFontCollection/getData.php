@@ -58,7 +58,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_request' ), 10, 3 );
 
 		self::$mock_collection_data = $config;
-		$collection                 = new WP_Font_Collection( $slug, 'https://localhost/fonts/mock-font-collection.json' );
+		$collection                 = new WP_Font_Collection( $slug, 'https://example.com/fonts/mock-font-collection.json' );
 		$data                       = $collection->get_data();
 
 		remove_filter( 'pre_http_request', array( $this, 'mock_request' ) );
@@ -288,7 +288,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	public function test_should_error_with_unsuccessful_response_status() {
 		add_filter( 'pre_http_request', array( $this, 'mock_request_unsuccessful_response' ), 10, 3 );
 
-		$collection = new WP_Font_Collection( 'my-collection', 'https://localhost/fonts/missing-collection.json' );
+		$collection = new WP_Font_Collection( 'my-collection', 'https://example.com/fonts/missing-collection.json' );
 		$data       = $collection->get_data();
 
 		remove_filter( 'pre_http_request', array( $this, 'mock_request_unsuccessful_response' ) );
@@ -304,7 +304,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	public function test_should_error_with_invalid_json_from_url() {
 		add_filter( 'pre_http_request', array( $this, 'mock_request_invalid_json' ), 10, 3 );
 
-		$collection = new WP_Font_Collection( 'my-collection', 'https://localhost/fonts/invalid-collection.json' );
+		$collection = new WP_Font_Collection( 'my-collection', 'https://example.com/fonts/invalid-collection.json' );
 		$data       = $collection->get_data();
 
 		remove_filter( 'pre_http_request', array( $this, 'mock_request_invalid_json' ) );
@@ -318,7 +318,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	}
 
 	public function mock_request( $preempt, $args, $url ) {
-		if ( 'https://localhost/fonts/mock-font-collection.json' !== $url ) {
+		if ( 'https://example.com/fonts/mock-font-collection.json' !== $url ) {
 			return false;
 		}
 
@@ -331,7 +331,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	}
 
 	public function mock_request_unsuccessful_response( $preempt, $args, $url ) {
-		if ( 'https://localhost/fonts/missing-collection.json' !== $url ) {
+		if ( 'https://example.com/fonts/missing-collection.json' !== $url ) {
 			return false;
 		}
 
@@ -344,7 +344,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	}
 
 	public function mock_request_invalid_json( $preempt, $args, $url ) {
-		if ( 'https://localhost/fonts/invalid-collection.json' !== $url ) {
+		if ( 'https://example.com/fonts/invalid-collection.json' !== $url ) {
 			return false;
 		}
 
