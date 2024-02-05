@@ -38,4 +38,12 @@ class Tests_Admin_WPPluginDependencies_ConvertToSlug extends WP_PluginDependenci
 		$this->set_property_value( 'dependency_slugs', array( 'dependent2' ) );
 		$this->assertFalse( $this->call_method( 'has_dependents', 'dependent/dependent.php' ) );
 	}
+
+	/**
+	 * Tests that 'hello.php' is converted to 'hello-dolly'.
+	 */
+	public function test_should_convert_hellophp_to_hello_dolly() {
+		$this->set_property_value( 'dependency_slugs', array( 'hello-dolly' ) );
+		$this->assertTrue( $this->call_method( 'has_dependents', 'hello.php' ) );
+	}
 }
