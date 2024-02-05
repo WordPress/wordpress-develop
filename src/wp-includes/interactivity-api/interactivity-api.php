@@ -134,3 +134,29 @@ function wp_interactivity_state( string $store_namespace, array $state = array()
 function wp_interactivity_config( string $store_namespace, array $config = array() ): array {
 	return wp_interactivity()->config( $store_namespace, $config );
 }
+
+/**
+ * Generates a `data-wp-context` directive attribute by encoding a context
+ * array.
+ *
+ * This helper function simplifies the creation of `data-wp-context` directives
+ * by providing a way to pass an array of data, which encodes into a JSON string
+ * safe for direct use as a HTML attribute value.
+ *
+ * Example:
+ *
+ *     <div <?php echo data_wp_context( array( 'isOpen' => true, 'count' => 0 ) ); ?>>
+ *
+ * @since 6.5.0
+ *
+ * @param array  $context         The array of context data to encode.
+ * @param string $store_namespace Optional. The unique store namespace identifier.
+ * @return string A complete `data-wp-context` directive with a JSON encoded value representing the context array and
+ *                the store namespace if specified.
+ */
+function data_wp_context( array $context, string $store_namespace = '' ): string {
+	return 'data-wp-context=\'' .
+		( $store_namespace ? $store_namespace . '::' : '' ) .
+		( empty( $context ) ? '{}' : wp_json_encode( $context, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ) .
+		'\'';
+}

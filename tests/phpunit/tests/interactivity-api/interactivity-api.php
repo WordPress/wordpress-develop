@@ -311,4 +311,82 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 		unregister_block_type( 'test/custom-directive-block' );
 		$directive_processors->setValue( null, $old_directive_processors );
 	}
+
+	/**
+	 * Tests that data_wp_context function correctly converts different array
+	 * structures to a JSON string.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::data_wp_context
+	 */
+	public function test_data_wp_context_with_different_arrays() {
+		$this->assertEquals( 'data-wp-context=\'{}\'', data_wp_context( array() ) );
+		$this->assertEquals(
+			'data-wp-context=\'{"a":1,"b":"2","c":true}\'',
+			data_wp_context(
+				array(
+					'a' => 1,
+					'b' => '2',
+					'c' => true,
+				)
+			)
+		);
+		$this->assertEquals(
+			'data-wp-context=\'{"a":[1,2]}\'',
+			data_wp_context( array( 'a' => array( 1, 2 ) ) )
+		);
+		$this->assertEquals(
+			'data-wp-context=\'[1,2]\'',
+			data_wp_context( array( 1, 2 ) )
+		);
+	}
+
+	/**
+	 * Tests that data_wp_context function correctly converts different array
+	 * structures to a JSON string and adds a namespace.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::data_wp_context
+	 */
+	public function test_data_wp_context_with_different_arrays_and_a_namespace() {
+		$this->assertEquals( 'data-wp-context=\'myPlugin::{}\'', data_wp_context( array(), 'myPlugin' ) );
+		$this->assertEquals(
+			'data-wp-context=\'myPlugin::{"a":1,"b":"2","c":true}\'',
+			data_wp_context(
+				array(
+					'a' => 1,
+					'b' => '2',
+					'c' => true,
+				),
+				'myPlugin'
+			)
+		);
+		$this->assertEquals(
+			'data-wp-context=\'myPlugin::{"a":[1,2]}\'',
+			data_wp_context( array( 'a' => array( 1, 2 ) ), 'myPlugin' )
+		);
+		$this->assertEquals(
+			'data-wp-context=\'myPlugin::[1,2]\'',
+			data_wp_context( array( 1, 2 ), 'myPlugin' )
+		);
+	}
+
+	/**
+	 * Tests that data_wp_context function correctly applies the JSON encoding
+	 * flags. This ensures that characters like `<`, `>`, `'`, or `&` are
+	 * properly escaped in the JSON-encoded string to prevent potential XSS
+	 * attacks.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::data_wp_context
+	 */
+	public function test_data_wp_context_with_json_flags() {
+		$this->assertEquals( 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'', data_wp_context( array( 'tag' => '<foo>' ) ) );
+		$this->assertEquals( 'data-wp-context=\'{"apos":"\u0027bar\u0027"}\'', data_wp_context( array( 'apos' => "'bar'" ) ) );
+		$this->assertEquals( 'data-wp-context=\'{"quot":"\u0022baz\u0022"}\'', data_wp_context( array( 'quot' => '"baz"' ) ) );
+		$this->assertEquals( 'data-wp-context=\'{"amp":"T\u0026T"}\'', data_wp_context( array( 'amp' => 'T&T' ) ) );
+	}
 }
