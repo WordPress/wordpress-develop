@@ -116,6 +116,8 @@ class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDe
 			),
 		);
 
+		self::$instance::initialize();
+
 		$this->assertFalse( self::$instance::has_circular_dependency( 'dependent/dependent.php' ) );
 	}
 }
