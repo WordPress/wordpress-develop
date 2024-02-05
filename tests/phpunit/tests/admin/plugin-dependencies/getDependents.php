@@ -19,9 +19,10 @@ class Tests_Admin_WPPluginDependencies_GetDependents extends WP_PluginDependenci
 	 * Tests that a plugin with no dependents will return an empty array.
 	 */
 	public function test_should_return_an_empty_array_when_a_plugin_has_no_dependents() {
+		self::$instance::initialize();
 		$this->assertSame(
 			array(),
-			$this->call_method( 'get_dependencies', 'dependent/dependent.php' )
+			self::$instance::get_dependents( 'dependency' )
 		);
 	}
 
@@ -39,7 +40,7 @@ class Tests_Admin_WPPluginDependencies_GetDependents extends WP_PluginDependenci
 
 		$this->assertSame(
 			array( 'dependent/dependent.php', 'dependent2/dependent2.php' ),
-			$this->call_method( 'get_dependents', 'dependency' )
+			self::$instance::get_dependents( 'dependency' )
 		);
 	}
 }
