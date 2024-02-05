@@ -436,7 +436,7 @@
 		if ( false !== $.support.postMessage && null !== target && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
 			target.postMessage( JSON.stringify( data ), window.location.origin );
 		}
-	}
+	};
 
 	/**
 	 * Decrements the update counts throughout the various menus.
@@ -617,7 +617,7 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
-		var $pluginRow, $card, $message, errorMessage,
+		var $pluginRow, $card, $message, errorMessage, buttonText, ariaLabel,
 			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
@@ -658,8 +658,8 @@
 				$message.find( 'p' ).removeAttr( 'aria-label' );
 			}
 		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-			var buttonText = __( 'Update failed.' ),
-				ariaLabel;
+			buttonText = __( 'Update failed.' );
+
 			$card = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' )
 				.append( wp.updates.adminNotice( {
 					className: 'update-message notice-error notice-alt is-dismissible',
@@ -715,7 +715,7 @@
 					text: buttonText,
 					ariaLabel: ariaLabel
 				}
-			)
+			);
 		}
 
 		$document.trigger( 'wp-plugin-update-error', response );
@@ -756,7 +756,7 @@
 			/* translators: %s: Plugin name and version. */
 			_x( 'Installing %s...', 'plugin' ),
 			$message.data( 'name' )
-		)
+		);
 
 		$message
 			.addClass( 'updating-message' )
@@ -902,7 +902,7 @@
 				text: buttonText,
 				ariaLabel: ariaLabel
 			}
-		)
+		);
 
 		$document.trigger( 'wp-plugin-install-error', response );
 	};
@@ -929,7 +929,7 @@
 		$document.trigger( 'wp-checking-plugin-dependencies', args );
 
 		return wp.updates.ajax( 'check_plugin_dependencies', args );
-	}
+	};
 
 	/**
 	 * Updates the UI appropriately after a successful plugin dependencies check.
@@ -997,7 +997,7 @@
 				}
 			);
 		}
-	}
+	};
 
 	/**
 	 * Updates the UI appropriately after a failed plugin dependencies check.
@@ -1018,7 +1018,8 @@
 				_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
 				response.pluginName,
 				response.errorMessage
-			);
+			),
+			errorMessage;
 
 		if ( ! wp.updates.isValidResponse( response, 'check-dependencies' ) ) {
 			return;
@@ -1051,7 +1052,7 @@
 				}
 			);
 		}
-	}
+	};
 
 	/**
 	 * Sends an Ajax request to the server to activate a plugin.
@@ -1096,7 +1097,7 @@
 		}
 
 		return wp.updates.ajax( 'activate-plugin', args );
-	}
+	};
 
 	/**
 	 * Updates the UI appropriately after a successful plugin activation.
@@ -1159,7 +1160,7 @@
 				);
 			}
 		}, 1000 );
-	}
+	};
 
 	/**
 	 * Updates the UI appropriately after a failed plugin activation.
@@ -1179,7 +1180,8 @@
 				/* translators: %s: Plugin name. */
 				_x( '%s activation failed', 'plugin' ),
 				response.pluginName
-			);
+			),
+			errorMessage;
 
 		if ( ! wp.updates.isValidResponse( response, 'activate' ) ) {
 			return;
@@ -1212,7 +1214,7 @@
 				}
 			);
 		}
-	}
+	};
 
 	/**
 	 * Updates the UI appropriately after a successful importer install.
@@ -3189,7 +3191,7 @@
 				action: 'update-plugin',
 				data:   {
 					plugin: $( this ).data( 'plugin' ),
-					slug:   response.slug
+					slug:   $( this ).data( 'slug' )
 				}
 			};
 
