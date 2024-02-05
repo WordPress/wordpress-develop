@@ -411,16 +411,6 @@ final class WP_Autoload {
 	private static $registered = false;
 
 	/**
-	 * Whether SimplePie has been loaded or not.
-	 *
-	 * @static
-	 * @access private
-	 *
-	 * @var bool
-	 */
-	private static $simplepie_loaded = false;
-
-	/**
 	 * Register the autoloader.
 	 *
 	 * @return void
@@ -476,9 +466,8 @@ final class WP_Autoload {
 		}
 
 		// Load SimplePie classes.
-		if ( str_starts_with( $class_name, 'simplepie' ) && ! self::$simplepie_loaded ) {
-			require ABSPATH . 'wp-includes/class-simplepie.php';
-			self::$simplepie_loaded = true;
+		if ( str_starts_with( $class_name, 'simplepie' ) ) {
+			require_once ABSPATH . 'wp-includes/class-simplepie.php';
 			return true;
 		}
 
