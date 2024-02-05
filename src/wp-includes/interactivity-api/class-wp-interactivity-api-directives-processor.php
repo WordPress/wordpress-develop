@@ -20,7 +20,6 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 * List of tags whose closer tag is not visited by the WP_HTML_Tag_Processor.
 	 *
 	 * @since 6.5.0
-	 *
 	 * @var string[]
 	 */
 	const TAGS_THAT_DONT_VISIT_CLOSER_TAG = array(
@@ -35,16 +34,26 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	);
 
 	/**
-	 * Returns the content between two balanced tags.
+	 * Returns the content between two balanced template tags.
+	 *
+	 * It positions the cursor in the closer tag of the balanced template tag,
+	 * if it exists.
 	 *
 	 * @since 6.5.0
 	 *
 	 * @access private
 	 *
-	 * @return string|null The content between the current opening and its matching closing tag or null if it doesn't
-	 *                     find the matching closing tag.
+	 * @return string|null The content between the current opener template tag and its matching closer tag or null if it
+	 *                     doesn't find the matching closing tag or the current tag is not a template opener tag.
 	 */
-	public function get_content_between_balanced_tags() {
+	public function get_content_between_balanced_template_tags() {
+		if ( 'TEMPLATE' !== $this->get_tag() ) {
+			return null;
+		}
+
+		// Flushes any changes.
+		$this->get_updated_html();
+
 		$bookmarks = $this->get_balanced_tag_bookmarks();
 		if ( ! $bookmarks ) {
 			return null;
@@ -54,7 +63,6 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 		$start = $this->bookmarks[ $start_name ]->start + $this->bookmarks[ $start_name ]->length + 1;
 		$end   = $this->bookmarks[ $end_name ]->start;
 
-		$this->seek( $start_name );
 		$this->release_bookmark( $start_name );
 		$this->release_bookmark( $end_name );
 
@@ -72,6 +80,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 * @return bool Whether the content was successfully replaced.
 	 */
 	public function set_content_between_balanced_tags( string $new_content ): bool {
+		// Flushes any changes.
 		$this->get_updated_html();
 
 		$bookmarks = $this->get_balanced_tag_bookmarks();
@@ -92,8 +101,41 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	}
 
 	/**
-	 * Returns a pair of bookmarks for the current opening tag and the matching
-	 * closing tag.
+	 * Appends content after the closing tag of a template tag.
+	 *
+	 * It positions the cursor in the closer tag of the balanced template tag,
+	 * if it exists.
+	 *
+	 * @access private
+	 *
+	 * @param string $new_content The string to append after the closing template tag.
+	 * @return bool Whether the content was successfully appended.
+	 */
+	public function append_content_after_template_tag_closer( string $new_content ): bool {
+		if ( empty( $new_content ) || 'TEMPLATE' !== $this->get_tag() || ! $this->is_tag_closer() ) {
+			return false;
+		}
+
+		// Flushes any changes.
+		$this->get_updated_html();
+
+		$bookmark = 'append_content_after_template_tag_closer';
+		$this->set_bookmark( $bookmark );
+		$end = $this->bookmarks[ $bookmark ]->start + $this->bookmarks[ $bookmark ]->length + 1;
+		$this->release_bookmark( $bookmark );
+
+		// Appends the new content.
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement( $end, 0, $new_content );
+
+		return true;
+	}
+
+	/**
+	 * Returns a pair of bookmarks for the current opener tag and the matching
+	 * closer tag.
+	 *
+	 * It positions the cursor in the closer tag of the balanced tag, if it
+	 * exists.
 	 *
 	 * @since 6.5.0
 	 *
@@ -104,7 +146,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 		$start_name = 'start_of_balanced_tag_' . ++$i;
 
 		$this->set_bookmark( $start_name );
-		if ( ! $this->next_balanced_closer() ) {
+		if ( ! $this->next_balanced_tag_closer_tag() ) {
 			$this->release_bookmark( $start_name );
 			return null;
 		}
@@ -126,9 +168,11 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 *
 	 * @since 6.5.0
 	 *
+	 * @access private
+	 *
 	 * @return bool Whether a matching closing tag was found.
 	 */
-	private function next_balanced_closer(): bool {
+	public function next_balanced_tag_closer_tag(): bool {
 		$depth    = 0;
 		$tag_name = $this->get_tag();
 
@@ -158,7 +202,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	}
 
 	/**
-	 * Checks whether the current tag has and visits a closer tag.
+	 * Checks whether the current tag has and will visit its matching closer tag.
 	 *
 	 * @since 6.5.0
 	 *
