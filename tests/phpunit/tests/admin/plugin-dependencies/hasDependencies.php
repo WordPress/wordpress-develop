@@ -20,7 +20,7 @@ class Tests_Admin_WPPluginDependencies_HasDependencies extends WP_PluginDependen
 	 */
 	public function test_should_return_true_when_a_plugin_has_dependencies() {
 		$this->set_property_value( 'dependencies', array( 'dependent/dependent.php' => array() ) );
-		$this->assertTrue( $this->call_method( 'has_dependencies', 'dependent/dependent.php' ) );
+		$this->assertTrue( self::$instance::has_dependencies( 'dependent/dependent.php' ) );
 	}
 
 	/**
@@ -28,6 +28,6 @@ class Tests_Admin_WPPluginDependencies_HasDependencies extends WP_PluginDependen
 	 */
 	public function test_should_return_false_when_a_plugin_has_no_dependencies() {
 		$this->set_property_value( 'dependencies', array( 'dependent2/dependent2.php' => array() ) );
-		$this->assertFalse( $this->call_method( 'has_dependencies', 'dependent/dependent.php' ) );
+		$this->assertFalse( self::$instance::has_dependencies( 'dependent/dependent.php' ) );
 	}
 }

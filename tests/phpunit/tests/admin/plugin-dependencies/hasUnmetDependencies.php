@@ -20,7 +20,7 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 	 */
 	public function test_should_return_false_when_a_plugin_has_no_dependencies() {
 		$this->set_property_value( 'dependencies', array( 'dependent/dependent.php' => array( 'dependency' ) ) );
-		$this->assertFalse( $this->call_method( 'has_unmet_dependencies', 'dependent2/dependent2.php' ) );
+		$this->assertFalse( self::$instance::has_unmet_dependencies( 'dependent2/dependent2.php' ) );
 	}
 
 	/**
@@ -39,19 +39,20 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 		update_option( 'active_plugins', array( 'dependency/dependency.php' ) );
 
-		$this->assertFalse( $this->call_method( 'has_unmet_dependencies', 'dependent/dependent.php' ) );
+		$this->assertFalse( self::$instance::has_unmet_dependencies( 'dependent/dependent.php' ) );
 	}
 
 	/**
 	 * Tests that a plugin with a dependency that is not installed will return true.
 	 */
 	public function test_should_return_true_when_a_plugin_has_a_dependency_that_is_not_installed() {
+		self::$instance::initialize();
 		$this->set_property_value(
 			'dependencies',
 			array( 'dependent/dependent.php' => array( 'dependency' ) )
 		);
 
-		$this->assertTrue( $this->call_method( 'has_unmet_dependencies', 'dependent/dependent.php' ) );
+		$this->assertTrue( self::$instance::has_unmet_dependencies( 'dependent/dependent.php' ) );
 	}
 
 	/**
@@ -68,7 +69,7 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 			array( 'dependency' => 'dependency/dependency.php' )
 		);
 
-		$this->assertTrue( $this->call_method( 'has_unmet_dependencies', 'dependent/dependent.php' ) );
+		$this->assertTrue( self::$instance::has_unmet_dependencies( 'dependent/dependent.php' ) );
 	}
 
 	/**
@@ -90,7 +91,7 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 		update_option( 'active_plugins', array( 'dependency/dependency.php' ) );
 
-		$this->assertTrue( $this->call_method( 'has_unmet_dependencies', 'dependent/dependent.php' ) );
+		$this->assertTrue( self::$instance::has_unmet_dependencies( 'dependent/dependent.php' ) );
 	}
 
 	/**
@@ -109,7 +110,7 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 		update_option( 'active_plugins', array( 'dependency/dependency.php' ) );
 
-		$this->assertTrue( $this->call_method( 'has_unmet_dependencies', 'dependent/dependent.php' ) );
+		$this->assertTrue( self::$instance::has_unmet_dependencies( 'dependent/dependent.php' ) );
 	}
 
 	/**
@@ -126,6 +127,6 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 			array( 'dependency' => 'dependency/dependency.php' )
 		);
 
-		$this->assertTrue( $this->call_method( 'has_unmet_dependencies', 'dependent/dependent.php' ) );
+		$this->assertTrue( self::$instance::has_unmet_dependencies( 'dependent/dependent.php' ) );
 	}
 }
