@@ -754,9 +754,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
 
-		$has_dependents         = WP_Plugin_Dependencies::has_dependents( $plugin_file );
-		$has_active_dependents  = WP_Plugin_Dependencies::has_active_dependents( $plugin_file );
-		$has_unmet_dependencies = WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file );
+		$has_dependents          = WP_Plugin_Dependencies::has_dependents( $plugin_file );
+		$has_active_dependents   = WP_Plugin_Dependencies::has_active_dependents( $plugin_file );
+		$has_unmet_dependencies  = WP_Plugin_Dependencies::has_unmet_dependencies( $plugin_file );
+		$has_circular_dependency = WP_Plugin_Dependencies::has_circular_dependency( $plugin_file );
 
 		if ( 'mustuse' === $context ) {
 			$is_active = true;
@@ -856,7 +857,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 
 					if ( current_user_can( 'delete_plugins' ) && ! is_plugin_active( $plugin_file ) ) {
-						if ( $has_dependents ) {
+						if ( $has_dependents && ! $has_circular_dependency ) {
 							$actions['delete'] = __( 'Delete' ) .
 								'<span class="screen-reader-text">' .
 								__( 'You cannot delete this plugin as other plugins require it.' ) .
@@ -962,7 +963,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					}
 
 					if ( ! is_multisite() && current_user_can( 'delete_plugins' ) ) {
-						if ( $has_dependents ) {
+						if ( $has_dependents && ! $has_circular_dependency ) {
 							$actions['delete'] = __( 'Delete' ) .
 								'<span class="screen-reader-text">' .
 								__( 'You cannot delete this plugin as other plugins require it.' ) .

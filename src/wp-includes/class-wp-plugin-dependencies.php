@@ -82,7 +82,7 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @var array
+	 * @var string[]
 	 */
 	protected static $dependency_filepaths;
 
@@ -93,7 +93,16 @@ class WP_Plugin_Dependencies {
 	 *
 	 * @var array[]
 	 */
-	protected static $circular_dependencies;
+	protected static $circular_dependencies_pairs;
+
+	/**
+	 * An array of circular dependency slugs.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var string[]
+	 */
+	protected static $circular_dependencies_slugs;
 
 	/**
 	 * Initializes by fetching plugin header and plugin API data,
@@ -222,6 +231,30 @@ class WP_Plugin_Dependencies {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
 
 			if ( false === $dependency_filepath || is_plugin_inactive( $dependency_filepath ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determines whether the plugin has a circular dependency.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
+	 * @return bool Whether the plugin has a circular dependency.
+	 */
+	public static function has_circular_dependency( $plugin_file ) {
+		if ( ! is_array( self::$circular_dependencies_slugs ) ) {
+			self::get_circular_dependencies();
+		}
+
+		if ( ! empty( self::$circular_dependencies_slugs ) ) {
+			$slug = self::convert_to_slug( $plugin_file );
+
+			if ( in_array( $slug, self::$circular_dependencies_slugs, true ) ) {
 				return true;
 			}
 		}
@@ -384,7 +417,7 @@ class WP_Plugin_Dependencies {
 				$second_filepath            = $plugin_dirnames[ $circular_dependency[1] ];
 				$circular_dependency_lines .= sprintf(
 					/* translators: 1: First plugin name, 2: Second plugin name. */
-					'<li>' . _x( '%1$s -> %2$s', 'The first plugin requires the second plugin.' ) . '</li>',
+					'<li>' . _x( '%1$s requires %2$s', 'The first plugin requires the second plugin.' ) . '</li>',
 					'<strong>' . esc_html( $plugins[ $first_filepath ]['Name'] ) . '</strong>',
 					'<strong>' . esc_html( $plugins[ $second_filepath ]['Name'] ) . '</strong>'
 				);
@@ -393,9 +426,9 @@ class WP_Plugin_Dependencies {
 			wp_admin_notice(
 				sprintf(
 					'<p>%1$s</p><ul>%2$s</ul><p>%3$s</p>',
-					__( 'These plugins cannot be activated because their requirements form a loop: ' ),
+					__( 'These plugins cannot be activated because their requirements are invalid. ' ),
 					$circular_dependency_lines,
-					__( 'Please contact the plugin developers and make them aware.' )
+					__( 'Please contact the plugin authors for more information.' )
 				),
 				array(
 					'type'           => 'warning',
@@ -804,11 +837,13 @@ class WP_Plugin_Dependencies {
 	 * @return array[] An array of circular dependency pairings.
 	 */
 	protected static function get_circular_dependencies() {
-		if ( is_array( self::$circular_dependencies ) ) {
-			return self::$circular_dependencies;
+		if ( is_array( self::$circular_dependencies_pairs ) ) {
+			return self::$circular_dependencies_pairs;
 		}
 
-		$circular_dependencies = array();
+		self::$circular_dependencies_slugs = array();
+
+		self::$circular_dependencies_pairs = array();
 		foreach ( self::$dependencies as $dependent => $dependencies ) {
 			/*
 			 * $dependent is in 'a/a.php' format. Dependencies are stored as slugs, i.e. 'a'.
@@ -817,15 +852,13 @@ class WP_Plugin_Dependencies {
 			 */
 			$dependent_slug = self::convert_to_slug( $dependent );
 
-			$circular_dependencies = array_merge(
-				$circular_dependencies,
+			self::$circular_dependencies_pairs = array_merge(
+				self::$circular_dependencies_pairs,
 				self::check_for_circular_dependencies( array( $dependent_slug ), $dependencies )
 			);
 		}
 
-		self::$circular_dependencies = $circular_dependencies;
-
-		return self::$circular_dependencies;
+		return self::$circular_dependencies_pairs;
 	}
 
 	/**
@@ -838,13 +871,14 @@ class WP_Plugin_Dependencies {
 	 * @return array A circular dependency pairing, or an empty array if none exists.
 	 */
 	protected static function check_for_circular_dependencies( $dependents, $dependencies ) {
-		$circular_dependencies = array();
+		$circular_dependencies_pairs = array();
 
 		// Check for a self-dependency.
 		$dependents_location_in_its_own_dependencies = array_intersect( $dependents, $dependencies );
 		if ( ! empty( $dependents_location_in_its_own_dependencies ) ) {
 			foreach ( $dependents_location_in_its_own_dependencies as $self_dependency ) {
-				$circular_dependencies[] = array( $self_dependency, $self_dependency );
+				self::$circular_dependencies_slugs[] = $self_dependency;
+				$circular_dependencies_pairs[]       = array( $self_dependency, $self_dependency );
 
 				// No need to check for itself again.
 				unset( $dependencies[ array_search( $self_dependency, $dependencies, true ) ] );
@@ -872,7 +906,9 @@ class WP_Plugin_Dependencies {
 					);
 
 					if ( false !== $dependent_location_in_dependency_dependencies ) {
-						$circular_dependencies[] = array( $dependent, $dependency );
+						self::$circular_dependencies_slugs[] = $dependent;
+						self::$circular_dependencies_slugs[] = $dependency;
+						$circular_dependencies_pairs[]       = array( $dependent, $dependency );
 
 						// Remove the dependent from its dependency's dependencies.
 						unset( $dependencies_of_the_dependency[ $dependent_location_in_dependency_dependencies ] );
@@ -886,14 +922,14 @@ class WP_Plugin_Dependencies {
 				 *
 				 * Yes, that does make sense.
 				 */
-				$circular_dependencies = array_merge(
-					$circular_dependencies,
+				$circular_dependencies_pairs = array_merge(
+					$circular_dependencies_pairs,
 					self::check_for_circular_dependencies( $dependents, array_unique( $dependencies_of_the_dependency ) )
 				);
 			}
 		}
 
-		return $circular_dependencies;
+		return $circular_dependencies_pairs;
 	}
 
 	/**
