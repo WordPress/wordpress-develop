@@ -43,15 +43,33 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a default namespace is applied when using the
-	 * `data-wp-interactive` directive.
+	 * `data-wp-interactive` directive with a json object.
 	 *
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_wp_interactive_sets_a_default_namespace() {
+	public function test_wp_interactive_sets_a_default_namespace_with_object() {
 		$html    = '
 					<div data-wp-interactive=\'{ "namespace": "myPlugin" }\'>
+							<div class="test" data-wp-bind--id="state.id">Text</div>
+					</div>
+			';
+		list($p) = $this->process_directives( $html );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Tests that a default namespace is applied when using the
+	 * `data-wp-interactive` directive with a string.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_interactive_sets_a_default_namespace_with_string() {
+		$html    = '
+					<div data-wp-interactive="myPlugin">
 							<div class="test" data-wp-bind--id="state.id">Text</div>
 					</div>
 			';
@@ -83,14 +101,15 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a `data-wp-interactive` directive without a namespace does not
-	 * replace the previously established default namespace.
+	 * Tests that a `data-wp-interactive` directive with a json object that
+	 * doesn't have a namespace property does not replace the previously
+	 * established default namespace.
 	 *
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_wp_interactive_without_namespace_doesnt_replace_the_previous_default_namespace() {
+	public function test_wp_interactive_json_without_namespace_doesnt_replace_the_previous_default_namespace() {
 		$html    = '
 					<div data-wp-interactive=\'{ "namespace": "myPlugin" }\'>
 							<div data-wp-interactive=\'{}\'>

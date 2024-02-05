@@ -484,9 +484,6 @@ final class WP_Interactivity_API {
 
 		// Tries to decode the `data-wp-interactive` attribute value.
 		$attribute_value = $p->get_attribute( 'data-wp-interactive' );
-		$decoded_json    = is_string( $attribute_value ) && ! empty( $attribute_value )
-			? json_decode( $attribute_value, true )
-			: null;
 
 		/*
 		 * Pushes the newly defined namespace or the current one if the
@@ -496,7 +493,16 @@ final class WP_Interactivity_API {
 		 * independently of whether the previous `data-wp-interactive` definition
 		 * contained a valid namespace.
 		 */
-		$namespace_stack[] = $decoded_json['namespace'] ?? end( $namespace_stack );
+		if ( is_string( $attribute_value ) && ! empty( $attribute_value ) ) {
+			$decoded_json = json_decode( $attribute_value, true );
+			if ( is_array( $decoded_json ) ) {
+				$namespace_stack[] = $decoded_json['namespace'] ?? end( $namespace_stack );
+			} else {
+				$namespace_stack[] = $attribute_value;
+			}
+		} else {
+			$namespace_stack[] = end( $namespace_stack );
+		}
 	}
 
 	/**
