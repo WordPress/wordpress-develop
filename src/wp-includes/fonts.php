@@ -116,7 +116,6 @@ function wp_unregister_font_collection( $slug ) {
  * }
  */
 function wp_get_font_dir( $defaults = array() ) {
-	// Multi site path
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
@@ -183,8 +182,9 @@ function _wp_before_delete_font_face( $post_id, $post ) {
 	}
 
 	$font_files = get_post_meta( $post_id, '_wp_font_face_file', false );
+	$font_dir   = wp_get_font_dir()['path'];
 
 	foreach ( $font_files as $font_file ) {
-		wp_delete_file( wp_get_font_dir()['path'] . '/' . $font_file );
+		wp_delete_file( $font_dir . '/' . $font_file );
 	}
 }
