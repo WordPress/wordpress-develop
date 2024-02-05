@@ -492,7 +492,14 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * @dataProvider data_test_redirect_pretty_search_results
 	 */
 	public function test_redirect_pretty_search_results( $input_url, $expected, $query ) {
-		$this->set_permalink_structure( '/%postname%/' );
+		static $pre_tests_run = false;
+		if ( ! $pre_tests_run ) {
+			$this->set_permalink_structure( '/%postname%/' );
+			update_option( 'posts_per_page', 2 );
+			self::factory()->post->create_many( 3, array( 'post_title' => 'test' ) );
+			self::factory()->post->create_many( 3, array( 'post_title' => 'Fünf bar' ) );
+			$pre_tests_run = true;
+		}
 
 		// Go to the pretty search URL and check that it redirects to the expected URL.
 		$this->go_to( $input_url );
@@ -501,9 +508,15 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			redirect_canonical( sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $input_url ), false )
 		);
 
+		$this->assertQueryTrue( 'is_search' );
+
 		// Go to the redirected URL and check that the search query is set correctly.
 		$this->go_to( $expected );
 		$this->assertSame( get_query_var( 's' ), $query );
+
+		if ( false !== strpos( $expected, 'paged' ) ) {
+			$this->assertQueryTrue( 'is_paged' );
+		}
 	}
 
 	/**
