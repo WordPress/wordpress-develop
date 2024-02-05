@@ -589,6 +589,7 @@ function create_initial_post_types() {
 			'map_meta_cap'                   => true,
 			'query_var'                      => false,
 			'show_in_rest'                   => false,
+			'rewrite'                        => false,
 		)
 	);
 
@@ -617,6 +618,7 @@ function create_initial_post_types() {
 			'map_meta_cap'                   => true,
 			'query_var'                      => false,
 			'show_in_rest'                   => false,
+			'rewrite'                        => false,
 		)
 	);
 
