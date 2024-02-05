@@ -428,8 +428,6 @@ if ( ! function_exists( 'array_is_list' ) ) {
 	 *
 	 * An array is considered a list if its keys consist of consecutive numbers from 0 to count($array)-1.
 	 *
-	 * @see https://github.com/symfony/polyfill-php81/tree/main
-	 *
 	 * @since 6.5.0
 	 *
 	 * @param array<mixed> $arr The array being evaluated.
@@ -440,15 +438,7 @@ if ( ! function_exists( 'array_is_list' ) ) {
 			return true;
 		}
 
-		$next_key = -1;
-
-		foreach ( $arr as $k => $v ) {
-			if ( ++$next_key !== $k ) {
-				return false;
-			}
-		}
-
-		return true;
+		return false;
 	}
 }
 
