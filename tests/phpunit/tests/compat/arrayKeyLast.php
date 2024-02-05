@@ -25,11 +25,7 @@ class Tests_Compat_ArrayKeyLast extends WP_UnitTestCase {
 	 * @param array $arr      The array to get last key from.
 	 */
 	public function test_array_key_last( $expected, $arr ) {
-		if ( ! function_exists( 'array_key_last' ) ) {
-			$this->markTestSkipped( 'array_key_last() is not available.' );
-		} else {
-			$this->assertSame( $expected, array_key_last( $arr ) );
-		}
+		$this->assertSame( $expected, array_key_last( $arr ) );
 	}
 
 	/**

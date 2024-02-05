@@ -550,7 +550,7 @@ switch ( $action ) {
 							$new_email = get_user_meta( $current_user->ID, '_new_email', true );
 							if ( $new_email && $new_email['newemail'] !== $current_user->user_email && $profile_user->ID === $current_user->ID ) :
 
-								$pending_change_message  = sprintf(
+								$pending_change_message = sprintf(
 									/* translators: %s: New email. */
 									__( 'There is a pending change of your email to %s.' ),
 									'<code>' . esc_html( $new_email['newemail'] ) . '</code>'
@@ -832,7 +832,7 @@ switch ( $action ) {
 									wp_admin_notice(
 										__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
 										array(
-											'type'               => 'error',
+											'type' => 'error',
 											'additional_classes' => array( 'inline' ),
 										)
 									);

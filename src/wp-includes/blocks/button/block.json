@@ -8,7 +8,17 @@
 	"description": "Prompt visitors to take action with a button-style link.",
 	"keywords": [ "link" ],
 	"textdomain": "default",
+	"usesContext": [ "pattern/overrides" ],
 	"attributes": {
+		"tagName": {
+			"type": "string",
+			"enum": [ "a", "button" ],
+			"default": "a"
+		},
+		"type": {
+			"type": "string",
+			"default": "button"
+		},
 		"textAlign": {
 			"type": "string"
 		},
@@ -22,14 +32,14 @@
 		"title": {
 			"type": "string",
 			"source": "attribute",
-			"selector": "a",
+			"selector": "a,button",
 			"attribute": "title",
 			"__experimentalRole": "content"
 		},
 		"text": {
-			"type": "string",
-			"source": "html",
-			"selector": "a",
+			"type": "rich-text",
+			"source": "rich-text",
+			"selector": "a,button",
 			"__experimentalRole": "content"
 		},
 		"linkTarget": {

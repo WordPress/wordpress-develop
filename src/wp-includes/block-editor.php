@@ -287,7 +287,6 @@ function get_legacy_widget_block_editor_settings() {
  * @since 6.0.0
  * @access private
  *
- * @global string     $pagenow    The filename of the current screen.
  * @global WP_Styles  $wp_styles  The WP_Styles current instance.
  * @global WP_Scripts $wp_scripts The WP_Scripts current instance.
  *
@@ -299,7 +298,7 @@ function get_legacy_widget_block_editor_settings() {
  * }
  */
 function _wp_get_iframed_editor_assets() {
-	global $wp_styles, $wp_scripts, $pagenow;
+	global $wp_styles, $wp_scripts;
 
 	// Keep track of the styles and scripts instance to restore later.
 	$current_wp_styles  = $wp_styles;
@@ -329,10 +328,6 @@ function _wp_get_iframed_editor_assets() {
 	// Enqueue the `editorStyle` handles for all core block, and dependencies.
 	wp_enqueue_style( 'wp-edit-blocks' );
 
-	if ( 'site-editor.php' === $pagenow ) {
-		wp_enqueue_style( 'wp-edit-site' );
-	}
-
 	if ( current_theme_supports( 'wp-block-styles' ) ) {
 		wp_enqueue_style( 'wp-block-library-theme' );
 	}
@@ -359,10 +354,23 @@ function _wp_get_iframed_editor_assets() {
 		}
 	}
 
+	/**
+	 * Remove the deprecated `print_emoji_styles` handler.
+	 * It avoids breaking style generation with a deprecation message.
+	 */
+	$has_emoji_styles = has_action( 'wp_print_styles', 'print_emoji_styles' );
+	if ( $has_emoji_styles ) {
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
+
 	ob_start();
 	wp_print_styles();
 	wp_print_font_faces();
 	$styles = ob_get_clean();
+
+	if ( $has_emoji_styles ) {
+		add_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
 
 	ob_start();
 	wp_print_head_scripts();

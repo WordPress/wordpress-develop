@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group admin
  * @group upgrade
  *
  * @covers WP_Automatic_Updater

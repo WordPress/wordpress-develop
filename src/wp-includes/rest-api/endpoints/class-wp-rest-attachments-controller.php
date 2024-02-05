@@ -186,6 +186,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $fields_update;
 		}
 
+		$terms_update = $this->handle_terms( $attachment_id, $request );
+
+		if ( is_wp_error( $terms_update ) ) {
+			return $terms_update;
+		}
+
 		$request->set_param( 'context', 'edit' );
 
 		/**
@@ -201,7 +207,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		wp_after_insert_post( $attachment, false, null );
 
-		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( wp_is_serving_rest_request() ) {
 			/*
 			 * Set a custom header with the attachment_id.
 			 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
@@ -450,7 +456,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
+		$supported_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif' );
 		$mime_type       = get_post_mime_type( $attachment_id );
 		if ( ! in_array( $mime_type, $supported_types, true ) ) {
 			return new WP_Error(
@@ -630,7 +636,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $new_attachment_id, '_wp_attachment_image_alt', wp_slash( $image_alt ) );
 		}
 
-		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( wp_is_serving_rest_request() ) {
 			/*
 			 * Set a custom header with the attachment_id.
 			 * Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.

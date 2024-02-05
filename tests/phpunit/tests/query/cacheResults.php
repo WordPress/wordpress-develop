@@ -710,7 +710,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query2->query( $args );
 		$queries_after = get_num_queries();
 
-		$this->assertSame( $queries_before, $queries_after );
+		$this->assertSame( 1, $queries_after - $queries_before );
 		$this->assertCount( 5, $query1->posts );
 		$this->assertCount( 5, $query2->posts );
 		$this->assertSame( $query1->found_posts, $query2->found_posts );
@@ -724,6 +724,117 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		 * confirming inequality.
 		 */
 		$this->assertNotEquals( $query1->posts, $query2->posts );
+	}
+
+
+	/**
+	 * @ticket 59188
+	 */
+	public function test_query_cache_unprimed_parents() {
+		$args   = array(
+			'cache_results' => true,
+			'fields'        => 'id=>parent',
+		);
+		$query1 = new WP_Query();
+		$query1->query( $args );
+
+		$post_ids   = wp_list_pluck( $query1->posts, 'ID' );
+		$cache_keys = array_map(
+			function ( $post_id ) {
+				return "post_parent:{$post_id}";
+			},
+			$post_ids
+		);
+
+		wp_cache_delete_multiple( $cache_keys, 'posts' );
+
+		$queries_before = get_num_queries();
+		$query2         = new WP_Query();
+		$query2->query( $args );
+		$queries_after = get_num_queries();
+
+		$this->assertSame( 1, $queries_after - $queries_before, 'There should be only one query to prime parents' );
+		$this->assertCount( 5, $query1->posts, 'There should be only 5 posts returned on first query' );
+		$this->assertCount( 5, $query2->posts, 'There should be only 5 posts returned on second query' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on second query' );
+	}
+
+	/**
+	 * @ticket 59188
+	 */
+	public function test_query_cache_update_parent() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => self::$pages[0],
+			)
+		);
+		$args    = array(
+			'cache_results' => true,
+			'post_type'     => 'page',
+			'fields'        => 'id=>parent',
+			'post__in'      => array(
+				$page_id,
+			),
+		);
+		$query1  = new WP_Query();
+		$query1->query( $args );
+
+		wp_update_post(
+			array(
+				'ID'          => $page_id,
+				'post_parent' => self::$pages[1],
+			)
+		);
+
+		$queries_before = get_num_queries();
+		$query2         = new WP_Query();
+		$query2->query( $args );
+		$queries_after = get_num_queries();
+
+		$this->assertSame( self::$pages[0], $query1->posts[0]->post_parent, 'Check post parent on first query' );
+		$this->assertSame( self::$pages[1], $query2->posts[0]->post_parent, 'Check post parent on second query' );
+		$this->assertSame( 2, $queries_after - $queries_before, 'There should be 2 queries, one for id=>parent' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on second query' );
+	}
+
+	/**
+	 * @ticket 59188
+	 */
+	public function test_query_cache_delete_parent() {
+		$parent_page_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		$page_id        = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $parent_page_id,
+			)
+		);
+		$args           = array(
+			'cache_results' => true,
+			'post_type'     => 'page',
+			'fields'        => 'id=>parent',
+			'post__in'      => array(
+				$page_id,
+			),
+		);
+		$query1         = new WP_Query();
+		$query1->query( $args );
+
+		wp_delete_post( $parent_page_id, true );
+
+		$queries_before = get_num_queries();
+		$query2         = new WP_Query();
+		$query2->query( $args );
+		$queries_after = get_num_queries();
+
+		$this->assertSame( $parent_page_id, $query1->posts[0]->post_parent, 'Check post parent on first query' );
+		$this->assertSame( 0, $query2->posts[0]->post_parent, 'Check post parent on second query' );
+		$this->assertSame( 2, $queries_after - $queries_before, 'There should be 2 queries, one for id=>parent' );
+		$this->assertSame( $query1->found_posts, $query2->found_posts, 'Found posts should match on second query' );
 	}
 
 	/**

@@ -449,13 +449,6 @@ window.wp = window.wp || {};
 		};
 
 		fields = $('#edit-'+id).find(':input').serialize();
-
-		var status = $(':input[name="_status"]').val();
-
-		if ( [ 'draft', 'pending', 'auto-draft' ].includes( status ) ) {
-			params.edit_date = 'false';
-		}
-
 		params = fields + '&' + $.param(params);
 
 		// Make Ajax request.

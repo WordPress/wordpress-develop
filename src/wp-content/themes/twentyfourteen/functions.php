@@ -345,7 +345,7 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20230808' );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20231107' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20230630' );
@@ -542,7 +542,7 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 		/**
 		 * Filters query arguments for listing authors.
 		 *
-		 * @since 3.3
+		 * @since Twenty Fourteen 3.3
 		 *
 		 * @param array $args Query arguments.
 		 */

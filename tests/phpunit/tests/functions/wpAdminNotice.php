@@ -3,7 +3,7 @@
 /**
  * Tests for `wp_admin_notice()`.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_admin_notice
  */
