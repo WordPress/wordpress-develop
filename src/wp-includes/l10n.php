@@ -789,15 +789,11 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 */
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
-	if ( ! is_readable( $mofile ) ) {
-		return false;
-	}
-
 	if ( ! $locale ) {
 		$locale = determine_locale();
 	}
 
-	$i18n_controller = WP_Translation_Controller::instance();
+	$i18n_controller = WP_Translation_Controller::get_instance();
 
 	// Ensures the correct locale is set as the current one, in case it was filtered.
 	$i18n_controller->set_locale( $locale );
@@ -817,13 +813,13 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$preferred_format = 'php';
 	}
 
-	$translation_files = array( $mofile );
+	$translation_files = array();
+
 	if ( 'mo' !== $preferred_format ) {
-		array_unshift(
-			$translation_files,
-			substr_replace( $mofile, ".l10n.$preferred_format", - strlen( '.mo' ) )
-		);
+		$translation_files[] = substr_replace( $mofile, ".l10n.$preferred_format", - strlen( '.mo' ) );
 	}
+
+	$translation_files[] = $mofile;
 
 	foreach ( $translation_files as $file ) {
 		/**
@@ -857,7 +853,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		}
 	}
 
-	return true;
+	return false;
 }
 
 /**
@@ -911,7 +907,7 @@ function unload_textdomain( $domain, $reloadable = false ) {
 
 	// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
 	if ( ! $reloadable ) {
-		WP_Translation_Controller::instance()->unload_textdomain( $domain );
+		WP_Translation_Controller::get_instance()->unload_textdomain( $domain );
 	}
 
 	if ( isset( $l10n[ $domain ] ) ) {
