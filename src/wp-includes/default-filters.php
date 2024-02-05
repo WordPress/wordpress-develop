@@ -748,8 +748,6 @@ add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 )
 
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
-
-// Font library filters.
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 
