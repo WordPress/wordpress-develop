@@ -113,13 +113,13 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$query  = array( 'tag_name' => 'style' );
 		$p      = new WP_HTML_Tag_Processor( $styles );
 		$this->assertTrue( $p->next_tag( $query ) );
-		$this->assertEquals( 'wp_interactivity_router_animations-inline-css', $p->get_attribute( 'id' ) );
-		$this->assertStringContainsString( '.wp-interactivity-router_loading-bar', $styles );
+		$this->assertEquals( 'wp-interactivity-router-animations-inline-css', $p->get_attribute( 'id' ) );
+		$this->assertStringContainsString( '.wp-interactivity-router-loading-bar', $styles );
 		$this->assertFalse( $p->next_tag( $query ) );
 
 		// Check that the markup is loaded, but only once.
 		$footer = $this->render_wp_footer();
-		$query  = array( 'class_name' => 'wp-interactivity-router_loading-bar' );
+		$query  = array( 'class_name' => 'wp-interactivity-router-loading-bar' );
 		$p      = new WP_HTML_Tag_Processor( $footer );
 		$this->assertTrue( $p->next_tag( $query ) );
 		$this->assertFalse( $p->next_tag( $query ) );

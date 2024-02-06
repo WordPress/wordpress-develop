@@ -764,7 +764,7 @@ final class WP_Interactivity_API {
 	 */
 	private function router_animation_styles(): string {
 		return <<<CSS
-			.wp-interactivity-router_loading-bar {
+			.wp-interactivity-router-loading-bar {
 				position: fixed;
 				top: 0;
 				left: 0;
@@ -776,17 +776,17 @@ final class WP_Interactivity_API {
 				background-color: var(--wp--preset--color--primary, #000);
 				opacity: 0
 			}
-			.wp-interactivity-router_loading-bar.start-animation {
-				animation: wp-interactivity-router_loading-bar-start-animation 30s cubic-bezier(0.03, 0.5, 0, 1) forwards
+			.wp-interactivity-router-loading-bar.start-animation {
+				animation: wp-interactivity-router-loading-bar-start-animation 30s cubic-bezier(0.03, 0.5, 0, 1) forwards
 			}
-			.wp-interactivity-router_loading-bar.finish-animation {
-				animation: wp-interactivity-router_loading-bar-finish-animation 300ms ease-in
+			.wp-interactivity-router-loading-bar.finish-animation {
+				animation: wp-interactivity-router-loading-bar-finish-animation 300ms ease-in
 			}
-			@keyframes wp-interactivity-router_loading-bar-start-animation {
+			@keyframes wp-interactivity-router-loading-bar-start-animation {
 				0% { transform: scaleX(0); transform-origin: 0% 0%; opacity: 1 }
 				100% { transform: scaleX(1); transform-origin: 0% 0%; opacity: 1 }
 			}
-			@keyframes wp-interactivity-router_loading-bar-finish-animation {
+			@keyframes wp-interactivity-router-loading-bar-finish-animation {
 				0% { opacity: 1 }
 				50% { opacity: 1 }
 				100% { opacity: 0 }
@@ -807,7 +807,7 @@ CSS;
 	public function router_loading_and_screen_reader_markup() {
 		echo <<<HTML
 			<div
-				class="wp-interactivity-router_loading-bar"
+				class="wp-interactivity-router-loading-bar"
 				data-wp-interactive='{"namespace":"core/router"}'
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
@@ -851,9 +851,9 @@ HTML;
 			);
 
 			// Enqueues as an inline style.
-			wp_register_style( 'wp_interactivity_router_animations', false );
-			wp_add_inline_style( 'wp_interactivity_router_animations', $this->router_animation_styles() );
-			wp_enqueue_style( 'wp_interactivity_router_animations' );
+			wp_register_style( 'wp-interactivity-router-animations', false );
+			wp_add_inline_style( 'wp-interactivity-router-animations', $this->router_animation_styles() );
+			wp_enqueue_style( 'wp-interactivity-router-animations' );
 
 			// Adds the necessary markup to the footer.
 			add_action( 'wp_footer', array( $this, 'router_loading_and_screen_reader_markup' ) );
