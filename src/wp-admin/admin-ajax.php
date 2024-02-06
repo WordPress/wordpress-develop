@@ -169,6 +169,9 @@ add_action( 'wp_ajax_nopriv_generate-password', 'wp_ajax_nopriv_generate_passwor
 
 add_action( 'wp_ajax_nopriv_heartbeat', 'wp_ajax_nopriv_heartbeat', 1 );
 
+// Register Plugin Dependencies Ajax calls.
+add_action( 'wp_ajax_check_plugin_dependencies', array( 'WP_Plugin_Dependencies', 'check_plugin_dependencies_during_ajax' ) );
+
 $action = $_REQUEST['action'];
 
 if ( is_user_logged_in() ) {
