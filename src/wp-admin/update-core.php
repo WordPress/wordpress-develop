@@ -228,7 +228,7 @@ function dismissed_updates() {
 		<?php
 		echo '<p class="hide-if-no-js"><button type="button" class="button" id="show-dismissed" aria-expanded="false">' . __( 'Show hidden updates' ) . '</button></p>';
 		echo '<ul id="dismissed-updates" class="core-updates dismissed">';
-		foreach ( (array) $dismissed as $update ) {
+		foreach ( $dismissed as $update ) {
 			echo '<li>';
 			list_core_update( $update );
 			echo '</li>';
@@ -274,13 +274,15 @@ function core_upgrade_preamble() {
 		echo '<h2 class="response">' . __( 'You have the latest version of WordPress.' ) . '</h2>';
 	}
 
-	echo '<ul class="core-updates">';
-	foreach ( (array) $updates as $update ) {
-		echo '<li>';
-		list_core_update( $update );
-		echo '</li>';
+	if ( $updates ) {
+		echo '<ul class="core-updates">';
+		foreach ( $updates as $update ) {
+			echo '<li>';
+			list_core_update( $update );
+			echo '</li>';
+		}
+		echo '</ul>';
 	}
-	echo '</ul>';
 
 	// Don't show the maintenance mode notice when we are only showing a single re-install option.
 	if ( $updates && ( count( $updates ) > 1 || 'latest' !== $updates[0]->response ) ) {
