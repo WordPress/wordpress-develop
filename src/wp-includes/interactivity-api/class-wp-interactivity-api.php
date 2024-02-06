@@ -754,6 +754,72 @@ final class WP_Interactivity_API {
 	}
 
 	/**
+	 * Returns the CSS styles for animating the top loading bar in the router.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return string The CSS styles for the router's top loading bar animation.
+	 */
+	private function router_animation_styles(): string {
+		return <<<CSS
+			.wp-interactivity-router_loading-bar {
+				position: fixed;
+				top: 0;
+				left: 0;
+				margin: 0;
+				padding: 0;
+				width: 100vw;
+				max-width: 100vw !important;
+				height: 4px;
+				background-color: var(--wp--preset--color--primary, #000);
+				opacity: 0
+			}
+			.wp-interactivity-router_loading-bar.start-animation {
+				animation: wp-interactivity-router_loading-bar-start-animation 30s cubic-bezier(0.03, 0.5, 0, 1) forwards
+			}
+			.wp-interactivity-router_loading-bar.finish-animation {
+				animation: wp-interactivity-router_loading-bar-finish-animation 300ms ease-in
+			}
+			@keyframes wp-interactivity-router_loading-bar-start-animation {
+				0% { transform: scaleX(0); transform-origin: 0% 0%; opacity: 1 }
+				100% { transform: scaleX(1); transform-origin: 0% 0%; opacity: 1 }
+			}
+			@keyframes wp-interactivity-router_loading-bar-finish-animation {
+				0% { opacity: 1 }
+				50% { opacity: 1 }
+				100% { opacity: 0 }
+			}
+CSS;
+	}
+
+	/**
+	 * Outputs the markup for the top loading indicator and the screen reader
+	 * notifications during client-side navigations.
+	 *
+	 * This method prints a div element representing a loading bar visible during
+	 * navigation, as well as an aria-live region that can be read by screen
+	 * readers to announce navigation status.
+	 *
+	 * @since 6.5.0
+	 */
+	public function router_loading_and_screen_reader_markup() {
+		echo <<<HTML
+			<div
+				class="wp-interactivity-router_loading-bar"
+				data-wp-interactive='{"namespace":"core/router"}'
+				data-wp-class--start-animation="state.navigation.hasStarted"
+				data-wp-class--finish-animation="state.navigation.hasFinished"
+			></div>
+			<div
+				class="screen-reader-text"
+				aria-live="polite"
+				data-wp-interactive='{"namespace":"core/router"}'
+				data-wp-text="state.navigation.message"
+			></div>
+HTML;
+	}
+
+	/**
 	 * Processes the `data-wp-router-region` directive.
 	 *
 	 * It renders in the footer a set of HTML elements to notify users about
@@ -774,10 +840,7 @@ final class WP_Interactivity_API {
 				'core/router',
 				array(
 					'navigation' => array(
-						'message'     => '',
-						'hasStarted'  => false,
-						'hasFinished' => false,
-						'texts'       => array(
+						'texts' => array(
 							'loading' => __( 'Loading page, please wait.' ),
 							'loaded'  => __( 'Page Loaded.' ),
 						),
@@ -785,54 +848,12 @@ final class WP_Interactivity_API {
 				)
 			);
 
-			$callback = static function () {
-				echo <<<HTML
-<style id="wp-interactivity-router_animations">
-	.wp-interactivity-router_loading-bar {
-		position: fixed;
-		top: 0;
-		left: 0;
-		margin: 0;
-		padding: 0;
-		width: 100vw;
-		max-width: 100vw !important;
-		height: 4px;
-		background-color: var(--wp--preset--color--primary, #000);
-		opacity: 0
-	}
-	.wp-interactivity-router_loading-bar.start-animation {
-		animation: wp-interactivity-router_loading-bar-start-animation 30s cubic-bezier(0.03, 0.5, 0, 1) forwards
-	}
-	.wp-interactivity-router_loading-bar.finish-animation {
-		animation: wp-interactivity-router_loading-bar-finish-animation 300ms ease-in
-	}
+			// Enqueues as an inline style.
+			wp_enqueue_style( 'wp-interactivity-router_animations', false );
+			wp_add_inline_style( 'wp-interactivity-router_animations', $this->router_animation_styles() );
 
-	@keyframes wp-interactivity-router_loading-bar-start-animation {
-		0% { transform: scaleX(0); transform-origin: 0% 0%; opacity: 1 }
-		100% { transform: scaleX(1); transform-origin: 0% 0%; opacity: 1 }
-	}
-	@keyframes wp-interactivity-router_loading-bar-finish-animation {
-		0% { opacity: 1 }
-		50% { opacity: 1 }
-		100% { opacity: 0 }
-	}
-</style>
-<div
-	class="wp-interactivity-router_loading-bar"
-	data-wp-interactive='{"namespace":"core/router"}'
-	data-wp-class--start-animation="state.navigation.hasStarted"
-	data-wp-class--finish-animation="state.navigation.hasFinished"
-></div>
-<div
-	class="screen-reader-text"
-	aria-live="polite"
-	data-wp-interactive='{"namespace":"core/router"}'
-	data-wp-text="state.navigation.message"
-></div>
-HTML;
-			};
-
-			add_action( 'wp_footer', $callback );
+			// Adds the necessary markup to the footer.
+			add_action( 'wp_footer', array( $this, 'router_loading_and_screen_reader_markup' ) );
 		}
 	}
 
