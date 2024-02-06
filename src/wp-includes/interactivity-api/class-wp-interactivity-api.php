@@ -868,13 +868,13 @@ HTML;
 			$p->release_bookmark( $template_end );
 
 			/*
-				* It doesn't process in these situations:
-				* - Manual server-side directive processing.
-				* - Empty or non-array values.
-				* - Associative arrays because those are deserialized as objects in JS.
-				* - Templates that contain top-level texts because those texts can't be
-				*   identified and removed in the client.
-				*/
+			 * It doesn't process in these situations:
+			 * - Manual server-side directive processing.
+			 * - Empty or non-array values.
+			 * - Associative arrays because those are deserialized as objects in JS.
+			 * - Templates that contain top-level texts because those texts can't be
+			 *   identified and removed in the client.
+			 */
 			if (
 				$manual_sdp ||
 				empty( $result ) ||
@@ -882,7 +882,7 @@ HTML;
 				! array_is_list( $result ) ||
 				! str_starts_with( trim( $inner_content ), '<' ) ||
 				! str_ends_with( trim( $inner_content ), '>' )
-				) {
+			) {
 				array_pop( $tag_stack );
 				return;
 			}
@@ -890,8 +890,8 @@ HTML;
 			// Extracts the namespace from the directive attribute value.
 			$namespace_value         = end( $namespace_stack );
 			list( $namespace_value ) = is_string( $attribute_value ) && ! empty( $attribute_value )
-			? $this->extract_directive_value( $attribute_value, $namespace_value )
-			: array( $namespace_value, null );
+				? $this->extract_directive_value( $attribute_value, $namespace_value )
+				: array( $namespace_value, null );
 
 			// Processes the inner content for each item of the array.
 			$processed_content = '';
