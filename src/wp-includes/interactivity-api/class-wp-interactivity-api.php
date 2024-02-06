@@ -662,7 +662,7 @@ final class WP_Interactivity_API {
 				 * update the attribute value.
 				 */
 				if ( $style_property_value || $style_attribute_value ) {
-					$style_attribute_value = $this->set_style_property( $style_attribute_value, $style_property, $style_property_value );
+					$style_attribute_value = $this->merge_style_property( $style_attribute_value, $style_property, $style_property_value );
 					/*
 					 * If the style attribute value is not empty, it sets it. Otherwise,
 					 * it removes it.
@@ -678,7 +678,7 @@ final class WP_Interactivity_API {
 	}
 
 	/**
-	 * Sets an individual style property in the `style` attribute of an HTML
+	 * Merges an individual style property in the `style` attribute of an HTML
 	 * element, updating or removing the property when necessary.
 	 *
 	 * If a property is modified, the old one is removed and the new one is added
@@ -688,9 +688,9 @@ final class WP_Interactivity_API {
 	 *
 	 * Example:
 	 *
-	 *     set_style_property( 'color:green;', 'color', 'red' )      => 'color:red;'
-	 *     set_style_property( 'background:green;', 'color', 'red' ) => 'background:green;color:red;'
-	 *     set_style_property( 'color:green;', 'color', null )       => ''
+	 *     merge_style_property( 'color:green;', 'color', 'red' )      => 'color:red;'
+	 *     merge_style_property( 'background:green;', 'color', 'red' ) => 'background:green;color:red;'
+	 *     merge_style_property( 'color:green;', 'color', null )       => ''
 	 *
 	 * @param string            $style_attribute_value The current style attribute value.
 	 * @param string            $style_property_name   The style property name to set.
@@ -698,13 +698,13 @@ final class WP_Interactivity_API {
 	 *                                                 empty string, it removes the style property.
 	 * @return string The new style attribute value after the specified property has been added, updated or removed.
 	 */
-	private function set_style_property( string $style_attribute_value, string $style_property_name, $style_property_value ): string {
+	private function merge_style_property( string $style_attribute_value, string $style_property_name, $style_property_value ): string {
 		$style_assignments    = explode( ';', $style_attribute_value );
 		$result               = array();
 		$style_property_value = ! empty( $style_property_value ) ? rtrim( trim( $style_property_value ), ';' ) : null;
 		$new_style_property   = $style_property_value ? $style_property_name . ':' . $style_property_value . ';' : '';
 
-		// Generate an array with all the properties but the modified one.
+		// Generates an array with all the properties but the modified one.
 		foreach ( $style_assignments as $style_assignment ) {
 			if ( empty( trim( $style_assignment ) ) ) {
 				continue;
@@ -715,7 +715,7 @@ final class WP_Interactivity_API {
 			}
 		}
 
-		// Add the new/modified property at the end of the list.
+		// Adds the new/modified property at the end of the list.
 		$result[] = $new_style_property;
 
 		return implode( '', $result );

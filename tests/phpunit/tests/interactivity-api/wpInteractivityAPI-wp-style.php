@@ -34,7 +34,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private `set_style_property` method of WP_Interactivity_API
+	 * Invokes the private `merge_style_property` method of WP_Interactivity_API
 	 * class.
 	 *
 	 * @param string            $style_attribute_value The current style attribute value.
@@ -43,104 +43,104 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 *                                                 empty string, it removes the style property.
 	 * @return string The new style attribute value after the specified property has been added, updated or removed.
 	 */
-	private function set_style_property( $style_attribute_value, $style_property_name, $style_property_value ) {
-		$evaluate = new ReflectionMethod( $this->interactivity, 'set_style_property' );
+	private function merge_style_property( $style_attribute_value, $style_property_name, $style_property_value ) {
+		$evaluate = new ReflectionMethod( $this->interactivity, 'merge_style_property' );
 		$evaluate->setAccessible( true );
 		return $evaluate->invokeArgs( $this->interactivity, array( $style_attribute_value, $style_property_name, $style_property_value ) );
 	}
 
 	/**
-	 * Tests that `set_style_property` correctly sets style properties.
+	 * Tests that `merge_style_property` correctly sets style properties.
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::set_style_property
+	 * @covers ::merge_style_property
 	 */
-	public function test_set_style_property_sets_properties() {
+	public function test_merge_style_property_sets_properties() {
 		// Adds property on empty style attribute.
-		$result = $this->set_style_property( '', 'color', 'green' );
+		$result = $this->merge_style_property( '', 'color', 'green' );
 		$this->assertEquals( 'color:green;', $result );
 
 		// Changes style property when there is an existing property.
-		$result = $this->set_style_property( 'color:red;', 'color', 'green' );
+		$result = $this->merge_style_property( 'color:red;', 'color', 'green' );
 		$this->assertEquals( 'color:green;', $result );
 
 		// Adds a new property when the existing one does not match.
-		$result = $this->set_style_property( 'color:red;', 'background', 'blue' );
+		$result = $this->merge_style_property( 'color:red;', 'background', 'blue' );
 		$this->assertEquals( 'color:red;background:blue;', $result );
 
 		// Handles multiple existing properties.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'color', 'green' );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', 'green' );
 		$this->assertEquals( 'margin:5px;color:green;', $result );
 
 		// Adds a new property when multiple existing properties do not match.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'padding', '10px' );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'padding', '10px' );
 		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Removes whitespaces in all properties.
-		$result = $this->set_style_property( ' color : red; margin : 5px; ', 'padding', ' 10px ' );
+		$result = $this->merge_style_property( ' color : red; margin : 5px; ', 'padding', ' 10px ' );
 		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Updates a property when it's not the first one in the value.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'margin', '15px' );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'margin', '15px' );
 		$this->assertEquals( 'color:red;margin:15px;', $result );
 
 		// Adds missing trailing semicolon.
-		$result = $this->set_style_property( 'color:red;margin:5px', 'padding', '10px' );
+		$result = $this->merge_style_property( 'color:red;margin:5px', 'padding', '10px' );
 		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Doesn't add double semicolons.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'padding', '10px;' );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'padding', '10px;' );
 		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Handles empty properties in the input.
-		$result = $this->set_style_property( 'color:red;;margin:5px;;', 'padding', '10px' );
+		$result = $this->merge_style_property( 'color:red;;margin:5px;;', 'padding', '10px' );
 		$this->assertEquals( 'color:red;margin:5px;padding:10px;', $result );
 
 		// Moves the modified property to the end.
-		$result = $this->set_style_property( 'border-style: dashed; border: 3px solid red;', 'border-style', 'inset' );
+		$result = $this->merge_style_property( 'border-style: dashed; border: 3px solid red;', 'border-style', 'inset' );
 		$this->assertEquals( 'border:3px solid red;border-style:inset;', $result );
 	}
 
 	/**
-	 * Tests that `set_style_property` works correctly with falsy values, removing
-	 * or ignoring them as appropriate.
+	 * Tests that `merge_style_property` works correctly with falsy values,
+	 * removing or ignoring them as appropriate.
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::set_style_property
+	 * @covers ::merge_style_property
 	 */
-	public function test_set_style_property_with_falsy_values() {
+	public function test_merge_style_property_with_falsy_values() {
 		// Removes a property with an empty string.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'color', '' );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', '' );
 		$this->assertEquals( 'margin:5px;', $result );
 
 		// Removes a property with null.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'color', null );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', null );
 		$this->assertEquals( 'margin:5px;', $result );
 
 		// Removes a property with false.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'color', false );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', false );
 		$this->assertEquals( 'margin:5px;', $result );
 
 		// Removes a property with 0.
-		$result = $this->set_style_property( 'color:red;margin:5px;', 'color', 0 );
+		$result = $this->merge_style_property( 'color:red;margin:5px;', 'color', 0 );
 		$this->assertEquals( 'margin:5px;', $result );
 
 		// It doesn't add a new property with an empty string.
-		$result = $this->set_style_property( 'color:red;', 'padding', '' );
+		$result = $this->merge_style_property( 'color:red;', 'padding', '' );
 		$this->assertEquals( 'color:red;', $result );
 
 		// It doesn't add a new property with null.
-		$result = $this->set_style_property( 'color:red;', 'padding', null );
+		$result = $this->merge_style_property( 'color:red;', 'padding', null );
 		$this->assertEquals( 'color:red;', $result );
 
 		// It doesn't add a new property with false.
-		$result = $this->set_style_property( 'color:red;', 'padding', false );
+		$result = $this->merge_style_property( 'color:red;', 'padding', false );
 		$this->assertEquals( 'color:red;', $result );
 
 		// It doesn't add a new property with 0.
-		$result = $this->set_style_property( 'color:red;', 'padding', 0 );
+		$result = $this->merge_style_property( 'color:red;', 'padding', 0 );
 		$this->assertEquals( 'color:red;', $result );
 	}
 
