@@ -46,7 +46,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 					// The root interactive blocks has finished rendering, process it.
 					$content = wp_interactivity_process_directives( $content );
 					// Removes the filter and reset the root interactive block.
-					remove_filter( 'render_block', $process_interactive_blocks );
+					remove_filter( 'render_block_' . $parsed_block['blockName'], $process_interactive_blocks );
 					$root_interactive_block = null;
 				}
 				return $content;
@@ -56,7 +56,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 			 * Uses a priority of 20 to ensure that other filters can add additional
 			 * directives before the processing starts.
 			 */
-			add_filter( 'render_block', $process_interactive_blocks, 20, 2 );
+			add_filter( 'render_block_' . $block_name, $process_interactive_blocks, 20, 2 );
 		}
 	}
 
