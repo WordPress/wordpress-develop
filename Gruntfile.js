@@ -1067,6 +1067,7 @@ module.exports = function(grunt) {
 
 								entities = files.stdout.toString();
 								entities = JSON.parse( entities );
+								entities = entities.data.repository.object.entries;
 								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
