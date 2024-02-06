@@ -103,7 +103,7 @@ class WP_Block_Supports {
 			return array();
 		}
 
-		$block_attributes = array_key_exists( 'attrs', self::$block_to_render )
+		$block_attributes = isset( self::$block_to_render['attrs'] )
 			? self::$block_to_render['attrs']
 			: array();
 

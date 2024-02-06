@@ -177,9 +177,7 @@ class WP_Block {
 	 */
 	public function __get( $name ) {
 		if ( 'attributes' === $name ) {
-			$this->attributes = isset( $this->parsed_block['attrs'] ) ?
-				$this->parsed_block['attrs'] :
-				array();
+			$this->attributes = $this->parsed_block['attrs'];
 
 			if ( ! is_null( $this->block_type ) ) {
 				$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );

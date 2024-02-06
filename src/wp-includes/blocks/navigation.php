@@ -1108,7 +1108,8 @@ function block_core_navigation_typographic_presets_backcompatibility( $parsed_bl
 		foreach ( $attribute_to_prefix_map as $style_attribute => $prefix ) {
 			if ( ! empty( $parsed_block['attrs']['style']['typography'][ $style_attribute ] ) ) {
 				$prefix_len      = strlen( $prefix );
-				$attribute_value = &$parsed_block['attrs']['style']['typography'][ $style_attribute ];
+				$attrs           = $parsed_block['attrs'];
+				$attribute_value = &$attrs['style']['typography'][ $style_attribute ];
 				if ( 0 === strncmp( $attribute_value, $prefix, $prefix_len ) ) {
 					$attribute_value = substr( $attribute_value, $prefix_len );
 				}

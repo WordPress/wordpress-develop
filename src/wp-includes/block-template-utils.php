@@ -491,7 +491,8 @@ function _inject_theme_attribute_in_template_part_block( &$block ) {
 		'core/template-part' === $block['blockName'] &&
 		! isset( $block['attrs']['theme'] )
 	) {
-		$block['attrs']['theme'] = get_stylesheet();
+		$attrs = $block['attrs'];
+		$attrs['theme'] = get_stylesheet();
 	}
 }
 
