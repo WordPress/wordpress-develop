@@ -2574,6 +2574,32 @@ function maybe_create_table( $table_name, $create_ddl ) {
 }
 
 /**
+ * Maybe Rename table.
+ * @param  string $old_table_name Old Table Name.
+ * @param  string $new_table_name New Table Name.
+ * @return bool True, when done with execution.
+ */
+function maybe_rename_table( $old_table_name, $new_table_name ) {
+	global $wpdb;
+
+	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $old_table_name ) );
+
+	if ( $wpdb->get_var( $query ) === $old_table_name ) {
+		return true;
+	}
+
+	$wpdb->query( "RENAME TABLE `$old_table_name` TO `$new_table_name`" );
+
+	if ( $wpdb->get_var( $query ) === $new_table_name ) {
+		return true;
+	}
+
+	return false;
+
+}
+
+
+/**
  * Drops a specified index from a table.
  *
  * @since 1.0.1
