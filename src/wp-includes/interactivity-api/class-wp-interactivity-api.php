@@ -274,7 +274,7 @@ final class WP_Interactivity_API {
 				} else {
 					$directives_prefixes = array();
 
-					// Checks if there is is a server directive processor registered for each directive.
+					// Checks if there is a server directive processor registered for each directive.
 					foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) as $attribute_name ) {
 						list( $directive_prefix ) = $this->extract_prefix_and_suffix( $attribute_name );
 						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
@@ -681,8 +681,8 @@ final class WP_Interactivity_API {
 	 * Sets an individual style property in the `style` attribute of an HTML
 	 * element, updating or removing the property when necessary.
 	 *
-	 * If a property is modified, it is added at the end of the list to make sure
-	 * that it overrides the previous ones.
+	 * If a property is modified, the old one is removed and the new one is added
+	 * at the end of the list.
 	 *
 	 * @since 6.5.0
 	 *
