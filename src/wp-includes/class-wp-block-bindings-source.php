@@ -27,7 +27,7 @@ final class WP_Block_Bindings_Source {
 		if ( ! isset( $source_properties['label'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'The source properties must contain a label.' ),
+				__( 'The $source_properties must contain a "label".' ),
 				'6.5.0'
 			);
 			return;
@@ -37,14 +37,14 @@ final class WP_Block_Bindings_Source {
 		if ( ! isset( $source_properties['get_value_callback'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'The source properties must contain a get_value_callback.' ),
+				__( 'The $source_properties must contain a "get_value_callback".' ),
 				'6.5.0'
 			);
 			return;
 		}
 
-		$this->label    = $source_properties['label'];
-		$this->callback = $source_properties['get_value_callback'];
+		$this->label              = $source_properties['label'];
+		$this->get_value_callback = $source_properties['get_value_callback'];
 	}
 
 	/**
@@ -70,29 +70,7 @@ final class WP_Block_Bindings_Source {
 	 * @since 6.5.0
 	 * @var callable
 	 */
-	public $callback;
-
-	/**
-	 * The source properties used to register a source.
-	 *
-	 * @since 6.5.0
-	 * @var array  $source_properties {
-	 *     @type string   $label              The label of the source.
-	 *     @type callback $get_value_callback A callback executed when the source is processed during block rendering.
-	 *                                        The callback should have the following signature:
-	 *
-	 *                                        `function ($source_args, $block_instance, $attribute_name): mixed`
-	 *                                            - @param array    $source_args    Array containing source arguments
-	 *                                                                              used to look up the override value,
-	 *                                                                              i.e. {"key": "foo"}.
-	 *                                            - @param WP_Block $block_instance The block instance.
-	 *                                            - @param string   $attribute_name The name of the target attribute.
-	 *                                        The callback has a mixed return type; it may return a string to override
-	 *                                        the block's original value, null, false to remove an attribute, etc.
-	 * }
-	 */
-	public $source_properties;
-
+	private $get_value_callback;
 
 	/**
 	 * Retrieves the value of the source.
@@ -106,6 +84,6 @@ final class WP_Block_Bindings_Source {
 	 * @return mixed The value of the source.
 	 */
 	public function get_value( array $source_args, $block_instance, string $attribute_name ) {
-		return call_user_func( $this->callback, array( $source_args, $block_instance, $attribute_name ) );
+		return call_user_func_array( $this->get_value_callback, array( $source_args, $block_instance, $attribute_name ) );
 	}
 }
