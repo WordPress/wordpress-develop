@@ -940,7 +940,7 @@ class WP_Plugin_Dependencies {
 	 * @param string $plugin_file The plugin's filepath, relative to the plugins directory.
 	 * @return string The plugin's slug.
 	 */
-	private static function convert_to_slug( $plugin_file ) {
+	protected static function convert_to_slug( $plugin_file ) {
 		if ( 'hello.php' === $plugin_file ) {
 			return 'hello-dolly';
 		}
