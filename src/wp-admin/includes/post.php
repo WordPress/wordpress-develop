@@ -452,7 +452,7 @@ function edit_post( $post_data = null ) {
 
 	$success = wp_update_post( $translated );
 
-	// If the save failed, see if we can sanity check the main fields and try again.
+	// If the save failed, see if we can confidence check the main fields and try again.
 	if ( ! $success && is_callable( array( $wpdb, 'strip_invalid_text_for_column' ) ) ) {
 		$fields = array( 'post_title', 'post_content', 'post_excerpt' );
 
@@ -2303,6 +2303,7 @@ function get_block_editor_server_block_settings() {
 		'keywords'         => 'keywords',
 		'example'          => 'example',
 		'variations'       => 'variations',
+		'allowed_blocks'   => 'allowedBlocks',
 	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
