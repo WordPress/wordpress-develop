@@ -1368,6 +1368,13 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}
 
+	/**
+	 * @todo …
+	 */
+	public function has_bookmark( $bookmark_name ) {
+		return parent::has_bookmark( "_{$bookmark_name}" );
+	}
+
 	/*
 	 * HTML Parsing Algorithms
 	 */
