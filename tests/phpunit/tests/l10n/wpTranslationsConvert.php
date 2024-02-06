@@ -173,6 +173,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	 * @covers ::translate_plural
 	 * @covers ::locate_translation
 	 * @covers ::get_files
+	 * @covers WP_Translation_File::translate
 	 *
 	 * @dataProvider data_simple_example_files
 	 *
@@ -198,6 +199,10 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 		$this->assertSame( 'translation1 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 0, 'context', 'unittest' ) );
 		$this->assertSame( 'translation0 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 1, 'context', 'unittest' ) );
 		$this->assertSame( 'translation1 with context', $controller->translate_plural( array( 'plural0 with context', 'plural1 with context' ), 2, 'context', 'unittest' ) );
+
+		$this->assertSame( 'Produkt', $controller->translate( 'Product', '', 'unittest' ) );
+		$this->assertSame( 'Produkt', $controller->translate_plural( array( 'Product', 'Products' ), 1, '', 'unittest' ) );
+		$this->assertSame( 'Produkte', $controller->translate_plural( array( 'Product', 'Products' ), 2, '', 'unittest' ) );
 	}
 
 	/**

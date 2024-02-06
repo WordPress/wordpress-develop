@@ -1512,16 +1512,6 @@ class WP_HTML_Tag_Processor {
 		while ( false !== $at && $at < $doc_length ) {
 			$at = strpos( $html, '<', $at );
 
-			if ( $at > $was_at ) {
-				$this->parser_state         = self::STATE_TEXT_NODE;
-				$this->token_starts_at      = $was_at;
-				$this->token_length         = $at - $was_at;
-				$this->text_starts_at       = $was_at;
-				$this->text_length          = $this->token_length;
-				$this->bytes_already_parsed = $at;
-				return true;
-			}
-
 			/*
 			 * This does not imply an incomplete parse; it indicates that there
 			 * can be nothing left in the document other than a #text node.
@@ -1533,6 +1523,37 @@ class WP_HTML_Tag_Processor {
 				$this->text_starts_at       = $was_at;
 				$this->text_length          = $this->token_length;
 				$this->bytes_already_parsed = strlen( $html );
+				return true;
+			}
+
+			if ( $at > $was_at ) {
+				/*
+				 * A "<" has been found in the document. That may be the start of another node, or
+				 * it may be an "ivalid-first-character-of-tag-name" error. If this is not the start
+				 * of another node the "<" should be included in this text node and another
+				 * termination point should be found for the text node.
+				 *
+				 * @see https://html.spec.whatwg.org/#tag-open-state
+				 */
+				if ( strlen( $html ) > $at + 1 ) {
+					$next_character  = $html[ $at + 1 ];
+					$at_another_node =
+						'!' === $next_character ||
+						'/' === $next_character ||
+						'?' === $next_character ||
+						( 'A' <= $next_character && $next_character <= 'z' );
+					if ( ! $at_another_node ) {
+						++$at;
+						continue;
+					}
+				}
+
+				$this->parser_state         = self::STATE_TEXT_NODE;
+				$this->token_starts_at      = $was_at;
+				$this->token_length         = $at - $was_at;
+				$this->text_starts_at       = $was_at;
+				$this->text_length          = $this->token_length;
+				$this->bytes_already_parsed = $at;
 				return true;
 			}
 
@@ -1741,7 +1762,8 @@ class WP_HTML_Tag_Processor {
 					'T' === $html[ $this->token_starts_at + 6 ] &&
 					'A' === $html[ $this->token_starts_at + 7 ] &&
 					'[' === $html[ $this->token_starts_at + 8 ] &&
-					']' === $html[ $closer_at - 1 ]
+					']' === $html[ $closer_at - 1 ] &&
+					']' === $html[ $closer_at - 2 ]
 				) {
 					$this->parser_state    = self::STATE_COMMENT;
 					$this->comment_type    = self::COMMENT_AS_CDATA_LOOKALIKE;
@@ -2313,6 +2335,7 @@ class WP_HTML_Tag_Processor {
 
 		// Point this tag processor before the sought tag opener and consume it.
 		$this->bytes_already_parsed = $this->bookmarks[ $bookmark_name ]->start;
+		$this->parser_state         = self::STATE_READY;
 		return $this->next_token();
 	}
 
