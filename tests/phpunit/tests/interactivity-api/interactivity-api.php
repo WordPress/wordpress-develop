@@ -17,11 +17,9 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		register_block_type(
-			'test/interactive-block',
-			array(
-				'render_callback' => function ( $attributes, $content ) {
-					return '
+		$interactive_block = array(
+			'render_callback' => function ( $attributes, $content ) {
+				return '
 						<div
 							data-wp-interactive=\'{ "namespace": "myPlugin" }\'
 							data-wp-context=\'{ "block": ' . $attributes['block'] . ' }\'
@@ -30,14 +28,16 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 								class="interactive/block-' . $attributes['block'] . '"
 								data-wp-bind--value="context.block"
 							>' .
-							$content .
-						'</div>';
-				},
-				'supports'        => array(
-					'interactivity' => true,
-				),
-			)
+						$content .
+					'</div>';
+			},
+			'supports'        => array(
+				'interactivity' => true,
+			),
 		);
+
+		register_block_type( 'test/interactive-block', $interactive_block );
+		register_block_type( 'test/interactive-block-2', $interactive_block );
 
 		register_block_type(
 			'test/non-interactive-block',
@@ -59,6 +59,7 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		unregister_block_type( 'test/interactive-block' );
+		unregister_block_type( 'test/interactive-block-2' );
 		unregister_block_type( 'test/non-interactive-block' );
 		parent::tear_down();
 	}
@@ -89,7 +90,7 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	public function test_processs_directives_of_multiple_interactive_blocks_in_paralell() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } /-->
-			<!-- wp:test/interactive-block { "block": 2 } /-->
+			<!-- wp:test/interactive-block-2 { "block": 2 } /-->
 			<!-- wp:test/non-interactive-block { "block": 3, "hasDirective": true } /-->
 			<!-- wp:test/interactive-block { "block": 4 } /-->
 		';
@@ -161,7 +162,7 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 				<!-- wp:test/interactive-block { "block": 2 } /-->
 			<!-- /wp:test/non-interactive-block -->
 			<!-- wp:test/non-interactive-block { "block": 3 } -->
-				<!-- wp:test/interactive-block { "block": 4 } /-->
+				<!-- wp:test/interactive-block-2 { "block": 4 } /-->
 			<!-- /wp:test/non-interactive-block -->
 		';
 		$rendered_blocks = do_blocks( $post_content );
@@ -228,9 +229,9 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	public function test_processs_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } -->
-				<!-- wp:test/interactive-block { "block": 2 } -->
+				<!-- wp:test/interactive-block-2 { "block": 2 } -->
 					<!-- wp:test/non-interactive-block { "block": 3, "hasDirective": true } /-->
-				<!-- /wp:test/interactive-block -->
+				<!-- /wp:test/interactive-block-2 -->
 				<!-- wp:test/non-interactive-block { "block": 4, "hasDirective": true } /-->
 			<!-- /wp:test/interactive-block -->
 		';
