@@ -897,12 +897,9 @@ HTML;
 			$processed_content = '';
 			foreach ( $result as $item ) {
 				// Creates a new context that includes the current item of the array.
-				array_push(
-					$context_stack,
-					array_replace_recursive(
-						end( $context_stack ) !== false ? end( $context_stack ) : array(),
-						array( $namespace_value => array( $item_name => $item ) )
-					)
+				$context_stack[] = array_replace_recursive(
+					end( $context_stack ) !== false ? end( $context_stack ) : array(),
+					array( $namespace_value => array( $item_name => $item ) )
 				);
 
 				// Processes the inner content with the new context.
