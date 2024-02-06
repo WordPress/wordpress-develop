@@ -82,6 +82,9 @@ a:active {
 .wp-block-button__link:hover {
 	opacity: 0.90;
 }
+.wp-block-button__link{
+	font-family: var(--wp--preset--font-family--system-font);
+}
 
 /*
  * Alignment styles.
