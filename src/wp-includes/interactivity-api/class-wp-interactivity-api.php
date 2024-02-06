@@ -849,8 +849,9 @@ HTML;
 			);
 
 			// Enqueues as an inline style.
-			wp_enqueue_style( 'wp-interactivity-router_animations', false );
-			wp_add_inline_style( 'wp-interactivity-router_animations', $this->router_animation_styles() );
+			wp_register_style( 'wp_interactivity_router_animations', false );
+			wp_add_inline_style( 'wp_interactivity_router_animations', $this->router_animation_styles() );
+			wp_enqueue_style( 'wp_interactivity_router_animations' );
 
 			// Adds the necessary markup to the footer.
 			add_action( 'wp_footer', array( $this, 'router_loading_and_screen_reader_markup' ) );
