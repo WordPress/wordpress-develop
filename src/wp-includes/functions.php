@@ -8336,6 +8336,65 @@ function wp_get_default_update_php_url() {
 }
 
 /**
+ * Gets the URL to learn more about installing a network.
+ *
+ * This URL can be overridden by specifying an environment variable `WP_NETWORK_INSTALLATION_URL` or by using the
+ * {@see 'wp_network_installation_url'} filter. Providing an empty string is not allowed and will result in the
+ * default URL being used. Furthermore the page the URL links to should preferably be localized in the
+ * site language.
+ *
+ * @since 6.2.0
+ *
+ * @return string URL to learn more about installing a network.
+ */
+function wp_get_network_installation_url() {
+	$default_url = wp_get_default_network_installation_url();
+
+	$update_url = $default_url;
+	if ( false !== getenv( 'WP_NETWORK_INSTALLATION_URL' ) ) {
+		$update_url = getenv( 'WP_NETWORK_INSTALLATION_URL' );
+	}
+
+	/**
+	 * Filters the URL to learn more about installing a network.
+	 *
+	 * Providing an empty string is not allowed and will result in the default URL being used. Furthermore
+	 * the page the URL links to should preferably be localized in the site language.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $update_url URL to learn more about installing a network.
+	 */
+	$update_url = apply_filters( 'wp_network_installation_url', $update_url );
+
+	if ( empty( $update_url ) ) {
+		$update_url = $default_url;
+	}
+
+	return $update_url;
+}
+
+/**
+ * Gets the default URL to learn more about installing a network.
+ *
+ * Do not use this function to retrieve this URL. Instead, use {@see wp_get_network_installation_url()} when relying
+ * on the URL.
+ * This function does not allow modifying the returned URL, and is only used to compare the actually used URL with the
+ * default one.
+ *
+ * @since 6.2.0
+ * @access private
+ *
+ * @return string Default URL to learn more about updating PHP.
+ */
+function wp_get_default_network_installation_url() {
+	return _x(
+		'https://wordpress.org/support/article/create-a-network/',
+		'localized network installation information page'
+	);
+}
+
+/**
  * Prints the default annotation for the web host altering the "Update PHP" page URL.
  *
  * This function is to be used after {@see wp_get_update_php_url()} to display a consistent
@@ -8770,6 +8829,29 @@ function is_wp_version_compatible( $required ) {
  */
 function is_php_version_compatible( $required ) {
 	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
+}
+
+/**
+ * Checks compatibility with the current WordPress installation.
+ *
+ * @since 6.2.0
+ *
+ * @param string|int|bool $required
+ *
+ * @return bool
+ */
+function is_wp_installation_compatible( $required ) {
+	if ( is_string( $required ) ) {
+		$requires_network = true;
+		$required         = strtolower( $required );
+		if ( empty( $required ) || in_array( $required, array( 'false', '0' ), true ) ) {
+			$requires_network = false;
+		}
+	} else {
+		$requires_network = (bool) $required;
+	}
+
+	return false === $requires_network || is_multisite();
 }
 
 /**

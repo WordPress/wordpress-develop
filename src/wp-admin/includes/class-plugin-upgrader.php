@@ -492,8 +492,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 
-		$requires_php = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
-		$requires_wp  = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
+		$requires_php     = isset( $info['RequiresPHP'] ) ? $info['RequiresPHP'] : null;
+		$requires_wp      = isset( $info['RequiresWP'] ) ? $info['RequiresWP'] : null;
+		$requires_network = isset( $new_plugin_data['RequiresNetwork'] ) ? $new_plugin_data['RequiresNetwork'] : null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -515,6 +516,12 @@ class Plugin_Upgrader extends WP_Upgrader {
 			);
 
 			return new WP_Error( 'incompatible_wp_required_version', $this->strings['incompatible_archive'], $error );
+		}
+
+		if ( ! is_wp_installation_compatible( $requires_network ) ) {
+			$error = __( 'The uploaded plugin requires a network installation to work.' );
+
+			return new WP_Error( 'incompatible_wp_installation', $this->strings['incompatible_archive'], $error );
 		}
 
 		return $source;

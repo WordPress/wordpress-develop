@@ -72,18 +72,19 @@
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 
 	$default_headers = array(
-		'Name'        => 'Plugin Name',
-		'PluginURI'   => 'Plugin URI',
-		'Version'     => 'Version',
-		'Description' => 'Description',
-		'Author'      => 'Author',
-		'AuthorURI'   => 'Author URI',
-		'TextDomain'  => 'Text Domain',
-		'DomainPath'  => 'Domain Path',
-		'Network'     => 'Network',
-		'RequiresWP'  => 'Requires at least',
-		'RequiresPHP' => 'Requires PHP',
-		'UpdateURI'   => 'Update URI',
+		'Name'            => 'Plugin Name',
+		'PluginURI'       => 'Plugin URI',
+		'Version'         => 'Version',
+		'Description'     => 'Description',
+		'Author'          => 'Author',
+		'AuthorURI'       => 'Author URI',
+		'TextDomain'      => 'Text Domain',
+		'DomainPath'      => 'Domain Path',
+		'Network'         => 'Network',
+		'RequiresWP'      => 'Requires at least',
+		'RequiresPHP'     => 'Requires PHP',
+		'UpdateURI'       => 'Update URI',
+		'RequiresNetwork' => 'Requires Network',
 		// Site Wide Only is deprecated in favor of Network.
 		'_sitewide'   => 'Site Wide Only',
 	);
@@ -1129,12 +1130,14 @@ function validate_plugin_requirements( $plugin ) {
 	$plugin_headers = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
 
 	$requirements = array(
-		'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
-		'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires'         => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+		'requires_php'     => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires_network' => ! empty( $plugin_headers['RequiresNetwork'] ) ? $plugin_headers['RequiresNetwork'] : '',
 	);
 
-	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
-	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
+	$compatible_wp              = is_wp_version_compatible( $requirements['requires'] );
+	$compatible_php             = is_php_version_compatible( $requirements['requires_php'] );
+	$compatible_wp_installation = is_wp_installation_compatible( $requirements['requires_network'] );
 
 	$php_update_message = '</p><p>' . sprintf(
 		/* translators: %s: URL to Update PHP page. */
@@ -1181,6 +1184,15 @@ function validate_plugin_requirements( $plugin ) {
 				get_bloginfo( 'version' ),
 				$plugin_headers['Name'],
 				$requirements['requires']
+			) . '</p>'
+		);
+	} elseif ( ! $compatible_wp_installation ) {
+		return new WP_Error(
+			'plugin_wp_incompatible',
+			'<p>' . sprintf(
+				/* translators: 1: Plugin name. */
+				_x( '<strong>Error:</strong> Current WordPress installation does not meet the requirements for %1$s. The plugin requires a network installation.', 'plugin' ),
+				$plugin_headers['Name']
 			) . '</p>'
 		);
 	}

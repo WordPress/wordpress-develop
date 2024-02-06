@@ -259,8 +259,9 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		$blocked_message  = '<p>' . esc_html__( 'The plugin cannot be updated due to the following:' ) . '</p>';
 		$blocked_message .= '<ul class="ul-disc">';
 
-		$requires_php = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
-		$requires_wp  = isset( $new_plugin_data['RequiresWP'] ) ? $new_plugin_data['RequiresWP'] : null;
+		$requires_php     = isset( $new_plugin_data['RequiresPHP'] ) ? $new_plugin_data['RequiresPHP'] : null;
+		$requires_wp      = isset( $new_plugin_data['RequiresWP'] ) ? $new_plugin_data['RequiresWP'] : null;
+		$requires_network = isset( $new_plugin_data['RequiresNetwork'] ) ? $new_plugin_data['RequiresNetwork'] : null;
 
 		if ( ! is_php_version_compatible( $requires_php ) ) {
 			$error = sprintf(
@@ -281,6 +282,13 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				get_bloginfo( 'version' ),
 				$requires_wp
 			);
+
+			$blocked_message .= '<li>' . esc_html( $error ) . '</li>';
+			$can_update       = false;
+		}
+
+		if ( ! is_wp_installation_compatible( $requires_network ) ) {
+			$error = __( 'The uploaded plugin requires a network installation to work.' );
 
 			$blocked_message .= '<li>' . esc_html( $error ) . '</li>';
 			$can_update       = false;
