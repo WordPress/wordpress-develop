@@ -3207,6 +3207,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'text/richtext',
 					'text/tsv',
 					'text/vtt',
+					'application/json',
 				),
 				true
 			)
