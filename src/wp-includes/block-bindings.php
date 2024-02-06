@@ -20,7 +20,21 @@
  *
  * Note that `register_block_bindings_source()` should be called from a handler attached to the `init` hook.
  *
+ *
  * ## Example
+ *
+ * ### Registering a source
+ *
+ * First, you need to define a function that will be used to get the value from the source.
+ *
+ *     function my_plugin_get_custom_source_value( array $source_args, $block_instance, string $attribute_name ) {
+ *       // Your custom logic to get the value from the source.
+ *       // For example, you can use the `$source_args` to look up a value in a custom table or get it from an external API.
+ *       return 'my custom value';
+ *     }
+ *
+ * The `$source_args` will contain the arguments passed to the source in the block's
+ * `metadata.bindings` attribute. See the example in the "Usage in a block" section below.
  *
  *     function my_plugin_register_block_bindings_sources() {
  *       register_block_bindings_source( 'my-plugin/my-custom-source', array(
@@ -29,10 +43,6 @@
  *       ) );
  *     }
  *     add_action( 'init', 'my_plugin_register_block_bindings_sources' );
- *
- *     function my_plugin_get_custom_source_value( array $source_args, $block_instance, string $attribute_name ) {
- *       // Your custom logic to get the value from the source.
- *     }
  *
  * ### Usage in a block
  *
