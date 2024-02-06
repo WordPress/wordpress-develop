@@ -48,6 +48,32 @@ a:active {
 	text-decoration: none;
 }
 
+/*
+ * Default Button element style
+ */
+button{
+	color: #fff;
+    background-color: #000;
+    box-shadow: none;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 1.125em;
+    padding: calc(0.667em + 2px) calc(1.333em + 2px);
+    text-align: center;
+    text-decoration: none;
+    word-break: break-word;
+    box-sizing: border-box;
+    outline: none;
+    border: 0;
+}
+
+/*
+ * Default Button element hover style
+ */
+button:hover {
+	opacity: 0.90;
+}
+
 .wp-block-navigation .wp-block-navigation-item a:hover,
 .wp-block-navigation .wp-block-navigation-item a:focus {
 	text-decoration: underline;
