@@ -148,6 +148,29 @@ class Tests_WP_Interactivity_API_WP_Interactive extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an invalid value for `data-wp-interactive` does not replace the
+	 * previously established default namespace.
+	 *
+	 * @ticket 60356
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_interactive_with_invalid_value_doesnt_replace_the_previous_default_namespace() {
+		$html    = '
+				<div data-wp-interactive=\'{ "namespace": "myPlugin" }\'>
+						<div data-wp-interactive="$myPlugin">
+								<div class="test" data-wp-bind--id="state.id">Text</div>
+						</div>
+						<div class="test" data-wp-bind--id="state.id">Text</div>
+				</div>
+		';
+		list($p) = $this->process_directives( $html );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$p->next_tag( array( 'class_name' => 'test' ) );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+	}
+
+	/**
 	 * Tests that a `data-wp-interactive` directive with no assigned value does
 	 * not replace the previously established default namespace.
 	 *

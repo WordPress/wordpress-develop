@@ -495,16 +495,18 @@ final class WP_Interactivity_API {
 		 * independently of whether the previous `data-wp-interactive` definition
 		 * contained a valid namespace.
 		 */
+		$new_namespace = null;
 		if ( is_string( $attribute_value ) && ! empty( $attribute_value ) ) {
 			$decoded_json = json_decode( $attribute_value, true );
 			if ( is_array( $decoded_json ) ) {
-				$namespace_stack[] = $decoded_json['namespace'] ?? end( $namespace_stack );
+				$new_namespace = $decoded_json['namespace'] ?? null;
 			} else {
-				$namespace_stack[] = $attribute_value;
+				$new_namespace = $attribute_value;
 			}
-		} else {
-			$namespace_stack[] = end( $namespace_stack );
 		}
+		$namespace_stack[] = ( $new_namespace && 1 === preg_match( '/^([\w\-_\/]+)/', $new_namespace ) )
+			? $new_namespace
+			: end( $namespace_stack );
 	}
 
 	/**
