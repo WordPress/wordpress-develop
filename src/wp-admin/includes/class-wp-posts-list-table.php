@@ -1130,7 +1130,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$pad = str_repeat( '&#8212; ', $this->current_level );
 		echo '<strong>';
 
-		$title = _draft_or_post_title();
+		$title = $post->post_title;
+		$title = empty( $title ) ? __( '(no title)' ) : strip_tags( $title );
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			printf(
@@ -1139,13 +1140,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 				/* translators: %s: Post title. */
 				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
 				$pad,
-				$title
+				esc_html( $title )
 			);
 		} else {
 			printf(
 				'<span>%s%s</span>',
 				$pad,
-				$title
+				esc_html( $title )
 			);
 		}
 		_post_states( $post );
