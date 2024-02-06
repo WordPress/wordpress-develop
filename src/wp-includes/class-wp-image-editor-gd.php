@@ -573,9 +573,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 		// Handle setting the quality for WebP lossless images, see https://php.watch/versions/8.1/gd-webp-lossless.
 		try {
-			if ( 'image/webp' === $this->mime_type ) {
+			if ( 'image/webp' === $this->mime_type && defined( 'IMG_WEBP_LOSSLESS' ) ) {
 				$webp_info = wp_get_webp_info( $this->file );
-				if ( 'lossless' === $webp_info['type'] && defined( 'IMG_WEBP_LOSSLESS' ) ) {
+				if ( 'lossless' === $webp_info['type'] ) {
 					$quality = IMG_WEBP_LOSSLESS;
 				}
 			}
