@@ -575,7 +575,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		try {
 			if ( 'image/webp' === $this->mime_type && defined( 'IMG_WEBP_LOSSLESS' ) ) {
 				$webp_info = wp_get_webp_info( $this->file );
-				if ( 'lossless' === $webp_info['type'] ) {
+				if ( ! empty( $webp_info['type'] ) && 'lossless' === $webp_info['type'] ) {
 					$quality = IMG_WEBP_LOSSLESS;
 				}
 			}
