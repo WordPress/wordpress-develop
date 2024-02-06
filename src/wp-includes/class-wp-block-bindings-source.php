@@ -65,7 +65,7 @@ final class WP_Block_Bindings_Source {
 
 
 	/**
-	 * The function used to get the value of the source.
+	 * The function used to get the value from the source.
 	 *
 	 * @since 6.5.0
 	 * @var callable
@@ -73,7 +73,7 @@ final class WP_Block_Bindings_Source {
 	private $get_value_callback;
 
 	/**
-	 * Retrieves the value of the source.
+	 * Retrieves the value from the source.
 	 *
 	 * @since 6.5.0
 	 *
