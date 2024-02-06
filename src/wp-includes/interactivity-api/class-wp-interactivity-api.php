@@ -458,7 +458,7 @@ final class WP_Interactivity_API {
 				function ( $matches ) {
 					return strtoupper( $matches[2] );
 				},
-				strtolower( preg_replace( '/-+$/', '', $str ) )
+				strtolower( rtrim( $str, '-' ) )
 			)
 		);
 	}
