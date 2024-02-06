@@ -94,16 +94,18 @@ final class WP_Block_Bindings_Source {
 	public $source_properties;
 
 
-	public function get_value( $source_properties, $block_instance, $attribute_name ) {
-		if ( ! isset( $source_properties['get_value_callback'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'There is no ' ),
-				'6.5.0'
-			);
-			return null;
-		}
-
-		return call_user_func( $this->callback, $source_properties, $block_instance, $attribute_name );
+	/**
+	 * Retrieves the value of the source.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param array    $source_args     Array containing source arguments used to look up the override value, i.e. {"key": "foo"}.
+	 * @param WP_Block $block_instance  The block instance.
+	 * @param string   $attribute_name  The name of the target attribute.
+	 *
+	 * @return mixed The value of the source.
+	 */
+	public function get_value( array $source_args, $block_instance, string $attribute_name ) {
+		return call_user_func( $this->callback, array( $source_args, $block_instance, $attribute_name ) );
 	}
 }
