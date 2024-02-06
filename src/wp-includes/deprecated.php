@@ -2459,6 +2459,7 @@ function get_usernumposts( $userid ) {
  * @return string An HTML entity
  */
 function funky_javascript_callback($matches) {
+	_deprecated_function( __FUNCTION__, '3.0.0' );
 	return "&#".base_convert($matches[1],16,10).";";
 }
 
@@ -3311,7 +3312,9 @@ function user_pass_ok($user_login, $user_pass) {
  * @since 2.3.0
  * @deprecated 3.5.0
  */
-function _save_post_hook() {}
+function _save_post_hook() {
+	_deprecated_function( __FUNCTION__, '3.5.0' );
+}
 
 /**
  * Check if the installed version of GD supports particular image type
@@ -3431,6 +3434,7 @@ function rich_edit_exists() {
  * @return int Number of topics.
  */
 function default_topic_count_text( $count ) {
+	_deprecated_function( __FUNCTION__, '3.9.0' );
 	return $count;
 }
 
@@ -4118,6 +4122,7 @@ function remove_option_whitelist( $del_options, $options = '' ) {
  * @return mixed Slashes $value
  */
 function wp_slash_strings_only( $value ) {
+	_deprecated_function( __FUNCTION__, '5.6.0', 'wp_slash()' );
 	return map_deep( $value, 'addslashes_strings_only' );
 }
 
@@ -4133,6 +4138,7 @@ function wp_slash_strings_only( $value ) {
  * @return mixed
  */
 function addslashes_strings_only( $value ) {
+	_deprecated_function( __FUNCTION__, '5.6.0', 'wp_slash()' );
 	return is_string( $value ) ? addslashes( $value ) : $value;
 }
 

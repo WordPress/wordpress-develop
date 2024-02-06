@@ -6,6 +6,12 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Import extends WP_Import_UnitTestCase {
+
+	protected $expected_deprecated = array(
+		'wp_slash_strings_only',
+		'addslashes_strings_only',
+	);
+
 	public function set_up() {
 		parent::set_up();
 
@@ -251,6 +257,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 	 * @covers ::get_importers
 	 */
 	public function test_ordering_of_importers() {
+		$this->expected_deprecated = array();
 		global $wp_importers;
 		$_wp_importers = $wp_importers; // Preserve global state.
 		$wp_importers  = array(
