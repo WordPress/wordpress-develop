@@ -2215,11 +2215,34 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 	global $_wp_post_type_features;
 
 	$features = (array) $feature;
+	if ( in_array( 'footnotes', $features, true ) ) {
+		$index = array_search( 'footnotes', $features, true );
+		unset( $features[ $index ] );
+		$features[] = 'footnotes';
+	}
+
 	foreach ( $features as $feature ) {
 		if ( $args ) {
 			$_wp_post_type_features[ $post_type ][ $feature ] = $args;
 		} else {
 			$_wp_post_type_features[ $post_type ][ $feature ] = true;
+		}
+	}
+
+	/*
+	 * Special case for footnotes.
+	 *
+	 * If footnotes are supported, the post type must also support `editor`, `revisions` and `custom-fields`.
+	 */
+	if ( in_array( 'footnotes', $features, true ) ) {
+		if (
+			! isset(
+				$_wp_post_type_features[ $post_type ]['editor'],
+				$_wp_post_type_features[ $post_type ]['revisions'],
+				$_wp_post_type_features[ $post_type ]['custom-fields']
+			)
+		) {
+			unset( $_wp_post_type_features[ $post_type ]['footnotes'] );
 		}
 	}
 }
@@ -2236,6 +2259,11 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
  */
 function remove_post_type_support( $post_type, $feature ) {
 	global $_wp_post_type_features;
+
+	if ( in_array( $feature, array( 'editor', 'revisions', 'custom-fields' ), true ) ) {
+		// Also remove footnotes support if any of the required features are removed.
+		unset( $_wp_post_type_features[ $post_type ]['footnotes'] );
+	}
 
 	unset( $_wp_post_type_features[ $post_type ][ $feature ] );
 }
@@ -2273,6 +2301,22 @@ function get_all_post_type_supports( $post_type ) {
  */
 function post_type_supports( $post_type, $feature ) {
 	global $_wp_post_type_features;
+
+	if ( 'footnotes' === $feature ) {
+		/*
+		 * Footnotes require additional items to be supported.
+		 *
+		 * The post type must also support `editor`, `revisions` and `custom-fields`.
+		 */
+		$required_features = array( 'footnotes', 'editor', 'revisions', 'custom-fields' );
+		foreach ( $required_features as $required_feature ) {
+			if ( ! isset( $_wp_post_type_features[ $post_type ][ $required_feature ] ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }

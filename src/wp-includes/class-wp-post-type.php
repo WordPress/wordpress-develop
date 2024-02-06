@@ -662,6 +662,23 @@ final class WP_Post_Type {
 	 */
 	public function add_supports() {
 		if ( ! empty( $this->supports ) ) {
+			/*
+			 * Move footnotes last.
+			 *
+			 * Footnotes are a special case and require other features to be supported:
+			 * 'editor', 'revisions' and 'custom-fields'. This moves the footnotes to
+			 * be added last so that the other features are already added before the
+			 * check in `add_post_type_support` is made.
+			 */
+			if ( isset( $this->supports['footnotes'] ) ) {
+				$footnotes = $this->supports['footnotes'];
+				unset( $this->supports['footnotes'] );
+				$this->supports['footnotes'] = $footnotes;
+			} elseif ( in_array( 'footnotes', $this->supports, true ) ) {
+				$index = array_search( 'footnotes', $this->supports, true );
+				unset( $this->supports[ $index ] );
+				$this->supports[] = 'footnotes';
+			}
 			foreach ( $this->supports as $feature => $args ) {
 				if ( is_array( $args ) ) {
 					add_post_type_support( $this->name, $feature, $args );
