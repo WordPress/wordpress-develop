@@ -20,6 +20,8 @@ class Tests_Admin_WPPluginDependencies_GetDependentNames extends WP_PluginDepend
 
 	/**
 	 * Tests that dependent names are retrieved.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_get_dependent_names() {
 		$this->set_property_value(
@@ -46,6 +48,8 @@ class Tests_Admin_WPPluginDependencies_GetDependentNames extends WP_PluginDepend
 
 	/**
 	 * Tests that dependent names are sorted.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_sort_dependent_names() {
 		$this->set_property_value(

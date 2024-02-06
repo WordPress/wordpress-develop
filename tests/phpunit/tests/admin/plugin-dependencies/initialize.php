@@ -18,6 +18,8 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	/**
 	 * Tests that `$dependency_api_data` is set on certain screens.
 	 *
+	 * @ticket 22316
+	 *
 	 * @covers WP_Plugin_Dependencies::get_dependency_api_data
 	 * @covers WP_Plugin_Dependencies::get_plugins
 	 *
@@ -67,6 +69,8 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	/**
 	 * Tests that `$dependency_api_data` is not set by default.
 	 *
+	 * @ticket 22316
+	 *
 	 * @covers WP_Plugin_Dependencies::get_dependency_api_data
 	 */
 	public function test_should_not_set_dependency_api_data() {
@@ -79,6 +83,8 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 
 	/**
 	 * Tests that dependency slugs are loaded and sanitized.
+	 *
+	 * @ticket 22316
 	 *
 	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
 	 * @covers WP_Plugin_Dependencies::sanitize_dependency_slugs
@@ -202,6 +208,8 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	/**
 	 * Tests that dependent files are loaded and slugified.
 	 *
+	 * @ticket 22316
+	 *
 	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
 	 * @covers WP_Plugin_Dependencies::convert_to_slug
 	 */
@@ -233,6 +241,8 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 
 	/**
 	 * Tests that dependents with unmet dependencies are deactivated.
+	 *
+	 * @ticket 22316
 	 *
 	 * @covers WP_Plugin_Dependencies::deactivate_dependents_with_unmet_dependencies
 	 * @covers WP_Plugin_Dependencies::has_unmet_dependencies

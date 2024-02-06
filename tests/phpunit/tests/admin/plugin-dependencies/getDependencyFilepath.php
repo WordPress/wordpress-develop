@@ -20,6 +20,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDe
 	/**
 	 * Tests that the expected dependency filepaths are retrieved for installed dependencies.
 	 *
+	 * @ticket 22316
+	 *
 	 * @dataProvider data_get_dependency_filepath
 	 *
 	 * @param string[]     $dependency_slug The dependency slug.
@@ -87,6 +89,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDe
 
 	/**
 	 * Tests that an existing value for dependency filepaths is returned.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_existing_value_for_dependency_filepaths() {
 		$expected = 'dependency/dependency.php';
@@ -121,6 +125,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDe
 	/**
 	 * Tests that an empty array is returned when
 	 * no plugin directory names are stored.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_empty_array_for_no_plugin_dirnames() {
 		$this->set_property_value( 'dependency_slugs', array() );

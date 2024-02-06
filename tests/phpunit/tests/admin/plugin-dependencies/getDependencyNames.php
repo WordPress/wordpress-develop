@@ -21,6 +21,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 	/**
 	 * Tests that dependency names are retrieved.
 	 *
+	 * @ticket 22316
+	 *
 	 * @global string $pagenow The filename of the current screen.
 	 */
 	public function test_should_get_dependency_names() {
@@ -76,6 +78,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 
 	/**
 	 * Tests that dependency slugs are used if their name is not available.
+	 *
+	 * @ticket 22316
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 */
@@ -134,6 +138,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 	/**
 	 * Tests that dependency slugs are used if their name is not available.
 	 *
+	 * @ticket 22316
+	 *
 	 * @global string $pagenow The filename of the current screen.
 	 */
 	public function test_should_use_dependency_slugs() {
@@ -172,6 +178,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 
 	/**
 	 * Tests that `$dependency_api_data` is set when it's not already available.
+	 *
+	 * @ticket 22316
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 */

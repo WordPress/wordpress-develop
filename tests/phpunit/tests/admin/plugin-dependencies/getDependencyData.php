@@ -19,6 +19,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyData extends WP_PluginDepend
 	/**
 	 * Tests that dependency data is retrieved.
 	 *
+	 * @ticket 22316
+	 *
 	 * @global string $pagenow The filename of the current screen.
 	 */
 	public function test_should_get_dependency_data() {
@@ -44,6 +46,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyData extends WP_PluginDepend
 
 	/**
 	 * Tests that false is returned when no dependency data exists.
+	 *
+	 * @ticket 22316
 	 *
 	 * @global string $pagenow The filename of the current screen.
 	 */

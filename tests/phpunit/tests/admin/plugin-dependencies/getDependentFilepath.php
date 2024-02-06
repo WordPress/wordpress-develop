@@ -19,6 +19,8 @@ class Tests_Admin_WPPluginDependencies_GetDependentFilepath extends WP_PluginDep
 	/**
 	 * Tests that the expected dependent filepath is retrieved.
 	 *
+	 * @ticket 22316
+	 *
 	 * @dataProvider data_get_dependent_filepath
 	 *
 	 * @param string       $dependent_slug The dependent slug.

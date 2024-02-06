@@ -20,6 +20,8 @@ class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDe
 	/**
 	 * Tests that a plugin with a circular dependency will return true.
 	 *
+	 * @ticket 22316
+	 *
 	 * @dataProvider data_circular_dependencies
 	 *
 	 * @param string  $plugin_to_check The plugin file of the plugin to check.
@@ -104,6 +106,8 @@ class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDe
 
 	/**
 	 * Tests that a plugin with no circular dependencies will return false.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_false_when_a_plugin_has_no_circular_dependency() {
 		$this->set_property_value(

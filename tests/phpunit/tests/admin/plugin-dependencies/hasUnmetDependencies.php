@@ -17,6 +17,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin with no dependencies will return false.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_false_when_a_plugin_has_no_dependencies() {
 		$this->set_property_value( 'dependencies', array( 'dependent/dependent.php' => array( 'dependency' ) ) );
@@ -25,6 +27,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin whose dependencies are installed and active will return false.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_false_when_a_plugin_has_no_unmet_dependencies() {
 		$this->set_property_value(
@@ -44,6 +48,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin with a dependency that is not installed will return true.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_plugin_has_a_dependency_that_is_not_installed() {
 		self::$instance::initialize();
@@ -57,6 +63,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin with a dependency that is inactive will return true.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_plugin_has_a_dependency_that_is_inactive() {
 		$this->set_property_value(
@@ -74,6 +82,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin with one dependency that is active and one dependency that is inactive will return true.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_plugin_has_one_active_dependency_and_one_inactive_dependency() {
 		$this->set_property_value(
@@ -96,6 +106,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin with one dependency that is active and one dependency that is not installed will return true.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_plugin_has_one_active_dependency_and_one_that_is_not_installed() {
 		$this->set_property_value(
@@ -115,6 +127,8 @@ class Tests_Admin_WPPluginDependencies_HasUnmetDependencies extends WP_PluginDep
 
 	/**
 	 * Tests that a plugin with one dependency that is inactive and one dependency that is not installed will return true.
+	 *
+	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_plugin_has_one_inactive_dependency_and_one_that_is_not_installed() {
 		$this->set_property_value(
