@@ -453,13 +453,16 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20875
+	 * @ticket 57743
 	 */
 	public function test_wp_cache_get_multiple() {
 		wp_cache_set( 'foo1', 'bar', 'group1' );
 		wp_cache_set( 'foo2', 'bar', 'group1' );
 		wp_cache_set( 'foo1', 'bar', 'group2' );
 
-		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1' );
+		$found_ref = array();
+
+		$found = wp_cache_get_multiple( array( 'foo1', 'foo2', 'foo3' ), 'group1', false, $found_ref );
 
 		$expected = array(
 			'foo1' => 'bar',
@@ -468,6 +471,14 @@ class Tests_Cache extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $found );
+
+		$expected_ref = array(
+			'foo1' => true,
+			'foo2' => true,
+			'foo3' => false,
+		);
+
+		$this->assertSame( $expected_ref, $found_ref );
 	}
 
 	/**

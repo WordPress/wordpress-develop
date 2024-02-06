@@ -392,19 +392,22 @@ class WP_Object_Cache {
 	 * Retrieves multiple values from the cache in one call.
 	 *
 	 * @since 5.5.0
+	 * @since 6.3.0 Added the `$found` parameter.
 	 *
 	 * @param array  $keys  Array of keys under which the cache contents are stored.
 	 * @param string $group Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool   $force Optional. Whether to force an update of the local cache
 	 *                      from the persistent cache. Default false.
+	 * @param array  $found Optional. Whether array of keys were found in the cache (passed by reference).
+	 *                      Disambiguates a return of false, a storable value. Default empty array.
 	 * @return array Array of return values, grouped by key. Each value is either
 	 *               the cache contents on success, or false on failure.
 	 */
-	public function get_multiple( $keys, $group = 'default', $force = false ) {
+	public function get_multiple( $keys, $group = 'default', $force = false, &$found = array() ) {
 		$values = array();
 
 		foreach ( $keys as $key ) {
-			$values[ $key ] = $this->get( $key, $group, $force );
+			$values[ $key ] = $this->get( $key, $group, $force, $found[ $key ] );
 		}
 
 		return $values;
