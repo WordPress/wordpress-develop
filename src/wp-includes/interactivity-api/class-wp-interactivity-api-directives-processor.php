@@ -51,22 +51,13 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 			return null;
 		}
 
-		// Flushes any changes.
-		$this->get_updated_html();
-
-		$bookmarks = $this->get_balanced_tag_bookmarks();
-		if ( ! $bookmarks ) {
+		$positions = $this->get_after_opener_tag_and_before_closer_tag_positions();
+		if ( ! $positions ) {
 			return null;
 		}
-		list( $start_name, $end_name ) = $bookmarks;
+		list( $after_opener_tag, $before_closer_tag ) = $positions;
 
-		$start = $this->bookmarks[ $start_name ]->start + $this->bookmarks[ $start_name ]->length + 1;
-		$end   = $this->bookmarks[ $end_name ]->start;
-
-		$this->release_bookmark( $start_name );
-		$this->release_bookmark( $end_name );
-
-		return substr( $this->html, $start, $end - $start );
+		return substr( $this->html, $after_opener_tag, $before_closer_tag - $after_opener_tag );
 	}
 
 	/**
@@ -80,23 +71,18 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 * @return bool Whether the content was successfully replaced.
 	 */
 	public function set_content_between_balanced_tags( string $new_content ): bool {
-		// Flushes any changes.
-		$this->get_updated_html();
-
-		$bookmarks = $this->get_balanced_tag_bookmarks();
-		if ( ! $bookmarks ) {
+		$positions = $this->get_after_opener_tag_and_before_closer_tag_positions( true );
+		if ( ! $positions ) {
 			return false;
 		}
-		list( $start_name, $end_name ) = $bookmarks;
+		list( $after_opener_tag, $before_closer_tag ) = $positions;
 
-		$start = $this->bookmarks[ $start_name ]->start + $this->bookmarks[ $start_name ]->length + 1;
-		$end   = $this->bookmarks[ $end_name ]->start;
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$after_opener_tag,
+			$before_closer_tag - $after_opener_tag,
+			esc_html( $new_content )
+		);
 
-		$this->seek( $start_name );
-		$this->release_bookmark( $start_name );
-		$this->release_bookmark( $end_name );
-
-		$this->lexical_updates[] = new WP_HTML_Text_Replacement( $start, $end - $start, esc_html( $new_content ) );
 		return true;
 	}
 
@@ -121,13 +107,50 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 
 		$bookmark = 'append_content_after_template_tag_closer';
 		$this->set_bookmark( $bookmark );
-		$end = $this->bookmarks[ $bookmark ]->start + $this->bookmarks[ $bookmark ]->length + 1;
+		$after_closing_tag = $this->bookmarks[ $bookmark ]->start + $this->bookmarks[ $bookmark ]->length + 1;
 		$this->release_bookmark( $bookmark );
 
 		// Appends the new content.
-		$this->lexical_updates[] = new WP_HTML_Text_Replacement( $end, 0, $new_content );
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement( $after_closing_tag, 0, $new_content );
 
 		return true;
+	}
+
+	/**
+	 * Gets the positions right after the opener tag and right before the closer
+	 * tag in a balanced tag.
+	 *
+	 * By default, it positions the cursor in the closer tag of the balanced tag.
+	 * If $rewind is true, it seeks back to the opener tag.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @access private
+	 *
+	 * @param bool $rewind Optional. Whether to seek back to the opener tag after finding the positions. Defaults to false.
+	 * @return array|null Start and end byte position, or null when no balanced tag bookmarks.
+	 */
+	private function get_after_opener_tag_and_before_closer_tag_positions( bool $rewind = false ) {
+		// Flushes any changes.
+		$this->get_updated_html();
+
+		$bookmarks = $this->get_balanced_tag_bookmarks();
+		if ( ! $bookmarks ) {
+			return null;
+		}
+		list( $opener_tag, $closer_tag ) = $bookmarks;
+
+		$after_opener_tag  = $this->bookmarks[ $opener_tag ]->start + $this->bookmarks[ $opener_tag ]->length + 1;
+		$before_closer_tag = $this->bookmarks[ $closer_tag ]->start;
+
+		if ( $rewind ) {
+			$this->seek( $opener_tag );
+		}
+
+		$this->release_bookmark( $opener_tag );
+		$this->release_bookmark( $closer_tag );
+
+		return array( $after_opener_tag, $before_closer_tag );
 	}
 
 	/**
@@ -143,18 +166,18 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 */
 	private function get_balanced_tag_bookmarks() {
 		static $i   = 0;
-		$start_name = 'start_of_balanced_tag_' . ++$i;
+		$opener_tag = 'opener_tag_of_balanced_tag_' . ++$i;
 
-		$this->set_bookmark( $start_name );
+		$this->set_bookmark( $opener_tag );
 		if ( ! $this->next_balanced_tag_closer_tag() ) {
-			$this->release_bookmark( $start_name );
+			$this->release_bookmark( $opener_tag );
 			return null;
 		}
 
-		$end_name = 'end_of_balanced_tag_' . ++$i;
-		$this->set_bookmark( $end_name );
+		$closer_tag = 'closer_tag_of_balanced_tag_' . ++$i;
+		$this->set_bookmark( $closer_tag );
 
-		return array( $start_name, $end_name );
+		return array( $opener_tag, $closer_tag );
 	}
 
 	/**
@@ -212,6 +235,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 */
 	public function has_and_visits_its_closer_tag(): bool {
 		$tag_name = $this->get_tag();
+
 		return null !== $tag_name && (
 			! WP_HTML_Processor::is_void( $tag_name ) &&
 			! in_array( $tag_name, self::TAGS_THAT_DONT_VISIT_CLOSER_TAG, true )
