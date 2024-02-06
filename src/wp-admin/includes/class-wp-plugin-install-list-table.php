@@ -739,7 +739,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Returns a notice containing a list of dependencies required by the plugin.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
 	 *                            for the list of possible values.
@@ -792,7 +792,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Creates a 'More details' link for the plugin.
 	 *
-	 * @since 6.4.0
+	 * @since 6.5.0
 	 *
 	 * @param string $name The plugin's name.
 	 * @param string $slug The plugin's slug.
