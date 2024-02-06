@@ -1049,7 +1049,7 @@ module.exports = function(grunt) {
 								var regex, files, ghCli,
 									partials, partialsSet,
 									entities, emojiArray,
-									restResponse;
+									apiResponse;
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
@@ -1067,11 +1067,11 @@ module.exports = function(grunt) {
 								}
 
 								try {
-									restResponse = JSON.parse( files.stdout.toString() );
+									apiResponse = JSON.parse( files.stdout.toString() );
 								} catch ( e ) {
 									grunt.fatal( 'Unable to parse Twemoji file list' );
 								}
-								entities = restResponse.data.repository.object.entries;
+								entities = apiResponse.data.repository.object.entries;
 								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
