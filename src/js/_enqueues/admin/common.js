@@ -660,9 +660,11 @@ window.screenMeta = {
  *
  * @return {void}
  */
-$('.contextual-help-tabs').on( 'click', 'a', function(e) {
+$('.contextual-help-tabs').on( 'click', 'button', function(e) {
 	var link = $(this),
 		panel;
+
+	console.log(e);
 
 	e.preventDefault();
 
