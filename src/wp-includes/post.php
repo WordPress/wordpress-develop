@@ -3555,6 +3555,16 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 */
 	do_action( 'delete_post', $postid, $post );
 
+	/**
+	 * Fires immediately before a post is deleted from the database.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param int     $postid Post ID.
+	 * @param WP_Post $post   Post object.
+	 */
+	do_action( "delete_post_{$post->post_type}", $postid, $post );
+
 	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $postid ) );
 	if ( ! $result ) {
 		return false;
@@ -3570,6 +3580,16 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 * @param WP_Post $post   Post object.
 	 */
 	do_action( 'deleted_post', $postid, $post );
+
+	/**
+	 * Fires immediately after a post is deleted from the database.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param int     $postid Post ID.
+	 * @param WP_Post $post   Post object.
+	 */
+	do_action( "deleted_post_{$post->post_type}", $postid, $post );
 
 	clean_post_cache( $post );
 
