@@ -1481,7 +1481,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * @return array|false List of attributes found in the element. Returns false on failure.
  */
 function wp_kses_attr_parse( $element ) {
-	$valid = preg_match( '%^(<\s*)(/\s*)?([a-zA-Z0-9]+\s*)([^>]*)(>?)$%', $element, $matches );
+	$valid = preg_match( '%^(<\s*)(/\s*)?([a-zA-Z0-9\-]+\s*)([^>]*)(>?)$%', $element, $matches );
 	if ( 1 !== $valid ) {
 		return false;
 	}
