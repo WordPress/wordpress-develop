@@ -20,7 +20,7 @@ final class WP_Block_Bindings_Registry {
 	 * Holds the registered block bindings sources, keyed by source identifier.
 	 *
 	 * @since 6.5.0
-	 * @var array
+	 * @var WP_Block_Bindings_Source[]
 	 */
 	private $sources = array();
 
@@ -61,7 +61,7 @@ final class WP_Block_Bindings_Registry {
 	 *                                        The callback has a mixed return type; it may return a string to override
 	 *                                        the block's original value, null, false to remove an attribute, etc.
 	 * }
-	 * @return array|false Source when the registration was successful, or `false` on failure.
+	 * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
 	 */
 	public function register( string $source_name, array $source_properties ) {
 		if ( ! is_string( $source_name ) ) {
@@ -102,8 +102,8 @@ final class WP_Block_Bindings_Registry {
 			return false;
 		}
 
-		$source = array_merge(
-			array( 'name' => $source_name ),
+		$source = new WP_Block_Bindings_Source(
+			$source_name,
 			$source_properties
 		);
 
@@ -118,7 +118,7 @@ final class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @param string $source_name Block bindings source name including namespace.
-	 * @return array|false The unregistered block bindings source on success and `false` otherwise.
+	 * @return WP_Block_Bindings_Source|false The unregistered block bindings source on success and `false` otherwise.
 	 */
 	public function unregister( string $source_name ) {
 		if ( ! $this->is_registered( $source_name ) ) {
@@ -142,7 +142,7 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array The array of registered sources.
+	 * @return WP_Block_Bindings_Source[] The array of registered sources.
 	 */
 	public function get_all_registered() {
 		return $this->sources;
@@ -154,7 +154,7 @@ final class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 *
 	 * @param string $source_name The name of the source.
-	 * @return array|null The registered block bindings source, or `null` if it is not registered.
+	 * @return WP_Block_Bindings_Source|null The registered block bindings source, or `null` if it is not registered.
 	 */
 	public function get_registered( string $source_name ) {
 		if ( ! $this->is_registered( $source_name ) ) {
