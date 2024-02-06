@@ -14,6 +14,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_serialize_identity_from_parsed
 	 *
+	 * @covers ::serialize_blocks
+	 *
 	 * @param string $original Original block markup.
 	 */
 	public function test_serialize_identity_from_parsed( $original ) {
@@ -49,6 +51,9 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		);
 	}
 
+	/*
+	 * @covers ::strip_core_block_namespace
+	 */
 	public function test_serialized_block_name() {
 		$this->assertNull( strip_core_block_namespace( null ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'example' ) );

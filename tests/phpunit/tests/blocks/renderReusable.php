@@ -76,6 +76,9 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 		self::delete_user( self::$user_id );
 	}
 
+	/**
+	 * @covers WP_Block_Type::render
+	 */
 	public function test_render() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array( 'ref' => self::$block_id ) );
@@ -86,6 +89,8 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 	 * Make sure that a synced pattern can be rendered twice in a row.
 	 *
 	 * @ticket 52364
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render_subsequent() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
@@ -94,12 +99,18 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 		$this->assertSame( '<p>Hello world!</p><p>Hello world!</p>', $output );
 	}
 
+	/**
+	 * @covers WP_Block_Type::render
+	 */
 	public function test_ref_empty() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array() );
 		$this->assertSame( '', $output );
 	}
 
+	/**
+	 * @covers WP_Block_Type::render
+	 */
 	public function test_ref_wrong_post_type() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array( 'ref' => self::$post_id ) );

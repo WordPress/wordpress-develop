@@ -3,6 +3,8 @@
 /**
  * Test the content in some root directory files.
  *
+ * These tests do not cover any production code as they only check for content in files.
+ *
  * @group basic
  */
 class Tests_Basic extends WP_UnitTestCase {

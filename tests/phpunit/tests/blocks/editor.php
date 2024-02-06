@@ -77,6 +77,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers WP_Block_Editor_Context::__construct
 	 */
 	public function test_block_editor_context_no_settings() {
 		$context = new WP_Block_Editor_Context();
@@ -87,6 +89,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers WP_Block_Editor_Context::__construct
 	 */
 	public function test_block_editor_context_post() {
 		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
@@ -97,6 +101,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55301
+	 *
+	 * @covers WP_Block_Editor_Context::__construct
 	 */
 	public function test_block_editor_context_widgets() {
 		$context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-widgets' ) );
@@ -107,6 +113,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55301
+	 *
+	 * @covers WP_Block_Editor_Context::__construct
 	 */
 	public function test_block_editor_context_widgets_customizer() {
 		$context = new WP_Block_Editor_Context( array( 'name' => 'core/customize-widgets' ) );
@@ -117,6 +125,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55301
+	 *
+	 * @covers WP_Block_Editor_Context::__construct
 	 */
 	public function test_block_editor_context_site() {
 		$context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
@@ -128,6 +138,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_categories
+	 *
+	 * @covers ::get_block_categories
 	 */
 	public function test_get_block_categories_deprecated_filter_post_object() {
 		add_filter( 'block_categories', array( $this, 'filter_set_block_categories_post' ), 10, 2 );
@@ -151,6 +163,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_categories
+	 *
+	 * @covers ::get_block_categories
 	 */
 	public function test_get_block_categories_deprecated_filter_post_editor() {
 		add_filter( 'block_categories', array( $this, 'filter_set_block_categories_post' ), 10, 2 );
@@ -174,6 +188,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_allowed_block_types
 	 */
 	public function test_get_allowed_block_types_default() {
 		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
@@ -185,6 +201,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated allowed_block_types
+	 *
+	 * @covers ::get_allowed_block_types
 	 */
 	public function test_get_allowed_block_types_deprecated_filter_post_editor() {
 		add_filter( 'allowed_block_types', array( $this, 'filter_set_allowed_block_types_post' ), 10, 2 );
@@ -199,6 +217,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_default_block_editor_settings
 	 */
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
@@ -329,6 +349,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53397
+	 *
+	 * @covers ::get_legacy_widget_block_editor_settings
 	 */
 	public function test_get_legacy_widget_block_editor_settings() {
 		$settings = get_legacy_widget_block_editor_settings();
@@ -358,6 +380,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	public function test_get_block_editor_settings_overrides_default_settings_all_editors() {
 		function filter_allowed_block_types_my_editor() {
@@ -464,6 +488,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53458
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	public function test_get_block_editor_settings_theme_json_settings() {
 		switch_theme( 'block-theme' );
@@ -550,6 +576,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_editor_settings
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	public function test_get_block_editor_settings_deprecated_filter_post_editor() {
 		add_filter( 'block_editor_settings', array( $this, 'filter_set_block_editor_settings_post' ), 10, 2 );
@@ -569,6 +597,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::block_editor_rest_api_preload
 	 */
 	public function test_block_editor_rest_api_preload_no_paths() {
 		$editor_context = new WP_Block_Editor_Context();
@@ -581,6 +611,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_editor_preload_paths
+	 *
+	 * @covers ::block_editor_rest_api_preload
 	 */
 	public function test_block_editor_rest_api_preload_deprecated_filter_post_editor() {
 		function filter_remove_preload_paths( $preload_paths, $post ) {
@@ -607,6 +639,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::block_editor_rest_api_preload
 	 */
 	public function test_block_editor_rest_api_preload_filter_all() {
 		function filter_add_preload_paths( $preload_paths, WP_Block_Editor_Context $context ) {

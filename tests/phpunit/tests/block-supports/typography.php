@@ -1,6 +1,8 @@
 <?php
 /**
  * @group block-supports
+ *
+ * @covers ::wp_apply_typography_support
  */
 class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
@@ -65,8 +67,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests whether slugs with numbers are kebab cased.
 	 *
 	 * @ticket 54337
-	 *
-	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_kebab_case_font_size_slug_with_numbers() {
 		$this->test_block_name = 'test/font-size-slug-with-numbers';
@@ -101,8 +101,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests legacy inline styles for font family.
 	 *
 	 * @ticket 54337
-	 *
-	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_generate_font_family_with_legacy_inline_styles_using_a_value() {
 		$this->test_block_name = 'test/font-family-with-inline-styles-using-value';
@@ -136,8 +134,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests skipping serialization.
 	 *
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_skip_serialization_for_typography_block_supports() {
 		$this->test_block_name = 'test/typography-with-skipped-serialization-block-supports';
@@ -184,8 +180,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests skipping serialization of individual block supports properties.
 	 *
 	 * @ticket 55505
-	 *
-	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_skip_serialization_for_letter_spacing_block_supports() {
 		$this->test_block_name = 'test/letter-spacing-with-individual-skipped-serialization-block-supports';
@@ -222,8 +216,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests legacy css var inline styles for font family.
 	 *
 	 * @ticket 54337
-	 *
-	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_generate_css_var_for_font_family_with_legacy_inline_styles() {
 		$this->test_block_name = 'test/font-family-with-inline-styles-using-css-var';
@@ -257,8 +249,6 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests that a classname is generated for font family.
 	 *
 	 * @ticket 54337
-	 *
-	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_generate_classname_for_font_family() {
 		$this->test_block_name = 'test/font-family-with-class';
