@@ -9,14 +9,12 @@
 /**
  * @group html-api
  *
- * @coversDefaultClass WP_HTML_Tag_Processor
+ * @covers WP_HTML_Tag_Processor
  */
 class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_set_bookmark() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -29,8 +27,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::release_bookmark
 	 */
 	public function test_release_bookmark() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -42,8 +38,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57788
-	 *
-	 * @covers WP_HTML_Tag_Processor::has_bookmark
 	 */
 	public function test_has_bookmark_returns_false_if_bookmark_does_not_exist() {
 		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
@@ -52,8 +46,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57788
-	 *
-	 * @covers WP_HTML_Tag_Processor::has_bookmark
 	 */
 	public function test_has_bookmark_returns_true_if_bookmark_exists() {
 		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
@@ -64,8 +56,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57788
-	 *
-	 * @covers WP_HTML_Tag_Processor::has_bookmark
 	 */
 	public function test_has_bookmark_returns_false_if_bookmark_has_been_released() {
 		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
@@ -77,8 +67,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_seek() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -100,8 +88,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 57787
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_seeks_to_tag_closer_bookmark() {
 		$processor = new WP_HTML_Tag_Processor( '<div>First</div><span>Second</span>' );
@@ -154,9 +140,6 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Bookmark extends WP_UnitTestCase {
 	 * the erroneous behavior accidentally returning one day.
 	 *
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
-	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_removing_long_attributes_doesnt_break_seek() {
 		$input     = <<<HTML
@@ -183,9 +166,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
-	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_bookmarks_complex_use_case() {
 		$input           = <<<HTML
@@ -293,8 +273,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_additions_after_both_sides() {
 		$processor = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
@@ -315,8 +293,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_additions_before_both_sides() {
 		$processor = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
@@ -340,8 +316,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_deletions_after_both_sides() {
 		$processor = new WP_HTML_Tag_Processor( '<div>First</div><div disabled>Second</div>' );
@@ -370,8 +344,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_deletions_before_both_sides() {
 		$processor = new WP_HTML_Tag_Processor( '<div disabled>First</div><div>Second</div>' );
@@ -403,8 +375,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_limits_the_number_of_bookmarks() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -420,8 +390,6 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 *
-	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_limits_the_number_of_seek_calls() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );

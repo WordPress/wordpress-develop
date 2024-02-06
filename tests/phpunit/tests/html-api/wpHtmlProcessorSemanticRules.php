@@ -9,7 +9,7 @@
  *
  * @group html-api
  *
- * @coversDefaultClass WP_HTML_Processor
+ * @covers WP_HTML_Processor
  */
 class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	/*******************************************************************
@@ -19,8 +19,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	/**
 	 * Verifies that tags in the container group, including the ARTICLE element,
 	 * close out an open P element if one exists.
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 59914
 	 *
@@ -51,8 +49,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	/**
 	 * Verifies that tags in the container group, including the ARTICLE element,
 	 * nest inside each other despite being invalid in most cases.
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 59914
 	 *
@@ -348,8 +344,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * that the HTML processor ignores the end tag if there's a special
 	 * element on the stack of open elements before the matching opening.
 	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 *
 	 * @ticket 58907
 	 *
 	 * @since 6.4.0
@@ -370,8 +364,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * Verifies that when "in body" and encountering "any other end tag"
 	 * that the HTML processor closes appropriate elements on the stack of
 	 * open elements up to the matching opening.
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 58907
 	 *
@@ -406,8 +398,6 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * When this handling is implemented, this test should be removed. It's not incorporated
 	 * into the existing unsupported tag behavior test because the opening tag is supported;
 	 * only the closing tag isn't.
-	 *
-	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 60283
 	 */
