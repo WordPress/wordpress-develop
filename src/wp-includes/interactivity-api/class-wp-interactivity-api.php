@@ -221,7 +221,7 @@ final class WP_Interactivity_API {
 	 * Processes the interactivity directives contained within the HTML content
 	 * and updates the markup accordingly.
 	 *
-	 * It needs the context and namespace stacks to be passed by reference and
+	 * It needs the context and namespace stacks to be passed by reference, and
 	 * it returns null if the HTML contains unbalanced tags.
 	 *
 	 * @since 6.5.0
