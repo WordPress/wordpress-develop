@@ -12,6 +12,9 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
+	/**
+	 * @covers ::get_plugin_data
+	 */
 	public function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -35,6 +38,9 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::menu_page_url
+	 */
 	public function test_menu_page_url() {
 		$current_user = get_current_user_id();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -275,6 +281,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * Test that when a submenu has the same slug as a parent item, that it's just appended and ignores the position.
 	 *
 	 * @ticket 48599
+	 *
+	 * @covers ::add_submenu_page
 	 */
 	public function test_position_when_parent_slug_child_slug_are_the_same() {
 		global $submenu, $menu;
@@ -307,6 +315,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * Passing a string as position will fail in submenu.
 	 *
 	 * @ticket 48599
+	 *
+	 * @covers ::add_submenu_page
 	 */
 	public function test_passing_string_as_position_fires_doing_it_wrong_submenu() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
@@ -336,6 +346,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * Passing a string as position will fail in menu.
 	 *
 	 * @ticket 54798
+	 *
+	 * @covers ::add_menu_page
 	 */
 	public function test_passing_float_as_position_does_not_override_int() {
 		global $submenu, $menu;
@@ -364,6 +376,9 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$this->assertSame( 'main_slug_15', $menu['1.5'][2] );
 	}
 
+	/**
+	 * @covers ::is_plugin_active
+	 */
 	public function test_is_plugin_active_true() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
@@ -372,18 +387,27 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		deactivate_plugins( 'hello.php' );
 	}
 
+	/**
+	 * @covers ::is_plugin_active
+	 */
 	public function test_is_plugin_active_false() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertFalse( $test );
 	}
 
+	/**
+	 * @covers ::is_plugin_inactive
+	 */
 	public function test_is_plugin_inactive_true() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertTrue( $test );
 	}
 
+	/**
+	 * @covers ::is_plugin_inactive
+	 */
 	public function test_is_plugin_inactive_false() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
