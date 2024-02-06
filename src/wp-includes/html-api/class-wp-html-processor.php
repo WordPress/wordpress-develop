@@ -769,6 +769,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
 					return $this->step_in_table_body();
 
+				case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
+					return $this->step_in_row();
+
 				default:
 					echo "\n MODE: " . $this->state->insertion_mode . "\n";
 
@@ -2006,6 +2009,78 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * > Process the token using the rules for the "in table" insertion mode.
 		 */
 		return $this->step_in_table();
+	}
+
+	/**
+	 * Parses next element in the 'in row' insertion mode.
+	 *
+	 * This internal function performs the 'in row' insertion mode
+	 * logic for the generalized WP_HTML_Processor::step() function.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intr
+	 * @see WP_HTML_Processor::step
+	 *
+	 * @return bool Whether an element was found.
+	 */
+	private function step_in_row() {
+		$tag_name = $this->get_tag();
+		$op_sigil = $this->is_tag_closer() ? '-' : '+';
+		$op       = "{$op_sigil}{$tag_name}";
+
+		switch ( $op ) {
+			/*
+			 * > A start tag whose tag name is one of: "th", "td"
+			 */
+			case '+TH':
+			case '+TD':
+
+			/*
+			 * > An end tag whose tag name is "tr"
+			 */
+			case '-TR':
+
+			/*
+			 * > A start tag whose tag name is one of: "caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr"
+			 */
+			case '+CAPTION':
+			case '+COL':
+			case '+COLGROUP':
+			case '+TBODY':
+			case '+TFOOT':
+			case '+THEAD':
+			case '+TR':
+
+			/*
+			 * > An end tag whose tag name is "table"
+			 */
+			case '-TABLE':
+
+			/*
+			 * > An end tag whose tag name is one of: "tbody", "tfoot", "thead"
+			 */
+			case '-TBODY':
+			case '-TFOOT':
+			case '-THEAD':
+
+			/*
+			 * > An end tag whose tag name is one of: "body", "caption", "col", "colgroup", "html", "td", "th"
+			 */
+			case '-BODY':
+			case '-CAPTION':
+			case '-COL':
+			case '-COLGROUP':
+			case '-HTML':
+			case '-TD':
+			case '-TH':
+		}
+
+		/*
+		 * > Anything else
+		 */
 	}
 
 	/*
