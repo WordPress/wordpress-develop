@@ -430,29 +430,6 @@ $GLOBALS['wp_plugin_paths'] = array();
  */
 global $_found_incompatible_for_core_plugins, $_is_plugin_compatible_with_wp, $_handle_incompatible_for_core_plugins;
 
-/**
- * Gets the for-core plugin's minimum compatible version.
- *
- * @since 6.5.0
- *
- * @param string $plugin Plugin path relative to the plugins' directory.
- * @return string Returns the minimum version if it's a for-core plugin, otherwise an empty string.
- */
-function _get_for_core_plugin_min_wp_compat_version( $plugin ) {
-	static $plugin_data = array(
-		'gutenberg/gutenberg.php' => array(
-			'name'                       => 'Gutenberg',
-			'minimum_compatible_version' => '17.7',
-		),
-	);
-
-	if ( ! isset( $plugin_data[ $plugin ] ) ) {
-		return '';
-	}
-
-	return $plugin_data[ $plugin ]['minimum_compatible_version'];
-}
-
 // Found incompatible for-core plugins.
 $_found_incompatible_for_core_plugins = array();
 
@@ -461,12 +438,12 @@ $_found_incompatible_for_core_plugins = array();
  *
  * @since 6.5.0
  *
- * @global $_wp_for_core_plugins_compat_version
  * @global $_found_incompatible_for_core_plugins
  *
  * @param string $plugin_absolute_path Absolute path to the plugin's file.
+ * @param bool   $is_network           Optional. Whether the plugin is activated sitewide. Default false.
  */
-$_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path ) use ( $_wp_for_core_plugins_compat_version ) {
+$_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path, $is_network = false ) {
 	global $_found_incompatible_for_core_plugins;
 
 	static $plugins_dir_strlen;
@@ -477,7 +454,8 @@ $_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path ) use (
 	$plugin = substr( $plugin_absolute_path, $plugins_dir_strlen );
 
 	// Not a for-core plugin.
-	if ( ! isset( $_wp_for_core_plugins_compat_version[ $plugin ] ) ) {
+	$min_compat_version = _get_plugin_wp_min_compatible_version( $plugin );
+	if ( ! $min_compat_version ) {
 		return true;
 	}
 
@@ -502,8 +480,7 @@ $_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path ) use (
 		return true;
 	}
 
-	// If compatible, bail out.
-	$min_compat_version = $_wp_for_core_plugins_compat_version[ $plugin ]['minimum_compatible_version'];
+	// Plugin is compatible.
 	if ( version_compare( $plugin_data['Version'], $min_compat_version, '>=' ) ) {
 		return true;
 	}
@@ -665,7 +642,6 @@ unset(
 	$plugin,
 	$_wp_plugin_file,
 	// Remove the for-core compatibility handler.
-	$_wp_for_core_plugins_compat_version,
 	$_wp_activated_plugins_to_compat_check,
 	$_is_plugin_compatible_with_wp,
 	$_handle_incompatible_for_core_plugins
