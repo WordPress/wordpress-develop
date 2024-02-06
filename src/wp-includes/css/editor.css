@@ -87,8 +87,9 @@
 
 .mce-window-head .mce-close:focus .mce-i-remove,
 div.mce-tab:focus {
-	box-shadow: 0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #3582c4;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .mce-window .mce-window-head .mce-dragh {
@@ -635,9 +636,9 @@ div.mce-menubar {
 
 .mce-menubar .mce-menubtn:focus {
 	color: #043959;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #3582c4;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 div.mce-menu .mce-menu-item-sep,
@@ -1131,10 +1132,9 @@ i.mce-i-wp_code:before {
 }
 
 .wp-switch-editor:focus {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
-	outline: none;
+	box-shadow: 0 0 0 2px #3582c4;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 	color: #1d2327;
 }
 
@@ -1445,10 +1445,7 @@ i.mce-i-wp_code:before {
 }
 
 #wp-link-close:focus {
-	outline: none;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #3582c4;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -2px;
