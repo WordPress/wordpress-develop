@@ -1888,25 +1888,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 				<?php endif; ?>
 
-				<?php if ( count( $flat_taxonomies ) && ! $bulk ) : ?>
-
-					<?php foreach ( $flat_taxonomies as $taxonomy ) : ?>
-
-						<?php if ( current_user_can( $taxonomy->cap->assign_terms ) ) : ?>
-							<?php $taxonomy_name = esc_attr( $taxonomy->name ); ?>
-							<div class="inline-edit-tags-wrap">
-							<label class="inline-edit-tags">
-								<span class="title"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
-								<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo esc_attr( $taxonomy->name ); ?>]" class="tax_input_<?php echo esc_attr( $taxonomy->name ); ?>" aria-describedby="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"></textarea>
-							</label>
-							<p class="howto" id="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"><?php echo esc_html( $taxonomy->labels->separate_items_with_commas ); ?></p>
-							</div>
-						<?php endif; // current_user_can( 'assign_terms' ) ?>
-
-					<?php endforeach; // $flat_taxonomies as $taxonomy ?>
-
-				<?php endif; // count( $flat_taxonomies ) && ! $bulk ?>
-
 				<?php if ( post_type_supports( $screen->post_type, 'comments' ) || post_type_supports( $screen->post_type, 'trackbacks' ) ) : ?>
 
 					<?php if ( $bulk ) : ?>
@@ -2034,6 +2015,26 @@ class WP_Posts_List_Table extends WP_List_Table {
 					</label>
 
 				<?php endif; ?>
+
+
+				<?php if ( count( $flat_taxonomies ) && ! $bulk ) : ?>
+
+				<?php foreach ( $flat_taxonomies as $taxonomy ) : ?>
+
+					<?php if ( current_user_can( $taxonomy->cap->assign_terms ) ) : ?>
+						<?php $taxonomy_name = esc_attr( $taxonomy->name ); ?>
+						<div class="inline-edit-tags-wrap">
+						<label class="inline-edit-tags">
+							<span class="title"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
+							<textarea data-wp-taxonomy="<?php echo $taxonomy_name; ?>" cols="22" rows="1" name="tax_input[<?php echo esc_attr( $taxonomy->name ); ?>]" class="tax_input_<?php echo esc_attr( $taxonomy->name ); ?>" aria-describedby="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"></textarea>
+						</label>
+						<p class="howto" id="inline-edit-<?php echo esc_attr( $taxonomy->name ); ?>-desc"><?php echo esc_html( $taxonomy->labels->separate_items_with_commas ); ?></p>
+						</div>
+					<?php endif; // current_user_can( 'assign_terms' ) ?>
+
+				<?php endforeach; // $flat_taxonomies as $taxonomy ?>
+
+				<?php endif; // count( $flat_taxonomies ) && ! $bulk ?>
 
 				</div>
 			</fieldset>
