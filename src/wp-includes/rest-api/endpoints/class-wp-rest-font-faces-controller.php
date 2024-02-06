@@ -103,7 +103,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
-	public function get_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable -- required by parent class
+	public function get_items_permissions_check( $request ) {
 		$post_type = get_post_type_object( $this->post_type );
 
 		if ( ! current_user_can( $post_type->cap->read ) ) {
