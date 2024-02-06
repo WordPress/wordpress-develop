@@ -1059,7 +1059,7 @@ module.exports = function(grunt) {
 								}
 
 								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'gh', [ 'api', 'repos/jdecked/twemoji/contents/assets/svg' ] );
+								files = spawn( 'gh', [ 'api', 'graphql', '-f', "query='{repository(owner: \"jdecked\", name: \"twemoji\") {object(expression: \"main:assets/svg\") {... on Tree {entries {name}}}}}'" ] );
 
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
