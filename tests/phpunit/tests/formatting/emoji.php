@@ -86,14 +86,14 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		$this->assertNotEmpty( $entities, 'Entities should not be empty' );
 		$this->assertIsArray( $entities, 'Entities should be an array' );
 		// Emoji 15 contains 3718 entities, this number will only increase.
-		$this->assertGreaterThan( 3718, count( $entities ), 'Entities should contain at least 3718 items' );
+		$this->assertGreaterThanOrEqual( 3718, count( $entities ), 'Entities should contain at least 3718 items' );
 		$this->assertSame( $default, $entities, 'Entities should be returned by default' );
 
 		$partials = _wp_emoji_list( 'partials' );
 		$this->assertNotEmpty( $partials, 'Partials should not be empty' );
 		$this->assertIsArray( $partials, 'Partials should be an array' );
 		// Emoji 15 contains 1424 partials, this number will only increase.
-		$this->assertGreaterThan( 1424, count( $partials ), 'Partials should contain at least 1424 items' );
+		$this->assertGreaterThanOrEqual( 1424, count( $partials ), 'Partials should contain at least 1424 items' );
 
 		$this->assertNotSame( $default, $partials );
 	}
