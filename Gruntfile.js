@@ -1048,7 +1048,8 @@ module.exports = function(grunt) {
 							replacement: function() {
 								var regex, files, ghCli,
 									partials, partialsSet,
-									entities, emojiArray;
+									entities, emojiArray,
+									restResponse;
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
@@ -1059,15 +1060,18 @@ module.exports = function(grunt) {
 								}
 
 								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'gh', [ 'api', 'graphql', '-f', "query='{repository(owner: \"jdecked\", name: \"twemoji\") {object(expression: \"main:assets/svg\") {... on Tree {entries {name}}}}}'" ] );
+								files = spawn( './tools/shell-scripts/request-twemoji-file-list.sh' );
 
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
 								}
 
-								entities = files.stdout.toString();
-								entities = JSON.parse( entities );
-								entities = entities.data.repository.object.entries;
+								try {
+									restResponse = JSON.parse( files.stdout.toString() );
+								} catch ( e ) {
+									grunt.fatal( 'Unable to parse Twemoji file list' );
+								}
+								entities = restResponse.data.repository.object.entries;
 								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
