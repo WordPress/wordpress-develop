@@ -222,38 +222,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	/**
 	 * @ticket 50263
 	 */
-	public function test_missing_asset_file_register_block_script_handle() {
-		$metadata = array(
-			'file'   => __FILE__,
-			'name'   => 'unit-tests/test-block',
-			'script' => 'file:./blocks/notice/missing-asset.js',
-		);
-		$result   = register_block_script_handle( $metadata, 'script' );
-
-		$this->assertFalse( $result );
-	}
-
-	/**
-	 * @ticket 57234
-	 */
-	public function test_missing_asset_php_fails_gracefully() {
-		$metadata = array(
-			'file'   => DIR_TESTDATA . '/blocks/no-asset-php/block.json',
-			'name'   => 'unit-test/test-block',
-			'script' => 'file:./blocks/no-asset-php/block.js',
-		);
-		$result   = register_block_script_handle( $metadata, 'script' );
-
-		// Expected generated script handle (modify as per the function's actual handle generation logic)
-		$expected_handle = generate_block_asset_handle( $metadata['name'], 'script', 0 );
-
-		// Assert that the result is the generated script handle name
-		$this->assertEquals( $expected_handle, $result );
-	}
-
-	/**
-	 * @ticket 50263
-	 */
 	public function test_handle_passed_register_block_script_handle() {
 		$metadata = array(
 			'script' => 'test-script-handle',
@@ -273,6 +241,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$result = register_block_script_handle( $metadata, 'script', 1 );
 		$this->assertSame( 'test-script-handle-2', $result, 1 );
+	}
+
+	/**
+	 * @ticket 50263
+	 * @ticket 60460
+	 */
+	public function test_missing_asset_file_register_block_script_handle_with_default_settings() {
+		$metadata = array(
+			'file'   => __FILE__,
+			'name'   => 'unit-tests/test-block',
+			'script' => 'file:./blocks/notice/missing-asset.js',
+		);
+		$result   = register_block_script_handle( $metadata, 'script' );
+
+		$this->assertSame( 'unit-tests-test-block-script' );
 	}
 
 	/**
