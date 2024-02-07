@@ -63,13 +63,13 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	}
 
 	$field_mappings = array(
-		'editorScript' => 'editor-script',
-		'editorStyle'  => 'editor-style',
-		'script'       => 'script',
-		'style'        => 'style',
-		'viewScript'   => 'view-script',
+		'editorScript'     => 'editor-script',
+		'editorStyle'      => 'editor-style',
+		'script'           => 'script',
+		'style'            => 'style',
+		'viewScript'       => 'view-script',
 		'viewScriptModule' => 'view-script-module',
-		'viewStyle'    => 'view-style',
+		'viewStyle'        => 'view-style',
 	);
 	$asset_handle   = str_replace( '/', '-', $block_name ) .
 		'-' . $field_mappings[ $field_name ];
