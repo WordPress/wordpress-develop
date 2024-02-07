@@ -461,7 +461,7 @@ final class WP_Autoload {
 	 * @param string $class_name Class name.
 	 * @return void
 	 */
-	public static function autoload_core( string $class_name ): void {
+	public static function autoload_core( $class_name ) {
 		// Lowercase the classname to accommodate for WP classes written with wrong cases.
 		$class_name = strtolower( $class_name );
 
