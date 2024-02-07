@@ -60,6 +60,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			}
 		}
 
+		foreach ( wp_scripts()->registered as $script_handle => $script ) {
+			if ( str_starts_with( $script_handle, 'unit-tests-' ) ) {
+				wp_deregister_script( $script_handle );
+			}
+		}
+
 		parent::tear_down();
 	}
 
