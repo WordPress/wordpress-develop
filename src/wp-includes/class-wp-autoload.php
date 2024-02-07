@@ -462,7 +462,7 @@ final class WP_Autoload {
 		if ( str_starts_with( $class_name, 'avifinfo' ) ) {
 			// This file contains multiple classes, so we need to use require_once.
 			require_once ABSPATH . 'wp-includes/class-avif-info.php';
-			return true;
+			return;
 		}
 
 		// Load SimplePie classes.
