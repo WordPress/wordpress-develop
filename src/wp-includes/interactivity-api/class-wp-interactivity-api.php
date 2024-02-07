@@ -764,7 +764,7 @@ final class WP_Interactivity_API {
 				width: 100vw;
 				max-width: 100vw !important;
 				height: 4px;
-				background-color: var(--wp--preset--color--primary, #000);
+				background-color: #000;
 				opacity: 0
 			}
 			.wp-interactivity-router-loading-bar.start-animation {
