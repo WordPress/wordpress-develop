@@ -41,6 +41,13 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	private static $admin;
 
 	/**
+	 * JSON decoded response from the WordPress.org plugin API.
+	 *
+	 * @var stdClass
+	 */
+	private static $plugin_api_decoded_response;
+
+	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.5.0
@@ -67,6 +74,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( is_multisite() ) {
 			grant_super_admin( self::$super_admin );
 		}
+
+		self::$plugin_api_decoded_response = json_decode( file_get_contents( DIR_TESTDATA . '/plugins/link-manager.json' ) );
 	}
 
 	/**
@@ -1017,7 +1026,12 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Sets up the plugin download to come locally instead of downloading it from .org
+	 * Sets up the plugin repository requests to use local data.
+	 *
+	 * Requests to the plugin repository are mocked to avoid external HTTP requests so
+	 * the test suite does not produce false negatives due to network failures.
+	 *
+	 * Both the plugin ZIP file and the plugin API response are mocked.
 	 *
 	 * @since 5.5.0
 	 */
@@ -1036,8 +1050,23 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			3
 		);
 
-		// Remove upgrade hooks which are not required for plugin installation tests
-		// and may interfere with the results due to a timeout in external HTTP requests.
+		add_filter(
+			'plugins_api',
+			function ( $bypass, $action, $args ) {
+				// Only mock the plugin_information (link-manager) request.
+				if ( 'plugin_information' !== $action || 'link-manager' !== $args->slug ) {
+					return $bypass;
+				}
+				return self::$plugin_api_decoded_response;
+			},
+			10,
+			3
+		);
+
+		/*
+		 * Remove upgrade hooks which are not required for plugin installation tests
+		 * and may interfere with the results due to a timeout in external HTTP requests.
+		 */
 		remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
 		remove_action( 'upgrader_process_complete', 'wp_version_check' );
 		remove_action( 'upgrader_process_complete', 'wp_update_plugins' );
