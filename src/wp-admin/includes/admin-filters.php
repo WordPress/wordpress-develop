@@ -133,7 +133,6 @@ add_action( 'load-themes.php', 'wp_theme_update_rows', 20 ); // After wp_update_
 
 add_action( 'admin_notices', 'update_nag', 3 );
 add_action( 'admin_notices', 'deactivated_plugins_notice', 5 );
-add_action( 'admin_notices', '_render_notice_for_deactivated_incompatible_plugins', 5 );
 add_action( 'admin_notices', 'paused_plugins_notice', 5 );
 add_action( 'admin_notices', 'paused_themes_notice', 5 );
 add_action( 'admin_notices', 'maintenance_nag', 10 );

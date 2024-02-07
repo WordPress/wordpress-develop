@@ -523,7 +523,10 @@ $_handle_incompatible_for_core_plugins = static function () {
 	update_option( 'active_plugins', $active_plugins );
 
 	// Update the list of incompatible plugins to notify user in the admin.
-	update_option( 'wp_force_deactivation_incompatible_plugins', $_found_incompatible_for_core_plugins );
+	$admin_notices_handler = static function () use ( $_found_incompatible_for_core_plugins ) {
+		_render_notice_for_incompatible_plugins( $_found_incompatible_for_core_plugins );
+	};
+	add_action( 'admin_notices', $admin_notices_handler, 5 );
 };
 // End of the for-core plugins compatibility handler.
 
