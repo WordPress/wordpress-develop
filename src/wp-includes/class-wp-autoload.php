@@ -478,7 +478,6 @@ final class WP_Autoload {
 		}
 
 		require ABSPATH . self::CLASSES_PATHS[ $class_name ];
-		return true;
 	}
 }
 
