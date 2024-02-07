@@ -468,7 +468,7 @@ final class WP_Autoload {
 		// Load SimplePie classes.
 		if ( str_starts_with( $class_name, 'simplepie' ) ) {
 			require_once ABSPATH . 'wp-includes/class-simplepie.php';
-			return true;
+			return;
 		}
 
 		// Bail early if the class is not a WP class.
