@@ -61,7 +61,9 @@
  *           }
  *         }
  *       }
- *     } --><!-- /wp:paragraph -->
+ *     } -->
+ *     <p>Fallback text that gets replaced.</p>
+ *     <!-- /wp:paragraph -->
  *
  * @since 6.5.0
  *
