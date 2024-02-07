@@ -783,8 +783,8 @@ final class WP_Interactivity_API {
 				animation: wp-interactivity-router-loading-bar-finish-animation 300ms ease-in
 			}
 			@keyframes wp-interactivity-router-loading-bar-start-animation {
-				0% { transform: scaleX(0); transform-origin: 0% 0%; opacity: 1 }
-				100% { transform: scaleX(1); transform-origin: 0% 0%; opacity: 1 }
+				0% { transform: scaleX(0); transform-origin: 0 0; opacity: 1 }
+				100% { transform: scaleX(1); transform-origin: 0 0; opacity: 1 }
 			}
 			@keyframes wp-interactivity-router-loading-bar-finish-animation {
 				0% { opacity: 1 }
