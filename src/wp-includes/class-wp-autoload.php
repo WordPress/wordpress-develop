@@ -474,7 +474,7 @@ final class WP_Autoload {
 		// Bail early if the class is not a WP class.
 		// Use empty() instead of !isset() for performance reasons (saves a BOOL_NOT opcode).
 		if ( empty( self::CLASSES_PATHS[ $class_name ] ) ) {
-			return false;
+			return;
 		}
 
 		require ABSPATH . self::CLASSES_PATHS[ $class_name ];
