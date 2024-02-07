@@ -132,11 +132,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	* after being enqueued, and that will be removed
 	* from the enqueue list too.
 	*
-	* @ticket
+	* @ticket 60463
 	*
 	* @covers ::register()
 	* @covers ::enqueue()
-	* @covers ::dequeue()
 	* @covers ::deregister()
 	* @covers ::print_enqueued_script_modules()
 	*/
