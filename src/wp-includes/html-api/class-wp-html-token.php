@@ -61,6 +61,24 @@ class WP_HTML_Token {
 	public $has_self_closing_flag = false;
 
 	/**
+	 * Indicates if the element is an HTML element or if it's inside foreign content.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var string 'html', 'svg', or 'math'.
+	 */
+	public $namespace = 'html';
+
+	/**
+	 * Indicates which kind of integration point the element is, if any.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var string|null 'mathml', 'html', or null if not an integration point.
+	 */
+	public $integration_node_type = null;
+
+	/**
 	 * Called when token is garbage-collected or otherwise destroyed.
 	 *
 	 * @var callable|null

@@ -516,6 +516,21 @@ class WP_HTML_Tag_Processor {
 	protected $parser_state = self::STATE_READY;
 
 	/**
+	 * Indicates whether the parser is inside foreign content,
+	 * e.g. inside an SVG or MathML element.
+	 *
+	 * Several parsing rules change based on whether the parser
+	 * is inside foreign content, including whether CDATA sections
+	 * are allowed and whether a self-closing flag indicates that
+	 * an element has no content.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var bool
+	 */
+	protected $is_inside_foreign_content = false;
+
+	/**
 	 * What kind of syntax token became an HTML comment.
 	 *
 	 * Since there are many ways in which HTML syntax can create an HTML comment,
@@ -944,7 +959,6 @@ class WP_HTML_Tag_Processor {
 		$duplicate_attributes = $this->duplicate_attributes;
 
 		// Find the closing tag if necessary.
-		$found_closer = false;
 		switch ( $tag_name ) {
 			case 'SCRIPT':
 				$found_closer = $this->skip_script_data();
@@ -1722,6 +1736,32 @@ class WP_HTML_Tag_Processor {
 					$this->text_starts_at       = $this->token_starts_at + 9;
 					$this->text_length          = $closer_at - $this->text_starts_at;
 					$this->bytes_already_parsed = $closer_at + 1;
+					return true;
+				}
+
+				if (
+					$this->is_inside_foreign_content &&
+					strlen( $html ) > $at + 8 &&
+					'[' === $html[ $at + 2 ] &&
+					'C' === $html[ $at + 3 ] &&
+					'D' === $html[ $at + 4 ] &&
+					'A' === $html[ $at + 5 ] &&
+					'T' === $html[ $at + 6 ] &&
+					'A' === $html[ $at + 7 ] &&
+					'[' === $html[ $at + 8 ]
+				) {
+					$closer_at = strpos( $html, ']]>', $at + 1 );
+					if ( false === $closer_at ) {
+						$this->parser_state = self::STATE_INCOMPLETE_INPUT;
+
+						return false;
+					}
+
+					$this->parser_state         = self::STATE_CDATA_NODE;
+					$this->text_starts_at       = $at + 9;
+					$this->text_length          = $closer_at - $this->text_starts_at;
+					$this->token_length         = $closer_at + 3 - $this->token_starts_at;
+					$this->bytes_already_parsed = $closer_at + 3;
 					return true;
 				}
 
