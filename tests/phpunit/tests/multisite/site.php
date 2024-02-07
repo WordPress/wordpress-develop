@@ -1397,6 +1397,14 @@ if ( is_multisite() ) :
 				),
 				array(
 					array(
+						'domain' => 'subdomain.with-port.com:8888',
+					),
+					array(
+						'domain' => 'subdomain.with-port.com:8888',
+					),
+				),
+				array(
+					array(
 						'path' => '',
 					),
 					array(

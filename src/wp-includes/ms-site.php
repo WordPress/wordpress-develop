@@ -525,9 +525,6 @@ function wp_normalize_site_data( $data ) {
 	// Sanitize domain if passed.
 	if ( array_key_exists( 'domain', $data ) ) {
 		$data['domain'] = preg_replace( '/[^a-z0-9\-.:]+/i', '', $data['domain'] );
-		if ( is_subdomain_install() ) {
-			$data['domain'] = str_replace( ':', '', $data['domain'] );
-		}
 	}
 
 	// Sanitize path if passed.
