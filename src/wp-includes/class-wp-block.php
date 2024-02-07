@@ -281,6 +281,13 @@ class WP_Block {
 			}
 		}
 
+		// If there are computed attributes, update the attributes with the
+		// computed ones.
+		if ( ! empty( $computed_attributes ) ) {
+			// Merge the computed attributes with the original attributes
+			$this->attributes = array_merge( $this->attributes, $computed_attributes );
+		}
+
 		return $computed_attributes;
 	}
 
@@ -412,6 +419,9 @@ class WP_Block {
 			)
 		);
 
+		// Process the block bindings and get attributes updated with the values from the sources.
+		$computed_attributes = $this->process_block_bindings();
+
 		$is_dynamic    = $options['dynamic'] && $this->name && null !== $this->block_type && $this->block_type->is_dynamic();
 		$block_content = '';
 
@@ -447,17 +457,10 @@ class WP_Block {
 			}
 		}
 
-		$computed_attributes = $this->process_block_bindings();
-
-		// If there are computed attributes, update the attributes with the
-		// computed ones.
 		if ( ! empty( $computed_attributes ) ) {
-			// Merge the computed attributes with the original attributes
-			$this->attributes = array_merge( $this->attributes, $computed_attributes );
-		}
-
-		foreach ( $computed_attributes as $attribute_name => $source_value ) {
-			$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
+			foreach ( $computed_attributes as $attribute_name => $source_value ) {
+				$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
+			}
 		}
 
 		if ( $is_dynamic ) {
