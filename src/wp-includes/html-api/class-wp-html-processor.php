@@ -623,6 +623,49 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$op_sigil = $this->is_tag_closer() ? '-' : '+';
 		$op       = "{$op_sigil}{$tag_name}";
 
+		if ( null === $tag_name && '#text' === $this->get_token_type() ) {
+			/*
+			 * This rule is necessary even without supporting text nodes in the
+			 * HTML Processor because the parser has to move past text nodes, and
+			 * there could be breadcrumb implications when the text triggers the
+			 * active format reconstruction.
+			 */
+			$this->reconstruct_active_formatting_elements();
+
+			$current_token = $this->bookmarks[ $this->state->current_token->bookmark_name ];
+
+			/*
+			 * > A character token that is U+0000 NULL
+			 *
+			 * Any successive sequence of NULL bytes is ignored and won't
+			 * trigger active format reconstruction. Therefore, if the text
+			 * only comprises NULL bytes then the token should be ignored
+			 * here, but if there are any other characters in the stream
+			 * the active formats should be reconstructed.
+			 */
+			if (
+				1 <= $current_token->length &&
+				"\x00" === $this->html[ $current_token->start ] &&
+				strspn( $this->html, "\x00", $current_token->start, $current_token->length ) === $current_token->length
+			) {
+				// Parse error: ignore the token.
+				return $this->step();
+			}
+
+			/*
+			 * Whitespace-only text does not affect the frameset-ok flag.
+			 * It is probably inter-element whitespace, but it may also
+			 * contain character references which decode only to whitespace.
+			 */
+			$text = $this->get_modifiable_text();
+			if ( strlen( $text ) !== strspn( $text, " \t\n\f\r" ) ) {
+				$this->state->frameset_ok = false;
+			}
+
+			// @todo Add support for text nodes: insert node and return "true" where when supported.
+			return $this->step();
+		}
+
 		switch ( $op ) {
 			/*
 			 * > A start tag whose tag name is "button"
