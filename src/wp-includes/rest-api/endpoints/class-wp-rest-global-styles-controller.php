@@ -10,24 +10,20 @@
 /**
  * Base Global Styles REST API Controller.
  */
-class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
-
-	/**
-	 * Post type.
-	 *
-	 * @since 5.9.0
-	 * @var string
-	 */
-	protected $post_type;
-
+class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Constructor.
+	 *
 	 * @since 5.9.0
+	 * @since 6.5.0 Extends class from WP_REST_Posts_Controller.
+	 *
+	 * @param string $post_type Post type.
 	 */
-	public function __construct() {
-		$this->namespace = 'wp/v2';
-		$this->rest_base = 'global-styles';
-		$this->post_type = 'wp_global_styles';
+	public function __construct( $post_type ) {
+		$this->post_type = $post_type;
+		$obj             = get_post_type_object( $post_type );
+		$this->rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
+		$this->namespace = ! empty( $obj->rest_namespace ) ? $obj->rest_namespace : 'wp/v2';
 	}
 
 	/**
@@ -194,7 +190,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @param WP_Post $post Post object.
 	 * @return bool Whether the post can be read.
 	 */
-	protected function check_read_permission( $post ) {
+	public function check_read_permission( $post ) {
 		return current_user_can( 'read_post', $post->ID );
 	}
 
@@ -239,18 +235,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Checks if a global style can be edited.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_Post $post Post object.
-	 * @return bool Whether the post can be edited.
-	 */
-	protected function check_update_permission( $post ) {
-		return current_user_can( 'edit_post', $post->ID );
 	}
 
 	/**
@@ -407,7 +391,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 			$links = $this->prepare_links( $post->ID );
 			$response->add_links( $links );
 			if ( ! empty( $links['self']['href'] ) ) {
-				$actions = $this->get_available_actions();
+				$actions = $this->get_available_actions( $post, $request );
 				$self    = $links['self']['href'];
 				foreach ( $actions as $rel ) {
 					$response->add_link( $rel, $self );
@@ -431,8 +415,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		$links = array(
-			'self' => array(
+			'self'  => array(
 				'href' => rest_url( trailingslashit( $base ) . $id ),
+			),
+			'about' => array(
+				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 		);
 
@@ -457,10 +444,10 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 *
 	 * @return array List of link relations.
 	 */
-	protected function get_available_actions() {
+	protected function get_available_actions( $post, $request ) {
 		$rels = array();
 
-		$post_type = get_post_type_object( $this->post_type );
+		$post_type = get_post_type_object( $post->post_type );
 		if ( current_user_can( $post_type->cap->publish_posts ) ) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
@@ -470,21 +457,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		return $rels;
-	}
-
-	/**
-	 * Overwrites the default protected title format.
-	 *
-	 * By default, WordPress will show password protected posts with a title of
-	 * "Protected: %s", as the REST API communicates the protected status of a post
-	 * in a machine readable format, we remove the "Protected: " prefix.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @return string Protected title format.
-	 */
-	public function protected_title_format() {
-		return '%s';
 	}
 
 	/**
