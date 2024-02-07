@@ -20,6 +20,17 @@
  */
 final class WP_Block_Bindings_Source {
 
+	/**
+	 * Constructor.
+	 *
+	 * Do not use this constructor directly. Instead, use the
+	 * `WP_Block_Bindings_Registry::register` method or the `register_block_bindings_source` function.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $name               The name of the source.
+	 * @param array  $source_properties  The properties of the source.
+	 */
 	public function __construct( string $name, array $source_properties ) {
 		$this->name = $name;
 
