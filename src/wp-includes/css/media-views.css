@@ -855,9 +855,11 @@
 	height: 100%;
 }
 
+.options-general-php .crop-content.site-icon,
 .wp-customizer:not(.mobile) .media-frame-content .crop-content.site-icon {
-	margin-right: 300px;
+	margin-right: 0;
 }
+
 
 .media-frame-content .crop-content .crop-image {
 	display: block;
