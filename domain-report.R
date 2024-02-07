@@ -2,7 +2,9 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 
-data <- read.csv('./report.csv')
+data <- read.csv('./domain-report.csv')
+data$mbps.tags = ( data$bytes / 1e6 ) / ( data$tag.time.in.nanoseconds / 1e9 )
+data$mbps.html = ( data$bytes / 1e6 ) / ( data$time.in.nanoseconds / 1e9 )
 
 plot <- ggplot(filter(data, tag.count < 10000, success == 'success'))
 
@@ -22,9 +24,7 @@ chart <- (
             + xlab('ms runtime: HTML')
             + scale_x_log10(limits=c(1, 90), breaks=seq(1, 80, 10))
     )
-)
-/
-(
+) / (
     ( plot
         + geom_point(aes(x=tag.count, y=ratio))
         + xlab('tags in input HTML')
@@ -37,9 +37,7 @@ chart <- (
         + ylab('ms runtime: HTML')
         + scale_x_log10()
     )
-)
-/
-(
+) / (
     (plot
         + geom_histogram(bins=200, aes(mbps.tags))
         + xlab('MBps Tags')
@@ -51,3 +49,5 @@ chart <- (
         + scale_x_continuous(limits=c(0, 40), breaks=seq(0, 40, 5))
     )
 )
+
+ggsave('./domain-report-chart.png', plot=chart, width=20, height=10, units='in', dpi=300)
