@@ -57,28 +57,7 @@ final class WP_Block_Bindings_Source {
 	 * @param array  $source_properties  The properties of the source.
 	 */
 	public function __construct( string $name, array $source_properties ) {
-		$this->name = $name;
-
-		/* Validate that the source properties contain the label */
-		if ( ! isset( $source_properties['label'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'The $source_properties must contain a "label".' ),
-				'6.5.0'
-			);
-			return;
-		}
-
-		/* Validate that the source properties contain the get_value_callback */
-		if ( ! isset( $source_properties['get_value_callback'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				__( 'The $source_properties must contain a "get_value_callback".' ),
-				'6.5.0'
-			);
-			return;
-		}
-
+		$this->name               = $name;
 		$this->label              = $source_properties['label'];
 		$this->get_value_callback = $source_properties['get_value_callback'];
 	}
