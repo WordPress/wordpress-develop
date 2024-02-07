@@ -431,7 +431,10 @@ $GLOBALS['wp_plugin_paths'] = array();
 global $_found_incompatible_for_core_plugins, $_is_plugin_compatible_with_wp, $_handle_incompatible_for_core_plugins;
 
 // Found incompatible for-core plugins.
-$_found_incompatible_for_core_plugins = array();
+$_found_incompatible_for_core_plugins = array(
+	'sitewide_plugins' => array(),
+	'single_plugins'   => array(),
+);
 
 /**
  * Checks if the given plugin is compatible with this WordPress version.
@@ -486,7 +489,8 @@ $_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path, $is_ne
 	}
 
 	// Found an incompatible for-core plugin. Add it to the found global for later batch processing.
-	$_found_incompatible_for_core_plugins[ $plugin ] = array(
+	$key                                                     = $is_network ? 'sitewide_plugins' : 'single_plugins';
+	$_found_incompatible_for_core_plugins[ $key ][ $plugin ] = array(
 		'plugin_absolute_path' => $plugin_absolute_path,
 		'plugin_name'          => $plugin_data['Name'],
 		'version_deactivated'  => $plugin_data['Version'],
@@ -511,20 +515,35 @@ $_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path, $is_ne
 $_handle_incompatible_for_core_plugins = static function () {
 	global $_found_incompatible_for_core_plugins;
 
-	$active_plugins           = (array) get_option( 'active_plugins', array() );
-	$active_plugins_by_plugin = array_flip( $active_plugins );
+	if ( ! empty( $_found_incompatible_for_core_plugins['single_plugins'] ) ) {
+		$active_plugins           = (array) get_option( 'active_plugins', array() );
+		$active_plugins_by_plugin = array_flip( $active_plugins );
 
-	// Remove each of the found incompatible plugins from the "active_plugins" option.
-	foreach ( $_found_incompatible_for_core_plugins as $plugin_slug => $plugin ) {
-		unset( $active_plugins[ $active_plugins_by_plugin[ $plugin_slug ] ] );
+		// Remove each of the found incompatible plugins from the "active_plugins" option.
+		foreach ( $_found_incompatible_for_core_plugins['single_plugins'] as $plugin => $plugin_info ) {
+			unset( $active_plugins[ $active_plugins_by_plugin[ $plugin ] ] );
+		}
+
+		// Update the option, which no longer includes the incompatible plugins.
+		update_option( 'active_plugins', $active_plugins );
 	}
 
-	// Update the 'active plugins' option, which no longer includes the incompatible plugins.
-	update_option( 'active_plugins', $active_plugins );
+	if ( ! empty( $_found_incompatible_for_core_plugins['sitewide_plugins'] ) ) {
+		$active_plugins           = (array) get_site_option( 'active_sitewide_plugins', array() );
+		$active_plugins_by_plugin = array_flip( $active_plugins );
+
+		// Remove each of the found incompatible plugins from the "active_sitewide_plugins" option.
+		foreach ( $_found_incompatible_for_core_plugins['sitewide_plugins'] as $plugin => $plugin_info ) {
+			unset( $active_plugins[ $active_plugins_by_plugin[ $plugin ] ] );
+		}
+
+		// Update the option, which no longer includes the incompatible plugins.
+		update_site_option( 'active_sitewide_plugins', $active_plugins );
+	}
 
 	// Update the list of incompatible plugins to notify user in the admin.
 	$admin_notices_handler = static function () use ( $_found_incompatible_for_core_plugins ) {
-		_render_notice_for_incompatible_plugins( $_found_incompatible_for_core_plugins );
+		_render_admin_notice_for_incompatible_plugins( $_found_incompatible_for_core_plugins );
 	};
 	add_action( 'admin_notices', $admin_notices_handler, 5 );
 };
@@ -556,7 +575,7 @@ if ( is_multisite() ) {
 		 *
 		 * @since 6.5.0
 		 */
-		if ( ! $_is_plugin_compatible_with_wp( $network_plugin ) ) {
+		if ( ! $_is_plugin_compatible_with_wp( $network_plugin, true ) ) {
 			continue;
 		}
 

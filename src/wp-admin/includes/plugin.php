@@ -2616,27 +2616,29 @@ function _render_admin_notice_for_incompatible_plugins( $incompatible_plugins ) 
 		return;
 	}
 
-	foreach ( $incompatible_plugins as $plugin ) {
-		// Skip if information is missing.
-		if ( empty( $plugin['version_compatible'] ) || empty( $plugin['version_deactivated'] ) ) {
-			continue;
-		}
+	foreach ( $incompatible_plugins as $plugins ) {
+		foreach ( $plugins as $plugin ) {
+			// Skip if information is missing.
+			if ( empty( $plugin['version_compatible'] ) || empty( $plugin['version_deactivated'] ) ) {
+				continue;
+			}
 
-		$explanation = sprintf(
+			$explanation = sprintf(
 			/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version. */
-			__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
-			$plugin['plugin_name'],
-			$plugin['version_deactivated'],
-			$GLOBALS['wp_version'],
-			$plugin['version_compatible']
-		);
+				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
+				$plugin['plugin_name'],
+				$plugin['version_deactivated'],
+				$GLOBALS['wp_version'],
+				$plugin['version_compatible']
+			);
 
-		$message = sprintf(
-			'%s</p><p><a href="%s">%s</a>',
-			$explanation,
-			esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ),
-			__( 'Go to the Plugins screen' )
-		);
-		wp_admin_notice( $message, array( 'type' => 'warning' ) );
+			$message = sprintf(
+				'%s</p><p><a href="%s">%s</a>',
+				$explanation,
+				esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ),
+				__( 'Go to the Plugins screen' )
+			);
+			wp_admin_notice( $message, array( 'type' => 'warning' ) );
+		}
 	}
 }
