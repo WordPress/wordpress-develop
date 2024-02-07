@@ -12,8 +12,8 @@
 /**
  * Registers a new block bindings source.
  *
- * Registering a source consists of defining a **name** for that source as well as a callback function
- * which specifies how to get a value from that source and pass it to a block attribute.
+ * Registering a source consists of defining a **name** for that source and a callback function specifying
+ * how to get a value from that source and pass it to a block attribute.
  *
  * Once a source is registered, any block that supports the Block Bindings API can use a value
  * from that source by setting its `metadata.bindings` attribute to a value that refers to the source.
