@@ -21,6 +21,31 @@
 final class WP_Block_Bindings_Source {
 
 	/**
+	 * The name of the source.
+	 *
+	 * @since 6.5.0
+	 * @var string
+	 */
+	public $name;
+
+	/**
+	 * The label of the source.
+	 *
+	 * @since 6.5.0
+	 * @var string
+	 */
+	public $label;
+
+
+	/**
+	 * The function used to get the value from the source.
+	 *
+	 * @since 6.5.0
+	 * @var callable
+	 */
+	private $get_value_callback;
+
+	/**
 	 * Constructor.
 	 *
 	 * Do not use this constructor directly. Instead, use the
@@ -57,31 +82,6 @@ final class WP_Block_Bindings_Source {
 		$this->label              = $source_properties['label'];
 		$this->get_value_callback = $source_properties['get_value_callback'];
 	}
-
-	/**
-	 * The name of the source.
-	 *
-	 * @since 6.5.0
-	 * @var string
-	 */
-	public $name;
-
-	/**
-	 * The label of the source.
-	 *
-	 * @since 6.5.0
-	 * @var string
-	 */
-	public $label;
-
-
-	/**
-	 * The function used to get the value from the source.
-	 *
-	 * @since 6.5.0
-	 * @var callable
-	 */
-	private $get_value_callback;
 
 	/**
 	 * Retrieves the value from the source.
