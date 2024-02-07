@@ -970,22 +970,16 @@ function parent_dropdown( $default_page = 0, $parent_page = 0, $level = 0, $post
  * Prints out option HTML elements for role selectors.
  *
  * @since 2.1.0
- * @since 6.5.0 Added $roles_to_include parameter.
+ * @since 6.5.0 Added $editable_roles parameter.
  *
- * @param string $selected         Slug for the role that should be already selected.
- * @param array  $roles_to_include Array of roles to include in the dropdown. Defaults to all roles that the current user is allowed to edit.
+ * @param string $selected       Slug for the role that should be already selected.
+ * @param array  $editable_roles Array of roles to include in the dropdown. Defaults to all roles that the current user is allowed to edit.
  */
-function wp_dropdown_roles( $selected = '', $roles_to_include = array() ) {
+function wp_dropdown_roles( $selected = '', $editable_roles = null ) {
 	$r = '';
 
-	$editable_roles = array_reverse( get_editable_roles() );
-
-	if ( ! empty( $roles_to_include ) && is_array( $roles_to_include ) ) {
-		foreach ( $editable_roles as $editable_role => $details ) {
-			if ( ! in_array( $editable_role, $roles_to_include ) && $editable_role !== $selected ) {
-				unset( $editable_roles[ $editable_role ] );
-			}
-		}
+	if ( null === $editable_roles ) {
+		$editable_roles = array_reverse( get_editable_roles() );
 	}
 
 	foreach ( $editable_roles as $role => $details ) {

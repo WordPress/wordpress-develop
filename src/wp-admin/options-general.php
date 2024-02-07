@@ -181,15 +181,25 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 <td>
 	<?php
 	/**
-	 * Filters the roles included in the default_role option.
+	 * Filters the roles to be excluded from the default_role option.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $roles_to_include Array of roles to include in the default_role dropdown. Defaults to subscriber, contributor and author.
+	 * @param array $roles_to_exclude Array of roles to exclude from the dropdown. Defaults to administrator and editor.
 	 */
-	$roles_to_include = (array) apply_filters( 'default_user_dropdown_included_roles', array( 'subscriber', 'contributor', 'author' ) );
+	$excluded_roles = (array) apply_filters( 'default_user_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
+
+	$editable_roles = array_reverse( get_editable_roles() );
+
+	$selected = get_option( 'default_role' );
+
+	foreach ( $editable_roles as $role => $details ) {
+		if ( in_array( $role, $excluded_roles, true ) && $role !== $selected ) {
+			unset( $editable_roles[ $role ] );
+		}
+	}
 	?>
-	<select name="default_role" id="default_role"><?php wp_dropdown_roles( get_option( 'default_role' ), $roles_to_include ); ?></select>
+	<select name="default_role" id="default_role"><?php wp_dropdown_roles( $selected, $editable_roles ); ?></select>
 </td>
 </tr>
 
