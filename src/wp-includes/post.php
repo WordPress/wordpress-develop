@@ -564,6 +564,72 @@ function create_initial_post_types() {
 		)
 	);
 
+	register_post_type(
+		'wp_font_family',
+		array(
+			'labels'                         => array(
+				'name'          => __( 'Font Families' ),
+				'singular_name' => __( 'Font Family' ),
+			),
+			'public'                         => false,
+			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'                   => false,
+			'capabilities'                   => array(
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+			),
+			'map_meta_cap'                   => true,
+			'query_var'                      => false,
+			'rewrite'                        => false,
+			'show_in_rest'                   => true,
+			'rest_base'                      => 'font-families',
+			'rest_controller_class'          => 'WP_REST_Font_Families_Controller',
+			// Disable autosave endpoints for font families.
+			'autosave_rest_controller_class' => 'stdClass',
+		)
+	);
+
+	register_post_type(
+		'wp_font_face',
+		array(
+			'labels'                         => array(
+				'name'          => __( 'Font Faces' ),
+				'singular_name' => __( 'Font Face' ),
+			),
+			'public'                         => false,
+			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'                   => false,
+			'capabilities'                   => array(
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+			),
+			'map_meta_cap'                   => true,
+			'query_var'                      => false,
+			'rewrite'                        => false,
+			'show_in_rest'                   => true,
+			'rest_base'                      => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'rest_controller_class'          => 'WP_REST_Font_Faces_Controller',
+			// Disable autosave endpoints for font faces.
+			'autosave_rest_controller_class' => 'stdClass',
+		)
+	);
+
 	register_post_status(
 		'publish',
 		array(
@@ -1623,7 +1689,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type string|bool  $autosave_rest_controller_class  REST API controller class name. Default is 'WP_REST_Autosaves_Controller'.
  *     @type string|bool  $revisions_rest_controller_class REST API controller class name. Default is 'WP_REST_Revisions_Controller'.
- *     @type bool         $late_route_registration         A flag to direct the REST API controllers for autosave / revisions should be registered before/after the post type controller.
+ *     @type bool         $late_route_registration         A flag to direct the REST API controllers for autosave / revisions
+ *                                                         should be registered before/after the post type controller.
  *     @type int          $menu_position                   The position in the menu order the post type should appear. To work,
  *                                                         $show_in_menu must be true. Default null (at the bottom).
  *     @type string       $menu_icon                       The URL to the icon to be used for this menu. Pass a base64-encoded
@@ -1641,7 +1708,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         See get_post_type_capabilities().
  *     @type bool         $map_meta_cap                    Whether to use the internal default meta capability handling.
  *                                                         Default false.
- *     @type array        $supports                        Core feature(s) the post type supports. Serves as an alias for calling
+ *     @type array|false  $supports                        Core feature(s) the post type supports. Serves as an alias for calling
  *                                                         add_post_type_support() directly. Core features include 'title',
  *                                                         'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
  *                                                         'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
@@ -1651,6 +1718,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         specified as an array of arguments to provide additional information
  *                                                         about supporting that feature.
  *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
+ *                                                         If false, no features will be added.
  *                                                         Default is an array containing 'title' and 'editor'.
  *     @type callable     $register_meta_box_cb            Provide a callback function that sets up the meta boxes for the
  *                                                         edit form. Do remove_meta_box() and add_meta_box() calls in the
@@ -3859,7 +3927,7 @@ function wp_untrash_post_comments( $post = null ) {
 	}
 
 	foreach ( $group_by_status as $status => $comments ) {
-		// Sanity check. This shouldn't happen.
+		// Confidence check. This shouldn't happen.
 		if ( 'post-trashed' === $status ) {
 			$status = '0';
 		}
@@ -6663,9 +6731,9 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
  *
  * @since 4.2.0
  *
- * @param string      $type Attachment type. Accepts 'image', 'audio', or 'video'.
+ * @param string      $type Attachment type. Accepts `image`, `audio`, `video`, or a file extension.
  * @param int|WP_Post $post Optional. Attachment ID or object. Default is global $post.
- * @return bool True if one of the accepted types, false otherwise.
+ * @return bool True if an accepted type or a matching file extension, false otherwise.
  */
 function wp_attachment_is( $type, $post = null ) {
 	$post = get_post( $post );
@@ -6698,7 +6766,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':
