@@ -200,15 +200,6 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @uses WP_Interactivity_API::data_wp_interactive_processor()
-	 * @uses WP_Interactivity_API::data_wp_context_processor()
-	 * @uses WP_Interactivity_API::data_wp_bind_processor()
-	 * @uses WP_Interactivity_API::data_wp_class_processor()
-	 * @uses WP_Interactivity_API::data_wp_style_processor()
-	 * @uses WP_Interactivity_API::data_wp_text_processor()
-	 * @uses WP_Interactivity_API::data_wp_router_region_processor()
-	 * @uses WP_Interactivity_API::data_wp_each_processor()
-	 *
 	 * @param string $html The HTML content to process.
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
 	 */
