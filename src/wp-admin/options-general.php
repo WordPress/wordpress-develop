@@ -187,7 +187,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 	 *
 	 * @param array $roles_to_exclude Array of roles to exclude from the dropdown. Defaults to administrator and editor.
 	 */
-	$excluded_roles = (array) apply_filters( 'default_user_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
+	$excluded_roles = (array) apply_filters( 'default_role_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
 
 	$editable_roles = array_reverse( get_editable_roles() );
 
