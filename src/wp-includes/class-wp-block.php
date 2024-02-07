@@ -192,15 +192,15 @@ class WP_Block {
 	}
 
 	/**
-	 * Processes the block bindings in block's attributes.
+	 * Processes the block bindings and updates the block attributes with the values from the sources.
 	 *
 	 * A block might contain bindings in its attributes. Bindings are mappings
 	 * between an attribute of the block and a source. A "source" is a function
 	 * registered with `register_block_bindings_source()` that defines how to
 	 * retrieve a value from outside the block, e.g. from post meta.
 	 *
-	 * This function will process those bindings and replace the HTML with the value of the binding.
-	 * The value is retrieved from the source of the binding.
+	 * This function will process those bindings and update the block's attributes
+	 * with the values coming from the bindings.
 	 *
 	 * ### Example
 	 *
@@ -228,8 +228,6 @@ class WP_Block {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $block_content Block content.
-	 * @param array  $block         The full block, including name and attributes.
 	 * @return array The modified block content.
 	 */
 	private function process_block_bindings() {
