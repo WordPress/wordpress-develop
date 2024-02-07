@@ -2619,8 +2619,8 @@ function get_theme_starter_content() {
  * @since 5.6.0 The `post-formats` feature warns if no array is passed as the second parameter.
  * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
  * @since 5.8.0 The `block-template-parts` feature allows to edit any reusable template part from site editor.
+ * @since 5.8.0 The `block-templates` feature indicates whether a theme uses block-based templates.
  * @since 6.0.0 The `html5` feature warns if no array is passed as the second parameter.
- * @since 6.0.1 The `block-templates` feature indicates whether a theme uses block-based templates.
  * @since 6.1.0 The `disable-layout-styles` feature disables the default layout styles.
  * @since 6.1.0 The `link-color` feature allows to enable the link color setting.
  * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
