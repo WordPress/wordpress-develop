@@ -330,7 +330,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedIncorrectUsage register_block_script_module_id
 	 * @ticket 60233
 	 */
 	public function test_missing_asset_file_register_block_script_module_id() {
@@ -341,7 +340,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
 
-		$this->assertFalse( $result );
+		$this->assertSame( 'unit-tests-test-block-view-script-module', $result );
 	}
 
 	/**
