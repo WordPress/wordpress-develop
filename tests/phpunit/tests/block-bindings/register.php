@@ -11,11 +11,24 @@
  */
 class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 
-	const TEST_SOURCE_NAME       = 'test/source';
-	const TEST_SOURCE_PROPERTIES = array(
-		'label'              => 'Test source',
-		'get_value_callback' => 'test value',
-	);
+	public static $test_source_name       = 'test/source';
+	public static $test_source_properties = array();
+
+	/**
+	 * Set up before each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		self::$test_source_properties = array(
+			'label'              => 'Test source',
+			'get_value_callback' => function () {
+				return 'test-value';
+			},
+		);
+	}
 
 	/**
 	 * Tear down after each test.
@@ -44,15 +57,15 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 */
 	public function test_get_all_registered() {
 		$source_one_name       = 'test/source-one';
-		$source_one_properties = self::TEST_SOURCE_PROPERTIES;
+		$source_one_properties = self::$test_source_properties;
 		register_block_bindings_source( $source_one_name, $source_one_properties );
 
 		$source_two_name       = 'test/source-two';
-		$source_two_properties = self::TEST_SOURCE_PROPERTIES;
+		$source_two_properties = self::$test_source_properties;
 		register_block_bindings_source( $source_two_name, $source_two_properties );
 
 		$source_three_name       = 'test/source-three';
-		$source_three_properties = self::TEST_SOURCE_PROPERTIES;
+		$source_three_properties = self::$test_source_properties;
 		register_block_bindings_source( $source_three_name, $source_three_properties );
 
 		$expected = array(
@@ -77,13 +90,13 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_unregister_block_source() {
-		register_block_bindings_source( self::TEST_SOURCE_NAME, self::TEST_SOURCE_PROPERTIES );
+		register_block_bindings_source( self::$test_source_name, self::$test_source_properties );
 
-		$result = unregister_block_bindings_source( self::TEST_SOURCE_NAME );
+		$result = unregister_block_bindings_source( self::$test_source_name );
 		$this->assertEquals(
 			new WP_Block_Bindings_Source(
-				self::TEST_SOURCE_NAME,
-				self::TEST_SOURCE_PROPERTIES
+				self::$test_source_name,
+				self::$test_source_properties
 			),
 			$result
 		);
