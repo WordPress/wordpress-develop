@@ -97,7 +97,83 @@ $tagline_description = sprintf(
 <p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
+<tr class="hide-if-no-js">
+<th scope="row"><?php _e( 'Site Icon' ); ?></th>
+<td>
+	<?php
+	$upload_url = admin_url( 'options-general.php?page=site-icon' );
+	$update_url = esc_url( add_query_arg( array(
+		'page'   => 'site-icon',
+		'action' => 'crop_site_icon',
+	), wp_nonce_url( admin_url( 'options-general.php' ), 'crop-site-icon' ) ) );
+
+	wp_enqueue_media();
+	wp_enqueue_script( 'site-icon' );
+
+	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
+	$classes_for_update_button = 'button';
+
+	$classes_for_avatar = 'avatar avatar-150';
+	if ( has_site_icon() ) {
+		$classes_for_avatar .= ' has-site-icon';
+		$classes_for_button = $classes_for_update_button;
+		$classes_for_button_on_change = $classes_for_upload_button;
+	} else {
+		$classes_for_avatar .= ' hidden';
+		$classes_for_button = $classes_for_upload_button;
+		$classes_for_button_on_change = $classes_for_update_button;
+	}
+
+
+	?>
+
+	<img id="site-icon-img" class="<?php echo esc_attr( $classes_for_avatar); ?>" src="<?php site_icon_url( null, 150 ); ?>" height="150" width="150" alt="" />
+	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
+	<p>
+		<button type="button"
+			id="choose-from-library-link"
+			class="<?php echo esc_attr( $classes_for_button ); ?>"
+			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change); ?>"
+			data-size="512"
+			data-update-link="<?php echo esc_attr( $update_url ); ?>"
+			data-choose="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
+			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
+			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
+			$data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
+			data-state="<?php echo esc_attr( has_site_icon() ); ?>"
+
+		>
+			<?php if ( has_site_icon() ) : ?>
+				<?php _e( 'Change site icon' ); ?>
+			<?php else : ?>
+				<?php _e( 'Choose a Site Icon' ); ?>
+			<?php endif; ?>
+		</button>
+		<a
+			id="js-remove-site-icon"
+			href="<?php echo esc_url( $remove_url ); ?>"
+			<?php echo has_site_icon() ? '' : 'class="hidden"'; ?>
+		>
+			<?php _e( 'Remove Site Icon' ); ?>
+		</a>
+	</p>
+
+	<p class="description" id="site-icon-description">
+		<?php _e( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ); ?>.
+	</p>
+	<p class="description" id="site-icon-further-description">
+		<?php
+			/* translators: %s: Site icon size in pixels. */
+			printf( __( 'Site Icons should be square and at least %s pixels.' ), '<strong>512 &times; 512</strong>' );
+		?>
+	</p>
+
+</td>
+</tr>
+
 <?php
+/* End Site Icon */
+
 if ( ! is_multisite() ) {
 	$wp_site_url_class = '';
 	$wp_home_class     = '';
