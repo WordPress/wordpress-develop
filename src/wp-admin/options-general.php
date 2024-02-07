@@ -101,11 +101,6 @@ $tagline_description = sprintf(
 <th scope="row"><?php _e( 'Site Icon' ); ?></th>
 <td>
 	<?php
-	$upload_url = admin_url( 'options-general.php?page=site-icon' );
-	$update_url = esc_url( add_query_arg( array(
-		'page'   => 'site-icon',
-		'action' => 'crop_site_icon',
-	), wp_nonce_url( admin_url( 'options-general.php' ), 'crop-site-icon' ) ) );
 
 	wp_enqueue_media();
 	wp_enqueue_script( 'site-icon' );
@@ -115,27 +110,26 @@ $tagline_description = sprintf(
 
 	$classes_for_avatar = 'avatar avatar-150';
 	if ( has_site_icon() ) {
-		$classes_for_avatar .= ' has-site-icon';
-		$classes_for_button = $classes_for_update_button;
+		$classes_for_avatar          .= ' has-site-icon';
+		$classes_for_button           = $classes_for_update_button;
 		$classes_for_button_on_change = $classes_for_upload_button;
 	} else {
-		$classes_for_avatar .= ' hidden';
-		$classes_for_button = $classes_for_upload_button;
+		$classes_for_avatar          .= ' hidden';
+		$classes_for_button           = $classes_for_upload_button;
 		$classes_for_button_on_change = $classes_for_update_button;
 	}
 
 
 	?>
 
-	<img id="site-icon-img" class="<?php echo esc_attr( $classes_for_avatar); ?>" src="<?php site_icon_url( null, 150 ); ?>" height="150" width="150" alt="" />
+	<img id="site-icon-img" class="<?php echo esc_attr( $classes_for_avatar ); ?>" src="<?php site_icon_url( null, 150 ); ?>" height="150" width="150" alt="" />
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<p>
 		<button type="button"
 			id="choose-from-library-link"
 			class="<?php echo esc_attr( $classes_for_button ); ?>"
-			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change); ?>"
+			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
 			data-size="512"
-			data-update-link="<?php echo esc_attr( $update_url ); ?>"
 			data-choose="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"

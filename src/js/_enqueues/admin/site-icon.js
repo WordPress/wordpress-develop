@@ -1,11 +1,8 @@
 (function($) {
 	var frame;
 
-	const calculateImageSelectOptions = function(attachment, controller) {
-		var control    = controller.get( 'control' ),
-			flexWidth  = false,
-			flexHeight = false,
-			realWidth  = attachment.get( 'width' ),
+	function calculateImageSelectOptions ( attachment ) {
+		var realWidth  = attachment.get( 'width' ),
 			realHeight = attachment.get( 'height' ),
 			xInit = 512,
 			yInit = 512,
@@ -42,7 +39,7 @@
 		};
 
 		return imgSelectOptions;
-	};
+	}
 
 	$( function() {
 		// Build the choose from library frame.
@@ -79,7 +76,7 @@
 								height: $el.data( 'size' )
 							}
 						},
-						imgSelectOptions: calculateImageSelectOptions,
+						imgSelectOptions: calculateImageSelectOptions
 					})
 				]
 			});
@@ -95,18 +92,15 @@
 			// When an image is selected, run a callback.
 			frame.on( 'select', function() {
 				// Grab the selected attachment.
-				var attachment = frame.state().get('selection').first(),
-					link = $el.data('updateLink');
+				var attachment = frame.state().get('selection').first();
 
 				if ( attachment.attributes.height === $el.data('size') && $el.data('size') === attachment.attributes.width ) {
 					// set the value of the hidden input to the attachment id
 					$( '#site_icon_hidden_field').val(attachment.id);
 					switchToUpdate(attachment.attributes.url);
 					// close the model
-					console.log( 'closing');
 					frame.close();
 				} else {
-					console.log( 'cropper');
 					frame.setState( 'cropper' );
 				}
 			});
@@ -127,7 +121,7 @@
 			var classes = $( '#choose-from-library-link' ).attr( 'class' );
 			$( '#choose-from-library-link' ).attr('class', $( '#choose-from-library-link' ).attr('data-alt-classes') );
 			$( '#choose-from-library-link' ).attr('data-alt-classes', classes );
-			$( '#choose-from-library-link' ).attr('data-state', '1')
+			$( '#choose-from-library-link' ).attr('data-state', '1');
 		}
 
 		// swap the text of the button
@@ -150,7 +144,7 @@
 		// swap the text of the button
 		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr('data-choose-text') );
 
-		$( '#choose-from-library-link' ).attr('data-state', '')
+		$( '#choose-from-library-link' ).attr('data-state', '');
 
 		// prevent the default action
 		event.preventDefault();
