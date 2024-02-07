@@ -981,8 +981,8 @@ function wp_dropdown_roles( $selected = '', $roles_to_include = array() ) {
 	$editable_roles = array_reverse( get_editable_roles() );
 
 	if ( ! empty( $roles_to_include ) && is_array( $roles_to_include ) ) {
-		foreach ( $editable_roles as $editable_role => $details){
-			if ( !in_array( $editable_role, $roles_to_include ) && $editable_role !== $selected ){
+		foreach ( $editable_roles as $editable_role => $details ) {
+			if ( ! in_array( $editable_role, $roles_to_include ) && $editable_role !== $selected ) {
 				unset( $editable_roles[ $editable_role ] );
 			}
 		}
