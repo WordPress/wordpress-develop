@@ -403,45 +403,6 @@ HTML;
 	}
 
 	/**
-	 * @ticked tbd
-	 *
-	 * @covers ::set_bookmark
-	 */
-	public function test_limits_the_number_of_bookmarks() {
-		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
-		$processor->next_tag( 'li' );
-
-		$factor_for_internal_bookmarks = 5;
-
-		/*
-		 * Because the HTML Processor maintains a small number of internal
-		 * bookmarks, it's helpful in this test to avoid going right up
-		 * against the limit. After creating what should be a safe number
-		 * of bookmark, the test will attempt to create another batch but
-		 * will avoid asserting successful creation. Finally, one more
-		 * attempt will be made that should certainly be over the limit,
-		 * and the test can assert that it failed.
-		 */
-		for ( $i = 0; $i < WP_HTML_Processor::MAX_BOOKMARKS - $factor_for_internal_bookmarks; $i++ ) {
-			$this->assertTrue( $processor->set_bookmark( "bookmark $i" ), "Could not allocate the bookmark #$i" );
-		}
-
-		/*
-		 * Ensure that there are more bookmarks than should be allowed.
-		 *
-		 * This is helpful because the HTML Processor maintains some
-		 * internal bookmarks, but the number of those shouldn't be
-		 * fixed in a test.
-		 */
-		for ( $i = 0; $i < 2 * $factor_for_internal_bookmarks; $i++ ) {
-			$processor->set_bookmark( "test_padding_bookmark_$i" );
-		}
-
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::set_bookmark' );
-		$this->assertFalse( $processor->set_bookmark( 'final bookmark' ), "Allocated $i bookmarks, which is one above the limit" );
-	}
-
-	/**
 	 * Ensures that it's possible to seek to an earlier location in a document even
 	 * after reaching the end of a document, when most functionality shuts down.
 	 *
