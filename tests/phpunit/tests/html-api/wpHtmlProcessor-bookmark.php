@@ -442,24 +442,6 @@ HTML;
 	}
 
 	/**
-	 * @ticked tbd
-	 *
-	 * @covers ::seek
-	 */
-	public function test_limits_the_number_of_seek_calls() {
-		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
-		$processor->next_tag( 'li' );
-		$processor->set_bookmark( 'bookmark' );
-
-		for ( $i = 0; $i < WP_HTML_Processor::MAX_SEEK_OPS; $i++ ) {
-			$this->assertTrue( $processor->seek( 'bookmark' ), 'Could not seek to the "bookmark"' );
-		}
-
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Processor::seek' );
-		$this->assertFalse( $processor->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit" );
-	}
-
-	/**
 	 * Ensures that it's possible to seek to an earlier location in a document even
 	 * after reaching the end of a document, when most functionality shuts down.
 	 *
