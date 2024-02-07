@@ -96,7 +96,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Open_Elements::has_element_in_list_item_scope
+	 * [@]covers WP_HTML_Open_Elements::has_element_in_list_item_scope
 	 */
 	public function test_has_element_in_list_item_scope_needs_support() {
 		// These elements impact all scopes.
@@ -130,7 +130,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Open_Elements::has_element_in_button_scope
+	 * [@]covers WP_HTML_Open_Elements::has_element_in_button_scope
 	 */
 	public function test_has_element_in_button_scope_needs_support() {
 		// These elements impact all scopes.
@@ -165,7 +165,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Open_Elements::after_element_pop
+	 * [@]covers WP_HTML_Open_Elements::after_element_pop
 	 */
 	public function test_after_element_pop_must_maintain_p_in_button_scope_flag() {
 		// These elements impact all scopes.
@@ -200,7 +200,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Open_Elements::after_element_push
+	 * [@]covers WP_HTML_Open_Elements::after_element_push
 	 */
 	public function test_after_element_push_must_maintain_p_in_button_scope_flag() {
 		// These elements impact all scopes.
@@ -234,7 +234,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Open_Elements::has_element_in_table_scope
+	 * [@]covers WP_HTML_Open_Elements::has_element_in_table_scope
 	 */
 	public function test_has_element_in_table_scope_needs_support() {
 		// These elements impact all scopes.
@@ -284,7 +284,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Open_Elements::has_element_in_select_scope
+	 * [@]covers WP_HTML_Open_Elements::has_element_in_select_scope
 	 */
 	public function test_has_element_in_select_scope_needs_support() {
 		// These elements impact all scopes.

@@ -55,7 +55,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 58907
 	 *
-	 * @covers WP_HTML_Processor::generate_implied_end_tags
+	 * [@]covers WP_HTML_Processor::generate_implied_end_tags
 	 */
 	public function test_generate_implied_end_tags_needs_support() {
 		$this->ensure_support_is_added_everywhere( 'OPTGROUP' );
@@ -74,7 +74,7 @@ class Tests_HtmlApi_WpHtmlSupportRequiredHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 58907
 	 *
-	 * @covers WP_HTML_Processor::generate_implied_end_tags_thoroughly
+	 * [@]covers WP_HTML_Processor::generate_implied_end_tags_thoroughly
 	 */
 	public function test_generate_implied_end_tags_thoroughly_needs_support() {
 		$this->ensure_support_is_added_everywhere( 'CAPTION' );
