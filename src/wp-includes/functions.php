@@ -3358,7 +3358,7 @@ function wp_get_image_mime( $file ) {
 		 * specification and the AV1-AVIF spec, see https://aomediacodec.github.io/av1-avif/v1.1.0.html#brands.
 		 */
 
-		 // Divide the header string into 4 byte groups.
+		// Divide the header string into 4 byte groups.
 		$magic = str_split( $magic, 8 );
 
 		if (
@@ -5392,7 +5392,7 @@ function wp_widgets_add_menu() {
 	if ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
-		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	}
 
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
