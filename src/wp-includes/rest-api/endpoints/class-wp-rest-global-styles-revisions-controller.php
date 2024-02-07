@@ -35,13 +35,21 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Constructor.
 	 *
 	 * @since 6.3.0
+	 * @since 6.5.0 Extends class from WP_REST_Revisions_Controller.
 	 */
-	public function __construct() {
-		parent::__construct( 'wp_global_styles' );
-		$this->parent_controller = new WP_REST_Global_Styles_Controller();
+	public function __construct( $parent_post_type ) {
+		parent::__construct( $parent_post_type );
+		$post_type_object       = get_post_type_object( $parent_post_type );
+		$parent_controller      = $post_type_object->get_rest_controller();
+
+		if ( ! $parent_controller ) {
+			$parent_controller = new WP_REST_Global_Styles_Controller( $parent_post_type );
+		}
+
+		$this->parent_controller = $parent_controller;
 		$this->rest_base         = 'revisions';
-		$this->parent_base       = $this->parent_controller->rest_base;
-		$this->namespace         = $this->parent_controller->namespace;
+		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
 	}
 
 	/**
