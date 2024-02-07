@@ -19,7 +19,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::set_bookmark
 	 */
 	public function test_set_bookmark() {
-		$processor = new WP_HTML_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
+		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$processor->next_tag( 'li' );
 		$this->assertTrue( $processor->set_bookmark( 'first li' ), 'Could not allocate a "first li" bookmark' );
 		$processor->next_tag( 'li' );
@@ -33,7 +33,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::release_bookmark
 	 */
 	public function test_release_bookmark() {
-		$processor = new WP_HTML_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
+		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$processor->next_tag( 'li' );
 		$this->assertFalse( $processor->release_bookmark( 'first li' ), 'Released a non-existing bookmark' );
 		$processor->set_bookmark( 'first li' );
@@ -46,7 +46,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::has_bookmark
 	 */
 	public function test_has_bookmark_returns_false_if_bookmark_does_not_exist() {
-		$processor = new WP_HTML_Processor( '<div>Test</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>Test</div>' );
 		$this->assertFalse( $processor->has_bookmark( 'my-bookmark' ) );
 	}
 
@@ -56,7 +56,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::has_bookmark
 	 */
 	public function test_has_bookmark_returns_true_if_bookmark_exists() {
-		$processor = new WP_HTML_Processor( '<div>Test</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>Test</div>' );
 		$processor->next_tag();
 		$processor->set_bookmark( 'my-bookmark' );
 		$this->assertTrue( $processor->has_bookmark( 'my-bookmark' ) );
@@ -68,7 +68,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::has_bookmark
 	 */
 	public function test_has_bookmark_returns_false_if_bookmark_has_been_released() {
-		$processor = new WP_HTML_Processor( '<div>Test</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>Test</div>' );
 		$processor->next_tag();
 		$processor->set_bookmark( 'my-bookmark' );
 		$processor->release_bookmark( 'my-bookmark' );
@@ -81,7 +81,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::seek
 	 */
 	public function test_seek() {
-		$processor = new WP_HTML_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
+		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$processor->next_tag( 'li' );
 		$processor->set_bookmark( 'first li' );
 
@@ -104,7 +104,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 * @covers ::seek
 	 */
 	public function test_seeks_to_tag_closer_bookmark() {
-		$processor = new WP_HTML_Processor( '<div>First</div><span>Second</span>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>First</div><span>Second</span>' );
 		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
@@ -162,7 +162,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 		$input     = <<<HTML
 		<button twenty_one_characters 7_chars></button><button></button>
 HTML;
-		$processor = new WP_HTML_Processor( $input );
+		$processor = WP_HTML_Processor::create_fragment( $input );
 		$processor->next_tag( 'button' );
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag( 'button' );
@@ -232,7 +232,7 @@ HTML;
 	</div>
 </div>
 HTML;
-		$processor       = new WP_HTML_Processor( $input );
+		$processor       = WP_HTML_Processor::create_fragment( $input );
 		$processor->next_tag( 'div' );
 		$processor->next_tag( 'div' );
 		$processor->next_tag( 'div' );
@@ -297,7 +297,7 @@ HTML;
 	 * @covers ::seek
 	 */
 	public function test_updates_bookmark_for_additions_after_both_sides() {
-		$processor = new WP_HTML_Processor( '<div>First</div><div>Second</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>First</div><div>Second</div>' );
 		$processor->next_tag();
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag();
@@ -319,7 +319,7 @@ HTML;
 	 * @covers ::seek
 	 */
 	public function test_updates_bookmark_for_additions_before_both_sides() {
-		$processor = new WP_HTML_Processor( '<div>First</div><div>Second</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>First</div><div>Second</div>' );
 		$processor->next_tag();
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag();
@@ -344,7 +344,7 @@ HTML;
 	 * @covers ::seek
 	 */
 	public function test_updates_bookmark_for_deletions_after_both_sides() {
-		$processor = new WP_HTML_Processor( '<div>First</div><div disabled>Second</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div>First</div><div disabled>Second</div>' );
 		$processor->next_tag();
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag();
@@ -374,7 +374,7 @@ HTML;
 	 * @covers ::seek
 	 */
 	public function test_updates_bookmark_for_deletions_before_both_sides() {
-		$processor = new WP_HTML_Processor( '<div disabled>First</div><div>Second</div>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div disabled>First</div><div>Second</div>' );
 		$processor->next_tag();
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag();
@@ -407,7 +407,7 @@ HTML;
 	 * @covers ::set_bookmark
 	 */
 	public function test_limits_the_number_of_bookmarks() {
-		$processor = new WP_HTML_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
+		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$processor->next_tag( 'li' );
 
 		for ( $i = 0; $i < WP_HTML_Processor::MAX_BOOKMARKS; $i++ ) {
@@ -424,7 +424,7 @@ HTML;
 	 * @covers ::seek
 	 */
 	public function test_limits_the_number_of_seek_calls() {
-		$processor = new WP_HTML_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
+		$processor = WP_HTML_Processor::create_fragment( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
 		$processor->next_tag( 'li' );
 		$processor->set_bookmark( 'bookmark' );
 
@@ -447,7 +447,7 @@ HTML;
 	 * @param string $html_with_target_element HTML string containing a tag with a `target` attribute.
 	 */
 	public function test_can_seek_after_document_ends( $html_with_target_element ) {
-		$processor = new WP_HTML_Processor( $html_with_target_element );
+		$processor = WP_HTML_Processor::create_fragment( $html_with_target_element );
 
 		$sought_tag_name = null;
 		while ( $processor->next_tag() ) {
