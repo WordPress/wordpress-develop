@@ -762,7 +762,7 @@ final class WP_Interactivity_API {
 	 *
 	 * @return string The CSS styles for the router's top loading bar animation.
 	 */
-	private function router_animation_styles(): string {
+	private function get_router_animation_styles(): string {
 		return <<<CSS
 			.wp-interactivity-router-loading-bar {
 				position: fixed;
@@ -804,7 +804,7 @@ CSS;
 	 *
 	 * @since 6.5.0
 	 */
-	public function router_loading_and_screen_reader_markup() {
+	public function print_router_loading_and_screen_reader_markup() {
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
@@ -852,11 +852,11 @@ HTML;
 
 			// Enqueues as an inline style.
 			wp_register_style( 'wp-interactivity-router-animations', false );
-			wp_add_inline_style( 'wp-interactivity-router-animations', $this->router_animation_styles() );
+			wp_add_inline_style( 'wp-interactivity-router-animations', $this->get_router_animation_styles() );
 			wp_enqueue_style( 'wp-interactivity-router-animations' );
 
 			// Adds the necessary markup to the footer.
-			add_action( 'wp_footer', array( $this, 'router_loading_and_screen_reader_markup' ) );
+			add_action( 'wp_footer', array( $this, 'print_router_loading_and_screen_reader_markup' ) );
 		}
 	}
 
