@@ -437,7 +437,7 @@ HTML;
 			$processor->set_bookmark( "test_padding_bookmark_$i" );
 		}
 
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Processor::set_bookmark' );
+		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::set_bookmark' );
 		$this->assertFalse( $processor->set_bookmark( 'final bookmark' ), "Allocated $i bookmarks, which is one above the limit" );
 	}
 
