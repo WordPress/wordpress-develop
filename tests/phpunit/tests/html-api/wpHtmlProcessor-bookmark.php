@@ -105,9 +105,10 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	 */
 	public function test_seeks_to_tag_closer_bookmark() {
 		$processor = WP_HTML_Processor::create_fragment( '<div>First</div><span>Second</span>' );
-		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
+		$processor->next_tag();
 		$processor->set_bookmark( 'first' );
-		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
+		$processor->next_token(); // Visit "First".
+		$processor->next_token(); // Visit "</div>".
 		$processor->set_bookmark( 'second' );
 
 		$processor->seek( 'first' );
