@@ -503,10 +503,8 @@ $_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path, $is_ne
 /**
  * Handle incompatible for-core plugins.
  *
- * The handler does the following:
- *     * Removes incompatible plugins from the "active_plugins" option.
- *     * Stores incompatible plugins in "wp_force_deactivation_incompatible_plugins" option, which is used
- *       in wp-admin to notify the user.
+ * The handler does adds a 'found_incompatible_for_core_plugins' option for single site
+ * and multisites. The option is used in wp-admin to deactivate and render a notice.
  *
  * @since 6.5.0
  *
@@ -515,37 +513,13 @@ $_is_plugin_compatible_with_wp = static function ( $plugin_absolute_path, $is_ne
 $_handle_incompatible_for_core_plugins = static function () {
 	global $_found_incompatible_for_core_plugins;
 
-	if ( ! empty( $_found_incompatible_for_core_plugins['single_plugins'] ) ) {
-		$active_plugins           = (array) get_option( 'active_plugins', array() );
-		$active_plugins_by_plugin = array_flip( $active_plugins );
-
-		// Remove each of the found incompatible plugins from the "active_plugins" option.
-		foreach ( $_found_incompatible_for_core_plugins['single_plugins'] as $plugin => $plugin_info ) {
-			unset( $active_plugins[ $active_plugins_by_plugin[ $plugin ] ] );
-		}
-
-		// Update the option, which no longer includes the incompatible plugins.
-		update_option( 'active_plugins', $active_plugins );
-	}
-
 	if ( ! empty( $_found_incompatible_for_core_plugins['sitewide_plugins'] ) ) {
-		$active_plugins           = (array) get_site_option( 'active_sitewide_plugins', array() );
-		$active_plugins_by_plugin = array_flip( $active_plugins );
-
-		// Remove each of the found incompatible plugins from the "active_sitewide_plugins" option.
-		foreach ( $_found_incompatible_for_core_plugins['sitewide_plugins'] as $plugin => $plugin_info ) {
-			unset( $active_plugins[ $active_plugins_by_plugin[ $plugin ] ] );
-		}
-
-		// Update the option, which no longer includes the incompatible plugins.
-		update_site_option( 'active_sitewide_plugins', $active_plugins );
+		update_site_option( 'found_incompatible_for_core_plugins', $_found_incompatible_for_core_plugins['sitewide_plugins'] );
 	}
 
-	// Update the list of incompatible plugins to notify user in the admin.
-	$admin_notices_handler = static function () use ( $_found_incompatible_for_core_plugins ) {
-		_render_admin_notice_for_incompatible_plugins( $_found_incompatible_for_core_plugins );
-	};
-	add_action( 'admin_notices', $admin_notices_handler, 5 );
+	if ( ! empty( $_found_incompatible_for_core_plugins['single_plugins'] ) ) {
+		update_option( 'found_incompatible_for_core_plugins', $_found_incompatible_for_core_plugins['single_plugins'] );
+	}
 };
 // End of the for-core plugins compatibility handler.
 

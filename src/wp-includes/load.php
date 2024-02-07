@@ -932,7 +932,7 @@ function _get_plugin_wp_min_compatible_version( $plugin ) {
 	static $plugin_data = array(
 		'gutenberg/gutenberg.php' => array(
 			'name'                       => 'Gutenberg',
-			'minimum_compatible_version' => '17.7',
+			'minimum_compatible_version' => '17.6',
 		),
 	);
 
