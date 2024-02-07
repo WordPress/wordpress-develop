@@ -195,7 +195,6 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces',
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces/(?P<id>[\d]+)',
 			'/wp/v2/font-families/(?P<id>[\d]+)',
-
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
