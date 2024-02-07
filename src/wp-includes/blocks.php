@@ -166,25 +166,10 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 		realpath( $module_asset_raw_path )
 	);
 
-	if ( empty( $module_asset_path ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
-				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
-				$module_asset_raw_path,
-				$field_name,
-				$metadata['name']
-			),
-			'6.5.0'
-		);
-		return false;
-	}
-
 	$module_path_norm = wp_normalize_path( realpath( $path . '/' . $module_path ) );
 	$module_uri       = get_block_asset_url( $module_path_norm );
 
-	$module_asset        = require $module_asset_path;
+	$module_asset        = @include $module_asset_path;
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
 
 	wp_register_script_module(
