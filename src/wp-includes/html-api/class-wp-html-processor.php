@@ -161,6 +161,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	private $state = null;
 
+	private $skip_next_foreign_content_processing = false;
+
 	/**
 	 * Used to create unique bookmark names.
 	 *
@@ -542,8 +544,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		// @todo This is the context node in a fragment but it seems to be the same in practice.
 		$adjusted_current_node = $this->state->stack_of_open_elements->current_node();
 
+		$should_skip_foreign_content = $this->skip_next_foreign_content_processing;
+		$this->skip_next_foreign_content_processing = false;
+
 		// @see https://html.spec.whatwg.org/#tree-construction-dispatcher
-		$parse_in_foreign_content = ! (
+		$parse_in_foreign_content = ! $should_skip_foreign_content && ! (
 			! $adjusted_current_node ||
 			'html' === $adjusted_current_node->namespace ||
 			(
@@ -1425,6 +1430,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				goto in_foreign_content_end_tag_loop;
 			}
 
+			$this->skip_next_foreign_content_processing = true;
 			return $this->step( self::PROCESS_CURRENT_NODE );
 		}
 	}
