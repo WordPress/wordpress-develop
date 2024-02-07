@@ -452,7 +452,7 @@ final class WP_Autoload {
 	 * Autoload a WordPress class.
 	 *
 	 * @param string $class_name Class name.
-	 * @return bool True if the class was loaded, false otherwise.
+	 * @return void
 	 */
 	public static function autoload_core( $class_name ) {
 		// Lowercase the classname to accommodate for WP classes written with wrong cases.
