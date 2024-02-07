@@ -163,3 +163,46 @@ jobs:
             `;
 
             github.rest.issues.createComment( commentInfo );
+
+  # Leaves a comment on a pull request when no Trac ticket is included in the pull request description.
+  trac-ticket-check:
+    name: Comment on a pull request when no Trac ticket is included
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' }}
+    steps:
+      - name: Check for Trac ticket and comment if missing
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const pr = await github.rest.pulls.get( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            } );
+
+            const prBody = pr.data.body ?? '';
+
+            const tracTicketRegex = new RegExp( 'https?://core.trac.wordpress.org/ticket/([0-9]+)', 'g' );
+            const tracTicketMatches = prBody.match( tracTicketRegex );
+
+            if ( ! tracTicketMatches ) {
+              github.rest.issues.createComment( {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `## Trac Ticket Missing
+            Hi @${{ github.actor }}! 👋
+
+            It looks like the pull request does not contain the full URL for the Trac ticket in the pull request body.
+
+            When contributing to WordPress Core using a pull request on GitHub, a Trac ticket is required for the contribution to be considered.
+
+            To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
+
+            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [this blog post](https://make.wordpress.org/core/2020/02/21/working-on-trac-tickets-using-github-pull-requests/).
+            `,
+              } );
+            }
