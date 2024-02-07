@@ -3933,7 +3933,6 @@ class WP_Theme_JSON {
 	 *
 	 * @param string $variation_name Name of the block style variation.
 	 * @param string $block_selector CSS selector for the block.
-	 *
 	 * @return string Block selector with block style variation selector added to it.
 	 */
 	protected static function get_block_style_variation_selector( $variation_name, $block_selector ) {
