@@ -255,7 +255,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
 
-		$this->assertSame( 'unit-tests-test-block-script' );
+		$this->assertSame( 'unit-tests-test-block-script', $result );
 	}
 
 	/**
