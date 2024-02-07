@@ -303,8 +303,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @ticket 60233
 	 */
 	public function test_empty_string_value_do_not_register_block_script_module_id() {
-		$metadata = array( 'viewScriptHandle' => '' );
-		$result   = register_block_script_module_id( $metadata, 'viewScriptHandle' );
+		$metadata = array( 'viewScriptModule' => '' );
+		$result   = register_block_script_module_id( $metadata, 'viewScriptModule' );
 
 		$this->assertFalse( $result );
 	}
