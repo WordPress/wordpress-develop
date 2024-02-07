@@ -30,7 +30,9 @@
  *     function my_plugin_get_custom_source_value( array $source_args, $block_instance, string $attribute_name ) {
  *       // Your custom logic to get the value from the source.
  *       // For example, you can use the `$source_args` to look up a value in a custom table or get it from an external API.
- *       return 'my custom value';
+ *       $value = $source_args['key'];
+ *
+ *       return "The value passed to the block is: $value"
  *     }
  *
  * The `$source_args` will contain the arguments passed to the source in the block's
