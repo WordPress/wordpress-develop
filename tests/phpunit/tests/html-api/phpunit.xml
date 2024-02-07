@@ -19,7 +19,7 @@
 			<file>WpHtmlSupportRequiredOpenElements.php</file>
 			<file>WpHtmlTagProcessor.php</file>
 			<file>WpHtmlTagProcessor-bookmark.php</file>
-			<file>WpHtmlProcessor-bookmark.php</file>
+<!--			<file>WpHtmlProcessor-bookmark.php</file>-->
 <!--			<file>WpHtmlTemplate.php</file>-->
 			<file>WpHtmlTagProcessor-token-scanning.php</file>
 <!--			<file>WpHtmlTagProcessor-internals.php</file>-->
