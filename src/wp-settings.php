@@ -191,9 +191,6 @@ require ABSPATH . WPINC . '/nav-menu-template.php';
 require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/rest-api.php';
-require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-controller.php';
-require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
-require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
 require ABSPATH . WPINC . '/sitemaps.php';
 require ABSPATH . WPINC . '/block-bindings.php';
 require ABSPATH . WPINC . '/block-bindings/pattern-overrides.php';
@@ -219,9 +216,6 @@ require ABSPATH . WPINC . '/block-supports/spacing.php';
 require ABSPATH . WPINC . '/block-supports/typography.php';
 require ABSPATH . WPINC . '/block-supports/settings.php';
 require ABSPATH . WPINC . '/style-engine.php';
-require ABSPATH . WPINC . '/fonts/class-wp-font-collection.php';
-require ABSPATH . WPINC . '/fonts/class-wp-font-library.php';
-require ABSPATH . WPINC . '/fonts/class-wp-font-utils.php';
 require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/interactivity-api.php';
@@ -256,7 +250,6 @@ wp_plugin_directory_constants();
 $GLOBALS['wp_plugin_paths'] = array();
 
 // Load and initialize WP_Plugin_Dependencies.
-require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 if ( ! defined( 'WP_RUN_CORE_TESTS' ) ) {
 	WP_Plugin_Dependencies::initialize();
 }

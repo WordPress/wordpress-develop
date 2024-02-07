@@ -98,6 +98,7 @@ final class WP_Autoload {
 		'wp_oembed_controller'                        => 'wp-includes/class-wp-oembed-controller.php',
 		'wp_oembed'                                   => 'wp-includes/class-wp-oembed.php',
 		'wp_paused_extensions_storage'                => 'wp-includes/class-wp-paused-extensions-storage.php',
+		'wp_plugin_dependencies'                      => 'wp-includes/class-wp-plugin-dependencies.php',
 		'wp_post_type'                                => 'wp-includes/class-wp-post-type.php',
 		'wp_post'                                     => 'wp-includes/class-wp-post.php',
 		'wp_query'                                    => 'wp-includes/class-wp-query.php',
@@ -141,8 +142,11 @@ final class WP_Autoload {
 		'wpdb'                                        => 'wp-includes/class-wpdb.php', // Defines some constants.
 
 		/* Classes in the wp-includes/fonts folder. */
+		'wp_font_collection'                          => 'wp-includes/fonts/class-wp-font-collection.php',
 		'wp_font_face_resolver'                       => 'wp-includes/fonts/class-wp-font-face-resolver.php',
 		'wp_font_face'                                => 'wp-includes/fonts/class-wp-font-face.php',
+		'wp_font_library'                             => 'wp-includes/fonts/class-wp-font-library.php',
+		'wp_font_utils'                               => 'wp-includes/fonts/class-wp-font-utils.php',
 
 		/* Classes in the wp-includes/html-api/ folder. */
 		'wp_html_active_formatting_elements'          => 'wp-includes/html-api/class-wp-html-active-formatting-elements.php',
@@ -249,6 +253,9 @@ final class WP_Autoload {
 		'wp_rest_comments_controller'                 => 'wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
 		'wp_rest_controller'                          => 'wp-includes/rest-api/endpoints/class-wp-rest-controller.php',
 		'wp_rest_edit_site_export_controller'         => 'wp-includes/rest-api/endpoints/class-wp-rest-edit-site-export-controller.php',
+		'wp_rest_font_collections_controller'         => 'wp-includes/rest-api/endpoints/class-wp-rest-font-collections-controller.php',
+		'wp_rest_font_faces_controller'               => 'wp-includes/rest-api/endpoints/class-wp-rest-font-faces-controller.php',
+		'wp_rest_font_families_controller'            => 'wp-includes/rest-api/endpoints/class-wp-rest-font-families-controller.php',
 		'wp_rest_global_styles_controller'            => 'wp-includes/rest-api/endpoints/class-wp-rest-global-styles-controller.php',
 		'wp_rest_global_styles_revisions_controller'  => 'wp-includes/rest-api/endpoints/class-wp-rest-global-styles-revisions-controller.php',
 		'wp_rest_menu_items_controller'               => 'wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php',
