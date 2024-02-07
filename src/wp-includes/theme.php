@@ -2663,9 +2663,9 @@ function get_theme_starter_content() {
  *                          - 'responsive-embeds'
  *                          - 'starter-content'
  *                          - 'title-tag'
- *                          - 'wp-block-styles'
  *                          - 'widgets'
  *                          - 'widgets-block-editor'
+ *                          - 'wp-block-styles'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|false Void on success, false on failure.
  */
