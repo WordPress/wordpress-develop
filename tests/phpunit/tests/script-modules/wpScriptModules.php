@@ -126,6 +126,34 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
 	}
 
+
+	/**
+	* Tests that a script module can be deregistered
+	* after being enqueued, and that will be removed
+	* from the enqueue list too.
+	*
+	* @ticket
+	*
+	* @covers ::register()
+	* @covers ::enqueue()
+	* @covers ::dequeue()
+	* @covers ::deregister()
+	* @covers ::print_enqueued_script_modules()
+	*/
+	public function test_wp_deregister_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
+	}
+
 	/**
 	* Tests that a script module can be enqueued before it is registered, and will
 	* be handled correctly once registered.
