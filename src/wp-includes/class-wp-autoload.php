@@ -37,6 +37,7 @@ final class WP_Autoload {
 		'wp_ajax_response'                            => 'wp-includes/class-wp-ajax-response.php',
 		'wp_application_passwords'                    => 'wp-includes/class-wp-application-passwords.php',
 		'wp_block_bindings_registry'                  => 'wp-includes/class-wp-block-bindings-registry.php',
+		'wp_block_bindings_source'                    => 'wp-includes/class-wp-block-bindings-source.php',
 		'wp_block_editor_context'                     => 'wp-includes/class-wp-block-editor-context.php',
 		'wp_block_list'                               => 'wp-includes/class-wp-block-list.php',
 		'wp_block_parser_block'                       => 'wp-includes/class-wp-block-parser-block.php',
@@ -159,6 +160,10 @@ final class WP_Autoload {
 		'wp_html_text_replacement'                    => 'wp-includes/html-api/class-wp-html-text-replacement.php',
 		'wp_html_token'                               => 'wp-includes/html-api/class-wp-html-token.php',
 		'wp_html_unsupported_exception'               => 'wp-includes/html-api/class-wp-html-unsupported-exception.php',
+
+		/* Classes in the wp-includes/interactivity-api folder. */
+		'wp_interactivity_api_directives_processor'   => 'wp-includes/interactivity-api/class-wp-interactivity-api-directives-processor.php',
+		'wp_interactivity_api'                        => 'wp-includes/interactivity-api/class-wp-interactivity-api.php',
 
 		/* Classes in the wp-includes/customize/ folder. */
 		'wp_customize_background_image_control'       => 'wp-includes/customize/class-wp-customize-background-image-control.php',
