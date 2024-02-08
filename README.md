@@ -35,7 +35,7 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only officially supports Node.js `16.x` and npm `8.x`.
+**Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
 You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
 
@@ -117,6 +117,29 @@ Starting the environment again is a single command:
 ```
 npm run env:start
 ```
+
+#### Resetting the development environment
+
+The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+
+```
+npm run env:reset
+```
+
+### Apple Silicone machines and old MySQL versions
+
+The MySQL Docker images do not support Apple Silicone processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
+
+When using MySQL <= 5.7 on an Apple Silicone machine, you must create a `docker-compose.override.yml` file with the following contents:
+
+```
+services:
+
+  mysql:
+    platform: linux/amd64
+```
+
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
 
 ## Credentials
 
