@@ -369,10 +369,16 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
+			$plugins_url = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
 			wp_admin_notice(
-				__( 'There are additional plugin dependencies that must be installed.' ),
+				sprintf(
+					/* translators: 1: The start of a link to the plugins page, 2: The end of the link. */
+					__( 'Some required plugins are missing. Please %1$sreview your website&#8217;s plugins%2$s for plugins that cannot be activated yet.' ),
+					'<a href="' . esc_url( $plugins_url ) . '">',
+					'</a>'
+				),
 				array(
-					'type' => 'info',
+					'type' => 'warning',
 				)
 			);
 		}
