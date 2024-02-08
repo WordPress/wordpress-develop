@@ -100,5 +100,42 @@ HTML;
 		$this->assertEquals( $expected, $result, 'The block content should be updated with the value returned by the source.' );
 		$this->assertSame( "The attribute name is 'content' and its binding has argument 'key' with value '$value'.", $block->attributes['content'] );
 	}
+
+
+	/**
+	 * Tests if the block content is updated with the value returned by the source
+	 * for the Image block in the placeholder state.
+	 *
+	 * @ticket 60282
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_update_block_with_value_from_source_imag_placeholder() {
+		$get_value_callback = function () {
+			return 'https://example.com/image.jpg';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"}}}} -->
+<figure class="wp-block-image"><img alt=""/></figure>
+<!-- /wp:image -->
+HTML;
+
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+
+		$expected = '<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/></figure>';
+		$result   = $block->render();
+
+		$this->assertSame( 'https://example.com/image.jpg', $block->attributes['url'] );
+		$this->assertEquals( $expected, trim( $result ), 'The block content should be updated with the value returned by the source.' );
 	}
 }
