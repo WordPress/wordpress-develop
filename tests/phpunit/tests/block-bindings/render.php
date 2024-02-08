@@ -62,6 +62,7 @@ HTML;
 		$result   = $block->render();
 
 		$this->assertEquals( $expected, $result, 'The block content should be updated with the value returned by the source.' );
+		$this->assertSame( 'test source value', $block->attributes['content'] );
 	}
 
 	/**
@@ -97,5 +98,7 @@ HTML;
 		$result   = $block->render();
 
 		$this->assertEquals( $expected, $result, 'The block content should be updated with the value returned by the source.' );
+		$this->assertSame( "The attribute name is 'content' and its binding has argument 'key' with value '$value'.", $block->attributes['content'] );
+	}
 	}
 }
