@@ -40,6 +40,11 @@ on:
         required: false
         type: 'string'
         default: 'phpunit.xml.dist'
+      tests-domain:
+        description: 'The domain to use for the tests'
+        required: false
+        type: 'string'
+        default: 'example.org'
       report:
         description: 'Whether to report results to WordPress.org Hosting Tests'
         required: false
@@ -50,6 +55,7 @@ env:
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
