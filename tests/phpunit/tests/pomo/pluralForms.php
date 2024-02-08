@@ -21,7 +21,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 			switch ( $char ) {
 				case '?':
 					$res .= ' ? (';
-					$depth++;
+					++$depth;
 					break;
 				case ':':
 					$res .= ') : (';
@@ -43,7 +43,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @group external-http
 	 */
 	public function test_regression( $lang, $nplurals, $expression ) {
-		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
+		require_once dirname( __DIR__, 2 ) . '/includes/plural-form-function.php';
 
 		$parenthesized = self::parenthesize_plural_expression( $expression );
 		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );

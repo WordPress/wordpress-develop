@@ -126,7 +126,12 @@ function wp_populate_basic_auth_from_authorization_header() {
 	$token    = substr( $header, 6 );
 	$userpass = base64_decode( $token );
 
-	list( $user, $pass ) = explode( ':', $userpass );
+	// There must be at least one colon in the string.
+	if ( ! str_contains( $userpass, ':' ) ) {
+		return;
+	}
+
+	list( $user, $pass ) = explode( ':', $userpass, 2 );
 
 	// Now shove them in the proper keys where we're expecting later on.
 	$_SERVER['PHP_AUTH_USER'] = $user;
@@ -134,7 +139,7 @@ function wp_populate_basic_auth_from_authorization_header() {
 }
 
 /**
- * Checks for the required PHP version, and the MySQL extension or
+ * Checks for the required PHP version, and the mysqli extension or
  * a database drop-in.
  *
  * Dies if requirements are not met.
@@ -166,7 +171,7 @@ function wp_check_php_mysql_versions() {
 	// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
 	$wp_content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 
-	if ( ! function_exists( 'mysqli_connect' ) && ! function_exists( 'mysql_connect' )
+	if ( ! function_exists( 'mysqli_connect' )
 		&& ! file_exists( $wp_content_dir . '/db.php' )
 	) {
 		require_once ABSPATH . WPINC . '/functions.php';
@@ -593,6 +598,10 @@ function wp_debug_mode() {
 		error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 	}
 
+	/*
+	 * The 'REST_REQUEST' check here is optimistic as the constant is most
+	 * likely not set at this point even if it is in fact a REST request.
+	 */
 	if ( defined( 'XMLRPC_REQUEST' ) || defined( 'REST_REQUEST' ) || defined( 'MS_FILES_REQUEST' )
 		|| ( defined( 'WP_INSTALLING' ) && WP_INSTALLING )
 		|| wp_doing_ajax() || wp_is_json_request()
@@ -977,6 +986,7 @@ function wp_get_active_and_valid_plugins() {
 
 	$network_plugins = is_multisite() ? wp_get_active_network_plugins() : false;
 
+	$invalid_plugins = array();
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
 			&& str_ends_with( $plugin, '.php' )             // $plugin must end with '.php'.
@@ -985,6 +995,20 @@ function wp_get_active_and_valid_plugins() {
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 		) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
+		} else {
+			$invalid_plugins[] = $plugin;
+		}
+	}
+
+	if ( ! empty( $invalid_plugins ) ) {
+		$all_plugin_data = get_option( 'plugin_data', array() );
+
+		if ( ! empty( $all_plugin_data ) ) {
+			foreach ( $invalid_plugins as $invalid_plugin ) {
+				unset( $all_plugin_data[ $invalid_plugin ] );
+			}
+
+			update_option( 'plugin_data', $all_plugin_data );
 		}
 	}
 
@@ -1049,11 +1073,14 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	if ( TEMPLATEPATH !== STYLESHEETPATH ) {
-		$themes[] = STYLESHEETPATH;
+	$stylesheet_path = get_stylesheet_directory();
+	$template_path   = get_template_directory();
+
+	if ( $template_path !== $stylesheet_path ) {
+		$themes[] = $stylesheet_path;
 	}
 
-	$themes[] = TEMPLATEPATH;
+	$themes[] = $template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
@@ -1178,6 +1205,7 @@ function is_protected_ajax_action() {
 		'search-install-plugins', // Searching for a plugin in the plugin install screen.
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
+		'activate-plugin',        // Activating an existing plugin.
 	);
 
 	/**
@@ -1472,6 +1500,11 @@ function wp_load_translations_early() {
 
 	// Translation and localization.
 	require_once ABSPATH . WPINC . '/pomo/mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
 	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 	require_once ABSPATH . WPINC . '/class-wp-locale.php';
@@ -1865,7 +1898,6 @@ function wp_is_jsonp_request() {
 	$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
 	return $jsonp_enabled;
-
 }
 
 /**

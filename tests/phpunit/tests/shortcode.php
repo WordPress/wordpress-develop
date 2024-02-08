@@ -781,7 +781,6 @@ EOF;
 
 		$js = str_replace( "\'", "'", $matches[1] );
 		$this->assertSame( $php, $js );
-
 	}
 
 	/**

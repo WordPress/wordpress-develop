@@ -511,7 +511,7 @@ jQuery( function($) {
 			// See https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event.
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
-	}).on( 'unload.edit-post', function( event ) {
+	}).on( 'pagehide.edit-post', function( event ) {
 		if ( ! releaseLock ) {
 			return;
 		}
@@ -1173,7 +1173,7 @@ jQuery( function($) {
 		}
 
 		/**
-		 * When the dragging stopped make sure we return focus and do a sanity check on the height.
+		 * When the dragging stopped make sure we return focus and do a confidence check on the height.
 		 */
 		function endDrag() {
 			var height, toolbarHeight;
@@ -1198,7 +1198,7 @@ jQuery( function($) {
 
 			$document.off( '.wp-editor-resize' );
 
-			// Sanity check: normalize height to stay within acceptable ranges.
+			// Confidence check: normalize height to stay within acceptable ranges.
 			if ( height && height > 50 && height < 5000 ) {
 				setUserSetting( 'ed_size', height );
 			}
@@ -1303,8 +1303,6 @@ jQuery( function($) {
 
 		// Clear the selection and move focus back to the trigger.
 		event.clearSelection();
-		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( copyAttachmentURLSuccessTimeout );

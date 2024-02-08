@@ -775,4 +775,21 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertIsInt( $q->found_posts );
 	}
+
+	/**
+	 * @ticket 57296
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_split_the_query_object_cache() {
+		$filter = new MockAction();
+		add_filter( 'split_the_query', array( $filter, 'filter' ) );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		$this->assertSame( (bool) wp_using_ext_object_cache(), $filter->get_args()[0][0] );
+	}
 }

@@ -51,5 +51,4 @@ class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 
 		return $unprotected_keys;
 	}
-
 }

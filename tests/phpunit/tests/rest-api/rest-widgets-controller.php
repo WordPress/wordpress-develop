@@ -1551,7 +1551,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			if ( is_array( $item ) && isset( $item['_links'] ) ) {
 				unset( $data[ $count ]['_links'] );
 			}
-			$count++;
+			++$count;
 		}
 
 		return $data;

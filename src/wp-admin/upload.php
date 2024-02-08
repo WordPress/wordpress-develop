@@ -144,7 +144,7 @@ if ( 'grid' === $mode ) {
 	// Remove the error parameter added by deprecation of wp-admin/media.php.
 	add_filter(
 		'removable_query_args',
-		function() {
+		function () {
 			return array( 'error' );
 		},
 		10,
@@ -211,28 +211,37 @@ if ( 'grid' === $mode ) {
 		<?php
 		if ( current_user_can( 'upload_files' ) ) {
 			?>
-			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+			<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action aria-button-if-js"><?php echo esc_html__( 'Add New Media File' ); ?></a>
 			<?php
 		}
 		?>
 
 		<hr class="wp-header-end">
 
-		<?php if ( ! empty( $message ) ) : ?>
-			<div id="message" class="updated notice is-dismissible"><p><?php echo $message; ?></p></div>
-		<?php endif; ?>
-
-		<div class="error hide-if-js">
-			<p>
-			<?php
-			printf(
-				/* translators: %s: List view URL. */
-				__( 'The grid view for the Media Library requires JavaScript. <a href="%s">Switch to the list view</a>.' ),
-				'upload.php?mode=list'
+		<?php
+		if ( ! empty( $message ) ) {
+			wp_admin_notice(
+				$message,
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+					'dismissible'        => true,
+				)
 			);
-			?>
-			</p>
-		</div>
+		}
+
+		$js_required_message = sprintf(
+			/* translators: %s: List view URL. */
+			__( 'The grid view for the Media Library requires JavaScript. <a href="%s">Switch to the list view</a>.' ),
+			'upload.php?mode=list'
+		);
+		wp_admin_notice(
+			$js_required_message,
+			array(
+				'additional_classes' => array( 'error', 'hide-if-js' ),
+			)
+		);
+		?>
 	</div>
 	<?php
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -409,7 +418,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( current_user_can( 'upload_files' ) ) {
 	?>
-	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'file' ); ?></a>
+	<a href="<?php echo esc_url( admin_url( 'media-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New Media File' ); ?></a>
 						<?php
 }
 
@@ -426,9 +435,18 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 
 <hr class="wp-header-end">
 
-<?php if ( ! empty( $message ) ) : ?>
-<div id="message" class="updated notice is-dismissible"><p><?php echo $message; ?></p></div>
-<?php endif; ?>
+<?php
+if ( ! empty( $message ) ) {
+	wp_admin_notice(
+		$message,
+		array(
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+			'dismissible'        => true,
+		)
+	);
+}
+?>
 
 <form id="posts-filter" method="get">
 

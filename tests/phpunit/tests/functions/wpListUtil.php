@@ -3,7 +3,7 @@
 /**
  * Test WP_List_Util class.
  *
- * @group functions.php
+ * @group functions
  */
 class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
@@ -1161,5 +1161,4 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

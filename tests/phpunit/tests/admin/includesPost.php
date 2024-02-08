@@ -795,7 +795,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		add_filter(
 			'get_sample_permalink',
-			function( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -918,6 +918,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			'render_callback' => 'foo',
 			'ancestor'        => array( 'core/test-ancestor' ),
 			'selectors'       => array( 'root' => '.wp-block-test' ),
+			'block_hooks'     => array( 'core/post-content' => 'before' ),
 		);
 
 		register_block_type( $name, $settings );
@@ -934,9 +935,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 				'description' => '',
 				'icon'        => 'text',
 				'attributes'  => array(
-					'lock' => array( 'type' => 'object' ),
+					'lock'     => array( 'type' => 'object' ),
+					'metadata' => array( 'type' => 'object' ),
 				),
 				'usesContext' => array(),
+				'blockHooks'  => array( 'core/post-content' => 'before' ),
 				'selectors'   => array( 'root' => '.wp-block-test' ),
 				'category'    => 'common',
 				'styles'      => array(),
@@ -1142,8 +1145,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 	/**
 	 * Test refreshed nonce for metabox loader.
-	 *
-	 * @return void
 	 */
 	public function test_user_get_refreshed_metabox_nonce() {
 

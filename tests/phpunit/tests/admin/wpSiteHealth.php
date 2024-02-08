@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group admin
  * @group site-health
  *
  * @coversDefaultClass WP_Site_Health
@@ -421,7 +422,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		// Set thresholds so high they should never be exceeded.
 		add_filter(
 			'site_status_persistent_object_cache_thresholds',
-			static function() {
+			static function () {
 				return array(
 					'alloptions_count' => PHP_INT_MAX,
 					'alloptions_bytes' => PHP_INT_MAX,

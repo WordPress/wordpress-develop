@@ -329,7 +329,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.2.0 Extracted from WP_Comment_Query::query().
 	 *
-	 * @param string|array $query WP_Comment_Query arguments. See WP_Comment_Query::__construct()
+	 * @param string|array $query WP_Comment_Query arguments. See WP_Comment_Query::__construct().
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -1079,7 +1079,7 @@ class WP_Comment_Query {
 				wp_cache_set_multiple( $data, 'comment-queries' );
 			}
 
-			$level++;
+			++$level;
 			$levels[ $level ] = $child_ids;
 		} while ( $child_ids );
 

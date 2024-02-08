@@ -216,13 +216,13 @@ class WP_Filesystem_Base {
 				}
 			}
 		} elseif ( 'direct' === $this->method ) {
-			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitisation.
+			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
 
 			return trailingslashit( $folder );
 		}
 
 		$folder = preg_replace( '|^([a-z]{1}):|i', '', $folder ); // Strip out Windows drive letter if it's there.
-		$folder = str_replace( '\\', '/', $folder ); // Windows path sanitisation.
+		$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
 
 		if ( isset( $this->cache[ $folder ] ) ) {
 			return $this->cache[ $folder ];
@@ -333,7 +333,6 @@ class WP_Filesystem_Base {
 		 * This comes into effect when the CWD is /home/user/ but WP is at /var/www/....
 		 */
 		return $this->search_for_folder( $folder, '/', true );
-
 	}
 
 	/**
@@ -862,5 +861,4 @@ class WP_Filesystem_Base {
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
 		return false;
 	}
-
 }
