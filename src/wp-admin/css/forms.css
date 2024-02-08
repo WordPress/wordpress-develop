@@ -786,11 +786,11 @@ ul#add-to-blog-users {
 	width: 100%;
 	cursor: pointer;
 	text-align: center;
-    cursor: default;
-    border: 1px dashed #c3c4c7;
-    box-sizing: border-box;
-    padding: 9px 0;
-    line-height: 1.6;
+	cursor: default;
+	border: 1px dashed #c3c4c7;
+	box-sizing: border-box;
+	padding: 9px 0;
+	line-height: 1.6;
 	max-width: 270px;
 }
 
@@ -800,10 +800,10 @@ ul#add-to-blog-users {
 
 .button-ad-site-icon:focus{
 	background-color: #fff;
-    border-color: #3582c4;
-    border-style: solid;
-    box-shadow: 0 0 0 1px #3582c4;
-    outline: 2px solid transparent;
+	border-color: #3582c4;
+	border-style: solid;
+	box-shadow: 0 0 0 1px #3582c4;
+	outline: 2px solid transparent;
 }
 
 /*------------------------------------------------------------------------------
