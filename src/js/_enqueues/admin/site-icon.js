@@ -82,12 +82,11 @@
 			});
 
 			frame.on( 'cropped', function( attachment) {
-				// set state back
-				frame.setState( 'library' );
-				frame.reset();
 				$( '#site_icon_hidden_field' ).val(attachment.id);
 				switchToUpdate(attachment.url);
 				frame.close();
+				// Startover with a frame that is so fresh and so clean clean.
+				frame = null;
 			});
 
 			// When an image is selected, run a callback.
