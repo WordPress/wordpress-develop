@@ -177,7 +177,6 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           repository: 'WordPress/phpunit-test-runner'
-          ref: '1b1398b92a5119dcdbfb40669b26f6c63cd65653'
           path: 'test-runner'
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
