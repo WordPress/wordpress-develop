@@ -122,7 +122,7 @@ $tagline_description = sprintf(
 
 	?>
 
-	<img id="site-icon-img" class="<?php echo esc_attr( $classes_for_avatar ); ?>" src="<?php site_icon_url( null, 150 ); ?>" height="150" width="150" alt="" />
+	<img id="site-icon-img" class="<?php echo esc_attr( $classes_for_avatar ); ?>" src="<?php site_icon_url( null, 150 ); ?>" height="150" width="150" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>" />
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<p>
 		<button type="button"
