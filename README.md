@@ -130,10 +130,13 @@ npm run env:reset
 
 The MySQL Docker images do not support Apple Silicone processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
 
-When using MySQL <= 5.7 on an Apple Silicone machine, the following line in the `docker-compose.yml` file will need to be uncommented:
+When using MySQL <= 5.7 on an Apple Silicone machine, you must create a `docker-compose.override.yml` file with the following contents:
 
 ```
-platform: linux/amd64
+services:
+
+  mysql:
+    platform: linux/amd64
 ```
 
 Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.

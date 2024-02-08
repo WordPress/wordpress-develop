@@ -66,14 +66,6 @@ services:
   ##
   mysql:
     image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
-    ##
-    # If you're using the local Docker environment with `LOCAL_DB_TYPE` set to `mysql` with a version of `5.7`
-    # or lower, the line below must be uncommented for the local Docker environment to start properly.
-    #
-    # Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled
-    # when this line is uncommented.
-    ##
-    #platform: linux/amd64
 
     networks:
       - wpdevnet
