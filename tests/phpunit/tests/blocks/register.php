@@ -60,6 +60,12 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			}
 		}
 
+		foreach ( wp_scripts()->registered as $script_handle => $script ) {
+			if ( str_starts_with( $script_handle, 'unit-tests-' ) ) {
+				wp_deregister_script( $script_handle );
+			}
+		}
+
 		parent::tear_down();
 	}
 
@@ -226,21 +232,6 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedIncorrectUsage register_block_script_handle
-	 * @ticket 50263
-	 */
-	public function test_missing_asset_file_register_block_script_handle() {
-		$metadata = array(
-			'file'   => __FILE__,
-			'name'   => 'unit-tests/test-block',
-			'script' => 'file:./blocks/notice/missing-asset.js',
-		);
-		$result   = register_block_script_handle( $metadata, 'script' );
-
-		$this->assertFalse( $result );
-	}
-
-	/**
 	 * @ticket 50263
 	 */
 	public function test_handle_passed_register_block_script_handle() {
@@ -262,6 +253,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$result = register_block_script_handle( $metadata, 'script', 1 );
 		$this->assertSame( 'test-script-handle-2', $result, 1 );
+	}
+
+	/**
+	 * @ticket 50263
+	 * @ticket 60460
+	 */
+	public function test_missing_asset_file_register_block_script_handle_with_default_settings() {
+		$metadata = array(
+			'file'   => __FILE__,
+			'name'   => 'unit-tests/test-block',
+			'script' => 'file:./blocks/notice/missing-asset.js',
+		);
+		$result   = register_block_script_handle( $metadata, 'script' );
+
+		$this->assertSame( 'unit-tests-test-block-script', $result );
 	}
 
 	/**
