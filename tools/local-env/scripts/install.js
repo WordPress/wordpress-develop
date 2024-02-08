@@ -29,6 +29,7 @@ const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 	.replace( 'yourusernamehere', 'root' )
 	.replace( 'yourpasswordhere', 'password' )
 	.replace( 'localhost', 'mysql' )
+	.replace( "'WP_TESTS_DOMAIN', 'example.org'", `'WP_TESTS_DOMAIN', '${process.env.WP_TESTS_DOMAIN}'` )
 	.concat( "\ndefine( 'FS_METHOD', 'direct' );\n" );
 
 writeFileSync( 'wp-tests-config.php', testConfig );
