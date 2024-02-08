@@ -114,7 +114,7 @@ function wp_dequeue_script_module( string $id ) {
 }
 
 /**
- * Unregisters the script module.
+ * Deregisters the script module.
  *
  * @since 6.5.0
  *
