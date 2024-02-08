@@ -129,9 +129,10 @@ function get_block_asset_url( $path ) {
 
 /**
  * Finds a script module ID for the selected block metadata field. It detects
- * when a path to file was provided and finds a corresponding asset file
- * with details necessary to register the script module under an automatically
- * generated handle name. It returns unprocessed script module ID otherwise.
+ * when a path to file was provided and optionally finds a corresponding asset
+ * file with details necessary to register the script module under with an
+ * automatically generated module ID. It returns unprocessed script module
+ * ID otherwise.
  *
  * @since 6.5.0
  *
