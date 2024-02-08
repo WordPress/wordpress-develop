@@ -12,19 +12,12 @@
  */
 class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	/**
-	 * Constructor.
+	 * Whether the controller supports batching.
 	 *
-	 * @since 5.9.0
-	 * @since 6.5.0 Extends class from WP_REST_Posts_Controller.
-	 *
-	 * @param string $post_type Post type.
+	 * @since 6.5.0
+	 * @var array
 	 */
-	public function __construct( $post_type ) {
-		$this->post_type = $post_type;
-		$obj             = get_post_type_object( $post_type );
-		$this->rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
-		$this->namespace = ! empty( $obj->rest_namespace ) ? $obj->rest_namespace : 'wp/v2';
-	}
+	protected $allow_batch = array( 'v1' => false );
 
 	/**
 	 * Registers the controllers routes.
@@ -195,24 +188,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Returns the given global styles config.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_REST_Request $request The request instance.
-	 *
-	 * @return WP_REST_Response|WP_Error
-	 */
-	public function get_item( $request ) {
-		$post = $this->get_post( $request['id'] );
-		if ( is_wp_error( $post ) ) {
-			return $post;
-		}
-
-		return $this->prepare_item_for_response( $post, $request );
-	}
-
-	/**
 	 * Checks if a given request has access to write a single global styles config.
 	 *
 	 * @since 5.9.0
@@ -235,43 +210,6 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Updates a single global style config.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
-	 */
-	public function update_item( $request ) {
-		$post_before = $this->get_post( $request['id'] );
-		if ( is_wp_error( $post_before ) ) {
-			return $post_before;
-		}
-
-		$changes = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $changes ) ) {
-			return $changes;
-		}
-
-		$result = wp_update_post( wp_slash( (array) $changes ), true, false );
-		if ( is_wp_error( $result ) ) {
-			return $result;
-		}
-
-		$post          = get_post( $request['id'] );
-		$fields_update = $this->update_additional_fields_for_object( $post, $request );
-		if ( is_wp_error( $fields_update ) ) {
-			return $fields_update;
-		}
-
-		wp_after_insert_post( $post, true, $post_before );
-
-		$response = $this->prepare_item_for_response( $post, $request );
-
-		return rest_ensure_response( $response );
 	}
 
 	/**
