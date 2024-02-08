@@ -359,6 +359,6 @@ tests_add_filter( 'init', '_unhook_block_registration', 1000 );
  * @since 6.5.0
  */
 function _unhook_font_registration() {
-	remove_action( 'init', '_register_font_collections' );
+	remove_action( 'init', '_wp_register_default_font_collections' );
 }
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );

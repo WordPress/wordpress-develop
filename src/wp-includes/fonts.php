@@ -195,6 +195,6 @@ function _wp_before_delete_font_face( $post_id, $post ) {
  * @access private
  * @since 6.5.0
  */
-function _register_font_collections() {
+function _wp_register_default_font_collections() {
 	wp_register_font_collection( 'google-fonts', 'https://s.w.org/images/fonts/17.7/collections/google-fonts-with-preview.json' );
 }
