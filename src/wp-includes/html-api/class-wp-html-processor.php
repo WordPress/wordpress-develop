@@ -1372,7 +1372,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * @todo …
+	 * Checks whether a bookmark with the given name exists.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+	 * @return bool Whether that bookmark exists.
 	 */
 	public function has_bookmark( $bookmark_name ) {
 		return parent::has_bookmark( "_{$bookmark_name}" );
