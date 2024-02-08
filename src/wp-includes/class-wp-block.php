@@ -228,7 +228,7 @@ class WP_Block {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array The modified block content.
+	 * @return array The computed block attributes for the provided block bindings.
 	 */
 	private function process_block_bindings() {
 		$parsed_block = $this->parsed_block;
