@@ -171,7 +171,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	}
 
 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
-	$script_asset        = @include $script_asset_path;
+	$script_asset        = ! empty( $script_asset_path ) ? $script_asset_path : array();
 	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
 	$result              = wp_register_script(
 		$script_handle,
