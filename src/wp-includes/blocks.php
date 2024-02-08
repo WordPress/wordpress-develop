@@ -169,7 +169,7 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$module_path_norm = wp_normalize_path( realpath( $path . '/' . $module_path ) );
 	$module_uri       = get_block_asset_url( $module_path_norm );
 
-	$module_asset        = @include $module_asset_path;
+	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
 
 	wp_register_script_module(
