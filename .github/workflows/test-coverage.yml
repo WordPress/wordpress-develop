@@ -57,7 +57,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
-    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report (${{ matrix.format }}
+    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report (${{ matrix.format }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
