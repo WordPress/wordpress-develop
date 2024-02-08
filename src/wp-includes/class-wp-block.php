@@ -269,9 +269,8 @@ class WP_Block {
 				continue;
 			}
 
-			$source_callback = $block_binding_source['get_value_callback'];
-			$source_args     = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
-			$source_value    = call_user_func_array( $source_callback, array( $source_args, $this, $attribute_name ) );
+			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
 
 			// If the value is not null, process the HTML based on the block and the attribute.
 			if ( ! is_null( $source_value ) ) {
@@ -382,7 +381,7 @@ class WP_Block {
 				) ) {
 					return $block_content;
 				}
-				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], esc_attr( $source_value ) );
+				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
 				return $amended_content->get_updated_html();
 				break;
 
@@ -483,6 +482,12 @@ class WP_Block {
 		if ( ! empty( $this->block_type->view_script_handles ) ) {
 			foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
 				wp_enqueue_script( $view_script_handle );
+			}
+		}
+
+		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
+			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
+				wp_enqueue_script_module( $view_script_module_id );
 			}
 		}
 
