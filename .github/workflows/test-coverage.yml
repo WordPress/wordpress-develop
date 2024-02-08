@@ -57,7 +57,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
-    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
+    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report (${{ matrix.format }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,6 +67,7 @@ jobs:
       fail-fast: false
       matrix:
         multisite: [ false, true ]
+        format: [ clover, html ]
 
     steps:
       - name: Configure environment variables
@@ -144,7 +145,7 @@ jobs:
 
       - name: Run tests as a single site
         if: ${{ ! matrix.multisite }}
-        run: npm run test:php -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
+        run: npm run test:php -- --verbose -c phpunit.xml.dist --coverage-${{ 'html' == matrix.format && 'html' || 'clover' }} wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -154,13 +155,21 @@ jobs:
         uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044 # v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: wp-code-coverage-single-clover-${{ github.sha }}.xml
+          file: wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
           flags: single,php
           fail_ci_if_error: true
 
+      - name: Upload single site HTML report as artifact
+        if: ${{ ! matrix.multisite && matrix.format == 'html' }}
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: wp-code-coverage-single-${{ github.sha }}
+          path: wp-code-coverage-single-${{ github.sha }}
+          overwrite: true
+
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
-        run: npm run test:php -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+        run: npm run test:php -- --verbose -c tests/phpunit/multisite.xml --coverage-${{ 'html' == matrix.format && 'html' || 'clover' }} wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -170,9 +179,17 @@ jobs:
         uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044 # v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+          file: wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
           flags: multisite,php
           fail_ci_if_error: true
+
+      - name: Upload multisite HTML report as artifact
+        if: ${{ matrix.multisite && matrix.format == 'html' }}
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: wp-code-coverage-multisite-${{ github.sha }}
+          path: wp-code-coverage-multisite-${{ github.sha }}
+          overwrite: true
 
   slack-notifications:
     name: Slack Notifications
