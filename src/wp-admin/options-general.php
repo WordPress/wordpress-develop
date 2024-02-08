@@ -143,13 +143,12 @@ $tagline_description = sprintf(
 				<?php _e( 'Choose a Site Icon' ); ?>
 			<?php endif; ?>
 		</button>
-		<a
+		<button
 			id="js-remove-site-icon"
-			href="<?php echo esc_url( $remove_url ); ?>"
-			<?php echo has_site_icon() ? '' : 'class="hidden"'; ?>
+			<?php echo has_site_icon() ? 'class="button"' : 'class="button hidden"'; ?>
 		>
 			<?php _e( 'Remove Site Icon' ); ?>
-		</a>
+		</button>
 	</p>
 
 	<p class="description" id="site-icon-description">
