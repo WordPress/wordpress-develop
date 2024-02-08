@@ -280,7 +280,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 				$timezone_info['description'] = '';
 			}
 		} else {
-			$formatted_gmt_offset = $this->format_gmt_offset( (int) get_option( 'gmt_offset', 0 ) );
+			$formatted_gmt_offset = $this->format_gmt_offset( current_gmt_offset() );
 
 			$timezone_info['description'] = sprintf(
 				/* translators: 1: UTC abbreviation and offset, 2: UTC offset. */
