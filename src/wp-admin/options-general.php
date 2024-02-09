@@ -140,7 +140,7 @@ $tagline_description = sprintf(
 
 		>
 			<?php if ( has_site_icon() ) : ?>
-				<?php _e( 'Change site icon' ); ?>
+				<?php _e( 'Change Site Icon' ); ?>
 			<?php else : ?>
 				<?php _e( 'Choose a Site Icon' ); ?>
 			<?php endif; ?>
