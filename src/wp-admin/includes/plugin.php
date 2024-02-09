@@ -1203,25 +1203,33 @@ function validate_plugin_requirements( $plugin ) {
 	}
 
 	if ( WP_Plugin_Dependencies::has_unmet_dependencies( $plugin ) ) {
-		$dependencies       = WP_Plugin_Dependencies::get_dependencies( $plugin );
-		$unmet_dependencies = array();
+		$dependency_names       = WP_Plugin_Dependencies::get_dependency_names( $plugin );
+		$unmet_dependencies     = array();
+		$unmet_dependency_names = array();
 
-		foreach ( $dependencies as $dependency ) {
+		foreach ( $dependency_names as $dependency => $dependency_name ) {
 			$dependency_file = WP_Plugin_Dependencies::get_dependency_filepath( $dependency );
 
 			if ( false === $dependency_file ) {
-				$unmet_dependencies['not_installed'][] = $dependency;
+				$unmet_dependencies['not_installed'][ $dependency ] = $dependency_name;
+				$unmet_dependency_names[]                           = $dependency_name;
 			} elseif ( is_plugin_inactive( $dependency_file ) ) {
-				$unmet_dependencies['inactive'][] = $dependency;
+				$unmet_dependencies['inactive'][ $dependency ] = $dependency_name;
+				$unmet_dependency_names[]                      = $dependency_name;
 			}
 		}
+
+		$plugins_page = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
 
 		return new WP_Error(
 			'plugin_missing_dependencies',
 			'<p>' . sprintf(
-				/* translators: %s: Plugin name. */
-				_x( '<strong>Error:</strong> %s requires plugins that are not installed or activated.', 'plugin' ),
-				$plugin_headers['Name']
+				/* translators: 1: Plugin name, 2: A comma-separated list of plugin names, 3: The start of a link to the plugins page, 4: The end of the link. */
+				_x( '<strong>Error:</strong> %1$s requires the following plugin(s) to be installed and activated: %2$s. %3$sReview your plugins%4$s', 'plugin' ),
+				$plugin_headers['Name'],
+				implode( ', ', $unmet_dependency_names ),
+				'<a href="' . esc_url( $plugins_page ) . '">',
+				'</a>'
 			) . '</p>',
 			$unmet_dependencies
 		);
