@@ -3277,6 +3277,8 @@ function wp_rel_nofollow( $text ) {
  * @return string HTML A Element with `rel="nofollow"`.
  */
 function wp_rel_nofollow_callback( $matches ) {
+	_deprecated_function( __FUNCTION__, '5.3.0', 'wp_rel_callback()' );
+
 	return wp_rel_callback( $matches, 'nofollow' );
 }
 

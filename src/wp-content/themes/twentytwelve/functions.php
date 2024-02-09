@@ -242,6 +242,8 @@ add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
  * @return array URLs to print for resource hints.
  */
 function twentytwelve_resource_hints( $urls, $relation_type ) {
+	_deprecated_function( __FUNCTION__, 'Twenty Twelve 3.9' );
+
 	if ( wp_style_is( 'twentytwelve-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(

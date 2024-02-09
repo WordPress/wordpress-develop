@@ -432,6 +432,8 @@ add_filter( 'use_default_gallery_style', '__return_false' );
  * @return string The gallery style filter, with the styles themselves removed.
  */
 function twentyten_remove_gallery_css( $css ) {
+	_deprecated_function( __FUNCTION__, 'Twenty Ten 1.2' );
+
 	return preg_replace( "#<style type='text/css'>(.*?)</style>#s", '', $css );
 }
 // Backward compatibility with WordPress 3.0.

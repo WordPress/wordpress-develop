@@ -503,6 +503,8 @@ add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' )
  * @return array URLs to print for resource hints.
  */
 function twentyfifteen_resource_hints( $urls, $relation_type ) {
+	_deprecated_function( __FUNCTION__, 'Twenty Fifteen 3.4' );
+
 	if ( wp_style_is( 'twentyfifteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
 		if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '>=' ) ) {
 			$urls[] = array(

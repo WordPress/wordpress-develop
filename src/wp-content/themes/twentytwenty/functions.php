@@ -243,6 +243,8 @@ add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
  * @link https://git.io/vWdr2
  */
 function twentytwenty_skip_link_focus_fix() {
+	_deprecated_function( __FUNCTION__, 'Twenty Twenty 2.3' );
+
 	// The following is minified via `terser --compress --mangle -- assets/js/skip-link-focus-fix.js`.
 	?>
 	<script>

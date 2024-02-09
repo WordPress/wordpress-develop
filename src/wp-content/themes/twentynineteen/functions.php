@@ -300,6 +300,8 @@ add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
  * @link https://git.io/vWdr2
  */
 function twentynineteen_skip_link_focus_fix() {
+	_deprecated_function( __FUNCTION__, 'Twenty Nineteen 2.6' );
+
 	// The following is minified via `terser --compress --mangle -- js/skip-link-focus-fix.js`.
 	?>
 	<script>

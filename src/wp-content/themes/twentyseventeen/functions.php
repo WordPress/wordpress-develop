@@ -319,6 +319,8 @@ endif;
  * @return array URLs to print for resource hints.
  */
 function twentyseventeen_resource_hints( $urls, $relation_type ) {
+	_deprecated_function( __FUNCTION__, 'Twenty Seventeen 3.2' );
+
 	if ( wp_style_is( 'twentyseventeen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
 		$urls[] = array(
 			'href' => 'https://fonts.gstatic.com',

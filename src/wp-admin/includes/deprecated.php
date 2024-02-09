@@ -862,6 +862,8 @@ function screen_options( $screen ) {
  * @see WP_Screen::render_screen_meta()
  */
 function screen_meta( $screen ) {
+	_deprecated_function( __FUNCTION__, '3.3.0', 'WP_Screen::render_screen_meta()' );
+
 	$current_screen = get_current_screen();
 	$current_screen->render_screen_meta();
 }
@@ -1257,14 +1259,18 @@ function get_screen_icon() {
  * @since 2.5.0
  * @deprecated 3.8.0
  */
-function wp_dashboard_incoming_links_output() {}
+function wp_dashboard_incoming_links_output() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard secondary output.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_secondary_output() {}
+function wp_dashboard_secondary_output() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard widget controls.
@@ -1272,49 +1278,63 @@ function wp_dashboard_secondary_output() {}
  * @since 2.7.0
  * @deprecated 3.8.0
  */
-function wp_dashboard_incoming_links() {}
+function wp_dashboard_incoming_links() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard incoming links control.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_incoming_links_control() {}
+function wp_dashboard_incoming_links_control() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard plugins control.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_plugins() {}
+function wp_dashboard_plugins() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard primary control.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_primary_control() {}
+function wp_dashboard_primary_control() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard recent comments control.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_recent_comments_control() {}
+function wp_dashboard_recent_comments_control() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard secondary section.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_secondary() {}
+function wp_dashboard_secondary() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Deprecated dashboard secondary control.
  *
  * @deprecated 3.8.0
  */
-function wp_dashboard_secondary_control() {}
+function wp_dashboard_secondary_control() {
+	_deprecated_function( __FUNCTION__, '3.8.0' );
+}
 
 /**
  * Display plugins text for the WordPress news widget.
@@ -1510,6 +1530,7 @@ function post_form_autocomplete_off() {
  * @deprecated 4.9.0
  */
 function options_permalink_add_js() {
+	_deprecated_function( __FUNCTION__, '4.9.0' );
 	?>
 	<script type="text/javascript">
 		jQuery( function() {
