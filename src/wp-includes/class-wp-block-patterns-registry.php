@@ -180,6 +180,20 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
+	 * Retrieves the content of a block pattern from a file path.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $file_path The file path to the block pattern.
+	 * @return string The content of the block pattern.
+	 */
+	private function load_content_from_file_path( $file_path ) {
+		ob_start();
+		include $file_path;
+		return ob_get_clean();
+	}
+
+	/**
 	 * Retrieves an array containing the properties of a registered block pattern.
 	 *
 	 * @since 5.5.0
@@ -194,9 +208,7 @@ final class WP_Block_Patterns_Registry {
 
 		$pattern = $this->registered_patterns[ $pattern_name ];
 		if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
-			ob_start();
-			include $pattern['file_path'];
-			$pattern['content']                                    = ob_get_clean();
+			$pattern['content']                                    = $this->load_content_from_file_path( $pattern['file_path'] );
 			$this->registered_patterns[ $pattern_name ]['content'] = $pattern['content'];
 		}
 
@@ -232,9 +244,7 @@ final class WP_Block_Patterns_Registry {
 				continue;
 			}
 			if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
-				ob_start();
-				include $pattern['file_path'];
-				$pattern['content'] = ob_get_clean();
+				$pattern['content'] = $this->load_content_from_file_path( $pattern['file_path'] );
 				if ( $outside_init_only ) {
 					$this->registered_patterns_outside_init[ $index ]['content'] = $pattern['content'];
 				} else {
