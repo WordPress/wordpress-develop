@@ -117,34 +117,34 @@
 		$( '#js-remove-site-icon' ).removeClass( 'hidden' );
 		// tmp store the classes of the #choose-from-library-link button
 		// if the button is not in the update state, swap the classes
-		if( $( '#choose-from-library-link' ).attr('data-state') !== '1' ){
+		if( $( '#choose-from-library-link' ).attr( 'data-state' ) !== '1' ){
 			var classes = $( '#choose-from-library-link' ).attr( 'class' );
-			$( '#choose-from-library-link' ).attr('class', $( '#choose-from-library-link' ).attr('data-alt-classes') );
-			$( '#choose-from-library-link' ).attr('data-alt-classes', classes );
-			$( '#choose-from-library-link' ).attr('data-state', '1');
+			$( '#choose-from-library-link' ).attr( 'class', $( '#choose-from-library-link' ).attr('data-alt-classes') );
+			$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
+			$( '#choose-from-library-link' ).attr( 'data-state', '1' );
 		}
 
 		// swap the text of the button
-		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr('data-update-text') );
+		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr( 'data-update-text' ) );
 	}
 
 	$( '#js-remove-site-icon' ).on( 'click', function( event ) {
 		// set the value of the hidden input to blank
-		$( '#site_icon_hidden_field').val('false');
+		$( '#site_icon_hidden_field' ).val( 'false' );
 		//  toggle hidden class on site-icon-img
 		$( '#site-icon-img' ).toggleClass( 'hidden' );
 		// toggle hidden class on remove button
 		$( this ).toggleClass( 'hidden' );
 
 		// tmp store the classes of the #choose-from-library-link button
-		var classes = $( '#choose-from-library-link' ).attr('class');
-		$( '#choose-from-library-link' ).attr('class', $( '#choose-from-library-link' ).attr('data-alt-classes') );
-		$( '#choose-from-library-link' ).attr('data-alt-classes', classes );
+		var classes = $( '#choose-from-library-link' ).attr( 'class' );
+		$( '#choose-from-library-link' ).attr( 'class', $( '#choose-from-library-link' ).attr( 'data-alt-classes' ) );
+		$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
 
 		// swap the text of the button
-		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr('data-choose-text') );
+		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr( 'data-choose-text' ) );
 
-		$( '#choose-from-library-link' ).attr('data-state', '');
+		$( '#choose-from-library-link' ).attr( 'data-state', '');
 
 		// prevent the default action
 		event.preventDefault();
