@@ -1580,10 +1580,6 @@ div.action-links,
 	margin-top: 0;
 }
 
-.plugin-card .column-description p:empty {
-	display: none;
-}
-
 .plugin-card .plugin-dependencies {
 	background-color: #e5f5fa;
 	border-left: 3px solid #72aee6;
@@ -1624,8 +1620,6 @@ div.action-links,
 @media (max-width: 939px) {
 	.plugin-card .plugin-dependency-name {
 		flex-basis: 69%;
-	}
-	.plugin-card .plugin-dependency .more-details-link {
 	}
 }
 
