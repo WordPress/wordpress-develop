@@ -419,6 +419,8 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		$timezone_abbr = $timezone_date->format( 'T' );
 	}
 
+	$gmt_offset = get_option( 'gmt_offset', 0 );
+
 	$scripts->add_inline_script(
 		'wp-date',
 		sprintf(
@@ -439,27 +441,27 @@ function wp_default_packages_inline_scripts( $scripts ) {
 							'past'   => __( '%s ago' ),
 							/* translators: One second from or to a particular datetime, e.g., "a second ago" or "a second from now". */
 							's'      => __( 'a second' ),
-							/* translators: %s: Duration in seconds from or to a particular datetime, e.g., "4 seconds ago" or "4 seconds from now". */
+							/* translators: %d: Duration in seconds from or to a particular datetime, e.g., "4 seconds ago" or "4 seconds from now". */
 							'ss'     => __( '%d seconds' ),
 							/* translators: One minute from or to a particular datetime, e.g., "a minute ago" or "a minute from now". */
 							'm'      => __( 'a minute' ),
-							/* translators: %s: Duration in minutes from or to a particular datetime, e.g., "4 minutes ago" or "4 minutes from now". */
+							/* translators: %d: Duration in minutes from or to a particular datetime, e.g., "4 minutes ago" or "4 minutes from now". */
 							'mm'     => __( '%d minutes' ),
-							/* translators: %s: One hour from or to a particular datetime, e.g., "an hour ago" or "an hour from now". */
+							/* translators: One hour from or to a particular datetime, e.g., "an hour ago" or "an hour from now". */
 							'h'      => __( 'an hour' ),
-							/* translators: %s: Duration in hours from or to a particular datetime, e.g., "4 hours ago" or "4 hours from now". */
+							/* translators: %d: Duration in hours from or to a particular datetime, e.g., "4 hours ago" or "4 hours from now". */
 							'hh'     => __( '%d hours' ),
-							/* translators: %s: One day from or to a particular datetime, e.g., "a day ago" or "a day from now". */
+							/* translators: One day from or to a particular datetime, e.g., "a day ago" or "a day from now". */
 							'd'      => __( 'a day' ),
-							/* translators: %s: Duration in days from or to a particular datetime, e.g., "4 days ago" or "4 days from now". */
+							/* translators: %d: Duration in days from or to a particular datetime, e.g., "4 days ago" or "4 days from now". */
 							'dd'     => __( '%d days' ),
-							/* translators: %s: One month from or to a particular datetime, e.g., "a month ago" or "a month from now". */
+							/* translators: One month from or to a particular datetime, e.g., "a month ago" or "a month from now". */
 							'M'      => __( 'a month' ),
-							/* translators: %s: Duration in months from or to a particular datetime, e.g., "4 months ago" or "4 months from now". */
+							/* translators: %d: Duration in months from or to a particular datetime, e.g., "4 months ago" or "4 months from now". */
 							'MM'     => __( '%d months' ),
-							/* translators: %s: One year from or to a particular datetime, e.g., "a year ago" or "a year from now". */
+							/* translators: One year from or to a particular datetime, e.g., "a year ago" or "a year from now". */
 							'y'      => __( 'a year' ),
-							/* translators: %s: Duration in years from or to a particular datetime, e.g., "4 years ago" or "4 years from now". */
+							/* translators: %d: Duration in years from or to a particular datetime, e.g., "4 years ago" or "4 years from now". */
 							'yy'     => __( '%d years' ),
 						),
 						'startOfWeek'   => (int) get_option( 'start_of_week', 0 ),
@@ -475,9 +477,10 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'datetimeAbbreviated' => __( 'M j, Y g:i a' ),
 					),
 					'timezone' => array(
-						'offset' => (float) get_option( 'gmt_offset', 0 ),
-						'string' => $timezone_string,
-						'abbr'   => $timezone_abbr,
+						'offset'          => (float) $gmt_offset,
+						'offsetFormatted' => str_replace( array( '.25', '.5', '.75' ), array( ':15', ':30', ':45' ), (string) $gmt_offset ),
+						'string'          => $timezone_string,
+						'abbr'            => $timezone_abbr,
 					),
 				)
 			)
