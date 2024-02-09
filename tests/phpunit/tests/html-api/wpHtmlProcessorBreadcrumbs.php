@@ -182,7 +182,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'IFRAME',
 			'LINK',
 			'MARQUEE', // Deprecated.
-			'MATH',
 			'META',
 			'NOBR', // Neutralized.
 			'NOEMBED', // Neutralized.
@@ -199,7 +198,6 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'SCRIPT',
 			'SELECT',
 			'STYLE',
-			'SVG',
 			'TABLE',
 			'TBODY',
 			'TD',

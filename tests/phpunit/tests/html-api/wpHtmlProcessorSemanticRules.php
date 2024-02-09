@@ -132,6 +132,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		 * When encountering the BUTTON closing tag, there is no BUTTON in the stack of open elements.
 		 * It should be ignored as there's no BUTTON to close.
 		 */
+		$processor->step();
 		$this->assertTrue( $processor->step(), 'Found no further tags when it should have found the closing DIV' );
 		$this->assertSame( 'DIV', $processor->get_tag(), "Did not skip unexpected BUTTON; stopped at {$processor->get_tag()}." );
 		$this->assertTrue( $processor->is_tag_closer(), 'Did not find that the terminal DIV tag is a closer.' );
