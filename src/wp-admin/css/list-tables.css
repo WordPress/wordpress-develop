@@ -1580,14 +1580,6 @@ div.action-links,
 	margin-top: 0;
 }
 
-.plugin-card .column-description .authors {
-	order: 1;
-}
-
-.plugin-card .column-description .plugin-dependencies {
-	order: 2;
-}
-
 .plugin-card .column-description p:empty {
 	display: none;
 }
