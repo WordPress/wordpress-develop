@@ -29,7 +29,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::__construct
+	 * [@]covers WP_HTML_Processor::__construct
 	 */
 	public function test_warns_that_the_static_creator_methods_should_be_called_instead_of_the_public_constructor() {
 		$this->setExpectedIncorrectUsage( 'WP_HTML_Processor::__construct' );
@@ -49,7 +49,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 59167
 	 *
-	 * @covers WP_HTML_Processor::get_tag
+	 * [@]covers WP_HTML_Processor::get_tag
 	 */
 	public function test_get_tag_is_null_once_document_is_finished() {
 		$processor = WP_HTML_Processor::create_fragment( '<div class="test">Test</div>' );
@@ -73,8 +73,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::next_tag
-	 * @covers WP_HTML_Processor::seek
+	 * [@]covers WP_HTML_Processor::next_tag
+	 * [@]covers WP_HTML_Processor::seek
 	 */
 	public function test_clear_to_navigate_after_seeking() {
 		$processor = WP_HTML_Processor::create_fragment( '<div one><strong></strong></div><p><strong two></strong></p>' );
@@ -123,7 +123,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::reconstruct_active_formatting_elements
+	 * [@]covers WP_HTML_Processor::reconstruct_active_formatting_elements
 	 */
 	public function test_fails_to_reconstruct_formatting_elements() {
 		$processor = WP_HTML_Processor::create_fragment( '<p><em>One<p><em>Two<p><em>Three<p><em>Four' );
@@ -137,8 +137,8 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 60283
 	 *
-	 * @covers WP_HTML_Processor::step_in_body
-	 * @covers WP_HTML_Processor::is_void
+	 * [@]covers WP_HTML_Processor::step_in_body
+	 * [@]covers WP_HTML_Processor::is_void
 	 *
 	 * @dataProvider data_void_tags
 	 *
@@ -275,7 +275,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_unsupported_special_in_body_tags
 	 *
-	 * @covers WP_HTML_Processor::step_in_body
+	 * [@]covers WP_HTML_Processor::step_in_body
 	 *
 	 * @param string $tag_name Name of the tag to test.
 	 */

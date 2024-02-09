@@ -15,7 +15,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	/**
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::step
+	 * [@]covers WP_HTML_Processor::step
 	 *
 	 * @dataProvider data_single_tag_of_supported_elements
 	 *
@@ -148,7 +148,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::step
+	 * [@]covers WP_HTML_Processor::step
 	 *
 	 * @dataProvider data_unsupported_elements
 	 *
@@ -261,7 +261,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	/**
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::next_tag
+	 * [@]covers WP_HTML_Processor::next_tag
 	 *
 	 * @dataProvider data_html_target_with_breadcrumbs
 	 *
@@ -286,7 +286,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	/**
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::get_breadcrumbs
+	 * [@]covers WP_HTML_Processor::get_breadcrumbs
 	 *
 	 * @dataProvider data_html_target_with_breadcrumbs
 	 *
@@ -430,7 +430,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @ticket 59607
 	 *
-	 * @covers WP_HTML_Tag_Processor::get_updated_html
+	 * [@]covers WP_HTML_Tag_Processor::get_updated_html
 	 */
 	public function test_remains_stable_when_editing_attributes() {
 		$processor = WP_HTML_Processor::create_fragment( '<div><button>First<button><b here>Second' );
@@ -476,7 +476,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 * [@]covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_can_modify_attributes_after_finding_tag() {
 		$processor = WP_HTML_Processor::create_fragment( '<div><figure><img><figcaption>test</figcaption></figure>' );
@@ -494,7 +494,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::next_tag
+	 * [@]covers WP_HTML_Processor::next_tag
 	 */
 	public function test_can_query_an_element_by_tag_name() {
 		$processor = WP_HTML_Processor::create_fragment( '<div><DIV><strong><img></strong></DIV>' );
@@ -511,7 +511,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 *
 	 * @ticket 58517
 	 *
-	 * @covers WP_HTML_Processor::seek
+	 * [@]covers WP_HTML_Processor::seek
 	 */
 	public function test_can_seek_back_and_forth() {
 		$processor = WP_HTML_Processor::create_fragment(

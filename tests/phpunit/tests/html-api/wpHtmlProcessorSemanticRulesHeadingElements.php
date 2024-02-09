@@ -22,7 +22,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesHeadingElements extends WP_UnitT
 	 *
 	 * @ticket 60060
 	 *
-	 * @covers WP_HTML_Processor::step
+	 * [@]covers WP_HTML_Processor::step
 	 *
 	 * @dataProvider data_heading_elements
 	 *
@@ -69,7 +69,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesHeadingElements extends WP_UnitT
 	 *
 	 * @ticket 60060
 	 *
-	 * @covers WP_HTML_Processor::step
+	 * [@]covers WP_HTML_Processor::step
 	 *
 	 * @dataProvider data_heading_combinations
 	 *
