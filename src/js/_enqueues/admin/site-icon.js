@@ -45,7 +45,6 @@
 		// Build the choose from library frame.
 		$( '#choose-from-library-link' ).on( 'click', function( event ) {
 			var $el = $(this);
-			event.preventDefault();
 
 			// If the media frame already exists, reopen it.
 			if ( frame ) {
