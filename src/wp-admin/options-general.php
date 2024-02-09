@@ -97,6 +97,7 @@ $tagline_description = sprintf(
 <p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
+<?php if( current_user_can( 'upload_files' ) ) : ?>
 <tr class="hide-if-no-js">
 <th scope="row"><?php _e( 'Site Icon' ); ?></th>
 <td>
@@ -165,6 +166,7 @@ $tagline_description = sprintf(
 </tr>
 
 <?php
+endif;
 /* End Site Icon */
 
 if ( ! is_multisite() ) {
