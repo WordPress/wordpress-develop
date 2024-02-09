@@ -147,7 +147,8 @@ $tagline_description = sprintf(
 		</button>
 		<button
 			id="js-remove-site-icon"
-			<?php echo has_site_icon() ? 'class="button"' : 'class="button hidden"'; ?>
+			type="button"
+			<?php echo has_site_icon() ? 'class="button-as-link"' : 'class="button-as-link hidden"'; ?>
 		>
 			<?php _e( 'Remove Site Icon' ); ?>
 		</button>

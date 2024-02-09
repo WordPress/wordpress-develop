@@ -798,6 +798,26 @@ ul#add-to-blog-users {
 	background: white;
 }
 
+.button-as-link{
+	background: none;
+	border: none;
+	color: #2271b1;
+	cursor: pointer;
+	padding: 0;
+	text-decoration: underline;
+}
+
+.button-as-link:hover{
+	color: #043959;
+}
+
+.button-as-link:focus{
+	color: #043959;
+	box-shadow: 0 0 0 1px #4f94d4,
+	0 0 2px 1px rgba(79, 148, 212, 0.8);
+	outline: 1px solid transparent;
+}
+
 .button-ad-site-icon:focus{
 	background-color: #fff;
 	border-color: #3582c4;
