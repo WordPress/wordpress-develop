@@ -57,7 +57,7 @@
 				button: {
 					// Set the text of the button.
 					text: $el.data('update'),
-					// don't close, we might need to crop
+					// Don't close, we might need to crop.
 					close: false
 				},
 				states: [
@@ -84,7 +84,7 @@
 				$( '#site_icon_hidden_field' ).val(attachment.id);
 				switchToUpdate(attachment.url);
 				frame.close();
-				// Startover with a frame that is so fresh and so clean clean.
+				// Start over with a frame that is so fresh and so clean clean.
 				frame = null;
 			});
 
@@ -94,10 +94,9 @@
 				var attachment = frame.state().get('selection').first();
 
 				if ( attachment.attributes.height === $el.data('size') && $el.data('size') === attachment.attributes.width ) {
-					// set the value of the hidden input to the attachment id
+					// Set the value of the hidden input to the attachment id.
 					$( '#site_icon_hidden_field').val(attachment.id);
 					switchToUpdate(attachment.attributes.url);
-					// close the model
 					frame.close();
 				} else {
 					frame.setState( 'cropper' );
@@ -109,13 +108,12 @@
 	});
 
 	function switchToUpdate( url ){
-		// set site-icon-img src to the url and remove the hidden class
+		// Set site-icon-img src to the url and remove the hidden class.
 		$( '#site-icon-img' ).attr( 'src', url );
 		$( '#site-icon-img' ).removeClass( 'hidden' );
-		// remove hidden class from remove
+		// Remove hidden class from remove.
 		$( '#js-remove-site-icon' ).removeClass( 'hidden' );
-		// tmp store the classes of the #choose-from-library-link button
-		// if the button is not in the update state, swap the classes
+		// If the button is not in the update state, swap the classes.
 		if( $( '#choose-from-library-link' ).attr( 'data-state' ) !== '1' ){
 			var classes = $( '#choose-from-library-link' ).attr( 'class' );
 			$( '#choose-from-library-link' ).attr( 'class', $( '#choose-from-library-link' ).attr('data-alt-classes') );
@@ -128,24 +126,17 @@
 	}
 
 	$( '#js-remove-site-icon' ).on( 'click', function( event ) {
-		// set the value of the hidden input to blank
 		$( '#site_icon_hidden_field' ).val( 'false' );
-		//  toggle hidden class on site-icon-img
 		$( '#site-icon-img' ).toggleClass( 'hidden' );
-		// toggle hidden class on remove button
 		$( this ).toggleClass( 'hidden' );
 
-		// tmp store the classes of the #choose-from-library-link button
 		var classes = $( '#choose-from-library-link' ).attr( 'class' );
 		$( '#choose-from-library-link' ).attr( 'class', $( '#choose-from-library-link' ).attr( 'data-alt-classes' ) );
 		$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
 
-		// swap the text of the button
+		// Swap the text of the button.
 		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr( 'data-choose-text' ) );
-
+		// Set the state of the button so it can be changed on new icon.
 		$( '#choose-from-library-link' ).attr( 'data-state', '');
-
-		// prevent the default action
-		event.preventDefault();
 	});
 }(jQuery));
