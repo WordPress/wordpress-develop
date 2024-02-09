@@ -406,20 +406,20 @@ printf(
 			<script>
 				let permalinkRadio = document.querySelector('input[name="selection"]');
 				document.body.addEventListener('change', function (e) {
-		            var strctureType = e.target.value;
-		            const structureButtons = document.querySelectorAll('.button-secondary');
-		            if(strctureType == 'custom'){
-		            	document.querySelector('input[name="permalink_structure"]').disabled = false;
-		            	for (let i = 0; i < structureButtons.length; i++) {
-						  structureButtons[i].disabled = false;
+					var strctureType = e.target.value;
+					const structureButtons = document.querySelectorAll('.button-secondary');
+					if(strctureType == 'custom'){
+						document.querySelector('input[name="permalink_structure"]').disabled = false;
+						for (let i = 0; i < structureButtons.length; i++) {
+							structureButtons[i].disabled = false;
 						}
-		            } else {
-		            	document.querySelector('input[name="permalink_structure"]').disabled = true;
-		            	for (let i = 0; i < structureButtons.length; i++) {
-						  structureButtons[i].disabled = true;
+					} else {
+						document.querySelector('input[name="permalink_structure"]').disabled = true;
+						for (let i = 0; i < structureButtons.length; i++) {
+							structureButtons[i].disabled = true;
 						}
-		            }
-		        });
+					}
+				});
 			</script>
 		</fieldset><!-- .structure-selection -->
 	</td>
