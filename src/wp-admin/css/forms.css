@@ -818,6 +818,18 @@ ul#add-to-blog-users {
 	outline: 1px solid transparent;
 }
 
+.site-icon-section .favicon-preview{
+	float: left;
+}
+.site-icon-section .app-icon-preview{
+	float: left;
+	margin: 0 20px;
+}
+
+.site-icon-section .site-icon-preview img{
+	max-width: 100%;
+}
+
 .button-ad-site-icon:focus{
 	background-color: #fff;
 	border-color: #3582c4;

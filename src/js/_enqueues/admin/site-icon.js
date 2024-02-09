@@ -46,12 +46,6 @@
 		$( '#choose-from-library-link' ).on( 'click', function( event ) {
 			var $el = $(this);
 
-			// If the media frame already exists, reopen it.
-			if ( frame ) {
-				frame.open();
-				return;
-			}
-
 			// Create the media frame.
 			frame = wp.media({
 				button: {
@@ -109,8 +103,10 @@
 
 	function switchToUpdate( url ){
 		// Set site-icon-img src to the url and remove the hidden class.
-		$( '#site-icon-img' ).attr( 'src', url );
-		$( '#site-icon-img' ).removeClass( 'hidden' );
+		$( '#site-icon-preview').find('img').not('.browser-preview').each( function(i, img ){
+			$(img).attr('src', url );
+		});
+		$( '#site-icon-preview' ).removeClass( 'hidden' );
 		// Remove hidden class from remove.
 		$( '#js-remove-site-icon' ).removeClass( 'hidden' );
 		// If the button is not in the update state, swap the classes.
@@ -127,7 +123,7 @@
 
 	$( '#js-remove-site-icon' ).on( 'click', function( event ) {
 		$( '#site_icon_hidden_field' ).val( 'false' );
-		$( '#site-icon-img' ).toggleClass( 'hidden' );
+		$( '#site-icon-preview' ).toggleClass( 'hidden' );
 		$( this ).toggleClass( 'hidden' );
 
 		var classes = $( '#choose-from-library-link' ).attr( 'class' );

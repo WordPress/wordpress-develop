@@ -98,7 +98,7 @@ $tagline_description = sprintf(
 </tr>
 
 <?php if( current_user_can( 'upload_files' ) ) : ?>
-<tr class="hide-if-no-js">
+<tr class="hide-if-no-js site-icon-section">
 <th scope="row"><?php _e( 'Site Icon' ); ?></th>
 <td>
 	<?php
@@ -122,8 +122,16 @@ $tagline_description = sprintf(
 
 
 	?>
-
-	<img id="site-icon-img" class="<?php echo esc_attr( $classes_for_avatar ); ?>" src="<?php site_icon_url( null, 150 ); ?>" height="150" width="150" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>" />
+	<div id="site-icon-preview" class="site-icon-preview wp-clearfix <?php echo esc_attr( $classes_for_avatar ); ?>">
+		<div class="favicon-preview">
+			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
+			<div class="favicon">
+				<img src="<?php site_icon_url( null, 150 ); ?>" alt="Preview as a browser icon">
+			</div>
+			<span class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
+		</div>
+		<img class="app-icon-preview" src="<?php site_icon_url( null, 150 ); ?>" alt="Preview as an app icon">
+	</div>
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<p>
 		<button type="button"
@@ -132,7 +140,6 @@ $tagline_description = sprintf(
 			class="<?php echo esc_attr( $classes_for_button ); ?>"
 			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
 			data-size="512"
-			data-choose="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
 			data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
@@ -159,7 +166,7 @@ $tagline_description = sprintf(
 	</p>
 	<p class="description" id="site-icon-further-description">
 		<?php
-			/* translators: %s: Site icon size in pixels. */
+			/* translators: %s: Site Icon size in pixels. */
 			printf( __( 'Site Icons should be square and at least %s pixels.' ), '<strong>512 &times; 512</strong>' );
 		?>
 	</p>
@@ -168,8 +175,8 @@ $tagline_description = sprintf(
 </tr>
 
 <?php
-endif;
 /* End Site Icon */
+endif;
 
 if ( ! is_multisite() ) {
 	$wp_site_url_class = '';
