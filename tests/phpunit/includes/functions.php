@@ -351,3 +351,14 @@ function _unhook_block_registration() {
 	remove_action( 'init', '_register_block_bindings_post_meta_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register font collections can cause
+ * errors. To avoid this, unhook the font registration functions.
+ *
+ * @since 6.5.0
+ */
+function _unhook_font_registration() {
+	remove_action( 'init', '_wp_register_default_font_collections' );
+}
+tests_add_filter( 'init', '_unhook_font_registration', 1000 );

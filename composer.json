@@ -10,6 +10,7 @@
 		"issues": "https://core.trac.wordpress.org/"
 	},
 	"require": {
+		"ext-json": "*",
 		"php": ">=7.0"
 	},
 	"suggest": {
