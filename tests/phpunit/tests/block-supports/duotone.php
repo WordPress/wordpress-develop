@@ -133,7 +133,6 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 		$reflection->setAccessible( true );
 
 		$this->assertSame( $expected, $reflection->invoke( null, $value, $unit ) );
-
 	}
 
 	/**
