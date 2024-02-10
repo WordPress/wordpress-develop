@@ -124,4 +124,32 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 			'invalid'                         => array( 'not a valid attribute', false ),
 		);
 	}
+
+	/**
+	 * @dataProvider data_colord_parse_hue
+	 */
+	public function test_colord_parse_hue( $value, $unit, $expected ) {
+		$reflection = new ReflectionMethod( 'WP_Duotone', 'colord_parse_hue' );
+		$reflection->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection->invoke( null, $value, $unit ) );
+
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public function data_colord_parse_hue() {
+		return array(
+			'deg-angle-unit' => array( 120, 'deg', 120.0 ),
+			'grad-angle-unit' => array( 120, 'grad', 108.0 ),
+			'turn-angle-unit' => array( 120, 'turn', 43200.0 ),
+			'rad-angle-unit' => array( 120, 'rad', 6875.493541569878 ),
+			'empty-angle-unit' => array( 120, '', 120.0 ),
+			'invalid-angle-unit' => array( 120, 'invalid', 120.0 ),
+			'negative-value-deg-angle-unit' => array( -120, 'deg', -120.0 ),
+		);
+	}
 }
