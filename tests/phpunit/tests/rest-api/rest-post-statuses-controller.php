@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Testcase {
@@ -227,5 +225,4 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$obj  = get_post_status_object( 'publish' );
 		$this->check_post_status_obj( $obj, $data, $response->get_links() );
 	}
-
 }

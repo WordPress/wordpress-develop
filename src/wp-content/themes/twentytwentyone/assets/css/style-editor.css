@@ -142,7 +142,6 @@
 	--branding--title--text-transform: uppercase;
 	--branding--description--font-family: var(--global--font-secondary);
 	--branding--description--font-size: var(--global--font-size-sm);
-	--branding--description--font-family: var(--global--font-secondary);
 	--branding--logo--max-width: 300px;
 	--branding--logo--max-height: 100px;
 	--branding--logo--max-width-mobile: 96px;
@@ -300,6 +299,11 @@
 		margin-left: auto;
 		margin-right: auto;
 	}
+}
+
+b,
+strong {
+	font-weight: 700;
 }
 
 blockquote {
@@ -1517,6 +1521,7 @@ pre.wp-block-preformatted {
 	position: relative;
 	border-left: none;
 	margin: var(--global--spacing-vertical) auto var(--global--spacing-vertical) var(--global--spacing-horizontal);
+	padding-left: 1em;
 }
 
 .wp-block-quote p {
@@ -1535,7 +1540,7 @@ pre.wp-block-preformatted {
 	content: "“";
 	font-size: var(--quote--font-size);
 	line-height: var(--quote--line-height);
-	left: calc(-0.5 * var(--global--spacing-horizontal));
+	left: 8px;
 }
 
 .wp-block-quote .wp-block-quote__citation {

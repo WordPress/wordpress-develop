@@ -72,13 +72,13 @@ header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option
 
 <h1><?php _e( 'No Update Required' ); ?></h1>
 <p><?php _e( 'Your WordPress database is already up to date!' ); ?></p>
-<p class="step"><a class="button button-large" href="<?php echo get_option( 'home' ); ?>/"><?php _e( 'Continue' ); ?></a></p>
+<p class="step"><a class="button button-large" href="<?php echo esc_url( get_option( 'home' ) ); ?>/"><?php _e( 'Continue' ); ?></a></p>
 
 	<?php
 elseif ( ! $php_compat || ! $mysql_compat ) :
 	$version_url = sprintf(
 		/* translators: %s: WordPress version. */
-		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
 		sanitize_title( $wp_version )
 	);
 

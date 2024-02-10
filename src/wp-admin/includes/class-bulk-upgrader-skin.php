@@ -59,7 +59,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 			$feedback = $this->upgrader->strings[ $feedback ];
 		}
 
-		if ( strpos( $feedback, '%' ) !== false ) {
+		if ( str_contains( $feedback, '%' ) ) {
 			if ( $args ) {
 				$args     = array_map( 'strip_tags', $args );
 				$args     = array_map( 'esc_html', $args );
@@ -79,13 +79,13 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	/**
 	 */
 	public function header() {
-		// Nothing, This will be displayed within a iframe.
+		// Nothing. This will be displayed within an iframe.
 	}
 
 	/**
 	 */
 	public function footer() {
-		// Nothing, This will be displayed within a iframe.
+		// Nothing. This will be displayed within an iframe.
 	}
 
 	/**
@@ -131,7 +131,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 		$this->in_loop = true;
 		printf( '<h2>' . $this->upgrader->strings['skin_before_update_header'] . ' <span class="spinner waiting-' . $this->upgrader->update_current . '"></span></h2>', $title, $this->upgrader->update_current, $this->upgrader->update_count );
 		echo '<script type="text/javascript">jQuery(\'.waiting-' . esc_js( $this->upgrader->update_current ) . '\').css("display", "inline-block");</script>';
-		// This progress messages div gets moved via JavaScript when clicking on "Show details.".
+		// This progress messages div gets moved via JavaScript when clicking on "More details.".
 		echo '<div class="update-messages hide-if-js" id="progress-' . esc_attr( $this->upgrader->update_current ) . '"><p>';
 		$this->flush_output();
 	}
@@ -143,10 +143,16 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 		echo '</p></div>';
 		if ( $this->error || ! $this->result ) {
 			if ( $this->error ) {
-				echo '<div class="error"><p>' . sprintf( $this->upgrader->strings['skin_update_failed_error'], $title, '<strong>' . $this->error . '</strong>' ) . '</p></div>';
+				$after_error_message = sprintf( $this->upgrader->strings['skin_update_failed_error'], $title, '<strong>' . $this->error . '</strong>' );
 			} else {
-				echo '<div class="error"><p>' . sprintf( $this->upgrader->strings['skin_update_failed'], $title ) . '</p></div>';
+				$after_error_message = sprintf( $this->upgrader->strings['skin_update_failed'], $title );
 			}
+			wp_admin_notice(
+				$after_error_message,
+				array(
+					'additional_classes' => array( 'error' ),
+				)
+			);
 
 			echo '<script type="text/javascript">jQuery(\'#progress-' . esc_js( $this->upgrader->update_current ) . '\').show();</script>';
 		}
@@ -154,7 +160,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 			if ( ! $this->error ) {
 				echo '<div class="updated js-update-details" data-update-details="progress-' . esc_attr( $this->upgrader->update_current ) . '">' .
 					'<p>' . sprintf( $this->upgrader->strings['skin_update_successful'], $title ) .
-					' <button type="button" class="hide-if-no-js button-link js-update-details-toggle" aria-expanded="false">' . __( 'Show details.' ) . '</button>' .
+					' <button type="button" class="hide-if-no-js button-link js-update-details-toggle" aria-expanded="false">' . __( 'More details.' ) . '<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span></button>' .
 					'</p></div>';
 			}
 

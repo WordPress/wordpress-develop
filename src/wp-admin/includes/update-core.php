@@ -833,10 +833,6 @@ $_old_files = array(
 	'wp-includes/blocks/heading/editor.min.css',
 	'wp-includes/blocks/heading/editor-rtl.css',
 	'wp-includes/blocks/heading/editor-rtl.min.css',
-	'wp-includes/blocks/post-content/editor.css',
-	'wp-includes/blocks/post-content/editor.min.css',
-	'wp-includes/blocks/post-content/editor-rtl.css',
-	'wp-includes/blocks/post-content/editor-rtl.min.css',
 	'wp-includes/blocks/query-title/editor.css',
 	'wp-includes/blocks/query-title/editor.min.css',
 	'wp-includes/blocks/query-title/editor-rtl.css',
@@ -863,6 +859,14 @@ $_old_files = array(
 	'wp-includes/blocks/comments-query-loop/editor-rtl.css',
 	'wp-includes/blocks/comments-query-loop/editor-rtl.min.css',
 	'wp-includes/blocks/comments-query-loop',
+	// 6.3
+	'wp-includes/images/wlw',
+	'wp-includes/wlwmanifest.xml',
+	'wp-includes/random_compat',
+	// 6.4
+	'wp-includes/navigation-fallback.php',
+	'wp-includes/blocks/navigation/view-modal.min.js',
+	'wp-includes/blocks/navigation/view-modal.js',
 );
 
 /**
@@ -993,13 +997,14 @@ $_new_bundled_files = array(
 	'themes/twentytwentyone/'   => '5.6',
 	'themes/twentytwentytwo/'   => '5.9',
 	'themes/twentytwentythree/' => '6.1',
+	'themes/twentytwentyfour/'  => '6.4',
 );
 
 /**
  * Upgrades the core of WordPress.
  *
  * This will create a .maintenance file at the base of the WordPress directory
- * to ensure that people can not access the web site, when the files are being
+ * to ensure that people can not access the website, when the files are being
  * copied to their locations.
  *
  * The files in the `$_old_files` list will be removed and the new files
@@ -1084,7 +1089,7 @@ function update_core( $from, $to ) {
 	 */
 	apply_filters( 'update_feedback', __( 'Verifying the unpacked files&#8230;' ) );
 
-	// Sanity check the unzipped distribution.
+	// Confidence check the unzipped distribution.
 	$distro = '';
 	$roots  = array( '/wordpress/', '/wordpress-mu/' );
 
@@ -1134,9 +1139,14 @@ function update_core( $from, $to ) {
 	require WP_CONTENT_DIR . '/upgrade/version-current.php';
 	$wp_filesystem->delete( $versions_file );
 
-	$php_version       = PHP_VERSION;
-	$mysql_version     = $wpdb->db_version();
-	$old_wp_version    = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
+	$php_version    = PHP_VERSION;
+	$mysql_version  = $wpdb->db_version();
+	$old_wp_version = $GLOBALS['wp_version']; // The version of WordPress we're updating from.
+	/*
+	 * Note: str_contains() is not used here, as this file is included
+	 * when updating from older WordPress versions, in which case
+	 * the polyfills from wp-includes/compat.php may not be available.
+	 */
 	$development_build = ( false !== strpos( $old_wp_version . $wp_version, '-' ) ); // A dash in the version indicates a development release.
 	$php_compat        = version_compare( $php_version, $required_php_version, '>=' );
 
@@ -1221,8 +1231,10 @@ function update_core( $from, $to ) {
 	/** This filter is documented in wp-admin/includes/update-core.php */
 	apply_filters( 'update_feedback', __( 'Preparing to install the latest version&#8230;' ) );
 
-	// Don't copy wp-content, we'll deal with that below.
-	// We also copy version.php last so failed updates report their old version.
+	/*
+	 * Don't copy wp-content, we'll deal with that below.
+	 * We also copy version.php last so failed updates report their old version.
+	 */
 	$skip              = array( 'wp-content', 'wp-includes/version.php' );
 	$check_is_writable = array();
 
@@ -1239,6 +1251,11 @@ function update_core( $from, $to ) {
 
 		if ( is_array( $checksums ) ) {
 			foreach ( $checksums as $file => $checksum ) {
+				/*
+				 * Note: str_starts_with() is not used here, as this file is included
+				 * when updating from older WordPress versions, in which case
+				 * the polyfills from wp-includes/compat.php may not be available.
+				 */
 				if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 					continue;
 				}
@@ -1346,6 +1363,11 @@ function update_core( $from, $to ) {
 
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
 		foreach ( $checksums as $file => $checksum ) {
+			/*
+			 * Note: str_starts_with() is not used here, as this file is included
+			 * when updating from older WordPress versions, in which case
+			 * the polyfills from wp-includes/compat.php may not be available.
+			 */
 			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
 				continue;
 			}
@@ -1379,8 +1401,10 @@ function update_core( $from, $to ) {
 			}
 		}
 
-		// If we don't have enough free space, it isn't worth trying again.
-		// Unlikely to be hit due to the check in unzip_file().
+		/*
+		 * If we don't have enough free space, it isn't worth trying again.
+		 * Unlikely to be hit due to the check in unzip_file().
+		 */
 		$available_space = function_exists( 'disk_free_space' ) ? @disk_free_space( ABSPATH ) : false;
 
 		if ( $available_space && $total_size >= $available_space ) {
@@ -1398,15 +1422,21 @@ function update_core( $from, $to ) {
 		}
 	}
 
-	// Custom content directory needs updating now.
-	// Copy languages.
+	/*
+	 * Custom content directory needs updating now.
+	 * Copy languages.
+	 */
 	if ( ! is_wp_error( $result ) && $wp_filesystem->is_dir( $from . $distro . 'wp-content/languages' ) ) {
 		if ( WP_LANG_DIR !== ABSPATH . WPINC . '/languages' || @is_dir( WP_LANG_DIR ) ) {
 			$lang_dir = WP_LANG_DIR;
 		} else {
 			$lang_dir = WP_CONTENT_DIR . '/languages';
 		}
-
+		/*
+		 * Note: str_starts_with() is not used here, as this file is included
+		 * when updating from older WordPress versions, in which case
+		 * the polyfills from wp-includes/compat.php may not be available.
+		 */
 		// Check if the language directory exists first.
 		if ( ! @is_dir( $lang_dir ) && 0 === strpos( $lang_dir, ABSPATH ) ) {
 			// If it's within the ABSPATH we can handle it here, otherwise they're out of luck.
@@ -1437,8 +1467,10 @@ function update_core( $from, $to ) {
 	// Remove maintenance file, we're done with potential site-breaking changes.
 	$wp_filesystem->delete( $maintenance_file );
 
-	// 3.5 -> 3.5+ - an empty twentytwelve directory was created upon upgrade to 3.5 for some users,
-	// preventing installation of Twenty Twelve.
+	/*
+	 * 3.5 -> 3.5+ - an empty twentytwelve directory was created upon upgrade to 3.5 for some users,
+	 * preventing installation of Twenty Twelve.
+	 */
 	if ( '3.5' === $old_wp_version ) {
 		if ( is_dir( WP_CONTENT_DIR . '/themes/twentytwelve' )
 			&& ! file_exists( WP_CONTENT_DIR . '/themes/twentytwelve/style.css' )
@@ -1493,7 +1525,10 @@ function update_core( $from, $to ) {
 					$wp_filesystem->mkdir( $dest . $filename, FS_CHMOD_DIR );
 					$_result = copy_dir( $from . $distro . 'wp-content/' . $file, $dest . $filename );
 
-					// If a error occurs partway through this final step, keep the error flowing through, but keep process going.
+					/*
+					 * If an error occurs partway through this final step,
+					 * keep the error flowing through, but keep the process going.
+					 */
 					if ( is_wp_error( $_result ) ) {
 						if ( ! is_wp_error( $result ) ) {
 							$result = new WP_Error();
@@ -1758,6 +1793,11 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$files     = array();
 
 	if ( file_exists( "{$directory}example.html" )
+		/*
+		 * Note: str_contains() is not used here, as this file is included
+		 * when updating from older WordPress versions, in which case
+		 * the polyfills from wp-includes/compat.php may not be available.
+		 */
 		&& false !== strpos( file_get_contents( "{$directory}example.html" ), '<title>Genericons</title>' )
 	) {
 		$files[] = "{$directory}example.html";
@@ -1766,8 +1806,14 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
 	$dirs = array_filter(
 		$dirs,
-		static function( $dir ) {
-			// Skip any node_modules directories.
+		static function ( $dir ) {
+			/*
+			 * Skip any node_modules directories.
+			 *
+			 * Note: str_contains() is not used here, as this file is included
+			 * when updating from older WordPress versions, in which case
+			 * the polyfills from wp-includes/compat.php may not be available.
+			 */
 			return false === strpos( $dir, 'node_modules' );
 		}
 	);
@@ -1797,13 +1843,15 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  * @since 5.8.0
  * @since 5.9.0 The minimum compatible version of Gutenberg is 11.9.
  * @since 6.1.1 The minimum compatible version of Gutenberg is 14.1.
+ * @since 6.4.0 The minimum compatible version of Gutenberg is 16.5.
+ * @since 6.5.0 The minimum compatible version of Gutenberg is 17.6.
  */
 function _upgrade_core_deactivate_incompatible_plugins() {
-	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '14.1', '<' ) ) {
+	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '17.6', '<' ) ) {
 		$deactivated_gutenberg['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
-			'version_compatible'  => '14.1',
+			'version_compatible'  => '17.6',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
 			$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );

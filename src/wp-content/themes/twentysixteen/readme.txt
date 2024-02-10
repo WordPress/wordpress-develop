@@ -1,7 +1,9 @@
 === Twenty Sixteen ===
 Contributors: wordpressdotorg
-Tested up to: 6.1
-Version: 2.8
+Requires at least: 4.4
+Tested up to: 6.4
+Requires PHP: 5.2.4
+Version: 3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: one-column, two-columns, right-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-menu, editor-style, featured-images, flexible-header, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, blog, block-patterns
@@ -16,19 +18,19 @@ Twenty Sixteen is a modernized take on an ever-popular WordPress layout — the 
 * Post Formats
 * The GPL v2.0 or later license. :) Use it to make something cool.
 
-For more information about Twenty Sixteen please go to https://wordpress.org/support/article/twenty-sixteen/.
+For more information about Twenty Sixteen please go to https://wordpress.org/documentation/article/twenty-sixteen/.
 
 == Installation ==
 
 1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
 2. Type in Twenty Sixteen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
-4. Go to https://wordpress.org/support/article/twenty-sixteen/ for a guide on how to customize this theme.
+4. Go to https://wordpress.org/documentation/article/twenty-sixteen/ for a guide on how to customize this theme.
 5. Navigate to Appearance > Customize in your admin panel and customize to taste.
 
 == Copyright ==
 
-Twenty Sixteen WordPress Theme, Copyright 2014-2023 WordPress.org
+Twenty Sixteen WordPress Theme, Copyright 2014-2024 WordPress.org
 Twenty Sixteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -69,6 +71,21 @@ Source: https://fontsource.org/fonts/inconsolata
 Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/schmidy/), licensed under Creative Commons Zero(http://creativecommons.org/publicdomain/zero/1.0/)
 
 == Changelog ==
+
+= 3.1 =
+* Released: November 7, 2023
+
+https://codex.wordpress.org/Twenty_Sixteen_Theme_Changelog#Version_3.1
+
+= 3.0 =
+* Released: August 8, 2023
+
+https://codex.wordpress.org/Twenty_Sixteen_Theme_Changelog#Version_3.0
+
+= 2.9 =
+* Released: March 28, 2023
+
+https://codex.wordpress.org/Twenty_Sixteen_Theme_Changelog#Version_2.9
 
 = 2.8 =
 * Released: November 1, 2022

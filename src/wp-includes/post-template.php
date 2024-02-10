@@ -37,12 +37,13 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  * @param string $before  Optional. Markup to prepend to the title. Default empty.
  * @param string $after   Optional. Markup to append to the title. Default empty.
  * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$display` argument is true, current post title if `$display` is false.
+ * @return void|string Void if `$display` argument is true or the title is empty,
+ *                     current post title if `$display` is false.
  */
 function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -88,7 +89,7 @@ function the_title_attribute( $args = '' ) {
 
 	$title = get_the_title( $parsed_args['post'] );
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -284,8 +285,10 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		return '';
 	}
 
-	// Use the globals if the $post parameter was not specified,
-	// but only after they have been set up in setup_postdata().
+	/*
+	 * Use the globals if the $post parameter was not specified,
+	 * but only after they have been set up in setup_postdata().
+	 */
 	if ( null === $post && did_action( 'the_post' ) ) {
 		$elements = compact( 'page', 'more', 'preview', 'pages', 'multipage' );
 	} else {
@@ -342,7 +345,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( false !== strpos( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( str_contains( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
 		$strip_teaser = true;
 	}
 
@@ -667,8 +670,8 @@ function get_body_class( $css_class = '' ) {
 	}
 
 	if ( is_singular() ) {
-		$post_id   = $wp_query->get_queried_object_id();
 		$post      = $wp_query->get_queried_object();
+		$post_id   = $post->ID;
 		$post_type = $post->post_type;
 
 		if ( is_page_template() ) {
@@ -711,16 +714,11 @@ function get_body_class( $css_class = '' ) {
 			$classes[]   = 'attachment-' . str_replace( $mime_prefix, '', $mime_type );
 		} elseif ( is_page() ) {
 			$classes[] = 'page';
-
-			$page_id = $wp_query->get_queried_object_id();
-
-			$post = get_post( $page_id );
-
-			$classes[] = 'page-id-' . $page_id;
+			$classes[] = 'page-id-' . $post_id;
 
 			if ( get_pages(
 				array(
-					'parent' => $page_id,
+					'parent' => $post_id,
 					'number' => 1,
 				)
 			) ) {
@@ -886,7 +884,7 @@ function post_password_required( $post = null ) {
 	$hasher = new PasswordHash( 8, true );
 
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( 0 !== strpos( $hash, '$P$B' ) ) {
+	if ( ! str_starts_with( $hash, '$P$B' ) ) {
 		$required = true;
 	} else {
 		$required = ! $hasher->CheckPassword( $post->post_password, $hash );

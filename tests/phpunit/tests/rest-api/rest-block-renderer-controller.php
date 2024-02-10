@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Renderer_Controller tests.
+ * Unit tests covering WP_REST_Block_Renderer_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.0.0
- */
-
-/**
- * Tests for WP_REST_Block_Renderer_Controller.
- *
  * @since 5.0.0
  *
  * @covers WP_REST_Block_Renderer_Controller
@@ -435,7 +429,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function test_get_item_with_pre_render_block_filter() {
 		wp_set_current_user( self::$user_id );
 
-		$pre_render_filter = static function( $output, $block ) {
+		$pre_render_filter = static function ( $output, $block ) {
 			if ( $block['blockName'] === self::$block_name ) {
 				return '<p>Alternate content.</p>';
 			}

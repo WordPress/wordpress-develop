@@ -773,7 +773,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_test_get_table_charset() {
+	public function data_get_table_charset() {
 		$table_name = 'test_get_table_charset';
 
 		$vars = array();
@@ -788,7 +788,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_table_charset
+	 * @dataProvider data_get_table_charset
 	 * @ticket 21212
 	 *
 	 * @covers wpdb::get_table_charset
@@ -814,7 +814,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 */
-	public function data_test_get_column_charset() {
+	public function data_get_column_charset() {
 		$table_name = 'test_get_column_charset';
 
 		$vars = array();
@@ -829,7 +829,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_column_charset
+	 * @dataProvider data_get_column_charset
 	 * @ticket 21212
 	 *
 	 * @covers wpdb::get_col_charset
@@ -856,7 +856,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_column_charset
+	 * @dataProvider data_get_column_charset
 	 * @ticket 21212
 	 *
 	 * @covers wpdb::get_col_charset
@@ -883,7 +883,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_get_column_charset
+	 * @dataProvider data_get_column_charset
 	 * @ticket 33501
 	 *
 	 * @covers wpdb::get_col_charset
@@ -1022,7 +1022,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		$table_name = 'table_collation_check';
 		$data       = array(
 			'utf8_bin'                   => array(
-				// utf8_bin tables don't need extra sanity checking.
+				// utf8_bin tables don't need extra confidence checking.
 				'create'   => '( a VARCHAR(50) COLLATE utf8_bin )',
 				'expected' => true,
 			),
@@ -1037,13 +1037,13 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 				'expected' => false,
 			),
 			'utf8_bin + big5_chinese_ci' => array(
-				// utf8_bin tables don't need extra sanity checking,
+				// utf8_bin tables don't need extra confidence checking,
 				// except for when they're not just utf8_bin.
 				'create'   => '( a VARCHAR(50) COLLATE utf8_bin, b VARCHAR(50) COLLATE big5_chinese_ci )',
 				'expected' => false,
 			),
 			'utf8_bin + int'             => array(
-				// utf8_bin tables don't need extra sanity checking
+				// utf8_bin tables don't need extra confidence checking
 				// when the other columns aren't strings.
 				'create'   => '( a VARCHAR(50) COLLATE utf8_bin, b INT )',
 				'expected' => true,

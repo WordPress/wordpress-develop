@@ -4,10 +4,9 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @covers WP_REST_Global_Styles_Controller
+ *
  * @group restapi-global-styles
  * @group restapi
  */

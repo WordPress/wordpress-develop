@@ -30,5 +30,4 @@ class Tests_User_PasswordHash extends WP_UnitTestCase {
 		$hasher = new PasswordHash( 8, true );
 		$hasher->gensalt_blowfish( 'a password string' );
 	}
-
 }

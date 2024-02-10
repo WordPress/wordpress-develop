@@ -77,17 +77,28 @@ function wp_initial_constants() {
 		define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' ); // No trailing slash, full paths only - WP_CONTENT_URL is defined further down.
 	}
 
+	/*
+	 * Add define( 'WP_DEVELOPMENT_MODE', 'core' ), or define( 'WP_DEVELOPMENT_MODE', 'plugin' ), or
+	 * define( 'WP_DEVELOPMENT_MODE', 'theme' ), or define( 'WP_DEVELOPMENT_MODE', 'all' ) to wp-config.php
+	 * to signify development mode for WordPress core, a plugin, a theme, or all three types respectively.
+	 */
+	if ( ! defined( 'WP_DEVELOPMENT_MODE' ) ) {
+		define( 'WP_DEVELOPMENT_MODE', '' );
+	}
+
 	// Add define( 'WP_DEBUG', true ); to wp-config.php to enable display of notices during development.
 	if ( ! defined( 'WP_DEBUG' ) ) {
-		if ( 'development' === wp_get_environment_type() ) {
+		if ( wp_get_development_mode() || 'development' === wp_get_environment_type() ) {
 			define( 'WP_DEBUG', true );
 		} else {
 			define( 'WP_DEBUG', false );
 		}
 	}
 
-	// Add define( 'WP_DEBUG_DISPLAY', null ); to wp-config.php to use the globally configured setting
-	// for 'display_errors' and not force errors to be displayed. Use false to force 'display_errors' off.
+	/*
+	 * Add define( 'WP_DEBUG_DISPLAY', null ); to wp-config.php to use the globally configured setting
+	 * for 'display_errors' and not force errors to be displayed. Use false to force 'display_errors' off.
+	 */
 	if ( ! defined( 'WP_DEBUG_DISPLAY' ) ) {
 		define( 'WP_DEBUG_DISPLAY', true );
 	}
@@ -101,11 +112,13 @@ function wp_initial_constants() {
 		define( 'WP_CACHE', false );
 	}
 
-	// Add define( 'SCRIPT_DEBUG', true ); to wp-config.php to enable loading of non-minified,
-	// non-concatenated scripts and stylesheets.
+	/*
+	 * Add define( 'SCRIPT_DEBUG', true ); to wp-config.php to enable loading of non-minified,
+	 * non-concatenated scripts and stylesheets.
+	 */
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 		if ( ! empty( $wp_version ) ) {
-			$develop_src = false !== strpos( $wp_version, '-src' );
+			$develop_src = str_contains( $wp_version, '-src' );
 		} else {
 			$develop_src = false;
 		}
@@ -394,6 +407,8 @@ function wp_templating_constants() {
 	 * Filesystem path to the current active template directory.
 	 *
 	 * @since 1.5.0
+	 * @deprecated 6.4.0 Use get_template_directory() instead.
+	 * @see get_template_directory()
 	 */
 	define( 'TEMPLATEPATH', get_template_directory() );
 
@@ -401,6 +416,8 @@ function wp_templating_constants() {
 	 * Filesystem path to the current active template stylesheet directory.
 	 *
 	 * @since 2.1.0
+	 * @deprecated 6.4.0 Use get_stylesheet_directory() instead.
+	 * @see get_stylesheet_directory()
 	 */
 	define( 'STYLESHEETPATH', get_stylesheet_directory() );
 
@@ -414,7 +431,6 @@ function wp_templating_constants() {
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentytwentythree' );
+		define( 'WP_DEFAULT_THEME', 'twentytwentyfour' );
 	}
-
 }

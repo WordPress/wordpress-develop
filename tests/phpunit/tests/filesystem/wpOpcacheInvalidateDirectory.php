@@ -3,7 +3,8 @@
 /**
  * Tests wp_opcache_invalidate_directory().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::wp_opcache_invalidate_directory
  */

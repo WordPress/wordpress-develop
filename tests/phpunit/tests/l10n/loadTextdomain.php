@@ -300,4 +300,20 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 
 		$this->assertSame( get_user_locale(), $this->locale );
 	}
+
+	/**
+	 * @ticket 58035
+	 *
+	 * @covers ::load_theme_textdomain
+	 */
+	public function test_pre_load_textdomain_filter() {
+		$override_load_textdomain_callback = new MockAction();
+		add_filter( 'override_load_textdomain', array( $override_load_textdomain_callback, 'action' ) );
+
+		add_filter( 'pre_load_textdomain', '__return_true' );
+		load_plugin_textdomain( 'wp-tests-domain' );
+		remove_filter( 'pre_load_textdomain', '__return_true' );
+
+		$this->assertSame( 0, $override_load_textdomain_callback->get_call_count(), 'Expected override_load_textdomain not to be called.' );
+	}
 }

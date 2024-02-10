@@ -343,7 +343,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_signature_hosts',
-			static function( $urls ) {
+			static function ( $urls ) {
 				$urls[] = 'example.com';
 				return $urls;
 			}

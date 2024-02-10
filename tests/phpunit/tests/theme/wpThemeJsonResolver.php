@@ -81,8 +81,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	public static function tear_down_after_class() {
-		static::$property_blocks_cache->setValue( WP_Theme_JSON_Resolver::class, static::$property_blocks_cache_orig_value );
-		static::$property_core->setValue( WP_Theme_JSON_Resolver::class, static::$property_core_orig_value );
+		static::$property_blocks_cache->setValue( null, static::$property_blocks_cache_orig_value );
+		static::$property_core->setValue( null, static::$property_core_orig_value );
 		parent::tear_down_after_class();
 	}
 
@@ -393,7 +393,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$expected_filter_count = did_filter( 'wp_theme_json_data_default' );
 		$actual                = WP_Theme_JSON_Resolver::get_core_data();
 		if ( $should_fire_filter ) {
-			$expected_filter_count++;
+			++$expected_filter_count;
 		}
 
 		$this->assertSame( $expected_filter_count, did_filter( 'wp_theme_json_data_default' ), 'The filter "wp_theme_json_data_default" should fire the given number of times' );
@@ -433,6 +433,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54336
+	 * @ticket 60118
+	 *
+	 * @covers ::add_theme_support
 	 */
 	public function test_add_theme_supports_are_loaded_for_themes_without_theme_json() {
 		switch_theme( 'default' );
@@ -455,15 +458,34 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 		add_theme_support( 'editor-color-palette', $color_palette );
 		add_theme_support( 'custom-line-height' );
+		add_theme_support( 'appearance-tools' );
 
 		$settings = WP_Theme_JSON_Resolver::get_theme_data()->get_settings();
 
 		remove_theme_support( 'custom-line-height' );
 		remove_theme_support( 'editor-color-palette' );
+		remove_theme_support( 'appearance-tools' );
 
 		$this->assertFalse( wp_theme_has_theme_json() );
 		$this->assertTrue( $settings['typography']['lineHeight'] );
 		$this->assertSame( $color_palette, $settings['color']['palette']['theme'] );
+		$this->assertTrue( $settings['border']['color'], 'Support for "appearance-tools" was not added.' );
+	}
+
+	/**
+	 * Tests that classic themes still get core default settings such as color palette and duotone.
+	 *
+	 * @ticket 60136
+	 */
+	public function test_core_default_settings_are_loaded_for_themes_without_theme_json() {
+		switch_theme( 'default' );
+
+		$settings = WP_Theme_JSON_Resolver::get_merged_data( 'theme' )->get_settings();
+
+		$this->assertFalse( wp_theme_has_theme_json() );
+		$this->assertTrue( $settings['color']['defaultPalette'] );
+		$this->assertTrue( $settings['color']['defaultDuotone'] );
+		$this->assertTrue( $settings['color']['defaultGradients'] );
 	}
 
 	/**
@@ -600,7 +622,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$global_styles_query_count = 0;
 		add_filter(
 			'query',
-			function( $query ) use ( &$global_styles_query_count ) {
+			static function ( $query ) use ( &$global_styles_query_count ) {
 				if ( preg_match( '#post_type = \'wp_global_styles\'#', $query ) ) {
 					$global_styles_query_count++;
 				}
@@ -729,7 +751,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	public function test_get_theme_data_theme_supports_overrides_theme_json() {
 		// Test that get_theme_data() returns a WP_Theme_JSON object.
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
-		$theme_data          = $theme_json_resolver->get_theme_data();
+		$theme_json_resolver->get_merged_data();
+		$theme_data = $theme_json_resolver->get_theme_data();
 		$this->assertInstanceOf( 'WP_Theme_JSON', $theme_data, 'Theme data should be an instance of WP_Theme_JSON.' );
 
 		// Test that wp_theme_json_data_theme filter has been called.
@@ -758,7 +781,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		// Force-unset $i18n_schema property to "unload" translation schema.
 		$property = new ReflectionProperty( $theme_json_resolver, 'i18n_schema' );
 		$property->setAccessible( true );
-		$property->setValue( null );
+		$property->setValue( null, null );
 
 		// A completely empty theme.json data set still has the 'version' key when parsed.
 		$empty_theme_json = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
@@ -835,7 +858,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$styles     = $theme_json->get_styles_block_nodes();
 		$styles     = array_filter(
 			$styles,
-			static function( $element ) {
+			static function ( $element ) {
 				return isset( $element['name'] ) && 'my/block-with-styles' === $element['name'];
 			}
 		);
@@ -845,7 +868,49 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame( $block_styles, count( $styles ) === 1, $block_styles_text );
 		$this->assertSame( $theme_palette, isset( $settings['color']['palette']['theme'] ), $theme_palette_text );
 		$this->assertSame( $user_palette, isset( $settings['color']['palette']['custom'] ), $user_palette_text );
+	}
 
+	/**
+	 * Tests that get_merged_data returns the data merged up to the proper origin
+	 * and that the core values have the proper data.
+	 *
+	 * @ticket 57824
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_merged_data
+	 *
+	 */
+	public function test_get_merged_data_returns_origin_proper() {
+		// Make sure the theme has a theme.json
+		// though it doesn't have any data for styles.spacing.padding.
+		switch_theme( 'block-theme' );
+
+		// Make sure the user defined some data for styles.spacing.padding.
+		wp_set_current_user( self::$administrator_id );
+		$user_cpt                               = WP_Theme_JSON_Resolver::get_user_data_from_wp_global_styles( wp_get_theme(), true );
+		$config                                 = json_decode( $user_cpt['post_content'], true );
+		$config['styles']['spacing']['padding'] = array(
+			'top'    => '23px',
+			'left'   => '23px',
+			'bottom' => '23px',
+			'right'  => '23px',
+		);
+		$user_cpt['post_content']               = wp_json_encode( $config );
+		wp_update_post( $user_cpt, true, false );
+
+		// Query data from the user origin and then for the theme origin.
+		$theme_json_user  = WP_Theme_JSON_Resolver::get_merged_data( 'custom' );
+		$padding_user     = $theme_json_user->get_raw_data()['styles']['spacing']['padding'];
+		$theme_json_theme = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
+		$padding_theme    = $theme_json_theme->get_raw_data()['styles']['spacing']['padding'];
+
+		$this->assertSame( '23px', $padding_user['top'] );
+		$this->assertSame( '23px', $padding_user['right'] );
+		$this->assertSame( '23px', $padding_user['bottom'] );
+		$this->assertSame( '23px', $padding_user['left'] );
+		$this->assertSame( '0px', $padding_theme['top'] );
+		$this->assertSame( '0px', $padding_theme['right'] );
+		$this->assertSame( '0px', $padding_theme['bottom'] );
+		$this->assertSame( '0px', $padding_theme['left'] );
 	}
 
 	/**
@@ -909,7 +974,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 57545
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_style_variations
-	 **/
+	 */
 	public function test_get_style_variations_returns_all_variations() {
 		// Switch to a child theme.
 		switch_theme( 'block-theme-child' );

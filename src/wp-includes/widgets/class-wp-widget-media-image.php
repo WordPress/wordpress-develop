@@ -239,14 +239,30 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				$instance['height'] = '';
 			}
 
-			$image = sprintf(
-				'<img class="%1$s" src="%2$s" alt="%3$s" width="%4$s" height="%5$s" />',
-				esc_attr( $classes ),
-				esc_url( $instance['url'] ),
-				esc_attr( $instance['alt'] ),
-				esc_attr( $instance['width'] ),
-				esc_attr( $instance['height'] )
+			$attr = array(
+				'class'  => $classes,
+				'src'    => $instance['url'],
+				'alt'    => $instance['alt'],
+				'width'  => $instance['width'],
+				'height' => $instance['height'],
 			);
+
+			$loading_optimization_attr = wp_get_loading_optimization_attributes(
+				'img',
+				$attr,
+				'widget_media_image'
+			);
+
+			$attr = array_merge( $attr, $loading_optimization_attr );
+
+			$attr  = array_map( 'esc_attr', $attr );
+			$image = '<img';
+
+			foreach ( $attr as $name => $value ) {
+				$image .= ' ' . $name . '="' . $value . '"';
+			}
+
+			$image .= ' />';
 		} // End if().
 
 		$url = '';
@@ -346,13 +362,25 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 		</script>
 		<script type="text/html" id="tmpl-wp-media-widget-image-preview">
 			<# if ( data.error && 'missing_attachment' === data.error ) { #>
-				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p><?php echo $this->l10n['missing_attachment']; ?></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					$this->l10n['missing_attachment'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
+					)
+				);
+				?>
 			<# } else if ( data.error ) { #>
-				<div class="notice notice-error notice-alt">
-					<p><?php _e( 'Unable to preview media due to an unknown error.' ); ?></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					__( 'Unable to preview media due to an unknown error.' ),
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
 			<# } else if ( data.url ) { #>
 				<img class="attachment-thumb" src="{{ data.url }}" draggable="false" alt="{{ data.alt }}"
 					<# if ( ! data.alt && data.currentFilename ) { #>

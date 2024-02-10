@@ -318,6 +318,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $prepared_args['search'] ) ) {
+			if ( ! current_user_can( 'list_users' ) ) {
+				$prepared_args['search_columns'] = array( 'ID', 'user_login', 'user_nicename', 'display_name' );
+			}
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
 		/**
@@ -683,8 +686,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 			$request_params = array_keys( $request->get_params() );
 			sort( $request_params );
-			// If only 'id' and 'roles' are specified (we are only trying to
-			// edit roles), then only the 'promote_user' cap is required.
+			/*
+			 * If only 'id' and 'roles' are specified (we are only trying to
+			 * edit roles), then only the 'promote_user' cap is required.
+			 */
 			if ( array( 'id', 'roles' ) === $request_params ) {
 				return true;
 			}
@@ -982,9 +987,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$user   = $item;
-		$data   = array();
+		$user = $item;
+
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = $user->ID;
@@ -1305,7 +1311,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( false !== strpos( $password, '\\' ) ) {
+		if ( str_contains( $password, '\\' ) ) {
 			return new WP_Error(
 				'rest_user_invalid_password',
 				sprintf(

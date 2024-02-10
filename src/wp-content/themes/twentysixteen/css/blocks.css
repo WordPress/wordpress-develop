@@ -94,6 +94,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	line-height: 1.75;
 }
 
+.wp-block-quote.has-text-color cite {
+	color: inherit;
+}
+
 .wp-block-quote cite:before {
 	content: "\2014\00a0";
 }
@@ -252,6 +256,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	text-transform: uppercase;
 }
 
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
+}
+
 .wp-block-button__link {
 	background: #1a1a1a;
 	color: #fff;
@@ -283,7 +292,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	outline-offset: -4px;
 }
 
-/* Seperator */
+/* Separator */
 
 hr.wp-block-separator {
 	border: 0;
@@ -308,6 +317,12 @@ hr.wp-block-separator {
 
 .wp-block-media-text *:last-child {
 	margin-bottom: 0;
+}
+
+/* Details */
+
+.wp-block-details > summary:first-of-type {
+	display: list-item;
 }
 
 /*--------------------------------------------------------------

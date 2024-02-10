@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_nonce_url
  */

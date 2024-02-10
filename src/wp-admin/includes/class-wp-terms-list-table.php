@@ -63,7 +63,6 @@ class WP_Terms_List_Table extends WP_List_Table {
 		if ( empty( $post_type ) || ! in_array( $post_type, get_post_types( array( 'show_ui' => true ) ), true ) ) {
 			$post_type = 'post';
 		}
-
 	}
 
 	/**
@@ -185,7 +184,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$columns = array(
@@ -208,12 +207,20 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_sortable_columns() {
+		$taxonomy = $this->screen->taxonomy;
+
+		if ( ! isset( $_GET['orderby'] ) && is_taxonomy_hierarchical( $taxonomy ) ) {
+			$name_orderby_text = __( 'Table ordered hierarchically.' );
+		} else {
+			$name_orderby_text = __( 'Table ordered by Name.' );
+		}
+
 		return array(
-			'name'        => 'name',
-			'description' => 'description',
-			'slug'        => 'slug',
-			'posts'       => 'count',
-			'links'       => 'count',
+			'name'        => array( 'name', false, _x( 'Name', 'term name' ), $name_orderby_text, 'asc' ),
+			'description' => array( 'description', false, __( 'Description' ), __( 'Table ordered by Description.' ) ),
+			'slug'        => array( 'slug', false, __( 'Slug' ), __( 'Table ordered by Slug.' ) ),
+			'posts'       => array( 'count', false, _x( 'Count', 'Number/count of items' ), __( 'Table ordered by Posts Count.' ) ),
+			'links'       => array( 'count', false, __( 'Links' ), __( 'Table ordered by Links.' ) ),
 		);
 	}
 
@@ -303,7 +310,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				while ( $my_parent = array_pop( $my_parents ) ) {
 					echo "\t";
 					$this->single_row( $my_parent, $level - $num_parents );
-					$num_parents--;
+					--$num_parents;
 				}
 			}
 
@@ -357,8 +364,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			return sprintf(
-				'<label class="screen-reader-text" for="cb-select-%1$s">%2$s</label>' .
-				'<input type="checkbox" name="delete_tags[]" value="%1$s" id="cb-select-%1$s" />',
+				'<input type="checkbox" name="delete_tags[]" value="%1$s" id="cb-select-%1$s" />' .
+				'<label for="cb-select-%1$s"><span class="screen-reader-text">%2$s</span></label>',
 				$tag->term_id,
 				/* translators: Hidden accessibility text. %s: Taxonomy term name. */
 				sprintf( __( 'Select %s' ), $tag->name )
@@ -418,12 +425,17 @@ class WP_Terms_List_Table extends WP_List_Table {
 			$name
 		);
 
-		$output .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
-		$output .= '<div class="name">' . $qe_data->name . '</div>';
+		/** This filter is documented in wp-admin/includes/class-wp-terms-list-table.php */
+		$quick_edit_enabled = apply_filters( 'quick_edit_enabled_for_taxonomy', true, $taxonomy );
 
-		/** This filter is documented in wp-admin/edit-tag-form.php */
-		$output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
-		$output .= '<div class="parent">' . $qe_data->parent . '</div></div>';
+		if ( $quick_edit_enabled ) {
+			$output .= '<div class="hidden" id="inline_' . $qe_data->term_id . '">';
+			$output .= '<div class="name">' . $qe_data->name . '</div>';
+
+			/** This filter is documented in wp-admin/edit-tag-form.php */
+			$output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
+			$output .= '<div class="parent">' . $qe_data->parent . '</div></div>';
+		}
 
 		return $output;
 	}
@@ -457,32 +469,46 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$tag      = $item;
+		$tag = $item;
+
 		$taxonomy = $this->screen->taxonomy;
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
-
-		$edit_link = add_query_arg(
-			'wp_http_referer',
-			urlencode( wp_unslash( $uri ) ),
-			get_edit_term_link( $tag, $taxonomy, $this->screen->post_type )
-		);
 
 		$actions = array();
 
 		if ( current_user_can( 'edit_term', $tag->term_id ) ) {
 			$actions['edit'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
-				esc_url( $edit_link ),
+				esc_url(
+					add_query_arg(
+						'wp_http_referer',
+						urlencode( wp_unslash( $uri ) ),
+						get_edit_term_link( $tag, $taxonomy, $this->screen->post_type )
+					)
+				),
 				/* translators: %s: Taxonomy term name. */
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $tag->name ) ),
 				__( 'Edit' )
 			);
-			$actions['inline hide-if-no-js'] = sprintf(
-				'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
-				/* translators: %s: Taxonomy term name. */
-				esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $tag->name ) ),
-				__( 'Quick&nbsp;Edit' )
-			);
+
+			/**
+			 * Filters whether Quick Edit should be enabled for the given taxonomy.
+			 *
+			 * @since 6.4.0
+			 *
+			 * @param bool   $enable   Whether to enable the Quick Edit functionality. Default true.
+			 * @param string $taxonomy Taxonomy name.
+			 */
+			$quick_edit_enabled = apply_filters( 'quick_edit_enabled_for_taxonomy', true, $taxonomy );
+
+			if ( $quick_edit_enabled ) {
+				$actions['inline hide-if-no-js'] = sprintf(
+					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
+					/* translators: %s: Taxonomy term name. */
+					esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $tag->name ) ),
+					__( 'Quick&nbsp;Edit' )
+				);
+			}
 		}
 
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
@@ -619,6 +645,9 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return string
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$tag = $item;
+
 		/**
 		 * Filters the displayed columns in the terms list table.
 		 *
@@ -636,7 +665,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 * @param string $column_name Name of the column.
 		 * @param int    $term_id     Term ID.
 		 */
-		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $item->term_id );
+		return apply_filters( "manage_{$this->screen->taxonomy}_custom_column", '', $column_name, $tag->term_id );
 	}
 
 	/**
@@ -704,9 +733,16 @@ class WP_Terms_List_Table extends WP_List_Table {
 				<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $this->screen->taxonomy ); ?>" />
 				<input type="hidden" name="post_type" value="<?php echo esc_attr( $this->screen->post_type ); ?>" />
 
-				<div class="notice notice-error notice-alt inline hidden">
-					<p class="error"></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					'<p class="error"></p>',
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+						'paragraph_wrap'     => false,
+					)
+				);
+				?>
 			</div>
 			</div>
 

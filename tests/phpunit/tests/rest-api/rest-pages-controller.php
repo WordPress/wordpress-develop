@@ -5,9 +5,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -789,5 +787,4 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$args['type'] = 'page';
 		return $args;
 	}
-
 }

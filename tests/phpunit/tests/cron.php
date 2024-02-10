@@ -53,7 +53,6 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// It's a non-recurring event.
 		$this->assertFalse( wp_get_schedule( $hook ) );
-
 	}
 
 	/**
@@ -708,7 +707,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, strtotime( '+30 minutes' ) ) );
 		// - Invalid timestamp.
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, 'Words Fail!' ) );
-
 	}
 
 	/**
@@ -767,7 +765,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
 		$this->assertWPError( $subsequent );
 		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
-
 	}
 
 	/**
@@ -913,7 +910,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_reschedule_event
 	 */
 	public function test_schedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
-		$return_error = function( $pre, $event, $wp_error ) {
+		$return_error = function ( $pre, $event, $wp_error ) {
 			$this->assertFalse( $wp_error );
 
 			return new WP_Error(
@@ -945,7 +942,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_reschedule_event
 	 */
 	public function test_schedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
-		$return_error = function( $pre, $event, $wp_error ) {
+		$return_error = function ( $pre, $event, $wp_error ) {
 			$this->assertTrue( $wp_error );
 
 			return new WP_Error(
@@ -1032,7 +1029,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_clear_scheduled_hook
 	 */
 	public function test_deprecated_argument_usage_of_wp_clear_scheduled_hook() {
-		$return_pre = function( $pre, $hook, $args, $wp_error ) {
+		$return_pre = function ( $pre, $hook, $args, $wp_error ) {
 			$this->assertSame( array( 1, 2, 3 ), $args );
 			$this->assertFalse( $wp_error );
 
@@ -1075,7 +1072,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_clear_scheduled_hook
 	 */
 	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
-		$return_error = function( $pre, $timestamp, $hook, $args, $wp_error ) {
+		$return_error = function ( $pre, $timestamp, $hook, $args, $wp_error ) {
 			$this->assertTrue( $wp_error );
 
 			return new WP_Error( 'error_code', 'error message' );
@@ -1110,7 +1107,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_unschedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
-		$return_error = function( $pre, $hook, $wp_error ) {
+		$return_error = function ( $pre, $hook, $wp_error ) {
 			$this->assertFalse( $wp_error );
 
 			return new WP_Error(
@@ -1135,7 +1132,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_unschedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
-		$return_error = function( $pre, $hook, $wp_error ) {
+		$return_error = function ( $pre, $hook, $wp_error ) {
 			$this->assertTrue( $wp_error );
 
 			return new WP_Error(
@@ -1197,7 +1194,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1219,7 +1216,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1244,7 +1241,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1270,7 +1267,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1283,5 +1280,4 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
-
 }

@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase {
@@ -830,8 +828,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_post_ID' => self::$post_id,
 			)
 		);
-		$total_comments++;
-		$total_pages++;
+		++$total_comments;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -966,6 +964,21 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			),
 			array_keys( $response->get_data() )
 		);
+	}
+
+	/**
+	 * @ticket 58238
+	 */
+	public function test_prepare_item_comment_text_filter() {
+		$filter = new MockAction();
+		add_filter( 'comment_text', array( $filter, 'filter' ), 10, 3 );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertCount( 3, $filter->get_args()[0] );
 	}
 
 	public function test_get_comment_author_avatar_urls() {
@@ -1146,7 +1159,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( self::$post_id, $data['post'] );
 	}
 
-	public function comment_dates_provider() {
+	public function data_comment_dates() {
 		return array(
 			'set date without timezone'     => array(
 				'params'  => array(
@@ -1192,7 +1205,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @dataProvider comment_dates_provider
+	 * @dataProvider data_comment_dates
 	 */
 	public function test_create_comment_date( $params, $results ) {
 		wp_set_current_user( self::$admin_id );
@@ -2340,7 +2353,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @dataProvider comment_dates_provider
+	 * @dataProvider data_comment_dates
 	 */
 	public function test_update_comment_date( $params, $results ) {
 		wp_set_current_user( self::$editor_id );

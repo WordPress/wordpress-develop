@@ -34,10 +34,9 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_if_alloptions_are_retrieved_from_cache() {
-		global $wpdb;
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		wp_load_alloptions();
-		$after = $wpdb->num_queries;
+		$after = get_num_queries();
 
 		// Database has not been hit.
 		$this->assertSame( $before, $after );
@@ -49,14 +48,12 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_if_alloptions_are_retrieved_from_database() {
-		global $wpdb;
-
 		// Delete the existing cache first.
 		wp_cache_delete( 'alloptions', 'options' );
 
-		$before = $wpdb->num_queries;
+		$before = get_num_queries();
 		wp_load_alloptions();
-		$after = $wpdb->num_queries;
+		$after = get_num_queries();
 
 		// Database has been hit.
 		$this->assertSame( $before + 1, $after );

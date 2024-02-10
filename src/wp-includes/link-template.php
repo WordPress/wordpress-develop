@@ -222,7 +222,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 	) {
 
 		$category = '';
-		if ( strpos( $permalink, '%category%' ) !== false ) {
+		if ( str_contains( $permalink, '%category%' ) ) {
 			$cats = get_the_category( $post->ID );
 			if ( $cats ) {
 				$cats = wp_list_sort(
@@ -249,8 +249,10 @@ function get_permalink( $post = 0, $leavename = false ) {
 					$category = get_category_parents( $category_object->parent, false, '/', true ) . $category;
 				}
 			}
-			// Show default category in permalinks,
-			// without having to assign it explicitly.
+			/*
+			 * Show default category in permalinks,
+			 * without having to assign it explicitly.
+			 */
 			if ( empty( $category ) ) {
 				$default_category = get_term( get_option( 'default_category' ), 'category' );
 				if ( $default_category && ! is_wp_error( $default_category ) ) {
@@ -260,13 +262,15 @@ function get_permalink( $post = 0, $leavename = false ) {
 		}
 
 		$author = '';
-		if ( strpos( $permalink, '%author%' ) !== false ) {
+		if ( str_contains( $permalink, '%author%' ) ) {
 			$authordata = get_userdata( $post->post_author );
 			$author     = $authordata->user_nicename;
 		}
 
-		// This is not an API call because the permalink is based on the stored post_date value,
-		// which should be parsed as local time regardless of the default PHP timezone.
+		/*
+		 * This is not an API call because the permalink is based on the stored post_date value,
+		 * which should be parsed as local time regardless of the default PHP timezone.
+		 */
 		$date = explode( ' ', str_replace( array( '-', ':' ), ' ', $post->post_date ) );
 
 		$rewritereplace = array(
@@ -496,13 +500,13 @@ function get_attachment_link( $post = null, $leavename = false ) {
 			$parentlink = get_permalink( $post->post_parent );
 		}
 
-		if ( is_numeric( $post->post_name ) || false !== strpos( get_option( 'permalink_structure' ), '%category%' ) ) {
+		if ( is_numeric( $post->post_name ) || str_contains( get_option( 'permalink_structure' ), '%category%' ) ) {
 			$name = 'attachment/' . $post->post_name; // <permalink>/<int>/ is paged so we use the explicit attachment marker.
 		} else {
 			$name = $post->post_name;
 		}
 
-		if ( strpos( $parentlink, '?' ) === false ) {
+		if ( ! str_contains( $parentlink, '?' ) ) {
 			$link = user_trailingslashit( trailingslashit( $parentlink ) . '%postname%' );
 		}
 
@@ -692,7 +696,7 @@ function get_feed_link( $feed = '' ) {
 	$permalink = $wp_rewrite->get_feed_permastruct();
 
 	if ( $permalink ) {
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( str_contains( $feed, 'comments_' ) ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
 		}
@@ -709,7 +713,7 @@ function get_feed_link( $feed = '' ) {
 			$feed = get_default_feed();
 		}
 
-		if ( false !== strpos( $feed, 'comments_' ) ) {
+		if ( str_contains( $feed, 'comments_' ) ) {
 			$feed = str_replace( 'comments_', 'comments-', $feed );
 		}
 
@@ -1435,9 +1439,11 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
  * Retrieves the edit post link for post.
  *
  * Can be used within the WordPress loop or outside of it. Can be used with
- * pages, posts, attachments, and revisions.
+ * pages, posts, attachments, revisions, global styles, templates, and template parts.
  *
  * @since 2.3.0
+ * @since 6.3.0 Adds custom link for wp_navigation post types.
+ *              Adds custom links for wp_template_part and wp_template post types.
  *
  * @param int|WP_Post $post    Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $context Optional. How to output the '&' character. Default '&amp;'.
@@ -1469,10 +1475,15 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 		return;
 	}
 
-	if ( $post_type_object->_edit_link ) {
+	$link = '';
+
+	if ( 'wp_template' === $post->post_type || 'wp_template_part' === $post->post_type ) {
+		$slug = urlencode( get_stylesheet() . '//' . $post->post_name );
+		$link = admin_url( sprintf( $post_type_object->_edit_link, $post->post_type, $slug ) );
+	} elseif ( 'wp_navigation' === $post->post_type ) {
+		$link = admin_url( sprintf( $post_type_object->_edit_link, (string) $post->ID ) );
+	} elseif ( $post_type_object->_edit_link ) {
 		$link = admin_url( sprintf( $post_type_object->_edit_link . $action, $post->ID ) );
-	} else {
-		$link = '';
 	}
 
 	/**
@@ -1817,7 +1828,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
 		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
-		if ( false !== strpos( $excluded_terms, ' and ' ) ) {
+		if ( str_contains( $excluded_terms, ' and ' ) ) {
 			_deprecated_argument(
 				__FUNCTION__,
 				'3.3.0',
@@ -1984,7 +1995,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	}
 	$cache_key = "adjacent_post:$key:$last_changed";
 
-	$result = wp_cache_get( $cache_key, 'posts' );
+	$result = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false !== $result ) {
 		if ( $result ) {
 			$result = get_post( $result );
@@ -1997,7 +2008,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$result = '';
 	}
 
-	wp_cache_set( $cache_key, $result, 'posts' );
+	wp_cache_set( $cache_key, $result, 'post-queries' );
 
 	if ( $result ) {
 		$result = get_post( $result );
@@ -2420,6 +2431,9 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$qs_regex = '|\?.*?$|';
 		preg_match( $qs_regex, $request, $qs_match );
 
+		$parts   = array();
+		$parts[] = untrailingslashit( get_bloginfo( 'url' ) );
+
 		if ( ! empty( $qs_match[0] ) ) {
 			$query_string = $qs_match[0];
 			$request      = preg_replace( $qs_regex, '', $request );
@@ -2431,17 +2445,21 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$request = preg_replace( '|^' . preg_quote( $wp_rewrite->index, '|' ) . '|i', '', $request );
 		$request = ltrim( $request, '/' );
 
-		$base = trailingslashit( get_bloginfo( 'url' ) );
-
 		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' !== $request ) ) {
-			$base .= $wp_rewrite->index . '/';
+			$parts[] = $wp_rewrite->index;
 		}
+
+		$parts[] = untrailingslashit( $request );
 
 		if ( $pagenum > 1 ) {
-			$request = ( ( ! empty( $request ) ) ? trailingslashit( $request ) : $request ) . user_trailingslashit( $wp_rewrite->pagination_base . '/' . $pagenum, 'paged' );
+			$parts[] = $wp_rewrite->pagination_base;
+			$parts[] = $pagenum;
 		}
 
-		$result = $base . $request . $query_string;
+		$result = user_trailingslashit( implode( '/', array_filter( $parts ) ), 'paged' );
+		if ( ! empty( $query_string ) ) {
+			$result .= $query_string;
+		}
 	}
 
 	/**
@@ -2500,7 +2518,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
  * @return string|void The link URL for next posts page if `$display = false`.
  */
 function next_posts( $max_page = 0, $display = true ) {
-	$output = esc_url( get_next_posts_page_link( $max_page ) );
+	$link   = get_next_posts_page_link( $max_page );
+	$output = $link ? esc_url( $link ) : '';
 
 	if ( $display ) {
 		echo $output;
@@ -2707,7 +2726,6 @@ function get_posts_nav_link( $args = array() ) {
 		}
 	}
 	return $return;
-
 }
 
 /**
@@ -3021,7 +3039,7 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 	 */
 	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
-	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_html( $aria_label ) );
+	return sprintf( $template, sanitize_html_class( $css_class ), esc_html( $screen_reader_text ), $links, esc_attr( $aria_label ) );
 }
 
 /**
@@ -3636,7 +3654,7 @@ function plugins_url( $path = '', $plugin = '' ) {
 	$plugin        = wp_normalize_path( $plugin );
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
-	if ( ! empty( $plugin ) && 0 === strpos( $plugin, $mu_plugin_dir ) ) {
+	if ( ! empty( $plugin ) && str_starts_with( $plugin, $mu_plugin_dir ) ) {
 		$url = WPMU_PLUGIN_URL;
 	} else {
 		$url = WP_PLUGIN_URL;
@@ -3888,7 +3906,7 @@ function set_url_scheme( $url, $scheme = null ) {
 	}
 
 	$url = trim( $url );
-	if ( substr( $url, 0, 2 ) === '//' ) {
+	if ( str_starts_with( $url, '//' ) ) {
 		$url = 'http:' . $url;
 	}
 
@@ -4239,27 +4257,37 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 	}
 }
 
-
 /**
  * Retrieves the avatar URL.
  *
  * @since 4.2.0
  *
- * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
+ * @param mixed $id_or_email The avatar to retrieve a URL for. Accepts a user ID, Gravatar MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
  *     Optional. Arguments to use instead of the default arguments.
  *
  *     @type int    $size           Height and width of the avatar in pixels. Default 96.
- *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'RoboHash' (robohash),
- *                                  'monsterid' (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
- *                                  'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
- *                                  or 'gravatar_default' (the Gravatar logo). Default is the value of the
- *                                  'avatar_default' option, with a fallback of 'mystery'.
- *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
- *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
- *                                  judged in that order. Default is the value of the 'avatar_rating' option.
+ *     @type string $default        URL for the default image or a default type. Accepts:
+ *                                  - '404' (return a 404 instead of a default image)
+ *                                  - 'retro' (a 8-bit arcade-style pixelated face)
+ *                                  - 'robohash' (a robot)
+ *                                  - 'monsterid' (a monster)
+ *                                  - 'wavatar' (a cartoon face)
+ *                                  - 'identicon' (the "quilt", a geometric pattern)
+ *                                  - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
+ *                                  - 'blank' (transparent GIF)
+ *                                  - 'gravatar_default' (the Gravatar logo)
+ *                                  Default is the value of the 'avatar_default' option,
+ *                                  with a fallback of 'mystery'.
+ *     @type bool   $force_default  Whether to always show the default image, never the Gravatar.
+ *                                  Default false.
+ *     @type string $rating         What rating to display avatars up to. Accepts:
+ *                                  - 'G' (suitable for all audiences)
+ *                                  - 'PG' (possibly offensive, usually for audiences 13 and above)
+ *                                  - 'R' (intended for adult audiences above 17)
+ *                                  - 'X' (even more mature than above)
+ *                                  Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
  *                                  Default null.
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
@@ -4271,7 +4299,6 @@ function get_avatar_url( $id_or_email, $args = null ) {
 	$args = get_avatar_data( $id_or_email, $args );
 	return $args['url'];
 }
-
 
 /**
  * Check if this comment type allows avatars to be retrieved.
@@ -4294,7 +4321,6 @@ function is_avatar_comment_type( $comment_type ) {
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }
 
-
 /**
  * Retrieves default data about the avatar.
  *
@@ -4305,23 +4331,35 @@ function is_avatar_comment_type( $comment_type ) {
  * @param array $args {
  *     Optional. Arguments to use instead of the default arguments.
  *
- *     @type int    $size           Height and width of the avatar image file in pixels. Default 96.
+ *     @type int    $size           Height and width of the avatar in pixels. Default 96.
  *     @type int    $height         Display height of the avatar in pixels. Defaults to $size.
  *     @type int    $width          Display width of the avatar in pixels. Defaults to $size.
- *     @type string $default        URL for the default image or a default type. Accepts '404' (return
- *                                  a 404 instead of a default image), 'retro' (8bit), 'monsterid' (monster),
- *                                  'wavatar' (cartoon face), 'indenticon' (the "quilt"), 'mystery', 'mm',
- *                                  or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF), or
- *                                  'gravatar_default' (the Gravatar logo). Default is the value of the
- *                                  'avatar_default' option, with a fallback of 'mystery'.
- *     @type bool   $force_default  Whether to always show the default image, never the Gravatar. Default false.
- *     @type string $rating         What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are
- *                                  judged in that order. Default is the value of the 'avatar_rating' option.
+ *     @type string $default        URL for the default image or a default type. Accepts:
+ *                                  - '404' (return a 404 instead of a default image)
+ *                                  - 'retro' (a 8-bit arcade-style pixelated face)
+ *                                  - 'robohash' (a robot)
+ *                                  - 'monsterid' (a monster)
+ *                                  - 'wavatar' (a cartoon face)
+ *                                  - 'identicon' (the "quilt", a geometric pattern)
+ *                                  - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
+ *                                  - 'blank' (transparent GIF)
+ *                                  - 'gravatar_default' (the Gravatar logo)
+ *                                  Default is the value of the 'avatar_default' option,
+ *                                  with a fallback of 'mystery'.
+ *     @type bool   $force_default  Whether to always show the default image, never the Gravatar.
+ *                                  Default false.
+ *     @type string $rating         What rating to display avatars up to. Accepts:
+ *                                  - 'G' (suitable for all audiences)
+ *                                  - 'PG' (possibly offensive, usually for audiences 13 and above)
+ *                                  - 'R' (intended for adult audiences above 17)
+ *                                  - 'X' (even more mature than above)
+ *                                  Default is the value of the 'avatar_rating' option.
  *     @type string $scheme         URL scheme to use. See set_url_scheme() for accepted values.
  *                                  Default null.
  *     @type array  $processed_args When the function returns, the value will be the processed/sanitized $args
  *                                  plus a "found_avatar" guess. Pass as a reference. Default null.
- *     @type string $extra_attr     HTML attributes to insert in the IMG element. Is not sanitized. Default empty.
+ *     @type string $extra_attr     HTML attributes to insert in the IMG element. Is not sanitized.
+ *                                  Default empty.
  * }
  * @return array {
  *     Along with the arguments passed in `$args`, this will contain a couple of extra arguments.
@@ -4427,7 +4465,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	if ( is_numeric( $id_or_email ) ) {
 		$user = get_user_by( 'id', absint( $id_or_email ) );
 	} elseif ( is_string( $id_or_email ) ) {
-		if ( strpos( $id_or_email, '@md5.gravatar.com' ) ) {
+		if ( str_contains( $id_or_email, '@md5.gravatar.com' ) ) {
 			// MD5 hash.
 			list( $email_hash ) = explode( '@', $id_or_email );
 		} else {
@@ -4528,9 +4566,11 @@ function get_avatar_data( $id_or_email, $args = null ) {
 function get_theme_file_uri( $file = '' ) {
 	$file = ltrim( $file, '/' );
 
+	$stylesheet_directory = get_stylesheet_directory();
+
 	if ( empty( $file ) ) {
 		$url = get_stylesheet_directory_uri();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
+	} elseif ( get_template_directory() !== $stylesheet_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
 		$url = get_stylesheet_directory_uri() . '/' . $file;
 	} else {
 		$url = get_template_directory_uri() . '/' . $file;
@@ -4589,12 +4629,15 @@ function get_parent_theme_file_uri( $file = '' ) {
 function get_theme_file_path( $file = '' ) {
 	$file = ltrim( $file, '/' );
 
+	$stylesheet_directory = get_stylesheet_directory();
+	$template_directory   = get_template_directory();
+
 	if ( empty( $file ) ) {
-		$path = get_stylesheet_directory();
-	} elseif ( file_exists( get_stylesheet_directory() . '/' . $file ) ) {
-		$path = get_stylesheet_directory() . '/' . $file;
+		$path = $stylesheet_directory;
+	} elseif ( $stylesheet_directory !== $template_directory && file_exists( $stylesheet_directory . '/' . $file ) ) {
+		$path = $stylesheet_directory . '/' . $file;
 	} else {
-		$path = get_template_directory() . '/' . $file;
+		$path = $template_directory . '/' . $file;
 	}
 
 	/**
@@ -4679,6 +4722,7 @@ function the_privacy_policy_link( $before = '', $after = '' ) {
  * Returns the privacy policy link with formatting, when applicable.
  *
  * @since 4.9.6
+ * @since 6.2.0 Added 'privacy-policy' rel attribute.
  *
  * @param string $before Optional. Display before privacy policy link. Default empty.
  * @param string $after  Optional. Display after privacy policy link. Default empty.
@@ -4721,10 +4765,10 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 /**
  * Returns an array of URL hosts which are considered to be internal hosts.
  *
- * By default the list of internal hosts is comproside of the PHP_URL_HOST of
+ * By default the list of internal hosts is comprised of the host name of
  * the site's home_url() (as parsed by wp_parse_url()).
  *
- * This list is used when determining if a specificed URL is a link to a page on
+ * This list is used when determining if a specified URL is a link to a page on
  * the site itself or a link offsite (to an external host). This is used, for
  * example, when determining if the "nofollow" attribute should be applied to a
  * link.
@@ -4742,9 +4786,9 @@ function wp_internal_hosts() {
 		/**
 		 * Filters the array of URL hosts which are considered internal.
 		 *
-		 * @since 6.2.9
+		 * @since 6.2.0
 		 *
-		 * @param array $internal_hosts An array of internal URL hostnames.
+		 * @param string[] $internal_hosts An array of internal URL hostnames.
 		 */
 		$internal_hosts = apply_filters(
 			'wp_internal_hosts',

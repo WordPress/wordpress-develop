@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -258,7 +256,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
 	 *
-	 * @issue 862
+	 * @link https://github.com/WP-API/WP-API/issues/862
 	 */
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
@@ -1664,8 +1662,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 3rd page.
 		self::factory()->post->create();
-		$total_posts++;
-		$total_pages++;
+		++$total_posts;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -2280,8 +2278,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2316,8 +2314,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2359,7 +2357,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_create_post_response( $response );
 	}
 
-	public function post_dates_provider() {
+	public function data_post_dates() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -2430,7 +2428,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_create_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -3479,7 +3477,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_update_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -4034,7 +4032,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
-	public static function post_roundtrip_provider() {
+	/**
+	 * @dataProvider data_post_roundtrip_as_author
+	 */
+	public function test_post_roundtrip_as_author( $raw, $expected ) {
+		wp_set_current_user( self::$author_id );
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		$this->verify_post_roundtrip( $raw, $expected );
+	}
+
+	public static function data_post_roundtrip_as_author() {
 		return array(
 			array(
 				// Raw values.
@@ -4129,16 +4137,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				),
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider post_roundtrip_provider
-	 */
-	public function test_post_roundtrip_as_author( $raw, $expected ) {
-		wp_set_current_user( self::$author_id );
-
-		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
-		$this->verify_post_roundtrip( $raw, $expected );
 	}
 
 	public function test_post_roundtrip_as_editor_unfiltered_html() {
@@ -4304,7 +4302,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
-
 	}
 
 	public function test_get_item_schema() {
@@ -5030,7 +5027,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
-
 	}
 
 	/**
