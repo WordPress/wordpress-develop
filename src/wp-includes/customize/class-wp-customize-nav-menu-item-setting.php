@@ -209,6 +209,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *
 	 * @return array|false Instance data array, or false if the item is marked for deletion.
 	 */
+	#[\Override]
 	public function value() {
 		if ( $this->is_previewed && get_current_blog_id() === $this->_previewed_blog_id ) {
 			$undefined  = new stdClass(); // Symbol.
@@ -433,6 +434,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *
 	 * @return bool False if method short-circuited due to no-op.
 	 */
+	#[\Override]
 	public function preview() {
 		if ( $this->is_previewed ) {
 			return false;
@@ -658,6 +660,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @return array|false|null|WP_Error Null or WP_Error if an input isn't valid. False if it is marked for deletion.
 	 *                                   Otherwise the sanitized value.
 	 */
+	#[\Override]
 	public function sanitize( $value ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item_value = $value;
@@ -758,6 +761,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *                           should consist of.
 	 * @return null|void
 	 */
+	#[\Override]
 	protected function update( $value ) {
 		if ( $this->is_updated ) {
 			return;

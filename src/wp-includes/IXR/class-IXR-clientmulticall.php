@@ -47,6 +47,7 @@ class IXR_ClientMulticall extends IXR_Client
 	 *
 	 * @return bool
 	 */
+	#[\Override]
     function query( ...$args )
     {
         // Prepare multicall, then call the parent::query() method

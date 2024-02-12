@@ -358,6 +358,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * }
 	 * @return bool Whether a tag was matched.
 	 */
+	#[\Override]
 	public function next_tag( $query = null ) {
 		if ( null === $query ) {
 			while ( $this->step() ) {
@@ -1188,6 +1189,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
+	#[\Override]
 	public function get_tag() {
 		if ( null !== $this->last_error ) {
 			return null;
@@ -1219,6 +1221,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
 	 */
+	#[\Override]
 	public function release_bookmark( $bookmark_name ) {
 		return parent::release_bookmark( "_{$bookmark_name}" );
 	}
@@ -1236,6 +1239,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Jump to the place in the document identified by this bookmark name.
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
+	#[\Override]
 	public function seek( $bookmark_name ) {
 		// Flush any pending updates to the document before beginning.
 		$this->get_updated_html();
@@ -1367,6 +1371,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
+	#[\Override]
 	public function set_bookmark( $bookmark_name ) {
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}

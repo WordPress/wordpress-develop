@@ -62,6 +62,7 @@ class IXR_IntrospectionServer extends IXR_Server
         $this->help[$method] = $help;
     }
 
+	#[\Override]
     function call($methodname, $args)
     {
         // Make sure it's in an array

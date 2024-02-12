@@ -66,6 +66,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 
 	/**
 	 */
+	#[\Override]
 	public function enqueue() {
 		wp_enqueue_media();
 		wp_enqueue_script( 'customize-views' );
@@ -98,6 +99,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	/**
 	 * @global Custom_Image_Header $custom_image_header
 	 */
+	#[\Override]
 	public function prepare_control() {
 		global $custom_image_header;
 		if ( empty( $custom_image_header ) ) {
@@ -197,6 +199,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 
 	/**
 	 */
+	#[\Override]
 	public function render_content() {
 		$visibility = $this->get_current_image_src() ? '' : ' style="display:none" ';
 		$width      = absint( get_theme_support( 'custom-header', 'width' ) );

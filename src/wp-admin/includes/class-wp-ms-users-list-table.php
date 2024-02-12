@@ -18,6 +18,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		return current_user_can( 'manage_network_users' );
 	}
@@ -27,6 +28,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @global string $usersearch
 	 * @global string $role
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $mode, $usersearch, $role;
 
@@ -108,6 +110,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		$actions = array();
 		if ( current_user_can( 'delete_users' ) ) {
@@ -121,6 +124,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		_e( 'No users found.' );
 	}
@@ -129,6 +133,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @global string $role
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_views() {
 		global $role;
 
@@ -174,6 +179,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which
 	 */
+	#[\Override]
 	protected function pagination( $which ) {
 		global $mode;
 
@@ -187,6 +193,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		$users_columns = array(
 			'cb'         => '<input type="checkbox" />',
@@ -210,6 +217,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 		return array(
 			'username'   => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
@@ -227,6 +235,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @param WP_User $item The current WP_User object.
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$user = $item;
@@ -462,6 +471,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @param WP_User $item        The current WP_User object.
 	 * @param string  $column_name The current column name.
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$user = $item;
@@ -470,6 +480,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		echo apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
 	}
 
+	#[\Override]
 	public function display_rows() {
 		foreach ( $this->items as $user ) {
 			$class = '';
@@ -500,6 +511,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'username'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'username';
 	}
@@ -516,6 +528,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 * @return string Row actions output for users in Multisite, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[\Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';

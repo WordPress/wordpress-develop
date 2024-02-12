@@ -64,6 +64,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		if ( $this->is_site_users ) {
 			return current_user_can( 'manage_sites' );
@@ -80,6 +81,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @global string $role
 	 * @global string $usersearch
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $role, $usersearch;
 
@@ -154,6 +156,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[\Override]
 	public function no_items() {
 		_e( 'No users found.' );
 	}
@@ -171,6 +174,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return string[] An array of HTML links keyed by their view.
 	 */
+	#[\Override]
 	protected function get_views() {
 		global $role;
 
@@ -268,6 +272,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return array Array of bulk action labels keyed by their action.
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		$actions = array();
 
@@ -297,6 +302,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @param string $which Whether this is being invoked above ("top")
 	 *                      or below the table ("bottom").
 	 */
+	#[\Override]
 	protected function extra_tablenav( $which ) {
 		$id        = 'bottom' === $which ? 'new_role2' : 'new_role';
 		$button_id = 'bottom' === $which ? 'changeit2' : 'changeit';
@@ -352,6 +358,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return string The bulk action required.
 	 */
+	#[\Override]
 	public function current_action() {
 		if ( isset( $_REQUEST['changeit'] ) ) {
 			return 'promote';
@@ -367,6 +374,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		$columns = array(
 			'cb'       => '<input type="checkbox" />',
@@ -391,6 +399,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return array Array of sortable columns.
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 		$columns = array(
 			'username' => array( 'login', false, __( 'Username' ), __( 'Table ordered by Username.' ), 'asc' ),
@@ -405,6 +414,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 */
+	#[\Override]
 	public function display_rows() {
 		// Query the post counts for this page.
 		if ( ! $this->is_site_users ) {
@@ -430,6 +440,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *                             to zero, as in, a new user has made zero posts.
 	 * @return string Output for a single row.
 	 */
+	#[\Override]
 	public function single_row( $user_object, $style = '', $role = '', $numposts = 0 ) {
 		if ( ! ( $user_object instanceof WP_User ) ) {
 			$user_object = get_userdata( (int) $user_object );
@@ -643,6 +654,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'username'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'username';
 	}

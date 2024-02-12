@@ -53,6 +53,7 @@ class WP_Customize_New_Menu_Control extends WP_Customize_Control {
 	 * @since 4.3.0
 	 * @deprecated 4.9.0
 	 */
+	#[\Override]
 	public function render_content() {
 		_deprecated_function( __METHOD__, '4.9.0' );
 		?>

@@ -56,6 +56,7 @@ class Walker_CategoryDropdown extends Walker {
 	 *                                   See wp_dropdown_categories().
 	 * @param int     $current_object_id Optional. ID of the current category. Default 0.
 	 */
+	#[\Override]
 	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$category = $data_object;

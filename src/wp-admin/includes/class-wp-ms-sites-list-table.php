@@ -52,6 +52,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		return current_user_can( 'manage_sites' );
 	}
@@ -65,6 +66,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @global string $s
 	 * @global wpdb   $wpdb WordPress database abstraction object.
 	 */
+	#[\Override]
 	public function prepare_items() {
 		global $mode, $s, $wpdb;
 
@@ -207,6 +209,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		_e( 'No sites found.' );
 	}
@@ -218,6 +221,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_views() {
 		$counts = wp_count_sites();
 
@@ -288,6 +292,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_bulk_actions() {
 		$actions = array();
 		if ( current_user_can( 'delete_sites' ) ) {
@@ -304,6 +309,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which The location of the pagination nav markup: 'top' or 'bottom'.
 	 */
+	#[\Override]
 	protected function pagination( $which ) {
 		global $mode;
 
@@ -321,6 +327,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 	 */
+	#[\Override]
 	protected function extra_tablenav( $which ) {
 		?>
 		<div class="alignleft actions">
@@ -361,6 +368,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		$sites_columns = array(
 			'cb'          => '<input type="checkbox" />',
@@ -388,6 +396,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_sortable_columns() {
 
 		if ( is_subdomain_install() ) {
@@ -413,6 +422,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @param array $item Current site.
 	 */
+	#[\Override]
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$blog = $item;
@@ -595,6 +605,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @param array  $item        Current site.
 	 * @param string $column_name Current column name.
 	 */
+	#[\Override]
 	public function column_default( $item, $column_name ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$blog = $item;
@@ -613,6 +624,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	/**
 	 * @global string $mode List table view mode.
 	 */
+	#[\Override]
 	public function display_rows() {
 		foreach ( $this->items as $blog ) {
 			$blog  = $blog->to_array();
@@ -694,6 +706,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @return string Name of the default primary column, in this case, 'blogname'.
 	 */
+	#[\Override]
 	protected function get_default_primary_column_name() {
 		return 'blogname';
 	}
@@ -710,6 +723,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @return string Row actions output for sites in Multisite, or an empty string
 	 *                if the current column is not the primary column.
 	 */
+	#[\Override]
 	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';

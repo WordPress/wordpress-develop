@@ -29,6 +29,7 @@ class WP_Customize_Nav_Menu_Name_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	protected function render_content() {}
 
 	/**
@@ -36,6 +37,7 @@ class WP_Customize_Nav_Menu_Name_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.3.0
 	 */
+	#[\Override]
 	protected function content_template() {
 		?>
 		<label>

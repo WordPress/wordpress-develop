@@ -41,6 +41,7 @@ class WP_Customize_Nav_Menu_Location_Control extends WP_Customize_Control {
 	 *
 	 * @see WP_Customize_Control::to_json()
 	 */
+	#[\Override]
 	public function to_json() {
 		parent::to_json();
 		$this->json['locationId'] = $this->location_id;
@@ -52,6 +53,7 @@ class WP_Customize_Nav_Menu_Location_Control extends WP_Customize_Control {
 	 * @since 4.3.0
 	 * @since 4.9.0 Added a button to create menus.
 	 */
+	#[\Override]
 	public function render_content() {
 		if ( empty( $this->choices ) ) {
 			return;

@@ -303,6 +303,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @param string $header
 		 * @param string $value
 		 */
+		#[\Override]
 		public function set_header( $header, $value ) {
 			parent::set_header( $header, $value );
 			if ( 'Plural-Forms' === $header ) {

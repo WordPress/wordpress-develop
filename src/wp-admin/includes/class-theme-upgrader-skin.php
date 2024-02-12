@@ -55,6 +55,7 @@ class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 2.8.0
 	 */
+	#[\Override]
 	public function after() {
 		$this->decrement_update_count( 'theme' );
 

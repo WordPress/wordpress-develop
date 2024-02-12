@@ -51,6 +51,7 @@ class WP_Customize_New_Menu_Section extends WP_Customize_Section {
 	 * @since 4.3.0
 	 * @deprecated 4.9.0
 	 */
+	#[\Override]
 	protected function render() {
 		_deprecated_function( __METHOD__, '4.9.0' );
 		?>

@@ -49,6 +49,7 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 	 *
 	 * @since 4.5.0
 	 */
+	#[\Override]
 	public function content_template() {
 		?>
 		<# if ( data.label ) { #>

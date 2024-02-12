@@ -29,6 +29,7 @@ final class WP_Customize_Background_Image_Setting extends WP_Customize_Setting {
 	 *
 	 * @param mixed $value The value to update. Not used.
 	 */
+	#[\Override]
 	public function update( $value ) {
 		remove_theme_mod( 'background_image_thumb' );
 	}

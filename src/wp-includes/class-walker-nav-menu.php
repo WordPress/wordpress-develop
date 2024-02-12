@@ -50,6 +50,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param int      $depth  Depth of menu item. Used for padding.
 	 * @param stdClass $args   An object of wp_nav_menu() arguments.
 	 */
+	#[\Override]
 	public function start_lvl( &$output, $depth = 0, $args = null ) {
 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
 			$t = '';
@@ -107,6 +108,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param int      $depth  Depth of menu item. Used for padding.
 	 * @param stdClass $args   An object of wp_nav_menu() arguments.
 	 */
+	#[\Override]
 	public function end_lvl( &$output, $depth = 0, $args = null ) {
 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
 			$t = '';
@@ -135,6 +137,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param stdClass $args              An object of wp_nav_menu() arguments.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
 	 */
+	#[\Override]
 	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item = $data_object;
@@ -306,6 +309,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param int      $depth       Depth of page. Not Used.
 	 * @param stdClass $args        An object of wp_nav_menu() arguments.
 	 */
+	#[\Override]
 	public function end_el( &$output, $data_object, $depth = 0, $args = null ) {
 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
 			$t = '';

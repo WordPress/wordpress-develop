@@ -34,6 +34,7 @@ class Walker_Category_Checklist extends Walker {
 	 * @param int    $depth  Depth of category. Used for tab indentation.
 	 * @param array  $args   An array of arguments. See {@see wp_terms_checklist()}.
 	 */
+	#[\Override]
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
 		$indent  = str_repeat( "\t", $depth );
 		$output .= "$indent<ul class='children'>\n";
@@ -50,6 +51,7 @@ class Walker_Category_Checklist extends Walker {
 	 * @param int    $depth  Depth of category. Used for tab indentation.
 	 * @param array  $args   An array of arguments. See {@see wp_terms_checklist()}.
 	 */
+	#[\Override]
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
 		$indent  = str_repeat( "\t", $depth );
 		$output .= "$indent</ul>\n";
@@ -70,6 +72,7 @@ class Walker_Category_Checklist extends Walker {
 	 * @param array   $args              An array of arguments. See {@see wp_terms_checklist()}.
 	 * @param int     $current_object_id Optional. ID of the current term. Default 0.
 	 */
+	#[\Override]
 	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$category = $data_object;
@@ -132,6 +135,7 @@ class Walker_Category_Checklist extends Walker {
 	 * @param int     $depth       Depth of the term in reference to parents. Default 0.
 	 * @param array   $args        An array of arguments. See {@see wp_terms_checklist()}.
 	 */
+	#[\Override]
 	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
 		$output .= "</li>\n";
 	}

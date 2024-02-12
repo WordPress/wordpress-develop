@@ -43,6 +43,7 @@ class WP_Privacy_Data_Export_Requests_List_Table extends WP_Privacy_Requests_Tab
 	 * @param WP_User_Request $item Item being shown.
 	 * @return string Email column markup.
 	 */
+	#[\Override]
 	public function column_email( $item ) {
 		/** This filter is documented in wp-admin/includes/ajax-actions.php */
 		$exporters       = apply_filters( 'wp_privacy_personal_data_exporters', array() );
@@ -108,6 +109,7 @@ class WP_Privacy_Data_Export_Requests_List_Table extends WP_Privacy_Requests_Tab
 	 *
 	 * @param WP_User_Request $item Item being shown.
 	 */
+	#[\Override]
 	public function column_next_steps( $item ) {
 		$status = $item->status;
 

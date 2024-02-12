@@ -25,6 +25,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * @return bool
 	 */
+	#[\Override]
 	public function ajax_user_can() {
 		return current_user_can( 'install_plugins' );
 	}
@@ -87,6 +88,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @global string $type
 	 * @global string $term
 	 */
+	#[\Override]
 	public function prepare_items() {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
@@ -289,6 +291,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 	/**
 	 */
+	#[\Override]
 	public function no_items() {
 		if ( isset( $this->error ) ) {
 			$error_message  = '<p>' . $this->error->get_error_message() . '</p>';
@@ -313,6 +316,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_views() {
 		global $tabs, $tab;
 
@@ -333,6 +337,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Overrides parent views so we can use the filter bar display.
 	 */
+	#[\Override]
 	public function views() {
 		$views = $this->get_views();
 
@@ -365,6 +370,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 */
+	#[\Override]
 	public function display() {
 		$singular = $this->_args['singular'];
 
@@ -394,6 +400,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @param string $which
 	 */
+	#[\Override]
 	protected function display_tablenav( $which ) {
 		if ( 'featured' === $GLOBALS['tab'] ) {
 			return;
@@ -428,6 +435,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * @return array
 	 */
+	#[\Override]
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );
 	}
@@ -435,6 +443,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
+	#[\Override]
 	public function get_columns() {
 		return array();
 	}
@@ -464,6 +473,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 	}
 
+	#[\Override]
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(

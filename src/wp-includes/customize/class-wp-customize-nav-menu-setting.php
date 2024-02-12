@@ -155,6 +155,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 *
 	 * @return array Instance data.
 	 */
+	#[\Override]
 	public function value() {
 		if ( $this->is_previewed && get_current_blog_id() === $this->_previewed_blog_id ) {
 			$undefined  = new stdClass(); // Symbol.
@@ -202,6 +203,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 *
 	 * @return bool False if method short-circuited due to no-op.
 	 */
+	#[\Override]
 	public function preview() {
 		if ( $this->is_previewed ) {
 			return false;
@@ -411,6 +413,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 * @return array|false|null Null if an input isn't valid. False if it is marked for deletion.
 	 *                          Otherwise the sanitized value.
 	 */
+	#[\Override]
 	public function sanitize( $value ) {
 		// Menu is marked for deletion.
 		if ( false === $value ) {
@@ -480,6 +483,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 * }
 	 * @return null|void
 	 */
+	#[\Override]
 	protected function update( $value ) {
 		if ( $this->is_updated ) {
 			return;

@@ -340,6 +340,7 @@ if ( ! class_exists( 'MO', false ) ) :
 		 * @param int $count
 		 * @return string
 		 */
+		#[\Override]
 		public function select_plural_form( $count ) {
 			return $this->gettext_select_plural_form( $count );
 		}
@@ -347,6 +348,7 @@ if ( ! class_exists( 'MO', false ) ) :
 		/**
 		 * @return int
 		 */
+		#[\Override]
 		public function get_plural_forms_count() {
 			return $this->_nplurals;
 		}

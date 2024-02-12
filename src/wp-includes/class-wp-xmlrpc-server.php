@@ -368,6 +368,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * @param IXR_Error|string $error   Error code or an error object.
 	 * @param false            $message Error message. Optional.
 	 */
+	#[\Override]
 	public function error( $error, $message = false ) {
 		// Accepts either an error object or an error code and message
 		if ( $message && ! is_object( $error ) ) {

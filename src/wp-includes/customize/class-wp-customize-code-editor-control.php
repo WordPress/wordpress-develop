@@ -46,6 +46,7 @@ class WP_Customize_Code_Editor_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function enqueue() {
 		$this->editor_settings = wp_enqueue_code_editor(
 			array_merge(
@@ -70,6 +71,7 @@ class WP_Customize_Code_Editor_Control extends WP_Customize_Control {
 	 *
 	 * @return array Array of parameters passed to the JavaScript.
 	 */
+	#[\Override]
 	public function json() {
 		$json                    = parent::json();
 		$json['editor_settings'] = $this->editor_settings;
@@ -82,6 +84,7 @@ class WP_Customize_Code_Editor_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function render_content() {}
 
 	/**
@@ -89,6 +92,7 @@ class WP_Customize_Code_Editor_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	public function content_template() {
 		?>
 		<# var elementIdPrefix = 'el' + String( Math.random() ); #>

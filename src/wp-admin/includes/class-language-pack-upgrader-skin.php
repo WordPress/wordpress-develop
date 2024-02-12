@@ -42,6 +42,7 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 
 	/**
 	 */
+	#[\Override]
 	public function before() {
 		$name = $this->upgrader->get_name_for_update( $this->language_update );
 
@@ -56,6 +57,7 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @param string|WP_Error $errors Errors.
 	 */
+	#[\Override]
 	public function error( $errors ) {
 		echo '<div class="lp-error">';
 		parent::error( $errors );
@@ -64,12 +66,14 @@ class Language_Pack_Upgrader_Skin extends WP_Upgrader_Skin {
 
 	/**
 	 */
+	#[\Override]
 	public function after() {
 		echo '</div>';
 	}
 
 	/**
 	 */
+	#[\Override]
 	public function bulk_footer() {
 		$this->decrement_update_count( 'translation' );
 

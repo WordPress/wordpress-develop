@@ -53,6 +53,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	 * @since 4.9.0
 	 * @return array Exported parameters.
 	 */
+	#[\Override]
 	public function json() {
 		$exported                = parent::json();
 		$exported['action']      = $this->action;
@@ -68,6 +69,7 @@ class WP_Customize_Themes_Section extends WP_Customize_Section {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	protected function render_template() {
 		?>
 		<li id="accordion-section-{{ data.id }}" class="theme-section">

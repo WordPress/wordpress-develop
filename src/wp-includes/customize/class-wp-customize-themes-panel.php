@@ -33,6 +33,7 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 	 *
 	 * @since 4.9.0
 	 */
+	#[\Override]
 	protected function render_template() {
 		?>
 		<li id="accordion-section-{{ data.id }}" class="accordion-section control-panel-themes">
@@ -64,6 +65,7 @@ class WP_Customize_Themes_Panel extends WP_Customize_Panel {
 	 *
 	 * @see WP_Customize_Panel::print_template()
 	 */
+	#[\Override]
 	protected function content_template() {
 		?>
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
