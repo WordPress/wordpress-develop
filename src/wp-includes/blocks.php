@@ -987,15 +987,19 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
  * This function is meant for internal use only.
  *
  * @since 6.4.0
+ * @since 6.5.0 Added $callback argument.
  * @access private
  *
  * @param array                           $hooked_blocks An array of blocks hooked to another given block.
  * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
  *                                                       or pattern that the blocks belong to.
+ * @param callable                        $callback      A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $hooked_blocks, $context ) {
+function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -1008,17 +1012,23 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
 
 		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
-			$markup .= insert_hooked_blocks( $parent_block, 'first_child', $hooked_blocks, $context );
+			$markup .= call_user_func_array(
+				$callback,
+				array( &$parent_block, 'first_child', $hooked_blocks, $context )
+			);
 		}
 
-		$markup .= insert_hooked_blocks( $block, 'before', $hooked_blocks, $context );
+		$markup .= call_user_func_array(
+			$callback,
+			array( &$block, 'before', $hooked_blocks, $context )
+		);
 
 		return $markup;
 	};
@@ -1034,15 +1044,19 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
  * This function is meant for internal use only.
  *
  * @since 6.4.0
+ * @since 6.5.0 Added $callback argument.
  * @access private
  *
  * @param array                           $hooked_blocks An array of blocks hooked to another block.
  * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
  *                                                       or pattern that the blocks belong to.
+ * @param callable                        $callback      A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $hooked_blocks, $context ) {
+function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
@@ -1054,12 +1068,18 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
-		$markup = insert_hooked_blocks( $block, 'after', $hooked_blocks, $context );
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
+		$markup = call_user_func_array(
+			$callback,
+			array( &$block, 'after', $hooked_blocks, $context )
+		);
 
 		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
-			$markup .= insert_hooked_blocks( $parent_block, 'last_child', $hooked_blocks, $context );
+			$markup .= call_user_func_array(
+				$callback,
+				array( &$parent_block, 'last_child', $hooked_blocks, $context )
+			);
 		}
 
 		return $markup;
