@@ -501,8 +501,9 @@ if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 // Load active plugins.
 $all_plugin_data = get_option( 'plugin_data', array() );
 $failed_plugins  = array();
+$plugins_dir     = trailingslashit( WP_PLUGIN_DIR );
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
-	$plugin_file    = str_replace( trailingslashit( WP_PLUGIN_DIR ), '', $plugin );
+	$plugin_file    = str_replace( $plugins_dir, '', $plugin );
 	$plugin_headers = $all_plugin_data[ $plugin_file ];
 	$errors         = array();
 	$requirements   = array(
