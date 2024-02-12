@@ -127,6 +127,7 @@ class Tests_Block_Supports_DuoTones extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_colord_parse_hue
+	 * @ticket 59496
 	 */
 	public function test_colord_parse_hue( $value, $unit, $expected ) {
 		$reflection = new ReflectionMethod( 'WP_Duotone', 'colord_parse_hue' );
