@@ -824,17 +824,17 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( method_exists( $this->image, 'setInterlaceScheme' ) && method_exists( $this->image, 'getInterlaceScheme' ) && defined( 'Imagick::INTERLACE_PLANE' ) ) {
 			$orig_interlace = $this->image->getInterlaceScheme();
 			/**
-			 * Filters whether to use output interlaced (progressive) images if available.
+			 * Filters whether to output progressive images (if available).
 			 *
 			 * @since 6.5.0
 			 *
-			 * @param bool   $interlace Whether to use interlaced (progressive) images if available. Default false.
+			 * @param bool   $interlace Whether to use progressive images for output if available. Default false.
 			 * @param string $mime_type The mime type being saved.
 			 */
 			if ( apply_filters( 'image_save_progressive', false, $mime_type ) ) {
-				$this->image->setInterlaceScheme( Imagick::INTERLACE_NONE );
+				$this->image->setInterlaceScheme( Imagick::INTERLACE_PLANE ); // True - line interlace output.
 			} else {
-				$this->image->setInterlaceScheme( Imagick::INTERLACE_PLANE );
+				$this->image->setInterlaceScheme( Imagick::INTERLACE_NO ); // False - no interlace output.
 			}
 		}
 
