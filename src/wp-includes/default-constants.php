@@ -328,7 +328,7 @@ function wp_cookie_constants() {
 	 */
 	if ( ! defined( 'COOKIE_DOMAIN' ) ) {
 		/**
-		 * @since 6.4.0 The default value has changed from false to an empty string.
+		 * @since 6.5.0 The value has changed from false to an empty string.
 		 *
 		 * @var string
 		 */
