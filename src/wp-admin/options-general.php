@@ -127,11 +127,11 @@ $tagline_description = sprintf(
 		<div class="favicon-preview">
 			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
 			<div class="favicon">
-				<img src="<?php site_icon_url( null, 150 ); ?>" alt="Preview as a browser icon">
+				<img src="<?php site_icon_url(); ?>" alt="Preview as a browser icon">
 			</div>
 			<span class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
 		</div>
-		<img class="app-icon-preview" src="<?php site_icon_url( null, 150 ); ?>" alt="Preview as an app icon">
+		<img class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="Preview as an app icon">
 	</div>
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<p>
