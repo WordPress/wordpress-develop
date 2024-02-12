@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Interactivity_API
  */
-class Tests_WP_Interactivity_API extends WP_UnitTestCase {
+class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *
@@ -511,34 +511,34 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * Tests that the `process_directives` returns the same HTML if it finds an
 	 * SVG tag.
 	 *
-	 * @ticket 60356
+	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_svgs() {
+	public function test_process_directives_changes_html_if_contains_svgs() {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 		$html           = '
 			<div data-wp-bind--id="myPlugin::state.id">
 				<svg height="100" width="100">
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-				</svg> 
+				</svg>
 			</div>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag();
-		$this->assertNull( $p->get_attribute( 'id' ) );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
 	 * Tests that the `process_directives` returns the same HTML if it finds an
 	 * MathML tag.
 	 *
-	 * @ticket 60356
+	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_math() {
+	public function test_process_directives_change_html_if_contains_math() {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 		$html           = '
 			<div data-wp-bind--id="myPlugin::state.id">
@@ -552,7 +552,7 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag();
-		$this->assertNull( $p->get_attribute( 'id' ) );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
