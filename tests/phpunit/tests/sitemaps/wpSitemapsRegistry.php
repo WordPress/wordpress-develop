@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Registry::add_provider
  */
 class Tests_Sitemaps_wpSitemapsRegistry extends WP_UnitTestCase {
 

@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Renderer
  */
 class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
