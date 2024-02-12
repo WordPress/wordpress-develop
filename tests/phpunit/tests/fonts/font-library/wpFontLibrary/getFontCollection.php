@@ -25,6 +25,6 @@ class Tests_Fonts_WpFontLibrary_GetFontCollection extends WP_Font_Library_UnitTe
 
 	public function test_should_get_no_font_collection_if_the_slug_is_not_registered() {
 		$font_collection = WP_Font_Library::get_instance()->get_font_collection( 'not-registered-font-collection' );
-		$this->assertWPError( $font_collection );
+		$this->assertNull( $font_collection );
 	}
 }

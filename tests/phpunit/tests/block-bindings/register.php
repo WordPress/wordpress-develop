@@ -11,10 +11,24 @@
  */
 class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 
-	const TEST_SOURCE_NAME       = 'test/source';
-	const TEST_SOURCE_PROPERTIES = array(
-		'label' => 'Test source',
-	);
+	public static $test_source_name       = 'test/source';
+	public static $test_source_properties = array();
+
+	/**
+	 * Set up before each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		self::$test_source_properties = array(
+			'label'              => 'Test source',
+			'get_value_callback' => function () {
+				return 'test-value';
+			},
+		);
+	}
 
 	/**
 	 * Tear down after each test.
@@ -39,24 +53,25 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_bindings_source
 	 * @covers ::get_all_registered_block_bindings_sources
 	 * @covers ::get_block_bindings_source
+	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_get_all_registered() {
 		$source_one_name       = 'test/source-one';
-		$source_one_properties = self::TEST_SOURCE_PROPERTIES;
+		$source_one_properties = self::$test_source_properties;
 		register_block_bindings_source( $source_one_name, $source_one_properties );
 
 		$source_two_name       = 'test/source-two';
-		$source_two_properties = self::TEST_SOURCE_PROPERTIES;
+		$source_two_properties = self::$test_source_properties;
 		register_block_bindings_source( $source_two_name, $source_two_properties );
 
 		$source_three_name       = 'test/source-three';
-		$source_three_properties = self::TEST_SOURCE_PROPERTIES;
+		$source_three_properties = self::$test_source_properties;
 		register_block_bindings_source( $source_three_name, $source_three_properties );
 
 		$expected = array(
-			$source_one_name         => array_merge( array( 'name' => $source_one_name ), $source_one_properties ),
-			$source_two_name         => array_merge( array( 'name' => $source_two_name ), $source_two_properties ),
-			$source_three_name       => array_merge( array( 'name' => $source_three_name ), $source_three_properties ),
+			$source_one_name         => new WP_Block_Bindings_Source( $source_one_name, $source_one_properties ),
+			$source_two_name         => new WP_Block_Bindings_Source( $source_two_name, $source_two_properties ),
+			$source_three_name       => new WP_Block_Bindings_Source( $source_three_name, $source_three_properties ),
 			'core/post-meta'         => get_block_bindings_source( 'core/post-meta' ),
 			'core/pattern-overrides' => get_block_bindings_source( 'core/pattern-overrides' ),
 		);
@@ -72,15 +87,16 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_block_bindings_source
 	 * @covers ::unregister_block_bindings_source
+	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_unregister_block_source() {
-		register_block_bindings_source( self::TEST_SOURCE_NAME, self::TEST_SOURCE_PROPERTIES );
+		register_block_bindings_source( self::$test_source_name, self::$test_source_properties );
 
-		$result = unregister_block_bindings_source( self::TEST_SOURCE_NAME );
-		$this->assertSame(
-			array_merge(
-				array( 'name' => self::TEST_SOURCE_NAME ),
-				self::TEST_SOURCE_PROPERTIES
+		$result = unregister_block_bindings_source( self::$test_source_name );
+		$this->assertEquals(
+			new WP_Block_Bindings_Source(
+				self::$test_source_name,
+				self::$test_source_properties
 			),
 			$result
 		);
