@@ -22,20 +22,16 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60008
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_block_markup
 	 */
-	public function test_get_hooked_block_markup_adds_metadata() {
+	public function test_get_hooked_block_markup_returns_correct_markup() {
 		$anchor_block = array(
 			'blockName' => 'tests/anchor-block',
 		);
 
 		$actual = get_hooked_block_markup( self::HOOKED_BLOCK, self::HOOKED_BLOCK_TYPE, $anchor_block );
-		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"Hooked block type wasn't added to ignoredHookedBlocks metadata."
-		);
 		$this->assertSame(
 			'<!-- wp:' . self::HOOKED_BLOCK['blockName'] . ' /-->',
 			$actual,
@@ -47,10 +43,11 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60008
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_block_markup
 	 */
-	public function test_get_hooked_block_markup_if_block_is_already_hooked() {
+	public function test_get_hooked_block_markup_if_block_is_ignored() {
 		$anchor_block = array(
 			'blockName' => 'tests/anchor-block',
 			'attrs'     => array(
@@ -62,11 +59,6 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 
 		$actual = get_hooked_block_markup( self::HOOKED_BLOCK, self::HOOKED_BLOCK_TYPE, $anchor_block );
 		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"ignoredHookedBlocks metadata shouldn't have been modified."
-		);
-		$this->assertSame(
 			'',
 			$actual,
 			"No markup should've been generated for ignored hooked block."
@@ -77,10 +69,11 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 	 * @ticket 59572
 	 * @ticket 60008
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_block_markup
 	 */
-	public function test_get_hooked_block_markup_adds_to_ignored_hooked_blocks() {
+	public function test_get_hooked_block_markup_if_other_block_is_ignored() {
 		$other_hooked_block_type = 'tests/other-hooked-block';
 		$other_hooked_block      = array(
 			'blockName'    => $other_hooked_block_type,
@@ -98,11 +91,6 @@ class Tests_Blocks_GetHookedBlockMarkup extends WP_UnitTestCase {
 		);
 
 		$actual = get_hooked_block_markup( $other_hooked_block, $other_hooked_block_type, $anchor_block );
-		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE, $other_hooked_block_type ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"Newly hooked block should've been added to ignoredHookedBlocks metadata while retaining previously ignored one."
-		);
 		$this->assertSame(
 			'<!-- wp:' . $other_hooked_block_type . ' /-->',
 			$actual,
