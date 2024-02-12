@@ -821,7 +821,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
 
-		if ( method_exists( $this->image, 'setInterlaceScheme' ) && defined( 'Imagick::INTERLACE_PLANE' ) ) {
+		if ( method_exists( $this->image, 'setInterlaceScheme' ) && method_exists( $this->image, 'getInterlaceScheme' ) && defined( 'Imagick::INTERLACE_PLANE' ) ) {
+			$orig_interlace = $this->image->getInterlaceScheme();
 			/**
 			 * Filters whether to use output interlaced (progressive) images if available.
 			 *
@@ -845,6 +846,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
+			if ( isset( $orig_interlace ) ) {
+				$this->image->setInterlaceScheme( $orig_interlace );
+			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
