@@ -850,6 +850,36 @@ function get_hooked_blocks() {
 	return $hooked_blocks;
 }
 
+
+/**
+ * Adds a given block type to the list of an anchor block's ignored hooked block types.
+ *
+ * Given an anchor block and a hooked block type, add the hooked block type to the list
+ * of ignored hooked block types stored in the anchor block's `metadata` attribute.
+ *
+ * This function is meant for internal use only.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array  $anchor_block      The anchor block, represented as a parsed block array.
+ * @param string $hooked_block_type The type of the hooked block.
+ * @return array The anchor block, with the hooked block type added to its `metadata.ignoredHookedBlocks`
+ *               attribute.
+ */
+function set_ignored_hooked_blocks_metadata( $anchor_block, $hooked_block_type  ) {
+	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
+	}
+
+	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true ) ) {
+		return $anchor_block;
+	}
+
+	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
+	return $anchor_block;
+}
+
 /**
  * Conditionally returns the markup for a given hooked block.
  *
