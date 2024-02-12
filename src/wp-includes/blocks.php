@@ -873,17 +873,12 @@ function get_hooked_blocks() {
  * @return string The markup for the given hooked block, or an empty string if the block is ignored.
  */
 function get_hooked_block_markup( $hooked_block, $hooked_block_type, &$anchor_block ) {
-	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
-		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
-	}
-
-	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true ) ) {
+	if (
+		isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) &&
+		in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
+	) {
 		return '';
 	}
-
-	// The following is only needed for the REST API endpoint.
-	// However, its presence does not affect the frontend.
-	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
 
 	return serialize_block( $hooked_block );
 }
