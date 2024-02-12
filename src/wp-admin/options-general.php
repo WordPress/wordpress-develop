@@ -162,7 +162,7 @@ $tagline_description = sprintf(
 	</p>
 
 	<p class="description" id="site-icon-description">
-		<?php _e( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ); ?>.
+		<?php _e( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ); ?>
 	</p>
 	<p class="description" id="site-icon-further-description">
 		<?php
