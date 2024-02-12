@@ -830,10 +830,11 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			 * @param bool   $interlace Whether to use interlaced images. Default false.
 			 * @param string $mime_type The mime type being saved.
 			 */
-			if( apply_filters( 'image_save_progressive', false, $mime_type ) ) {
+			if ( apply_filters( 'image_save_progressive', false, $mime_type ) ) {
 				$this->image->setInterlaceScheme( Imagick::INTERLACE_NONE );
 			} else {
 				$this->image->setInterlaceScheme( Imagick::INTERLACE_PLANE );
+			}
 		}
 
 		$write_image_result = $this->write_image( $this->image, $filename );
