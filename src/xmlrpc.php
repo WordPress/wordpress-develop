@@ -33,6 +33,7 @@ require_once __DIR__ . '/wp-load.php';
 if ( isset( $_GET['rsd'] ) ) { // https://cyber.harvard.edu/blogs/gems/tech/rsd.html
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), true );
 	echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '"?' . '>';
+
 	?>
 <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
 	<service>
