@@ -5648,6 +5648,10 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
+.has-black-border-color[class] {
+	border-color: var(--global--color-black);
+}
+
 .has-dark-gray-background-color[class] {
 	background-color: var(--global--color-dark-gray);
 }
@@ -5655,6 +5659,10 @@ h1.page-title {
 .has-dark-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-dark-gray, #000);
 	background-color: var(--local--color-background);
+}
+
+.has-dark-gray-border-color[class] {
+	border-color: var(--global--color-dark-gray);
 }
 
 .has-gray-background-color[class] {
@@ -5666,6 +5674,10 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
+.has-gray-border-color[class] {
+	border-color: var(--global--color-gray);
+}
+
 .has-light-gray-background-color[class] {
 	background-color: var(--global--color-light-gray);
 }
@@ -5673,6 +5685,10 @@ h1.page-title {
 .has-light-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-light-gray, #fff);
 	background-color: var(--local--color-background);
+}
+
+.has-light-gray-border-color[class] {
+	border-color: var(--global--color-light-gray);
 }
 
 .has-green-background-color[class] {
@@ -5684,6 +5700,10 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
+.has-green-border-color[class] {
+	border-color: var(--global--color-green);
+}
+
 .has-blue-background-color[class] {
 	background-color: var(--global--color-blue);
 }
@@ -5691,6 +5711,10 @@ h1.page-title {
 .has-blue-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-blue, #fff);
 	background-color: var(--local--color-background);
+}
+
+.has-blue-border-color[class] {
+	border-color: var(--global--color-blue);
 }
 
 .has-purple-background-color[class] {
@@ -5702,6 +5726,10 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
+.has-purple-border-color[class] {
+	border-color: var(--global--color-purple);
+}
+
 .has-red-background-color[class] {
 	background-color: var(--global--color-red);
 }
@@ -5709,6 +5737,10 @@ h1.page-title {
 .has-red-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-red, #fff);
 	background-color: var(--local--color-background);
+}
+
+.has-red-border-color[class] {
+	border-color: var(--global--color-red);
 }
 
 .has-orange-background-color[class] {
@@ -5720,6 +5752,10 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
+.has-orange-border-color[class] {
+	border-color: var(--global--color-orange);
+}
+
 .has-yellow-background-color[class] {
 	background-color: var(--global--color-yellow);
 }
@@ -5729,6 +5765,10 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
+.has-yellow-border-color[class] {
+	border-color: var(--global--color-yellow);
+}
+
 .has-white-background-color[class] {
 	background-color: var(--global--color-white);
 }
@@ -5736,6 +5776,10 @@ h1.page-title {
 .has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-white, #fff);
 	background-color: var(--local--color-background);
+}
+
+.has-white-border-color[class] {
+	border-color: var(--global--color-white);
 }
 
 .has-background:not(.has-text-color).has-black-background-color[class],
