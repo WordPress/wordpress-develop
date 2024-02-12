@@ -867,7 +867,7 @@ function get_hooked_blocks() {
  * @return array The anchor block, with the hooked block type added to its `metadata.ignoredHookedBlocks`
  *               attribute.
  */
-function set_ignored_hooked_blocks_metadata( $anchor_block, $hooked_block_type  ) {
+function set_ignored_hooked_blocks_metadata( $anchor_block, $hooked_block_type ) {
 	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
 		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
 	}
