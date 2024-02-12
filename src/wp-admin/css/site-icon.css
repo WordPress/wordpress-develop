@@ -60,6 +60,7 @@
 	border-color: transparent;
 	box-shadow: none;
 	background: transparent;
+	margin: 0 10px;
 }
 
 .site-icon-section button.reset:focus,
