@@ -102,11 +102,9 @@ $tagline_description = sprintf(
 <th scope="row"><?php _e( 'Site Icon' ); ?></th>
 <td>
 	<?php
-
-/*
 	wp_enqueue_media();
 	wp_enqueue_script( 'site-icon' );
-*/
+
 	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
 	$classes_for_update_button = 'button';
 
