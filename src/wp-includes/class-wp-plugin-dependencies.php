@@ -686,12 +686,12 @@ class WP_Plugin_Dependencies {
 			);
 		}
 
-		$dependents_to_deactivate = array_unique( $dependents_to_deactivate );
-
 		// Bail early if there are no dependents to deactivate.
 		if ( empty( $dependents_to_deactivate ) ) {
 			return;
 		}
+
+		$dependents_to_deactivate = array_unique( $dependents_to_deactivate );
 
 		deactivate_plugins( $dependents_to_deactivate );
 		set_site_transient( 'wp_plugin_dependencies_deactivated_plugins', $dependents_to_deactivate, 10 );
