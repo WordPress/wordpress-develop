@@ -853,7 +853,7 @@ function get_hooked_blocks() {
 /**
  * Conditionally returns the markup for a given hooked block.
  *
- * Accepts three arguments: A hooked block, its type, and a reference to an anchor block.
+ * Accepts three arguments: A hooked block, its type, and an anchor block.
  * If the anchor block has already been processed, and the given hooked block type is in the list
  * of ignored hooked blocks, an empty string is returned.
  *
