@@ -869,10 +869,9 @@ function get_hooked_blocks() {
  * @param string $hooked_block_type The type of the hooked block. This could be different from
  *                                  $hooked_block['blockName'], as a filter might've modified the latter.
  * @param array  $anchor_block      The anchor block, represented as a parsed block array.
- *                                  Passed by reference.
  * @return string The markup for the given hooked block, or an empty string if the block is ignored.
  */
-function get_hooked_block_markup( $hooked_block, $hooked_block_type, &$anchor_block ) {
+function get_hooked_block_markup( $hooked_block, $hooked_block_type, $anchor_block ) {
 	if (
 		isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) &&
 		in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
