@@ -325,11 +325,13 @@ function wp_cookie_constants() {
 
 	/**
 	 * @since 2.0.0
-	 * @since 6.4.0 The default value has changed from false to an empty string.
-  	 *
-  	 * @var string
 	 */
 	if ( ! defined( 'COOKIE_DOMAIN' ) ) {
+		/**
+		 * @since 6.4.0 The default value has changed from false to an empty string.
+		 * 
+		 * @var string
+		 */
 		define( 'COOKIE_DOMAIN', '' );
 	}
 
