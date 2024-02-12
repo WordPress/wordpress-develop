@@ -43,7 +43,7 @@
 
 	$( function() {
 		// Build the choose from library frame.
-		$( '#choose-from-library-link' ).on( 'click', function( event ) {
+		$( '#choose-from-library-link' ).on( 'click', function() {
 			var $el = $(this);
 
 			// Create the media frame.
@@ -121,7 +121,7 @@
 		$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr( 'data-update-text' ) );
 	}
 
-	$( '#js-remove-site-icon' ).on( 'click', function( event ) {
+	$( '#js-remove-site-icon' ).on( 'click', function() {
 		$( '#site_icon_hidden_field' ).val( 'false' );
 		$( '#site-icon-preview' ).toggleClass( 'hidden' );
 		$( this ).toggleClass( 'hidden' );
