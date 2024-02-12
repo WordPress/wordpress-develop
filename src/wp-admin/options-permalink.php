@@ -404,8 +404,7 @@ printf(
 				</div>
 			</div><!-- .row -->
 			<script>
-				let permalinkRadio = document.querySelector('input[name="selection"]');
-				document.body.addEventListener('change', function (e) {
+				jQuery('input[name="selection"]').on('change', function(e) {
 					var strctureType = e.target.value;
 					const structureButtons = document.querySelectorAll('.button-secondary');
 					if(strctureType == 'custom'){
