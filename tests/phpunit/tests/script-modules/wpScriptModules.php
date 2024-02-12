@@ -154,7 +154,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a script module cannot be deregistered
+	 * Tests that a script module is not deregistered
 	 * if it has not been registered before, causing
 	 * no errors.
 	 *
@@ -172,8 +172,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a script module cannot be deregistered
-	 * if it has not been registered before, causing
+	 * Tests that a script module is not deregistered
+	 * if it has been deregistered previously, causing
 	 * no errors.
 	 *
 	 * @ticket 60463
