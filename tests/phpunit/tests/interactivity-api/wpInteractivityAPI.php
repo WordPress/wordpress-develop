@@ -518,15 +518,16 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	public function test_process_directives_changes_html_if_contains_svgs() {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 		$html           = '
-			<div data-wp-bind--id="myPlugin::state.id">
+			<header>
 				<svg height="100" width="100">
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
 				</svg>
-			</div>
+				<div data-wp-bind--id="myPlugin::state.id"></div>
+			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag();
+		$p->next_tag( 'div' );
 		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
@@ -541,17 +542,18 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	public function test_process_directives_change_html_if_contains_math() {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 		$html           = '
-			<div data-wp-bind--id="myPlugin::state.id">
+			<header>
 				<math>
 					<mi>x</mi>
 					<mo>=</mo>
 					<mi>1</mi>
 				</math>
-			</div>
+				<div data-wp-bind--id="myPlugin::state.id"></div>
+			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag();
+		$p->next_tag( 'div' );
 		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
