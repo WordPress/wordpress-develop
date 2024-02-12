@@ -261,6 +261,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array(), $data['editor_script_handles'] );
 		$this->assertSameSets( array(), $data['script_handles'] );
 		$this->assertSameSets( array(), $data['view_script_handles'] );
+		$this->assertSameSets( array(), $data['view_script_module_ids'] );
 		$this->assertSameSets( array(), $data['editor_style_handles'] );
 		$this->assertSameSets( array(), $data['style_handles'] );
 		$this->assertFalse( $data['is_dynamic'] );
@@ -339,6 +340,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array(), $data['editor_script_handles'] );
 		$this->assertSameSets( array(), $data['script_handles'] );
 		$this->assertSameSets( array(), $data['view_script_handles'] );
+		$this->assertSameSets( array(), $data['view_script_module_ids'] );
 		$this->assertSameSets( array(), $data['editor_style_handles'] );
 		$this->assertSameSets( array(), $data['style_handles'] );
 		$this->assertFalse( $data['is_dynamic'] );
@@ -562,7 +564,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 32, $properties );
+		$this->assertCount( 33, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
@@ -586,6 +588,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'editor_script_handles', $properties );
 		$this->assertArrayHasKey( 'script_handles', $properties );
 		$this->assertArrayHasKey( 'view_script_handles', $properties );
+		$this->assertArrayHasKey( 'view_script_module_ids', $properties );
 		$this->assertArrayHasKey( 'editor_style_handles', $properties );
 		$this->assertArrayHasKey( 'style_handles', $properties );
 		$this->assertArrayHasKey( 'view_style_handles', $properties, 'schema must contain view_style_handles' );
@@ -718,6 +721,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'editor_script_handles',
 			'script_handles',
 			'view_script_handles',
+			'view_script_module_ids',
 			'editor_style_handles',
 			'style_handles',
 			// Deprecated fields.
