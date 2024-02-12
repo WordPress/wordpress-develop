@@ -672,8 +672,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				<div class="desc column-description">
 					<p><?php echo $description; ?></p>
 					<p class="authors"><?php echo $author; ?></p>
-					<?php echo $this->get_dependencies_notice( $plugin ); ?>
 				</div>
+				<?php echo $this->get_dependencies_notice( $plugin ); ?>
 			</div>
 			<div class="plugin-card-bottom">
 				<div class="vers column-rating">
