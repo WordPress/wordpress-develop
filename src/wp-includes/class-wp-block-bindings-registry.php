@@ -159,18 +159,16 @@ final class WP_Block_Bindings_Registry {
 
 		// Add `uses_context` defined by block bindings sources.
 		add_filter(
-			'register_block_type_args',
-			function ( $args, $block_name ) use ( $source ) {
+			'get_block_type_uses_context',
+			function ( $uses_context, $block_type ) use ( $source ) {
 				$allowed_blocks = $this->allowed_blocks;
-
-				if ( empty( $allowed_blocks[ $block_name ] ) || empty( $source->uses_context ) ) {
-					return $args;
+				if ( empty( $allowed_blocks[ $block_type->name ] ) || empty( $source->uses_context ) ) {
+					return $uses_context;
 				}
-				$original_use_context = isset( $args['uses_context'] ) ? $args['uses_context'] : array();
 				// Use array_values to reset the array keys.
-				$args['uses_context'] = array_values( array_unique( array_merge( $original_use_context, $source->uses_context ) ) );
+				$merged_uses_context = array_values( array_unique( array_merge( $uses_context, $source->uses_context ) ) );
 
-				return $args;
+				return $merged_uses_context;
 			},
 			10,
 			2
