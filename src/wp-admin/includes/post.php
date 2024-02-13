@@ -452,7 +452,7 @@ function edit_post( $post_data = null ) {
 
 	$success = wp_update_post( $translated );
 
-	// If the save failed, see if we can sanity check the main fields and try again.
+	// If the save failed, see if we can confidence check the main fields and try again.
 	if ( ! $success && is_callable( array( $wpdb, 'strip_invalid_text_for_column' ) ) ) {
 		$fields = array( 'post_title', 'post_content', 'post_excerpt' );
 
@@ -649,8 +649,21 @@ function bulk_edit_posts( $post_data = null ) {
 		}
 
 		if ( isset( $new_cats ) && in_array( 'category', $tax_names, true ) ) {
-			$cats                       = (array) wp_get_post_categories( $post_id );
-			$post_data['post_category'] = array_unique( array_merge( $cats, $new_cats ) );
+			$cats = (array) wp_get_post_categories( $post_id );
+
+			if (
+				isset( $post_data['indeterminate_post_category'] )
+				&& is_array( $post_data['indeterminate_post_category'] )
+			) {
+				$indeterminate_post_category = $post_data['indeterminate_post_category'];
+			} else {
+				$indeterminate_post_category = array();
+			}
+
+			$indeterminate_cats         = array_intersect( $cats, $indeterminate_post_category );
+			$determinate_cats           = array_diff( $new_cats, $indeterminate_post_category );
+			$post_data['post_category'] = array_unique( array_merge( $indeterminate_cats, $determinate_cats ) );
+
 			unset( $post_data['tax_input']['category'] );
 		}
 
@@ -2303,6 +2316,7 @@ function get_block_editor_server_block_settings() {
 		'keywords'         => 'keywords',
 		'example'          => 'example',
 		'variations'       => 'variations',
+		'allowed_blocks'   => 'allowedBlocks',
 	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {

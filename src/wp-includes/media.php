@@ -2117,6 +2117,13 @@ function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id 
 		$size_array = wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id );
 
 		if ( $size_array ) {
+			// If the width is enforced through style (e.g. in an inline image), calculate the dimension attributes.
+			$style_width = preg_match( '/style="width:\s*(\d+)px;"/', $image, $match_width ) ? (int) $match_width[1] : 0;
+			if ( $style_width ) {
+				$size_array[1] = (int) round( $size_array[1] * $style_width / $size_array[0] );
+				$size_array[0] = $style_width;
+			}
+
 			$hw = trim( image_hwstring( $size_array[0], $size_array[1] ) );
 			return str_replace( '<img', "<img {$hw}", $image );
 		}
@@ -2347,10 +2354,6 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  * @return string HTML content to display the caption.
  */
 function img_caption_shortcode( $attr, $content = '' ) {
-	if ( ! $attr ) {
-		$attr = array();
-	}
-
 	// New-style shortcode with the caption inside the shortcode with the link and image tags.
 	if ( ! isset( $attr['caption'] ) ) {
 		if ( preg_match( '#((?:<a [^>]+>\s*)?<img [^>]+>(?:\s*</a>)?)(.*)#is', $content, $matches ) ) {
@@ -4093,6 +4096,7 @@ function _wp_image_editor_choose( $args = array() ) {
 	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
 	/**
 	 * Filters the list of image editing library classes.
 	 *
@@ -4133,7 +4137,7 @@ function _wp_image_editor_choose( $args = array() ) {
 			! call_user_func( array( $implementation, 'supports_mime_type' ), $args['output_mime_type'] )
 		) {
 			/*
-			 * This implementation supports the imput type but not the output type.
+			 * This implementation supports the input type but not the output type.
 			 * Keep looking to see if we can find an implementation that supports both.
 			 */
 			$supports_input = $implementation;
@@ -4195,6 +4199,11 @@ function wp_plupload_default_settings() {
 	// Check if WebP images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 		$defaults['webp_upload_error'] = true;
+	}
+
+	// Check if AVIF images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+		$defaults['avif_upload_error'] = true;
 	}
 
 	/**
@@ -5473,6 +5482,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  *
  * @since 5.7.0
  * @since 5.8.0 Added support for WebP images.
+ * @since 6.5.0 Added support for AVIF images.
  *
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
@@ -5505,7 +5515,11 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
-	if ( false !== $info ) {
+	if (
+		! empty( $info ) &&
+		// Some PHP versions return 0x0 sizes from `getimagesize` for unrecognized image formats, including AVIFs.
+		! ( empty( $info[0] ) && empty( $info[1] ) )
+	) {
 		return $info;
 	}
 
@@ -5534,8 +5548,73 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
+	// For PHP versions that don't support AVIF images, extract the image size info from the file headers.
+	if ( 'image/avif' === wp_get_image_mime( $filename ) ) {
+		$avif_info = wp_get_avif_info( $filename );
+
+		$width  = $avif_info['width'];
+		$height = $avif_info['height'];
+
+		// Mimic the native return format.
+		if ( $width && $height ) {
+			return array(
+				$width,
+				$height,
+				IMAGETYPE_AVIF,
+				sprintf(
+					'width="%d" height="%d"',
+					$width,
+					$height
+				),
+				'mime' => 'image/avif',
+			);
+		}
+	}
+
 	// The image could not be parsed.
 	return false;
+}
+
+/**
+ * Extracts meta information about an AVIF file: width, height, bit depth, and number of channels.
+ *
+ * @since 6.5.0
+ *
+ * @param string $filename Path to an AVIF file.
+ * @return array {
+ *    An array of AVIF image information.
+ *
+ *    @type int|false $width        Image width on success, false on failure.
+ *    @type int|false $height       Image height on success, false on failure.
+ *    @type int|false $bit_depth    Image bit depth on success, false on failure.
+ *    @type int|false $num_channels Image number of channels on success, false on failure.
+ * }
+ */
+function wp_get_avif_info( $filename ) {
+	$results = array(
+		'width'        => false,
+		'height'       => false,
+		'bit_depth'    => false,
+		'num_channels' => false,
+	);
+
+	if ( 'image/avif' !== wp_get_image_mime( $filename ) ) {
+		return $results;
+	}
+
+	// Parse the file using libavifinfo's PHP implementation.
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
+
+	$handle = fopen( $filename, 'rb' );
+	if ( $handle ) {
+		$parser  = new Avifinfo\Parser( $handle );
+		$success = $parser->parse_ftyp() && $parser->parse_file();
+		fclose( $handle );
+		if ( $success ) {
+			$results = $parser->features->primary_item_features;
+		}
+	}
+	return $results;
 }
 
 /**

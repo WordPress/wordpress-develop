@@ -564,6 +564,72 @@ function create_initial_post_types() {
 		)
 	);
 
+	register_post_type(
+		'wp_font_family',
+		array(
+			'labels'                         => array(
+				'name'          => __( 'Font Families' ),
+				'singular_name' => __( 'Font Family' ),
+			),
+			'public'                         => false,
+			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'                   => false,
+			'capabilities'                   => array(
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+			),
+			'map_meta_cap'                   => true,
+			'query_var'                      => false,
+			'rewrite'                        => false,
+			'show_in_rest'                   => true,
+			'rest_base'                      => 'font-families',
+			'rest_controller_class'          => 'WP_REST_Font_Families_Controller',
+			// Disable autosave endpoints for font families.
+			'autosave_rest_controller_class' => 'stdClass',
+		)
+	);
+
+	register_post_type(
+		'wp_font_face',
+		array(
+			'labels'                         => array(
+				'name'          => __( 'Font Faces' ),
+				'singular_name' => __( 'Font Face' ),
+			),
+			'public'                         => false,
+			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'                   => false,
+			'capabilities'                   => array(
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+			),
+			'map_meta_cap'                   => true,
+			'query_var'                      => false,
+			'rewrite'                        => false,
+			'show_in_rest'                   => true,
+			'rest_base'                      => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'rest_controller_class'          => 'WP_REST_Font_Faces_Controller',
+			// Disable autosave endpoints for font faces.
+			'autosave_rest_controller_class' => 'stdClass',
+		)
+	);
+
 	register_post_status(
 		'publish',
 		array(
@@ -3861,7 +3927,7 @@ function wp_untrash_post_comments( $post = null ) {
 	}
 
 	foreach ( $group_by_status as $status => $comments ) {
-		// Sanity check. This shouldn't happen.
+		// Confidence check. This shouldn't happen.
 		if ( 'post-trashed' === $status ) {
 			$status = '0';
 		}
@@ -6665,9 +6731,9 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
  *
  * @since 4.2.0
  *
- * @param string      $type Attachment type. Accepts 'image', 'audio', or 'video'.
+ * @param string      $type Attachment type. Accepts `image`, `audio`, `video`, or a file extension.
  * @param int|WP_Post $post Optional. Attachment ID or object. Default is global $post.
- * @return bool True if one of the accepted types, false otherwise.
+ * @return bool True if an accepted type or a matching file extension, false otherwise.
  */
 function wp_attachment_is( $type, $post = null ) {
 	$post = get_post( $post );
@@ -6700,7 +6766,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':

@@ -1548,11 +1548,11 @@ function nocache_headers() {
  * @since 2.1.0
  */
 function cache_javascript_headers() {
-	$expiresOffset = 10 * DAY_IN_SECONDS;
+	$expires_offset = 10 * DAY_IN_SECONDS;
 
 	header( 'Content-Type: text/javascript; charset=' . get_bloginfo( 'charset' ) );
 	header( 'Vary: Accept-Encoding' ); // Handle proxies.
-	header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expiresOffset ) . ' GMT' );
+	header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
 }
 
 /**
@@ -1692,7 +1692,7 @@ function do_feed_atom( $for_comments ) {
  * Displays the default robots.txt file content.
  *
  * @since 2.1.0
- * @since 5.3.0 Remove the "Disallow: /" output if search engine visiblity is
+ * @since 5.3.0 Remove the "Disallow: /" output if search engine visibility is
  *              discouraged in favor of robots meta HTML tag via wp_robots_no_robots()
  *              filter callback.
  */
@@ -3117,6 +3117,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/bmp'  => 'bmp',
 					'image/tiff' => 'tif',
 					'image/webp' => 'webp',
+					'image/avif' => 'avif',
 				)
 			);
 
@@ -3295,6 +3296,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  *
  * @since 4.7.1
  * @since 5.8.0 Added support for WebP images.
+ * @since 6.5.0 Added support for AVIF images.
  *
  * @param string $file Full path to the file.
  * @return string|false The actual mime type or false if the type cannot be determined.
@@ -3349,6 +3351,25 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/webp';
 		}
+
+		/**
+		 * Add AVIF fallback detection when image library doesn't support AVIF.
+		 *
+		 * Detection based on section 4.3.1 File-type box definition of the ISO/IEC 14496-12
+		 * specification and the AV1-AVIF spec, see https://aomediacodec.github.io/av1-avif/v1.1.0.html#brands.
+		 */
+
+		// Divide the header string into 4 byte groups.
+		$magic = str_split( $magic, 8 );
+
+		if (
+			isset( $magic[1] ) &&
+			isset( $magic[2] ) &&
+			'ftyp' === hex2bin( $magic[1] ) &&
+			( 'avif' === hex2bin( $magic[2] ) || 'avis' === hex2bin( $magic[2] ) )
+		) {
+			$mime = 'image/avif';
+		}
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
@@ -3388,6 +3409,7 @@ function wp_get_mime_types() {
 			'bmp'                          => 'image/bmp',
 			'tiff|tif'                     => 'image/tiff',
 			'webp'                         => 'image/webp',
+			'avif'                         => 'image/avif',
 			'ico'                          => 'image/x-icon',
 			'heic'                         => 'image/heic',
 			// Video formats.
@@ -3509,7 +3531,7 @@ function wp_get_ext_types() {
 	return apply_filters(
 		'ext2type',
 		array(
-			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'webp' ),
+			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'webp', 'avif' ),
 			'audio'       => array( 'aac', 'ac3', 'aif', 'aiff', 'flac', 'm3a', 'm4a', 'm4b', 'mka', 'mp1', 'mp2', 'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 			'video'       => array( '3g2', '3gp', '3gpp', 'asf', 'avi', 'divx', 'dv', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt', 'rm', 'vob', 'wmv' ),
 			'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt', 'pages', 'pdf', 'xps', 'oxps', 'rtf', 'wp', 'wpd', 'psd', 'xcf' ),
@@ -3718,7 +3740,7 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $callback Callback function name.
 		 */
 		$callback = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
-	} elseif ( defined( 'REST_REQUEST' ) && REST_REQUEST && wp_is_jsonp_request() ) {
+	} elseif ( wp_is_serving_rest_request() && wp_is_jsonp_request() ) {
 		/**
 		 * Filters the callback for killing WordPress execution for JSONP REST requests.
 		 *
@@ -3883,21 +3905,16 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			font-size: 14px ;
 		}
 		a {
-			color: #0073aa;
+			color: #2271b1;
 		}
 		a:hover,
 		a:active {
-			color: #006799;
+			color: #135e96;
 		}
 		a:focus {
-			color: #124964;
-			-webkit-box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			outline: none;
+			color: #043959;
+			box-shadow: 0 0 0 2px #2271b1;
+			outline: 2px solid transparent;
 		}
 		.button {
 			background: #f3f5f6;
@@ -4034,6 +4051,10 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 		'additional_errors' => $parsed_args['additional_errors'],
 	);
 
+	if ( isset( $parsed_args['error_data'] ) ) {
+		$data['data']['error'] = $parsed_args['error_data'];
+	}
+
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/json; charset={$parsed_args['charset']}" );
 		if ( null !== $parsed_args['response'] ) {
@@ -4071,6 +4092,10 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 		),
 		'additional_errors' => $parsed_args['additional_errors'],
 	);
+
+	if ( isset( $parsed_args['error_data'] ) ) {
+		$data['data']['error'] = $parsed_args['error_data'];
+	}
 
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/javascript; charset={$parsed_args['charset']}" );
@@ -4249,6 +4274,9 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 			if ( empty( $title ) && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['title'] ) ) {
 				$title = $errors[0]['data']['title'];
 			}
+			if ( WP_DEBUG_DISPLAY && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['error'] ) ) {
+				$args['error_data'] = $errors[0]['data']['error'];
+			}
 
 			unset( $errors[0] );
 			$args['additional_errors'] = array_values( $errors );
@@ -4284,7 +4312,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 }
 
 /**
- * Encodes a variable into JSON, with some sanity checks.
+ * Encodes a variable into JSON, with some confidence checks.
  *
  * @since 4.1.0
  * @since 5.3.0 No longer handles support for PHP < 5.6.
@@ -4300,7 +4328,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );
 
-	// If json_encode() was successful, no need to do more sanity checking.
+	// If json_encode() was successful, no need to do more confidence checking.
 	if ( false !== $json ) {
 		return $json;
 	}
@@ -4315,7 +4343,7 @@ function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 }
 
 /**
- * Performs sanity checks on data that shall be encoded to JSON.
+ * Performs confidence checks on data that shall be encoded to JSON.
  *
  * @ignore
  * @since 4.1.0
@@ -4441,7 +4469,7 @@ function _wp_json_prepare_data( $value ) {
  * @param int   $flags       Optional. Options to be passed to json_encode(). Default 0.
  */
 function wp_send_json( $response, $status_code = null, $flags = 0 ) {
-	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+	if ( wp_is_serving_rest_request() ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -4697,6 +4725,23 @@ function _mce_set_direction( $mce_init ) {
 	return $mce_init;
 }
 
+/**
+ * Determines whether WordPress is currently serving a REST API request.
+ *
+ * The function relies on the 'REST_REQUEST' global. As such, it only returns true when an actual REST _request_ is
+ * being made. It does not return true when a REST endpoint is hit as part of another request, e.g. for preloading a
+ * REST response. See {@see wp_is_rest_endpoint()} for that purpose.
+ *
+ * This function should not be called until the {@see 'parse_request'} action, as the constant is only defined then,
+ * even for an actual REST request.
+ *
+ * @since 6.5.0
+ *
+ * @return bool True if it's a WordPress REST API request, false otherwise.
+ */
+function wp_is_serving_rest_request() {
+	return defined( 'REST_REQUEST' ) && REST_REQUEST;
+}
 
 /**
  * Converts smiley code to the icon graphic file equivalent.
@@ -5356,7 +5401,7 @@ function wp_widgets_add_menu() {
 	if ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
-		$submenu['themes.php'][7] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	}
 
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
@@ -6533,7 +6578,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 	if ( ! $mo_loaded || $locale !== $locale_loaded ) {
 		$locale_loaded = $locale ? $locale : get_locale();
 		$mofile        = WP_LANG_DIR . '/continents-cities-' . $locale_loaded . '.mo';
-		unload_textdomain( 'continents-cities' );
+		unload_textdomain( 'continents-cities', true );
 		load_textdomain( 'continents-cities', $mofile, $locale_loaded );
 		$mo_loaded = true;
 	}
@@ -8876,6 +8921,7 @@ function wp_get_admin_notice( $message, $args = array() ) {
  *     @type bool     $dismissible        Optional. Whether the admin notice is dismissible. Default false.
  *     @type string   $id                 Optional. The value of the admin notice's ID attribute. Default empty string.
  *     @type string[] $additional_classes Optional. A string array of class names. Default empty array.
+ *     @type string[] $attributes         Optional. Additional attributes for the notice div. Default empty array.
  *     @type bool     $paragraph_wrap     Optional. Whether to wrap the message in paragraph tags. Default true.
  * }
  */
