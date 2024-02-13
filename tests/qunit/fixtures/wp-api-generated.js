@@ -5907,6 +5907,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": false
+                    },
                     "args": {
                         "stylesheet": {
                             "description": "The theme identifier",
@@ -5927,6 +5930,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": false
+                    },
                     "args": {
                         "stylesheet": {
                             "description": "The theme identifier",
@@ -5950,6 +5956,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": false
+                    },
                     "args": {
                         "id": {
                             "description": "The id of a template",
@@ -5964,6 +5973,9 @@ mockedApiResponse.Schema = {
                         "PUT",
                         "PATCH"
                     ],
+                    "allow_batch": {
+                        "v1": false
+                    },
                     "args": {
                         "styles": {
                             "description": "Global styles.",
