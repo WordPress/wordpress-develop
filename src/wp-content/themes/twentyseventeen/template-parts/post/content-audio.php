@@ -27,9 +27,9 @@
 			} else {
 				echo twentyseventeen_time_link();
 				twentyseventeen_edit_link();
-			};
-				echo '</div><!-- .entry-meta -->';
-		};
+			}
+			echo '</div><!-- .entry-meta -->';
+		}
 
 		if ( is_single() ) {
 			the_title( '<h1 class="entry-title">', '</h1>' );
@@ -72,15 +72,14 @@
 						echo $audio_html;
 					echo '</div><!-- .entry-audio -->';
 				}
-			};
-
-		};
+			}
+		}
 
 		if ( is_single() || empty( $audio ) ) {
 
 			the_content(
 				sprintf(
-					/* translators: %s: Post title. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 					get_the_title()
 				)
@@ -94,8 +93,7 @@
 					'link_after'  => '</span>',
 				)
 			);
-
-		};
+		}
 		?>
 
 	</div><!-- .entry-content -->

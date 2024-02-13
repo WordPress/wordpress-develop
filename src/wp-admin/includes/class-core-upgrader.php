@@ -21,7 +21,7 @@
 class Core_Upgrader extends WP_Upgrader {
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 2.8.0
 	 */
@@ -30,16 +30,16 @@ class Core_Upgrader extends WP_Upgrader {
 		$this->strings['locked']     = __( 'Another update is currently in progress.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package']   = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']        = __( 'Unpacking the update&#8230;' );
 		$this->strings['copy_failed']           = __( 'Could not copy files.' );
 		$this->strings['copy_failed_space']     = __( 'Could not copy files. You may have run out of disk space.' );
-		$this->strings['start_rollback']        = __( 'Attempting to roll back to previous version.' );
-		$this->strings['rollback_was_required'] = __( 'Due to an error during updating, WordPress has rolled back to your previous version.' );
+		$this->strings['start_rollback']        = __( 'Attempting to restore the previous version.' );
+		$this->strings['rollback_was_required'] = __( 'Due to an error during updating, WordPress has been restored to your previous version.' );
 	}
 
 	/**
-	 * Upgrade WordPress core.
+	 * Upgrades WordPress core.
 	 *
 	 * @since 2.8.0
 	 *
@@ -48,14 +48,14 @@ class Core_Upgrader extends WP_Upgrader {
 	 *
 	 * @param object $current Response object for whether WordPress is current.
 	 * @param array  $args {
-	 *        Optional. Arguments for upgrading WordPress core. Default empty array.
+	 *     Optional. Arguments for upgrading WordPress core. Default empty array.
 	 *
-	 *        @type bool $pre_check_md5    Whether to check the file checksums before
-	 *                                     attempting the upgrade. Default true.
-	 *        @type bool $attempt_rollback Whether to attempt to rollback the chances if
-	 *                                     there is a problem. Default false.
-	 *        @type bool $do_rollback      Whether to perform this "upgrade" as a rollback.
-	 *                                     Default false.
+	 *     @type bool $pre_check_md5    Whether to check the file checksums before
+	 *                                  attempting the upgrade. Default true.
+	 *     @type bool $attempt_rollback Whether to attempt to rollback the chances if
+	 *                                  there is a problem. Default false.
+	 *     @type bool $do_rollback      Whether to perform this "upgrade" as a rollback.
+	 *                                  Default false.
 	 * }
 	 * @return string|false|WP_Error New WordPress version on success, false or WP_Error on failure.
 	 */
@@ -104,7 +104,7 @@ class Core_Upgrader extends WP_Upgrader {
 		 */
 		if ( $parsed_args['do_rollback'] && $current->packages->rollback ) {
 			$to_download = 'rollback';
-		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version == $current->partial_version && $partial ) {
+		} elseif ( $current->packages->partial && 'reinstall' !== $current->response && $wp_version === $current->partial_version && $partial ) {
 			$to_download = 'partial';
 		} elseif ( $current->packages->new_bundled && version_compare( $wp_version, $current->new_bundled, '<' )
 			&& ( ! defined( 'CORE_UPGRADE_SKIP_NEW_BUNDLED' ) || ! CORE_UPGRADE_SKIP_NEW_BUNDLED ) ) {
@@ -123,10 +123,12 @@ class Core_Upgrader extends WP_Upgrader {
 
 		$download = $this->download_package( $current->packages->$to_download, true );
 
-		// Allow for signature soft-fail.
-		// WARNING: This may be removed in the future.
+		/*
+		 * Allow for signature soft-fail.
+		 * WARNING: This may be removed in the future.
+		 */
 		if ( is_wp_error( $download ) && $download->get_error_data( 'softfail-filename' ) ) {
-			// Outout the failure error as a normal feedback, and not as an error:
+			// Output the failure error as a normal feedback, and not as an error:
 			/** This filter is documented in wp-admin/includes/update-core.php */
 			apply_filters( 'update_feedback', $download->get_error_message() );
 
@@ -157,7 +159,7 @@ class Core_Upgrader extends WP_Upgrader {
 		if ( ! $wp_filesystem->copy( $working_dir . '/wordpress/wp-admin/includes/update-core.php', $wp_dir . 'wp-admin/includes/update-core.php', true ) ) {
 			$wp_filesystem->delete( $working_dir, true );
 			WP_Upgrader::release_lock( 'core_updater' );
-			return new WP_Error( 'copy_failed_for_update_core_file', __( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ), 'wp-admin/includes/update-core.php' );
+			return new WP_Error( 'copy_failed_for_update_core_file', __( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' ), 'wp-admin/includes/update-core.php' );
 		}
 		$wp_filesystem->chmod( $wp_dir . 'wp-admin/includes/update-core.php', FS_CHMOD_FILE );
 
@@ -181,9 +183,9 @@ class Core_Upgrader extends WP_Upgrader {
 				 * mkdir_failed__copy_dir, copy_failed__copy_dir_retry, and disk_full.
 				 * do_rollback allows for update_core() to trigger a rollback if needed.
 				 */
-				if ( false !== strpos( $error_code, 'do_rollback' ) ) {
+				if ( str_contains( $error_code, 'do_rollback' ) ) {
 					$try_rollback = true;
-				} elseif ( false !== strpos( $error_code, '__copy_dir' ) ) {
+				} elseif ( str_contains( $error_code, '__copy_dir' ) ) {
 					$try_rollback = true;
 				} elseif ( 'disk_full' === $error_code ) {
 					$try_rollback = true;
@@ -283,7 +285,7 @@ class Core_Upgrader extends WP_Upgrader {
 		$upgrade_minor = get_site_option( 'auto_update_core_minor', 'enabled' ) === 'enabled';
 		$upgrade_major = get_site_option( 'auto_update_core_major', 'unset' ) === 'enabled';
 
-		// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'minor', false.
+		// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 		if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
 			if ( false === WP_AUTO_UPDATE_CORE ) {
 				// Defaults to turned off, unless a filter allows it.
@@ -291,8 +293,7 @@ class Core_Upgrader extends WP_Upgrader {
 				$upgrade_minor = false;
 				$upgrade_major = false;
 			} elseif ( true === WP_AUTO_UPDATE_CORE
-				|| 'beta' === WP_AUTO_UPDATE_CORE
-				|| 'rc' === WP_AUTO_UPDATE_CORE
+				|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
 			) {
 				// ALL updates for core.
 				$upgrade_dev   = true;
@@ -307,7 +308,7 @@ class Core_Upgrader extends WP_Upgrader {
 		}
 
 		// 1: If we're already on that version, not much point in updating?
-		if ( $offered_ver == $wp_version ) {
+		if ( $offered_ver === $wp_version ) {
 			return false;
 		}
 
@@ -324,7 +325,7 @@ class Core_Upgrader extends WP_Upgrader {
 			}
 
 			// Don't claim we can update on update-core.php if we have a non-critical failure logged.
-			if ( $wp_version == $failure_data['current'] && false !== strpos( $offered_ver, '.1.next.minor' ) ) {
+			if ( $wp_version === $failure_data['current'] && str_contains( $offered_ver, '.1.next.minor' ) ) {
 				return false;
 			}
 
@@ -333,7 +334,7 @@ class Core_Upgrader extends WP_Upgrader {
 			 * Some non-critical failures do allow retries, like download_failed.
 			 * 3.7.1 => 3.7.2 resulted in files_not_writable, if we are still on 3.7.1 and still trying to update to 3.7.2.
 			 */
-			if ( empty( $failure_data['retry'] ) && $wp_version == $failure_data['current'] && $offered_ver == $failure_data['attempted'] ) {
+			if ( empty( $failure_data['retry'] ) && $wp_version === $failure_data['current'] && $offered_ver === $failure_data['attempted'] ) {
 				return false;
 			}
 		}
@@ -356,7 +357,7 @@ class Core_Upgrader extends WP_Upgrader {
 		}
 
 		// 4: Minor in-branch updates (3.7.0 -> 3.7.1 -> 3.7.2 -> 3.7.4).
-		if ( $current_branch == $new_branch ) {
+		if ( $current_branch === $new_branch ) {
 
 			/**
 			 * Filters whether to enable minor automatic core updates.
@@ -386,7 +387,7 @@ class Core_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Compare the disk file checksums against the expected checksums.
+	 * Compares the disk file checksums against the expected checksums.
 	 *
 	 * @since 3.7.0
 	 *
@@ -406,7 +407,7 @@ class Core_Upgrader extends WP_Upgrader {
 
 		foreach ( $checksums as $file => $checksum ) {
 			// Skip files which get updated.
-			if ( 'wp-content' === substr( $file, 0, 10 ) ) {
+			if ( str_starts_with( $file, 'wp-content' ) ) {
 				continue;
 			}
 			if ( ! file_exists( ABSPATH . $file ) || md5_file( ABSPATH . $file ) !== $checksum ) {

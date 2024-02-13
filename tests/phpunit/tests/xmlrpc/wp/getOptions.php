@@ -5,25 +5,25 @@
  */
 class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_valid_username_password() {
+	public function test_valid_username_password() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'subscriber', 'subscriber' ) );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( 'WordPress', $result['software_name']['value'] );
 	}
 
-	function test_option_value() {
+	public function test_option_value() {
 		$this->make_user_by_role( 'administrator' );
 
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'administrator', 'administrator', 'default_comment_status' ) );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 
 		$this->assertSame( get_option( 'default_comment_status' ), $result['default_comment_status']['value'] );
 		$this->assertFalse( $result['default_comment_status']['readonly'] );
@@ -32,12 +32,12 @@ class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 20201
 	 */
-	function test_option_values_subscriber() {
+	public function test_option_values_subscriber() {
 		global $wp_version;
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'subscriber', 'subscriber' ) );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 
 		// Read-only options.
 		$this->assertSame( 'WordPress', $result['software_name']['value'] );
@@ -120,13 +120,13 @@ class Tests_XMLRPC_wp_getOptions extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result['default_ping_status']['readonly'] );
 	}
 
-	function test_option_values_admin() {
+	public function test_option_values_admin() {
 		global $wp_version;
 
 		$this->make_user_by_role( 'administrator' );
 
 		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'administrator', 'administrator' ) );
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 
 		// Read-only options.
 		$this->assertSame( 'WordPress', $result['software_name']['value'] );

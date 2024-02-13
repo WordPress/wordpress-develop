@@ -3,7 +3,7 @@
  * Twenty Nineteen: Color Patterns
  *
  * @package WordPress
- * @subpackage TwentyNineteen
+ * @subpackage Twenty_Nineteen
  * @since Twenty Nineteen 1.0
  */
 
@@ -72,8 +72,8 @@ function twentynineteen_custom_colors_css() {
 		 * Set background for:
 		 * - featured image :before
 		 * - featured image :before
-		 * - post thumbmail :before
-		 * - post thumbmail :before
+		 * - post thumbnail :before
+		 * - post thumbnail :before
 		 * - Submenu
 		 * - Sticky Post
 		 * - buttons

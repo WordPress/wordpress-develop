@@ -7,13 +7,14 @@
  * @since 5.2.0
  */
 
+#[AllowDynamicProperties]
 class WP_Debug_Data {
 	/**
 	 * Calls all core functions to check for updates.
 	 *
 	 * @since 5.2.0
 	 */
-	static function check_for_updates() {
+	public static function check_for_updates() {
 		wp_version_check();
 		wp_update_plugins();
 		wp_update_themes();
@@ -28,12 +29,13 @@ class WP_Debug_Data {
 	 * @since 5.5.0 Added pretty permalinks support information.
 	 *
 	 * @throws ImagickException
-	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @global wpdb  $wpdb               WordPress database abstraction object.
+	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
 	 */
-	static function debug_data() {
-		global $wpdb;
+	public static function debug_data() {
+		global $wpdb, $_wp_theme_features;
 
 		// Save few function calls.
 		$upload_dir             = wp_upload_dir();
@@ -234,13 +236,11 @@ class WP_Debug_Data {
 			$compress_css_debug = 'undefined';
 		}
 
-		// Check WP_LOCAL_DEV.
-		if ( defined( 'WP_LOCAL_DEV' ) ) {
-			$wp_local_dev       = WP_LOCAL_DEV ? __( 'Enabled' ) : __( 'Disabled' );
-			$wp_local_dev_debug = WP_LOCAL_DEV ? 'true' : 'false';
+		// Check WP_ENVIRONMENT_TYPE.
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
+			$wp_environment_type = WP_ENVIRONMENT_TYPE;
 		} else {
-			$wp_local_dev       = __( 'Undefined' );
-			$wp_local_dev_debug = 'undefined';
+			$wp_environment_type = __( 'Undefined' );
 		}
 
 		$info['wp-constants'] = array(
@@ -318,10 +318,15 @@ class WP_Debug_Data {
 					'value' => $compress_css,
 					'debug' => $compress_css_debug,
 				),
-				'WP_LOCAL_DEV'        => array(
-					'label' => 'WP_LOCAL_DEV',
-					'value' => $wp_local_dev,
-					'debug' => $wp_local_dev_debug,
+				'WP_ENVIRONMENT_TYPE' => array(
+					'label' => 'WP_ENVIRONMENT_TYPE',
+					'value' => $wp_environment_type,
+					'debug' => $wp_environment_type,
+				),
+				'WP_DEVELOPMENT_MODE' => array(
+					'label' => 'WP_DEVELOPMENT_MODE',
+					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+					'debug' => WP_DEVELOPMENT_MODE,
 				),
 				'DB_CHARSET'          => array(
 					'label' => 'DB_CHARSET',
@@ -376,6 +381,14 @@ class WP_Debug_Data {
 
 		// Conditionally add debug information for multisite setups.
 		if ( is_multisite() ) {
+			$site_id = get_current_blog_id();
+
+			$info['wp-core']['fields']['site_id'] = array(
+				'label' => __( 'Site ID' ),
+				'value' => $site_id,
+				'debug' => $site_id,
+			);
+
 			$network_query = new WP_Network_Query();
 			$network_ids   = $network_query->query(
 				array(
@@ -390,11 +403,6 @@ class WP_Debug_Data {
 				$site_count += get_blog_count( $network_id );
 			}
 
-			$info['wp-core']['fields']['user_count'] = array(
-				'label' => __( 'User count' ),
-				'value' => get_user_count(),
-			);
-
 			$info['wp-core']['fields']['site_count'] = array(
 				'label' => __( 'Site count' ),
 				'value' => $site_count,
@@ -404,14 +412,12 @@ class WP_Debug_Data {
 				'label' => __( 'Network count' ),
 				'value' => $network_query->found_networks,
 			);
-		} else {
-			$user_count = count_users();
-
-			$info['wp-core']['fields']['user_count'] = array(
-				'label' => __( 'User count' ),
-				'value' => $user_count['total_users'],
-			);
 		}
+
+		$info['wp-core']['fields']['user_count'] = array(
+			'label' => __( 'User count' ),
+			'value' => get_user_count(),
+		);
 
 		// WordPress features requiring processing.
 		$wp_dotorg = wp_remote_get( 'https://wordpress.org', array( 'timeout' => 10 ) );
@@ -515,20 +521,27 @@ class WP_Debug_Data {
 		// Get ImageMagic information, if available.
 		if ( class_exists( 'Imagick' ) ) {
 			// Save the Imagick instance for later use.
-			$imagick         = new Imagick();
-			$imagick_version = $imagick->getVersion();
+			$imagick             = new Imagick();
+			$imagemagick_version = $imagick->getVersion();
 		} else {
-			$imagick_version = __( 'Not available' );
+			$imagemagick_version = __( 'Not available' );
 		}
 
 		$info['wp-media']['fields']['imagick_module_version'] = array(
 			'label' => __( 'ImageMagick version number' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionNumber'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionNumber'] : $imagemagick_version ),
 		);
 
 		$info['wp-media']['fields']['imagemagick_version'] = array(
 			'label' => __( 'ImageMagick version string' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionString'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionString'] : $imagemagick_version ),
+		);
+
+		$imagick_version = phpversion( 'imagick' );
+
+		$info['wp-media']['fields']['imagick_version'] = array(
+			'label' => __( 'Imagick version' ),
+			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
 		if ( ! function_exists( 'ini_get' ) ) {
@@ -543,6 +556,7 @@ class WP_Debug_Data {
 			);
 		} else {
 			// Get the PHP ini directive values.
+			$file_uploads        = ini_get( 'file_uploads' );
 			$post_max_size       = ini_get( 'post_max_size' );
 			$upload_max_filesize = ini_get( 'upload_max_filesize' );
 			$max_file_uploads    = ini_get( 'max_file_uploads' );
@@ -551,8 +565,8 @@ class WP_Debug_Data {
 			// Add info in Media section.
 			$info['wp-media']['fields']['file_uploads']        = array(
 				'label' => __( 'File uploads' ),
-				'value' => empty( ini_get( 'file_uploads' ) ) ? __( 'Disabled' ) : __( 'Enabled' ),
-				'debug' => 'File uploads is turned off',
+				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => $file_uploads,
 			);
 			$info['wp-media']['fields']['post_max_size']       = array(
 				'label' => __( 'Max size of post data allowed' ),
@@ -581,6 +595,7 @@ class WP_Debug_Data {
 				'map'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : $not_available ),
 				'memory' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : $not_available ),
 				'thread' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : $not_available ),
+				'time'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : $not_available ),
 			);
 
 			$limits_debug = array(
@@ -590,12 +605,25 @@ class WP_Debug_Data {
 				'imagick::RESOURCETYPE_MAP'    => ( defined( 'imagick::RESOURCETYPE_MAP' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MAP ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_MEMORY' => ( defined( 'imagick::RESOURCETYPE_MEMORY' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_MEMORY ) ) : 'not available' ),
 				'imagick::RESOURCETYPE_THREAD' => ( defined( 'imagick::RESOURCETYPE_THREAD' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_THREAD ) : 'not available' ),
+				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : 'not available' ),
 			);
 
 			$info['wp-media']['fields']['imagick_limits'] = array(
 				'label' => __( 'Imagick Resource Limits' ),
 				'value' => $limits,
 				'debug' => $limits_debug,
+			);
+
+			try {
+				$formats = Imagick::queryFormats( '*' );
+			} catch ( Exception $e ) {
+				$formats = array();
+			}
+
+			$info['wp-media']['fields']['imagemagick_file_formats'] = array(
+				'label' => __( 'ImageMagick supported file formats' ),
+				'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ),
+				'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
 			);
 		}
 
@@ -611,6 +639,33 @@ class WP_Debug_Data {
 			'value' => ( is_array( $gd ) ? $gd['GD Version'] : $not_available ),
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
 		);
+
+		$gd_image_formats     = array();
+		$gd_supported_formats = array(
+			'GIF Create' => 'GIF',
+			'JPEG'       => 'JPEG',
+			'PNG'        => 'PNG',
+			'WebP'       => 'WebP',
+			'BMP'        => 'BMP',
+			'AVIF'       => 'AVIF',
+			'HEIF'       => 'HEIF',
+			'TIFF'       => 'TIFF',
+			'XPM'        => 'XPM',
+		);
+
+		foreach ( $gd_supported_formats as $format_key => $format ) {
+			$index = $format_key . ' Support';
+			if ( isset( $gd[ $index ] ) && $gd[ $index ] ) {
+				array_push( $gd_image_formats, $format );
+			}
+		}
+
+		if ( ! empty( $gd_image_formats ) ) {
+			$info['wp-media']['fields']['gd_formats'] = array(
+				'label' => __( 'GD supported file formats' ),
+				'value' => implode( ', ', $gd_image_formats ),
+			);
+		}
 
 		// Get Ghostscript information, if available.
 		if ( function_exists( 'exec' ) ) {
@@ -640,29 +695,18 @@ class WP_Debug_Data {
 			$server_architecture = 'unknown';
 		}
 
-		if ( function_exists( 'phpversion' ) ) {
-			$php_version_debug = phpversion();
-			// Whether PHP supports 64-bit.
-			$php64bit = ( PHP_INT_SIZE * 8 === 64 );
+		$php_version_debug = PHP_VERSION;
+		// Whether PHP supports 64-bit.
+		$php64bit = ( PHP_INT_SIZE * 8 === 64 );
 
-			$php_version = sprintf(
-				'%s %s',
-				$php_version_debug,
-				( $php64bit ? __( '(Supports 64bit values)' ) : __( '(Does not support 64bit values)' ) )
-			);
+		$php_version = sprintf(
+			'%s %s',
+			$php_version_debug,
+			( $php64bit ? __( '(Supports 64bit values)' ) : __( '(Does not support 64bit values)' ) )
+		);
 
-			if ( $php64bit ) {
-				$php_version_debug .= ' 64bit';
-			}
-		} else {
-			$php_version       = __( 'Unable to determine PHP version' );
-			$php_version_debug = 'unknown';
-		}
-
-		if ( function_exists( 'php_sapi_name' ) ) {
-			$php_sapi = php_sapi_name();
-		} else {
-			$php_sapi = 'unknown';
+		if ( $php64bit ) {
+			$php_version_debug .= ' 64bit';
 		}
 
 		$info['wp-server']['fields']['server_architecture'] = array(
@@ -682,8 +726,8 @@ class WP_Debug_Data {
 		);
 		$info['wp-server']['fields']['php_sapi']            = array(
 			'label' => __( 'PHP SAPI' ),
-			'value' => ( 'unknown' !== $php_sapi ? $php_sapi : __( 'Unable to determine PHP SAPI' ) ),
-			'debug' => $php_sapi,
+			'value' => PHP_SAPI,
+			'debug' => PHP_SAPI,
 		);
 
 		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
@@ -803,11 +847,24 @@ class WP_Debug_Data {
 			);
 		}
 
+		// Server time.
+		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+
+		$info['wp-server']['fields']['current']     = array(
+			'label' => __( 'Current time' ),
+			'value' => $date->format( DateTime::ATOM ),
+		);
+		$info['wp-server']['fields']['utc-time']    = array(
+			'label' => __( 'Current UTC time' ),
+			'value' => $date->format( DateTime::RFC850 ),
+		);
+		$info['wp-server']['fields']['server-time'] = array(
+			'label' => __( 'Current Server time' ),
+			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+		);
+
 		// Populate the database debug fields.
-		if ( is_resource( $wpdb->dbh ) ) {
-			// Old mysql extension.
-			$extension = 'mysql';
-		} elseif ( is_object( $wpdb->dbh ) ) {
+		if ( is_object( $wpdb->dbh ) ) {
 			// mysqli or PDO.
 			$extension = get_class( $wpdb->dbh );
 		} else {
@@ -817,16 +874,7 @@ class WP_Debug_Data {
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
-		if ( isset( $wpdb->use_mysqli ) && $wpdb->use_mysqli ) {
-			$client_version = $wpdb->dbh->client_info;
-		} else {
-			// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysql_get_client_info,PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved
-			if ( preg_match( '|[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}|', mysql_get_client_info(), $matches ) ) {
-				$client_version = $matches[0];
-			} else {
-				$client_version = null;
-			}
-		}
+		$client_version = $wpdb->dbh->client_info;
 
 		$info['wp-database']['fields']['extension'] = array(
 			'label' => __( 'Extension' ),
@@ -877,6 +925,16 @@ class WP_Debug_Data {
 			'label'   => __( 'Database collation' ),
 			'value'   => $wpdb->collate,
 			'private' => true,
+		);
+
+		$info['wp-database']['fields']['max_allowed_packet'] = array(
+			'label' => __( 'Max allowed packet size' ),
+			'value' => self::get_mysql_var( 'max_allowed_packet' ),
+		);
+
+		$info['wp-database']['fields']['max_connections'] = array(
+			'label' => __( 'Max connections number' ),
+			'value' => self::get_mysql_var( 'max_connections' ),
 		);
 
 		// List must use plugins if there are any.
@@ -1021,7 +1079,6 @@ class WP_Debug_Data {
 		}
 
 		// Populate the section for the currently active theme.
-		global $_wp_theme_features;
 		$theme_features = array();
 
 		if ( ! empty( $_wp_theme_features ) ) {
@@ -1352,44 +1409,62 @@ class WP_Debug_Data {
 		}
 
 		/**
-		 * Add or modify the debug information.
+		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
-		 * Plugin or themes may wish to introduce their own debug information without creating additional admin pages
-		 * they can utilize this filter to introduce their own sections or add more data to existing sections.
+		 * Plugin or themes may wish to introduce their own debug information without creating
+		 * additional admin pages. They can utilize this filter to introduce their own sections
+		 * or add more data to existing sections.
 		 *
-		 * Array keys for sections added by core are all prefixed with `wp-`, plugins and themes should use their own slug as
-		 * a prefix, both for consistency as well as avoiding key collisions. Note that the array keys are used as labels
-		 * for the copied data.
+		 * Array keys for sections added by core are all prefixed with `wp-`. Plugins and themes
+		 * should use their own slug as a prefix, both for consistency as well as avoiding
+		 * key collisions. Note that the array keys are used as labels for the copied data.
 		 *
-		 * All strings are expected to be plain text except $description that can contain inline HTML tags (see below).
+		 * All strings are expected to be plain text except `$description` that can contain
+		 * inline HTML tags (see below).
 		 *
 		 * @since 5.2.0
 		 *
 		 * @param array $args {
 		 *     The debug information to be added to the core information page.
 		 *
-		 *     This is an associative multi-dimensional array, up to three levels deep. The topmost array holds the sections.
-		 *     Each section has a `$fields` associative array (see below), and each `$value` in `$fields` can be
-		 *     another associative array of name/value pairs when there is more structured data to display.
+		 *     This is an associative multi-dimensional array, up to three levels deep.
+		 *     The topmost array holds the sections, keyed by section ID.
 		 *
-		 *     @type string  $label        The title for this section of the debug output.
-		 *     @type string  $description  Optional. A description for your information section which may contain basic HTML
-		 *                                 markup, inline tags only as it is outputted in a paragraph.
-		 *     @type boolean $show_count   Optional. If set to `true` the amount of fields will be included in the title for
-		 *                                 this section.
-		 *     @type boolean $private      Optional. If set to `true` the section and all associated fields will be excluded
-		 *                                 from the copied data.
-		 *     @type array   $fields {
-		 *         An associative array containing the data to be displayed.
+		 *     @type array ...$0 {
+		 *         Each section has a `$fields` associative array (see below), and each `$value` in `$fields`
+		 *         can be another associative array of name/value pairs when there is more structured data
+		 *         to display.
 		 *
-		 *         @type string  $label    The label for this piece of information.
-		 *         @type string  $value    The output that is displayed for this field. Text should be translated. Can be
-		 *                                 an associative array that is displayed as name/value pairs.
-		 *         @type string  $debug    Optional. The output that is used for this field when the user copies the data.
-		 *                                 It should be more concise and not translated. If not set, the content of `$value` is used.
-		 *                                 Note that the array keys are used as labels for the copied data.
-		 *         @type boolean $private  Optional. If set to `true` the field will not be included in the copied data
-		 *                                 allowing you to show, for example, API keys here.
+		 *         @type string $label       Required. The title for this section of the debug output.
+		 *         @type string $description Optional. A description for your information section which
+		 *                                   may contain basic HTML markup, inline tags only as it is
+		 *                                   outputted in a paragraph.
+		 *         @type bool   $show_count  Optional. If set to `true`, the amount of fields will be included
+		 *                                   in the title for this section. Default false.
+		 *         @type bool   $private     Optional. If set to `true`, the section and all associated fields
+		 *                                   will be excluded from the copied data. Default false.
+		 *         @type array  $fields {
+		 *             Required. An associative array containing the fields to be displayed in the section,
+		 *             keyed by field ID.
+		 *
+		 *             @type array ...$0 {
+		 *                 An associative array containing the data to be displayed for the field.
+		 *
+		 *                 @type string $label    Required. The label for this piece of information.
+		 *                 @type mixed  $value    Required. The output that is displayed for this field.
+		 *                                        Text should be translated. Can be an associative array
+		 *                                        that is displayed as name/value pairs.
+		 *                                        Accepted types: `string|int|float|(string|int|float)[]`.
+		 *                 @type string $debug    Optional. The output that is used for this field when
+		 *                                        the user copies the data. It should be more concise and
+		 *                                        not translated. If not set, the content of `$value`
+		 *                                        is used. Note that the array keys are used as labels
+		 *                                        for the copied data.
+		 *                 @type bool   $private  Optional. If set to `true`, the field will be excluded
+		 *                                        from the copied data, allowing you to show, for example,
+		 *                                        API keys here. Default false.
+		 *             }
+		 *         }
 		 *     }
 		 * }
 		 */
@@ -1399,15 +1474,40 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Format the information gathered for debugging, in a manner suitable for copying to a forum or support ticket.
+	 * Returns the value of a MySQL system variable.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param string $mysql_var Name of the MySQL system variable.
+	 * @return string|null The variable value on success. Null if the variable does not exist.
+	 */
+	public static function get_mysql_var( $mysql_var ) {
+		global $wpdb;
+
+		$result = $wpdb->get_row(
+			$wpdb->prepare( 'SHOW VARIABLES LIKE %s', $mysql_var ),
+			ARRAY_A
+		);
+
+		if ( ! empty( $result ) && array_key_exists( 'Value', $result ) ) {
+			return $result['Value'];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Formats the information gathered for debugging, in a manner suitable for copying to a forum or support ticket.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array  $info_array Information gathered from the `WP_Debug_Data::debug_data` function.
-	 * @param string $type       The data type to return, either 'info' or 'debug'.
+	 * @param array  $info_array Information gathered from the `WP_Debug_Data::debug_data()` function.
+	 * @param string $data_type  The data type to return, either 'info' or 'debug'.
 	 * @return string The formatted data.
 	 */
-	public static function format( $info_array, $type ) {
+	public static function format( $info_array, $data_type ) {
 		$return = "`\n";
 
 		foreach ( $info_array as $section => $details ) {
@@ -1416,7 +1516,7 @@ class WP_Debug_Data {
 				continue;
 			}
 
-			$section_label = 'debug' === $type ? $section : $details['label'];
+			$section_label = 'debug' === $data_type ? $section : $details['label'];
 
 			$return .= sprintf(
 				"### %s%s ###\n\n",
@@ -1429,7 +1529,7 @@ class WP_Debug_Data {
 					continue;
 				}
 
-				if ( 'debug' === $type && isset( $field['debug'] ) ) {
+				if ( 'debug' === $data_type && isset( $field['debug'] ) ) {
 					$debug_data = $field['debug'];
 				} else {
 					$debug_data = $field['value'];
@@ -1450,7 +1550,7 @@ class WP_Debug_Data {
 					$value = $debug_data;
 				}
 
-				if ( 'debug' === $type ) {
+				if ( 'debug' === $data_type ) {
 					$label = $field_name;
 				} else {
 					$label = $field['label'];
@@ -1468,9 +1568,11 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Fetch the total size of all the database tables for the active database user.
+	 * Fetches the total size of all the database tables for the active database user.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return int The size of the database, in bytes.
 	 */
@@ -1489,7 +1591,7 @@ class WP_Debug_Data {
 	}
 
 	/**
-	 * Fetch the sizes of the WordPress directories: `wordpress` (ABSPATH), `plugins`, `themes`, and `uploads`.
+	 * Fetches the sizes of the WordPress directories: `wordpress` (ABSPATH), `plugins`, `themes`, and `uploads`.
 	 * Intended to supplement the array returned by `WP_Debug_Data::debug_data()`.
 	 *
 	 * @since 5.2.0
@@ -1509,20 +1611,26 @@ class WP_Debug_Data {
 			$max_execution_time = ini_get( 'max_execution_time' );
 		}
 
-		// The max_execution_time defaults to 0 when PHP runs from cli.
-		// We still want to limit it below.
+		/*
+		 * The max_execution_time defaults to 0 when PHP runs from cli.
+		 * We still want to limit it below.
+		 */
 		if ( empty( $max_execution_time ) ) {
-			$max_execution_time = 30;
+			$max_execution_time = 30; // 30 seconds.
 		}
 
 		if ( $max_execution_time > 20 ) {
-			// If the max_execution_time is set to lower than 20 seconds, reduce it a bit to prevent
-			// edge-case timeouts that may happen after the size loop has finished running.
+			/*
+			 * If the max_execution_time is set to lower than 20 seconds, reduce it a bit to prevent
+			 * edge-case timeouts that may happen after the size loop has finished running.
+			 */
 			$max_execution_time -= 2;
 		}
 
-		// Go through the various installation directories and calculate their sizes.
-		// No trailing slashes.
+		/*
+		 * Go through the various installation directories and calculate their sizes.
+		 * No trailing slashes.
+		 */
 		$paths = array(
 			'wordpress_size' => untrailingslashit( ABSPATH ),
 			'themes_size'    => get_theme_root(),

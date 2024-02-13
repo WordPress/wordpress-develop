@@ -12,7 +12,7 @@ wp.svgPainter = ( function( $, window, document, undefined ) {
 		colorscheme = {},
 		elements = [];
 
-	$(document).ready( function() {
+	$( function() {
 		// Detection for browser SVG capability.
 		if ( document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#Image', '1.1' ) ) {
 			$( document.body ).removeClass( 'no-svg' ).addClass( 'svg' );
@@ -160,17 +160,14 @@ wp.svgPainter = ( function( $, window, document, undefined ) {
 					painter.paintElement( $element, 'base' );
 
 					// Set hover callbacks.
-					$menuitem.hover(
-						function() {
-							painter.paintElement( $element, 'focus' );
-						},
-						function() {
-							// Match the delay from hoverIntent.
-							window.setTimeout( function() {
-								painter.paintElement( $element, 'base' );
-							}, 100 );
-						}
-					);
+					$menuitem.on( 'mouseenter', function() {
+						painter.paintElement( $element, 'focus' );
+					} ).on( 'mouseleave', function() {
+						// Match the delay from hoverIntent.
+						window.setTimeout( function() {
+							painter.paintElement( $element, 'base' );
+						}, 100 );
+					} );
 				}
 			});
 		},

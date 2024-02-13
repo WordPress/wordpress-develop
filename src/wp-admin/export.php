@@ -15,6 +15,8 @@ if ( ! current_user_can( 'export' ) ) {
 
 /** Load WordPress export API */
 require_once ABSPATH . 'wp-admin/includes/export.php';
+
+// Used in the HTML title tag.
 $title = __( 'Export' );
 
 /**
@@ -25,11 +27,11 @@ $title = __( 'Export' );
 function export_add_js() {
 	?>
 <script type="text/javascript">
-	jQuery(document).ready(function($){
+	jQuery( function($) {
 		var form = $('#export-filters'),
 			filters = form.find('.export-filters');
 		filters.hide();
-		form.find('input:radio').change(function() {
+		form.find('input:radio').on( 'change', function() {
 			filters.slideUp('fast');
 			switch ( $(this).val() ) {
 				case 'attachment': $('#attachment-filters').slideDown(); break;
@@ -37,7 +39,7 @@ function export_add_js() {
 				case 'pages': $('#page-filters').slideDown(); break;
 			}
 		});
-	});
+	} );
 </script>
 	<?php
 }
@@ -54,8 +56,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-export-screen/">Documentation on Export</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/tools-export-screen/">Documentation on Export</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 // If the 'download' URL parameter is set, a WXR export file is baked and returned.
@@ -125,7 +127,7 @@ if ( isset( $_GET['download'] ) ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 /**
- * Create the date options fields for exporting a given post type.
+ * Creates the date options fields for exporting a given post type.
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
@@ -139,12 +141,10 @@ function export_date_options( $post_type = 'post' ) {
 
 	$months = $wpdb->get_results(
 		$wpdb->prepare(
-			"
-		SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-		FROM $wpdb->posts
-		WHERE post_type = %s AND post_status != 'auto-draft'
-		ORDER BY post_date DESC
-			",
+			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+			FROM $wpdb->posts
+			WHERE post_type = %s AND post_status != 'auto-draft'
+			ORDER BY post_date DESC",
 			$post_type
 		)
 	);
@@ -160,7 +160,12 @@ function export_date_options( $post_type = 'post' ) {
 		}
 
 		$month = zeroise( $date->month, 2 );
-		echo '<option value="' . $date->year . '-' . $month . '">' . $wp_locale->get_month( $month ) . ' ' . $date->year . '</option>';
+
+		printf(
+			'<option value="%1$s">%2$s</option>',
+			esc_attr( $date->year . '-' . $month ),
+			$wp_locale->get_month( $month ) . ' ' . $date->year
+		);
 	}
 }
 ?>
@@ -169,13 +174,18 @@ function export_date_options( $post_type = 'post' ) {
 <h1><?php echo esc_html( $title ); ?></h1>
 
 <p><?php _e( 'When you click the button below WordPress will create an XML file for you to save to your computer.' ); ?></p>
-<p><?php _e( 'This format, which we call WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.' ); ?></p>
+<p><?php _e( 'This format, which is called WordPress eXtended RSS or WXR, will contain your posts, pages, comments, custom fields, categories, and tags.' ); ?></p>
 <p><?php _e( 'Once you&#8217;ve saved the download file, you can use the Import function in another WordPress installation to import the content from this site.' ); ?></p>
 
 <h2><?php _e( 'Choose what to export' ); ?></h2>
 <form method="get" id="export-filters">
 <fieldset>
-<legend class="screen-reader-text"><?php _e( 'Content to export' ); ?></legend>
+<legend class="screen-reader-text">
+	<?php
+	/* translators: Hidden accessibility text. */
+	_e( 'Content to export' );
+	?>
+</legend>
 <input type="hidden" name="download" value="true" />
 <p><label><input type="radio" name="content" value="all" checked="checked" aria-describedby="all-content-desc" /> <?php _e( 'All content' ); ?></label></p>
 <p class="description" id="all-content-desc"><?php _e( 'This will contain all of your posts, pages, comments, custom fields, terms, navigation menus, and custom posts.' ); ?></p>
@@ -205,7 +215,12 @@ function export_date_options( $post_type = 'post' ) {
 	</li>
 	<li>
 		<fieldset>
-		<legend class="screen-reader-text"><?php _e( 'Date range:' ); ?></legend>
+		<legend class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Date range:' )
+			?>
+		</legend>
 		<label for="post-start-date" class="label-responsive"><?php _e( 'Start date:' ); ?></label>
 		<select name="post_start_date" id="post-start-date">
 			<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>
@@ -252,7 +267,12 @@ function export_date_options( $post_type = 'post' ) {
 	</li>
 	<li>
 		<fieldset>
-		<legend class="screen-reader-text"><?php _e( 'Date range:' ); ?></legend>
+		<legend class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Date range:' );
+			?>
+		</legend>
 		<label for="page-start-date" class="label-responsive"><?php _e( 'Start date:' ); ?></label>
 		<select name="page_start_date" id="page-start-date">
 			<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>
@@ -292,7 +312,12 @@ foreach ( get_post_types(
 <ul id="attachment-filters" class="export-filters">
 	<li>
 		<fieldset>
-		<legend class="screen-reader-text"><?php _e( 'Date range:' ); ?></legend>
+		<legend class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Date range:' );
+			?>
+		</legend>
 		<label for="attachment-start-date" class="label-responsive"><?php _e( 'Start date:' ); ?></label>
 		<select name="attachment_start_date" id="attachment-start-date">
 			<option value="0"><?php _e( '&mdash; Select &mdash;' ); ?></option>

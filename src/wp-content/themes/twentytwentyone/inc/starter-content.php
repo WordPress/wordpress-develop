@@ -12,7 +12,7 @@
 /**
  * Function to return the array of starter content for the theme.
  *
- * Passes it through the `twentytwenty_starter_content` filter before returning.
+ * Passes it through the `twenty_twenty_one_starter_content` filter before returning.
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -40,7 +40,7 @@ function twenty_twenty_one_get_starter_content() {
 					<!-- wp:columns {"verticalAlignment":"center","align":"wide","className":"is-style-twentytwentyone-columns-overlap"} -->
 					<div class="wp-block-columns alignwide are-vertically-aligned-center is-style-twentytwentyone-columns-overlap"><!-- wp:column {"verticalAlignment":"center"} -->
 					<div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"align":"full","sizeSlug":"large"} -->
-					<figure class="wp-block-image alignfull size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/roses-tremieres-hollyhocks-1884.jpg" alt="' . esc_attr__( '&#8220;Roses Tremieres&#8221; by Berthe Morisot', 'twentytwentyone' ) . '"/></figure>
+					<figure class="wp-block-image alignfull size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/roses-tremieres-hollyhocks-1884.jpg" alt="' . esc_attr__( '&#8220;Roses Trémières&#8221; by Berthe Morisot', 'twentytwentyone' ) . '"/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:spacer -->
@@ -119,7 +119,7 @@ function twenty_twenty_one_get_starter_content() {
 					<!-- wp:columns -->
 					<div class="wp-block-columns"><!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:paragraph -->
-					<p><a href="https://wordpress.org/support/article/twenty-twenty-one/">' . esc_html_x( 'Read the Theme Documentation', 'Theme starter content', 'twentytwentyone' ) . '</a></p>
+					<p><a href="https://wordpress.org/documentation/article/twenty-twenty-one/">' . esc_html_x( 'Read the Theme Documentation', 'Theme starter content', 'twentytwentyone' ) . '</a></p>
 					<!-- /wp:paragraph --></div>
 					<!-- /wp:column -->
 

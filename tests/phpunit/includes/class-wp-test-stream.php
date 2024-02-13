@@ -11,8 +11,7 @@
  * 'DIRECTORY' to the static variable WP_Test_Stream::$data['bucket']['/foo/']
  * (note the trailing slash).
  *
- * This class can be used to test that code works with basic read/write streams,
- * as such, operations such as seeking are not supported.
+ * This class can be used to test that code works with basic read/write streams.
  *
  * This class does not register itself as a stream handler: test fixtures
  * should make the appropriate call to stream_wrapper_register().
@@ -24,12 +23,21 @@ class WP_Test_Stream {
 	/**
 	 * In-memory storage for files and directories simulated by this wrapper.
 	 */
-	static $data = array();
+	public static $data = array();
 
-	var $position;
-	var $file;
-	var $bucket;
-	var $data_ref;
+	public $position;
+	public $file;
+	public $bucket;
+	public $data_ref;
+
+	/**
+	 * The current context.
+	 *
+	 * @link https://www.php.net/manual/en/class.streamwrapper.php
+	 *
+	 * @var resource|null
+	 */
+	public $context;
 
 	/**
 	 * Initializes internal state for reading the given URL.
@@ -66,7 +74,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_open
 	 */
-	function stream_open( $path, $mode, $options, &$opened_path ) {
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
 		$this->open( $path );
 		return true;
 	}
@@ -76,7 +84,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_read
 	 */
-	function stream_read( $count ) {
+	public function stream_read( $count ) {
 		if ( ! isset( $this->data_ref ) ) {
 			return '';
 		}
@@ -92,7 +100,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_write
 	 */
-	function stream_write( $data ) {
+	public function stream_write( $data ) {
 		if ( ! isset( $this->data_ref ) ) {
 			$this->data_ref = '';
 		}
@@ -107,11 +115,53 @@ class WP_Test_Stream {
 	}
 
 	/**
+	 * Seeks to specific location in a stream.
+	 *
+	 * @see streamWrapper::stream_seek
+	 *
+	 * @param int $offset The stream offset to seek to.
+	 * @param int $whence Optional. Seek position.
+	 * @return bool Returns true when position is updated, else false.
+	 */
+	public function stream_seek( $offset, $whence = SEEK_SET ) {
+		if ( empty( $this->data_ref ) ) {
+			return false;
+		}
+
+		$new_offset = $this->position;
+		switch ( $whence ) {
+			case SEEK_CUR:
+				$new_offset += $offset;
+				break;
+
+			case SEEK_END:
+				$new_offset = strlen( $this->data_ref ) + $offset;
+				break;
+
+			case SEEK_SET:
+				$new_offset = $offset;
+				break;
+
+			default:
+				return false;
+		}
+
+		if ( $new_offset < 0 ) {
+			return false;
+		}
+
+		// Save the new position.
+		$this->position = $new_offset;
+
+		return true;
+	}
+
+	/**
 	 * Retrieves the current position of a stream.
 	 *
 	 * @see streamWrapper::stream_tell
 	 */
-	function stream_tell() {
+	public function stream_tell() {
 		return $this->position;
 	}
 
@@ -120,7 +170,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_eof
 	 */
-	function stream_eof() {
+	public function stream_eof() {
 		if ( ! isset( $this->data_ref ) ) {
 			return true;
 		}
@@ -133,7 +183,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_metadata
 	 */
-	function stream_metadata( $path, $option, $var ) {
+	public function stream_metadata( $path, $option, $value ) {
 		$this->open( $path );
 		if ( STREAM_META_TOUCH === $option ) {
 			if ( ! isset( $this->data_ref ) ) {
@@ -148,16 +198,27 @@ class WP_Test_Stream {
 	 * Creates a directory.
 	 *
 	 * @see streamWrapper::mkdir
+	 *
+	 * @param string $path    Directory which should be created.
+	 * @param int    $mode    The value passed to mkdir().
+	 * @param int    $options A bitwise mask of values, such as STREAM_MKDIR_RECURSIVE.
+	 * @return bool True on success, false on failure.
 	 */
-	function mkdir( $path, $mode, $options ) {
+	public function mkdir( $path, $mode, $options ) {
 		$this->open( $path );
+
 		$plainfile = rtrim( $this->file, '/' );
 
-		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $file ] ) ) {
+		// Check if a file or directory with the same name already exists.
+		if ( isset( WP_Test_Stream::$data[ $this->bucket ][ $plainfile ] )
+			|| isset( WP_Test_Stream::$data[ $this->bucket ][ $plainfile . '/' ] )
+		) {
 			return false;
 		}
+
 		$dir_ref = & $this->get_directory_ref();
 		$dir_ref = 'DIRECTORY';
+
 		return true;
 	}
 

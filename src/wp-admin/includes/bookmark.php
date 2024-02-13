@@ -7,7 +7,7 @@
  */
 
 /**
- * Add a link to using values provided in $_POST.
+ * Adds a link using values provided in $_POST.
  *
  * @since 2.0.0
  *
@@ -34,7 +34,6 @@ function edit_link( $link_id = 0 ) {
 		);
 	}
 
-	$_POST['link_url']   = esc_html( $_POST['link_url'] );
 	$_POST['link_url']   = esc_url( $_POST['link_url'] );
 	$_POST['link_name']  = esc_html( $_POST['link_name'] );
 	$_POST['link_image'] = esc_html( $_POST['link_image'] );
@@ -59,7 +58,7 @@ function edit_link( $link_id = 0 ) {
  * @return stdClass Default link object.
  */
 function get_default_link_to_edit() {
-	$link = new stdClass;
+	$link = new stdClass();
 	if ( isset( $_GET['linkurl'] ) ) {
 		$link->link_url = esc_url( wp_unslash( $_GET['linkurl'] ) );
 	} else {
@@ -84,7 +83,7 @@ function get_default_link_to_edit() {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $link_id ID of the link to delete
+ * @param int $link_id ID of the link to delete.
  * @return true Always true.
  */
 function wp_delete_link( $link_id ) {
@@ -163,7 +162,6 @@ function get_link_to_edit( $link ) {
  *     @type string $link_visible     Optional. 'Y' means visible, anything else means not.
  *     @type int    $link_owner       Optional. A user ID.
  *     @type int    $link_rating      Optional. A rating for the link.
- *     @type string $link_updated     Optional. When the link was last updated.
  *     @type string $link_rel         Optional. A relationship of the link to you.
  *     @type string $link_notes       Optional. An extended description of or notes on the link.
  *     @type string $link_rss         Optional. A URL of an associated RSS feed.
@@ -269,7 +267,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 }
 
 /**
- * Update link with the specified link categories.
+ * Updates link with the specified link categories.
  *
  * @since 2.1.0
  *
@@ -328,7 +326,7 @@ function wp_update_link( $linkdata ) {
  * @since 3.5.0
  * @access private
  *
- * @global string $pagenow
+ * @global string $pagenow The filename of the current screen.
  */
 function wp_link_manager_disabled_message() {
 	global $pagenow;
@@ -341,10 +339,40 @@ function wp_link_manager_disabled_message() {
 	$really_can_manage_links = current_user_can( 'manage_links' );
 	remove_filter( 'pre_option_link_manager_enabled', '__return_true', 100 );
 
-	if ( $really_can_manage_links && current_user_can( 'install_plugins' ) ) {
-		$link = network_admin_url( 'plugin-install.php?tab=search&amp;s=Link+Manager' );
-		/* translators: %s: URL to install the Link Manager plugin. */
-		wp_die( sprintf( __( 'If you are looking to use the link manager, please install the <a href="%s">Link Manager</a> plugin.' ), $link ) );
+	if ( $really_can_manage_links ) {
+		$plugins = get_plugins();
+
+		if ( empty( $plugins['link-manager/link-manager.php'] ) ) {
+			if ( current_user_can( 'install_plugins' ) ) {
+				$install_url = wp_nonce_url(
+					self_admin_url( 'update.php?action=install-plugin&plugin=link-manager' ),
+					'install-plugin_link-manager'
+				);
+
+				wp_die(
+					sprintf(
+						/* translators: %s: A link to install the Link Manager plugin. */
+						__( 'If you are looking to use the link manager, please install the <a href="%s">Link Manager plugin</a>.' ),
+						esc_url( $install_url )
+					)
+				);
+			}
+		} elseif ( is_plugin_inactive( 'link-manager/link-manager.php' ) ) {
+			if ( current_user_can( 'activate_plugins' ) ) {
+				$activate_url = wp_nonce_url(
+					self_admin_url( 'plugins.php?action=activate&plugin=link-manager/link-manager.php' ),
+					'activate-plugin_link-manager/link-manager.php'
+				);
+
+				wp_die(
+					sprintf(
+						/* translators: %s: A link to activate the Link Manager plugin. */
+						__( 'Please activate the <a href="%s">Link Manager plugin</a> to use the link manager.' ),
+						esc_url( $activate_url )
+					)
+				);
+			}
+		}
 	}
 
 	wp_die( __( 'Sorry, you are not allowed to edit the links for this site.' ) );

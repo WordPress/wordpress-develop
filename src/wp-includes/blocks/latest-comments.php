@@ -30,7 +30,7 @@ function wp_latest_comments_draft_or_post_title( $post = 0 ) {
 	if ( empty( $title ) ) {
 		$title = __( '(no title)' );
 	}
-	return esc_html( $title );
+	return $title;
 }
 
 /**
@@ -41,15 +41,16 @@ function wp_latest_comments_draft_or_post_title( $post = 0 ) {
  * @return string Returns the post content with latest comments added.
  */
 function render_block_core_latest_comments( $attributes = array() ) {
-	// This filter is documented in wp-includes/widgets/class-wp-widget-recent-comments.php.
 	$comments = get_comments(
+		/** This filter is documented in wp-includes/widgets/class-wp-widget-recent-comments.php */
 		apply_filters(
 			'widget_comments_args',
 			array(
 				'number'      => $attributes['commentsToShow'],
 				'status'      => 'approve',
 				'post_status' => 'publish',
-			)
+			),
+			array()
 		)
 	);
 

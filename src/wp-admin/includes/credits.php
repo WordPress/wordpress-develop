@@ -8,7 +8,7 @@
  */
 
 /**
- * Retrieve the contributor credits.
+ * Retrieves the contributor credits.
  *
  * @since 3.2.0
  * @since 5.6.0 Added the `$version` and `$locale` parameters.
@@ -32,8 +32,8 @@ function wp_credits( $version = '', $locale = '' ) {
 	$results = get_site_transient( 'wordpress_credits_' . $locale );
 
 	if ( ! is_array( $results )
-		|| false !== strpos( $version, '-' )
-		|| ( isset( $results['data']['version'] ) && strpos( $version, $results['data']['version'] ) !== 0 )
+		|| str_contains( $version, '-' )
+		|| ( isset( $results['data']['version'] ) && ! str_starts_with( $version, $results['data']['version'] ) )
 	) {
 		$url     = "http://api.wordpress.org/core/credits/1.1/?version={$version}&locale={$locale}";
 		$options = array( 'user-agent' => 'WordPress/' . $version . '; ' . home_url( '/' ) );
@@ -44,7 +44,7 @@ function wp_credits( $version = '', $locale = '' ) {
 
 		$response = wp_remote_get( $url, $options );
 
-		if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
 		}
 
@@ -61,7 +61,7 @@ function wp_credits( $version = '', $locale = '' ) {
 }
 
 /**
- * Retrieve the link to a contributor's WordPress.org profile page.
+ * Retrieves the link to a contributor's WordPress.org profile page.
  *
  * @access private
  * @since 3.2.0
@@ -75,7 +75,7 @@ function _wp_credits_add_profile_link( &$display_name, $username, $profiles ) {
 }
 
 /**
- * Retrieve the link to an external library used in WordPress.
+ * Retrieves the link to an external library used in WordPress.
  *
  * @access private
  * @since 3.2.0
@@ -149,12 +149,12 @@ function wp_credits_section_list( $credits = array(), $slug = '' ) {
 			foreach ( $group_data['data'] as $person_data ) {
 				echo '<li class="wp-person" id="wp-person-' . esc_attr( $person_data[2] ) . '">' . "\n\t";
 				echo '<a href="' . esc_url( sprintf( $credits_data['profiles'], $person_data[2] ) ) . '" class="web">';
-				$size   = $compact ? 40 : 80;
+				$size   = $compact ? 80 : 160;
 				$data   = get_avatar_data( $person_data[1] . '@md5.gravatar.com', array( 'size' => $size ) );
 				$data2x = get_avatar_data( $person_data[1] . '@md5.gravatar.com', array( 'size' => $size * 2 ) );
-				echo '<img src="' . esc_url( $data['url'] ) . '" srcset="' . esc_url( $data2x['url'] ) . ' 2x" class="gravatar" alt="" />' . "\n";
+				echo '<span class="wp-person-avatar"><img src="' . esc_url( $data['url'] ) . '" srcset="' . esc_url( $data2x['url'] ) . ' 2x" class="gravatar" alt="" /></span>' . "\n";
 				echo esc_html( $person_data[0] ) . "</a>\n\t";
-				if ( ! $compact ) {
+				if ( ! $compact && ! empty( $person_data[3] ) ) {
 					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
 					echo '<span class="title">' . translate( $person_data[3] ) . "</span>\n";
 				}

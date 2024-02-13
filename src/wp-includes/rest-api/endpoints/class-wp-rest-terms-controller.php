@@ -49,6 +49,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $total_terms;
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -57,15 +65,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( $taxonomy ) {
 		$this->taxonomy  = $taxonomy;
-		$this->namespace = 'wp/v2';
 		$tax_obj         = get_taxonomy( $taxonomy );
 		$this->rest_base = ! empty( $tax_obj->rest_base ) ? $tax_obj->rest_base : $tax_obj->name;
+		$this->namespace = ! empty( $tax_obj->rest_namespace ) ? $tax_obj->rest_namespace : 'wp/v2';
 
 		$this->meta = new WP_REST_Term_Meta_Fields( $taxonomy );
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for terms.
 	 *
 	 * @since 4.7.0
 	 *
@@ -89,7 +97,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -97,7 +106,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
-				'args'   => array(
+				'args'        => array(
 					'id' => array(
 						'description' => __( 'Unique identifier for the term.' ),
 						'type'        => 'integer',
@@ -129,9 +138,39 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
+				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
+	}
+
+	/**
+	 * Checks if the terms for a post can be read.
+	 *
+	 * @since 6.0.3
+	 *
+	 * @param WP_Post         $post    Post object.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool Whether the terms for the post can be read.
+	 */
+	public function check_read_terms_permission_for_post( $post, $request ) {
+		// If the requested post isn't associated with this taxonomy, deny access.
+		if ( ! is_object_in_taxonomy( $post->post_type, $this->taxonomy ) ) {
+			return false;
+		}
+
+		// Grant access if the post is publicly viewable.
+		if ( is_post_publicly_viewable( $post ) ) {
+			return true;
+		}
+
+		// Otherwise grant access if the post is readable by the logged in user.
+		if ( current_user_can( 'read_post', $post->ID ) ) {
+			return true;
+		}
+
+		// Otherwise, deny access.
+		return false;
 	}
 
 	/**
@@ -140,7 +179,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, otherwise false or WP_Error object.
+	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
 		$tax_obj = get_taxonomy( $this->taxonomy );
@@ -155,6 +194,30 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				__( 'Sorry, you are not allowed to edit terms in this taxonomy.' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
+		}
+
+		if ( ! empty( $request['post'] ) ) {
+			$post = get_post( $request['post'] );
+
+			if ( ! $post ) {
+				return new WP_Error(
+					'rest_post_invalid_id',
+					__( 'Invalid post ID.' ),
+					array(
+						'status' => 400,
+					)
+				);
+			}
+
+			if ( ! $this->check_read_terms_permission_for_post( $post, $request ) ) {
+				return new WP_Error(
+					'rest_forbidden_context',
+					__( 'Sorry, you are not allowed to view terms for this post.' ),
+					array(
+						'status' => rest_authorization_required_code(),
+					)
+				);
+			}
 		}
 
 		return true;
@@ -233,9 +296,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters get_terms() arguments when querying users via the REST API.
+		 * Filters get_terms() arguments when querying terms via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_category_query`
+		 *  - `rest_post_tag_query`
 		 *
 		 * Enables adding extra arguments or setting defaults for a terms
 		 * collection request.
@@ -244,8 +312,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * @link https://developer.wordpress.org/reference/functions/get_terms/
 		 *
-		 * @param array           $prepared_args Array of arguments to be
-		 *                                       passed to get_terms().
+		 * @param array           $prepared_args Array of arguments for get_terms().
 		 * @param WP_REST_Request $request       The REST API request.
 		 */
 		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
@@ -289,7 +356,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( urlencode_deep( $request->get_query_params() ), rest_url( $this->namespace . '/' . $this->rest_base ) );
+		$request_params = $request->get_query_params();
+		$collection_url = rest_url( rest_get_route_for_taxonomy_items( $this->taxonomy ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $collection_url );
+
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 
@@ -347,7 +417,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
@@ -475,6 +545,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_insert_category`
+		 *  - `rest_insert_post_tag`
+		 *
 		 * @since 4.7.0
 		 *
 		 * @param WP_Term         $term     Inserted or updated term object.
@@ -504,6 +579,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 * Fires after a single term is completely created or updated via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_after_insert_category`
+		 *  - `rest_after_insert_post_tag`
 		 *
 		 * @since 5.0.0
 		 *
@@ -702,6 +782,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_delete_category`
+		 *  - `rest_delete_post_tag`
+		 *
 		 * @since 4.7.0
 		 *
 		 * @param WP_Term          $term     The deleted term.
@@ -722,7 +807,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return object Term object.
 	 */
 	public function prepare_item_for_database( $request ) {
-		$prepared_term = new stdClass;
+		$prepared_term = new stdClass();
 
 		$schema = $this->get_item_schema();
 		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
@@ -760,6 +845,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 * Filters term data before inserting term via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_pre_insert_category`
+		 *  - `rest_pre_insert_post_tag`
 		 *
 		 * @since 4.7.0
 		 *
@@ -825,14 +915,16 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $item ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $item ) );
+		}
 
 		/**
 		 * Filters the term data for a REST API response.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
-		 * Possible filter names include:
+		 * Possible hook names include:
 		 *
 		 *  - `rest_prepare_category`
 		 *  - `rest_prepare_post_tag`
@@ -857,13 +949,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base  = $this->namespace . '/' . $this->rest_base;
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $term->term_id ),
+				'href' => rest_url( rest_get_route_for_term( $term ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( $base ),
+				'href' => rest_url( rest_get_route_for_taxonomy_items( $this->taxonomy ) ),
 			),
 			'about'      => array(
 				'href' => rest_url( sprintf( 'wp/v2/taxonomies/%s', $this->taxonomy ) ),
@@ -875,7 +966,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 			if ( $parent_term ) {
 				$links['up'] = array(
-					'href'       => rest_url( trailingslashit( $base ) . $parent_term->term_id ),
+					'href'       => rest_url( rest_get_route_for_term( $parent_term ) ),
 					'embeddable' => true,
 				);
 			}
@@ -890,15 +981,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$post_type_links = array();
 
 		foreach ( $taxonomy_obj->object_type as $type ) {
-			$post_type_object = get_post_type_object( $type );
+			$rest_path = rest_get_route_for_post_type_items( $type );
 
-			if ( empty( $post_type_object->show_in_rest ) ) {
+			if ( empty( $rest_path ) ) {
 				continue;
 			}
 
-			$rest_base         = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 			$post_type_links[] = array(
-				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
+				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( $rest_path ) ),
 			);
 		}
 

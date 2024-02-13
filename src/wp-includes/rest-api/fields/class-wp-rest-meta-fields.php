@@ -12,6 +12,7 @@
  *
  * @since 4.7.0
  */
+#[AllowDynamicProperties]
 abstract class WP_REST_Meta_Fields {
 
 	/**
@@ -94,8 +95,10 @@ abstract class WP_REST_Meta_Fields {
 			} else {
 				$value = array();
 
-				foreach ( $all_values as $row ) {
-					$value[] = $this->prepare_value_for_response( $row, $request, $args );
+				if ( is_array( $all_values ) ) {
+					foreach ( $all_values as $row ) {
+						$value[] = $this->prepare_value_for_response( $row, $request, $args );
+					}
 				}
 			}
 
@@ -241,6 +244,10 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
+		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
+			return true;
+		}
+
 		if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
@@ -285,6 +292,10 @@ abstract class WP_REST_Meta_Fields {
 
 		$current_values = get_metadata( $meta_type, $object_id, $meta_key, false );
 		$subtype        = get_object_subtype( $meta_type, $object_id );
+
+		if ( ! is_array( $current_values ) ) {
+			$current_values = array();
+		}
 
 		$to_remove = $current_values;
 		$to_add    = $values;
@@ -366,6 +377,16 @@ abstract class WP_REST_Meta_Fields {
 	protected function update_meta_value( $object_id, $meta_key, $name, $value ) {
 		$meta_type = $this->get_meta_type();
 
+		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
+		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
+		$subtype   = get_object_subtype( $meta_type, $object_id );
+
+		if ( is_array( $old_value ) && 1 === count( $old_value )
+			&& $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value )
+		) {
+			return true;
+		}
+
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_update',
@@ -376,14 +397,6 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
-		}
-
-		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
-		$old_value = get_metadata( $meta_type, $object_id, $meta_key );
-		$subtype   = get_object_subtype( $meta_type, $object_id );
-
-		if ( 1 === count( $old_value ) && $this->is_meta_value_same_as_stored_value( $meta_key, $subtype, $old_value[0], $value ) ) {
-			return true;
 		}
 
 		if ( ! update_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {

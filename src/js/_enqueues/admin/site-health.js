@@ -6,14 +6,17 @@
 
 /* global ajaxurl, ClipboardJS, SiteHealth, wp */
 
-jQuery( document ).ready( function( $ ) {
+jQuery( function( $ ) {
 
 	var __ = wp.i18n.__,
 		_n = wp.i18n._n,
 		sprintf = wp.i18n.sprintf,
 		clipboard = new ClipboardJS( '.site-health-copy-buttons .copy-button' ),
+		isStatusTab = $( '.health-check-body.health-check-status-tab' ).length,
 		isDebugTab = $( '.health-check-body.health-check-debug-tab' ).length,
 		pathsSizesSection = $( '#health-check-accordion-block-wp-paths-sizes' ),
+		menuCounterWrapper = $( '#adminmenu .site-health-counter' ),
+		menuCounter = $( '#adminmenu .site-health-counter .count' ),
 		successTimeout;
 
 	// Debug information copy section.
@@ -23,8 +26,6 @@ jQuery( document ).ready( function( $ ) {
 
 		// Clear the selection and move focus back to the trigger.
 		e.clearSelection();
-		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.focus();
 
 		// Show success visual feedback.
 		clearTimeout( successTimeout );
@@ -33,10 +34,6 @@ jQuery( document ).ready( function( $ ) {
 		// Hide success visual feedback after 3 seconds since last success.
 		successTimeout = setTimeout( function() {
 			successElement.addClass( 'hidden' );
-			// Remove the visually hidden textarea so that it isn't perceived by assistive technologies.
-			if ( clipboard.clipboardAction.fakeElem && clipboard.clipboardAction.removeFake ) {
-				clipboard.clipboardAction.removeFake();
-			}
 		}, 3000 );
 
 		// Handle success audible feedback.
@@ -167,6 +164,19 @@ jQuery( document ).ready( function( $ ) {
 			$( '.site-health-issue-count-title', issueWrapper ).html( heading );
 		}
 
+		menuCounter.text( SiteHealth.site_status.issues.critical );
+
+		if ( 0 < parseInt( SiteHealth.site_status.issues.critical, 0 ) ) {
+			$( '#health-check-issues-critical' ).removeClass( 'hidden' );
+
+			menuCounterWrapper.removeClass( 'count-0' );
+		} else {
+			menuCounterWrapper.addClass( 'count-0' );
+		}
+		if ( 0 < parseInt( SiteHealth.site_status.issues.recommended, 0 ) ) {
+			$( '#health-check-issues-recommended' ).removeClass( 'hidden' );
+		}
+
 		$( '.issues', '#health-check-issues-' + issue.status ).append( template( issue ) );
 	}
 
@@ -205,31 +215,23 @@ jQuery( document ).ready( function( $ ) {
 			val = 100;
 		}
 
-		pct = ( ( 100 - val ) / 100 ) * c;
+		pct = ( ( 100 - val ) / 100 ) * c + 'px';
 
 		$circle.css( { strokeDashoffset: pct } );
-
-		if ( 1 > parseInt( SiteHealth.site_status.issues.critical, 0 ) ) {
-			$( '#health-check-issues-critical' ).addClass( 'hidden' );
-		}
-
-		if ( 1 > parseInt( SiteHealth.site_status.issues.recommended, 0 ) ) {
-			$( '#health-check-issues-recommended' ).addClass( 'hidden' );
-		}
 
 		if ( 80 <= val && 0 === parseInt( SiteHealth.site_status.issues.critical, 0 ) ) {
 			$wrapper.addClass( 'green' ).removeClass( 'orange' );
 
 			$progressLabel.text( __( 'Good' ) );
-			wp.a11y.speak( __( 'All site health tests have finished running. Your site is looking good, and the results are now available on the page.' ) );
+			announceTestsProgression( 'good' );
 		} else {
 			$wrapper.addClass( 'orange' ).removeClass( 'green' );
 
 			$progressLabel.text( __( 'Should be improved' ) );
-			wp.a11y.speak( __( 'All site health tests have finished running. There are items that should be addressed, and the results are now available on the page.' ) );
+			announceTestsProgression( 'improvable' );
 		}
 
-		if ( ! isDebugTab ) {
+		if ( isStatusTab ) {
 			$.post(
 				ajaxurl,
 				{
@@ -346,7 +348,7 @@ jQuery( document ).ready( function( $ ) {
 		appendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
 	}
 
-	if ( 'undefined' !== typeof SiteHealth && ! isDebugTab ) {
+	if ( 'undefined' !== typeof SiteHealth ) {
 		if ( 0 === SiteHealth.site_status.direct.length && 0 === SiteHealth.site_status.async.length ) {
 			recalculateProgression();
 		} else {
@@ -375,7 +377,7 @@ jQuery( document ).ready( function( $ ) {
 
 		// After 3 seconds announce that we're still waiting for directory sizes.
 		var timeout = window.setTimeout( function() {
-			wp.a11y.speak( __( 'Please wait...' ) );
+			announceTestsProgression( 'waiting-for-directory-sizes' );
 		}, 3000 );
 
 		wp.apiRequest( {
@@ -386,7 +388,6 @@ jQuery( document ).ready( function( $ ) {
 			var delay = ( new Date().getTime() ) - timestamp;
 
 			$( '.health-check-wp-paths-sizes.spinner' ).css( 'visibility', 'hidden' );
-			recalculateProgression();
 
 			if ( delay > 3000 ) {
 				/*
@@ -401,7 +402,7 @@ jQuery( document ).ready( function( $ ) {
 				}
 
 				window.setTimeout( function() {
-					wp.a11y.speak( __( 'All site health tests have finished running.' ) );
+					recalculateProgression();
 				}, delay );
 			} else {
 				// Cancel the announcement.
@@ -441,6 +442,41 @@ jQuery( document ).ready( function( $ ) {
 			getDirectorySizes();
 		} else {
 			recalculateProgression();
+		}
+	}
+
+	// Trigger a class toggle when the extended menu button is clicked.
+	$( '.health-check-offscreen-nav-wrapper' ).on( 'click', function() {
+		$( this ).toggleClass( 'visible' );
+	} );
+
+	/**
+	 * Announces to assistive technologies the tests progression status.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param {string} type The type of message to be announced.
+	 *
+	 * @return {void}
+	 */
+	function announceTestsProgression( type ) {
+		// Only announce the messages in the Site Health pages.
+		if ( 'site-health' !== SiteHealth.screen ) {
+			return;
+		}
+
+		switch ( type ) {
+			case 'good':
+				wp.a11y.speak( __( 'All site health tests have finished running. Your site is looking good.' ) );
+				break;
+			case 'improvable':
+				wp.a11y.speak( __( 'All site health tests have finished running. There are items that should be addressed.' ) );
+				break;
+			case 'waiting-for-directory-sizes':
+				wp.a11y.speak( __( 'Running additional tests... please wait.' ) );
+				break;
+			default:
+				return;
 		}
 	}
 } );

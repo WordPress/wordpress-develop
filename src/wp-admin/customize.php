@@ -97,7 +97,7 @@ if ( ! empty( $autofocus ) && is_array( $autofocus ) ) {
 }
 
 $registered             = $wp_scripts->registered;
-$wp_scripts             = new WP_Scripts;
+$wp_scripts             = new WP_Scripts();
 $wp_scripts->registered = $registered;
 
 add_action( 'customize_controls_print_scripts', 'print_head_scripts', 20 );
@@ -116,7 +116,7 @@ wp_enqueue_script( 'customize-controls' );
 wp_enqueue_style( 'customize-controls' );
 
 /**
- * Enqueue Customizer control scripts.
+ * Fires when enqueuing Customizer control scripts.
  *
  * @since 3.4.0
  */
@@ -143,6 +143,10 @@ if ( is_rtl() ) {
 	$body_class .= ' rtl';
 }
 $body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
+
+if ( wp_use_widgets_block_editor() ) {
+	$body_class .= ' wp-embed-responsive';
+}
 
 $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loading&hellip;' ) );
 
@@ -203,7 +207,12 @@ do_action( 'customize_controls_head' );
 				<span class="preview"><?php _e( 'Preview' ); ?></span>
 			</button>
 			<a class="customize-controls-close" href="<?php echo esc_url( $wp_customize->get_return_url() ); ?>">
-				<span class="screen-reader-text"><?php _e( 'Close the Customizer and go back to the previous page' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Close the Customizer and go back to the previous page' );
+					?>
+				</span>
 			</a>
 		</div>
 
@@ -218,7 +227,7 @@ do_action( 'customize_controls_head' );
 				<ul></ul>
 			</div>
 			<div class="wp-full-overlay-sidebar-content" tabindex="-1">
-				<div id="customize-info" class="accordion-section customize-info">
+				<div id="customize-info" class="accordion-section customize-info" data-block-theme="<?php echo (int) wp_is_block_theme(); ?>">
 					<div class="accordion-section-title">
 						<span class="preview-notice">
 						<?php
@@ -226,12 +235,24 @@ do_action( 'customize_controls_head' );
 							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
 						</span>
-						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
+						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Help' );
+							?>
+						</span></button>
 					</div>
 					<div class="customize-panel-description">
-					<?php
-						_e( 'The Customizer allows you to preview changes to your site before publishing them. You can navigate to different pages on your site within the preview. Edit shortcuts are shown for some editable elements.' );
-					?>
+						<p>
+							<?php
+							_e( 'The Customizer allows you to preview changes to your site before publishing them. You can navigate to different pages on your site within the preview. Edit shortcuts are shown for some editable elements. The Customizer is intended for use with non-block themes.' );
+							?>
+						</p>
+						<p>
+							<?php
+							_e( '<a href="https://wordpress.org/documentation/article/customizer/">Documentation on Customizer</a>' );
+							?>
+						</p>
 					</div>
 				</div>
 
@@ -242,7 +263,7 @@ do_action( 'customize_controls_head' );
 		</div>
 
 		<div id="customize-footer-actions" class="wp-full-overlay-footer">
-			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr( _x( 'Hide Controls', 'label for hide controls button without length constraints' ) ); ?>">
+			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr_x( 'Hide Controls', 'label for hide controls button without length constraints' ); ?>">
 				<span class="collapse-sidebar-arrow"></span>
 				<span class="collapse-sidebar-label"><?php _ex( 'Hide Controls', 'short (~12 characters) label for hide controls button' ); ?></span>
 			</button>

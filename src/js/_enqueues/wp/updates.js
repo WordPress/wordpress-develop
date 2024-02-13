@@ -5,7 +5,7 @@
  * @output wp-admin/js/updates.js
  */
 
-/* global pagenow */
+/* global pagenow, _wpThemeSettings */
 
 /**
  * @param {jQuery}  $                                        jQuery object.
@@ -33,6 +33,8 @@
 	var $document = $( document ),
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
+		_n = wp.i18n._n,
+		_nx = wp.i18n._nx,
 		sprintf = wp.i18n.sprintf;
 
 	wp = wp || {};
@@ -352,8 +354,14 @@
 			$appearanceNavMenuUpdateCount = $( 'a[href="themes.php"] .update-plugins' ),
 			itemCount;
 
-		$adminBarUpdates.find( '.ab-item' ).removeAttr( 'title' );
 		$adminBarUpdates.find( '.ab-label' ).text( settings.totals.counts.total );
+		$adminBarUpdates.find( '.updates-available-text' ).text(
+			sprintf(
+				/* translators: %s: Total number of updates available. */
+				_n( '%s update available', '%s updates available', settings.totals.counts.total ),
+				settings.totals.counts.total
+			)
+		);
 
 		// Remove the update count from the toolbar if it's zero.
 		if ( 0 === settings.totals.counts.total ) {
@@ -406,6 +414,31 @@
 	};
 
 	/**
+	 * Sends a message from a modal to the main screen to update buttons in plugin cards.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}  data               An object of data to use for the button.
+	 * @param {string}  data.slug          The plugin's slug.
+	 * @param {string}  data.text          The text to use for the button.
+	 * @param {string}  data.ariaLabel     The value for the button's aria-label attribute. An empty string removes the attribute.
+	 * @param {string=} data.status        Optional. An identifier for the status.
+	 * @param {string=} data.removeClasses Optional. A space-separated list of classes to remove from the button.
+	 * @param {string=} data.addClasses    Optional. A space-separated list of classes to add to the button.
+	 * @param {string=} data.href          Optional. The button's URL.
+	 * @param {string=} data.pluginName    Optional. The plugin's name.
+	 * @param {string=} data.plugin        Optional. The plugin file, relative to the plugins directory.
+	 */
+	wp.updates.setCardButtonStatus = function( data ) {
+		var target = window.parent === window ? null : window.parent;
+
+		$.support.postMessage = !! window.postMessage;
+		if ( false !== $.support.postMessage && null !== target && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
+			target.postMessage( JSON.stringify( data ), window.location.origin );
+		}
+	};
+
+	/**
 	 * Decrements the update counts throughout the various menus.
 	 *
 	 * This includes the toolbar, the "Updates" menu item and the menu items
@@ -443,7 +476,9 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.updatePlugin = function( args ) {
-		var $updateRow, $card, $message, message;
+		var $updateRow, $card, $message, message,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
+			buttonText = __( 'Updating...' );
 
 		args = _.extend( {
 			success: wp.updates.updatePluginSuccess,
@@ -459,7 +494,7 @@
 				$updateRow.find( '.plugin-title strong' ).text()
 			);
 		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-			$card    = $( '.plugin-card-' + args.slug );
+			$card    = $( '.plugin-card-' + args.slug + ', #plugin-information-footer' );
 			$message = $card.find( '.update-now' ).addClass( 'updating-message' );
 			message    = sprintf(
 				/* translators: %s: Plugin name and version. */
@@ -471,15 +506,29 @@
 			$card.removeClass( 'plugin-card-update-failed' ).find( '.notice.notice-error' ).remove();
 		}
 
+		$adminBarUpdates.addClass( 'spin' );
+
 		if ( $message.html() !== __( 'Updating...' ) ) {
 			$message.data( 'originaltext', $message.html() );
 		}
 
 		$message
 			.attr( 'aria-label', message )
-			.text( __( 'Updating...' ) );
+			.text( buttonText );
 
 		$document.trigger( 'wp-plugin-updating', args );
+
+		if ( 'plugin-information-footer' === $card.attr('id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'updating-plugin',
+					slug: args.slug,
+					addClasses: 'updating-message',
+					text: buttonText,
+					ariaLabel: message
+				}
+			);
+		}
 
 		return wp.updates.ajax( 'update-plugin', args );
 	};
@@ -499,11 +548,18 @@
 	 * @param {string} response.newVersion New version of the plugin.
 	 */
 	wp.updates.updatePluginSuccess = function( response ) {
-		var $pluginRow, $updateMessage, newText;
+		var $pluginRow, $updateMessage, newText,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
+			buttonText = _x( 'Updated!', 'plugin' ),
+			ariaLabel = sprintf(
+				/* translators: %s: Plugin name and version. */
+				_x( '%s updated!', 'plugin' ),
+				response.pluginName
+			);
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
 			$pluginRow     = $( 'tr[data-plugin="' + response.plugin + '"]' )
-				.removeClass( 'update' )
+				.removeClass( 'update is-enqueued' )
 				.addClass( 'updated' );
 			$updateMessage = $pluginRow.find( '.update-message' )
 				.removeClass( 'updating-message notice-warning' )
@@ -516,25 +572,33 @@
 			// Clear the "time to next auto-update" text.
 			$pluginRow.find( '.auto-update-time' ).empty();
 		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-			$updateMessage = $( '.plugin-card-' + response.slug ).find( '.update-now' )
+			$updateMessage = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.update-now' )
 				.removeClass( 'updating-message' )
 				.addClass( 'button-disabled updated-message' );
 		}
 
+		$adminBarUpdates.removeClass( 'spin' );
+
 		$updateMessage
-			.attr(
-				'aria-label',
-				sprintf(
-					/* translators: %s: Plugin name and version. */
-					_x( '%s updated!', 'plugin' ),
-					response.pluginName
-				)
-			)
-			.text( _x( 'Updated!', 'plugin' ) );
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
 
 		wp.a11y.speak( __( 'Update completed successfully.' ) );
 
-		wp.updates.decrementCount( 'plugin' );
+		if ( 'plugin_install_from_iframe' !== $updateMessage.attr( 'id' ) ) {
+			wp.updates.decrementCount( 'plugin' );
+		} else {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'updated-plugin',
+					slug: response.slug,
+					removeClasses: 'updating-message',
+					addClasses: 'button-disabled updated-message',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
+		}
 
 		$document.trigger( 'wp-plugin-update-success', response );
 	};
@@ -553,7 +617,8 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
-		var $card, $message, errorMessage;
+		var $pluginRow, $card, $message, errorMessage, buttonText, ariaLabel,
+			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
 			return;
@@ -570,6 +635,8 @@
 		);
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
+			$pluginRow = $( 'tr[data-plugin="' + response.plugin + '"]' ).removeClass( 'is-enqueued' );
+
 			if ( response.plugin ) {
 				$message = $( 'tr[data-plugin="' + response.plugin + '"]' ).find( '.update-message' );
 			} else {
@@ -591,28 +658,32 @@
 				$message.find( 'p' ).removeAttr( 'aria-label' );
 			}
 		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
-			$card = $( '.plugin-card-' + response.slug )
-				.addClass( 'plugin-card-update-failed' )
+			buttonText = __( 'Update failed.' );
+
+			$card = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' )
 				.append( wp.updates.adminNotice( {
 					className: 'update-message notice-error notice-alt is-dismissible',
 					message:   errorMessage
 				} ) );
 
+			if ( $card.hasClass( 'plugin-card-' + response.slug ) ) {
+				$card.addClass( 'plugin-card-update-failed' );
+			}
+
 			$card.find( '.update-now' )
-				.text(  __( 'Update failed.' ) )
+				.text( buttonText )
 				.removeClass( 'updating-message' );
 
 			if ( response.pluginName ) {
-				$card.find( '.update-now' )
-					.attr(
-						'aria-label',
-						sprintf(
-							/* translators: %s: Plugin name and version. */
-							_x( '%s update failed.', 'plugin' ),
-							response.pluginName
-						)
-					);
+				ariaLabel = sprintf(
+					/* translators: %s: Plugin name and version. */
+					_x( '%s update failed.', 'plugin' ),
+					response.pluginName
+				);
+
+				$card.find( '.update-now' ).attr( 'aria-label', ariaLabel );
 			} else {
+				ariaLabel = '';
 				$card.find( '.update-now' ).removeAttr( 'aria-label' );
 			}
 
@@ -622,7 +693,7 @@
 				setTimeout( function() {
 					$card
 						.removeClass( 'plugin-card-update-failed' )
-						.find( '.column-name a' ).focus();
+						.find( '.column-name a' ).trigger( 'focus' );
 
 					$card.find( '.update-now' )
 						.attr( 'aria-label', false )
@@ -631,7 +702,21 @@
 			} );
 		}
 
+		$adminBarUpdates.removeClass( 'spin' );
+
 		wp.a11y.speak( errorMessage, 'assertive' );
+
+		if ( 'plugin-information-footer' === $card.attr('id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'plugin-update-failed',
+					slug: response.slug,
+					removeClasses: 'updating-message',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
+		}
 
 		$document.trigger( 'wp-plugin-update-error', response );
 	};
@@ -649,8 +734,10 @@
 	 *                     decorated with an abort() method.
 	 */
 	wp.updates.installPlugin = function( args ) {
-		var $card    = $( '.plugin-card-' + args.slug ),
-			$message = $card.find( '.install-now' );
+		var $card    = $( '.plugin-card-' + args.slug + ', #plugin-information-footer' ),
+			$message = $card.find( '.install-now' ),
+			buttonText = __( 'Installing...' ),
+			ariaLabel;
 
 		args = _.extend( {
 			success: wp.updates.installPluginSuccess,
@@ -665,17 +752,16 @@
 			$message.data( 'originaltext', $message.html() );
 		}
 
+		ariaLabel = sprintf(
+			/* translators: %s: Plugin name and version. */
+			_x( 'Installing %s...', 'plugin' ),
+			$message.data( 'name' )
+		);
+
 		$message
 			.addClass( 'updating-message' )
-			.attr(
-				'aria-label',
-				sprintf(
-					/* translators: %s: Plugin name and version. */
-					_x( 'Installing %s...', 'plugin' ),
-					$message.data( 'name' )
-				)
-			)
-			.text( __( 'Installing...' ) );
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
 
 		wp.a11y.speak( __( 'Installing... please wait.' ) );
 
@@ -683,6 +769,18 @@
 		$card.removeClass( 'plugin-card-install-failed' ).find( '.notice.notice-error' ).remove();
 
 		$document.trigger( 'wp-plugin-installing', args );
+
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'installing-plugin',
+					slug: args.slug,
+					addClasses: 'updating-message',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
+		}
 
 		return wp.updates.ajax( 'install-plugin', args );
 	};
@@ -698,20 +796,19 @@
 	 * @param {string} response.activateUrl URL to activate the just installed plugin.
 	 */
 	wp.updates.installPluginSuccess = function( response ) {
-		var $message = $( '.plugin-card-' + response.slug ).find( '.install-now' );
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
+			buttonText = _x( 'Installed!', 'plugin' ),
+			ariaLabel = sprintf(
+				/* translators: %s: Plugin name and version. */
+				_x( '%s installed!', 'plugin' ),
+				response.pluginName
+			);
 
 		$message
 			.removeClass( 'updating-message' )
 			.addClass( 'updated-message installed button-disabled' )
-			.attr(
-				'aria-label',
-				sprintf(
-					/* translators: %s: Plugin name and version. */
-					_x( '%s installed!', 'plugin' ),
-					response.pluginName
-				)
-			)
-			.text( _x( 'Installed!', 'plugin' ) );
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
 
 		wp.a11y.speak( __( 'Installation completed successfully.' ) );
 
@@ -719,36 +816,23 @@
 
 		if ( response.activateUrl ) {
 			setTimeout( function() {
-
-				// Transform the 'Install' button into an 'Activate' button.
-				$message.removeClass( 'install-now installed button-disabled updated-message' )
-					.addClass( 'activate-now button-primary' )
-					.attr( 'href', response.activateUrl );
-
-				if ( 'plugins-network' === pagenow ) {
-					$message
-						.attr(
-							'aria-label',
-							sprintf(
-								/* translators: %s: Plugin name. */
-								_x( 'Network Activate %s', 'plugin' ),
-								response.pluginName
-							)
-						)
-						.text( __( 'Network Activate' ) );
-				} else {
-					$message
-						.attr(
-							'aria-label',
-							sprintf(
-								/* translators: %s: Plugin name. */
-								_x( 'Activate %s', 'plugin' ),
-								response.pluginName
-							)
-						)
-						.text( __( 'Activate' ) );
-				}
+				wp.updates.checkPluginDependencies( {
+					slug: response.slug
+				} );
 			}, 1000 );
+		}
+
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'installed-plugin',
+					slug: response.slug,
+					removeClasses: 'updating-message',
+					addClasses: 'updated-message installed button-disabled',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
 		}
 	};
 
@@ -764,8 +848,14 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.installPluginError = function( response ) {
-		var $card   = $( '.plugin-card-' + response.slug ),
+		var $card   = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ),
 			$button = $card.find( '.install-now' ),
+			buttonText = __( 'Installation failed.' ),
+			ariaLabel = sprintf(
+				/* translators: %s: Plugin name and version. */
+				_x( '%s installation failed', 'plugin' ),
+				$button.data( 'name' )
+			),
 			errorMessage;
 
 		if ( ! wp.updates.isValidResponse( response, 'install' ) ) {
@@ -792,25 +882,338 @@
 			setTimeout( function() {
 				$card
 					.removeClass( 'plugin-card-update-failed' )
-					.find( '.column-name a' ).focus();
+					.find( '.column-name a' ).trigger( 'focus' );
 			}, 200 );
 		} );
 
 		$button
 			.removeClass( 'updating-message' ).addClass( 'button-disabled' )
-			.attr(
-				'aria-label',
-				sprintf(
-					/* translators: %s: Plugin name and version. */
-					_x( '%s installation failed', 'plugin' ),
-					$button.data( 'name' )
-				)
-			)
-			.text( __( 'Installation failed.' ) );
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
+		wp.updates.setCardButtonStatus(
+			{
+				status: 'plugin-install-failed',
+				slug: response.slug,
+				removeClasses: 'updating-message',
+				addClasses: 'button-disabled',
+				text: buttonText,
+				ariaLabel: ariaLabel
+			}
+		);
+
 		$document.trigger( 'wp-plugin-install-error', response );
+	};
+
+	/**
+	 * Sends an Ajax request to the server to check a plugin's dependencies.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}                          args         Arguments.
+	 * @param {string}                          args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {checkPluginDependenciesSuccess=} args.success Optional. Success callback. Default: wp.updates.checkPluginDependenciesSuccess
+	 * @param {checkPluginDependenciesError=}   args.error   Optional. Error callback. Default: wp.updates.checkPluginDependenciesError
+	 * @return {$.promise} A jQuery promise that represents the request,
+	 *                     decorated with an abort() method.
+	 */
+	wp.updates.checkPluginDependencies = function( args ) {
+		args = _.extend( {
+			success: wp.updates.checkPluginDependenciesSuccess,
+			error: wp.updates.checkPluginDependenciesError
+		}, args );
+
+		wp.a11y.speak( __( 'Checking plugin dependencies... please wait.' ) );
+		$document.trigger( 'wp-checking-plugin-dependencies', args );
+
+		return wp.updates.ajax( 'check_plugin_dependencies', args );
+	};
+
+	/**
+	 * Updates the UI appropriately after a successful plugin dependencies check.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object} response             Response from the server.
+	 * @param {string} response.slug        Slug of the checked plugin.
+	 * @param {string} response.pluginName  Name of the checked plugin.
+	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
+	 * @param {string} response.activateUrl URL to activate the just checked plugin.
+	 */
+	wp.updates.checkPluginDependenciesSuccess = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
+			buttonText, ariaLabel;
+
+		// Transform the 'Install' button into an 'Activate' button.
+		$message
+			.removeClass( 'install-now installed button-disabled updated-message' )
+			.addClass( 'activate-now button-primary' )
+			.attr( 'href', response.activateUrl );
+
+		wp.a11y.speak( __( 'Plugin dependencies check completed successfully.' ) );
+		$document.trigger( 'wp-check-plugin-dependencies-success', response );
+
+		if ( 'plugins-network' === pagenow ) {
+			buttonText = _x( 'Network Activate' );
+			ariaLabel  = sprintf(
+				/* translators: %s: Plugin name. */
+				_x( 'Network Activate %s', 'plugin' ),
+				response.pluginName
+			);
+
+			$message
+				.attr( 'aria-label', ariaLabel )
+				.text( buttonText );
+		} else {
+			buttonText = _x( 'Activate', 'plugin' );
+			ariaLabel = sprintf(
+				/* translators: %s: Plugin name. */
+				_x( 'Activate %s', 'plugin' ),
+				response.pluginName
+			);
+
+			$message
+				.attr( 'aria-label', ariaLabel )
+				.attr( 'data-name', response.pluginName )
+				.attr( 'data-slug', response.slug )
+				.attr( 'data-plugin', response.plugin )
+				.text( buttonText );
+		}
+
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'dependencies-check-success',
+					slug: response.slug,
+					removeClasses: 'install-now installed button-disabled updated-message',
+					addClasses: 'activate-now button-primary',
+					text: buttonText,
+					ariaLabel: ariaLabel,
+					pluginName: response.pluginName,
+					plugin: response.plugin,
+					href: response.activateUrl
+				}
+			);
+		}
+	};
+
+	/**
+	 * Updates the UI appropriately after a failed plugin dependencies check.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}  response              Response from the server.
+	 * @param {string}  response.slug         Slug of the plugin to be checked.
+	 * @param {string=} response.pluginName   Optional. Name of the plugin to be checked.
+	 * @param {string}  response.errorCode    Error code for the error that occurred.
+	 * @param {string}  response.errorMessage The error that occurred.
+	 */
+	wp.updates.checkPluginDependenciesError = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
+			buttonText = __( 'Activate' ),
+			ariaLabel = sprintf(
+				/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
+				_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
+				response.pluginName,
+				response.errorMessage
+			),
+			errorMessage;
+
+		if ( ! wp.updates.isValidResponse( response, 'check-dependencies' ) ) {
+			return;
+		}
+
+		errorMessage = sprintf(
+			/* translators: %s: Error string for a failed activation. */
+			__( 'Activation failed: %s' ),
+			response.errorMessage
+		);
+
+		wp.a11y.speak( errorMessage, 'assertive' );
+		$document.trigger( 'wp-check-plugin-dependencies-error', response );
+
+		$message
+			.removeClass( 'install-now installed updated-message' )
+			.addClass( 'activate-now button-primary' )
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
+
+		if ( 'plugin-information-footer' === $message.parent().attr('id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'dependencies-check-failed',
+					slug: response.slug,
+					removeClasses: 'install-now installed updated-message',
+					addClasses: 'activate-now button-primary',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
+		}
+	};
+
+	/**
+	 * Sends an Ajax request to the server to activate a plugin.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}                 args         Arguments.
+	 * @param {string}                 args.name    The name of the plugin.
+	 * @param {string}                 args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {string}                 args.plugin  The plugin file, relative to the plugins directory.
+	 * @param {activatePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.activatePluginSuccess
+	 * @param {activatePluginError=}   args.error   Optional. Error callback. Default: wp.updates.activatePluginError
+	 * @return {$.promise} A jQuery promise that represents the request,
+	 *                     decorated with an abort() method.
+	 */
+	wp.updates.activatePlugin = function( args ) {
+		var $message = $( '.plugin-card-' + args.slug + ', #plugin-information-footer' ).find( '.activate-now, .activating-message' );
+
+		args = _.extend( {
+			success: wp.updates.activatePluginSuccess,
+			error: wp.updates.activatePluginError
+		}, args );
+
+		wp.a11y.speak( __( 'Activating... please wait.' ) );
+		$document.trigger( 'wp-activating-plugin', args );
+
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'activating-plugin',
+					slug: args.slug,
+					removeClasses: 'installed updated-message button-primary',
+					addClasses: 'activating-message',
+					text: _x( 'Activating...', 'plugin' ),
+					ariaLabel: sprintf(
+						/* translators: %s: Plugin name. */
+						_x( 'Activating %s', 'plugin' ),
+						args.name
+					)
+				}
+			);
+		}
+
+		return wp.updates.ajax( 'activate-plugin', args );
+	};
+
+	/**
+	 * Updates the UI appropriately after a successful plugin activation.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object} response             Response from the server.
+	 * @param {string} response.slug        Slug of the activated plugin.
+	 * @param {string} response.pluginName  Name of the activated plugin.
+	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
+	 */
+	wp.updates.activatePluginSuccess = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
+			buttonText = _x( 'Activated!', 'plugin' ),
+			ariaLabel = sprintf(
+				/* translators: %s: The plugin name. */
+				'%s activated successfully.',
+				response.pluginName
+			);
+
+		wp.a11y.speak( __( 'Activation completed successfully.' ) );
+		$document.trigger( 'wp-plugin-activate-success', response );
+
+		$message
+			.removeClass( 'activating-message' )
+			.addClass( 'activated-message button-disabled' )
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
+
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'activated-plugin',
+					slug: response.slug,
+					removeClasses: 'activating-message',
+					addClasses: 'activated-message button-disabled',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
+		}
+
+		setTimeout( function() {
+			$message.removeClass( 'activated-message' )
+			.text( _x( 'Active', 'plugin' ) );
+
+			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+				wp.updates.setCardButtonStatus(
+					{
+						status: 'plugin-active',
+						slug: response.slug,
+						removeClasses: 'activated-message',
+						text: _x( 'Active', 'plugin' ),
+						ariaLabel: sprintf(
+							/* translators: %s: The plugin name. */
+							'%s is active.',
+							response.pluginName
+						)
+					}
+				);
+			}
+		}, 1000 );
+	};
+
+	/**
+	 * Updates the UI appropriately after a failed plugin activation.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param {Object}  response              Response from the server.
+	 * @param {string}  response.slug         Slug of the plugin to be activated.
+	 * @param {string=} response.pluginName   Optional. Name of the plugin to be activated.
+	 * @param {string}  response.errorCode    Error code for the error that occurred.
+	 * @param {string}  response.errorMessage The error that occurred.
+	 */
+	wp.updates.activatePluginError = function( response ) {
+		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
+			buttonText = __( 'Activation failed.' ),
+			ariaLabel = sprintf(
+				/* translators: %s: Plugin name. */
+				_x( '%s activation failed', 'plugin' ),
+				response.pluginName
+			),
+			errorMessage;
+
+		if ( ! wp.updates.isValidResponse( response, 'activate' ) ) {
+			return;
+		}
+
+		errorMessage = sprintf(
+			/* translators: %s: Error string for a failed activation. */
+			__( 'Activation failed: %s' ),
+			response.errorMessage
+		);
+
+		wp.a11y.speak( errorMessage, 'assertive' );
+		$document.trigger( 'wp-plugin-activate-error', response );
+
+		$message
+			.removeClass( 'install-now installed activating-message' )
+			.addClass( 'button-disabled' )
+			.attr( 'aria-label', ariaLabel )
+			.text( buttonText );
+
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			wp.updates.setCardButtonStatus(
+				{
+					status: 'plugin-activation-failed',
+					slug: response.slug,
+					removeClasses: 'install-now installed activating-message',
+					addClasses: 'button-disabled',
+					text: buttonText,
+					ariaLabel: ariaLabel
+				}
+			);
+		}
 	};
 
 	/**
@@ -954,6 +1357,8 @@
 			var $form            = $( '#bulk-action-form' ),
 				$views           = $( '.subsubsub' ),
 				$pluginRow       = $( this ),
+				$currentView     = $views.find( '[aria-current="page"]' ),
+				$itemsCount      = $( '.displaying-num' ),
 				columnCount      = $form.find( 'thead th:not(.hidden), thead td' ).length,
 				pluginDeletedRow = wp.template( 'item-deleted-row' ),
 				/**
@@ -961,7 +1366,8 @@
 				 *
 				 * @type {Object}
 				 */
-				plugins          = settings.plugins;
+				plugins          = settings.plugins,
+				remainingCount;
 
 			// Add a success message after deleting a plugin.
 			if ( ! $pluginRow.hasClass( 'plugin-update-tr' ) ) {
@@ -1040,6 +1446,17 @@
 				if ( ! $form.find( 'tr.no-items' ).length ) {
 					$form.find( '#the-list' ).append( '<tr class="no-items"><td class="colspanchange" colspan="' + columnCount + '">' + __( 'No plugins are currently available.' ) + '</td></tr>' );
 				}
+			}
+
+			if ( $itemsCount.length && $currentView.length ) {
+				remainingCount = plugins[ $currentView.parent( 'li' ).attr('class') ].length;
+				$itemsCount.text(
+					sprintf(
+						/* translators: %s: The remaining number of plugins. */
+						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
+						remainingCount
+					)
+				);
 			}
 		} );
 
@@ -1206,10 +1623,10 @@
 
 			// Focus on Customize button after updating.
 			if ( isModalOpen ) {
-				$( '.load-customize:visible' ).focus();
+				$( '.load-customize:visible' ).trigger( 'focus' );
 				$( '.theme-info .theme-autoupdate' ).find( '.auto-update-time' ).empty();
 			} else {
-				$theme.find( '.load-customize' ).focus();
+				$theme.find( '.load-customize' ).trigger( 'focus' );
 			}
 		}
 
@@ -1262,7 +1679,7 @@
 		} else {
 			$notice = $( '.theme-info .notice' ).add( $theme.find( '.notice' ) );
 
-			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).focus() : $theme.find( '.load-customize' ).focus();
+			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).trigger( 'focus' ) : $theme.find( '.load-customize' ).trigger( 'focus');
 		}
 
 		wp.updates.addAdminNotice( {
@@ -1552,7 +1969,7 @@
 				if ( -1 !== _.indexOf( themes.disabled, response.slug ) ) {
 					themes.disabled = _.without( themes.disabled, response.slug );
 					if ( themes.disabled.length ) {
-						$views.find( '.disabled .count' ).text( '(' + themes.disabled.length + ')' );						
+						$views.find( '.disabled .count' ).text( '(' + themes.disabled.length + ')' );
 					} else {
 						$views.find( '.disabled' ).remove();
 					}
@@ -1566,7 +1983,7 @@
 						$views.find( '.auto-update-enabled' ).remove();
 					}
 				}
-	
+
 				if ( -1 !== _.indexOf( themes['auto-update-disabled'], response.slug ) ) {
 					themes['auto-update-disabled'] = _.without( themes['auto-update-disabled'], response.slug );
 					if ( themes['auto-update-disabled'].length ) {
@@ -1581,6 +1998,14 @@
 				// There is always at least one theme available.
 				$views.find( '.all .count' ).text( '(' + themes.all.length + ')' );
 			} );
+		}
+
+		// DecrementCount from update count.
+		if ( 'themes' === pagenow ) {
+		    var theme = _.find( _wpThemeSettings.themes, { id: response.slug } );
+		    if ( theme.hasUpdate ) {
+		        wp.updates.decrementCount( 'theme' );
+		    }
 		}
 
 		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
@@ -1759,11 +2184,11 @@
 
 			// #upgrade button must always be the last focus-able element in the dialog.
 			if ( 'upgrade' === event.target.id && ! event.shiftKey ) {
-				$( '#hostname' ).focus();
+				$( '#hostname' ).trigger( 'focus' );
 
 				event.preventDefault();
 			} else if ( 'hostname' === event.target.id && event.shiftKey ) {
-				$( '#upgrade' ).focus();
+				$( '#upgrade' ).trigger( 'focus' );
 
 				event.preventDefault();
 			}
@@ -1780,7 +2205,7 @@
 
 		$( 'body' ).addClass( 'modal-open' );
 		$modal.show();
-		$modal.find( 'input:enabled:first' ).focus();
+		$modal.find( 'input:enabled:first' ).trigger( 'focus' );
 		$modal.on( 'keydown', wp.updates.keydown );
 	};
 
@@ -1794,7 +2219,7 @@
 		$( 'body' ).removeClass( 'modal-open' );
 
 		if ( wp.updates.$elToReturnFocusToFromCredentialsModal ) {
-			wp.updates.$elToReturnFocusToFromCredentialsModal.focus();
+			wp.updates.$elToReturnFocusToFromCredentialsModal.trigger( 'focus' );
 		}
 	};
 
@@ -1929,6 +2354,16 @@
 				errorMessage = __( 'Installation failed: %s' );
 				break;
 
+			case 'check-dependencies':
+				/* translators: %s: Error string for a failed dependencies check. */
+				errorMessage = __( 'Dependencies check failed: %s' );
+				break;
+
+			case 'activate':
+				/* translators: %s: Error string for a failed activation. */
+				errorMessage = __( 'Activation failed: %s' );
+				break;
+
 			case 'delete':
 				/* translators: %s: Error string for a failed deletion. */
 				errorMessage = __( 'Deletion failed: %s' );
@@ -1984,7 +2419,7 @@
 	};
 
 	$( function() {
-		var $pluginFilter        = $( '#plugin-filter' ),
+		var $pluginFilter        = $( '#plugin-filter, #plugin-information-footer' ),
 			$bulkActionForm      = $( '#bulk-action-form' ),
 			$filesystemForm      = $( '#request-filesystem-credentials-form' ),
 			$filesystemModal     = $( '#request-filesystem-credentials-dialog' ),
@@ -2045,7 +2480,7 @@
 		 */
 		$filesystemForm.on( 'change', 'input[name="connection_type"]', function() {
 			$( '#ssh-keys' ).toggleClass( 'hidden', ( 'ssh' !== $( this ).val() ) );
-		} ).change();
+		} ).trigger( 'change' );
 
 		/**
 		 * Handles events after the credential modal was closed.
@@ -2199,6 +2634,44 @@
 				slug: $button.data( 'slug' )
 			} );
 		} );
+
+		/**
+		 * Click handler for plugin activations in plugin activation view.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param {Event} event Event interface.
+		 */
+		$pluginFilter.on( 'click', '.activate-now', function( event ) {
+			var $activateButton = $( event.target );
+
+			event.preventDefault();
+
+			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
+				return;
+			}
+
+			$activateButton
+				.removeClass( 'activate-now button-primary' )
+				.addClass( 'activating-message' )
+				.attr(
+					'aria-label',
+					sprintf(
+						/* translators: %s: Plugin name. */
+						_x( 'Activating %s', 'plugin' ),
+						$activateButton.data( 'name' )
+					)
+				)
+				.text( _x( 'Activating...', 'plugin' ) );
+
+			wp.updates.activatePlugin(
+				{
+					name: $activateButton.data( 'name' ),
+					slug: $activateButton.data( 'slug' ),
+					plugin: $activateButton.data( 'plugin' )
+				}
+			);
+		});
 
 		/**
 		 * Click handler for importer plugins installs in the Import screen.
@@ -2429,6 +2902,13 @@
 					return;
 				}
 
+				// Don't add items to the update queue again, even if the user clicks the update button several times.
+				if ( 'update-selected' === bulkAction && $itemRow.hasClass( 'is-enqueued' ) ) {
+					return;
+				}
+
+				$itemRow.addClass( 'is-enqueued' );
+
 				// Add it to the queue.
 				wp.updates.queue.push( {
 					action: action,
@@ -2504,7 +2984,7 @@
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
-				s:           event.target.value,
+				s:           encodeURIComponent( event.target.value ),
 				tab:         'search',
 				type:        $( '#typeselector' ).val(),
 				pagenow:     pagenow
@@ -2581,7 +3061,7 @@
 		$pluginSearch.on( 'keyup input', _.debounce( function( event ) {
 			var data = {
 				_ajax_nonce:   wp.updates.ajaxNonce,
-				s:             event.target.value,
+				s:             encodeURIComponent( event.target.value ),
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},
@@ -2623,7 +3103,7 @@
 					sprintf(
 						/* translators: %s: Search query. */
 						__( 'Search results for: %s' ),
-						'<strong>' + _.escape( data.s ) + '</strong>'
+						'<strong>' + _.escape( decodeURIComponent( data.s ) ) + '</strong>'
 					) ),
 					$oldSubTitle = $( '.wrap .subtitle' );
 
@@ -2719,35 +3199,6 @@
 		} );
 
 		/**
-		 * Click handler for installing a plugin from the details modal on `plugin-install.php`.
-		 *
-		 * @since 4.6.0
-		 *
-		 * @param {Event} event Event interface.
-		 */
-		$( '#plugin_install_from_iframe' ).on( 'click', function( event ) {
-			var target = window.parent === window ? null : window.parent,
-				install;
-
-			$.support.postMessage = !! window.postMessage;
-
-			if ( false === $.support.postMessage || null === target || -1 !== window.parent.location.pathname.indexOf( 'index.php' ) ) {
-				return;
-			}
-
-			event.preventDefault();
-
-			install = {
-				action: 'install-plugin',
-				data:   {
-					slug: $( this ).data( 'slug' )
-				}
-			};
-
-			target.postMessage( JSON.stringify( install ), window.location.origin );
-		} );
-
-		/**
 		 * Handles postMessage events.
 		 *
 		 * @since 4.2.0
@@ -2765,12 +3216,50 @@
 			}
 
 			try {
-				message = $.parseJSON( originalEvent.data );
+				message = JSON.parse( originalEvent.data );
 			} catch ( e ) {
 				return;
 			}
 
-			if ( ! message || 'undefined' === typeof message.action ) {
+			if ( ! message ) {
+				return;
+			}
+
+			if (
+				'undefined' !== typeof message.status &&
+				'undefined' !== typeof message.slug &&
+				'undefined' !== typeof message.text &&
+				'undefined' !== typeof message.ariaLabel
+			) {
+				var $card = $( '.plugin-card-' + message.slug ),
+					$message = $card.find( '[data-slug="' + message.slug + '"]' );
+
+				if ( 'undefined' !== typeof message.removeClasses ) {
+					$message.removeClass( message.removeClasses );
+				}
+
+				if ( 'undefined' !== typeof message.addClasses ) {
+					$message.addClass( message.addClasses );
+				}
+
+				if ( '' === message.ariaLabel ) {
+					$message.removeAttr( 'aria-label' );
+				} else {
+					$message.attr( 'aria-label', message.ariaLabel );
+				}
+
+				if ( 'dependencies-check-success' === message.status ) {
+					$message
+						.attr( 'data-name', message.pluginName )
+						.attr( 'data-slug', message.slug )
+						.attr( 'data-plugin', message.plugin )
+						.attr( 'href', message.href );
+				}
+
+				$message.text( message.text );
+			}
+
+			if ( 'undefined' === typeof message.action || 'undefined' === typeof message.data.slug ) {
 				return;
 			}
 
@@ -2784,10 +3273,6 @@
 
 				case 'install-plugin':
 				case 'update-plugin':
-					/* jscs:disable requireCamelCaseOrUpperCaseIdentifiers */
-					window.tb_remove();
-					/* jscs:enable */
-
 					message.data = wp.updates._addCallbacks( message.data, message.action );
 
 					wp.updates.queue.push( message );

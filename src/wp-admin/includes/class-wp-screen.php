@@ -12,6 +12,7 @@
  *
  * @since 3.3.0
  */
+#[AllowDynamicProperties]
 final class WP_Screen {
 	/**
 	 * Any action associated with the screen.
@@ -88,7 +89,7 @@ final class WP_Screen {
 	 * have a `$parent_base` of 'edit'.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $parent_base;
 
@@ -98,7 +99,7 @@ final class WP_Screen {
 	 * Some `$parent_file` values are 'edit.php?post_type=page', 'edit.php', and 'options-general.php'.
 	 *
 	 * @since 3.3.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $parent_file;
 
@@ -143,7 +144,7 @@ final class WP_Screen {
 	 * The accessible hidden headings and text associated with the screen, if any.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var string[]
 	 */
 	private $_screen_reader_content = array();
 
@@ -211,6 +212,7 @@ final class WP_Screen {
 			return $hook_name;
 		}
 
+		$id              = '';
 		$post_type       = null;
 		$taxonomy        = null;
 		$in_admin        = false;
@@ -219,7 +221,7 @@ final class WP_Screen {
 
 		if ( $hook_name ) {
 			$id = $hook_name;
-		} else {
+		} elseif ( ! empty( $GLOBALS['hook_suffix'] ) ) {
 			$id = $GLOBALS['hook_suffix'];
 		}
 
@@ -228,7 +230,7 @@ final class WP_Screen {
 			$post_type = $id;
 			$id        = 'post'; // Changes later. Ends up being $base.
 		} else {
-			if ( '.php' === substr( $id, -4 ) ) {
+			if ( str_ends_with( $id, '.php' ) ) {
 				$id = substr( $id, 0, -4 );
 			}
 
@@ -239,16 +241,16 @@ final class WP_Screen {
 		}
 
 		if ( ! $post_type && $hook_name ) {
-			if ( '-network' === substr( $id, -8 ) ) {
+			if ( str_ends_with( $id, '-network' ) ) {
 				$id       = substr( $id, 0, -8 );
 				$in_admin = 'network';
-			} elseif ( '-user' === substr( $id, -5 ) ) {
+			} elseif ( str_ends_with( $id, '-user' ) ) {
 				$id       = substr( $id, 0, -5 );
 				$in_admin = 'user';
 			}
 
 			$id = sanitize_key( $id );
-			if ( 'edit-comments' !== $id && 'edit-tags' !== $id && 'edit-' === substr( $id, 0, 5 ) ) {
+			if ( 'edit-comments' !== $id && 'edit-tags' !== $id && str_starts_with( $id, 'edit-' ) ) {
 				$maybe = substr( $id, 5 );
 				if ( taxonomy_exists( $maybe ) ) {
 					$id       = 'edit-tags';
@@ -402,14 +404,15 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @global WP_Screen $current_screen WordPress current screen object.
-	 * @global string    $taxnow
-	 * @global string    $typenow
+	 * @global string    $typenow        The post type of the current screen.
+	 * @global string    $taxnow         The taxonomy of the current screen.
 	 */
 	public function set_current_screen() {
 		global $current_screen, $taxnow, $typenow;
+
 		$current_screen = $this;
-		$taxnow         = $this->taxonomy;
 		$typenow        = $this->post_type;
+		$taxnow         = $this->taxonomy;
 
 		/**
 		 * Fires after the current screen has been set.
@@ -429,7 +432,7 @@ final class WP_Screen {
 	private function __construct() {}
 
 	/**
-	 * Indicates whether the screen is in a particular admin
+	 * Indicates whether the screen is in a particular admin.
 	 *
 	 * @since 3.5.0
 	 *
@@ -474,7 +477,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Set the parent information for the screen.
+	 * Sets the parent information for the screen.
 	 *
 	 * This is called in admin-header.php after the menu parent for the screen has been determined.
 	 *
@@ -504,7 +507,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Remove an option from the screen.
+	 * Removes an option from the screen.
 	 *
 	 * @since 3.8.0
 	 *
@@ -515,7 +518,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Remove all options from the screen.
+	 * Removes all options from the screen.
 	 *
 	 * @since 3.8.0
 	 */
@@ -524,7 +527,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Get the options registered for the screen.
+	 * Gets the options registered for the screen.
 	 *
 	 * @since 3.8.0
 	 *
@@ -605,7 +608,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Add a help tab to the contextual help for the screen.
+	 * Adds a help tab to the contextual help for the screen.
 	 *
 	 * Call this on the `load-$pagenow` hook for the relevant screen,
 	 * or fetch the `$current_screen` object, or use get_current_screen()
@@ -681,7 +684,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Add a sidebar to the contextual help for the screen.
+	 * Adds a sidebar to the contextual help for the screen.
 	 *
 	 * Call this in template files after admin.php is loaded and before admin-header.php is loaded
 	 * to add a sidebar to the contextual help.
@@ -712,20 +715,20 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Get the accessible hidden headings and text used in the screen.
+	 * Gets the accessible hidden headings and text used in the screen.
 	 *
 	 * @since 4.4.0
 	 *
 	 * @see set_screen_reader_content() For more information on the array format.
 	 *
-	 * @return array An associative array of screen reader text strings.
+	 * @return string[] An associative array of screen reader text strings.
 	 */
 	public function get_screen_reader_content() {
 		return $this->_screen_reader_content;
 	}
 
 	/**
-	 * Get a screen reader text string.
+	 * Gets a screen reader text string.
 	 *
 	 * @since 4.4.0
 	 *
@@ -740,7 +743,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Add accessible hidden headings and text for the screen.
+	 * Adds accessible hidden headings and text for the screen.
 	 *
 	 * @since 4.4.0
 	 *
@@ -767,7 +770,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Remove all the accessible hidden headings and text for the screen.
+	 * Removes all the accessible hidden headings and text for the screen.
 	 *
 	 * @since 4.4.0
 	 */
@@ -776,7 +779,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Render the screen's help section.
+	 * Renders the screen's help section.
 	 *
 	 * This will trigger the deprecated filters for backward compatibility.
 	 *
@@ -1008,13 +1011,10 @@ final class WP_Screen {
 		/**
 		 * Filters the screen settings text displayed in the Screen Options tab.
 		 *
-		 * This filter is currently only used on the Widgets screen to enable
-		 * accessibility mode.
-		 *
 		 * @since 3.0.0
 		 *
 		 * @param string    $screen_settings Screen settings.
-		 * @param WP_Screen $this            WP_Screen object.
+		 * @param WP_Screen $screen          WP_Screen object.
 		 */
 		$this->_screen_settings = apply_filters( 'screen_settings', $this->_screen_settings, $this );
 
@@ -1029,14 +1029,14 @@ final class WP_Screen {
 		 *
 		 * @param bool      $show_screen Whether to show Screen Options tab.
 		 *                               Default true.
-		 * @param WP_Screen $this        Current WP_Screen instance.
+		 * @param WP_Screen $screen      Current WP_Screen instance.
 		 */
 		$this->_show_screen_options = apply_filters( 'screen_options_show_screen', $show_screen, $this );
 		return $this->_show_screen_options;
 	}
 
 	/**
-	 * Render the screen options tab.
+	 * Renders the screen options tab.
 	 *
 	 * @since 3.3.0
 	 *
@@ -1099,7 +1099,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Render the meta boxes preferences.
+	 * Renders the meta boxes preferences.
 	 *
 	 * @since 4.4.0
 	 *
@@ -1116,8 +1116,9 @@ final class WP_Screen {
 		<legend><?php _e( 'Screen elements' ); ?></legend>
 		<p>
 			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
-			<?php _e( 'They can be expanded and collapsed by clickling on their headings, and arranged by dragging their headings or by clicking on the up and down arrows.' ); ?>
+			<?php _e( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.' ); ?>
 		</p>
+		<div class="metabox-prefs-container">
 		<?php
 
 		meta_box_prefs( $this );
@@ -1137,12 +1138,13 @@ final class WP_Screen {
 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
 		}
 		?>
+		</div>
 		</fieldset>
 		<?php
 	}
 
 	/**
-	 * Render the list table columns preferences.
+	 * Renders the list table columns preferences.
 	 *
 	 * @since 4.4.0
 	 */
@@ -1190,7 +1192,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Render the option for number of columns on the page
+	 * Renders the option for number of columns on the page.
 	 *
 	 * @since 3.3.0
 	 */
@@ -1222,7 +1224,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Render the items per page option
+	 * Renders the items per page option.
 	 *
 	 * @since 3.3.0
 	 */
@@ -1277,7 +1279,7 @@ final class WP_Screen {
 			<?php if ( $per_page_label ) : ?>
 				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
 				<input type="number" step="1" min="1" max="999" class="screen-per-page" name="wp_screen_options[value]"
-					id="<?php echo esc_attr( $option ); ?>" maxlength="3"
+					id="<?php echo esc_attr( $option ); ?>"
 					value="<?php echo esc_attr( $per_page ); ?>" />
 			<?php endif; ?>
 				<input type="hidden" name="wp_screen_options[option]" value="<?php echo esc_attr( $option ); ?>" />
@@ -1286,7 +1288,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Render the list table view mode preferences.
+	 * Renders the list table view mode preferences.
 	 *
 	 * @since 4.4.0
 	 *
@@ -1340,7 +1342,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Render screen reader text.
+	 * Renders screen reader text.
 	 *
 	 * @since 4.4.0
 	 *

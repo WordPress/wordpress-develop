@@ -162,12 +162,14 @@ Description: Used to style blocks in the editor.
 
 /* Captions */
 
-[class^="wp-block-"] figcaption {
+[class^="wp-block-"] figcaption,
+[class*=" wp-block-"] figcaption {
 	font-family: Georgia, serif;
 	font-size: 12px;
 }
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
 	color: #666;
 	margin-bottom: 1.625em;
 	max-width: 96%;
@@ -177,7 +179,8 @@ Description: Used to style blocks in the editor.
 	text-align: left;
 }
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption:before {
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption:before,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption:before {
 	color: #666;
 	content: '\2014';
 	font-size: 14px;
@@ -189,13 +192,15 @@ Description: Used to style blocks in the editor.
 	top: 0;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+.rtl [class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
 	padding-left: 0;
 	padding-right: 40px;
 	text-align: right;
 }
 
-.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption:before {
+.rtl [class^="wp-block-"]:not(.wp-block-gallery) figcaption:before,
+.rtl [class*=" wp-block-"]:not(.wp-block-gallery) figcaption:before {
 	left: 0;
 	margin-left: 5px;
 	margin-right: 0;
@@ -267,17 +272,19 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding: 0;
 }
 
-.edit-post-visual-editor .editor-block-list__block .wp-block-quote p {
+.edit-post-visual-editor .editor-block-list__block .wp-block-quote p,
+.editor-styles-wrapper .wp-block-quote p {
 	font-family: Georgia, "Bitstream Charter", serif;
 }
 
 .wp-block-quote:not(.is-large):not(.is-style-large) {
 	border: 0;
-	padding-left: 0;
-	padding-right: 0;
+	padding-left: 3em;
+	padding-right: 3em;
 }
 
-.wp-block-quote .wp-block-quote__citation.editor-rich-text__tinymce.mce-content-body {
+.wp-block-quote .wp-block-quote__citation.editor-rich-text__tinymce.mce-content-body,
+.wp-block-quote .wp-block-quote__citation {
 	color: #666;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-weight: 300;
@@ -331,7 +338,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Code */
 
-.wp-block-code {
+.editor-styles-wrapper .wp-block-code {
 	background: transparent;
 	border: 0;
 	padding: 0;
@@ -339,7 +346,8 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Pullquote */
 
-.edit-post-visual-editor .editor-block-list__block .wp-block-pullquote p {
+.edit-post-visual-editor .editor-block-list__block .wp-block-pullquote p,
+.editor-styles-wrapper .wp-block-pullquote p {
 	font-family: Georgia, "Bitstream Charter", serif;
 	font-style: italic;
 	font-weight: normal;
@@ -352,9 +360,18 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Table */
 
-.editor-block-list__block .wp-block-table th,
-.editor-block-list__block .wp-block-table td {
-	padding: 0;
+.editor-styles-wrapper .wp-block-table th,
+.editor-styles-wrapper .wp-block-table td {
+	padding: 6px 10px 6px 0;
+}
+
+.rtl .editor-styles-wrapper .wp-block-table th,
+.rtl .editor-styles-wrapper .wp-block-table td {
+	padding: 6px 0 6px 10px;
+}
+
+.wp-block-table .has-text-color th {
+	color: currentColor;
 }
 
 .wp-block-table__cell-content {
@@ -366,6 +383,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 .rtl .editor-block-list__block th,
 .rtl .editor-block-list__block td {
 	text-align: right;
+}
+
+/* Verse */
+
+.editor-styles-wrapper .wp-block-verse {
+	font-family: inherit;
 }
 
 
