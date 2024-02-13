@@ -172,7 +172,7 @@ final class WP_Block_Bindings_Registry {
 		add_filter(
 			'get_block_type_uses_context',
 			function ( $uses_context, $block_type ) use ( $source ) {
-				if ( ! in_array( $block_type->name, $this->supported_blocks ) || empty( $source->uses_context ) ) {
+				if ( ! in_array( $block_type->name, $this->supported_blocks, true ) || empty( $source->uses_context ) ) {
 					return $uses_context;
 				}
 				// Use array_values to reset the array keys.
