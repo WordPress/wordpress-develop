@@ -39,10 +39,10 @@ final class WP_Block_Bindings_Registry {
 	 * @var WP_Block_Bindings_Registry[]
 	 */
 	private $supported_blocks = array(
-		'core/paragraph' => array( 'content' ),
-		'core/heading'   => array( 'content' ),
-		'core/image'     => array( 'url', 'title', 'alt' ),
-		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+		'core/paragraph',
+		'core/heading',
+		'core/image',
+		'core/button',
 	);
 
 	/**

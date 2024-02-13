@@ -235,7 +235,7 @@ class WP_Block {
 
 		$computed_attributes = array();
 
-		$supported_blocks = array(
+		$supported_block_attrs = array(
 			'core/paragraph' => array( 'content' ),
 			'core/heading'   => array( 'content' ),
 			'core/image'     => array( 'url', 'title', 'alt' ),
@@ -245,7 +245,7 @@ class WP_Block {
 		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
 		if (
-			! isset( $supported_blocks[ $this->name ] ) ||
+			! isset( $supported_block_attrs[ $this->name ] ) ||
 			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
 			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
 		) {
@@ -254,7 +254,7 @@ class WP_Block {
 
 		foreach ( $parsed_block['attrs']['metadata']['bindings'] as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
-			if ( ! in_array( $attribute_name, $supported_blocks[ $this->name ], true ) ) {
+			if ( ! in_array( $attribute_name, $supported_block_attrs[ $this->name ], true ) ) {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
