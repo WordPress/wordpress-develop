@@ -58,4 +58,35 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 			array( 'tests/other-ignored-block', 'tests/hooked-block' )
 		);
 	}
+
+	/**
+	 * @ticket 60506
+	 *
+	 * @covers ::set_ignored_hooked_blocks_metadata
+	 */
+	public function test_set_ignored_hooked_blocks_metadata_for_block_added_by_filter() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+			'attrs'     => array(),
+		);
+
+		$hooked_blocks = array();
+
+		$filter = function( $hooked_block_types, $relative_position, $anchor_block_type ) {
+			if ( 'tests/anchor-block' === $anchor_block_type && 'after' === $relative_position ) {
+				$hooked_block_types[] = 'tests/hooked-block-added-by-filter';
+			}
+
+			return $hooked_block_types;
+		};
+
+		add_filter( 'hooked_block_types', $filter, 10, 3 );
+		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
+		remove_filter( 'hooked_block_types', $filter, 10 );
+
+		$this->assertSame(
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			array( 'tests/hooked-block-added-by-filter' )
+		);
+	}
 }
