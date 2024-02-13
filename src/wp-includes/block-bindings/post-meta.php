@@ -18,11 +18,11 @@
  * @return mixed The value computed for the source.
  */
 function _block_bindings_post_meta_get_value( array $source_args, $block_instance ) {
-	if ( ! isset( $source_args['key'] ) ) {
+	if ( empty( $source_args['key'] ) ) {
 		return null;
 	}
 
-	if ( ! isset( $block_instance->context['postId'] ) ) {
+	if ( empty( $block_instance->context['postId'] ) ) {
 		return null;
 	}
 	$post_id = $block_instance->context['postId'];
