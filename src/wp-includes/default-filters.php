@@ -776,7 +776,6 @@ function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
 		array(
 			'ID'            => $post->ID,
 			'post_content'  => $content,
-			// Do we need to update post_filtered_content?
 		)
 	);
 }
