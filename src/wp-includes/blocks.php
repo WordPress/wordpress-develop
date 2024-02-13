@@ -851,48 +851,6 @@ function get_hooked_blocks() {
 }
 
 /**
- * Adds a list of hooked block types to an anchor block's ignored hooked block types.
- *
- * This function is meant for internal use only.
- *
- * @since 6.5.0
- * @access private
- *
- * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
- * @param string                  $relative_position   The relative position of the hooked blocks.
- *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
- * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
- * @return string An empty string.
- */
-function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
-	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-		: array();
-
-	/** This filter is documented in wp-includes/blocks.php */
-	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-	if ( empty( $hooked_block_types ) ) {
-		return '';
-	}
-
-	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
-		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
-		: array();
-
-	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
-		array_merge(
-			$previously_ignored_hooked_blocks,
-			$hooked_block_types
-		)
-	);
-
-	// Markup for the hooked blocks has already been created (in `insert_hooked_blocks`).
-	return '';
-}
-
-/**
  * Conditionally returns the markup for a given hooked block.
  *
  * Accepts three arguments: A hooked block, its type, and an anchor block.
@@ -987,6 +945,48 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 	}
 
 	return $markup;
+}
+
+/**
+ * Adds a list of hooked block types to an anchor block's ignored hooked block types.
+ *
+ * This function is meant for internal use only.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                  $relative_position   The relative position of the hooked blocks.
+ *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string An empty string.
+ */
+function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
+	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+		: array();
+
+	/** This filter is documented in wp-includes/blocks.php */
+	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+	if ( empty( $hooked_block_types ) ) {
+		return '';
+	}
+
+	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
+		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+		: array();
+
+	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
+		array_merge(
+			$previously_ignored_hooked_blocks,
+			$hooked_block_types
+		)
+	);
+
+	// Markup for the hooked blocks has already been created (in `insert_hooked_blocks`).
+	return '';
 }
 
 /**
