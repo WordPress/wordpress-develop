@@ -17,18 +17,15 @@
  *                           Example: array( "key" => "foo" ).
  * @return mixed The value computed for the source.
  */
-function _block_bindings_post_meta_get_value( array $source_args ) {
+function _block_bindings_post_meta_get_value( array $source_args, $block_instance ) {
 	if ( ! isset( $source_args['key'] ) ) {
 		return null;
 	}
 
-	// Use the postId attribute if available.
-	if ( isset( $source_args['postId'] ) ) {
-		$post_id = $source_args['postId'];
-	} else {
-		// $block_instance->context['postId'] is not available in the Image block.
-		$post_id = get_the_ID();
+	if ( ! isset($block_instance->context['postId']) ) {
+		return null;
 	}
+	$post_id = $block_instance->context['postId'];
 
 	// If a post isn't public, we need to prevent unauthorized users from accessing the post meta.
 	$post = get_post( $post_id );
