@@ -20,6 +20,17 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	protected $allow_batch = array( 'v1' => false );
 
 	/**
+	 * Constructor.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $post_type Post type.
+	 */
+	public function __construct( $post_type = 'wp_global_styles' ) {
+		parent::__construct( $post_type );
+	}
+
+	/**
 	 * Registers the controllers routes.
 	 *
 	 * @since 5.9.0
