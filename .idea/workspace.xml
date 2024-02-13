@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="6899f978-265d-476c-88bc-6937274717ec" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerConfigs">
+    <option name="configs">
+      <option value="$PROJECT_DIR$/build/wp-includes/sodium_compat/composer.json" />
+      <option value="$PROJECT_DIR$/src/wp-includes/sodium_compat/composer.json" />
+    </option>
+  </component>
+  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
+    <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
+    <execution />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.3.0/bin/php">
+    <include_path>
+      <path value="$PROJECT_DIR$/vendor/phar-io/manifest" />
+      <path value="$PROJECT_DIR$/vendor/phar-io/version" />
+      <path value="$PROJECT_DIR$/vendor/phpunit/php-timer" />
+      <path value="$PROJECT_DIR$/vendor/phpunit/phpunit" />
+      <path value="$PROJECT_DIR$/vendor/nikic/php-parser" />
+      <path value="$PROJECT_DIR$/vendor/yoast/phpunit-polyfills" />
+      <path value="$PROJECT_DIR$/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/vendor/theseer/tokenizer" />
+      <path value="$PROJECT_DIR$/vendor/phpunit/php-text-template" />
+      <path value="$PROJECT_DIR$/vendor/phpunit/php-code-coverage" />
+      <path value="$PROJECT_DIR$/vendor/phpunit/php-invoker" />
+      <path value="$PROJECT_DIR$/vendor/phpunit/php-file-iterator" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/object-enumerator" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/object-reflector" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/complexity" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/code-unit-reverse-lookup" />
+      <path value="$PROJECT_DIR$/vendor/doctrine/instantiator" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/comparator" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/global-state" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/version" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/cli-parser" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/code-unit" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/environment" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/diff" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/recursion-context" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/lines-of-code" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/type" />
+      <path value="$PROJECT_DIR$/vendor/phpcsstandards/phpcsextra" />
+      <path value="$PROJECT_DIR$/vendor/phpcsstandards/phpcsutils" />
+      <path value="$PROJECT_DIR$/vendor/phpcompatibility/php-compatibility" />
+      <path value="$PROJECT_DIR$/vendor/phpcompatibility/phpcompatibility-paragonie" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/exporter" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/resource-operations" />
+      <path value="$PROJECT_DIR$/vendor/squizlabs/php_codesniffer" />
+      <path value="$PROJECT_DIR$/vendor/dealerdirect/phpcodesniffer-composer-installer" />
+      <path value="$PROJECT_DIR$/vendor/phpcompatibility/phpcompatibility-wp" />
+      <path value="$PROJECT_DIR$/vendor/wp-coding-standards/wpcs" />
+      <path value="$PROJECT_DIR$/vendor/composer" />
+    </include_path>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2YxWYWtoeFL1v2HPAzPMhA6S2UD" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "ticket/48823",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.stylelint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.stylelint": "/Users/jonny/workspace/wordpress-develop/node_modules/stylelint",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="Main" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
+      <TestRunner configuration_file="$PROJECT_DIR$/phpunit.xml.dist" scope="XML" use_alternative_configuration_file="true" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-php-predefined-ba97393d7c68-6f8e3395a2b4-com.jetbrains.php.sharedIndexes-PS-233.14015.96" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6899f978-265d-476c-88bc-6937274717ec" name="Changes" comment="" />
+      <created>1701467759769</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1701467759769</updated>
+      <workItem from="1701467760943" duration="2463000" />
+      <workItem from="1701884841636" duration="700000" />
+      <workItem from="1702081606862" duration="224000" />
+      <workItem from="1702082249467" duration="131000" />
+      <workItem from="1702082966757" duration="2176000" />
+      <workItem from="1702317535035" duration="9018000" />
+      <workItem from="1703975138436" duration="10469000" />
+      <workItem from="1704746255726" duration="4821000" />
+      <workItem from="1704825872847" duration="2050000" />
+      <workItem from="1705407960654" duration="6351000" />
+      <workItem from="1705698101360" duration="596000" />
+      <workItem from="1705701879117" duration="237000" />
+      <workItem from="1705702178595" duration="1369000" />
+      <workItem from="1706028113790" duration="6546000" />
+      <workItem from="1706217242459" duration="996000" />
+      <workItem from="1706472567529" duration="3509000" />
+      <workItem from="1706536580261" duration="57000" />
+      <workItem from="1706552668203" duration="620000" />
+      <workItem from="1706653065000" duration="1213000" />
+      <workItem from="1706776871613" duration="59000" />
+      <workItem from="1706777088725" duration="1407000" />
+      <workItem from="1706788597345" duration="2896000" />
+      <workItem from="1706886975332" duration="10000" />
+      <workItem from="1706912620108" duration="2118000" />
+      <workItem from="1706917235240" duration="42000" />
+      <workItem from="1706918239900" duration="80000" />
+      <workItem from="1706918590251" duration="351000" />
+      <workItem from="1706919486828" duration="174000" />
+      <workItem from="1707128042625" duration="430000" />
+      <workItem from="1707305715765" duration="12000" />
+      <workItem from="1707396228571" duration="673000" />
+      <workItem from="1707477051867" duration="599000" />
+      <workItem from="1707494122321" duration="362000" />
+      <workItem from="1707494501737" duration="9654000" />
+      <workItem from="1707813112481" duration="32000" />
+      <workItem from="1707816343267" duration="826000" />
+    </task>
+    <task id="LOCAL-00001" summary="Add unit tests.">
+      <option name="closed" value="true" />
+      <created>1702336265604</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1702336265604</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Add variable callback and backwards compat.">
+      <option name="closed" value="true" />
+      <created>1703980994536</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1703980994536</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add callbacks.">
+      <option name="closed" value="true" />
+      <created>1703981009661</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1703981009661</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Fix lints.">
+      <option name="closed" value="true" />
+      <created>1703986797675</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1703986797675</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Revert changes based on feedback.">
+      <option name="closed" value="true" />
+      <created>1704761456259</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1704761456259</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Fix unit tests.">
+      <option name="closed" value="true" />
+      <created>1704827279902</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1704827279902</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Cache clear when theme is network disabled.">
+      <option name="closed" value="true" />
+      <created>1704827326440</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1704827326440</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="Add variable callback and backwards compat." />
+    <MESSAGE value="Add unit tests." />
+    <MESSAGE value="Add callbacks." />
+    <MESSAGE value="Fix lints." />
+    <MESSAGE value="Revert changes based on feedback." />
+    <MESSAGE value="Fix unit tests." />
+    <MESSAGE value="Cache clear when theme is network disabled." />
+    <option name="LAST_COMMIT_MESSAGE" value="Cache clear when theme is network disabled." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="php">
+          <url>file://$PROJECT_DIR$/tests/phpunit/tests/rest-api/rest-posts-controller.php</url>
+          <line>4804</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
