@@ -128,6 +128,7 @@ $is_nginx = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'nginx' ) );
 
 /**
  * Whether the server software is Caddy or something else
+ *
  * @global bool $is_caddy
  */
 $is_caddy = ( str_contains( $_SERVER['SERVER_SOFTWARE'], 'Caddy' ) );
