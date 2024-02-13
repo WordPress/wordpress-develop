@@ -3137,7 +3137,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_do_request( $request );
 		$error    = $response->as_error();
 		$this->assertWPError( $error );
-		$this->assertContains( 'meta.error_1 is not one of a, b.', $error->get_error_messages() );
+		$this->assertContains( 'meta.error_1 is not one of a and b.', $error->get_error_messages() );
 		$this->assertContains( 'meta.error_2 must be at least 1 character long.', $error->get_error_messages() );
 	}
 
