@@ -36,7 +36,7 @@ final class WP_Block_Bindings_Registry {
 	 * Supported blocks that can use the block bindings API.
 	 *
 	 * @since 6.5.0
-	 * @var WP_Block_Bindings_Registry[]
+	 * @var array
 	 */
 	private $supported_blocks = array(
 		'core/paragraph',
