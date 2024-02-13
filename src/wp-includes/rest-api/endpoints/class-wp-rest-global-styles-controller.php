@@ -39,6 +39,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 							'type'        => 'string',
 						),
 					),
+					'allow_batch'         => $this->allow_batch,
 				),
 			)
 		);
@@ -68,6 +69,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
 						),
 					),
+					'allow_batch'         => $this->allow_batch,
 				),
 			)
 		);
@@ -95,7 +97,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					'permission_callback' => array( $this, 'update_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 				),
-				'schema' => array( $this, 'get_public_item_schema' ),
+				'schema'      => array( $this, 'get_public_item_schema' ),
+				'allow_batch' => $this->allow_batch,
 			)
 		);
 	}
