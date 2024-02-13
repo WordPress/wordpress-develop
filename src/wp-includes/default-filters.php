@@ -782,7 +782,7 @@ function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
 		)
 	);
 }
-add_action( 'rest_insert_wp_template', 'set_ignored_hooked_blocks_metadata_upon_rest_insert', 10, 1 );
+add_action( 'rest_after_insert_wp_template', 'set_ignored_hooked_blocks_metadata_upon_rest_insert', 10, 3 );
 // Do we need to add it separately for wp_template_part?
 
 unset( $filter, $action );
