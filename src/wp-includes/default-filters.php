@@ -771,8 +771,16 @@ function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 
-	$blocks        = parse_blocks( $template->content );
-	$post->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+	$blocks  = parse_blocks( $template->content );
+	$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+
+	wp_update_post(
+		array(
+			'ID'            => $post->ID,
+			'post_content'  => $content,
+			// Do we need to update post_filtered_content?
+		)
+	);
 }
 add_action( 'rest_insert_wp_template', 'set_ignored_hooked_blocks_metadata_upon_rest_insert', 10, 1 );
 // Do we need to add it separately for wp_template_part?
