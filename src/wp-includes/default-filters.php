@@ -754,22 +754,23 @@ add_action( 'init', '_wp_register_default_font_collections' );
 
 // TODO: This should probably go somewhere else.
 function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
-	$before_block_visitor = null;
-	$after_block_visitor  = null;
-	$hooked_blocks        = get_hooked_blocks();
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		// At this point, the post has already been created.
-		// We need to build the corresponding `WP_Block_Template` object.
-		// To that end, we need to prevent hooked blocks insertion from running again.
-
-		// Suppress all hooked blocks getting inserted into the context.
-		add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
-		$template = _build_block_template_result_from_post( $post );
-		remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
-
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+	$hooked_blocks = get_hooked_blocks();
+	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
+		return;
 	}
+
+	// At this point, the post has already been created.
+	// We need to build the corresponding `WP_Block_Template` object.
+	// To that end, we need to prevent hooked blocks insertion from running again.
+
+	// Suppress all hooked blocks getting inserted into the context.
+	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
+	$template = _build_block_template_result_from_post( $post );
+	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
+
+	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+
 	$blocks        = parse_blocks( $template->content );
 	$post->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 }
