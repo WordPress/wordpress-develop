@@ -251,7 +251,7 @@ function _get_block_templates_paths( $base_directory ) {
  * @param string $template_type 'wp_template' or 'wp_template_part'.
  * @param string $slug          Template slug.
  * @return array|null {
- *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part'.
+ *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
  *    null otherwise.
  *
  *    @type string   $slug      Template slug.
@@ -899,6 +899,14 @@ function _build_block_template_result_from_post( $post ) {
 					break;
 			}
 		}
+	}
+
+	$hooked_blocks = get_hooked_blocks();
+	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+		$blocks               = parse_blocks( $template->content );
+		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
 
 	return $template;

@@ -615,6 +615,9 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			$processor->add_class( $class_name );
 		}
 		return $processor->get_updated_html();
+	} elseif ( ! $block_supports_layout ) {
+		// Ensure layout classnames are not injected if there is no layout support.
+		return $block_content;
 	}
 
 	$global_settings = wp_get_global_settings();
@@ -834,7 +837,8 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			break;
 		}
 
-		if ( false !== strpos( $processor->get_attribute( 'class' ), $inner_block_wrapper_classes ) ) {
+		$class_attribute = $processor->get_attribute( 'class' );
+		if ( is_string( $class_attribute ) && str_contains( $class_attribute, $inner_block_wrapper_classes ) ) {
 			break;
 		}
 	} while ( $processor->next_tag() );
