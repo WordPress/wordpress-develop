@@ -13,6 +13,22 @@
 class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 	/**
 	 * @ticket 60506
+	 */
+	private static function create_block_template_object() {
+		$template              = new WP_Block_Template();
+		$template->type        = 'wp_template';
+		$template->theme       = 'test-theme';
+		$template->slug        = 'single';
+		$template->id          = $template->theme . '//' . $template->slug;
+		$template->title       = 'Single';
+		$template->content     = '<!-- wp:tests/anchor-block /-->';
+		$template->description = 'Description of my template';
+
+		return $template;
+	}
+
+	/**
+	 * @ticket 60506
 	 *
 	 * @covers ::set_ignored_hooked_blocks_metadata
 	 */
@@ -82,6 +98,45 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 
 		add_filter( 'hooked_block_types', $filter, 10, 3 );
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
+		remove_filter( 'hooked_block_types', $filter, 10 );
+
+		$this->assertSame(
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			array( 'tests/hooked-block-added-by-filter' )
+		);
+	}
+
+	/**
+	 * @ticket 60506
+	 *
+	 * @covers ::set_ignored_hooked_blocks_metadata
+	 */
+	public function test_set_ignored_hooked_blocks_metadata_for_block_added_by_context_aware_filter() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+			'attrs'     => array(),
+		);
+
+		$filter = function( $hooked_block_types, $relative_position, $anchor_block_type, $context ) {
+			if (
+				! $context instanceof WP_Block_Template ||
+				! property_exists( $context, 'slug' ) ||
+				'single' !== $context->slug
+			) {
+				return $hooked_block_types;
+			}
+
+			if ( 'tests/anchor-block' === $anchor_block_type && 'after' === $relative_position) {
+				$hooked_block_types[] = 'tests/hooked-block-added-by-filter';
+			}
+
+			return $hooked_block_types;
+		};
+
+		$template = self::create_block_template_object();
+
+		add_filter( 'hooked_block_types', $filter, 10, 4 );
+		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', array(), $template );
 		remove_filter( 'hooked_block_types', $filter, 10 );
 
 		$this->assertSame(
