@@ -2431,6 +2431,9 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$qs_regex = '|\?.*?$|';
 		preg_match( $qs_regex, $request, $qs_match );
 
+		$parts   = array();
+		$parts[] = untrailingslashit( get_bloginfo( 'url' ) );
+
 		if ( ! empty( $qs_match[0] ) ) {
 			$query_string = $qs_match[0];
 			$request      = preg_replace( $qs_regex, '', $request );
@@ -2442,17 +2445,21 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$request = preg_replace( '|^' . preg_quote( $wp_rewrite->index, '|' ) . '|i', '', $request );
 		$request = ltrim( $request, '/' );
 
-		$base = trailingslashit( get_bloginfo( 'url' ) );
-
 		if ( $wp_rewrite->using_index_permalinks() && ( $pagenum > 1 || '' !== $request ) ) {
-			$base .= $wp_rewrite->index . '/';
+			$parts[] = $wp_rewrite->index;
 		}
+
+		$parts[] = untrailingslashit( $request );
 
 		if ( $pagenum > 1 ) {
-			$request = ( ( ! empty( $request ) ) ? trailingslashit( $request ) : $request ) . user_trailingslashit( $wp_rewrite->pagination_base . '/' . $pagenum, 'paged' );
+			$parts[] = $wp_rewrite->pagination_base;
+			$parts[] = $pagenum;
 		}
 
-		$result = $base . $request . $query_string;
+		$result = user_trailingslashit( implode( '/', array_filter( $parts ) ), 'paged' );
+		if ( ! empty( $query_string ) ) {
+			$result .= $query_string;
+		}
 	}
 
 	/**
@@ -4761,7 +4768,7 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
  * By default the list of internal hosts is comprised of the host name of
  * the site's home_url() (as parsed by wp_parse_url()).
  *
- * This list is used when determining if a specificed URL is a link to a page on
+ * This list is used when determining if a specified URL is a link to a page on
  * the site itself or a link offsite (to an external host). This is used, for
  * example, when determining if the "nofollow" attribute should be applied to a
  * link.

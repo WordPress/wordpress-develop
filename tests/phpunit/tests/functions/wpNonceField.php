@@ -5,7 +5,8 @@
  *
  * @since 6.1.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_nonce_field
  */
 class Tests_Functions_wpNonceField extends WP_UnitTestCase {
