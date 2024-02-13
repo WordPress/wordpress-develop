@@ -760,10 +760,8 @@ function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
 	}
 
 	// At this point, the post has already been created.
-	// We need to build the corresponding `WP_Block_Template` object.
-	// To that end, we need to prevent hooked blocks insertion from running again.
-
-	// Suppress all hooked blocks getting inserted into the context.
+	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
+	// To that end, we need to suppress hooked blocks from getting inserted into the template.
 	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
 	$template = _build_block_template_result_from_post( $post );
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
