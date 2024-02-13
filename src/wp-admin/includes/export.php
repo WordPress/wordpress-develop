@@ -145,7 +145,7 @@ function export_wp( $args = array() ) {
 	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} $join WHERE $where" );
 
 	// Get IDs for the attachments of each post, unless all content is already being exported.
-	if ( 'all' !== $args['content'] ) {
+	if ( ! in_array( $args['content'], array( 'all', 'attachment' ), true ) ) {
 		foreach ( array_chunk( $post_ids, 20 ) as $chunk ) {
 			$posts_in     = array_map( 'absint', $chunk );
 			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
