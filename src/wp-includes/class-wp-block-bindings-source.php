@@ -46,6 +46,14 @@ final class WP_Block_Bindings_Source {
 	private $get_value_callback;
 
 	/**
+	 * The context added to the blocks needed by the source.
+	 *
+	 * @since 6.5.0
+	 * @var array|null
+	 */
+	public $uses_context = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * Do not use this constructor directly. Instead, use the
@@ -60,6 +68,9 @@ final class WP_Block_Bindings_Source {
 		$this->name               = $name;
 		$this->label              = $source_properties['label'];
 		$this->get_value_callback = $source_properties['get_value_callback'];
+		if ( isset( $source_properties['uses_context'] ) ){
+			$this->uses_context       = $source_properties['uses_context'];
+		}
 	}
 
 	/**

@@ -33,6 +33,19 @@ final class WP_Block_Bindings_Registry {
 	private static $instance = null;
 
 	/**
+	 * Allowed block that can use the block bindings API.
+	 *
+	 * @since 6.5.0
+	 * @var WP_Block_Bindings_Registry[]
+	 */
+	public $allowed_blocks = array(
+		'core/paragraph' => array( 'content' ),
+		'core/heading'   => array( 'content' ),
+		'core/image'     => array( 'url', 'title', 'alt' ),
+		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+	);
+
+	/**
 	 * Registers a new block bindings source.
 	 *
 	 * This is a low-level method. For most use cases, it is recommended to use

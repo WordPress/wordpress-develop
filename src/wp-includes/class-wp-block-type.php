@@ -563,6 +563,21 @@ class WP_Block_Type {
 			}
 		}
 
+		// Add `uses_context` defined by block bindings sources.
+		$allowed_blocks = WP_Block_Bindings_Registry::get_instance()->allowed_blocks;
+		if ( isset( $allowed_blocks[ $args['name'] ] ) ) {
+			$sources = get_all_registered_block_bindings_sources();
+			if ( ! empty( $sources ) ) {
+				foreach ( $sources as $source ) {
+					if ( $source->uses_context ) {
+						$original_use_context = isset( $args['uses_context'] ) ? $args['uses_context'] : array();
+						// Use array_values to reset the array keys.
+						$args['uses_context'] = array_values( array_unique( array_merge( $original_use_context, $source->uses_context ) ) );
+					}
+				}
+			}
+		}
+
 		/**
 		 * Filters the arguments for registering a block type.
 		 *
