@@ -32,6 +32,14 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	protected $parent_base;
 
 	/**
+	 * Parent post type.
+	 *
+	 * @since 6.5.0
+	 * @var string
+	 */
+	protected $parent_post_type;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 6.3.0
@@ -39,7 +47,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 *
 	 * @param string $parent_post_type Post type of the parent.
 	 */
-	public function __construct( $parent_post_type ) {
+	public function __construct( $parent_post_type = 'wp_global_styles' ) {
 		parent::__construct( $parent_post_type );
 		$post_type_object  = get_post_type_object( $parent_post_type );
 		$parent_controller = $post_type_object->get_rest_controller();
