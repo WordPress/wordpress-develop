@@ -40,11 +40,11 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		$hooked_blocks = array(
 			'tests/anchor-block' => array(
 				'after' => array( 'tests/hooked-block' ),
-			)
+			),
 		);
 
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
-		$this->assertSame( $anchor_block[ 'attrs' ][ 'metadata' ][ 'ignoredHookedBlocks' ], array( 'tests/hooked-block' ) );
+		$this->assertSame( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], array( 'tests/hooked-block' ) );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		$hooked_blocks = array(
 			'tests/anchor-block' => array(
 				'after' => array( 'tests/hooked-block' ),
-			)
+			),
 		);
 
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
@@ -88,7 +88,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 
 		$hooked_blocks = array();
 
-		$filter = function( $hooked_block_types, $relative_position, $anchor_block_type ) {
+		$filter = function ( $hooked_block_types, $relative_position, $anchor_block_type ) {
 			if ( 'tests/anchor-block' === $anchor_block_type && 'after' === $relative_position ) {
 				$hooked_block_types[] = 'tests/hooked-block-added-by-filter';
 			}
@@ -117,7 +117,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 			'attrs'     => array(),
 		);
 
-		$filter = function( $hooked_block_types, $relative_position, $anchor_block_type, $context ) {
+		$filter = function ( $hooked_block_types, $relative_position, $anchor_block_type, $context ) {
 			if (
 				! $context instanceof WP_Block_Template ||
 				! property_exists( $context, 'slug' ) ||
@@ -126,7 +126,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 				return $hooked_block_types;
 			}
 
-			if ( 'tests/anchor-block' === $anchor_block_type && 'after' === $relative_position) {
+			if ( 'tests/anchor-block' === $anchor_block_type && 'after' === $relative_position ) {
 				$hooked_block_types[] = 'tests/hooked-block-added-by-filter';
 			}
 
