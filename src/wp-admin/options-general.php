@@ -129,7 +129,7 @@ $tagline_description = sprintf(
 			</div>
 			<span class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
 		</div>
-		<img class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php _e( 'Preview as an app icon' ); ?>">
+		<img class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>">
 	</div>
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<div class="action-buttons">
