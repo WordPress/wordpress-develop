@@ -33,12 +33,12 @@ final class WP_Block_Bindings_Registry {
 	private static $instance = null;
 
 	/**
-	 * Allowed block that can use the block bindings API.
+	 * Supported blocks that can use the block bindings API.
 	 *
 	 * @since 6.5.0
 	 * @var WP_Block_Bindings_Registry[]
 	 */
-	public $allowed_blocks = array(
+	private $supported_blocks = array(
 		'core/paragraph' => array( 'content' ),
 		'core/heading'   => array( 'content' ),
 		'core/image'     => array( 'url', 'title', 'alt' ),
@@ -162,8 +162,7 @@ final class WP_Block_Bindings_Registry {
 		add_filter(
 			'get_block_type_uses_context',
 			function ( $uses_context, $block_type ) use ( $source ) {
-				$allowed_blocks = $this->allowed_blocks;
-				if ( empty( $allowed_blocks[ $block_type->name ] ) || empty( $source->uses_context ) ) {
+				if ( empty( $this->supported_blocks[ $block_type->name ] ) || empty( $source->uses_context ) ) {
 					return $uses_context;
 				}
 				// Use array_values to reset the array keys.
