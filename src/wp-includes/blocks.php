@@ -36,6 +36,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
+ * @since 6.5.0 Added support for `viewScriptModule` field.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
@@ -52,6 +53,9 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 		if ( str_starts_with( $field_name, 'view' ) ) {
 			$asset_handle .= '-view';
 		}
+		if ( str_ends_with( strtolower( $field_name ), 'scriptmodule' ) ) {
+			$asset_handle .= '-script-module';
+		}
 		if ( $index > 0 ) {
 			$asset_handle .= '-' . ( $index + 1 );
 		}
@@ -59,12 +63,13 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	}
 
 	$field_mappings = array(
-		'editorScript' => 'editor-script',
-		'script'       => 'script',
-		'viewScript'   => 'view-script',
-		'editorStyle'  => 'editor-style',
-		'style'        => 'style',
-		'viewStyle'    => 'view-style',
+		'editorScript'     => 'editor-script',
+		'editorStyle'      => 'editor-style',
+		'script'           => 'script',
+		'style'            => 'style',
+		'viewScript'       => 'view-script',
+		'viewScriptModule' => 'view-script-module',
+		'viewStyle'        => 'view-style',
 	);
 	$asset_handle   = str_replace( '/', '-', $block_name ) .
 		'-' . $field_mappings[ $field_name ];
@@ -123,6 +128,62 @@ function get_block_asset_url( $path ) {
 }
 
 /**
+ * Finds a script module ID for the selected block metadata field. It detects
+ * when a path to file was provided and optionally finds a corresponding asset
+ * file with details necessary to register the script module under with an
+ * automatically generated module ID. It returns unprocessed script module
+ * ID otherwise.
+ *
+ * @since 6.5.0
+ *
+ * @param array  $metadata   Block metadata.
+ * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the script module ID to register when multiple
+ *                           items passed. Default 0.
+ * @return string|false Script module ID or false on failure.
+ */
+function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
+	if ( empty( $metadata[ $field_name ] ) ) {
+		return false;
+	}
+
+	$module_id = $metadata[ $field_name ];
+	if ( is_array( $module_id ) ) {
+		if ( empty( $module_id[ $index ] ) ) {
+			return false;
+		}
+		$module_id = $module_id[ $index ];
+	}
+
+	$module_path = remove_block_asset_path_prefix( $module_id );
+	if ( $module_id === $module_path ) {
+		return $module_id;
+	}
+
+	$path                  = dirname( $metadata['file'] );
+	$module_asset_raw_path = $path . '/' . substr_replace( $module_path, '.asset.php', - strlen( '.js' ) );
+	$module_id             = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	$module_asset_path     = wp_normalize_path(
+		realpath( $module_asset_raw_path )
+	);
+
+	$module_path_norm = wp_normalize_path( realpath( $path . '/' . $module_path ) );
+	$module_uri       = get_block_asset_url( $module_path_norm );
+
+	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
+	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
+
+	wp_register_script_module(
+		$module_id,
+		$module_uri,
+		$module_dependencies,
+		isset( $module_asset['version'] ) ? $module_asset['version'] : false
+	);
+
+	return $module_id;
+}
+
+/**
  * Finds a script handle for the selected block metadata field. It detects
  * when a path to file was provided and optionally finds a corresponding asset
  * file with details necessary to register the script under automatically
@@ -130,7 +191,7 @@ function get_block_asset_url( $path ) {
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
- * @since 6.5.0 The asset file is optional.
+ * @since 6.5.0 The asset file is optional. Added script handle support in the asset file.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
@@ -144,42 +205,49 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	$script_handle = $metadata[ $field_name ];
-	if ( is_array( $script_handle ) ) {
-		if ( empty( $script_handle[ $index ] ) ) {
+	$script_handle_or_path = $metadata[ $field_name ];
+	if ( is_array( $script_handle_or_path ) ) {
+		if ( empty( $script_handle_or_path[ $index ] ) ) {
 			return false;
 		}
-		$script_handle = $script_handle[ $index ];
+		$script_handle_or_path = $script_handle_or_path[ $index ];
 	}
 
-	$script_path = remove_block_asset_path_prefix( $script_handle );
-	if ( $script_handle === $script_path ) {
-		return $script_handle;
+	$script_path = remove_block_asset_path_prefix( $script_handle_or_path );
+	if ( $script_handle_or_path === $script_path ) {
+		return $script_handle_or_path;
 	}
 
 	$path                  = dirname( $metadata['file'] );
 	$script_asset_raw_path = $path . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
-	$script_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path     = wp_normalize_path(
 		realpath( $script_asset_raw_path )
 	);
 
-	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
-	$script_uri       = get_block_asset_url( $script_path_norm );
+	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
+	$script_asset = ! empty( $script_asset_path ) ? require $script_asset_path : array();
+	$script_handle = isset( $script_asset['handle'] ) ?
+		$script_asset['handle'] :
+		generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	if ( wp_script_is( $script_handle, 'registered' ) ) {
+		return $script_handle;
+	}
 
-	$script_args = array();
+	$script_path_norm    = wp_normalize_path( realpath( $path . '/' . $script_path ) );
+	$script_uri          = get_block_asset_url( $script_path_norm );
+	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
+	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$script_version      = isset( $script_asset['version'] ) ? $script_asset['version'] : $block_version;
+	$script_args         = array();
 	if ( 'viewScript' === $field_name && $script_uri ) {
 		$script_args['strategy'] = 'defer';
 	}
 
-	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
-	$script_asset        = ! empty( $script_asset_path ) ? require $script_asset_path : array();
-	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
-	$result              = wp_register_script(
+	$result = wp_register_script(
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$script_version,
 		$script_args
 	);
 	if ( ! $result ) {
@@ -314,7 +382,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.1.0 Added support for `render` field.
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
- * @since 6.5.0 Added support for `allowedBlocks` and `viewStyle` fields.
+ * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -487,6 +555,40 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 				}
 			}
 			$settings[ $settings_field_name ] = $processed_scripts;
+		}
+	}
+
+	$module_fields = array(
+		'viewScriptModule' => 'view_script_module_ids',
+	);
+	foreach ( $module_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$modules           = $metadata[ $metadata_field_name ];
+			$processed_modules = array();
+			if ( is_array( $modules ) ) {
+				for ( $index = 0; $index < count( $modules ); $index++ ) {
+					$result = register_block_script_module_id(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_modules[] = $result;
+					}
+				}
+			} else {
+				$result = register_block_script_module_id(
+					$metadata,
+					$metadata_field_name
+				);
+				if ( $result ) {
+					$processed_modules[] = $result;
+				}
+			}
+			$settings[ $settings_field_name ] = $processed_modules;
 		}
 	}
 
