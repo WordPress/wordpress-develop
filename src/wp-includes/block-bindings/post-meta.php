@@ -51,6 +51,7 @@ function _register_block_bindings_post_meta_source() {
 		array(
 			'label'              => _x( 'Post Meta', 'block bindings source' ),
 			'get_value_callback' => '_block_bindings_post_meta_get_value',
+			'uses_context'       => array( 'postId', 'postType' ),
 		)
 	);
 }
