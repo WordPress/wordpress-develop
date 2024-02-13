@@ -873,7 +873,7 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 
 	/** This filter is documented in wp-includes/blocks.php */
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-	if ( empty ( $hooked_block_types ) ) {
+	if ( empty( $hooked_block_types ) ) {
 		return '';
 	}
 
