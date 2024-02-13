@@ -505,6 +505,14 @@ $plugins_dir_strlen = strlen( trailingslashit( WP_PLUGIN_DIR ) );
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	$plugin_file = substr( $plugin, $plugins_dir_strlen );
 
+	/*
+	 * Skip any plugins that have not been added to the 'plugin_data' option yet.
+	 *
+	 * Some plugin files may be added locally and activated, but will not yet be
+	 * added to the 'plugin_data' option. This causes the 'active_plugins' option
+	 * and the 'plugin_data' option to be temporarily out of sync until the next
+	 * call to `get_plugins()`.
+	 */
 	if ( isset( $all_plugin_data[ $plugin_file ] ) ) {
 		$plugin_headers = $all_plugin_data[ $plugin_file ];
 		$errors         = array();
