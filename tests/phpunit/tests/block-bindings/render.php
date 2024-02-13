@@ -52,16 +52,24 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 		);
 
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} --><p>This should not appear</p><!-- /wp:paragraph -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
 HTML;
-
 		$parsed_blocks = parse_blocks( $block_content );
 		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
 
-		$expected = '<p>test source value</p>';
-		$result   = $block->render();
-
-		$this->assertEquals( $expected, $result, 'The block content should be updated with the value returned by the source.' );
+		$this->assertSame(
+			'test source value',
+			$block->attributes['content'],
+			"The 'content' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			'<p>test source value</p>',
+			trim( $result ),
+			'The block content should be updated with the value returned by the source.'
+		);
 	}
 
 	/**
@@ -85,17 +93,66 @@ HTML;
 			)
 		);
 
-		$value         = 'test';
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args": {"key": "$value"}}}}} --><p>This should not appear</p><!-- /wp:paragraph -->
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args": {"key": "test"}}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
 HTML;
-
 		$parsed_blocks = parse_blocks( $block_content );
 		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
 
-		$expected = "<p>The attribute name is 'content' and its binding has argument 'key' with value '$value'.</p>";
-		$result   = $block->render();
+		$this->assertSame(
+			"The attribute name is 'content' and its binding has argument 'key' with value 'test'.",
+			$block->attributes['content'],
+			"The 'content' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			"<p>The attribute name is 'content' and its binding has argument 'key' with value 'test'.</p>",
+			trim( $result ),
+			'The block content should be updated with the value returned by the source.'
+		);
+	}
 
-		$this->assertEquals( $expected, $result, 'The block content should be updated with the value returned by the source.' );
+	/**
+	 * Tests if the block content is updated with the value returned by the source
+	 * for the Image block in the placeholder state.
+	 *
+	 * @ticket 60282
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_update_block_with_value_from_source_image_placeholder() {
+		$get_value_callback = function () {
+			return 'https://example.com/image.jpg';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"}}}} -->
+<figure class="wp-block-image"><img alt=""/></figure>
+<!-- /wp:image -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$this->assertSame(
+			'https://example.com/image.jpg',
+			$block->attributes['url'],
+			"The 'url' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/></figure>',
+			trim( $result ),
+			'The block content should be updated with the value returned by the source.'
+		);
 	}
 }
