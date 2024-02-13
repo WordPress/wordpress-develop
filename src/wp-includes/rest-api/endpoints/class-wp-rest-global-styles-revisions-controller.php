@@ -36,6 +36,8 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 *
 	 * @since 6.3.0
 	 * @since 6.5.0 Extends class from WP_REST_Revisions_Controller.
+	 *
+	 * @param string $parent_post_type Post type of the parent.
 	 */
 	public function __construct( $parent_post_type ) {
 		parent::__construct( $parent_post_type );
