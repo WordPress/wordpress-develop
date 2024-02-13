@@ -782,6 +782,8 @@ function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
 		)
 	);
 }
+// It might be nice to use a filter instead of an action, but the `WP_REST_Templates_Controller` doesn't
+// provide one (unlike e.g. `WP_REST_Posts_Controller`, which has `rest_pre_insert_{$this->post_type}`).
 add_action( 'rest_after_insert_wp_template', 'set_ignored_hooked_blocks_metadata_upon_rest_insert', 10, 3 );
 add_action( 'rest_after_insert_wp_template_part', 'set_ignored_hooked_blocks_metadata_upon_rest_insert', 10, 3 );
 
