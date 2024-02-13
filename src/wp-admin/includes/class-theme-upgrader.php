@@ -578,6 +578,8 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $source;
 		}
 
+        $working_directory = trailingslashit( $working_directory );
+
 		// A proper archive should have a style.css file in the single subdirectory.
 		if ( ! file_exists( $working_directory . 'style.css' ) ) {
 			return new WP_Error(
