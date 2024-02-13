@@ -631,7 +631,7 @@ class WP_Block_Type {
 	}
 
 	/**
-	 * Get block variations.
+	 * Get block uses context.
 	 *
 	 * @since 6.5.0
 	 *
