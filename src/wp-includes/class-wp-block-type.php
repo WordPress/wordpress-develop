@@ -563,7 +563,6 @@ class WP_Block_Type {
 			}
 		}
 
-
 		/**
 		 * Filters the arguments for registering a block type.
 		 *
