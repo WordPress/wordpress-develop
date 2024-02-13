@@ -519,7 +519,7 @@
 
 		$document.trigger( 'wp-plugin-updating', args );
 
-		if ( isPluginInstall && 'plugin-information-footer' === $card.attr('id' ) ) {
+		if ( isPluginInstall && 'plugin-information-footer' === $card.attr( 'id' ) ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'updating-plugin',
