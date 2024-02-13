@@ -20,6 +20,10 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 			$registry->unregister( 'tests/my-block' );
 		}
 
+		if ( $registry->is_registered( 'tests/ignored' ) ) {
+			$registry->unregister( 'tests/ignored' );
+		}
+
 		parent::tear_down();
 	}
 
@@ -105,5 +109,47 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 			'wp_template_part'
 		);
 		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $template_part->content );
+	}
+
+	/**
+	 * @ticket 59646
+	 * @ticket 60506
+	 */
+	public function test_should_not_inject_ignored_hooked_block_into_template() {
+		register_block_type(
+			'tests/ignored',
+			array(
+				'block_hooks' => array(
+					'core/heading' => 'after',
+				),
+			)
+		);
+
+		$template = _build_block_template_result_from_post(
+			self::$template_post,
+			'wp_template'
+		);
+		$this->assertStringNotContainsString( '<!-- wp:tests/ignored /-->', $template->content );
+	}
+
+	/**
+	 * @ticket 59646
+	 * @ticket 60506
+	 */
+	public function test_should_not_inject_ignored_hooked_block_into_template_part() {
+		register_block_type(
+			'tests/ignored',
+			array(
+				'block_hooks' => array(
+					'core/heading' => 'after',
+				),
+			)
+		);
+
+		$template_part = _build_block_template_result_from_post(
+			self::$template_part_post,
+			'wp_template_part'
+		);
+		$this->assertStringNotContainsString( '<!-- wp:tests/ignored /-->', $template_part->content );
 	}
 }
