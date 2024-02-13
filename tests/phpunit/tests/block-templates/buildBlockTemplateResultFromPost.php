@@ -67,6 +67,7 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 
 	/**
 	 * @ticket 59646
+	 * @ticket 60506
 	 */
 	public function test_should_inject_hooked_block_into_template() {
 		register_block_type(
@@ -83,11 +84,11 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 			'wp_template'
 		);
 		$this->assertStringStartsWith( '<!-- wp:tests/my-block /-->', $template->content );
-		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $template->content );
 	}
 
 	/**
 	 * @ticket 59646
+	 * @ticket 60506
 	 */
 	public function test_should_inject_hooked_block_into_template_part() {
 		register_block_type(
@@ -104,6 +105,5 @@ class Tests_Block_Templates_BuildBlockTemplateResultFromPost extends WP_Block_Te
 			'wp_template_part'
 		);
 		$this->assertStringEndsWith( '<!-- wp:tests/my-block /-->', $template_part->content );
-		$this->assertStringContainsString( '"metadata":{"ignoredHookedBlocks":["tests/my-block"]}', $template_part->content );
 	}
 }
