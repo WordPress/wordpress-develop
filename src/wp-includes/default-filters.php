@@ -752,33 +752,6 @@ add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
 
-// TODO: This should probably go somewhere else.
-function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
-	$hooked_blocks = get_hooked_blocks();
-	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
-		return;
-	}
-
-	// At this point, the post has already been created.
-	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
-	// To that end, we need to suppress hooked blocks from getting inserted into the template.
-	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
-	$template = _build_block_template_result_from_post( $post );
-	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
-
-	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-
-	$blocks  = parse_blocks( $template->content );
-	$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
-	wp_update_post(
-		array(
-			'ID'            => $post->ID,
-			'post_content'  => $content,
-		)
-	);
-}
 // It might be nice to use a filter instead of an action, but the `WP_REST_Templates_Controller` doesn't
 // provide one (unlike e.g. `WP_REST_Posts_Controller`, which has `rest_pre_insert_{$this->post_type}`).
 add_action( 'rest_after_insert_wp_template', 'set_ignored_hooked_blocks_metadata_upon_rest_insert', 10, 3 );
