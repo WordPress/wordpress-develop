@@ -851,38 +851,6 @@ function get_hooked_blocks() {
 }
 
 /**
- * Conditionally returns the markup for a given hooked block.
- *
- * Accepts three arguments: A hooked block, its type, and an anchor block.
- * If the anchor block has already been processed, and the given hooked block type is in the list
- * of ignored hooked blocks, an empty string is returned.
- *
- * The hooked block type is specified separately as it's possible that a filter might've modified
- * the hooked block such that `$hooked_block['blockName']` does no longer reflect the original type.
- *
- * This function is meant for internal use only.
- *
- * @since 6.5.0
- * @access private
- *
- * @param array  $hooked_block      The hooked block, represented as a parsed block array.
- * @param string $hooked_block_type The type of the hooked block. This could be different from
- *                                  $hooked_block['blockName'], as a filter might've modified the latter.
- * @param array  $anchor_block      The anchor block, represented as a parsed block array.
- * @return string The markup for the given hooked block, or an empty string if the block is ignored.
- */
-function get_hooked_block_markup( $hooked_block, $hooked_block_type, $anchor_block ) {
-	if (
-		isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) &&
-		in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
-	) {
-		return '';
-	}
-
-	return serialize_block( $hooked_block );
-}
-
-/**
  * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
  *
  * @since 6.5.0
@@ -940,8 +908,13 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
 
 		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
-		// so we need to pass the original $hooked_block_type as well.
-		$markup .= get_hooked_block_markup( $parsed_hooked_block, $hooked_block_type, $parsed_anchor_block );
+		// so we explicitly look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
+		if (
+			! isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
+			! in_array( $hooked_block_type, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
+		) {
+			$markup .= serialize_block( $parsed_hooked_block );
+		}
 	}
 
 	return $markup;
