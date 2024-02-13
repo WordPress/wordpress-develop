@@ -877,8 +877,8 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		return '';
 	}
 
-	$previously_ignored_hooked_blocks = isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
-		? $anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
+		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		: array();
 
 	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
