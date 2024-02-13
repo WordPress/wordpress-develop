@@ -125,7 +125,7 @@ $tagline_description = sprintf(
 		<div class="favicon-preview">
 			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
 			<div class="favicon">
-				<img src="<?php site_icon_url(); ?>" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>">
+				<img src="<?php site_icon_url(); ?>" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>">
 			</div>
 			<span class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
 		</div>
