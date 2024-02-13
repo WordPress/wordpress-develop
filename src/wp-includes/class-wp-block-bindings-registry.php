@@ -66,19 +66,19 @@ final class WP_Block_Bindings_Registry {
 	 * @param array    $source_properties {
 	 *     The array of arguments that are used to register a source.
 	 *
-	 *     @type string   $label                  The label of the source.
-	 *     @type callback $get_value_callback     A callback executed when the source is processed during block rendering.
-	 *                                            The callback should have the following signature:
+	 *     @type string   $label                   The label of the source.
+	 *     @type callback $get_value_callback      A callback executed when the source is processed during block rendering.
+	 *                                             The callback should have the following signature:
 	 *
-	 *                                            `function ($source_args, $block_instance,$attribute_name): mixed`
-	 *                                                - @param array    $source_args    Array containing source arguments
-	 *                                                                                  used to look up the override value,
-	 *                                                                                  i.e. {"key": "foo"}.
-	 *                                                - @param WP_Block $block_instance The block instance.
-	 *                                                - @param string   $attribute_name The name of the target attribute.
-	 *                                            The callback has a mixed return type; it may return a string to override
-	 *                                            the block's original value, null, false to remove an attribute, etc.
-	 *     @type array   $uses_context (optional) Array of values to add to block `uses_context` needed by the source.
+	 *                                             `function ($source_args, $block_instance,$attribute_name): mixed`
+	 *                                                 - @param array    $source_args    Array containing source arguments
+	 *                                                                                   used to look up the override value,
+	 *                                                                                   i.e. {"key": "foo"}.
+	 *                                                 - @param WP_Block $block_instance The block instance.
+	 *                                                 - @param string   $attribute_name The name of the target attribute.
+	 *                                             The callback has a mixed return type; it may return a string to override
+	 *                                             the block's original value, null, false to remove an attribute, etc.
+	 *     @type array    $uses_context (optional) Array of values to add to block `uses_context` needed by the source.
 	 * }
 	 * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
 	 */
@@ -114,14 +114,14 @@ final class WP_Block_Bindings_Registry {
 		if ( $this->is_registered( $source_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				/* translators: %s: Block bindings source name. */
+				// translators: %s: Block bindings source name.
 				sprintf( __( 'Block bindings source "%s" already registered.' ), $source_name ),
 				'6.5.0'
 			);
 			return false;
 		}
 
-		/* Validate that the source properties contain the label */
+		// Validate that the source properties contain the label.
 		if ( ! isset( $source_properties['label'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -131,7 +131,7 @@ final class WP_Block_Bindings_Registry {
 			return false;
 		}
 
-		/* Validate that the source properties contain the get_value_callback */
+		// Validate that the source properties contain the get_value_callback.
 		if ( ! isset( $source_properties['get_value_callback'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -141,7 +141,7 @@ final class WP_Block_Bindings_Registry {
 			return false;
 		}
 
-		/* Validate that the get_value_callback is a valid callback */
+		// Validate that the get_value_callback is a valid callback.
 		if ( ! is_callable( $source_properties['get_value_callback'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -151,7 +151,7 @@ final class WP_Block_Bindings_Registry {
 			return false;
 		}
 
-		/* Validate that the uses_context parameter is an array */
+		// Validate that the uses_context parameter is an array.
 		if ( isset( $source_properties['uses_context'] ) && ! is_array( $source_properties['uses_context'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -199,7 +199,7 @@ final class WP_Block_Bindings_Registry {
 		if ( ! $this->is_registered( $source_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				/* translators: %s: Block bindings source name. */
+				// translators: %s: Block bindings source name.
 				sprintf( __( 'Block binding "%s" not found.' ), $source_name ),
 				'6.5.0'
 			);
