@@ -22,7 +22,7 @@ function _block_bindings_post_meta_get_value( array $source_args, $block_instanc
 		return null;
 	}
 
-	if ( ! isset($block_instance->context['postId']) ) {
+	if ( ! isset( $block_instance->context['postId'] ) ) {
 		return null;
 	}
 	$post_id = $block_instance->context['postId'];

@@ -68,8 +68,8 @@ final class WP_Block_Bindings_Source {
 		$this->name               = $name;
 		$this->label              = $source_properties['label'];
 		$this->get_value_callback = $source_properties['get_value_callback'];
-		if ( isset( $source_properties['uses_context'] ) ){
-			$this->uses_context       = $source_properties['uses_context'];
+		if ( isset( $source_properties['uses_context'] ) ) {
+			$this->uses_context = $source_properties['uses_context'];
 		}
 	}
 
