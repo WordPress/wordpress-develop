@@ -1442,7 +1442,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * @param WP_Post $post A post object with post type set to `wp_template` or `wp_template_part`.
  * @return WP_Post The updated post object.
  */
-function set_ignored_hooked_blocks_metadata_upon_rest_insert( $post ) {
+function inject_ignored_hooked_blocks_metadata_attributes( $post ) {
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
 		return;
