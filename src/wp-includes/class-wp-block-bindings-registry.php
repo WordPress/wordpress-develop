@@ -151,6 +151,16 @@ final class WP_Block_Bindings_Registry {
 			return false;
 		}
 
+		/* Validate that the uses_context parameter is an array */
+		if ( isset( $source_properties['uses_context'] ) && ! is_array( $source_properties['uses_context'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The "uses_context" parameter must be an array.' ),
+				'6.5.0'
+			);
+			return false;
+		}
+
 		$source = new WP_Block_Bindings_Source(
 			$source_name,
 			$source_properties
