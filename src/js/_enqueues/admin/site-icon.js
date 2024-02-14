@@ -1,7 +1,5 @@
 /* global wp, jQuery */
 
-var frame;
-
 /**
  * Calculates image selection options based on the attachment dimensions.
  *
@@ -56,8 +54,11 @@ function calculateImageSelectOptions( attachment ) {
  * Initializes the media frame for selecting or cropping an image.
  *
  * @since 6.5.0
+ *
+ * @param {jQuery} $ The jQuery object.
  */
 ( function( $ ) {
+	var frame;
 	// Build the choose from library frame.
 	$( '#choose-from-library-link' ).on( 'click', function() {
 		var $el = $(this);
@@ -152,6 +153,13 @@ function switchToUpdate( url ) {
 	);
 }
 
+/**
+ * Initializes the functionality to remove the site icon.
+ *
+ * @since 6.5.0
+ *
+ * @param {jQuery} $ The jQuery object.
+ */
 ( function ( $ ) {
 	var chooseLink = $( '#choose-from-library-link' );
 	$( '#js-remove-site-icon' ).on( 'click', function() {
