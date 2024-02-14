@@ -151,6 +151,12 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 			$data[ WP_REST_Search_Controller::PROP_SUBTYPE ] = $post->post_type;
 		}
 
+		if ( in_array( WP_REST_Search_Controller::PROP_LABEL, $fields, true ) ) {
+			$ptype                                         = get_post_type_object( $post->post_type );
+			$label                                         = $ptype ? $ptype->labels->singular_name : $post->post_type;
+			$data[ WP_REST_Search_Controller::PROP_LABEL ] = $label;
+		}
+
 		return $data;
 	}
 
