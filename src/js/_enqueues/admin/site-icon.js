@@ -1,5 +1,3 @@
-/* global wp, jQuery */
-
 /**
  * Calculates image selection options based on the attachment dimensions.
  *
@@ -73,7 +71,7 @@ function calculateImageSelectOptions( attachment ) {
 			},
 			states: [
 				new wp.media.controller.Library({
-					title: $el.data( 'choose' ),
+					title: $el.data( 'choose-text' ),
 					library: wp.media.query({ type: 'image' }),
 					date: false,
 					suggestedWidth: $el.data( 'size' ),
@@ -129,7 +127,7 @@ function calculateImageSelectOptions( attachment ) {
  * @param {string} url The URL of the site icon image.
  */
 function switchToUpdate( url ) {
-	var chooseLink = jQuery( '#choose-from-library-link' );
+	var chooseButton = jQuery( '#choose-from-library-button' );
 	var iconPreview = jQuery( '#site-icon-preview' );
 	// Set site-icon-img src to the url and remove the hidden class.
 	iconPreview.find( 'img' ).not( '.browser-preview' )
@@ -140,17 +138,17 @@ function switchToUpdate( url ) {
 	// Remove hidden class from remove.
 	jQuery( '#js-remove-site-icon' ).removeClass( 'hidden' );
 	// If the button is not in the update state, swap the classes.
-	if ( chooseLink.attr( 'data-state' ) !== '1' ) {
-		chooseLink.attr({
-			'class': chooseLink.attr( 'data-alt-classes' ),
-			'data-alt-classes': chooseLink.attr( 'class' ),
+	if ( chooseButton.attr( 'data-state' ) !== '1' ) {
+		chooseButton.attr({
+			'class': chooseButton.attr( 'data-alt-classes' ),
+			'data-alt-classes': chooseButton.attr( 'class' ),
 			'data-state': '1'
 		});
 	}
 
 	// Swap the text of the button.
-	chooseLink.text(
-		chooseLink.attr( 'data-update-text' )
+	chooseButton.text(
+		chooseButton.attr( 'data-update-text' )
 	);
 }
 
@@ -162,19 +160,19 @@ function switchToUpdate( url ) {
  * @param {jQuery} $ The jQuery object.
  */
 ( function ( $ ) {
-	var chooseLink = $( '#choose-from-library-link' );
+	var chooseButton = $( '#choose-from-library-button' );
 	$( '#js-remove-site-icon' ).on( 'click', function() {
 		$( '#site_icon_hidden_field' ).val( 'false' );
 		$( '#site-icon-preview' ).toggleClass( 'hidden' );
 		$(this).toggleClass( 'hidden' );
 
-		chooseLink.attr({
-			'class': chooseLink.attr( 'data-alt-classes' ),
-			'data-alt-classes': chooseLink.attr( 'class' ),
+		chooseButton.attr({
+			'class': chooseButton.attr( 'data-alt-classes' ),
+			'data-alt-classes': chooseButton.attr( 'class' ),
 			'data-state': ''
 		});
 
 		// Swap the text of the button.
-		chooseLink.text( chooseLink.attr( 'data-choose-text' ) );
+		chooseButton.text( chooseButton.attr( 'data-choose-text' ) );
 	});
 }( jQuery ));
