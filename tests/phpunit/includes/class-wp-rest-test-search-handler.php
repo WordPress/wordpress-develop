@@ -16,17 +16,28 @@ class WP_REST_Test_Search_Handler extends WP_REST_Search_Handler {
 	public function __construct( $amount = 10 ) {
 		$this->type = 'test';
 
-		$this->subtypes = array( 'test_first_type', 'test_second_type' );
+		$this->subtypes         = array( 'test_first_type', 'test_second_type' );
+		$test_first_type_object = new \WP_Post_Type(
+			'test_first_type',
+			array(
+				'labels' => array(
+					'name' => 'Test first types',
+					'singular_name' => 'Test first type',
+				)
+			)
+		);
 
 		$this->items = array();
-		for ( $i = 1; $i <= $amount; $i++ ) {
-			$subtype = $i > $amount / 2 ? 'test_second_type' : 'test_first_type';
+		for ( $i = 1; $i <= $amount; $i ++ ) {
+			$subtype        = $i > $amount / 2 ? 'test_second_type' : 'test_first_type';
+			$subtype_object = $i > $amount / 2 ? false : $test_first_type_object;
 
 			$this->items[ $i ] = (object) array(
 				'test_id'    => $i,
 				'test_title' => sprintf( 'Title %d', $i ),
 				'test_url'   => sprintf( home_url( '/tests/%d' ), $i ),
 				'test_type'  => $subtype,
+				'test_label' => $subtype_object ? $subtype_object->labels->singular_name : $subtype,
 			);
 		}
 	}
@@ -80,6 +91,10 @@ class WP_REST_Test_Search_Handler extends WP_REST_Search_Handler {
 
 		if ( in_array( WP_REST_Search_Controller::PROP_SUBTYPE, $fields, true ) ) {
 			$data[ WP_REST_Search_Controller::PROP_SUBTYPE ] = $test->test_type;
+		}
+
+		if ( in_array( WP_REST_Search_Controller::PROP_LABEL, $fields, true ) ) {
+			$data[ WP_REST_Search_Controller::PROP_LABEL ] = $test->test_label;
 		}
 
 		return $data;
