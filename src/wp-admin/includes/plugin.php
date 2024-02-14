@@ -1219,18 +1219,23 @@ function validate_plugin_requirements( $plugin ) {
 			}
 		}
 
-		$plugins_page = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
+		$plugins_page  = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
+		$error_message = sprintf(
+			/* translators: 1: Plugin name, 2: A comma-separated list of plugin names, 3: The start of a link to the plugins page, 4: The end of the link. */
+			_n(
+				'<strong>Error:</strong> %1$s requires the following plugin to be installed and activated: %2$s. %3$sManage plugins%4$s',
+				'<strong>Error:</strong> %1$s requires the following plugins to be installed and activated: %2$s. %3$sManage plugins%4$s',
+				count( $unmet_dependency_names )
+			),
+			$plugin_headers['Name'],
+			implode( ', ', $unmet_dependency_names ),
+			'<a href="' . esc_url( $plugins_page ) . '">',
+			'</a>'
+		);
 
 		return new WP_Error(
 			'plugin_missing_dependencies',
-			'<p>' . sprintf(
-				/* translators: 1: Plugin name, 2: A comma-separated list of plugin names, 3: The start of a link to the plugins page, 4: The end of the link. */
-				_x( '<strong>Error:</strong> %1$s requires the following plugin(s) to be installed and activated: %2$s. %3$sReview your plugins%4$s', 'plugin' ),
-				$plugin_headers['Name'],
-				implode( ', ', $unmet_dependency_names ),
-				'<a href="' . esc_url( $plugins_page ) . '">',
-				'</a>'
-			) . '</p>',
+			"<p>{$error_message}</p>",
 			$unmet_dependencies
 		);
 	}
