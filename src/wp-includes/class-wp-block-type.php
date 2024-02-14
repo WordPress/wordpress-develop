@@ -425,16 +425,6 @@ class WP_Block_Type {
 	 * @param mixed  $value Property value.
 	 */
 	public function __set( $name, $value ) {
-		if ( 'variations' === $name ) {
-			$this->variations = $value;
-			return;
-		}
-
-		if ( 'uses_context' === $name ) {
-			$this->uses_context = $value;
-			return;
-		}
-
 		if ( ! in_array( $name, $this->deprecated_properties, true ) ) {
 			$this->{$name} = $value;
 			return;
