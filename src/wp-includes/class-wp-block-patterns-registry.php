@@ -227,33 +227,26 @@ final class WP_Block_Patterns_Registry {
 	 *                 and per style.
 	 */
 	public function get_all_registered( $outside_init_only = false ) {
-		$patterns      = array_values(
-			$outside_init_only
+		$patterns      = $outside_init_only
 				? $this->registered_patterns_outside_init
-				: $this->registered_patterns
-		);
+				: $this->registered_patterns;
 		$hooked_blocks = get_hooked_blocks();
+
 		foreach ( $patterns as $index => $pattern ) {
-			if ( ! isset( $pattern['name'] ) ) {
-				unset( $patterns[ $index ] );
-				if ( $outside_init_only ) {
-					unset( $this->registered_patterns_outside_init[ $index ] );
-				} else {
-					unset( $this->registered_patterns[ $index ] );
-				}
-				continue;
-			}
 			if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
 				$pattern['content'] = $this->load_content_from_file_path( $pattern['file_path'] );
 				if ( $outside_init_only ) {
 					$this->registered_patterns_outside_init[ $index ]['content'] = $pattern['content'];
+					unset( $this->registered_patterns_outside_init[ $index ]['file_path'] );
 				} else {
 					$this->registered_patterns[ $index ]['content'] = $pattern['content'];
+					unset( $this->registered_patterns[ $index ]['file_path'] );
 				}
 			}
 			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
 		}
-		return $patterns;
+
+		return array_values( $patterns );
 	}
 
 	/**
