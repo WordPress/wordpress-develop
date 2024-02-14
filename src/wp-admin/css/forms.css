@@ -817,7 +817,7 @@ ul#add-to-blog-users {
 	max-width: 100%;
 }
 
-.button-ad-site-icon:focus{
+.button-add-site-icon:focus{
 	background-color: #fff;
 	border-color: #3582c4;
 	border-style: solid;
