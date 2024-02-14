@@ -8,26 +8,32 @@
  */
 
 /**
- * Better word splitting than the PEAR package provides.
+ * Improved word splitting with better performance and clarity.
  *
  * @since 2.6.0
- * @uses Text_Diff_Renderer_inline Extends
+ * @extends Text_Diff_Renderer_inline
  */
 #[AllowDynamicProperties]
 class WP_Text_Diff_Renderer_inline extends Text_Diff_Renderer_inline {
 
-	/**
-	 * @ignore
-	 * @since 2.6.0
-	 *
-	 * @param string $string
-	 * @param string $newlineEscape
-	 * @return string
-	 */
-	public function _splitOnWords( $string, $newlineEscape = "\n" ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound,WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
-		$string = str_replace( "\0", '', $string );
-		$words  = preg_split( '/([^\w])/u', $string, -1, PREG_SPLIT_DELIM_CAPTURE );
-		$words  = str_replace( "\n", $newlineEscape, $words ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
-		return $words;
-	}
+    /**
+     * Splits a string into an array of words, handling newlines and special characters.
+     *
+     * @param string $string The string to split.
+     * @param string $newlineEscape The newline escape character (defaults to "\n").
+     * @return array An array of words.
+     */
+    public function _splitOnWords(string $string, string $newlineEscape = "\n"): array
+    {
+        // Remove null characters.
+        $string = str_replace("\0", '', $string);
+
+        // Split words using efficient regular expression.
+        $words = preg_split('/(?<!\w)(?!\d)[^\w\d](?!\w)(?!\d)/u', $string, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        // Replace newlines with the desired escape character.
+        return array_map(function ($word) use ($newlineEscape) {
+            return ($word === "\n") ? $newlineEscape : $word;
+        }, $words);
+    }
 }
