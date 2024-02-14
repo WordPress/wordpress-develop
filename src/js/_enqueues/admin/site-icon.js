@@ -5,18 +5,22 @@ var frame;
 /**
  * Calculates image selection options based on the attachment dimensions.
  *
- * @param {wp.media.model.Attachment} attachment The attachment object representing the image.
+ * @since 6.5.0
+ *
+ * @param {Object} attachment The attachment object representing the image.
  * @return {Object} The image selection options.
  */
-function calculateImageSelectOptions ( attachment ) {
-	var realWidth  = attachment.get( 'width' ),
+function calculateImageSelectOptions( attachment ) {
+	var realWidth = attachment.get( 'width' ),
 		realHeight = attachment.get( 'height' ),
 		xInit = 512,
 		yInit = 512,
 		ratio = xInit / yInit,
-		xImg  = xInit,
-		yImg  = yInit,
-		x1, y1, imgSelectOptions;
+		xImg = xInit,
+		yImg = yInit,
+		x1,
+		y1,
+		imgSelectOptions;
 
 	if ( realWidth / realHeight > ratio ) {
 		yInit = realHeight;
@@ -50,6 +54,8 @@ function calculateImageSelectOptions ( attachment ) {
 
 /**
  * Initializes the media frame for selecting or cropping an image.
+ *
+ * @since 6.5.0
  */
 $( function() {
 	// Build the choose from library frame.
@@ -60,7 +66,7 @@ $( function() {
 		frame = wp.media({
 			button: {
 				// Set the text of the button.
-				text: $el.data('update'),
+				text: $el.data( 'update' ),
 				// Don't close, we might need to crop.
 				close: false
 			},
@@ -84,7 +90,7 @@ $( function() {
 			]
 		});
 
-		frame.on( 'cropped', function( attachment) {
+		frame.on( 'cropped', function( attachment ) {
 			$( '#site_icon_hidden_field' ).val(attachment.id);
 			switchToUpdate(attachment.url);
 			frame.close();
@@ -95,11 +101,14 @@ $( function() {
 		// When an image is selected, run a callback.
 		frame.on( 'select', function() {
 			// Grab the selected attachment.
-			var attachment = frame.state().get('selection').first();
+			var attachment = frame.state().get( 'selection' ).first();
 
-			if ( attachment.attributes.height === $el.data('size') && $el.data('size') === attachment.attributes.width ) {
+			if (
+				attachment.attributes.height === $el.data( 'size' ) &&
+				$el.data( 'size' ) === attachment.attributes.width
+			) {
 				// Set the value of the hidden input to the attachment id.
-				$( '#site_icon_hidden_field').val(attachment.id);
+				$( '#site_icon_hidden_field' ).val(attachment.id);
 				switchToUpdate(attachment.attributes.url);
 				frame.close();
 			} else {
@@ -114,40 +123,55 @@ $( function() {
 /**
  * Updates the site icon preview with the specified URL.
  *
+ * @since 6.5.0
+ *
  * @param {string} url The URL of the site icon image.
  */
-function switchToUpdate( url ){
+function switchToUpdate( url ) {
 	// Set site-icon-img src to the url and remove the hidden class.
-	$( '#site-icon-preview').find('img').not('.browser-preview').each( function(i, img ){
-		$(img).attr('src', url );
-	});
+	$( '#site-icon-preview' )
+		.find( 'img' )
+		.not( '.browser-preview' )
+		.each( function( i, img ) {
+			$(img).attr( 'src', url );
+		});
 	$( '#site-icon-preview' ).removeClass( 'hidden' );
 	// Remove hidden class from remove.
 	$( '#js-remove-site-icon' ).removeClass( 'hidden' );
 	// If the button is not in the update state, swap the classes.
-	if( $( '#choose-from-library-link' ).attr( 'data-state' ) !== '1' ){
+	if ($( '#choose-from-library-link' ).attr( 'data-state' ) !== '1' ) {
 		var classes = $( '#choose-from-library-link' ).attr( 'class' );
-		$( '#choose-from-library-link' ).attr( 'class', $( '#choose-from-library-link' ).attr('data-alt-classes') );
+		$( '#choose-from-library-link' ).attr(
+			'class',
+			$( '#choose-from-library-link' ).attr( 'data-alt-classes' )
+		);
 		$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
 		$( '#choose-from-library-link' ).attr( 'data-state', '1' );
 	}
 
-	// swap the text of the button
-	$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr( 'data-update-text' ) );
+	// Swap the text of the button.
+	$( '#choose-from-library-link' ).text(
+		$( '#choose-from-library-link' ).attr( 'data-update-text' )
+	);
 }
 
 $( '#js-remove-site-icon' ).on( 'click', function() {
+	var classes = $( '#choose-from-library-link' ).attr( 'class' );
+
 	$( '#site_icon_hidden_field' ).val( 'false' );
 	$( '#site-icon-preview' ).toggleClass( 'hidden' );
-	$( this ).toggleClass( 'hidden' );
+	$(this).toggleClass( 'hidden' );
 
-	var classes = $( '#choose-from-library-link' ).attr( 'class' );
-	$( '#choose-from-library-link' ).attr( 'class', $( '#choose-from-library-link' ).attr( 'data-alt-classes' ) );
+	$( '#choose-from-library-link' ).attr(
+		'class',
+		$( '#choose-from-library-link' ).attr( 'data-alt-classes' )
+	);
 	$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
 
 	// Swap the text of the button.
-	$( '#choose-from-library-link' ).text( $( '#choose-from-library-link' ).attr( 'data-choose-text' ) );
+	$( '#choose-from-library-link' ).text(
+		$( '#choose-from-library-link' ).attr( 'data-choose-text' )
+	);
 	// Set the state of the button so it can be changed on new icon.
-	$( '#choose-from-library-link' ).attr( 'data-state', '');
+	$( '#choose-from-library-link' ).attr( 'data-state', '' );
 });
-
