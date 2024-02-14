@@ -91,14 +91,38 @@ class WP_Site_Icon {
 		$size       = wp_getimagesize( $cropped );
 		$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
+		$sanitized_post_title = sanitize_file_name( $parent->post_title );
+		$use_original_title   = (
+			( '' !== trim( $parent->post_title ) ) &&
+			/*
+			 * Check if the original image has a title other than the "filename" default,
+			 * meaning the image had a title when originally uploaded or its title was edited.
+			 */
+			( $parent_basename !== $sanitized_post_title ) &&
+			( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
+		);
+		$use_original_description = ( '' !== trim( $parent->post_content ) );
+
 		$attachment = array(
 			'ID'             => $parent_attachment_id,
-			'post_title'     => wp_basename( $cropped ),
-			'post_content'   => $url,
+			'post_title'     => $use_original_title ? $parent->post_title : wp_basename( $cropped ),
+			'post_content'   => $use_original_description ? $parent->post_content : $url,
 			'post_mime_type' => $image_type,
 			'guid'           => $url,
 			'context'        => 'site-icon',
 		);
+
+		// Copy the image caption attribute (post_excerpt field) from the original image.
+		if ( '' !== trim( $parent->post_excerpt ) ) {
+			$attachment['post_excerpt'] = $parent->post_excerpt;
+		}
+
+		// Copy the image alt text attribute from the original image.
+		if ( '' !== trim( $parent->_wp_attachment_image_alt ) ) {
+			$attachment['meta_input'] = array(
+				'_wp_attachment_image_alt' => wp_slash( $parent->_wp_attachment_image_alt ),
+			);
+		}	
 
 		return $attachment;
 	}
