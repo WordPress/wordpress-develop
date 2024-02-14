@@ -299,6 +299,7 @@ function create_initial_rest_routes() {
 		new WP_REST_Post_Search_Handler(),
 		new WP_REST_Term_Search_Handler(),
 		new WP_REST_Post_Format_Search_Handler(),
+		new WP_REST_Media_Search_Handler(),
 	);
 
 	/**
