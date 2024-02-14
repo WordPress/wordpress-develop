@@ -241,7 +241,7 @@ final class WP_Interactivity_API {
 			 * We still process the rest of the HTML.
 			 */
 			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
-				$p->skip_foreign_content();
+				$p->jump_to_tag_closer();
 				continue;
 			}
 

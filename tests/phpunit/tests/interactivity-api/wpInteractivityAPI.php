@@ -525,6 +525,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$html           = '
 			<header>
 				<svg height="100" data-wp-bind--width="myPlugin::state.width">
+					<title>Red Circle</title>
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
 				</svg>
 				<div data-wp-bind--id="myPlugin::state.id"></div>
@@ -560,7 +561,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			<header>
 				<svg height="100">
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-					<div data-wp-bind--id="myPlugin::state.id"></div>
+					<g data-wp-bind--id="myPlugin::state.id" />
 				</svg>
 			</header>
 		';
@@ -622,7 +623,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$html           = '
 			<header>
 				<math data-wp-bind--id="myPlugin::state.math">
-				<div data-wp-bind--id="myPlugin::state.id"></div>
+				<mrow data-wp-bind--id="myPlugin::state.id" />
 					<mi>x</mi>
 					<mo>=</mo>
 					<mi>1</mi>
