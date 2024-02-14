@@ -134,12 +134,11 @@ $tagline_description = sprintf(
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<div class="action-buttons">
 		<button type="button"
-			id="choose-from-library-link"
+			id="choose-from-library-button"
 			type="button"
 			class="<?php echo esc_attr( $classes_for_button ); ?>"
 			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
 			data-size="512"
-			data-choose="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
 			data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
