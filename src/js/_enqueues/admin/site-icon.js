@@ -57,7 +57,7 @@ function calculateImageSelectOptions( attachment ) {
  *
  * @since 6.5.0
  */
-$( function() {
+( function( $ ) {
 	// Build the choose from library frame.
 	$( '#choose-from-library-link' ).on( 'click', function() {
 		var $el = $(this);
@@ -118,7 +118,7 @@ $( function() {
 
 		frame.open();
 	});
-});
+}( jQuery ));
 
 /**
  * Updates the site icon preview with the specified URL.
@@ -128,50 +128,45 @@ $( function() {
  * @param {string} url The URL of the site icon image.
  */
 function switchToUpdate( url ) {
+	var chooseLink = jQuery( '#choose-from-library-link' );
+	var iconPreview = jQuery( '#site-icon-preview' );
 	// Set site-icon-img src to the url and remove the hidden class.
-	$( '#site-icon-preview' )
-		.find( 'img' )
-		.not( '.browser-preview' )
+	iconPreview.find( 'img' ).not( '.browser-preview' )
 		.each( function( i, img ) {
-			$(img).attr( 'src', url );
+			jQuery(img).attr( 'src', url );
 		});
-	$( '#site-icon-preview' ).removeClass( 'hidden' );
+	iconPreview.removeClass( 'hidden' );
 	// Remove hidden class from remove.
-	$( '#js-remove-site-icon' ).removeClass( 'hidden' );
+	jQuery( '#js-remove-site-icon' ).removeClass( 'hidden' );
 	// If the button is not in the update state, swap the classes.
-	if ($( '#choose-from-library-link' ).attr( 'data-state' ) !== '1' ) {
-		var classes = $( '#choose-from-library-link' ).attr( 'class' );
-		$( '#choose-from-library-link' ).attr(
-			'class',
-			$( '#choose-from-library-link' ).attr( 'data-alt-classes' )
-		);
-		$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
-		$( '#choose-from-library-link' ).attr( 'data-state', '1' );
+	if ( chooseLink.attr( 'data-state' ) !== '1' ) {
+		var classes = chooseLink.attr( 'class' );
+		chooseLink.attr( 'class', chooseLink.attr( 'data-alt-classes' ) );
+		chooseLink.attr( 'data-alt-classes', classes );
+		chooseLink.attr( 'data-state', '1' );
 	}
 
 	// Swap the text of the button.
-	$( '#choose-from-library-link' ).text(
-		$( '#choose-from-library-link' ).attr( 'data-update-text' )
+	chooseLink.text(
+		chooseLink.attr( 'data-update-text' )
 	);
 }
 
-$( '#js-remove-site-icon' ).on( 'click', function() {
-	var classes = $( '#choose-from-library-link' ).attr( 'class' );
+( function ( $ ) {
+	var chooseLink = $( '#choose-from-library-link' );
+	$( '#js-remove-site-icon' ).on( 'click', function() {
+		var classes = chooseLink.attr( 'class' );
 
-	$( '#site_icon_hidden_field' ).val( 'false' );
-	$( '#site-icon-preview' ).toggleClass( 'hidden' );
-	$(this).toggleClass( 'hidden' );
+		$( '#site_icon_hidden_field' ).val( 'false' );
+		$( '#site-icon-preview' ).toggleClass( 'hidden' );
+		$(this).toggleClass( 'hidden' );
 
-	$( '#choose-from-library-link' ).attr(
-		'class',
-		$( '#choose-from-library-link' ).attr( 'data-alt-classes' )
-	);
-	$( '#choose-from-library-link' ).attr( 'data-alt-classes', classes );
+		chooseLink.attr( 'class', chooseLink.attr( 'data-alt-classes' ) );
+		chooseLink.attr( 'data-alt-classes', classes );
 
-	// Swap the text of the button.
-	$( '#choose-from-library-link' ).text(
-		$( '#choose-from-library-link' ).attr( 'data-choose-text' )
-	);
-	// Set the state of the button so it can be changed on new icon.
-	$( '#choose-from-library-link' ).attr( 'data-state', '' );
-});
+		// Swap the text of the button.
+		chooseLink.text( chooseLink.attr( 'data-choose-text' ) );
+		// Set the state of the button so it can be changed on new icon.
+		chooseLink.attr( 'data-state', '' );
+	});
+}( jQuery ));
