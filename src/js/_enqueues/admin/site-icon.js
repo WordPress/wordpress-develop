@@ -141,10 +141,11 @@ function switchToUpdate( url ) {
 	jQuery( '#js-remove-site-icon' ).removeClass( 'hidden' );
 	// If the button is not in the update state, swap the classes.
 	if ( chooseLink.attr( 'data-state' ) !== '1' ) {
-		var classes = chooseLink.attr( 'class' );
-		chooseLink.attr( 'class', chooseLink.attr( 'data-alt-classes' ) );
-		chooseLink.attr( 'data-alt-classes', classes );
-		chooseLink.attr( 'data-state', '1' );
+		chooseLink.attr({
+			'class': chooseLink.attr( 'data-alt-classes' ),
+			'data-alt-classes': chooseLink.attr( 'class' ),
+			'data-state': '1'
+		});
 	}
 
 	// Swap the text of the button.
@@ -163,18 +164,17 @@ function switchToUpdate( url ) {
 ( function ( $ ) {
 	var chooseLink = $( '#choose-from-library-link' );
 	$( '#js-remove-site-icon' ).on( 'click', function() {
-		var classes = chooseLink.attr( 'class' );
-
 		$( '#site_icon_hidden_field' ).val( 'false' );
 		$( '#site-icon-preview' ).toggleClass( 'hidden' );
 		$(this).toggleClass( 'hidden' );
 
-		chooseLink.attr( 'class', chooseLink.attr( 'data-alt-classes' ) );
-		chooseLink.attr( 'data-alt-classes', classes );
+		chooseLink.attr({
+			'class': chooseLink.attr( 'data-alt-classes' ),
+			'data-alt-classes': chooseLink.attr( 'class' ),
+			'data-state': ''
+		});
 
 		// Swap the text of the button.
 		chooseLink.text( chooseLink.attr( 'data-choose-text' ) );
-		// Set the state of the button so it can be changed on new icon.
-		chooseLink.attr( 'data-state', '' );
 	});
 }( jQuery ));
