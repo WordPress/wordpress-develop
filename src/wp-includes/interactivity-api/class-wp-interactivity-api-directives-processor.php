@@ -195,7 +195,7 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	 *
 	 * @return bool Whether the foreign content was successfully skipped.
 	 */
-	public function jump_to_tag_closer(): bool {
+	public function skip_to_tag_closer(): bool {
 		$depth    = 1;
 		$tag_name = $this->get_tag();
 		while ( $depth > 0 && $this->next_tag(

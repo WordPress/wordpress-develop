@@ -623,7 +623,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$html           = '
 			<header>
 				<math data-wp-bind--id="myPlugin::state.math">
-				<mrow data-wp-bind--id="myPlugin::state.id" />
+					<mrow data-wp-bind--id="myPlugin::state.id" />
 					<mi>x</mi>
 					<mo>=</mo>
 					<mi>1</mi>
