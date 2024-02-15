@@ -40,6 +40,8 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( $query_args_to_remove, $_SERVER['REQ
 
 wp_enqueue_script( 'updates' );
 
+WP_Plugin_Dependencies::initialize();
+
 if ( $action ) {
 
 	switch ( $action ) {
