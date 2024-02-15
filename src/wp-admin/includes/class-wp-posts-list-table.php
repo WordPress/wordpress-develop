@@ -1543,13 +1543,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 					);
 				}
 			} elseif ( 'trash' !== $post->post_status ) {
-				$actions['view'] = sprintf(
-					'<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
-					get_permalink( $post->ID ),
-					/* translators: %s: Post title. */
-					esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $title ) ),
-					__( 'View' )
-				);
+				$permalink = get_permalink( $post->ID );
+				if ( $permalink ) {
+					$actions['view'] = sprintf(
+						'<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
+						$permalink,
+						/* translators: %s: Post title. */
+						esc_attr( sprintf( __( 'View &#8220;%s&#8221;' ), $title ) ),
+						__( 'View' )
+					);
+				}
 			}
 		}
 
