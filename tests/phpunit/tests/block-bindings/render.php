@@ -148,12 +148,12 @@ HTML;
 		$this->assertSame(
 			'Value: source context value',
 			$block->attributes['content'],
-			'Value: source context value'
+			"The 'content' should be updated with the value of the source context."
 		);
 		$this->assertSame(
 			'<p>Value: source context value</p>',
 			trim( $result ),
-			'Value: source context value'
+			'The block content should be updated with the value of the source context.'
 		);
 	}
 
