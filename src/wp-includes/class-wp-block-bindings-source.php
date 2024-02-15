@@ -65,11 +65,9 @@ final class WP_Block_Bindings_Source {
 	 * @param array  $source_properties  The properties of the source.
 	 */
 	public function __construct( string $name, array $source_properties ) {
-		$this->name               = $name;
-		$this->label              = $source_properties['label'];
-		$this->get_value_callback = $source_properties['get_value_callback'];
-		if ( isset( $source_properties['uses_context'] ) ) {
-			$this->uses_context = $source_properties['uses_context'];
+		$this->name = $name;
+		foreach ( $source_properties as $property_name => $property_value ) {
+			$this->$property_name = $property_value;
 		}
 	}
 
@@ -97,3 +95,26 @@ final class WP_Block_Bindings_Source {
 		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
 	}
 }
+
+
+register_meta(
+	'post',
+	'page_text_custom_field',
+	array(
+		'show_in_rest'      => true,
+		'single'            => true,
+		'type'              => 'string',
+		'default'           => 'Content of the page_text_custom_field',
+		'revisions_enabled' => true,
+	)
+);
+register_meta(
+	'post',
+	'page_url_custom_field',
+	array(
+		'show_in_rest' => true,
+		'single'       => true,
+		'type'         => 'string',
+		'default'      => 'https://wpmovies.dev/wp-content/uploads/2023/03/3bhkrj58Vtu7enYsRolD1fZdja1-683x1024.jpg',
+	)
+);

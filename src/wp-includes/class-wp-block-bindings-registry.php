@@ -33,6 +33,18 @@ final class WP_Block_Bindings_Registry {
 	private static $instance = null;
 
 	/**
+	 * Supported source properties that can be passed to the registered source.
+	 *
+	 * @since 6.5.0
+	 * @var array
+	 */
+	private $allowed_source_properties = array(
+		'label',
+		'get_value_callback',
+		'uses_context',
+	);
+
+	/**
 	 * Supported blocks that can use the block bindings API.
 	 *
 	 * @since 6.5.0
@@ -156,6 +168,15 @@ final class WP_Block_Bindings_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'The "uses_context" parameter must be an array.' ),
+				'6.5.0'
+			);
+			return false;
+		}
+
+		if ( ! empty( array_diff( array_keys( $source_properties ), $this->allowed_source_properties ) ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The $source_properties array contains invalid properties.' ),
 				'6.5.0'
 			);
 			return false;
