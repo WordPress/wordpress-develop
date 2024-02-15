@@ -113,7 +113,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			array(
 				'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
 				'post_status'  => 'publish',
-				'post_title'   => __( 'Custom Styles', 'default' ),
+				'post_title'   => __( 'Custom Styles' ),
 				'post_type'    => 'wp_global_styles',
 				'post_name'    => 'wp-global-styles-tt1-blocks-revisions-2',
 				'tax_input'    => array(
