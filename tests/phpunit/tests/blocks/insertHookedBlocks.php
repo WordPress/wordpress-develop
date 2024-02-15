@@ -25,20 +25,16 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 59572
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::insert_hooked_blocks
 	 */
-	public function test_insert_hooked_blocks_adds_metadata() {
+	public function test_insert_hooked_blocks_returns_correct_markup() {
 		$anchor_block = array(
 			'blockName' => self::ANCHOR_BLOCK_TYPE,
 		);
 
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"Hooked block type wasn't added to ignoredHookedBlocks metadata."
-		);
 		$this->assertSame(
 			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /-->',
 			$actual,
@@ -49,10 +45,11 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 59572
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::insert_hooked_blocks
 	 */
-	public function test_insert_hooked_blocks_if_block_is_already_hooked() {
+	public function test_insert_hooked_blocks_if_block_is_ignored() {
 		$anchor_block = array(
 			'blockName' => 'tests/anchor-block',
 			'attrs'     => array(
@@ -64,11 +61,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
 		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"ignoredHookedBlocks metadata shouldn't have been modified."
-		);
-		$this->assertSame(
 			'',
 			$actual,
 			"No markup should've been generated for ignored hooked block."
@@ -78,10 +70,11 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 59572
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::insert_hooked_blocks
 	 */
-	public function test_insert_hooked_blocks_adds_to_ignored_hooked_blocks() {
+	public function test_insert_hooked_blocks_if_other_block_is_ignored() {
 		$anchor_block = array(
 			'blockName' => 'tests/anchor-block',
 			'attrs'     => array(
@@ -93,11 +86,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 
 		$actual = insert_hooked_blocks( $anchor_block, 'before', self::HOOKED_BLOCKS, array() );
 		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE, self::OTHER_HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"Newly hooked block should've been added to ignoredHookedBlocks metadata while retaining previously ignored one."
-		);
-		$this->assertSame(
 			'<!-- wp:' . self::OTHER_HOOKED_BLOCK_TYPE . ' /-->',
 			$actual,
 			"Markup for newly hooked block should've been generated."
@@ -107,6 +95,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 59572
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::insert_hooked_blocks
 	 */
@@ -140,11 +129,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 
 		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"Hooked block type wasn't added to ignoredHookedBlocks metadata."
-		);
-		$this->assertSame(
 			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' {"layout":{"type":"constrained"}} /-->',
 			$actual,
 			"Markup wasn't generated correctly for hooked block with attribute set by filter."
@@ -154,6 +138,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 	/**
 	 * @ticket 59572
 	 * @ticket 60126
+	 * @ticket 60506
 	 *
 	 * @covers ::insert_hooked_blocks
 	 */
@@ -189,11 +174,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
 		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 
-		$this->assertSame(
-			array( self::HOOKED_BLOCK_TYPE ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			"Hooked block type wasn't added to ignoredHookedBlocks metadata."
-		);
 		$this->assertSame(
 			'<!-- wp:group --><div class="wp-block-group"><!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /--></div><!-- /wp:group -->',
 			$actual,

@@ -837,8 +837,10 @@ function switch_theme( $stylesheet ) {
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
 	// Clear pattern caches.
-	$new_theme->delete_pattern_cache();
-	$old_theme->delete_pattern_cache();
+	if ( ! is_multisite() ) {
+		$new_theme->delete_pattern_cache();
+		$old_theme->delete_pattern_cache();
+	}
 
 	// Set autoload=no for the old theme, autoload=yes for the switched theme.
 	$theme_mods_options = array(
@@ -2802,7 +2804,7 @@ function add_theme_support( $feature, ...$args ) {
 			 * the constant is always accurate (and is not defined later,  overriding our value).
 			 * As stated above, the first value wins.
 			 * Once we get to wp_loaded (just-in-time), define any constants we haven't already.
-			 * Constants are lame. Don't reference them. This is just for backward compatibility.
+			 * Constants should be avoided. Don't reference them. This is just for backward compatibility.
 			 */
 
 			if ( defined( 'NO_HEADER_TEXT' ) ) {
