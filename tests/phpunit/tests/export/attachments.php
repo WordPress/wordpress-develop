@@ -108,7 +108,11 @@ class Test_Export_Includes_Attachments extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/export.php';
 
 		ob_start();
-		export_wp( array( 'content' => 'post' ) );
+		export_wp(
+			array(
+				'content' => 'post',
+			)
+		);
 		$xml = simplexml_load_string( ob_get_clean() );
 
 		$this->assertNotEmpty( $xml->channel->item->title );
@@ -135,7 +139,11 @@ class Test_Export_Includes_Attachments extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/export.php';
 
 		ob_start();
-		export_wp( array( 'content' => 'page' ) );
+		export_wp(
+			array(
+				'content' => 'page',
+			)
+		);
 		$xml = simplexml_load_string( ob_get_clean() );
 
 		$this->assertNotEmpty( $xml->channel->item->title );
@@ -162,7 +170,12 @@ class Test_Export_Includes_Attachments extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/export.php';
 
 		ob_start();
-		export_wp( array( 'content' => 'page', 'author' => self::$page_1->post_author ) );
+		export_wp(
+			array(
+				'content' => 'page',
+				'author'  => self::$page_1->post_author,
+			)
+		);
 		$xml = simplexml_load_string( ob_get_clean() );
 
 		$this->assertNotEmpty( $xml->channel->item->title );
