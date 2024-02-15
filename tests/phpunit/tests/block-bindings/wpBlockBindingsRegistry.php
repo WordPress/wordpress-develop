@@ -353,6 +353,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 * @ticket 60525
 	 *
 	 * @covers ::register_block_bindings_source
+	 * @covers WP_Block_Type::get_uses_context
 	 */
 	public function test_merging_uses_context_from_multiple_sources() {
 		$get_value_callback = function () {
