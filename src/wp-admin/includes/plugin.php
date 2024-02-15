@@ -1199,6 +1199,8 @@ function validate_plugin_requirements( $plugin ) {
 		);
 	}
 
+	WP_Plugin_Dependencies::initialize();
+
 	if ( WP_Plugin_Dependencies::has_unmet_dependencies( $plugin ) ) {
 		$dependencies       = WP_Plugin_Dependencies::get_dependencies( $plugin );
 		$unmet_dependencies = array();
