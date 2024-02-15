@@ -137,10 +137,10 @@ HTML;
 		);
 
 		$block_content = <<<HTML
-		<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args": {"key": "test"}}}}} -->
-		<p>This should not appear</p>
-		<!-- /wp:paragraph -->
-		HTML;
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args": {"key": "test"}}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
 		$parsed_blocks = parse_blocks( $block_content );
 		$block         = new WP_Block( $parsed_blocks[0], array( 'sourceContext' => 'source context value' ) );
 		$result        = $block->render();
