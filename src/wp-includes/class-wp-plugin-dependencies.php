@@ -512,14 +512,8 @@ class WP_Plugin_Dependencies {
 			return self::$plugins;
 		}
 
-		$all_plugin_data = get_option( 'plugin_data', array() );
-
-		if ( empty( $all_plugin_data ) ) {
-			require_once ABSPATH . '/wp-admin/includes/plugin.php';
-			$all_plugin_data = get_plugins();
-		}
-
-		self::$plugins = $all_plugin_data;
+		require_once ABSPATH . '/wp-admin/includes/plugin.php';
+		self::$plugins = get_plugins();
 
 		return self::$plugins;
 	}
