@@ -4505,6 +4505,13 @@ class WP_HTML_Tag_Processor {
 	 * Debug helpers.
 	 */
 
+	public function debug_current_position() {
+		echo "\n\e[31mCurrent Position\e[m\n";
+		echo "\e[32m{$this->html}\e[m\n";
+		echo str_pad( '', $this->bytes_already_parsed, ' ' );
+		echo "\e[33m^\e[m\n";
+	}
+
 	public function debug_classname_updates() {
 		echo "\n\e[31m\"\e[35mclass\e[31m\" Updates\e[m\n";
 		foreach ( $this->classname_updates as $name => $change ) {
