@@ -32,6 +32,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 		'dependency_filepaths'        => null,
 		'circular_dependencies_pairs' => null,
 		'circular_dependencies_slugs' => null,
+		'initialized'                 => false,
 	);
 
 	/**

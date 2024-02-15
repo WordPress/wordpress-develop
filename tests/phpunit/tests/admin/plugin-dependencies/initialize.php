@@ -16,6 +16,68 @@ require_once __DIR__ . '/base.php';
 class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_UnitTestCase {
 
 	/**
+	 * Tests that initialization runs only once.
+	 *
+	 * @ticket 60457
+	 *
+	 * @dataProvider data_static_properties_set_during_initialization
+	 *
+	 * @param string $property_name The name of the property to check.
+	 */
+	public function test_should_only_initialize_once( $property_name ) {
+		$this->assertFalse(
+			$this->get_property_value( 'initialized' ),
+			'Plugin Dependencies has already been initialized.'
+		);
+
+		self::$instance->initialize();
+
+		$this->assertTrue(
+			$this->get_property_value( 'initialized' ),
+			'"initialized" was not set to true during initialization.'
+		);
+
+		$default_value = self::$static_properties[ $property_name ];
+
+		$this->assertNotSame(
+			$default_value,
+			$this->get_property_value( $property_name ),
+			"\"{$property_name}\" was not set during initialization."
+		);
+
+		// Reset it to its default.
+		$this->set_property_value( $property_name, self::$static_properties[ $property_name ] );
+
+		self::$instance->initialize();
+
+		$this->assertSame(
+			$default_value,
+			$this->get_property_value( $property_name ),
+			"\"{$property_name}\" was set during the second initialization attempt."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_static_properties_set_during_initialization() {
+		/*
+		 * This does not include 'dependency_api_data' as it is only set
+		 * on certain pages. This is tested later.
+		 */
+		return self::text_array_to_dataprovider(
+			array(
+				'plugins',
+				'dependencies',
+				'dependency_slugs',
+				'dependent_slugs',
+			)
+		);
+	}
+
+	/**
 	 * Tests that `$dependency_api_data` is set on certain screens.
 	 *
 	 * @ticket 22316
