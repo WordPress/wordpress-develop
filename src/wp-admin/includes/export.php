@@ -150,13 +150,16 @@ function export_wp( $args = array() ) {
 			$posts_in     = array_map( 'absint', $next_posts );
 			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
 
+			// Create a string for the placeholders.
+			$in_placeholder = implode( ',', $placeholders );
+
 			// Prepare the SQL statement for attachment ids
 			$attachment_ids = $wpdb->get_col(
 				$wpdb->prepare(
 					"
 				SELECT ID
 				FROM $wpdb->posts
-				WHERE post_parent IN (" . implode( ',', $placeholders ) . ") AND post_type = 'attachment'
+				WHERE post_parent IN ($in_placeholder) AND post_type = 'attachment'
 					",
 					$posts_in
 				)
@@ -167,7 +170,7 @@ function export_wp( $args = array() ) {
 					"
 				SELECT meta_value
 				FROM {$wpdb->postmeta}
-				WHERE {$wpdb->postmeta}.post_id IN (" . implode( ',', $placeholders ) . ")
+				WHERE {$wpdb->postmeta}.post_id IN ($in_placeholder)
 				AND {$wpdb->postmeta}.meta_key = '_thumbnail_id'
 					",
 					$posts_in
