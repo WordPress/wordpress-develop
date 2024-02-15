@@ -150,7 +150,6 @@ function switchToUpdate( url ) {
 	chooseButton.text(
 		chooseButton.attr( 'data-update-text' )
 	);
-	chooseButton.trigger( 'focus' );
 }
 
 /**
