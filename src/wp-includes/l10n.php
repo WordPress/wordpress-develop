@@ -1631,14 +1631,11 @@ function wp_dropdown_languages( $args = array() ) {
 	 */
 	$languages = array();
 	foreach ( $parsed_args['languages'] as $locale ) {
-		$language_package  = $translations[ $locale ]['package'];
-		$language_filename = pathinfo( basename( $language_package ), PATHINFO_FILENAME );
-
 		if ( isset( $translations[ $locale ] ) ) {
 			$translation = $translations[ $locale ];
 			$languages[] = array(
 				'language'    => $translation['language'],
-				'native_name' => $translation['native_name'] . ' (' . $language_filename . ')',
+				'native_name' => $translation['native_name'] . ' (' . $locale . ')',
 				'lang'        => current( $translation['iso'] ),
 			);
 
@@ -1647,7 +1644,7 @@ function wp_dropdown_languages( $args = array() ) {
 		} else {
 			$languages[] = array(
 				'language'    => $locale,
-				'native_name' => $locale . ' (' . $language_filename . ')',
+				'native_name' => $locale,
 				'lang'        => '',
 			);
 		}
