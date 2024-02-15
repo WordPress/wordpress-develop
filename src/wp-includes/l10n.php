@@ -1631,11 +1631,14 @@ function wp_dropdown_languages( $args = array() ) {
 	 */
 	$languages = array();
 	foreach ( $parsed_args['languages'] as $locale ) {
+		$language_package  = $translations[ $locale ]['package'];
+		$language_filename = pathinfo( basename( $language_package ), PATHINFO_FILENAME );
+
 		if ( isset( $translations[ $locale ] ) ) {
 			$translation = $translations[ $locale ];
 			$languages[] = array(
 				'language'    => $translation['language'],
-				'native_name' => $translation['native_name'],
+				'native_name' => $translation['native_name'] . ' (' . $language_filename . ')',
 				'lang'        => current( $translation['iso'] ),
 			);
 
@@ -1644,12 +1647,11 @@ function wp_dropdown_languages( $args = array() ) {
 		} else {
 			$languages[] = array(
 				'language'    => $locale,
-				'native_name' => $locale,
+				'native_name' => $locale . ' (' . $language_filename . ')',
 				'lang'        => '',
 			);
 		}
 	}
-
 	$translations_available = ( ! empty( $translations ) && $parsed_args['show_available_translations'] );
 
 	// Holds the HTML markup.
@@ -1701,7 +1703,7 @@ function wp_dropdown_languages( $args = array() ) {
 				esc_attr( $translation['language'] ),
 				esc_attr( current( $translation['iso'] ) ),
 				selected( $translation['language'], $parsed_args['selected'], false ),
-				esc_html( $translation['native_name'] )
+				esc_html( $translation['native_name'] . ' (' . pathinfo( basename( $translation['package'] ), PATHINFO_FILENAME ) . ')' )
 			);
 		}
 		$structure[] = '</optgroup>';
