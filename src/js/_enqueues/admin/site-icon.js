@@ -117,7 +117,7 @@ function calculateImageSelectOptions( attachment ) {
 
 		frame.open();
 	});
-}( jQuery ));
+})( jQuery );
 
 /**
  * Updates the site icon preview with the specified URL.
@@ -175,4 +175,4 @@ function switchToUpdate( url ) {
 		// Swap the text of the button.
 		chooseButton.text( chooseButton.attr( 'data-choose-text' ) );
 	});
-}( jQuery ));
+})( jQuery );
