@@ -164,6 +164,23 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should reject block bindings registration if `uses_context` is not an array.
+	 *
+	 * @ticket 60525
+	 *
+	 * @covers WP_Block_Bindings_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Block_Bindings_Registry::register
+	 */
+	public function test_register_invalid_string_uses_context() {
+
+		self::$test_source_properties['uses_context'] = 'not-an-array';
+
+		$result = $this->registry->register( self::$test_source_name, self::$test_source_properties );
+		$this->assertFalse( $result );
+	}
+
+	/**
 	 * Should accept valid block binding source.
 	 *
 	 * @ticket 60282
