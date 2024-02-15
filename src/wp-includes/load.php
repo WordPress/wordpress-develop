@@ -875,6 +875,7 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -1190,6 +1191,7 @@ function is_protected_ajax_action() {
 		'search-install-plugins', // Searching for a plugin in the plugin install screen.
 		'update-plugin',          // Update an existing plugin.
 		'update-theme',           // Update an existing theme.
+		'activate-plugin',        // Activating an existing plugin.
 	);
 
 	/**
