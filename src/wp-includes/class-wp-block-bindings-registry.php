@@ -197,9 +197,7 @@ final class WP_Block_Bindings_Registry {
 					return $uses_context;
 				}
 				// Use array_values to reset the array keys.
-				$merged_uses_context = array_values( array_unique( array_merge( $uses_context, $source->uses_context ) ) );
-
-				return $merged_uses_context;
+				return array_values( array_unique( array_merge( $uses_context, $source->uses_context ) ) );
 			},
 			10,
 			2
