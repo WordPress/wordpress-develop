@@ -146,7 +146,13 @@ function export_wp( $args = array() ) {
 
 	// Get IDs for the attachments of each post, unless all content is already being exported.
 	if ( ! in_array( $args['content'], array( 'all', 'attachment' ), true ) ) {
-		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
+		// Array to hold all additional IDs (attachments and thumbnails)
+		$additional_ids = array();
+
+		// Create a copy of the post IDs array to avoid modifying the original array.
+		$processing_ids = $post_ids;
+
+		while ( $next_posts = array_splice( $processing_ids, 0, 20 ) ) {
 			$posts_in     = array_map( 'absint', $next_posts );
 			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
 
@@ -177,8 +183,11 @@ function export_wp( $args = array() ) {
 				)
 			);
 
-			$post_ids = array_unique( array_merge( $post_ids, $attachment_ids, $thumbnails_ids ) );
+			$additional_ids = array_merge( $additional_ids, $attachment_ids, $thumbnails_ids );
 		}
+
+		// Merge the additional IDs back with the original post IDs after processing all posts
+		$post_ids = array_unique( array_merge( $post_ids, $additional_ids ) );
 	}
 
 	/*
