@@ -802,7 +802,7 @@ ul#add-to-blog-users {
 
 .button-add-site-icon:focus,
 .button-add-site-icon:hover {
-	background: white;
+	background: #fff;
 }
 
 .site-icon-section .favicon-preview {

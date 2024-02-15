@@ -59,7 +59,7 @@ function calculateImageSelectOptions( attachment ) {
 	var frame;
 	// Build the choose from library frame.
 	$( '#choose-from-library-button' ).on( 'click', function() {
-		var $el = $(this);
+		var $el = $( this );
 
 		// Create the media frame.
 		frame = wp.media({
@@ -90,8 +90,8 @@ function calculateImageSelectOptions( attachment ) {
 		});
 
 		frame.on( 'cropped', function( attachment ) {
-			$( '#site_icon_hidden_field' ).val(attachment.id);
-			switchToUpdate(attachment.url);
+			$( '#site_icon_hidden_field' ).val( attachment.id );
+			switchToUpdate( attachment.url );
 			frame.close();
 			// Start over with a frame that is so fresh and so clean clean.
 			frame = null;
@@ -107,8 +107,8 @@ function calculateImageSelectOptions( attachment ) {
 				$el.data( 'size' ) === attachment.attributes.width
 			) {
 				// Set the value of the hidden input to the attachment id.
-				$( '#site_icon_hidden_field' ).val(attachment.id);
-				switchToUpdate(attachment.attributes.url);
+				$( '#site_icon_hidden_field' ).val( attachment.id );
+				switchToUpdate( attachment.attributes.url );
 				frame.close();
 			} else {
 				frame.setState( 'cropper' );
@@ -132,7 +132,7 @@ function switchToUpdate( url ) {
 	// Set site-icon-img src to the url and remove the hidden class.
 	iconPreview.find( 'img' ).not( '.browser-preview' )
 		.each( function( i, img ) {
-			jQuery(img).attr( 'src', url );
+			jQuery( img ).attr( 'src', url );
 		});
 	iconPreview.removeClass( 'hidden' );
 	// Remove hidden class from remove.
@@ -164,7 +164,7 @@ function switchToUpdate( url ) {
 	$( '#js-remove-site-icon' ).on( 'click', function() {
 		$( '#site_icon_hidden_field' ).val( 'false' );
 		$( '#site-icon-preview' ).toggleClass( 'hidden' );
-		$(this).toggleClass( 'hidden' );
+		$( this ).toggleClass( 'hidden' );
 
 		chooseButton.attr({
 			'class': chooseButton.attr( 'data-alt-classes' ),
@@ -173,7 +173,8 @@ function switchToUpdate( url ) {
 		});
 
 		// Swap the text of the button.
-		chooseButton.text( chooseButton.attr( 'data-choose-text' ) );
-		chooseButton.trigger( 'focus' );
+		chooseButton
+			.text( chooseButton.attr( 'data-choose-text' ) )
+			.trigger( 'focus' );
 	});
 })( jQuery );
