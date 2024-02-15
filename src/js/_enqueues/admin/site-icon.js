@@ -58,7 +58,7 @@ function calculateImageSelectOptions( attachment ) {
 ( function( $ ) {
 	var frame;
 	// Build the choose from library frame.
-	$( '#choose-from-library-link' ).on( 'click', function() {
+	$( '#choose-from-library-button' ).on( 'click', function() {
 		var $el = $(this);
 
 		// Create the media frame.
@@ -150,6 +150,7 @@ function switchToUpdate( url ) {
 	chooseButton.text(
 		chooseButton.attr( 'data-update-text' )
 	);
+	chooseButton.trigger( 'focus' );
 }
 
 /**
@@ -174,5 +175,6 @@ function switchToUpdate( url ) {
 
 		// Swap the text of the button.
 		chooseButton.text( chooseButton.attr( 'data-choose-text' ) );
+		chooseButton.trigger( 'focus' );
 	});
 })( jQuery );
