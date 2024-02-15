@@ -146,8 +146,8 @@ function export_wp( $args = array() ) {
 
 	// Get IDs for the attachments of each post, unless all content is already being exported.
 	if ( ! in_array( $args['content'], array( 'all', 'attachment' ), true ) ) {
-		foreach ( array_chunk( $post_ids, 20 ) as $chunk ) {
-			$posts_in     = array_map( 'absint', $chunk );
+		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
+			$posts_in     = array_map( 'absint', $next_posts );
 			$placeholders = array_fill( 0, count( $posts_in ), '%d' );
 
 			// Prepare the SQL statement for attachment ids
