@@ -7,8 +7,8 @@
  */
 class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		update_option( 'show_on_front', 'page' );
 		update_option(
@@ -35,11 +35,11 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 	/**
 	 * @dataProvider data
 	 */
-	function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data() {
+	public function data() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -51,21 +51,21 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 		 */
 		return array(
 			// Check against an odd redirect.
-			array( '/page/2/', '/page/2/' ),
-			array( '/?page=2', '/page/2/' ),
-			array( '/page/1/', '/' ),
-			array( '/?page=1', '/' ),
+			array( '/page/2/', '/page/2/', 20385 ),
+			array( '/?page=2', '/page/2/', 35344 ),
+			array( '/page/1/', '/', 35344 ),
+			array( '/?page=1', '/', 35344 ),
 
 			// The page designated as the front page should redirect to the front of the site.
-			array( '/front-page/', '/' ),
+			array( '/front-page/', '/', 20385 ),
 			// The front page supports the <!--nextpage--> pagination.
-			array( '/front-page/2/', '/page/2/' ),
-			array( '/front-page/?page=2', '/page/2/' ),
+			array( '/front-page/2/', '/page/2/', 35344 ),
+			array( '/front-page/?page=2', '/page/2/', 35344 ),
 			// The posts page does not support the <!--nextpage--> pagination.
-			array( '/blog-page/2/', '/blog-page/' ),
-			array( '/blog-page/?page=2', '/blog-page/' ),
+			array( '/blog-page/2/', '/blog-page/', 45337 ),
+			array( '/blog-page/?page=2', '/blog-page/', 45337 ),
 			// The posts page supports regular pagination.
-			array( '/blog-page/?paged=2', '/blog-page/page/2/' ),
+			array( '/blog-page/?paged=2', '/blog-page/page/2/', 20385 ),
 		);
 	}
 }

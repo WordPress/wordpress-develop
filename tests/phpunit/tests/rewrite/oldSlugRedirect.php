@@ -9,8 +9,8 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 	protected $post_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->post_id = self::factory()->post->create(
 			array(
@@ -29,12 +29,10 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		flush_rewrite_rules();
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-
+	public function tear_down() {
 		$this->old_slug_redirect_url = null;
 
-		remove_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10 );
+		parent::tear_down();
 	}
 
 	public function test_old_slug_redirect() {
@@ -51,7 +49,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
-		$this->assertEquals( $permalink, $this->old_slug_redirect_url );
+		$this->assertSame( $permalink, $this->old_slug_redirect_url );
 	}
 
 	public function test_old_slug_redirect_attachment() {
@@ -92,7 +90,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
-		$this->assertEquals( $permalink, $this->old_slug_redirect_url );
+		$this->assertSame( $permalink, $this->old_slug_redirect_url );
 	}
 
 	public function test_old_slug_redirect_paged() {
@@ -116,7 +114,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
-		$this->assertEquals( $permalink, $this->old_slug_redirect_url );
+		$this->assertSame( $permalink, $this->old_slug_redirect_url );
 	}
 
 	/**
@@ -141,7 +139,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 		$permalink = user_trailingslashit( get_permalink( $new_post_id ) );
 
-		$this->assertEquals( $old_permalink, $permalink );
+		$this->assertSame( $old_permalink, $permalink );
 
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();

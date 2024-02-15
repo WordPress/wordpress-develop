@@ -4,14 +4,15 @@
  * Test the do_action method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::do_action
  */
-class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
+class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	private $events        = array();
 	private $action_output = '';
 	private $hook;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->events = array();
 	}
 
@@ -27,7 +28,7 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
-		$this->assertEquals( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
 	}
 
 	public function test_do_action_with_multiple_calls() {
@@ -43,7 +44,7 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 		$hook->do_action( array( $arg ) );
 		$hook->do_action( array( $arg ) );
 
-		$this->assertEquals( 2, $a->get_call_count() );
+		$this->assertSame( 2, $a->get_call_count() );
 	}
 
 	public function test_do_action_with_multiple_callbacks_on_same_priority() {
@@ -61,8 +62,8 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 		$hook->add_filter( $tag, $callback_two, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
 	}
 
 	public function test_do_action_with_multiple_callbacks_on_different_priorities() {
@@ -80,8 +81,8 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 		$hook->add_filter( $tag, $callback_two, $priority + 1, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
 	}
 
 	public function test_do_action_with_no_accepted_args() {

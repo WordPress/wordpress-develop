@@ -13,31 +13,30 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	/**
 	 * Setup.
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $_wp_nav_menu_max_depth;
 
-		parent::setUp();
+		parent::set_up();
 
 		/** Walker_Nav_Menu class */
 		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
 		$this->walker = new Walker_Nav_Menu();
 
 		$this->_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
-		parent::setUp();
 	}
 
 	/**
 	 * Tear down
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		global $_wp_nav_menu_max_depth;
 
 		$_wp_nav_menu_max_depth = $this->_wp_nav_menu_max_depth;
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
-	 * Tests when an item's target is _blank, that rel="noopener noreferrer" is added.
+	 * Tests when an item's target is _blank, that rel="noopener" is added.
 	 *
 	 * @ticket 43290
 	 */
@@ -64,7 +63,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		$this->walker->start_el( $expected, (object) $item, 0, (object) $args );
 
-		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a target=\"_blank\" rel=\"noopener noreferrer\">{$post_title}</a>", $expected );
+		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a target=\"_blank\" rel=\"noopener\">{$post_title}</a>", $expected );
 	}
 
 	/**
@@ -95,7 +94,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		add_filter(
 			'nav_menu_link_attributes',
-			function( $atts ) use ( $value ) {
+			static function( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

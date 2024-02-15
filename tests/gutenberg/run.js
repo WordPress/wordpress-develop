@@ -7,8 +7,7 @@ const chalk = require( 'chalk' );
 const childProcess = require( 'child_process' );
 
 // Config
-// This should be updated every time we update the WordPress packages.
-const GUTENBERG_VERSION = '@wordpress/block-editor@4.3.0';
+const GUTENBERG_VERSION = 'wp/trunk';
 
 // Utils
 /**

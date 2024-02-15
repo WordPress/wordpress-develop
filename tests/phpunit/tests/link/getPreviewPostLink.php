@@ -8,7 +8,7 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 	public function test_get_preview_post_link() {
 		$post = self::factory()->post->create();
 
-		$this->assertEquals( add_query_arg( 'preview', 'true', get_permalink( $post ) ), get_preview_post_link( $post ) );
+		$this->assertSame( add_query_arg( 'preview', 'true', get_permalink( $post ) ), get_preview_post_link( $post ) );
 	}
 
 	public function test_get_preview_post_link_should_add_additional_query_vars() {
@@ -23,7 +23,7 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 			get_permalink( $post )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected,
 			get_preview_post_link(
 				$post,
@@ -40,7 +40,7 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 
 		$expected = 'https://google.com/?foo=bar&bar=baz&preview=true';
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected,
 			get_preview_post_link(
 				$post,
@@ -64,7 +64,7 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 
 		$GLOBALS['post'] = $post;
 
-		$this->assertEquals( add_query_arg( 'preview', 'true', get_permalink( $post ) ), get_preview_post_link() );
+		$this->assertSame( add_query_arg( 'preview', 'true', get_permalink( $post ) ), get_preview_post_link() );
 	}
 
 	public function test_get_preview_post_link_should_return_empty_string_for_non_viewable_post_type() {

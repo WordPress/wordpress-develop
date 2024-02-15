@@ -6,13 +6,13 @@
  */
 class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_editProfile( array( 1, 'username', 'password', array() ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
-	function test_subscriber_profile() {
+	public function test_subscriber_profile() {
 		$subscriber_id = $this->make_user_by_role( 'subscriber' );
 
 		$new_data = array(
@@ -30,16 +30,16 @@ class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 
 		// Verify that the new values were stored.
 		$user_data = get_userdata( $subscriber_id );
-		$this->assertEquals( $new_data['first_name'], $user_data->first_name );
-		$this->assertEquals( $new_data['last_name'], $user_data->last_name );
-		$this->assertEquals( $new_data['url'], $user_data->user_url );
-		$this->assertEquals( $new_data['display_name'], $user_data->display_name );
-		$this->assertEquals( $new_data['nickname'], $user_data->nickname );
-		$this->assertEquals( $new_data['nicename'], $user_data->user_nicename );
-		$this->assertEquals( $new_data['bio'], $user_data->description );
+		$this->assertSame( $new_data['first_name'], $user_data->first_name );
+		$this->assertSame( $new_data['last_name'], $user_data->last_name );
+		$this->assertSame( $new_data['url'], $user_data->user_url );
+		$this->assertSame( $new_data['display_name'], $user_data->display_name );
+		$this->assertSame( $new_data['nickname'], $user_data->nickname );
+		$this->assertSame( $new_data['nicename'], $user_data->user_nicename );
+		$this->assertSame( $new_data['bio'], $user_data->description );
 	}
 
-	function test_ignore_password_change() {
+	public function test_ignore_password_change() {
 		$this->make_user_by_role( 'author' );
 		$new_pass = 'newpassword';
 		$new_data = array( 'password' => $new_pass );
@@ -54,7 +54,7 @@ class Tests_XMLRPC_wp_editProfile extends WP_XMLRPC_UnitTestCase {
 		$this->assertWPError( $auth_new );
 	}
 
-	function test_ignore_email_change() {
+	public function test_ignore_email_change() {
 		$editor_id = $this->make_user_by_role( 'editor' );
 		$new_email = 'notaneditor@example.com';
 		$new_data  = array( 'email' => $new_email );

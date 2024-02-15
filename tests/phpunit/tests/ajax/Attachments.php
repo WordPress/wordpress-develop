@@ -58,11 +58,12 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 
 		// Ensure everything is correct.
 		$this->assertTrue( $response['success'] );
-		$this->assertEquals( $expected, $response['data'] );
+		$this->assertSame( $expected, $response['data'] );
 	}
 
 	/**
 	 * @ticket 36578
+	 * @group ms-excluded
 	 */
 	public function test_wp_ajax_send_attachment_to_editor_should_return_a_link() {
 		// Become an administrator.
@@ -111,6 +112,6 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 
 		// Ensure everything is correct.
 		$this->assertTrue( $response['success'] );
-		$this->assertEquals( $expected, $response['data'] );
+		$this->assertSame( $expected, $response['data'] );
 	}
 }

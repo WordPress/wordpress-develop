@@ -10,21 +10,8 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_Option extends WP_UnitTestCase {
-		protected $suppress = false;
 
-		function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		function tearDown() {
-			global $wpdb;
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
-
-		function test_from_same_site() {
+		public function test_from_same_site() {
 			$key    = __FUNCTION__ . '_1';
 			$key2   = __FUNCTION__ . '_2';
 			$value  = __FUNCTION__ . '_val1';
@@ -35,33 +22,33 @@ if ( is_multisite() ) :
 
 			$this->assertTrue( add_blog_option( 1, $key, $value ) );
 			// Assert all values of $blog_id that means the current or main blog (the same here).
-			$this->assertEquals( $value, get_blog_option( 1, $key ) );
-			$this->assertEquals( $value, get_blog_option( null, $key ) );
-			$this->assertEquals( $value, get_blog_option( '1', $key ) );
-			$this->assertEquals( $value, get_option( $key ) );            // Check get_option().
+			$this->assertSame( $value, get_blog_option( 1, $key ) );
+			$this->assertSame( $value, get_blog_option( null, $key ) );
+			$this->assertSame( $value, get_blog_option( '1', $key ) );
+			$this->assertSame( $value, get_option( $key ) );            // Check get_option().
 
 			$this->assertFalse( add_blog_option( 1, $key, $value ) );     // Already exists.
 			$this->assertFalse( update_blog_option( 1, $key, $value ) );  // Value is the same.
 			$this->assertTrue( update_blog_option( 1, $key, $value2 ) );
-			$this->assertEquals( $value2, get_blog_option( 1, $key ) );
-			$this->assertEquals( $value2, get_option( $key ) );           // Check get_option().
+			$this->assertSame( $value2, get_blog_option( 1, $key ) );
+			$this->assertSame( $value2, get_option( $key ) );           // Check get_option().
 			$this->assertFalse( add_blog_option( 1, $key, $value ) );
-			$this->assertEquals( $value2, get_blog_option( 1, $key ) );
-			$this->assertEquals( $value2, get_option( $key ) );           // Check get_option().
+			$this->assertSame( $value2, get_blog_option( 1, $key ) );
+			$this->assertSame( $value2, get_option( $key ) );           // Check get_option().
 
 			$this->assertTrue( delete_blog_option( 1, $key ) );
 			$this->assertFalse( get_blog_option( 1, $key ) );
 			$this->assertFalse( get_option( $key ) );                     // Check get_option().
 			$this->assertFalse( delete_blog_option( 1, $key ) );
 			$this->assertTrue( update_blog_option( 1, $key2, $value2 ) );
-			$this->assertEquals( $value2, get_blog_option( 1, $key2 ) );
-			$this->assertEquals( $value2, get_option( $key2 ) );          // Check get_option().
+			$this->assertSame( $value2, get_blog_option( 1, $key2 ) );
+			$this->assertSame( $value2, get_option( $key2 ) );          // Check get_option().
 			$this->assertTrue( delete_blog_option( 1, $key2 ) );
 			$this->assertFalse( get_blog_option( 1, $key2 ) );
 			$this->assertFalse( get_option( $key2 ) );                    // Check get_option().
 		}
 
-		function test_from_same_site_with_null_blog_id() {
+		public function test_from_same_site_with_null_blog_id() {
 			$key    = __FUNCTION__ . '_1';
 			$key2   = __FUNCTION__ . '_2';
 			$value  = __FUNCTION__ . '_val1';
@@ -72,34 +59,34 @@ if ( is_multisite() ) :
 
 			$this->assertTrue( add_blog_option( null, $key, $value ) );
 			// Assert all values of $blog_id that means the current or main blog (the same here).
-			$this->assertEquals( $value, get_blog_option( null, $key ) );
-			$this->assertEquals( $value, get_blog_option( null, $key ) );
-			$this->assertEquals( $value, get_option( $key ) );               // Check get_option().
+			$this->assertSame( $value, get_blog_option( null, $key ) );
+			$this->assertSame( $value, get_blog_option( null, $key ) );
+			$this->assertSame( $value, get_option( $key ) );               // Check get_option().
 
 			$this->assertFalse( add_blog_option( null, $key, $value ) );     // Already exists.
 			$this->assertFalse( update_blog_option( null, $key, $value ) );  // Value is the same.
 			$this->assertTrue( update_blog_option( null, $key, $value2 ) );
-			$this->assertEquals( $value2, get_blog_option( null, $key ) );
-			$this->assertEquals( $value2, get_option( $key ) );              // Check get_option().
+			$this->assertSame( $value2, get_blog_option( null, $key ) );
+			$this->assertSame( $value2, get_option( $key ) );              // Check get_option().
 			$this->assertFalse( add_blog_option( null, $key, $value ) );
-			$this->assertEquals( $value2, get_blog_option( null, $key ) );
-			$this->assertEquals( $value2, get_option( $key ) );              // Check get_option().
+			$this->assertSame( $value2, get_blog_option( null, $key ) );
+			$this->assertSame( $value2, get_option( $key ) );              // Check get_option().
 
 			$this->assertTrue( delete_blog_option( null, $key ) );
 			$this->assertFalse( get_blog_option( null, $key ) );
 			$this->assertFalse( get_option( $key ) );                        // Check get_option().
 			$this->assertFalse( delete_blog_option( null, $key ) );
 			$this->assertTrue( update_blog_option( null, $key2, $value2 ) );
-			$this->assertEquals( $value2, get_blog_option( null, $key2 ) );
-			$this->assertEquals( $value2, get_option( $key2 ) );             // Check get_option().
+			$this->assertSame( $value2, get_blog_option( null, $key2 ) );
+			$this->assertSame( $value2, get_option( $key2 ) );             // Check get_option().
 			$this->assertTrue( delete_blog_option( null, $key2 ) );
 			$this->assertFalse( get_blog_option( null, $key2 ) );
 			$this->assertFalse( get_option( $key2 ) );                       // Check get_option().
 		}
 
-		function test_with_another_site() {
+		public function test_with_another_site() {
 			$user_id = self::factory()->user->create();
-			$this->assertInternalType( 'integer', $user_id );
+			$this->assertIsInt( $user_id );
 
 			$blog_id = self::factory()->blog->create(
 				array(
@@ -107,7 +94,7 @@ if ( is_multisite() ) :
 					'public'  => 1,
 				)
 			);
-			$this->assertInternalType( 'integer', $blog_id );
+			$this->assertIsInt( $blog_id );
 
 			$key    = __FUNCTION__ . '_key1';
 			$key2   = __FUNCTION__ . '_key2';
@@ -119,26 +106,26 @@ if ( is_multisite() ) :
 
 			$this->assertTrue( add_blog_option( $blog_id, $key, $value ) );
 			// Assert all values of $blog_id that means the current or main blog (the same here).
-			$this->assertEquals( $value, get_blog_option( $blog_id, $key ) );
-			$this->assertEquals( $value, get_blog_option( "$blog_id", $key ) );
-			// $this->assertEquals( $value, get_option( $key ) );                // Check get_option().
+			$this->assertSame( $value, get_blog_option( $blog_id, $key ) );
+			$this->assertSame( $value, get_blog_option( (string) $blog_id, $key ) );
+			// $this->assertSame( $value, get_option( $key ) );                // Check get_option().
 
 			$this->assertFalse( add_blog_option( $blog_id, $key, $value ) );     // Already exists.
 			$this->assertFalse( update_blog_option( $blog_id, $key, $value ) );  // Value is the same.
 			$this->assertTrue( update_blog_option( $blog_id, $key, $value2 ) );
-			$this->assertEquals( $value2, get_blog_option( $blog_id, $key ) );
-			// $this->assertEquals( $value2, get_option( $key ) );               // Check get_option().
+			$this->assertSame( $value2, get_blog_option( $blog_id, $key ) );
+			// $this->assertSame( $value2, get_option( $key ) );               // Check get_option().
 			$this->assertFalse( add_blog_option( $blog_id, $key, $value ) );
-			$this->assertEquals( $value2, get_blog_option( $blog_id, $key ) );
-			// $this->assertEquals( $value2, get_option( $key ) );               // Check get_option().
+			$this->assertSame( $value2, get_blog_option( $blog_id, $key ) );
+			// $this->assertSame( $value2, get_option( $key ) );               // Check get_option().
 
 			$this->assertTrue( delete_blog_option( $blog_id, $key ) );
 			$this->assertFalse( get_blog_option( $blog_id, $key ) );
 			// $this->assertFalse( get_option( $key ) );                         // Check get_option().
 			$this->assertFalse( delete_blog_option( $blog_id, $key ) );
 			$this->assertTrue( update_blog_option( $blog_id, $key2, $value2 ) );
-			$this->assertEquals( $value2, get_blog_option( $blog_id, $key2 ) );
-			// $this->assertEquals( $value2, get_option( $key2 ) );              // Check get_option().
+			$this->assertSame( $value2, get_blog_option( $blog_id, $key2 ) );
+			// $this->assertSame( $value2, get_option( $key2 ) );              // Check get_option().
 			$this->assertTrue( delete_blog_option( $blog_id, $key2 ) );
 			$this->assertFalse( get_blog_option( $blog_id, $key2 ) );
 			// $this->assertFalse( get_option( $key2 ) );                        // Check get_option().
@@ -147,7 +134,7 @@ if ( is_multisite() ) :
 		/**
 		 * @group multisite
 		 */
-		function test_site_notoptions() {
+		public function test_site_notoptions() {
 			$network_id     = get_current_network_id();
 			$notoptions_key = "{$network_id}:notoptions";
 
@@ -164,7 +151,7 @@ if ( is_multisite() ) :
 			$this->assertNotEmpty( $notoptions1 );
 		}
 
-		function test_users_can_register_signup_filter() {
+		public function test_users_can_register_signup_filter() {
 
 			$registration = get_site_option( 'registration' );
 			$this->assertFalse( users_can_register_signup_filter() );
@@ -182,12 +169,12 @@ if ( is_multisite() ) :
 		/**
 		 * @dataProvider data_illegal_names
 		 */
-		function test_sanitize_network_option_illegal_names( $option_value, $sanitized_option_value ) {
+		public function test_sanitize_network_option_illegal_names( $option_value, $sanitized_option_value ) {
 			update_site_option( 'illegal_names', $option_value );
-			$this->assertEquals( $sanitized_option_value, get_site_option( 'illegal_names' ) );
+			$this->assertSame( $sanitized_option_value, get_site_option( 'illegal_names' ) );
 		}
 
-		function data_illegal_names() {
+		public function data_illegal_names() {
 			return array(
 				array( array( '', 'Woo', '' ), array( 'Woo' ) ),
 				array( 'foo bar', array( 'foo', 'bar' ) ),
@@ -201,9 +188,9 @@ if ( is_multisite() ) :
 		 * @param $option_value
 		 * @param $sanitized_option_value
 		 */
-		function test_sanitize_network_option_limited_email_domains( $option_value, $sanitized_option_value ) {
+		public function test_sanitize_network_option_limited_email_domains( $option_value, $sanitized_option_value ) {
 			update_site_option( 'limited_email_domains', $option_value );
-			$this->assertEquals( $sanitized_option_value, get_site_option( 'limited_email_domains' ) );
+			$this->assertSame( $sanitized_option_value, get_site_option( 'limited_email_domains' ) );
 		}
 
 		/**
@@ -212,12 +199,12 @@ if ( is_multisite() ) :
 		 * @param $option_value
 		 * @param $sanitized_option_value
 		 */
-		function test_sanitize_network_option_banned_email_domains( $option_value, $sanitized_option_value ) {
+		public function test_sanitize_network_option_banned_email_domains( $option_value, $sanitized_option_value ) {
 			update_site_option( 'banned_email_domains', $option_value );
-			$this->assertEquals( $sanitized_option_value, get_site_option( 'banned_email_domains' ) );
+			$this->assertSame( $sanitized_option_value, get_site_option( 'banned_email_domains' ) );
 		}
 
-		function data_email_domains() {
+		public function data_email_domains() {
 			return array(
 				array( array( 'woo', '', 'boo.com', 'foo.net.biz..' ), array( 'woo', 'boo.com' ) ),
 				array( "foo\nbar", array( 'foo', 'bar' ) ),

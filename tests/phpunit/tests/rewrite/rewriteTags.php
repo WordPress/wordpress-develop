@@ -7,24 +7,17 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 	protected $rewritecode;
 	protected $rewritereplace;
 	protected $queryreplace;
-	protected $wp_rewrite;
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_rewrite;
-		parent::setUp();
+		parent::set_up();
 
-		$this->wp_rewrite = $wp_rewrite;
-		$wp_rewrite       = new WP_Rewrite();
+		$wp_rewrite = new WP_Rewrite();
 		$wp_rewrite->init();
 
 		$this->rewritecode    = $wp_rewrite->rewritecode;
 		$this->rewritereplace = $wp_rewrite->rewritereplace;
 		$this->queryreplace   = $wp_rewrite->queryreplace;
-	}
-
-	public function tearDown() {
-		global $wp_rewrite;
-		$wp_rewrite = $this->wp_rewrite;
 	}
 
 	public function _invalid_rewrite_tags() {
@@ -48,9 +41,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		add_rewrite_tag( $tag, $regex );
-		$this->assertEqualSets( $this->rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( $this->queryreplace, $wp_rewrite->queryreplace );
+		$this->assertSameSets( $this->rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
+		$this->assertSameSets( $this->queryreplace, $wp_rewrite->queryreplace );
 	}
 
 	public function test_add_rewrite_tag_empty_query() {
@@ -60,9 +53,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$rewritecode[] = '%foo%';
 		add_rewrite_tag( '%foo%', 'bar' );
 
-		$this->assertEqualSets( $rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( array_merge( $this->rewritereplace, array( 'bar' ) ), $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( array_merge( $this->queryreplace, array( 'foo=' ) ), $wp_rewrite->queryreplace );
+		$this->assertSameSets( $rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( array_merge( $this->rewritereplace, array( 'bar' ) ), $wp_rewrite->rewritereplace );
+		$this->assertSameSets( array_merge( $this->queryreplace, array( 'foo=' ) ), $wp_rewrite->queryreplace );
 	}
 
 	public function test_add_rewrite_tag_custom_query() {
@@ -72,9 +65,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$rewritecode[] = '%foo%';
 		add_rewrite_tag( '%foo%', 'bar', 'baz=' );
 
-		$this->assertEqualSets( $rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( array_merge( $this->rewritereplace, array( 'bar' ) ), $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( array_merge( $this->queryreplace, array( 'baz=' ) ), $wp_rewrite->queryreplace );
+		$this->assertSameSets( $rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( array_merge( $this->rewritereplace, array( 'bar' ) ), $wp_rewrite->rewritereplace );
+		$this->assertSameSets( array_merge( $this->queryreplace, array( 'baz=' ) ), $wp_rewrite->queryreplace );
 	}
 
 	public function test_add_rewrite_tag_updates_existing() {
@@ -94,14 +87,14 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$rewritecode   = $wp_rewrite->rewritecode;
 		$rewritecode[] = '%foo%';
 		add_rewrite_tag( '%foo%', 'bar', 'baz=' );
-		$this->assertEqualSets( $rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( array_merge( $this->rewritereplace, array( 'bar' ) ), $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( array_merge( $this->queryreplace, array( 'baz=' ) ), $wp_rewrite->queryreplace );
+		$this->assertSameSets( $rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( array_merge( $this->rewritereplace, array( 'bar' ) ), $wp_rewrite->rewritereplace );
+		$this->assertSameSets( array_merge( $this->queryreplace, array( 'baz=' ) ), $wp_rewrite->queryreplace );
 
 		remove_rewrite_tag( '%foo%' );
-		$this->assertEqualSets( $this->rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( $this->queryreplace, $wp_rewrite->queryreplace );
+		$this->assertSameSets( $this->rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
+		$this->assertSameSets( $this->queryreplace, $wp_rewrite->queryreplace );
 	}
 
 	public function test_remove_rewrite_tag_internal_tag() {
@@ -126,14 +119,14 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$rewritereplace   = $wp_rewrite->rewritereplace;
 		$rewritereplace[] = '([0-9]{1,2})';
 		add_rewrite_tag( '%foo%', '([0-9]{1,2})', 'post_type=foo&name=' );
-		$this->assertEqualSets( $rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( $rewritereplace, $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( array_merge( $this->queryreplace, array( 'post_type=foo&name=' ) ), $wp_rewrite->queryreplace );
+		$this->assertSameSets( $rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( $rewritereplace, $wp_rewrite->rewritereplace );
+		$this->assertSameSets( array_merge( $this->queryreplace, array( 'post_type=foo&name=' ) ), $wp_rewrite->queryreplace );
 
 		remove_rewrite_tag( '%foo%' );
-		$this->assertEqualSets( $this->rewritecode, $wp_rewrite->rewritecode );
-		$this->assertEqualSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
-		$this->assertEqualSets( $this->queryreplace, $wp_rewrite->queryreplace );
+		$this->assertSameSets( $this->rewritecode, $wp_rewrite->rewritecode );
+		$this->assertSameSets( $this->rewritereplace, $wp_rewrite->rewritereplace );
+		$this->assertSameSets( $this->queryreplace, $wp_rewrite->queryreplace );
 
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertContains( '([0-9]{1,2})', $wp_rewrite->rewritereplace );

@@ -25,7 +25,8 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		$_GET['test'] = 1;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'wp-compression-test' );
 	}
 
@@ -48,17 +49,15 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertContains( 'wpCompressionTest', $this->_last_response );
+		$this->assertStringContainsString( 'wpCompressionTest', $this->_last_response );
 	}
 
 	/**
 	 * Fetch the test text (gzdeflate)
+	 *
+	 * @requires function gzdeflate
 	 */
 	public function test_gzdeflate() {
-
-		if ( ! function_exists( 'gzdeflate' ) ) {
-			$this->fail( 'gzdeflate function not available' );
-		}
 
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
@@ -75,17 +74,15 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertContains( 'wpCompressionTest', gzinflate( $this->_last_response ) );
+		$this->assertStringContainsString( 'wpCompressionTest', gzinflate( $this->_last_response ) );
 	}
 
 	/**
 	 * Fetch the test text (gzencode)
+	 *
+	 * @requires function gzencode
 	 */
 	public function test_gzencode() {
-
-		if ( ! function_exists( 'gzencode' ) ) {
-			$this->fail( 'gzencode function not available' );
-		}
 
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
@@ -102,7 +99,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Ensure we found the right match.
-		$this->assertContains( 'wpCompressionTest', $this->_gzdecode( $this->_last_response ) );
+		$this->assertStringContainsString( 'wpCompressionTest', $this->_gzdecode( $this->_last_response ) );
 	}
 
 	/**
@@ -118,7 +115,8 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'unknown';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'wp-compression-test' );
 	}
 
@@ -144,7 +142,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Check the site option is not changed due to lack of nonce.
-		$this->assertEquals( 0, get_site_option( 'can_compress_scripts' ) );
+		$this->assertSame( 0, get_site_option( 'can_compress_scripts' ) );
 
 		// Add a nonce.
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'update_can_compress_scripts' );
@@ -157,7 +155,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Check the site option is changed.
-		$this->assertEquals( 1, get_site_option( 'can_compress_scripts' ) );
+		$this->assertSame( 1, get_site_option( 'can_compress_scripts' ) );
 	}
 
 	/**
@@ -182,7 +180,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Check the site option is not changed due to lack of nonce.
-		$this->assertEquals( 1, get_site_option( 'can_compress_scripts' ) );
+		$this->assertSame( 1, get_site_option( 'can_compress_scripts' ) );
 
 		// Add a nonce.
 		$_GET['_ajax_nonce'] = wp_create_nonce( 'update_can_compress_scripts' );
@@ -195,7 +193,7 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 		}
 
 		// Check the site option is changed.
-		$this->assertEquals( 0, get_site_option( 'can_compress_scripts' ) );
+		$this->assertSame( 0, get_site_option( 'can_compress_scripts' ) );
 	}
 
 	/**

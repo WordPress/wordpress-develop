@@ -7,46 +7,46 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 	protected static $p;
 	protected static $comments = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$now     = time();
-		self::$p = self::factory()->post->create();
+		self::$p = $factory->post->create();
 
-		self::$comments[] = self::factory()->comment->create(
+		self::$comments[] = $factory->comment->create(
 			array(
 				'comment_post_ID'  => self::$p,
 				'comment_content'  => '1',
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 100 ),
 			)
 		);
-		self::$comments[] = self::factory()->comment->create(
+		self::$comments[] = $factory->comment->create(
 			array(
 				'comment_post_ID'  => self::$p,
 				'comment_content'  => '2',
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 200 ),
 			)
 		);
-		self::$comments[] = self::factory()->comment->create(
+		self::$comments[] = $factory->comment->create(
 			array(
 				'comment_post_ID'  => self::$p,
 				'comment_content'  => '3',
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 300 ),
 			)
 		);
-		self::$comments[] = self::factory()->comment->create(
+		self::$comments[] = $factory->comment->create(
 			array(
 				'comment_post_ID'  => self::$p,
 				'comment_content'  => '4',
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 400 ),
 			)
 		);
-		self::$comments[] = self::factory()->comment->create(
+		self::$comments[] = $factory->comment->create(
 			array(
 				'comment_post_ID'  => self::$p,
 				'comment_content'  => '4',
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 500 ),
 			)
 		);
-		self::$comments[] = self::factory()->comment->create(
+		self::$comments[] = $factory->comment->create(
 			array(
 				'comment_post_ID'  => self::$p,
 				'comment_content'  => '4',
@@ -66,7 +66,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[1] );
 
-		$this->assertContains( 'cpage=3', $found );
+		$this->assertStringContainsString( 'cpage=3', $found );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[3] );
 
-		$this->assertContains( 'cpage=2', $found );
+		$this->assertStringContainsString( 'cpage=2', $found );
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[5] );
 
-		$this->assertContains( 'cpage=1', $found );
+		$this->assertStringContainsString( 'cpage=1', $found );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[5] );
 
-		$this->assertNotContains( 'cpage', $found );
+		$this->assertStringNotContainsString( 'cpage', $found );
 	}
 
 	/**
@@ -117,7 +117,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[3] );
 
-		$this->assertContains( 'cpage=2', $found );
+		$this->assertStringContainsString( 'cpage=2', $found );
 	}
 
 	/**
@@ -130,7 +130,7 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[1] );
 
-		$this->assertContains( 'cpage=3', $found );
+		$this->assertStringContainsString( 'cpage=3', $found );
 	}
 
 	/**
@@ -142,6 +142,6 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 
 		$found = get_comment_link( self::$comments[1] );
 
-		$this->assertNotContains( 'comment-page-1', $found );
+		$this->assertStringNotContainsString( 'comment-page-1', $found );
 	}
 }

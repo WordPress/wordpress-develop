@@ -24,7 +24,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 			return;
 		}
 
-		$paged        = get_query_var( 'paged' ) ? intval( get_query_var( 'paged' ) ) : 1;
+		$paged        = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 		$pagenum_link = html_entity_decode( get_pagenum_link() );
 		$query_args   = array();
 		$url_parts    = explode( '?', $pagenum_link );
@@ -56,7 +56,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 		if ( $links ) :
 
 			?>
-		<nav class="navigation paging-navigation" role="navigation">
+		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text"><?php _e( 'Posts navigation', 'twentyfourteen' ); ?></h1>
 		<div class="pagination loop-pagination">
 			<?php echo $links; ?>
@@ -83,7 +83,7 @@ if ( ! function_exists( 'twentyfourteen_post_nav' ) ) :
 		}
 
 		?>
-		<nav class="navigation post-navigation" role="navigation">
+		<nav class="navigation post-navigation">
 		<h1 class="screen-reader-text"><?php _e( 'Post navigation', 'twentyfourteen' ); ?></h1>
 		<div class="nav-links">
 			<?php
@@ -128,7 +128,7 @@ endif;
  *
  * @since Twenty Fourteen 1.0
  *
- * @return boolean true if blog has more than 1 category
+ * @return bool true if blog has more than 1 category
  */
 function twentyfourteen_categorized_blog() {
 	$all_the_cool_cats = get_transient( 'twentyfourteen_category_count' );

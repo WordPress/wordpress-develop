@@ -18,6 +18,7 @@ if ( ! current_user_can( 'edit_plugins' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit plugins for this site.' ) );
 }
 
+// Used in the HTML title tag.
 $title       = __( 'Edit Plugins' );
 $parent_file = 'plugins.php';
 
@@ -195,7 +196,7 @@ $content = esc_textarea( $content );
 <h2>
 	<?php
 	if ( is_plugin_active( $plugin ) ) {
-		if ( is_writeable( $real_file ) ) {
+		if ( is_writable( $real_file ) ) {
 			/* translators: %s: Plugin file name. */
 			printf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
@@ -203,7 +204,7 @@ $content = esc_textarea( $content );
 			printf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		}
 	} else {
-		if ( is_writeable( $real_file ) ) {
+		if ( is_writable( $real_file ) ) {
 			/* translators: %s: Plugin file name. */
 			printf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
@@ -216,7 +217,7 @@ $content = esc_textarea( $content );
 </div>
 <div class="alignright">
 	<form action="plugin-editor.php" method="get">
-		<strong><label for="plugin"><?php _e( 'Select plugin to edit:' ); ?> </label></strong>
+		<label for="plugin" id="theme-plugin-editor-selector"><?php _e( 'Select plugin to edit:' ); ?> </label>
 		<select name="plugin" id="plugin">
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
@@ -275,7 +276,7 @@ $content = esc_textarea( $content );
 		</div>
 	<?php endif; ?>
 
-	<?php if ( is_writeable( $real_file ) ) : ?>
+	<?php if ( is_writable( $real_file ) ) : ?>
 		<div class="editor-notices">
 		<?php if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) { ?>
 			<div class="notice notice-warning inline active-plugin-edit-warning">
@@ -288,7 +289,7 @@ $content = esc_textarea( $content );
 			<span class="spinner"></span>
 		</p>
 	<?php else : ?>
-		<p><em>
+		<p>
 			<?php
 			printf(
 				/* translators: %s: Documentation URL. */
@@ -296,7 +297,7 @@ $content = esc_textarea( $content );
 				__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 			);
 			?>
-		</em></p>
+		</p>
 	<?php endif; ?>
 
 	<?php wp_print_file_editor_templates(); ?>
@@ -311,10 +312,12 @@ if ( ! in_array( 'plugin_editor_notice', $dismissed_pointers, true ) ) :
 
 	$excluded_referer_basenames = array( 'plugin-editor.php', 'wp-login.php' );
 
-	if ( $referer && ! in_array( basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
-		$return_url = $referer;
-	} else {
-		$return_url = admin_url( '/' );
+	$return_url = admin_url( '/' );
+	if ( $referer ) {
+		$referer_path = parse_url( $referer, PHP_URL_PATH );
+		if ( is_string( $referer_path ) && ! in_array( basename( $referer_path ), $excluded_referer_basenames, true ) ) {
+			$return_url = $referer;
+		}
 	}
 	?>
 	<div id="file-editor-warning" class="notification-dialog-wrap file-editor-warning hide-if-no-js hidden">
@@ -323,7 +326,7 @@ if ( ! in_array( 'plugin_editor_notice', $dismissed_pointers, true ) ) :
 			<div class="file-editor-warning-content">
 				<div class="file-editor-warning-message">
 					<h1><?php _e( 'Heads up!' ); ?></h1>
-					<p><?php _e( 'You appear to be making direct edits to your plugin in the WordPress dashboard. We recommend that you don&#8217;t! Editing plugins directly may introduce incompatibilities that break your site and your changes may be lost in future updates.' ); ?></p>
+					<p><?php _e( 'You appear to be making direct edits to your plugin in the WordPress dashboard. Editing plugins directly is not recommended as it may introduce incompatibilities that break your site and your changes may be lost in future updates.' ); ?></p>
 					<p><?php _e( 'If you absolutely have to make direct edits to this plugin, use a file manager to create a copy with a new name and hang on to the original. That way, you can re-enable a functional version if something goes wrong.' ); ?></p>
 				</div>
 				<p>

@@ -17,16 +17,20 @@ final class WP_Comment {
 	/**
 	 * Comment ID.
 	 *
+	 * A numeric string, for compatibility reasons.
+	 *
 	 * @since 4.4.0
-	 * @var int
+	 * @var string
 	 */
 	public $comment_ID;
 
 	/**
 	 * ID of the post the comment is associated with.
 	 *
+	 * A numeric string, for compatibility reasons.
+	 *
 	 * @since 4.4.0
-	 * @var int
+	 * @var string
 	 */
 	public $comment_post_ID = 0;
 
@@ -89,8 +93,10 @@ final class WP_Comment {
 	/**
 	 * Comment karma count.
 	 *
+	 * A numeric string, for compatibility reasons.
+	 *
 	 * @since 4.4.0
-	 * @var int
+	 * @var string
 	 */
 	public $comment_karma = 0;
 
@@ -122,16 +128,20 @@ final class WP_Comment {
 	/**
 	 * Parent comment ID.
 	 *
+	 * A numeric string, for compatibility reasons.
+	 *
 	 * @since 4.4.0
-	 * @var int
+	 * @var string
 	 */
 	public $comment_parent = 0;
 
 	/**
 	 * Comment author ID.
 	 *
+	 * A numeric string, for compatibility reasons.
+	 *
 	 * @since 4.4.0
-	 * @var int
+	 * @var string
 	 */
 	public $user_id = 0;
 
@@ -309,7 +319,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 *
 	 * @param int $child_id ID of the child.
-	 * @return WP_Comment|bool Returns the comment object if found, otherwise false.
+	 * @return WP_Comment|false Returns the comment object if found, otherwise false.
 	 */
 	public function get_child( $child_id ) {
 		if ( isset( $this->children[ $child_id ] ) ) {

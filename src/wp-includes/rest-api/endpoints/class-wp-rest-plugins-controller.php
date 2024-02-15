@@ -209,6 +209,8 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if can read, a WP_Error instance otherwise.
 	 */
 	protected function check_read_permission( $plugin ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
 		if ( ! $this->is_plugin_installed( $plugin ) ) {
 			return new WP_Error( 'rest_plugin_not_found', __( 'Plugin not found.' ), array( 'status' => 404 ) );
 		}
@@ -263,10 +265,14 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_item( $request ) {
+		global $wp_filesystem;
+
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -327,19 +333,32 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		}
 
 		if ( is_null( $result ) ) {
-			global $wp_filesystem;
 			// Pass through the error from WP_Filesystem if one was raised.
-			if ( $wp_filesystem instanceof WP_Filesystem_Base && is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors() ) {
-				return new WP_Error( 'unable_to_connect_to_filesystem', $wp_filesystem->errors->get_error_message(), array( 'status' => 500 ) );
+			if ( $wp_filesystem instanceof WP_Filesystem_Base
+				&& is_wp_error( $wp_filesystem->errors ) && $wp_filesystem->errors->has_errors()
+			) {
+				return new WP_Error(
+					'unable_to_connect_to_filesystem',
+					$wp_filesystem->errors->get_error_message(),
+					array( 'status' => 500 )
+				);
 			}
 
-			return new WP_Error( 'unable_to_connect_to_filesystem', __( 'Unable to connect to the filesystem. Please confirm your credentials.' ), array( 'status' => 500 ) );
+			return new WP_Error(
+				'unable_to_connect_to_filesystem',
+				__( 'Unable to connect to the filesystem. Please confirm your credentials.' ),
+				array( 'status' => 500 )
+			);
 		}
 
 		$file = $upgrader->plugin_info();
 
 		if ( ! $file ) {
-			return new WP_Error( 'unable_to_determine_installed_plugin', __( 'Unable to determine what plugin was installed.' ), array( 'status' => 500 ) );
+			return new WP_Error(
+				'unable_to_determine_installed_plugin',
+				__( 'Unable to determine what plugin was installed.' ),
+				array( 'status' => 500 )
+			);
 		}
 
 		if ( 'inactive' !== $request['status'] ) {
@@ -362,7 +381,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
 
 		$language_packs = array_map(
-			function( $item ) {
+			static function( $item ) {
 				return (object) $item;
 			},
 			$api->language_packs
@@ -370,7 +389,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 
 		$language_packs = array_filter(
 			$language_packs,
-			function( $pack ) use ( $installed_locales ) {
+			static function( $pack ) use ( $installed_locales ) {
 				return in_array( $pack->language, $installed_locales, true );
 			}
 		);
@@ -584,7 +603,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$response->add_links( $this->prepare_links( $item ) );
 
 		/**
-		 * Filters the plugin data for a response.
+		 * Filters plugin data for a REST API response.
 		 *
 		 * @since 5.5.0
 		 *
@@ -660,7 +679,6 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * @param string $plugin         The plugin file to update.
 	 * @param string $new_status     The plugin's new status.
 	 * @param string $current_status The plugin's current status.
-	 *
 	 * @return true|WP_Error
 	 */
 	protected function plugin_status_permission_check( $plugin, $new_status, $current_status ) {
@@ -770,7 +788,6 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request The request to require the plugin matches against.
 	 * @param array           $item    The plugin item.
-	 *
 	 * @return bool
 	 */
 	protected function does_plugin_match_request( $request, $item ) {

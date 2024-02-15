@@ -3,8 +3,12 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesMisc extends WP_UnitTestCase {
-	function test_shorten_url() {
+class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
+
+	/**
+	 * @covers ::url_shorten
+	 */
+	public function test_shorten_url() {
 		$tests = array(
 			'wordpress\.org/about/philosophy'
 				=> 'wordpress\.org/about/philosophy',     // No longer strips slashes.
@@ -20,7 +24,7 @@ class Tests_Admin_includesMisc extends WP_UnitTestCase {
 				=> 'wordpress.org/about/philosophy/#&hellip;', // Shorten to 32 if > 35 after cleaning.
 		);
 		foreach ( $tests as $k => $v ) {
-			$this->assertEquals( $v, url_shorten( $k ) );
+			$this->assertSame( $v, url_shorten( $k ) );
 		}
 	}
 }

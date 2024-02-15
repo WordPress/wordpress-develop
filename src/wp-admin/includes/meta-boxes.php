@@ -87,7 +87,8 @@ function post_submit_meta_box( $post, $args = array() ) {
 		endif;
 
 		/**
-		 * Fires before the post time/date setting in the Publish meta box.
+		 * Fires after the Save Draft (or Save as Pending) and Preview (or Preview Changes) buttons
+		 * in the Publish meta box.
 		 *
 		 * @since 4.4.0
 		 *
@@ -212,11 +213,11 @@ function post_submit_meta_box( $post, $args = array() ) {
 		</div>
 
 		<?php
-		/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
+		/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/manual/datetime.format.php */
 		$date_string = __( '%1$s at %2$s' );
-		/* translators: Publish box date format, see https://www.php.net/date */
+		/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 		$date_format = _x( 'M j, Y', 'publish box date format' );
-		/* translators: Publish box time format, see https://www.php.net/date */
+		/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 		$time_format = _x( 'H:i', 'publish box time format' );
 
 		if ( 0 !== $post_id ) {
@@ -385,7 +386,7 @@ function post_submit_meta_box( $post, $args = array() ) {
  *
  * @since 3.5.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function attachment_submit_meta_box( $post ) {
 	?>
@@ -404,11 +405,11 @@ function attachment_submit_meta_box( $post ) {
 		<span id="timestamp">
 			<?php
 			$uploaded_on = sprintf(
-				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
+				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/manual/datetime.format.php */
 				__( '%1$s at %2$s' ),
-				/* translators: Publish box date format, see https://www.php.net/date */
+				/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 				date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
-				/* translators: Publish box time format, see https://www.php.net/date */
+				/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 				date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
 			);
 			/* translators: Attachment information. %s: Date the attachment was uploaded. */
@@ -638,7 +639,7 @@ function post_categories_meta_box( $post, $box ) {
 				</a>
 				<p id="<?php echo $tax_name; ?>-add" class="category-add wp-hidden-child">
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>"><?php echo $taxonomy->labels->add_new_item; ?></label>
-					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true"/>
+					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true" />
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>_parent">
 						<?php echo $taxonomy->labels->parent_item_colon; ?>
 					</label>
@@ -695,7 +696,7 @@ function post_categories_meta_box( $post, $box ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_excerpt_meta_box( $post ) {
 	?>
@@ -717,7 +718,7 @@ function post_excerpt_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_trackback_meta_box( $post ) {
 	$form_trackback = '<input type="text" name="trackback_url" id="trackback_url" class="code" value="' .
@@ -758,7 +759,7 @@ function post_trackback_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_custom_meta_box( $post ) {
 	?>
@@ -792,7 +793,7 @@ function post_custom_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_comment_status_meta_box( $post ) {
 	?>
@@ -840,7 +841,7 @@ function post_comment_meta_box_thead( $result ) {
  *
  * @since 2.8.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_comment_meta_box( $post ) {
 	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
@@ -881,7 +882,7 @@ function post_comment_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_slug_meta_box( $post ) {
 	/** This filter is documented in wp-admin/edit-tag-form.php */
@@ -898,16 +899,18 @@ function post_slug_meta_box( $post ) {
  *
  * @global int $user_ID
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
+
+	$post_type_object = get_post_type_object( $post->post_type );
 	?>
 <label class="screen-reader-text" for="post_author_override"><?php _e( 'Author' ); ?></label>
 	<?php
 	wp_dropdown_users(
 		array(
-			'who'              => 'authors',
+			'capability'       => array( $post_type_object->cap->edit_posts ),
 			'name'             => 'post_author_override',
 			'selected'         => empty( $post->ID ) ? $user_ID : $post->post_author,
 			'include_selected' => true,
@@ -921,7 +924,7 @@ function post_author_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_revisions_meta_box( $post ) {
 	wp_list_post_revisions( $post );
@@ -936,7 +939,7 @@ function post_revisions_meta_box( $post ) {
  *
  * @since 2.7.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function page_attributes_meta_box( $post ) {
 	if ( is_post_type_hierarchical( $post->post_type ) ) :
@@ -1580,7 +1583,13 @@ function register_and_do_post_meta_boxes( $post ) {
 	/**
 	 * Fires after all built-in meta boxes have been added, contextually for the given post type.
 	 *
-	 * The dynamic portion of the hook, `$post_type`, refers to the post type of the post.
+	 * The dynamic portion of the hook name, `$post_type`, refers to the post type of the post.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `add_meta_boxes_post`
+	 *  - `add_meta_boxes_page`
+	 *  - `add_meta_boxes_attachment`
 	 *
 	 * @since 3.0.0
 	 *

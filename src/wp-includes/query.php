@@ -12,7 +12,7 @@
  */
 
 /**
- * Retrieve variable in the WP_Query class.
+ * Retrieves the value of a query variable in the WP_Query class.
  *
  * @since 1.5.0
  * @since 3.9.0 The `$default` argument was introduced.
@@ -29,7 +29,7 @@ function get_query_var( $var, $default = '' ) {
 }
 
 /**
- * Retrieve the currently-queried object.
+ * Retrieves the currently queried object.
  *
  * Wrapper for WP_Query::get_queried_object().
  *
@@ -37,7 +37,7 @@ function get_query_var( $var, $default = '' ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @return object Queried object.
+ * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
  */
 function get_queried_object() {
 	global $wp_query;
@@ -45,7 +45,7 @@ function get_queried_object() {
 }
 
 /**
- * Retrieve ID of the current queried object.
+ * Retrieves the ID of the currently queried object.
  *
  * Wrapper for WP_Query::get_queried_object_id().
  *
@@ -61,7 +61,7 @@ function get_queried_object_id() {
 }
 
 /**
- * Set query variable.
+ * Sets the value of a query variable in the WP_Query class.
  *
  * @since 2.2.0
  *
@@ -138,7 +138,8 @@ function wp_reset_postdata() {
 /**
  * Determines whether the query is for an existing archive page.
  *
- * Month, Year, Category, Author, Post Type archive...
+ * Archive pages include category, tag, author, date, custom post type,
+ * and custom taxonomy based archives.
  *
  * For more information on this and similar theme functions, check out
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
@@ -146,6 +147,12 @@ function wp_reset_postdata() {
  *
  * @since 1.5.0
  *
+ * @see is_category()
+ * @see is_tag()
+ * @see is_author()
+ * @see is_date()
+ * @see is_post_type_archive()
+ * @see is_tax()
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @return bool Whether the query is for an existing archive page.
@@ -563,11 +570,10 @@ function is_month() {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @see is_single()
- * @see is_singular()
- *
  * @since 1.5.0
  *
+ * @see is_single()
+ * @see is_singular()
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param int|string|int[]|string[] $page Optional. Page ID, title, slug, or array of such
@@ -709,11 +715,10 @@ function is_search() {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @see is_page()
- * @see is_singular()
- *
  * @since 1.5.0
  *
+ * @see is_page()
+ * @see is_singular()
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param int|string|int[]|string[] $post Optional. Post ID, title, slug, or array of such
@@ -742,11 +747,10 @@ function is_single( $post = '' ) {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @see is_page()
- * @see is_single()
- *
  * @since 1.5.0
  *
+ * @see is_page()
+ * @see is_single()
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string|string[] $post_types Optional. Post type or array of post types
@@ -895,19 +899,23 @@ function is_embed() {
  * @return bool Whether the query is the main query.
  */
 function is_main_query() {
+	global $wp_query;
+
 	if ( 'pre_get_posts' === current_filter() ) {
-		$message = sprintf(
-			/* translators: 1: pre_get_posts, 2: WP_Query->is_main_query(), 3: is_main_query(), 4: Link to codex is_main_query() page. */
-			__( 'In %1$s, use the %2$s method, not the %3$s function. See %4$s.' ),
-			'<code>pre_get_posts</code>',
-			'<code>WP_Query->is_main_query()</code>',
-			'<code>is_main_query()</code>',
-			__( 'https://codex.wordpress.org/Function_Reference/is_main_query' )
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: pre_get_posts, 2: WP_Query->is_main_query(), 3: is_main_query(), 4: Documentation URL. */
+				__( 'In %1$s, use the %2$s method, not the %3$s function. See %4$s.' ),
+				'<code>pre_get_posts</code>',
+				'<code>WP_Query->is_main_query()</code>',
+				'<code>is_main_query()</code>',
+				__( 'https://developer.wordpress.org/reference/functions/is_main_query/' )
+			),
+			'3.7.0'
 		);
-		_doing_it_wrong( __FUNCTION__, $message, '3.7.0' );
 	}
 
-	global $wp_query;
 	return $wp_query->is_main_query();
 }
 
@@ -996,7 +1004,7 @@ function have_comments() {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @return object
+ * @return null
  */
 function the_comment() {
 	global $wp_query;
@@ -1083,11 +1091,10 @@ function wp_old_slug_redirect() {
 /**
  * Find the post ID for redirecting an old slug.
  *
- * @see wp_old_slug_redirect()
- *
  * @since 4.9.3
  * @access private
  *
+ * @see wp_old_slug_redirect()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.
@@ -1118,11 +1125,10 @@ function _find_post_by_old_slug( $post_type ) {
 /**
  * Find the post ID for redirecting an old date.
  *
- * @see wp_old_slug_redirect()
- *
  * @since 4.9.3
  * @access private
  *
+ * @see wp_old_slug_redirect()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.
@@ -1184,7 +1190,7 @@ function setup_postdata( $post ) {
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
- * @return array|bool Elements of post, or false on failure.
+ * @return array|false Elements of post, or false on failure.
  */
 function generate_postdata( $post ) {
 	global $wp_query;

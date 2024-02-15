@@ -5,7 +5,7 @@
  */
 class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 
-	function test_create_entry() {
+	public function test_create_entry() {
 		// No singular => empty object.
 		$entry = new Translation_Entry();
 		$this->assertNull( $entry->singular );
@@ -21,15 +21,15 @@ class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 				'flags'        => 'baba',
 			)
 		);
-		$this->assertEquals( 'baba', $entry->singular );
-		$this->assertEquals( 'babas', $entry->plural );
+		$this->assertSame( 'baba', $entry->singular );
+		$this->assertSame( 'babas', $entry->plural );
 		$this->assertTrue( $entry->is_plural );
-		$this->assertEquals( array( 'баба', 'баби' ), $entry->translations );
-		$this->assertEquals( array(), $entry->references );
-		$this->assertEquals( array(), $entry->flags );
+		$this->assertSame( array( 'баба', 'баби' ), $entry->translations );
+		$this->assertSame( array(), $entry->references );
+		$this->assertSame( array(), $entry->flags );
 	}
 
-	function test_key() {
+	public function test_key() {
 		$entry_baba        = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry_dyado       = new Translation_Entry( array( 'singular' => 'dyado' ) );
 		$entry_baba_ctxt   = new Translation_Entry(
@@ -44,7 +44,7 @@ class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 				'plural'   => 'babas',
 			)
 		);
-		$this->assertEquals( $entry_baba->key(), $entry_baba_plural->key() );
+		$this->assertSame( $entry_baba->key(), $entry_baba_plural->key() );
 		$this->assertNotEquals( $entry_baba->key(), $entry_baba_ctxt->key() );
 		$this->assertNotEquals( $entry_baba_plural->key(), $entry_baba_ctxt->key() );
 		$this->assertNotEquals( $entry_baba->key(), $entry_dyado->key() );

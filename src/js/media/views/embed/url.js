@@ -57,7 +57,8 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 	},
 
 	url: function( event ) {
-		this.model.set( 'url', $.trim( event.target.value ) );
+		var url = event.target.value || '';
+		this.model.set( 'url', url.trim() );
 	}
 });
 

@@ -7,8 +7,8 @@
 class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	protected $post_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		$this->post_id = self::factory()->post->create();
 	}
 
@@ -48,9 +48,9 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	 * @ticket 22271
 	 */
 	public function test_with_custom_classes_and_no_post() {
-		$this->assertEquals( array(), get_post_class( '', null ) );
-		$this->assertEquals( array( 'foo' ), get_post_class( 'foo', null ) );
-		$this->assertEquals( array( 'foo', 'bar' ), get_post_class( array( 'foo', 'bar' ), null ) );
+		$this->assertSame( array(), get_post_class( '', null ) );
+		$this->assertSame( array( 'foo' ), get_post_class( 'foo', null ) );
+		$this->assertSame( array( 'foo', 'bar' ), get_post_class( array( 'foo', 'bar' ), null ) );
 	}
 
 	/**

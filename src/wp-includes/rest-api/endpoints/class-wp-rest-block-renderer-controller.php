@@ -51,7 +51,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'context'    => $this->get_context_param( array( 'default' => 'view' ) ),
 						'attributes' => array(
-							'description'       => __( 'Attributes for the block' ),
+							'description'       => __( 'Attributes for the block.' ),
 							'type'              => 'object',
 							'default'           => array(),
 							'validate_callback' => static function ( $value, $request ) {
@@ -103,15 +103,17 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.0.0
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		global $post;
 
-		$post_id = isset( $request['post_id'] ) ? intval( $request['post_id'] ) : 0;
+		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
 
-		if ( 0 < $post_id ) {
+		if ( $post_id > 0 ) {
 			$post = get_post( $post_id );
 
 			if ( ! $post || ! current_user_can( 'edit_post', $post->ID ) ) {
@@ -143,15 +145,17 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.0.0
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		global $post;
 
-		$post_id = isset( $request['post_id'] ) ? intval( $request['post_id'] ) : 0;
+		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
 
-		if ( 0 < $post_id ) {
+		if ( $post_id > 0 ) {
 			$post = get_post( $post_id );
 
 			// Set up postdata since this will be needed if post_id was set.

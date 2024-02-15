@@ -59,7 +59,7 @@ wp.textWidgets = ( function( $ ) {
 				control.customHtmlWidgetPointer.find( '.close' ).on( 'click', function( event ) {
 					event.preventDefault();
 					control.customHtmlWidgetPointer.hide();
-					$( '#' + control.fields.text.attr( 'id' ) + '-html' ).focus();
+					$( '#' + control.fields.text.attr( 'id' ) + '-html' ).trigger( 'focus' );
 					control.dismissPointers( [ 'text_widget_custom_html' ] );
 				});
 				control.customHtmlWidgetPointer.find( '.add-widget' ).on( 'click', function( event ) {
@@ -161,7 +161,7 @@ wp.textWidgets = ( function( $ ) {
 					control.fields.text.val( syncInput.val() );
 				}
 			} else if ( control.editor && ! control.editorFocused && syncInput.val() !== control.fields.text.val() ) {
-				control.editor.setContent( wp.editor.autop( syncInput.val() ) );
+				control.editor.setContent( wp.oldEditor.autop( syncInput.val() ) );
 			}
 		},
 
@@ -237,7 +237,7 @@ wp.textWidgets = ( function( $ ) {
 
 				// The user has disabled TinyMCE.
 				if ( typeof window.tinymce === 'undefined' ) {
-					wp.editor.initialize( id, {
+					wp.oldEditor.initialize( id, {
 						quicktags: true,
 						mediaButtons: true
 					});
@@ -248,7 +248,7 @@ wp.textWidgets = ( function( $ ) {
 				// Destroy any existing editor so that it can be re-initialized after a widget-updated event.
 				if ( tinymce.get( id ) ) {
 					restoreTextMode = tinymce.get( id ).isHidden();
-					wp.editor.remove( id );
+					wp.oldEditor.remove( id );
 				}
 
 				// Add or enable the `wpview` plugin.
@@ -262,7 +262,7 @@ wp.textWidgets = ( function( $ ) {
 					}
 				} );
 
-				wp.editor.initialize( id, {
+				wp.oldEditor.initialize( id, {
 					tinymce: {
 						wpautop: true
 					},
@@ -278,7 +278,7 @@ wp.textWidgets = ( function( $ ) {
 				 */
 				showPointerElement = function( pointerElement ) {
 					pointerElement.show();
-					pointerElement.find( '.close' ).focus();
+					pointerElement.find( '.close' ).trigger( 'focus' );
 					wp.a11y.speak( pointerElement.find( 'h3, p' ).map( function() {
 						return $( this ).text();
 					} ).get().join( '\n\n' ) );
@@ -451,7 +451,7 @@ wp.textWidgets = ( function( $ ) {
 			return;
 		}
 
-		idBase = widgetForm.find( '> .widget-control-actions > .id_base' ).val();
+		idBase = widgetForm.find( '.id_base' ).val();
 		if ( -1 === component.idBases.indexOf( idBase ) ) {
 			return;
 		}
@@ -542,9 +542,7 @@ wp.textWidgets = ( function( $ ) {
 			});
 
 			// Accessibility mode.
-			$( window ).on( 'load', function() {
-				component.setupAccessibleMode();
-			});
+			component.setupAccessibleMode();
 		});
 	};
 

@@ -5,7 +5,7 @@ if ( is_multisite() ) :
 	/**
 	 * @group multisite
 	 */
-	class Tests_Multisite_WpmuValidateBlogSignup extends WP_UnitTestCase {
+	class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 		protected static $super_admin_id;
 
 		protected static $existing_user_login = 'existinguserfoo';
@@ -16,7 +16,7 @@ if ( is_multisite() ) :
 
 		protected $minimum_site_name_length = 4;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$super_admin_id = $factory->user->create();
 			grant_super_admin( self::$super_admin_id );
 

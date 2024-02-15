@@ -6,12 +6,12 @@
 class Tests_Term_WpTerm extends WP_UnitTestCase {
 	protected static $term_id;
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -36,7 +36,7 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 			clean_term_cache( 1, 'wptests_tax' );
 		}
 
-		self::$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		self::$term_id = $factory->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 	}
 
 	/**

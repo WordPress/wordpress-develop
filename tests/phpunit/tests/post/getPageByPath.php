@@ -34,8 +34,8 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 
 		$page = get_post( $page->ID );
 
-		$this->assertEquals( 'some-page', $attachment->post_name );
-		$this->assertEquals( 'some-page', $page->post_name );
+		$this->assertSame( 'some-page', $attachment->post_name );
+		$this->assertSame( 'some-page', $page->post_name );
 
 		// get_page_by_path() should return a post of the requested type before returning an attachment.
 		$this->assertEquals( $page, get_page_by_path( 'some-page' ) );
@@ -306,15 +306,15 @@ class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 		$this->assertSame( $page, $found->ID );
 
 		$object = get_page_by_path( 'foo', OBJECT );
-		$this->assertInternalType( 'object', $object );
+		$this->assertIsObject( $object );
 		$this->assertSame( $page, $object->ID );
 
 		$array_n = get_page_by_path( 'foo', ARRAY_N );
-		$this->assertInternalType( 'array', $array_n );
+		$this->assertIsArray( $array_n );
 		$this->assertSame( $page, $array_n[0] );
 
 		$array_a = get_page_by_path( 'foo', ARRAY_A );
-		$this->assertInternalType( 'array', $array_a );
+		$this->assertIsArray( $array_a );
 		$this->assertSame( $page, $array_a['ID'] );
 	}
 }

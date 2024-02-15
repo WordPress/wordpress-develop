@@ -5,31 +5,31 @@
  */
 class Tests_XMLRPC_mt_getRecentPostTitles extends WP_XMLRPC_UnitTestCase {
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->mt_getRecentPostTitles( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
-	function test_no_posts() {
+	public function test_no_posts() {
 		$this->make_user_by_role( 'author' );
 
 		$result = $this->myxmlrpcserver->mt_getRecentPostTitles( array( 1, 'author', 'author' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 500, $result->code );
+		$this->assertSame( 500, $result->code );
 	}
 
-	function test_no_editable_posts() {
+	public function test_no_editable_posts() {
 		$this->make_user_by_role( 'author' );
 		$editor = $this->make_user_by_role( 'editor' );
 		self::factory()->post->create( array( 'post_author' => $editor ) );
 
 		$result = $this->myxmlrpcserver->mt_getRecentPostTitles( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertCount( 0, $result );
 	}
 
-	function test_date() {
+	public function test_date() {
 		$this->make_user_by_role( 'author' );
 
 		self::factory()->post->create();
@@ -44,8 +44,8 @@ class Tests_XMLRPC_mt_getRecentPostTitles extends WP_XMLRPC_UnitTestCase {
 			$this->assertInstanceOf( 'IXR_Date', $result['dateCreated'] );
 			$this->assertInstanceOf( 'IXR_Date', $result['date_created_gmt'] );
 
-			$this->assertEquals( strtotime( $post->post_date ), $result['dateCreated']->getTimestamp() );
-			$this->assertEquals( $date_gmt, $result['date_created_gmt']->getTimestamp() );
+			$this->assertSame( strtotime( $post->post_date ), $result['dateCreated']->getTimestamp() );
+			$this->assertSame( $date_gmt, $result['date_created_gmt']->getTimestamp() );
 		}
 	}
 }
