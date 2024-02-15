@@ -389,9 +389,6 @@ require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
 
-wp_script_modules()->add_hooks();
-wp_interactivity()->add_hooks();
-
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 /**
@@ -491,7 +488,12 @@ create_initial_post_types();
 wp_start_scraping_edited_file_errors();
 
 // Register the default theme directory root.
+// This has to happen before wp_script_modules is registered
+// because wp_script_modules needs to know if the current theme is a block theme.
 register_theme_directory( get_theme_root() );
+
+wp_script_modules()->add_hooks();
+wp_interactivity()->add_hooks();
 
 if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 	// Handle users requesting a recovery mode link and initiating recovery mode.
