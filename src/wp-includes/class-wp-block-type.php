@@ -398,11 +398,7 @@ class WP_Block_Type {
 	 *              or false otherwise.
 	 */
 	public function __isset( $name ) {
-		if ( 'variations' === $name ) {
-			return true;
-		}
-
-		if ( 'uses_context' === $name ) {
+		if ( in_array( $name, array( 'variations', 'uses_context' ), true ) ) {
 			return true;
 		}
 
