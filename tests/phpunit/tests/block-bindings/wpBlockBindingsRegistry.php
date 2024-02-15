@@ -359,6 +359,9 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			return 'Anything';
 		};
 
+		$block_registry        = WP_Block_Type_Registry::get_instance();
+		$original_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
+
 		register_block_bindings_source(
 			'test/source-one',
 			array(
@@ -377,15 +380,14 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			)
 		);
 
-		$block_registry          = WP_Block_Type_Registry::get_instance();
-		$paragraph_block_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
+		$new_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
 		// Check that the resulting `uses_context` contains the values from both sources.
-		$this->assertContains( 'commonContext', $paragraph_block_context );
-		$this->assertContains( 'sourceOneContext', $paragraph_block_context );
-		$this->assertContains( 'sourceTwoContext', $paragraph_block_context );
-		// Check that the resulting `uses_context` has unique values.
-		$this->assertCount( count( array_unique( $paragraph_block_context ) ), $paragraph_block_context );
+		$this->assertContains( 'commonContext', $new_uses_context );
+		$this->assertContains( 'sourceOneContext', $new_uses_context );
+		$this->assertContains( 'sourceTwoContext', $new_uses_context );
+		// Check that the resulting `uses_context` only added 3 items: commonContext, sourceOneContext, and sourceTwoContext.
+		$this->assertSame( count( $original_uses_context ) + 3, count( $new_uses_context ) );
 		// Check that the index is correct and it doesn't skip numbers after merging. Needed for the editor.
-		$this->assertSame( array_key_last( $paragraph_block_context ), count( $paragraph_block_context ) - 1 );
+		$this->assertSame( array_key_last( $new_uses_context ), count( $new_uses_context ) - 1 );
 	}
 }
