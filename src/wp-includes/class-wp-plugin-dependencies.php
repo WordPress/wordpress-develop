@@ -105,14 +105,26 @@ class WP_Plugin_Dependencies {
 	protected static $circular_dependencies_slugs;
 
 	/**
+	 * Whether Plugin Dependencies have been initialized.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var bool
+	 */
+	protected static $initialized = false;
+
+	/**
 	 * Initializes by fetching plugin header and plugin API data,
 	 * and deactivating dependents with unmet dependencies.
 	 *
 	 * @since 6.5.0
 	 */
 	public static function initialize() {
-		self::read_dependencies_from_plugin_headers();
-		self::get_dependency_api_data();
+		if ( false === self::$initialized ) {
+			self::read_dependencies_from_plugin_headers();
+			self::get_dependency_api_data();
+			self::$initialized = true;
+		}
 	}
 
 	/**
