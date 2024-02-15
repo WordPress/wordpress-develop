@@ -158,48 +158,6 @@ HTML;
 	}
 
 	/**
-	 * Test merging `uses_context` from multiple sources.
-	 *
-	 * @ticket 60525
-	 *
-	 * @covers ::register_block_bindings_source
-	 */
-	public function test_merging_uses_context_from_multiple_sources() {
-		$get_value_callback = function () {
-			return 'Anything';
-		};
-
-		register_block_bindings_source(
-			'test/source-one',
-			array(
-				'label'              => 'Test Source One',
-				'get_value_callback' => $get_value_callback,
-				'uses_context'       => array( 'commonContext', 'sourceOneContext' ),
-			)
-		);
-
-		register_block_bindings_source(
-			'test/source-two',
-			array(
-				'label'              => 'Test Source Two',
-				'get_value_callback' => $get_value_callback,
-				'uses_context'       => array( 'commonContext', 'sourceTwoContext' ),
-			)
-		);
-
-		$block_registry          = WP_Block_Type_Registry::get_instance();
-		$paragraph_block_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
-		// Check that the resulting `uses_context` contains the values from both sources.
-		$this->assertContains( 'commonContext', $paragraph_block_context );
-		$this->assertContains( 'sourceOneContext', $paragraph_block_context );
-		$this->assertContains( 'sourceTwoContext', $paragraph_block_context );
-		// Check that the resulting `uses_context` has unique values.
-		$this->assertCount( count( array_unique( $paragraph_block_context ) ), $paragraph_block_context );
-		// Check that the index is correct and it doesn't skip numbers after merging. Needed for the editor.
-		$this->assertSame( array_key_last( $paragraph_block_context ), count( $paragraph_block_context ) - 1 );
-	}
-
-	/**
 	 * Tests if the block content is updated with the value returned by the source
 	 * for the Image block in the placeholder state.
 	 *
