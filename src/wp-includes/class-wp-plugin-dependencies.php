@@ -136,7 +136,7 @@ class WP_Plugin_Dependencies {
 	 * @return bool Whether the plugin has plugins that depend on it.
 	 */
 	public static function has_dependents( $plugin_file ) {
-		return in_array( self::convert_to_slug( $plugin_file ), self::$dependency_slugs, true );
+		return in_array( self::convert_to_slug( $plugin_file ), (array) self::$dependency_slugs, true );
 	}
 
 	/**
@@ -183,7 +183,7 @@ class WP_Plugin_Dependencies {
 	public static function get_dependents( $slug ) {
 		$dependents = array();
 
-		foreach ( self::$dependencies as $dependent => $dependencies ) {
+		foreach ( (array) self::$dependencies as $dependent => $dependencies ) {
 			if ( in_array( $slug, $dependencies, true ) ) {
 				$dependents[] = $dependent;
 			}
@@ -608,6 +608,10 @@ class WP_Plugin_Dependencies {
 			return self::$dependency_filepaths;
 		}
 
+		if ( null === self::$dependency_slugs ) {
+			return array();
+		}
+
 		self::$dependency_filepaths = array();
 
 		$plugin_dirnames = self::get_plugin_dirnames();
@@ -742,6 +746,10 @@ class WP_Plugin_Dependencies {
 	protected static function get_circular_dependencies() {
 		if ( is_array( self::$circular_dependencies_pairs ) ) {
 			return self::$circular_dependencies_pairs;
+		}
+
+		if ( null === self::$dependencies ) {
+			return array();
 		}
 
 		self::$circular_dependencies_slugs = array();
