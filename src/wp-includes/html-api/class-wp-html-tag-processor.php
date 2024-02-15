@@ -838,7 +838,7 @@ class WP_HTML_Tag_Processor {
 	 */
 	public function next_token() {
 		$was_at = $this->bytes_already_parsed;
-		$this->get_updated_html();
+		$this->after_tag();
 
 		// Don't proceed if there's nothing more to scan.
 		if (
@@ -2041,6 +2041,31 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 */
 	private function after_tag() {
+		/*
+		 * There could be lexical updates enqueued for an attribute that
+		 * also exists on the next tag. In order to avoid conflating the
+		 * attributes across the two tags, lexical updates with names
+		 * need to be flushed to raw lexical updates.
+		 */
+		$this->class_name_updates_to_attributes_updates();
+		foreach ( $this->lexical_updates as $name => $update ) {
+			/*
+			 * Any updates appearing after the cursor should be applied
+			 * before proceeding, otherwise they may be overlooked.
+			 */
+			if ( $update->start >= $this->bytes_already_parsed ) {
+				$this->apply_attributes_updates();
+				break;
+			}
+
+			if ( is_int( $name ) ) {
+				continue;
+			}
+
+			$this->lexical_updates[] = $update;
+			unset( $this->lexical_updates[ $name ] );
+		}
+
 		$this->token_starts_at      = null;
 		$this->token_length         = null;
 		$this->tag_name_starts_at   = null;
@@ -2230,7 +2255,7 @@ class WP_HTML_Tag_Processor {
 			$shift = strlen( $diff->text ) - $diff->length;
 
 			// Adjust the cursor position by however much an update affects it.
-			if ( $diff->start <= $this->bytes_already_parsed ) {
+			if ( $diff->start < $this->bytes_already_parsed ) {
 				$this->bytes_already_parsed += $shift;
 			}
 
