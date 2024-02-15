@@ -1635,7 +1635,7 @@ function wp_dropdown_languages( $args = array() ) {
 			$translation = $translations[ $locale ];
 			$languages[] = array(
 				'language'    => $translation['language'],
-				'native_name' => $translation['native_name'] . ' (' . $locale . ')',
+				'native_name' => $translation['native_name'] . ' (' . $translation['english_name'] . ')',
 				'lang'        => current( $translation['iso'] ),
 			);
 
@@ -1700,7 +1700,7 @@ function wp_dropdown_languages( $args = array() ) {
 				esc_attr( $translation['language'] ),
 				esc_attr( current( $translation['iso'] ) ),
 				selected( $translation['language'], $parsed_args['selected'], false ),
-				esc_html( $translation['native_name'] . ' (' . pathinfo( basename( $translation['package'] ), PATHINFO_FILENAME ) . ')' )
+				esc_html( $translation['native_name'] . ' (' . $translation['english_name'] . ')' )
 			);
 		}
 		$structure[] = '</optgroup>';
