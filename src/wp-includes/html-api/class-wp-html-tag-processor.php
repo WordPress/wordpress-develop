@@ -4500,4 +4500,15 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
+
+	/*
+	 * Debug helpers.
+	 */
+	public function debug_lexical_updates() {
+		echo "\n\e[31mLexical Updates\e[m\n";
+		foreach ( $this->lexical_updates as $index => $update ) {
+			$old = substr( $this->html, $update->start, $update->length );
+			echo "  \e[32m{$index}\e[90m changes (\e[34m{$update->start}\e[90m, \e[34m{$update->length}\e[90m) from \"\e[35m{$old}\e[90m\" to \"\e[31m{$update->text}\e[90m\"\e[m\n";
+		}
+	}
 }
