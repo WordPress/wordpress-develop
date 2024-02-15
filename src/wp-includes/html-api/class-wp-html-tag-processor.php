@@ -4504,6 +4504,15 @@ class WP_HTML_Tag_Processor {
 	/*
 	 * Debug helpers.
 	 */
+
+	public function debug_classname_updates() {
+		echo "\n\e[31m\"\e[35mclass\e[31m\" Updates\e[m\n";
+		foreach ( $this->classname_updates as $name => $change ) {
+			$op = $change === true ? 'added' : 'removed';
+			echo "  \e[32m{$name}\e[90m should be \e[35m{$op}\e[m\n";
+		}
+	}
+
 	public function debug_lexical_updates() {
 		echo "\n\e[31mLexical Updates\e[m\n";
 		foreach ( $this->lexical_updates as $index => $update ) {
