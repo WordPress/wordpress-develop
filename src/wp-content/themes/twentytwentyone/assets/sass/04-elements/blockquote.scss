@@ -2,12 +2,6 @@ blockquote {
 	padding: 0;
 	position: relative;
 	margin: var(--global--spacing-vertical) 0 var(--global--spacing-vertical) var(--global--spacing-horizontal);
-	letter-spacing: var(--heading--letter-spacing-h4);
-	font-family: var(--quote--font-family);
-	font-size: var(--quote--font-size);
-	font-style: var(--quote--font-style);
-	font-weight: var(--quote--font-weight);
-	line-height: var(--quote--line-height);
 
 	> * {
 		margin-top: var(--global--spacing-unit);
@@ -23,12 +17,12 @@ blockquote {
 	}
 
 	p {
-		letter-spacing: inherit;
-		font-family: inherit;
-		font-size: inherit;
-		font-style: inherit;
-		font-weight: inherit;
-		line-height: inherit;
+		letter-spacing: var(--heading--letter-spacing-h4);
+		font-family: var(--quote--font-family);
+		font-size: var(--quote--font-size);
+		font-style: var(--quote--font-style);
+		font-weight: var(--quote--font-weight);
+		line-height: var(--quote--line-height);
 	}
 
 	cite,
