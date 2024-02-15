@@ -39,6 +39,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			'get_value_callback' => function () {
 				return 'test-value';
 			},
+			'uses_context'       => array( 'sourceContext' ),
 		);
 	}
 
@@ -179,6 +180,13 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			),
 			$result
 		);
+		$this->assertSame( 'test/source', $result->name );
+		$this->assertSame( 'Test source', $result->label );
+		$this->assertSame(
+			'test-value',
+			$result->get_value( array(), null, '' )
+		);
+		$this->assertEquals( array( 'sourceContext' ), $result->uses_context );
 	}
 
 	/**
