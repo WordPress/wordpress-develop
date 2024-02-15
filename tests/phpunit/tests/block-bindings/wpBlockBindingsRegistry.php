@@ -381,13 +381,13 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		);
 
 		$new_uses_context = $block_registry->get_registered( 'core/paragraph' )->uses_context;
-		// Check that the resulting `uses_context` contains the values from both sources.
+		// Checks that the resulting `uses_context` contains the values from both sources.
 		$this->assertContains( 'commonContext', $new_uses_context );
 		$this->assertContains( 'sourceOneContext', $new_uses_context );
 		$this->assertContains( 'sourceTwoContext', $new_uses_context );
-		// Check that the resulting `uses_context` only added 3 items: commonContext, sourceOneContext, and sourceTwoContext.
+		// Checks that the resulting `uses_context` added 3 unique items.
 		$this->assertSame( count( $original_uses_context ) + 3, count( $new_uses_context ) );
-		// Check that the index is correct and it doesn't skip numbers after merging. Needed for the editor.
+		// Checks that the array isn't sparse to prevent issues in the editor.
 		$this->assertSame( array_key_last( $new_uses_context ), count( $new_uses_context ) - 1 );
 	}
 }
