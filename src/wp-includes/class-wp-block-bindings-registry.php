@@ -126,7 +126,7 @@ final class WP_Block_Bindings_Registry {
 		if ( $this->is_registered( $source_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				// translators: %s: Block bindings source name.
+				/* translators: %s: Block bindings source name. */
 				sprintf( __( 'Block bindings source "%s" already registered.' ), $source_name ),
 				'6.5.0'
 			);
@@ -218,7 +218,7 @@ final class WP_Block_Bindings_Registry {
 		if ( ! $this->is_registered( $source_name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				// translators: %s: Block bindings source name.
+				/* translators: %s: Block bindings source name. */
 				sprintf( __( 'Block binding "%s" not found.' ), $source_name ),
 				'6.5.0'
 			);
