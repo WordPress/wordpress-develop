@@ -1771,6 +1771,35 @@ function get_the_password_form( $post = 0 ) {
 	';
 
 	/**
+	 * Filters the incorrect password message shown on password-protected posts.
+	 * The filter is only applied if the post is password protected.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string The message shown to users when entering an incorrect password.
+	 * @param WP_Post $post   Post object.
+	 */
+	$incorrect_password = apply_filters( 'the_password_form_incorrect_password_output', '<p class="post-password-form-incorrect-message">' . __( 'Incorrect password.' ) . '</p>', $post );
+
+	// If the referrer is the same as the current request, the user has entered an incorrect password.
+	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
+
+		/**
+		 * Filters the HTML output for the protected post password form when the password is incorrect.
+		 *
+		 * Gives the ability to re-order the incorrect password message and the form.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string The incorrect password message and form output.
+		 * @param string $incorrect_password The incorrect password message.
+		 * @param string $output The password form output.
+		 * @param WP_Post $post   Post object.
+		 */
+		$output = apply_filters( 'the_password_form', $incorrect_password . $output, $incorrect_password, $output, $post );
+	}
+
+	/**
 	 * Filters the HTML output for the protected post password form.
 	 *
 	 * If modifying the password field, please note that the core database schema
