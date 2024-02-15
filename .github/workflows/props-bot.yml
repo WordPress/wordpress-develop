@@ -71,7 +71,7 @@ jobs:
 
     steps:
       - name: Gather a list of contributors
-        uses: WordPress/props-bot-action@trunk
+        uses: WordPress/props-bot-action@fix/empty-lists
         with:
           format: 'svn'
 
