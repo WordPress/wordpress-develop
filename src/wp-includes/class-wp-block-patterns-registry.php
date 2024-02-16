@@ -180,17 +180,27 @@ final class WP_Block_Patterns_Registry {
 	}
 
 	/**
-	 * Retrieves the content of a block pattern from a file path.
+	 * Retrieves the content of a registered block pattern.
 	 *
-	 * @since 6.5.0
+	 * @since 5.5.0
 	 *
-	 * @param string $file_path The file path to the block pattern.
+	 * @param string $pattern_name     Block pattern name including namespace.
+	 * @param bool   $outside_init_only Return only patterns registered outside the `init` action.
 	 * @return string The content of the block pattern.
 	 */
-	private function load_content_from_file_path( $file_path ) {
-		ob_start();
-		include $file_path;
-		return ob_get_clean();
+	private function get_content( $pattern_name, $outside_init_only = false ) {
+		if ( $outside_init_only ) {
+			$patterns = &$this->registered_patterns_outside_init;
+		} else {
+			$patterns = &$this->registered_patterns;
+		}
+		if ( ! isset( $patterns[ $pattern_name ]['content'] ) && isset( $patterns[ $pattern_name ]['file_path'] ) ) {
+			ob_start();
+			include $patterns[ $pattern_name ]['file_path'];
+			$patterns[ $pattern_name ]['content'] = ob_get_clean();
+			unset( $patterns[ $pattern_name ]['file_path'] );
+		}
+		return $patterns[ $pattern_name ]['content'];
 	}
 
 	/**
@@ -206,12 +216,8 @@ final class WP_Block_Patterns_Registry {
 			return null;
 		}
 
-		$pattern = $this->registered_patterns[ $pattern_name ];
-		if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
-			$pattern['content']                                    = $this->load_content_from_file_path( $pattern['file_path'] );
-			$this->registered_patterns[ $pattern_name ]['content'] = $pattern['content'];
-		}
-
+		$pattern            = $this->registered_patterns[ $pattern_name ];
+		$pattern['content'] = $this->get_content( $pattern_name );
 		$pattern['content'] = $this->prepare_content( $pattern, get_hooked_blocks() );
 
 		return $pattern;
@@ -233,16 +239,7 @@ final class WP_Block_Patterns_Registry {
 		$hooked_blocks = get_hooked_blocks();
 
 		foreach ( $patterns as $index => $pattern ) {
-			if ( ! isset( $pattern['content'] ) && isset( $pattern['file_path'] ) ) {
-				$pattern['content'] = $this->load_content_from_file_path( $pattern['file_path'] );
-				if ( $outside_init_only ) {
-					$this->registered_patterns_outside_init[ $index ]['content'] = $pattern['content'];
-					unset( $this->registered_patterns_outside_init[ $index ]['file_path'] );
-				} else {
-					$this->registered_patterns[ $index ]['content'] = $pattern['content'];
-					unset( $this->registered_patterns[ $index ]['file_path'] );
-				}
-			}
+			$pattern['content']            = $this->get_content( $pattern['name'], $outside_init_only );
 			$patterns[ $index ]['content'] = $this->prepare_content( $pattern, $hooked_blocks );
 		}
 
