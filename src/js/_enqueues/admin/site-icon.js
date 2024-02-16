@@ -149,13 +149,13 @@
 					/* translators: %s: The selected image alt text. */
 					wp.i18n.__( 'Current image: %s' ),
 					attributes.alt
-				)
+				);
 			} else {
 				i18nAltString = wp.i18n.sprintf(
 					/* Translators: %s: The selected image filename. */
 					wp.i18n.__( 'The current image has no alternative text. The file name is: %s' ),
 					attributes.filename
-				)
+				);
 			}
 
 			// Set site-icon-img src to the url and remove the hidden class.
