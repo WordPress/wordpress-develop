@@ -530,11 +530,10 @@ function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, 
 		$attachment['meta_input'] = array(
 			'_wp_attachment_image_alt' => wp_slash( $parent->_wp_attachment_image_alt ),
 		);
-	}	
+	}
 
 	return $attachment;
 }
-
 
 /**
  * Generates attachment meta data and create image sub-sizes for images.
