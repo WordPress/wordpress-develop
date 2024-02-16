@@ -182,7 +182,7 @@ final class WP_Block_Patterns_Registry {
 	/**
 	 * Retrieves the content of a registered block pattern.
 	 *
-	 * @since 5.5.0
+	 * @since 6.5.0
 	 *
 	 * @param string $pattern_name     Block pattern name including namespace.
 	 * @param bool   $outside_init_only Return only patterns registered outside the `init` action.
