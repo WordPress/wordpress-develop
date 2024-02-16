@@ -245,7 +245,7 @@ function twentynineteen_custom_colors_css() {
 		}
 
 		/* Hover colors */
-		.editor-styles-wrapper .wp-block .wp-block-file .wp-block-file__textlink:hover /* Before 5.8 */
+		.editor-styles-wrapper .wp-block .wp-block-file .wp-block-file__textlink:hover, /* Before 5.8 */
 		.editor-styles-wrapper .wp-block a:hover,
 		.editor-styles-wrapper .wp-block a:active {
 			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
