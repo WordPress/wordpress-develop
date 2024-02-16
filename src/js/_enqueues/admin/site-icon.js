@@ -102,7 +102,7 @@
 
 			frame.on( 'cropped', function( attachment ) {
 				$( '#site_icon_hidden_field' ).val( attachment.id );
-				switchToUpdate( attachment.url );
+				switchToUpdate( attachment );
 				frame.close();
 				// Start over with a frame that is so fresh and so clean clean.
 				frame = null;
@@ -121,7 +121,7 @@
 
 					// Set the value of the hidden input to the attachment id.
 					$( '#site_icon_hidden_field' ).val( attachment.id );
-					switchToUpdate( attachment.attributes.url );
+					switchToUpdate( attachment.attributes );
 					frame.close();
 				} else {
 					frame.setState( 'cropper' );
@@ -137,16 +137,35 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {string} url The URL of the site icon image.
+	 * @param {array} attributes The attributes for the attachment.
 	 */
-	function switchToUpdate( url ) {
+	function switchToUpdate( attributes ) {
 		var $chooseButton = $( '#choose-from-library-button' ),
-			$iconPreview = $( '#site-icon-preview' );
+			$iconPreview = $( '#site-icon-preview' ),
+			i18nAltString;
+
+			if ( attributes.alt ) {
+				i18nAltString = wp.i18n.sprintf(
+					/* translators: %s: The selected image alt text. */
+					wp.i18n.__( 'Current image: %s' ),
+					attributes.alt
+				)
+			} else {
+				i18nAltString = wp.i18n.sprintf(
+					/* Translators: %s: The selected image filename. */
+					wp.i18n.__( 'The current image has no alternative text. The file name is: %s' ),
+					attributes.filename
+				)
+			}
 
 			// Set site-icon-img src to the url and remove the hidden class.
 			$iconPreview.find( 'img' ).not( '.browser-preview' )
 			.each( function( i, img ) {
-				$( img ).attr( 'src', url );
+				$( img )
+				.attr({
+					'src': attributes.url,
+					'alt': i18nAltString 
+				});
 			});
 			$iconPreview.removeClass( 'hidden' );
 
