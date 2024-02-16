@@ -388,10 +388,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	/**
 	 * Data provider for test_redirect_guess_404_permalink_post_types().
 	 *
-	 * Sample-page is intentionally misspelt as sample-pag to ensure
-	 * the 404 post permalink guessing runs.
+	 * In the original URLs the post names are intentionally misspelled
+	 * to test the redirection.
 	 *
-	 * Please do not correct the apparent typo.
+	 * Please do not correct the apparent typos.
 	 *
 	 * @return array[]
 	 */
