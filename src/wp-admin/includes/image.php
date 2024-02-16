@@ -487,7 +487,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  *
  *
  * @param string $cropped Path to the cropped image file.
- * @param int 	 $parent_attachment_id Parent file Attachment ID.
+ * @param int    $parent_attachment_id Parent file Attachment ID.
  * @param string $context Context of the image.
  * @return array Properties of attachment.
  */
