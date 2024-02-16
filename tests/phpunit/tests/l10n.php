@@ -70,7 +70,16 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertEmpty( $array );
 
 		$array = get_available_languages( DIR_TESTDATA . '/languages/' );
-		$this->assertSame( array( 'de_DE', 'en_GB', 'es_ES', 'ja_JP' ), $array );
+		$this->assertEqualSets(
+			array(
+				'de_DE',
+				'en_GB',
+				'es_ES',
+				'ja_JP',
+				'de_CH',
+			),
+			$array
+		);
 	}
 
 	/**
