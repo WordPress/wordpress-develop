@@ -99,7 +99,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 					'font_families' => array( array() ),
 				),
 			),
-//
+
 			'font collection with all data'      => array(
 				'slug'          => 'my-collection',
 				'config'        => array(
