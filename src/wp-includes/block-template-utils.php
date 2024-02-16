@@ -1184,14 +1184,30 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
  *
  * @since 5.9.0
  *
+ * @global WP_Embed $wp_embed An instance of WP_Embed for embedding rich media.
+ *
  * @param string $part The block template part to print. Use "header" or "footer".
  */
 function block_template_part( $part ) {
+	global $wp_embed;
+
 	$template_part = get_block_template( get_stylesheet() . '//' . $part, 'wp_template_part' );
 	if ( ! $template_part || empty( $template_part->content ) ) {
 		return;
 	}
-	echo do_blocks( $template_part->content );
+
+	// Run through the actions that are typically taken on the_content.
+	$content = do_blocks( $template_part->content );
+	$content = wptexturize( $content );
+	$content = convert_smilies( $content );
+	$content = shortcode_unautop( $content );
+	$content = wp_filter_content_tags( $content );
+	$content = do_shortcode( $content );
+
+	// Handle embeds for block template parts.
+	$content = $wp_embed->autoembed( $content );
+
+	echo $content;
 }
 
 /**

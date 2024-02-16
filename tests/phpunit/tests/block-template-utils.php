@@ -10,6 +10,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 	const TEST_THEME = 'block-theme';
 
+	const TEST_SHORTCODE = 'test_shortcode';
+
 	private static $template_post;
 	private static $template_part_post;
 
@@ -389,5 +391,102 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			}
 		}
 		$this->assertTrue( $has_html_files, 'contains at least one html file' );
+	}
+
+	/**
+	 * Tests that block_template_part() does shortcodes.
+	 *
+	 * @ticket 56780
+	 *
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_should_do_shortcodes() {
+		add_shortcode(
+			self::TEST_SHORTCODE,
+			static function () {
+				return 'test_shortcode_rendered';
+			}
+		);
+
+		$generated_content = get_echo( 'block_template_part', array( 'template-part-shortcode' ) );
+		remove_shortcode( self::TEST_SHORTCODE );
+
+		$this->assertStringContainsString(
+			'test_shortcode_rendered_unautop',
+			$generated_content,
+			'Should render shortcodes in paragraph tags'
+		);
+
+		$this->assertStringContainsString(
+			'test_shortcode_rendered_shortcode_block',
+			$generated_content,
+			'Should render shortcodes in shortcode blocks'
+		);
+	}
+
+	/**
+	 * Tests that block_template_part() includes new browser and HTML
+	 * technologies that may not have existed at the time of post creation.
+	 *
+	 * @ticket 56780
+	 *
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_should_include_new_browser_and_html_technologies() {
+		$this->assertStringContainsString(
+			'<img loading="lazy" decoding="async" width="408" height="287" src="https://placekitten.com/408/287">',
+			get_echo( 'block_template_part', array( 'template-part-shortcode' ) )
+		);
+	}
+
+	/**
+	 * Tests that block_template_part() converts smilies.
+	 *
+	 * @ticket 56780
+	 *
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_should_convert_smilies() {
+		$this->assertStringContainsString(
+			'🙂',
+			get_echo( 'block_template_part', array( 'template-part-shortcode' ) )
+		);
+	}
+
+	/**
+	 * Tests that block_template_part() auto-embeds videos.
+	 *
+	 * @ticket 56780
+	 *
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_should_auto_embed_videos() {
+		$generated_content = get_echo( 'block_template_part', array( 'template-part-shortcode' ) );
+
+		$this->assertStringContainsString(
+			'<iframe',
+			$generated_content,
+			'Should replace Youtube link with an iframe'
+		);
+
+		$this->assertStringContainsString(
+			'src="https://www.youtube.com/embed/_H4vwkGvWjE',
+			$generated_content,
+			'Should use the correct src for the iframe'
+		);
+	}
+
+	/**
+	 * Tests that block_template_part() should use formatted entities.
+	 *
+	 * @ticket 56780
+	 *
+	 * @covers ::block_template_part
+	 */
+	public function test_block_template_part_should_use_formatted_entities() {
+		$this->assertStringContainsString(
+			'&#8217;cause today&#8217;s effort makes it worth tomorrow&#8217;s &#8220;holiday&#8221;&#8230;',
+			get_echo( 'block_template_part', array( 'template-part-shortcode' ) )
+		);
 	}
 }
