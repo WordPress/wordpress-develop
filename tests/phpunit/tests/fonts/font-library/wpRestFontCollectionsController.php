@@ -145,7 +145,7 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		wp_set_current_user( self::$admin_id );
 		$slug = 'invalid-collection';
 		wp_register_font_collection(
-		$slug,
+			$slug,
 			array(
 				'name' => 'My collection',
 				'src'  => 'invalid-collection-file',
