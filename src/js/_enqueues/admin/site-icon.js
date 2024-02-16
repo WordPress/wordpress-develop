@@ -193,11 +193,23 @@
 	 * @since 6.5.0
 	 */
 	( function () {
-		var $chooseButton = $( '#choose-from-library-button' );
+		var $chooseButton = $( '#choose-from-library-button' ),
+			$iconPreview = $( '#site-icon-preview' );
+
 		$( '#js-remove-site-icon' ).on( 'click', function() {
 			$( '#site_icon_hidden_field' ).val( 'false' );
-			$( '#site-icon-preview' ).toggleClass( 'hidden' );
 			$( this ).toggleClass( 'hidden' );
+			$iconPreview.toggleClass( 'hidden' );
+			$iconPreview.find( 'img' ).not( '.browser-preview' )
+			.each( function( i, img ) {
+				$( img )
+				.attr({
+					'src': '',
+					'alt': '' 
+				});
+			});
+
+			console.log('he');
 
 			/**
 			 * Resets initial state to the button, for correct visual style and state.
