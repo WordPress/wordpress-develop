@@ -485,6 +485,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 /**
  * Copy parent attachment properties to newly cropped image.
  *
+ * @since 6.5.0
  *
  * @param string $cropped Path to the cropped image file.
  * @param int    $parent_attachment_id Parent file Attachment ID.
