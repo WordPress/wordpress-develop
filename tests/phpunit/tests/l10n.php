@@ -75,8 +75,11 @@ class Tests_L10n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35284
+	 * @ticket 60554
 	 *
 	 * @covers ::wp_get_installed_translations
+	 * @covers ::wp_get_pomo_file_data
+	 * @covers ::wp_get_l10n_php_file_data
 	 */
 	public function test_wp_get_installed_translations_for_core() {
 		$installed_translations = wp_get_installed_translations( 'core' );
@@ -95,6 +98,12 @@ class Tests_L10n extends WP_UnitTestCase {
 		$this->assertSame( '2016-10-25 18:29+0200', $data_es_es['PO-Revision-Date'] );
 		$this->assertSame( 'Administration', $data_es_es['Project-Id-Version'] );
 		$this->assertSame( 'Poedit 1.8.10', $data_es_es['X-Generator'] );
+
+		$this->assertNotEmpty( $installed_translations['default']['de_CH'] );
+		$data_en_gb = $installed_translations['default']['de_CH'];
+		$this->assertSame( '2024-01-31 19:08:22+0000', $data_en_gb['PO-Revision-Date'] );
+		$this->assertSame( 'WordPress - 6.4.x - Development', $data_en_gb['Project-Id-Version'] );
+		$this->assertSame( 'GlotPress/4.0.0-beta.2', $data_en_gb['X-Generator'] );
 	}
 
 	/**
