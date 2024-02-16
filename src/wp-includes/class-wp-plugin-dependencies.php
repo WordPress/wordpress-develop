@@ -114,8 +114,7 @@ class WP_Plugin_Dependencies {
 	protected static $initialized = false;
 
 	/**
-	 * Initializes by fetching plugin header and plugin API data,
-	 * and deactivating dependents with unmet dependencies.
+	 * Initializes by fetching plugin header and plugin API data.
 	 *
 	 * @since 6.5.0
 	 */
