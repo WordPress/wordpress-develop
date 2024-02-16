@@ -209,8 +209,6 @@
 				});
 			});
 
-			console.log('he');
-
 			/**
 			 * Resets initial state to the button, for correct visual style and state.
 			 * Updates the text of the button.
