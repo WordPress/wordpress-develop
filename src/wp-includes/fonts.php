@@ -53,28 +53,33 @@ function wp_print_font_faces( $fonts = array() ) {
 }
 
 /**
- * Registers a new Font Collection in the Font Library.
+ * Registers a new font collection in the font library.
+ *
+ * See {@link https://schemas.wp.org/trunk/font-collection.json} for the schema
+ * the font collection data must adhere to.
  *
  * @since 6.5.0
  *
- * @param string       $slug Font collection slug. May only contain alphanumeric characters, dashes,
+ * @param string $slug Font collection slug. May only contain alphanumeric characters, dashes,
  *                     and underscores. See sanitize_title().
- * @param array|string $data_or_file {
- *     Font collection data array or a path/URL to a JSON file containing the font collection.
- *
- *     @link https://schemas.wp.org/trunk/font-collection.json
+ * @param array  $args {
+ *     Font collection data.
  *
  *     @type string $name           Required. Name of the font collection shown in the Font Library.
  *     @type string $description    Optional. A short descriptive summary of the font collection. Default empty.
- *     @type array  $font_families  Required. Array of font family definitions that are in the collection.
+ *     @type string $src            Optional. Path or URL to a JSON file containing the font collection. Default empty.
+ *                                  Required if `$font_families` is not provided.
+ *     @type array  $font_families  Optional. Array of font family definitions that are in the collection.
+ *                                  Required if `src` is not provided.
  *     @type array  $categories     Optional. Array of categories, each with a name and slug, that are used by the
  *                                  fonts in the collection. Default empty.
+ *                                  Required if `src` is not provided.
  * }
  * @return WP_Font_Collection|WP_Error A font collection if it was registered
  *                                     successfully, or WP_Error object on failure.
  */
-function wp_register_font_collection( $slug, $data_or_file ) {
-	return WP_Font_Library::get_instance()->register_font_collection( $slug, $data_or_file );
+function wp_register_font_collection( string $slug, array $args ) {
+	return WP_Font_Library::get_instance()->register_font_collection( $slug, $args );
 }
 
 /**
@@ -85,7 +90,7 @@ function wp_register_font_collection( $slug, $data_or_file ) {
  * @param string $slug Font collection slug.
  * @return bool True if the font collection was unregistered successfully, else false.
  */
-function wp_unregister_font_collection( $slug ) {
+function wp_unregister_font_collection( string $slug ) {
 	return WP_Font_Library::get_instance()->unregister_font_collection( $slug );
 }
 
@@ -196,5 +201,12 @@ function _wp_before_delete_font_face( $post_id, $post ) {
  * @since 6.5.0
  */
 function _wp_register_default_font_collections() {
-	wp_register_font_collection( 'google-fonts', 'https://s.w.org/images/fonts/17.7/collections/google-fonts-with-preview.json' );
+	wp_register_font_collection(
+		'google-fonts',
+		array(
+			'src'         => 'https://s.w.org/images/fonts/17.7/collections/google-fonts-with-preview.json',
+			'name'        => __( 'Google Fonts' ),
+			'description' => __( 'Install from Google Fonts. Fonts are copied to and served from your site.' ),
+		)
+	);
 }
