@@ -230,7 +230,7 @@ function twentynineteen_custom_colors_css() {
 		}
 
 		/* The solid color variation was removed in 5.9, the CSS is kept for backwards compatibility. */
-		.editor-styles-wrapper .wp-block .wp-block-pullquote.is-style-solid-color:not(.has-background-color) /* Before 5.8 */
+		.editor-styles-wrapper .wp-block .wp-block-pullquote.is-style-solid-color:not(.has-background-color), /* Before 5.8 */
 		.editor-styles-wrapper .wp-block.wp-block-pullquote.is-style-solid-color:not(.has-background-color) {
 			background-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
