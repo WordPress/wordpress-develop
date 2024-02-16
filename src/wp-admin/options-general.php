@@ -126,8 +126,8 @@ $tagline_description = sprintf(
 		$img_alt  = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
 		$filename = wp_basename( get_site_icon_url() );
 		$img_alt_value = sprintf(
-				/* Translators: %s: The selected image filename. */
-				__( 'The current image has no alternative text. The file name is: %s' ),
+			/* Translators: %s: The selected image filename. */
+			__( 'The current image has no alternative text. The file name is: %s' ),
 			$filename
 		);
 
