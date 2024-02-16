@@ -203,7 +203,7 @@ final class WP_Font_Collection {
 		if ( isset( $data['src'], $data['font_families'] ) ) {
 			$message = sprintf(
 				// translators: 1: src. 2: font_families or categories.
-				__( 'Font collection must only provide "%2$s" or "%2$s", not both.' ),
+				__( 'Font collection must only provide "%1$s" or "%2$s", not both.' ),
 				'src',
 				'font_families'
 			);
@@ -212,7 +212,7 @@ final class WP_Font_Collection {
 		} elseif ( isset( $data['src'], $data['categories'] ) ) {
 			$message = sprintf(
 				// translators: 1: src. 2: font_families or categories.
-				__( 'Font collection must only provide "%2$s" or "%2$s", not both.' ),
+				__( 'Font collection must only provide "%1$s" or "%2$s", not both.' ),
 				'src',
 				'categories'
 			);
