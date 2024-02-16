@@ -250,6 +250,50 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		);
 	}
 
+
+	/**
+	 * @dataProvider data_mutually_exclusive_properties
+	 *
+	 * @param array $config Font collection config.
+	 */
+	public function test_should_error_for_mutually_exclusive_properties( $config ) {
+		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::sanitize_and_validate_data' );
+
+		$collection = new WP_Font_Collection( 'my-collection', $config );
+		$data       = $collection->get_data();
+
+		$this->assertWPError( $data, 'Error is not returned when property is missing or invalid.' );
+		$this->assertSame(
+			'font_collection_mutually_exclusive_property',
+			$data->get_error_code(),
+			'Incorrect error code when property is missing or invalid.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_mutually_exclusive_properties() {
+		return array(
+			'src and font_families' => array(
+				'config' => array(
+					'name'          => 'My collection',
+					'src'           => 'foo',
+					'font_families' => array( array() ),
+				),
+			),
+			'src and categories'    => array(
+				'config' => array(
+					'name'       => 'My collection',
+					'src'        => 'foo',
+					'categories' => array( array() ),
+				),
+			),
+		);
+	}
+
 	public function test_should_error_with_invalid_json_file_path() {
 		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 

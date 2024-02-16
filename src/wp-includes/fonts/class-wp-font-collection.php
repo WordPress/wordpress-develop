@@ -202,13 +202,22 @@ final class WP_Font_Collection {
 
 		if ( isset( $data['src'], $data['font_families'] ) ) {
 			$message = sprintf(
-			// translators: 1: src. 2: font_families.
+				// translators: 1: src. 2: font_families or categories.
 				__( 'Font collection must only provide "%2$s" or "%2$s", not both.' ),
 				'src',
 				'font_families'
 			);
 			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
-			return new WP_Error( 'font_collection_duplicate_property', $message );
+			return new WP_Error( 'font_collection_mutually_exclusive_property', $message );
+		} elseif ( isset( $data['src'], $data['categories'] ) ) {
+			$message = sprintf(
+				// translators: 1: src. 2: font_families or categories.
+				__( 'Font collection must only provide "%2$s" or "%2$s", not both.' ),
+				'src',
+				'categories'
+			);
+			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
+			return new WP_Error( 'font_collection_mutually_exclusive_property', $message );
 		}
 
 		$required_properties = array( 'name' );
