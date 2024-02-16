@@ -134,7 +134,7 @@ $tagline_description = sprintf(
 		if ( $img_alt ) {
 			$img_alt_value = sprintf(
 				/* Translators: %s: The selected image alt text. */
-				__( 'Current image: %s', ),
+				__( 'Current image: %s' ),
 				$img_alt
 			);
 		}
