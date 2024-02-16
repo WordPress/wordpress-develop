@@ -4035,10 +4035,10 @@ function wp_ajax_crop_image() {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
-			$cropped    = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id, $context ); // For replication.
+			$cropped    = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
 			/* Copy attachment properties */
-			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id );
+			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
 
 			// Update the attachment.
 			add_filter( 'intermediate_image_sizes_advanced', array( $wp_site_icon, 'additional_sizes' ) );
