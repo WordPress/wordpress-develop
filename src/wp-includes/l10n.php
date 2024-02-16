@@ -1633,7 +1633,7 @@ function wp_dropdown_languages( $args = array() ) {
 	foreach ( $parsed_args['languages'] as $locale ) {
 		if ( isset( $translations[ $locale ] ) ) {
 			$translation = $translations[ $locale ];
-			$native_name = preg_match( '/^[A-Za-z() ]+$/', $translation['native_name'] ) ? $translation['native_name'] : $translation['native_name'] . '( ' . $translation['english_name'] . ' )';
+			$native_name = preg_match( '/^[A-Za-z() ]+$/', $translation['native_name'] ) || ! array_key_exists( 'english_name', $translation ) ? $translation['native_name'] : $translation['native_name'] . '( ' . $translation['english_name'] . ' )';
 			$languages[] = array(
 				'language'    => $translation['language'],
 				'native_name' => $native_name,
@@ -1701,7 +1701,7 @@ function wp_dropdown_languages( $args = array() ) {
 				esc_attr( $translation['language'] ),
 				esc_attr( current( $translation['iso'] ) ),
 				selected( $translation['language'], $parsed_args['selected'], false ),
-				esc_html( preg_match( '/^[A-Za-z() ]+$/', $translation['native_name'] ) ? $translation['native_name'] : $translation['native_name'] . '( ' . $translation['english_name'] . ' )' )
+				esc_html( preg_match( '/^[A-Za-z() ]+$/', $translation['native_name'] ) || ! array_key_exists( 'english_name', $translation ) ? $translation['native_name'] : $translation['native_name'] . '( ' . $translation['english_name'] . ' )' )
 			);
 		}
 		$structure[] = '</optgroup>';
