@@ -36,6 +36,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
+ * @since 6.5.0 Added support for `viewScriptModule` field.
  *
  * @param string $block_name Name of the block.
  * @param string $field_name Name of the metadata field.
@@ -52,6 +53,9 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 		if ( str_starts_with( $field_name, 'view' ) ) {
 			$asset_handle .= '-view';
 		}
+		if ( str_ends_with( strtolower( $field_name ), 'scriptmodule' ) ) {
+			$asset_handle .= '-script-module';
+		}
 		if ( $index > 0 ) {
 			$asset_handle .= '-' . ( $index + 1 );
 		}
@@ -59,11 +63,13 @@ function generate_block_asset_handle( $block_name, $field_name, $index = 0 ) {
 	}
 
 	$field_mappings = array(
-		'editorScript' => 'editor-script',
-		'script'       => 'script',
-		'viewScript'   => 'view-script',
-		'editorStyle'  => 'editor-style',
-		'style'        => 'style',
+		'editorScript'     => 'editor-script',
+		'editorStyle'      => 'editor-style',
+		'script'           => 'script',
+		'style'            => 'style',
+		'viewScript'       => 'view-script',
+		'viewScriptModule' => 'view-script-module',
+		'viewStyle'        => 'view-style',
 	);
 	$asset_handle   = str_replace( '/', '-', $block_name ) .
 		'-' . $field_mappings[ $field_name ];
@@ -122,13 +128,70 @@ function get_block_asset_url( $path ) {
 }
 
 /**
+ * Finds a script module ID for the selected block metadata field. It detects
+ * when a path to file was provided and optionally finds a corresponding asset
+ * file with details necessary to register the script module under with an
+ * automatically generated module ID. It returns unprocessed script module
+ * ID otherwise.
+ *
+ * @since 6.5.0
+ *
+ * @param array  $metadata   Block metadata.
+ * @param string $field_name Field name to pick from metadata.
+ * @param int    $index      Optional. Index of the script module ID to register when multiple
+ *                           items passed. Default 0.
+ * @return string|false Script module ID or false on failure.
+ */
+function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
+	if ( empty( $metadata[ $field_name ] ) ) {
+		return false;
+	}
+
+	$module_id = $metadata[ $field_name ];
+	if ( is_array( $module_id ) ) {
+		if ( empty( $module_id[ $index ] ) ) {
+			return false;
+		}
+		$module_id = $module_id[ $index ];
+	}
+
+	$module_path = remove_block_asset_path_prefix( $module_id );
+	if ( $module_id === $module_path ) {
+		return $module_id;
+	}
+
+	$path                  = dirname( $metadata['file'] );
+	$module_asset_raw_path = $path . '/' . substr_replace( $module_path, '.asset.php', - strlen( '.js' ) );
+	$module_id             = generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	$module_asset_path     = wp_normalize_path(
+		realpath( $module_asset_raw_path )
+	);
+
+	$module_path_norm = wp_normalize_path( realpath( $path . '/' . $module_path ) );
+	$module_uri       = get_block_asset_url( $module_path_norm );
+
+	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
+	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
+
+	wp_register_script_module(
+		$module_id,
+		$module_uri,
+		$module_dependencies,
+		isset( $module_asset['version'] ) ? $module_asset['version'] : false
+	);
+
+	return $module_id;
+}
+
+/**
  * Finds a script handle for the selected block metadata field. It detects
- * when a path to file was provided and finds a corresponding asset file
- * with details necessary to register the script under automatically
+ * when a path to file was provided and optionally finds a corresponding asset
+ * file with details necessary to register the script under automatically
  * generated handle name. It returns unprocessed script handle otherwise.
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
+ * @since 6.5.0 The asset file is optional. Added script handle support in the asset file.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
@@ -142,56 +205,49 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 		return false;
 	}
 
-	$script_handle = $metadata[ $field_name ];
-	if ( is_array( $script_handle ) ) {
-		if ( empty( $script_handle[ $index ] ) ) {
+	$script_handle_or_path = $metadata[ $field_name ];
+	if ( is_array( $script_handle_or_path ) ) {
+		if ( empty( $script_handle_or_path[ $index ] ) ) {
 			return false;
 		}
-		$script_handle = $script_handle[ $index ];
+		$script_handle_or_path = $script_handle_or_path[ $index ];
 	}
 
-	$script_path = remove_block_asset_path_prefix( $script_handle );
-	if ( $script_handle === $script_path ) {
-		return $script_handle;
+	$script_path = remove_block_asset_path_prefix( $script_handle_or_path );
+	if ( $script_handle_or_path === $script_path ) {
+		return $script_handle_or_path;
 	}
 
 	$path                  = dirname( $metadata['file'] );
 	$script_asset_raw_path = $path . '/' . substr_replace( $script_path, '.asset.php', - strlen( '.js' ) );
-	$script_handle         = generate_block_asset_handle( $metadata['name'], $field_name, $index );
 	$script_asset_path     = wp_normalize_path(
 		realpath( $script_asset_raw_path )
 	);
 
-	if ( empty( $script_asset_path ) ) {
-		_doing_it_wrong(
-			__FUNCTION__,
-			sprintf(
-				/* translators: 1: Asset file location, 2: Field name, 3: Block name.  */
-				__( 'The asset file (%1$s) for the "%2$s" defined in "%3$s" block definition is missing.' ),
-				$script_asset_raw_path,
-				$field_name,
-				$metadata['name']
-			),
-			'5.5.0'
-		);
-		return false;
+	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
+	$script_asset = ! empty( $script_asset_path ) ? require $script_asset_path : array();
+	$script_handle = isset( $script_asset['handle'] ) ?
+		$script_asset['handle'] :
+		generate_block_asset_handle( $metadata['name'], $field_name, $index );
+	if ( wp_script_is( $script_handle, 'registered' ) ) {
+		return $script_handle;
 	}
 
-	$script_path_norm = wp_normalize_path( realpath( $path . '/' . $script_path ) );
-	$script_uri       = get_block_asset_url( $script_path_norm );
-
-	$script_args = array();
+	$script_path_norm    = wp_normalize_path( realpath( $path . '/' . $script_path ) );
+	$script_uri          = get_block_asset_url( $script_path_norm );
+	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
+	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$script_version      = isset( $script_asset['version'] ) ? $script_asset['version'] : $block_version;
+	$script_args         = array();
 	if ( 'viewScript' === $field_name && $script_uri ) {
 		$script_args['strategy'] = 'defer';
 	}
 
-	$script_asset        = require $script_asset_path;
-	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
-	$result              = wp_register_script(
+	$result = wp_register_script(
 		$script_handle,
 		$script_uri,
 		$script_dependencies,
-		isset( $script_asset['version'] ) ? $script_asset['version'] : false,
+		$script_version,
 		$script_args
 	);
 	if ( ! $result ) {
@@ -326,6 +382,7 @@ function get_block_metadata_i18n_schema() {
  * @since 6.1.0 Added support for `render` field.
  * @since 6.3.0 Added `selectors` field.
  * @since 6.4.0 Added support for `blockHooks` field.
+ * @since 6.5.0 Added support for `allowedBlocks`, `viewScriptModule`, and `viewStyle` fields.
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
@@ -422,6 +479,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'styles'          => 'styles',
 		'variations'      => 'variations',
 		'example'         => 'example',
+		'allowedBlocks'   => 'allowed_blocks',
 	);
 	$textdomain        = ! empty( $metadata['textdomain'] ) ? $metadata['textdomain'] : null;
 	$i18n_schema       = get_block_metadata_i18n_schema();
@@ -500,9 +558,44 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
+	$module_fields = array(
+		'viewScriptModule' => 'view_script_module_ids',
+	);
+	foreach ( $module_fields as $metadata_field_name => $settings_field_name ) {
+		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
+			$metadata[ $metadata_field_name ] = $settings[ $metadata_field_name ];
+		}
+		if ( ! empty( $metadata[ $metadata_field_name ] ) ) {
+			$modules           = $metadata[ $metadata_field_name ];
+			$processed_modules = array();
+			if ( is_array( $modules ) ) {
+				for ( $index = 0; $index < count( $modules ); $index++ ) {
+					$result = register_block_script_module_id(
+						$metadata,
+						$metadata_field_name,
+						$index
+					);
+					if ( $result ) {
+						$processed_modules[] = $result;
+					}
+				}
+			} else {
+				$result = register_block_script_module_id(
+					$metadata,
+					$metadata_field_name
+				);
+				if ( $result ) {
+					$processed_modules[] = $result;
+				}
+			}
+			$settings[ $settings_field_name ] = $processed_modules;
+		}
+	}
+
 	$style_fields = array(
 		'editorStyle' => 'editor_style_handles',
 		'style'       => 'style_handles',
+		'viewStyle'   => 'view_style_handles',
 	);
 	foreach ( $style_fields as $metadata_field_name => $settings_field_name ) {
 		if ( ! empty( $settings[ $metadata_field_name ] ) ) {
@@ -758,35 +851,115 @@ function get_hooked_blocks() {
 }
 
 /**
- * Conditionally returns the markup for a given hooked block type.
+ * Returns the markup for blocks hooked to the given anchor block in a specific relative position.
  *
- * Accepts two arguments: A reference to an anchor block, and the name of a hooked block type.
- * If the anchor block has already been processed, and the given hooked block type is in the list
- * of ignored hooked blocks, an empty string is returned.
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                  $relative_position   The relative position of the hooked blocks.
+ *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string
+ */
+function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
+	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+		: array();
+
+	/**
+	 * Filters the list of hooked block types for a given anchor block type and relative position.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string[]                        $hooked_block_types The list of hooked block types.
+	 * @param string                          $relative_position  The relative position of the hooked blocks.
+	 *                                                            Can be one of 'before', 'after', 'first_child', or 'last_child'.
+	 * @param string                          $anchor_block_type  The anchor block type.
+	 * @param WP_Block_Template|WP_Post|array $context            The block template, template part, `wp_navigation` post type,
+	 *                                                            or pattern that the anchor block belongs to.
+	 */
+	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+
+	$markup = '';
+	foreach ( $hooked_block_types as $hooked_block_type ) {
+		$parsed_hooked_block = array(
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
+		);
+
+		/**
+		 * Filters the parsed block array for a given hooked block.
+		 *
+		 * The dynamic portion of the hook name, `$hooked_block_type`, refers to the block type name of the specific hooked block.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array                           $parsed_hooked_block The parsed block array for the given hooked block type.
+		 * @param string                          $relative_position   The relative position of the hooked block.
+		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
+		 *                                                             or pattern that the anchor block belongs to.
+		 */
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
+
+		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
+		// so we explicitly look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
+		if (
+			! isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
+			! in_array( $hooked_block_type, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
+		) {
+			$markup .= serialize_block( $parsed_hooked_block );
+		}
+	}
+
+	return $markup;
+}
+
+/**
+ * Adds a list of hooked block types to an anchor block's ignored hooked block types.
  *
  * This function is meant for internal use only.
  *
  * @since 6.5.0
  * @access private
  *
- * @param array   $anchor_block      The anchor block. Passed by reference.
- * @param string  $hooked_block_type The name of the hooked block type.
- * @return string The markup for the given hooked block type, or an empty string if the block is ignored.
+ * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                  $relative_position   The relative position of the hooked blocks.
+ *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string An empty string.
  */
-function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
-	if ( ! isset( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
-		$anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array();
-	}
+function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$anchor_block_type  = $parsed_anchor_block['blockName'];
+	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
+		: array();
 
-	if ( in_array( $hooked_block_type, $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ) {
+	/** This filter is documented in wp-includes/blocks.php */
+	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
+	if ( empty( $hooked_block_types ) ) {
 		return '';
 	}
 
-	// The following is only needed for the REST API endpoint.
-	// However, its presence does not affect the frontend.
-	$anchor_block['attrs']['metadata']['ignoredHookedBlocks'][] = $hooked_block_type;
+	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
+		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+		: array();
 
-	return get_comment_delimited_block_content( $hooked_block_type, array(), '' );
+	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
+		array_merge(
+			$previously_ignored_hooked_blocks,
+			$hooked_block_types
+		)
+	);
+
+	// Markup for the hooked blocks has already been created (in `insert_hooked_blocks`).
+	return '';
 }
 
 /**
@@ -799,14 +972,19 @@ function get_hooked_block_markup( &$anchor_block, $hooked_block_type ) {
  * This function is meant for internal use only.
  *
  * @since 6.4.0
+ * @since 6.5.0 Added $callback argument.
  * @access private
  *
- * @param array                   $hooked_blocks An array of blocks hooked to another given block.
- * @param WP_Block_Template|array $context       A block template, template part, or pattern that the blocks belong to.
+ * @param array                           $hooked_blocks An array of blocks hooked to another given block.
+ * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
+ *                                                       or pattern that the blocks belong to.
+ * @param callable                        $callback      A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $hooked_blocks, $context ) {
+function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -819,47 +997,23 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
 	 * @param array $prev         The previous sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks prepended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context ) {
+	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
 		$markup = '';
 
 		if ( $parent_block && ! $prev ) {
 			// Candidate for first-child insertion.
-			$relative_position  = 'first_child';
-			$anchor_block_type  = $parent_block['blockName'];
-			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-				: array();
-
-			/**
-			 * Filters the list of hooked block types for a given anchor block type and relative position.
-			 *
-			 * @since 6.4.0
-			 *
-			 * @param string[]                $hooked_block_types  The list of hooked block types.
-			 * @param string                  $relative_position   The relative position of the hooked blocks.
-			 *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
-			 * @param string                  $anchor_block_type   The anchor block type.
-			 * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
-			 */
-			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
-			}
+			$markup .= call_user_func_array(
+				$callback,
+				array( &$parent_block, 'first_child', $hooked_blocks, $context )
+			);
 		}
 
-		$relative_position  = 'before';
-		$anchor_block_type  = $block['blockName'];
-		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-			? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-			: array();
-
-		/** This filter is documented in wp-includes/blocks.php */
-		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
-		}
+		$markup .= call_user_func_array(
+			$callback,
+			array( &$block, 'before', $hooked_blocks, $context )
+		);
 
 		return $markup;
 	};
@@ -875,14 +1029,19 @@ function make_before_block_visitor( $hooked_blocks, $context ) {
  * This function is meant for internal use only.
  *
  * @since 6.4.0
+ * @since 6.5.0 Added $callback argument.
  * @access private
  *
- * @param array                   $hooked_blocks An array of blocks hooked to another block.
- * @param WP_Block_Template|array $context       A block template, template part, or pattern that the blocks belong to.
+ * @param array                           $hooked_blocks An array of blocks hooked to another block.
+ * @param WP_Block_Template|WP_Post|array $context       A block template, template part, `wp_navigation` post object,
+ *                                                       or pattern that the blocks belong to.
+ * @param callable                        $callback      A function that will be called for each block to generate
+ *                                                       the markup for a given list of blocks that are hooked to it.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $hooked_blocks, $context ) {
+function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
@@ -894,34 +1053,18 @@ function make_after_block_visitor( $hooked_blocks, $context ) {
 	 * @param array $next         The next sibling block of the given block. Default null.
 	 * @return string The serialized markup for the given block, with the markup for any hooked blocks appended to it.
 	 */
-	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context ) {
-		$markup = '';
-
-		$relative_position  = 'after';
-		$anchor_block_type  = $block['blockName'];
-		$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-				: array();
-
-		/** This filter is documented in wp-includes/blocks.php */
-		$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-		foreach ( $hooked_block_types as $hooked_block_type ) {
-			$markup .= get_hooked_block_markup( $block, $hooked_block_type );
-		}
+	return function ( &$block, &$parent_block = null, $next = null ) use ( $hooked_blocks, $context, $callback ) {
+		$markup = call_user_func_array(
+			$callback,
+			array( &$block, 'after', $hooked_blocks, $context )
+		);
 
 		if ( $parent_block && ! $next ) {
 			// Candidate for last-child insertion.
-			$relative_position  = 'last_child';
-			$anchor_block_type  = $parent_block['blockName'];
-			$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
-				? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
-				: array();
-
-			/** This filter is documented in wp-includes/blocks.php */
-			$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-			foreach ( $hooked_block_types as $hooked_block_type ) {
-				$markup .= get_hooked_block_markup( $parent_block, $hooked_block_type );
-			}
+			$markup .= call_user_func_array(
+				$callback,
+				array( &$parent_block, 'last_child', $hooked_blocks, $context )
+			);
 		}
 
 		return $markup;
@@ -1614,6 +1757,7 @@ function block_version( $content ) {
  * @param array  $style_properties Array containing the properties of the style name, label,
  *                                 style_handle (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
+ *                                 See WP_Block_Styles_Registry::register().
  * @return bool True if the block style was registered with success and false otherwise.
  */
 function register_block_style( $block_name, $style_properties ) {
