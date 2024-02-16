@@ -981,7 +981,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				$src_file = $icon_dir . '/' . wp_basename( $src );
 				$ext      = strtolower( substr( $src_file, -4 ) );
 				if ( '.svg' === $ext ) {
-					// SVG doesn't have true dimensions, so we assign width and height directly.
+					// SVG does not have true dimensions, so this assigns width and height directly.
 					$width  = 48;
 					$height = 64;
 				} else {
