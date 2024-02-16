@@ -214,24 +214,28 @@ function twentynineteen_custom_colors_css() {
 		 * - pullquote (solid color)
 		 * - buttons
 		 */
+		.editor-styles-wrapper .wp-block .wp-block-file .wp-block-file__textlink, /* Before 5.8 */
 		.editor-styles-wrapper .wp-block a,
 		.editor-styles-wrapper .wp-block .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color),
 		.editor-styles-wrapper .wp-block .wp-block-button.is-style-outline:hover .wp-block-button__link:not(.has-text-color),
 		.editor-styles-wrapper .wp-block .wp-block-button.is-style-outline:focus .wp-block-button__link:not(.has-text-color),
-		.editor-styles-wrapper .wp-block .wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color),
-		.editor-styles-wrapper .wp-block .wp-block-file .wp-block-file__textlink {
+		.editor-styles-wrapper .wp-block .wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color) {
 			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
 
 		.editor-styles-wrapper .wp-block.wp-block-quote:not(.is-large):not(.is-style-large),
-		.editor-styles-wrapper .wp-block .wp-block-freeform blockquote {
+		.editor-styles-wrapper .wp-block .wp-block-freeform blockquote, /* Before 5.8 */
+		.editor-styles-wrapper .wp-block.wp-block-freeform blockquote {
 			border-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
 
+		/* The solid color variation was removed in 5.9, the CSS is kept for backwards compatibility. */
+		.editor-styles-wrapper .wp-block .wp-block-pullquote.is-style-solid-color:not(.has-background-color) /* Before 5.8 */
 		.editor-styles-wrapper .wp-block.wp-block-pullquote.is-style-solid-color:not(.has-background-color) {
 			background-color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness . ' ); /* base: #0073a8; */
 		}
 
+		.editor-styles-wrapper .wp-block. wp-block-file .wp-block-file__button, /* Before 5.8 */
 		.editor-styles-wrapper .wp-block.wp-block-file .wp-block-file__button,
 		.editor-styles-wrapper .wp-block .wp-block-button:not(.is-style-outline) .wp-block-button__link,
 		.editor-styles-wrapper .wp-block .wp-block-button:not(.is-style-outline) .wp-block-button__link:active,
@@ -241,13 +245,14 @@ function twentynineteen_custom_colors_css() {
 		}
 
 		/* Hover colors */
+		.editor-styles-wrapper .wp-block .wp-block-file .wp-block-file__textlink:hover /* Before 5.8 */
 		.editor-styles-wrapper .wp-block a:hover,
-		.editor-styles-wrapper .wp-block a:active,
-		.editor-styles-wrapper .wp-block.wp-block-file .wp-block-file__textlink:hover {
+		.editor-styles-wrapper .wp-block a:active {
 			color: hsl( ' . $primary_color . ', ' . $saturation . ', ' . $lightness_hover . ' ); /* base: #005177; */
 		}
 
 		/* Do not overwrite solid color pullquote or cover links */
+		.editor-styles-wrapper .wp-block .wp-block-pullquote.is-style-solid-color a,  /* Before 5.8 */
 		.editor-styles-wrapper .wp-block.wp-block-pullquote.is-style-solid-color a,
 		.editor-styles-wrapper .wp-block.wp-block-cover a {
 			color: inherit;
