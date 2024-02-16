@@ -80,6 +80,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test constructor.
 	 *
 	 * @see WP_Customize_Nav_Menus::__construct()
+	 *
+	 * @covers WP_Customize_Nav_Menus::__construct
 	 */
 	public function test_construct() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -106,6 +108,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test that the load_available_items_query method returns a WP_Error object.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_returns_wp_error() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -125,6 +129,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the load_available_items_query method maybe returns the home page item.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_maybe_returns_home() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -156,6 +162,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the load_available_items_query method returns post item.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_returns_post_item_with_page_number() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -186,6 +194,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the load_available_items_query method returns page item.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_returns_page_item() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -217,6 +227,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the load_available_items_query method returns post item.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_returns_post_item() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -243,6 +255,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the load_available_items_query method returns term item.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_returns_term_item() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -269,6 +283,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the load_available_items_query method returns custom item.
 	 *
 	 * @see WP_Customize_Nav_Menus::load_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::load_available_items_query
 	 */
 	public function test_load_available_items_query_returns_custom_item() {
 		add_filter( 'customize_nav_menu_available_item_types', array( $this, 'filter_item_types' ) );
@@ -294,6 +310,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the search_available_items_query method.
 	 *
 	 * @see WP_Customize_Nav_Menus::search_available_items_query()
+	 *
+	 * @covers WP_Customize_Nav_Menus::search_available_items_query
 	 */
 	public function test_search_available_items_query() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -398,11 +416,13 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( 'custom', $results[0]['type'] );
 	}
 
-	/*
+	/**
 	 * Tests that the search_available_items_query method should return term items
 	 * not assigned to any posts.
 	 *
 	 * @ticket 45298
+	 *
+	 * @covers WP_Customize_Nav_Menus::search_available_items_query
 	 */
 	public function test_search_available_items_query_should_return_unassigned_term_items() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -491,6 +511,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the enqueue method.
 	 *
 	 * @see WP_Customize_Nav_Menus::enqueue_scripts()
+	 *
+	 * @covers WP_Customize_Nav_Menus::enqueue_scripts
 	 */
 	public function test_enqueue_scripts() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -506,6 +528,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the filter_dynamic_setting_args method.
 	 *
 	 * @see WP_Customize_Nav_Menus::filter_dynamic_setting_args()
+	 *
+	 * @covers WP_Customize_Nav_Menus::filter_dynamic_setting_args
 	 */
 	public function test_filter_dynamic_setting_args() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -523,6 +547,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the filter_dynamic_setting_class method.
 	 *
 	 * @see WP_Customize_Nav_Menus::filter_dynamic_setting_class()
+	 *
+	 * @covers WP_Customize_Nav_Menus::filter_dynamic_setting_class
 	 */
 	public function test_filter_dynamic_setting_class() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -541,6 +567,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the customize_register method.
 	 *
 	 * @see WP_Customize_Nav_Menus::customize_register()
+	 *
+	 * @covers WP_Customize_Nav_Menus::customize_register
 	 */
 	public function test_customize_register() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -573,6 +601,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the intval_base10 method.
 	 *
 	 * @see WP_Customize_Nav_Menus::intval_base10()
+	 *
+	 * @covers WP_Customize_Nav_Menus::intval_base10
 	 */
 	public function test_intval_base10() {
 
@@ -592,6 +622,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the available_item_types method.
 	 *
 	 * @see WP_Customize_Nav_Menus::available_item_types()
+	 *
+	 * @covers WP_Customize_Nav_Menus::available_item_types
 	 */
 	public function test_available_item_types() {
 
@@ -661,6 +693,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test insert_auto_draft_post method.
 	 *
 	 * @covers WP_Customize_Nav_Menus::insert_auto_draft_post
+	 *
+	 * @covers WP_Customize_Nav_Menus::insert_auto_draft_post
 	 */
 	public function test_insert_auto_draft_post() {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
@@ -727,6 +761,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the print_templates method.
 	 *
 	 * @see WP_Customize_Nav_Menus::print_templates()
+	 *
+	 * @covers WP_Customize_Nav_Menus::print_templates
 	 */
 	public function test_print_templates() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -751,6 +787,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the available_items_template method.
 	 *
 	 * @see WP_Customize_Nav_Menus::available_items_template()
+	 *
+	 * @covers WP_Customize_Nav_Menus::available_items_template
 	 */
 	public function test_available_items_template() {
 		add_filter( 'customize_nav_menu_available_item_types', array( $this, 'filter_item_types' ) );
@@ -798,6 +836,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test WP_Customize_Nav_Menus::customize_dynamic_partial_args().
 	 *
 	 * @see WP_Customize_Nav_Menus::customize_dynamic_partial_args()
+	 *
+	 * @covers WP_Customize_Nav_Menus::customize_dynamic_partial_args
 	 */
 	public function test_customize_dynamic_partial_args() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -820,6 +860,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the customize_preview_init method.
 	 *
 	 * @see WP_Customize_Nav_Menus::customize_preview_init()
+	 *
+	 * @covers WP_Customize_Nav_Menus::customize_preview_init
 	 */
 	public function test_customize_preview_init() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -1029,6 +1071,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the filter_wp_nav_menu_args method.
 	 *
 	 * @see WP_Customize_Nav_Menus::filter_wp_nav_menu_args()
+	 *
+	 * @covers WP_Customize_Nav_Menus::filter_wp_nav_menu_args
 	 */
 	public function test_filter_wp_nav_menu_args() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -1156,6 +1200,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test the customize_preview_enqueue_deps method.
 	 *
 	 * @see WP_Customize_Nav_Menus::customize_preview_enqueue_deps()
+	 *
+	 * @covers WP_Customize_Nav_Menus::customize_preview_enqueue_deps
 	 */
 	public function test_customize_preview_enqueue_deps() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -1170,6 +1216,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test WP_Customize_Nav_Menus::export_preview_data() method.
 	 *
 	 * @see WP_Customize_Nav_Menus::export_preview_data()
+	 *
+	 * @covers WP_Customize_Nav_Menus::export_preview_data
 	 */
 	public function test_export_preview_data() {
 		ob_start();
@@ -1184,6 +1232,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * Test WP_Customize_Nav_Menus::render_nav_menu_partial() method.
 	 *
 	 * @see WP_Customize_Nav_Menus::render_nav_menu_partial()
+	 *
+	 * @covers WP_Customize_Nav_Menus::render_nav_menu_partial
 	 */
 	public function test_render_nav_menu_partial() {
 		$this->wp_customize->nav_menus->customize_preview_init();

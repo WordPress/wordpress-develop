@@ -32,6 +32,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	/**
 	 * @covers WP_Comment_Query::query
 	 */
+	/**
+	 * @covers WP_Comment_Query::query
+	 */
 	public function test_query() {
 		$c1 = self::factory()->comment->create(
 			array(
@@ -341,6 +344,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$this->assertSameSets( array( $c2, $c3 ), $found );
 	}
+
 
 	/**
 	 * Comments and custom

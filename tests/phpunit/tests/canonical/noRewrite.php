@@ -23,6 +23,9 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * @dataProvider data
+	 *
+	 * @covers ::redirect_canonical
+	 * @covers ::home_url
 	 */
 	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );

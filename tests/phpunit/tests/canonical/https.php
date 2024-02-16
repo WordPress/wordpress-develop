@@ -4,6 +4,8 @@
  * @group canonical
  * @group rewrite
  * @group query
+ *
+ * @covers ::redirect_canonical
  */
 class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
 

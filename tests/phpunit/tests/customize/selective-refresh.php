@@ -39,6 +39,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::__construct().
 	 *
 	 * @see WP_Customize_Selective_Refresh::__construct()
+	 *
+	 * @coversNothing
 	 */
 	public function test_construct() {
 		$this->assertSame( $this->selective_refresh, $this->wp_customize->selective_refresh );
@@ -48,6 +50,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::register_scripts().
 	 *
 	 * @see WP_Customize_Selective_Refresh::register_scripts()
+	 *
+	 * @covers WP_Scripts::__construct
 	 */
 	public function test_register_scripts() {
 		$scripts = new WP_Scripts();
@@ -65,6 +69,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::partials().
 	 *
 	 * @see WP_Customize_Selective_Refresh::partials()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::partials
 	 */
 	public function test_partials() {
 		$this->assertIsArray( $this->selective_refresh->partials() );
@@ -76,6 +82,10 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * @see WP_Customize_Selective_Refresh::get_partial()
 	 * @see WP_Customize_Selective_Refresh::add_partial()
 	 * @see WP_Customize_Selective_Refresh::remove_partial()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::get_partial
+	 * @covers WP_Customize_Selective_Refresh::add_partial
+	 * @covers WP_Customize_Selective_Refresh::remove_partial
 	 */
 	public function test_crud_partial() {
 		$partial = $this->selective_refresh->add_partial( 'foo' );
@@ -105,6 +115,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::init_preview().
 	 *
 	 * @see WP_Customize_Selective_Refresh::init_preview()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::init_preview
 	 */
 	public function test_init_preview() {
 		$this->selective_refresh->init_preview();
@@ -116,6 +128,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::enqueue_preview_scripts().
 	 *
 	 * @see WP_Customize_Selective_Refresh::enqueue_preview_scripts()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::enqueue_preview_scripts
 	 */
 	public function test_enqueue_preview_scripts() {
 		$scripts = wp_scripts();
@@ -129,6 +143,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::export_preview_data().
 	 *
 	 * @see WP_Customize_Selective_Refresh::export_preview_data()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::export_preview_data
 	 */
 	public function test_export_preview_data() {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -173,6 +189,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::add_dynamic_partials().
 	 *
 	 * @see WP_Customize_Selective_Refresh::add_dynamic_partials()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::add_dynamic_partials
 	 */
 	public function test_add_dynamic_partials() {
 		$partial_ids = array( 'recognized', 'recognized-class', 'unrecognized', 'already-added' );
@@ -241,6 +259,8 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::is_render_partials_request().
 	 *
 	 * @see WP_Customize_Selective_Refresh::is_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::is_render_partials_request
 	 */
 	public function test_is_render_partials_request() {
 		$this->assertFalse( $this->selective_refresh->is_render_partials_request() );

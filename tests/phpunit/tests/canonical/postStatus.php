@@ -4,6 +4,9 @@
  * @group canonical
  * @group rewrite
  * @group query
+ *
+ * @covers ::redirect_canonical
+ * @covers ::home_url
  */
 class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 

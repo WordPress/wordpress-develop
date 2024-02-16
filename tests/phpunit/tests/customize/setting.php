@@ -31,6 +31,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @covers WP_Customize_Setting::__construct
+	 */
 	public function test_constructor_without_args() {
 		$setting = new WP_Customize_Setting( $this->manager, 'foo' );
 		$this->assertSame( $this->manager, $setting->manager );
@@ -88,6 +91,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		return base64_encode( $value );
 	}
 
+	/**
+	 * @covers WP_Customize_Setting::__construct
+	 */
 	public function test_constructor_with_args() {
 		$args    = array(
 			'type'                 => 'option',
@@ -135,6 +141,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * Run assertions on non-multidimensional standard settings.
 	 *
 	 * @see WP_Customize_Setting::value()
+	 *
+	 * @covers WP_Customize_Setting::value
 	 */
 	public function test_preview_standard_types_non_multidimensional() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -214,6 +222,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Setting::preview()
 	 * @see WP_Customize_Setting::value()
+	 *
+	 * @covers  WP_Customize_Setting::preview
+	 * @covers  WP_Customize_Setting::value
 	 */
 	public function test_preview_standard_types_multidimensional() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -360,6 +371,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * Run assertions on custom settings.
 	 *
 	 * @see WP_Customize_Setting::preview()
+	 *
+	 * @covers  WP_Customize_Setting::preview
 	 */
 	public function test_preview_custom_type() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -472,6 +485,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * Test specific fix for setting's default value not applying on preview window
 	 *
 	 * @ticket 30988
+	 *
+	 * @covers WP_Customize_Setting::value
+	 * @covers WP_Customize_Setting::preview
 	 */
 	public function test_non_posted_setting_applying_default_value_in_preview() {
 		$type    = 'option';
@@ -490,6 +506,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Setting::save()
 	 * @see WP_Customize_Setting::update()
+	 *
+	 * @covers WP_Customize_Setting::save
+	 * @covers WP_Customize_Setting::update
 	 */
 	public function test_update_custom_type() {
 		$type    = 'custom';
@@ -549,6 +568,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * This is applicable to both single and multisite. This doesn't do switch_to_blog()
 	 *
 	 * @ticket 31428
+	 *
+	 * @covers WP_Customize_Setting::is_current_blog_previewed
 	 */
 	public function test_is_current_blog_previewed() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -571,6 +592,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @ticket 31428
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers WP_Customize_Setting::is_current_blog_previewed
 	 */
 	public function test_previewing_with_switch_to_blog() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -593,6 +616,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33499
+	 *
+	 * @covers WP_Customize_Setting::save
 	 */
 	public function test_option_autoloading() {
 		global $wpdb;
@@ -673,6 +698,9 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Setting::js_value()
 	 * @see WP_Customize_Setting::json()
+	 *
+	 * @covers  WP_Customize_Setting::js_value
+	 * @covers  WP_Customize_Setting::json
 	 */
 	public function test_js_value() {
 		$default = "\x00";
@@ -703,6 +731,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * Test validate.
 	 *
 	 * @see WP_Customize_Setting::validate()
+	 *
+	 * @covers WP_Customize_Setting::validate
 	 */
 	public function test_validate() {
 		$setting  = new WP_Customize_Setting(
@@ -741,6 +771,10 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * Ensure that WP_Customize_Setting::value() can return a previewed value for aggregated multidimensionals.
 	 *
 	 * @ticket 37294
+	 *
+	 * @covers WP_Customize_Setting::value
+	 * @covers WP_Customize_Setting::preview
+	 * @covers WP_Customize_Setting::reset_aggregated_multidimensionals
 	 */
 	public function test_multidimensional_value_when_previewed() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );

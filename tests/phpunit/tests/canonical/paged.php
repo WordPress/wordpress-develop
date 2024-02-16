@@ -6,6 +6,10 @@
  */
 class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 
+	/**
+	 * @covers ::redirect_canonical
+	 * @covers ::home_url
+	 */
 	public function test_redirect_canonical_with_nextpage_pagination() {
 		$para = 'This is a paragraph.
 			This is a paragraph.

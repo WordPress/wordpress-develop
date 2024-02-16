@@ -34,6 +34,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::__construct()
+	 *
+	 * @covers WP_Customize_Section::__construct
 	 */
 	public function test_construct_default_args() {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
@@ -52,6 +54,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::__construct()
+	 *
+	 * @covers WP_Customize_Section::__construct
 	 */
 	public function test_construct_custom_args() {
 		$args = array(
@@ -75,6 +79,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::__construct()
+	 *
+	 * @covers WP_Customize_Section::__construct
 	 */
 	public function test_construct_custom_type() {
 		$section = new Custom_Section_Test( $this->manager, 'foo' );
@@ -84,6 +90,9 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	/**
 	 * @see WP_Customize_Section::active()
 	 * @see WP_Customize_Section::active_callback()
+	 *
+	 * @covers WP_Customize_Section::active
+	 * @covers WP_Customize_Section::active_callback
 	 */
 	public function test_active() {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
@@ -115,6 +124,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::json()
+	 *
+	 * @covers WP_Customize_Section::json
 	 */
 	public function test_json() {
 		$args = array(
@@ -143,6 +154,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::check_capabilities()
+	 *
+	 * @covers WP_Customize_Section::check_capabilities
 	 */
 	public function test_check_capabilities() {
 		wp_set_current_user( self::$admin_id );
@@ -160,6 +173,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::get_content()
+	 *
+	 * @covers WP_Customize_Section::get_content
 	 */
 	public function test_get_content() {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
@@ -168,6 +183,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::maybe_render()
+	 *
+	 * @covers WP_Customize_Section::maybe_render
 	 */
 	public function test_maybe_render() {
 		wp_set_current_user( self::$admin_id );
@@ -193,6 +210,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::print_template()
+	 *
+	 * @covers WP_Customize_Section::print_template
 	 */
 	public function test_print_templates_standard() {
 		wp_set_current_user( self::$admin_id );
@@ -208,6 +227,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Section::print_template()
+	 *
+	 * @covers WP_Customize_Section::print_template
 	 */
 	public function test_print_templates_custom() {
 		wp_set_current_user( self::$admin_id );

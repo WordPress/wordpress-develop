@@ -49,6 +49,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 	/**
 	 * Test constants and statics.
+	 *
+	 * @coversNothing
 	 */
 	public function test_constants() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -59,6 +61,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test constructor.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::__construct()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::__construct
 	 */
 	public function test_construct() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -90,6 +94,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 	/**
 	 * Test empty constructor.
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::__construct
 	 */
 	public function test_construct_empty_menus() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -110,6 +116,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test constructor for placeholder (draft) menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::__construct()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::__construct
 	 */
 	public function test_construct_placeholder() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -127,6 +135,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test value method.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::value()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::value
 	 */
 	public function test_value() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -167,6 +177,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test preview method for updated menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::preview()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::preview
 	 */
 	public function test_preview_updated() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -234,6 +246,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test preview method for inserted menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::preview()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::preview
 	 */
 	public function test_preview_inserted() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -279,6 +293,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test preview method for deleted menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::preview()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::preview
 	 */
 	public function test_preview_deleted() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -318,6 +334,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test sanitize method.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::sanitize()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::sanitize
 	 */
 	public function test_sanitize() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -349,6 +367,9 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test protected update() method via the save() method, for updated menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Setting::save
 	 */
 	public function test_save_updated() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -414,6 +435,9 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test protected update() method via the save() method, for inserted menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Setting::save
 	 */
 	public function test_save_inserted() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -463,6 +487,9 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test saving a new name that conflicts with an existing nav menu's name.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Setting::save
 	 */
 	public function test_save_inserted_conflicted_name() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -488,6 +515,9 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	 * Test protected update() method via the save() method, for deleted menu.
 	 *
 	 * @see WP_Customize_Nav_Menu_Setting::update()
+	 *
+	 * @covers WP_Customize_Nav_Menu_Setting::update
+	 * @covers WP_Customize_Nav_Menu_Setting::save
 	 */
 	public function test_save_deleted() {
 		do_action( 'customize_register', $this->wp_customize );
