@@ -1670,6 +1670,7 @@ ul.primary-menu {
 	transform: translateY(0.6rem);
 	width: 20rem;
 	z-index: 1;
+	visibility: hidden;
 }
 
 .primary-menu li.menu-item-has-children:hover > ul,
@@ -1679,6 +1680,7 @@ ul.primary-menu {
 	opacity: 1;
 	transform: translateY(0);
 	transition: opacity 0.15s linear, transform 0.15s linear;
+	visibility: visible;
 }
 
 .primary-menu ul::before,
