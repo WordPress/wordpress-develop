@@ -411,7 +411,12 @@ function wp_is_maintenance_mode() {
 
 	// Do not enable maintenance mode while scraping for fatal errors.
 	if ( isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
-		return false;
+		$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
+		$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( get_transient( 'scrape_key_' . $key ) === $nonce ) {
+			return false;
+		}
 	}
 
 	if ( ! file_exists( ABSPATH . '.maintenance' ) || wp_installing() ) {
