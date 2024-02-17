@@ -130,6 +130,10 @@ final class WP_Font_Collection {
 			$data['description'] = $this->data['description'];
 		}
 
+		if ( isset( $this->data['categories'] ) ) {
+			$data['categories'] = $this->data['categories'];
+		}
+
 		return $this->sanitize_and_validate_data( $data );
 	}
 
@@ -165,13 +169,17 @@ final class WP_Font_Collection {
 				return $data;
 			}
 
-			$data['name'] = $this->data['name'];
-
-			if ( isset( $this->data['description'] ) ) {
-				$data['description'] = $this->data['description'];
-			}
-
 			set_site_transient( $transient_key, $data, DAY_IN_SECONDS );
+		}
+
+		$data['name'] = $this->data['name'];
+
+		if ( isset( $this->data['description'] ) ) {
+			$data['description'] = $this->data['description'];
+		}
+
+		if ( isset( $this->data['categories'] ) ) {
+			$data['categories'] = $this->data['categories'];
 		}
 
 		return $data;
@@ -206,15 +214,6 @@ final class WP_Font_Collection {
 				__( 'Font collection must only provide "%1$s" or "%2$s", not both.' ),
 				'src',
 				'font_families'
-			);
-			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
-			return new WP_Error( 'font_collection_mutually_exclusive_property', $message );
-		} elseif ( isset( $data['src'], $data['categories'] ) ) {
-			$message = sprintf(
-				// translators: 1: src. 2: font_families or categories.
-				__( 'Font collection must only provide "%1$s" or "%2$s", not both.' ),
-				'src',
-				'categories'
 			);
 			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
 			return new WP_Error( 'font_collection_mutually_exclusive_property', $message );

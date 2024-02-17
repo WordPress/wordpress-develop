@@ -205,8 +205,30 @@ function _wp_register_default_font_collections() {
 		'google-fonts',
 		array(
 			'src'         => 'https://s.w.org/images/fonts/17.7/collections/google-fonts-with-preview.json',
-			'name'        => __( 'Google Fonts' ),
+			'name'        => _x( 'Google Fonts', 'font collection name' ),
 			'description' => __( 'Install from Google Fonts. Fonts are copied to and served from your site.' ),
+			'categories'  => array(
+				array(
+					'name' => _x( 'Sans Serif', 'font category' ),
+					'slug' => 'sans-serif',
+				),
+				array(
+					'name' => _x( 'Display', 'font category' ),
+					'slug' => 'display',
+				),
+				array(
+					'name' => _x( 'Serif', 'font category' ),
+					'slug' => 'serif',
+				),
+				array(
+					'name' => _x( 'Handwriting', 'font category' ),
+					'slug' => 'handwriting',
+				),
+				array(
+					'name' => _x( 'Monospace', 'font category' ),
+					'slug' => 'monospace',
+				),
+			),
 		)
 	);
 }
