@@ -160,30 +160,20 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		// First we'll use the navigation fallback to get a link to the navigation endpoint.
 		$request  = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallback' );
 		$response = rest_get_server()->dispatch( $request );
-		$links    = $response->get_links();
-
-		// Extract the navigation endpoint URL from the response.
-		$embedded_navigation_href = $links['self'][0]['href'];
-		preg_match( '/\?rest_route=(.*)/', $embedded_navigation_href, $matches );
-		$navigation_endpoint = $matches[1];
-
-		// Fetch the "linked" navigation post from the endpoint, with the context parameter set to 'embed' to simulate fetching embedded links.
-		$request = new WP_REST_Request( 'GET', $navigation_endpoint );
-		$request->set_param( 'context', 'embed' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+		$data     = rest_get_server()->response_to_data( $response, true );
+		$embedded = $data['_embedded']['self'][0];
 
 		// Verify that the additional status field is present.
-		$this->assertArrayHasKey( 'status', $data, 'Response title should contain a "status" field.' );
+		$this->assertArrayHasKey( 'status', $embedded, 'Response title should contain a "status" field.' );
 
 		// Verify that the additional content fields are present.
-		$this->assertArrayHasKey( 'content', $data, 'Response should contain a "content" field.' );
-		$this->assertArrayHasKey( 'raw', $data['content'], 'Response content should contain a "raw" field.' );
-		$this->assertArrayHasKey( 'rendered', $data['content'], 'Response content should contain a "rendered" field.' );
-		$this->assertArrayHasKey( 'block_version', $data['content'], 'Response should contain a "block_version" field.' );
+		$this->assertArrayHasKey( 'content', $embedded, 'Response should contain a "content" field.' );
+		$this->assertArrayHasKey( 'raw', $embedded['content'], 'Response content should contain a "raw" field.' );
+		$this->assertArrayHasKey( 'rendered', $embedded['content'], 'Response content should contain a "rendered" field.' );
+		$this->assertArrayHasKey( 'block_version', $embedded['content'], 'Response should contain a "block_version" field.' );
 
 		// Verify that the additional title.raw field is present.
-		$this->assertArrayHasKey( 'raw', $data['title'], 'Response title should contain a "raw" key.' );
+		$this->assertArrayHasKey( 'raw', $embedded['title'], 'Response title should contain a "raw" key.' );
 	}
 
 	private function get_navigations_in_database() {
