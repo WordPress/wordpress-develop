@@ -6839,10 +6839,6 @@ function wp_mime_type_icon( $mime = 0 ) {
 		$icon_files = wp_cache_get( 'icon_files' );
 
 		if ( ! is_array( $icon_files ) ) {
-			// Define core directory variables in order to test whether variables are changed in filters.
-			$is_core_dir  = true;
-			$core_dir     = ABSPATH . WPINC . '/images/media';
-			$core_dir_uri = includes_url( 'images/media' );
 			/**
 			 * Filters the icon directory path.
 			 *
@@ -6861,7 +6857,6 @@ function wp_mime_type_icon( $mime = 0 ) {
 			 */
 			$icon_dir_uri = apply_filters( 'icon_dir_uri', includes_url( 'images/media' ) );
 
-			$core_dirs = array( $icon_dir => $icon_dir_uri );
 			/**
 			 * Filters the array of icon directory URIs.
 			 *
@@ -6871,10 +6866,6 @@ function wp_mime_type_icon( $mime = 0 ) {
 			 */
 			$dirs       = apply_filters( 'icon_dirs', array( $icon_dir => $icon_dir_uri ) );
 			$icon_files = array();
-
-			if ( ! ( $dirs === $core_dirs && $icon_dir_uri === $core_dir_uri && $icon_dir === $core_dir ) ) {
-				$is_core_dir = false;
-			}
 			while ( $dirs ) {
 				$keys = array_keys( $dirs );
 				$dir  = array_shift( $keys );
@@ -6889,9 +6880,6 @@ function wp_mime_type_icon( $mime = 0 ) {
 
 						$ext = strtolower( substr( $file, -4 ) );
 						if ( ! in_array( $ext, array( '.svg', '.png', '.gif', '.jpg' ), true ) ) {
-							if ( $is_core_dir && ! ( $ext === '.svg' ) ) {
-								continue;
-							}
 							if ( is_dir( "$dir/$file" ) ) {
 								$dirs[ "$dir/$file" ] = "$uri/$file";
 							}
