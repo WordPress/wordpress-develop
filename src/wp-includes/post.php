@@ -6807,10 +6807,6 @@ function wp_attachment_is_image( $post = null ) {
  * @return string|false Icon, false otherwise.
  */
 function wp_mime_type_icon( $mime = 0 ) {
-	if ( ! is_numeric( $mime ) ) {
-		$icon = wp_cache_get( "mime_type_icon_$mime" );
-	}
-
 	$post_id = 0;
 	if ( empty( $icon ) ) {
 		$post_mimes = array();
@@ -6836,7 +6832,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 			$post_mimes[] = $mime;
 		}
 
-		$icon_files = wp_cache_get( 'icon_files' );
+		$icon_files = false;
 
 		if ( ! is_array( $icon_files ) ) {
 			/**
