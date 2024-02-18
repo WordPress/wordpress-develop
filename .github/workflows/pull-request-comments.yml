@@ -195,15 +195,9 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: `## Trac Ticket Missing
-            Hi @${{ github.actor }}! 👋
+            This pull request is missing a Trac ticket link. For a contribution to be considered, there must be a corresponding ticket in Trac.
 
-            It looks like the pull request does not contain the full URL for the Trac ticket in the pull request body.
-
-            When contributing to WordPress Core using a pull request on GitHub, a Trac ticket is required for the contribution to be considered.
-
-            To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
-
-            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
+            To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description. More information about contributing to WordPress on GitHub can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
             `,
               } );
             }
