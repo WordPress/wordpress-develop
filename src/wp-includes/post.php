@@ -6889,12 +6889,12 @@ function wp_mime_type_icon( $mime = 0 ) {
 
 						$ext = strtolower( substr( $file, -4 ) );
 						if ( ! in_array( $ext, array( '.svg', '.png', '.gif', '.jpg' ), true ) ) {
+							if ( $is_core_dir && ! ( $ext === '.svg' ) ) {
+								continue;
+							}
 							if ( is_dir( "$dir/$file" ) ) {
 								$dirs[ "$dir/$file" ] = "$uri/$file";
 							}
-							continue;
-						}
-						if ( $is_core_dir && '.svg' !== $ext ) {
 							continue;
 						}
 						$icon_files[ "$dir/$file" ] = "$uri/$file";
