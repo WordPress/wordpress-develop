@@ -6808,7 +6808,7 @@ function wp_attachment_is_image( $post = null ) {
  * @param string     $preferred_ext File format to prefer in return. Default svg.
  * @return string|false Icon, false otherwise.
  */
-function wp_mime_type_icon( $mime = 0, $preferred_ext = 'svg' ) {
+function wp_mime_type_icon( $mime = 0, $preferred_ext = '.svg' ) {
 	if ( ! is_numeric( $mime ) ) {
 		$icon = wp_cache_get( "mime_type_icon_$mime" );
 	}
