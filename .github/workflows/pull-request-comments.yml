@@ -49,7 +49,7 @@ jobs:
             **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this GitHub repository mirrors. Please feel free to open pull requests to work on any contribution you are making.
 
 
-            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [this blog post](https://make.wordpress.org/core/2020/02/21/working-on-trac-tickets-using-github-pull-requests/).
+            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
 
 
             **Please include automated tests.** Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
@@ -203,7 +203,7 @@ jobs:
 
             To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
 
-            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [this blog post](https://make.wordpress.org/core/2020/02/21/working-on-trac-tickets-using-github-pull-requests/).
+            More information about how GitHub pull requests can be used to contribute to WordPress can be found in [the Core Handbook](https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/).
             `,
               } );
             }
