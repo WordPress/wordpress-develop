@@ -6802,11 +6802,13 @@ function wp_attachment_is_image( $post = null ) {
  * Retrieves the icon for a MIME type or attachment.
  *
  * @since 2.1.0
+ * @since 6.5.0 Parameter to set file format added.
  *
  * @param string|int $mime MIME type or attachment ID.
+ * @param string     $preferred_ext File format to prefer in return. Default svg.
  * @return string|false Icon, false otherwise.
  */
-function wp_mime_type_icon( $mime = 0 ) {
+function wp_mime_type_icon( $mime = 0, $preferred_ext = 'svg' ) {
 	if ( ! is_numeric( $mime ) ) {
 		$icon = wp_cache_get( "mime_type_icon_$mime" );
 	}
@@ -6885,7 +6887,9 @@ function wp_mime_type_icon( $mime = 0 ) {
 							}
 							continue;
 						}
-						$icon_files[ "$dir/$file" ] = "$uri/$file";
+						if ( $ext === $preferred_ext ) {
+							$icon_files[ "$dir/$file" ] = "$uri/$file";
+						}
 					}
 					closedir( $dh );
 				}
