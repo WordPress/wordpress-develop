@@ -177,6 +177,20 @@ jobs:
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
+            // Check for the presence of a comment and bail early.
+            const comments = ( await github.rest.issues.listComments( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            } ) ).data;
+
+            for ( const currentComment of comments ) {
+              if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Trac Ticket Missing' ) ) {
+                return;
+              }
+            }
+
+            // No comment was found. Create one.
             const pr = await github.rest.pulls.get( {
               owner: context.repo.owner,
               repo: context.repo.repo,
