@@ -264,6 +264,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$expected = array(
 			'background' => array(
 				'backgroundImage' => true,
+				'backgroundSize'  => true,
 			),
 			'border'     => array(
 				'width'  => true,
@@ -278,7 +279,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'caption' => true,
 			),
 			'dimensions' => array(
-				'minHeight' => true,
+				'aspectRatio' => true,
+				'minHeight'   => true,
 			),
 			'position'   => array(
 				'sticky' => true,
@@ -300,6 +302,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'core/group'     => array(
 					'background' => array(
 						'backgroundImage' => true,
+						'backgroundSize'  => true,
 					),
 					'border'     => array(
 						'width'  => true,
@@ -314,7 +317,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'caption' => true,
 					),
 					'dimensions' => array(
-						'minHeight' => true,
+						'aspectRatio' => true,
+						'minHeight'   => true,
 					),
 					'position'   => array(
 						'sticky' => true,
@@ -493,6 +497,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56611
 	 * @ticket 58549
 	 * @ticket 58550
+	 * @ticket 60365
 	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
@@ -525,12 +530,19 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'typography' => array(
 						'fontFamilies' => array(
 							array(
-								'slug'       => 'small',
-								'fontFamily' => '14px',
+								'name'       => 'Arial',
+								'slug'       => 'arial',
+								'fontFamily' => 'Arial, serif',
+							),
+						),
+						'fontSizes'    => array(
+							array(
+								'slug' => 'small',
+								'size' => '14px',
 							),
 							array(
-								'slug'       => 'big',
-								'fontFamily' => '41px',
+								'slug' => 'big',
+								'size' => '41px',
 							),
 						),
 					),
@@ -565,6 +577,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 					'blocks'   => array(
+						'core/cover'        => array(
+							'dimensions' => array(
+								'aspectRatio' => '16/9',
+							),
+						),
 						'core/group'        => array(
 							'color'    => array(
 								'gradient' => 'var:preset|gradient|custom-gradient',
@@ -642,9 +659,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$variables = 'body{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-family--small: 14px;--wp--preset--font-family--big: 41px;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
-		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}body .is-layout-grid{display: grid;}body .is-layout-grid > *{margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}.wp-block-heading{color: #123456;}.wp-block-heading a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-post-excerpt{column-count: 2;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}';
-		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-family{font-family: var(--wp--preset--font-family--small) !important;}.has-big-font-family{font-family: var(--wp--preset--font-family--big) !important;}';
+		$variables = 'body{--wp--preset--color--grey: grey;--wp--preset--gradient--custom-gradient: linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%);--wp--preset--font-size--small: 14px;--wp--preset--font-size--big: 41px;--wp--preset--font-family--arial: Arial, serif;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}';
+		$styles    = 'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}body .is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}body .is-layout-grid{display: grid;}body .is-layout-grid > *{margin: 0;}body{color: var(--wp--preset--color--grey);}a:where(:not(.wp-element-button)){background-color: #333;color: #111;}.wp-element-button, .wp-block-button__link{box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.66);}.wp-block-cover{min-height: unset;aspect-ratio: 16/9;}.wp-block-group{background: var(--wp--preset--gradient--custom-gradient);border-radius: 10px;padding: 24px;}.wp-block-group a:where(:not(.wp-element-button)){color: #111;}.wp-block-heading{color: #123456;}.wp-block-heading a:where(:not(.wp-element-button)){background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a:where(:not(.wp-element-button)){background-color: #777;color: #555;}.wp-block-post-excerpt{column-count: 2;}.wp-block-image{margin-bottom: 30px;}.wp-block-image img, .wp-block-image .wp-block-image__crop-area, .wp-block-image .components-placeholder{border-top-left-radius: 10px;border-bottom-right-radius: 1em;}.wp-block-image img, .wp-block-image .components-placeholder{filter: var(--wp--preset--duotone--custom-duotone);}';
+		$presets   = '.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}.has-custom-gradient-gradient-background{background: var(--wp--preset--gradient--custom-gradient) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-big-font-size{font-size: var(--wp--preset--font-size--big) !important;}.has-arial-font-family{font-family: var(--wp--preset--font-family--arial) !important;}';
 		$all       = $variables . $styles . $presets;
 		$this->assertSame( $all, $theme_json->get_stylesheet() );
 		$this->assertSame( $styles, $theme_json->get_stylesheet( array( 'styles' ) ) );
@@ -3208,7 +3225,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @param array $styles An array with style definitions.
 	 * @param array $path   Path to the desired properties.
-	 *
 	 */
 	public function test_get_property_value_should_return_string_for_invalid_paths_or_null_values( $styles, $path ) {
 		$reflection_class = new ReflectionClass( WP_Theme_JSON::class );
@@ -4279,8 +4295,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @param array $expected_output Expected output from data provider.
 	 */
 	public function test_set_spacing_sizes_should_detect_invalid_spacing_scale( $spacing_scale, $expected_output ) {
-		$this->expectNotice();
-		$this->expectNoticeMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
+		$this->expectException( Exception::class );
+		$this->expectExceptionMessage( 'Some of the theme.json settings.spacing.spacingScale values are invalid' );
 
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -4293,7 +4309,19 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
+		// Ensure PHPUnit 10 compatibility.
+		set_error_handler(
+			static function ( $errno, $errstr ) {
+				restore_error_handler();
+				throw new Exception( $errstr, $errno );
+			},
+			E_ALL
+		);
+
 		$theme_json->set_spacing_sizes();
+
+		restore_error_handler();
+
 		$this->assertSame( $expected_output, _wp_array_get( $theme_json->get_raw_data(), array( 'settings', 'spacing', 'spacingSizes', 'default' ) ) );
 	}
 
@@ -4677,29 +4705,37 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public function data_process_blocks_custom_css() {
 		return array(
-			// Simple CSS without any child selectors.
-			'no child selectors'                => array(
+			// Simple CSS without any nested selectors.
+			'no nested selectors'          => array(
 				'input'    => array(
 					'selector' => '.foo',
 					'css'      => 'color: red; margin: auto;',
 				),
 				'expected' => '.foo{color: red; margin: auto;}',
 			),
-			// CSS with child selectors.
-			'with children'                     => array(
+			// CSS with nested selectors.
+			'with nested selector'         => array(
 				'input'    => array(
 					'selector' => '.foo',
-					'css'      => 'color: red; margin: auto; & .bar{color: blue;}',
+					'css'      => 'color: red; margin: auto; &.one{color: blue;} & .two{color: green;}',
 				),
-				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}',
+				'expected' => '.foo{color: red; margin: auto;}.foo.one{color: blue;}.foo .two{color: green;}',
 			),
-			// CSS with child selectors and pseudo elements.
-			'with children and pseudo elements' => array(
+			// CSS with pseudo elements.
+			'with pseudo elements'         => array(
 				'input'    => array(
 					'selector' => '.foo',
-					'css'      => 'color: red; margin: auto; & .bar{color: blue;} &::before{color: green;}',
+					'css'      => 'color: red; margin: auto; &::before{color: blue;} & ::before{color: green;}  &.one::before{color: yellow;} & .two::before{color: purple;}',
 				),
-				'expected' => '.foo{color: red; margin: auto;}.foo .bar{color: blue;}.foo::before{color: green;}',
+				'expected' => '.foo{color: red; margin: auto;}.foo::before{color: blue;}.foo ::before{color: green;}.foo.one::before{color: yellow;}.foo .two::before{color: purple;}',
+			),
+			// CSS with multiple root selectors.
+			'with multiple root selectors' => array(
+				'input'    => array(
+					'selector' => '.foo, .bar',
+					'css'      => 'color: red; margin: auto; &.one{color: blue;} & .two{color: green;} &::before{color: yellow;} & ::before{color: purple;}  &.three::before{color: orange;} & .four::before{color: skyblue;}',
+				),
+				'expected' => '.foo, .bar{color: red; margin: auto;}.foo.one, .bar.one{color: blue;}.foo .two, .bar .two{color: green;}.foo::before, .bar::before{color: yellow;}.foo ::before, .bar ::before{color: purple;}.foo.three::before, .bar.three::before{color: orange;}.foo .four::before, .bar .four::before{color: skyblue;}',
 			),
 		);
 	}
@@ -4919,5 +4955,257 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$this->assertEquals( $small_font, $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Block variations: font-size' );
 		$this->assertEquals( $secondary_color, $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Block variations: color' );
+	}
+
+	/**
+	 * Tests that a custom root selector is correctly applied when generating a stylesheet.
+	 *
+	 * @ticket 60343
+	 */
+	public function test_get_stylesheet_custom_root_selector() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'color' => array(
+						'text' => 'teal',
+					),
+				),
+			),
+			'default'
+		);
+
+		$options = array( 'root_selector' => '.custom' );
+		$actual  = $theme_json->get_stylesheet( array( 'styles' ), null, $options );
+
+		// Results also include root site blocks styles which hard code
+		// `body { margin: 0;}`.
+		$this->assertEquals(
+			'body { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }.custom{color: teal;}',
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that invalid properties are removed from the theme.json inside indexed arrays as settings.typography.fontFamilies.
+	 *
+	 * @ticket 60360
+	 */
+	public function test_sanitize_indexed_arrays() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => '2',
+				'badKey2'  => 'I am Evil!',
+				'settings' => array(
+					'badKey3'    => 'I am Evil!',
+					'typography' => array(
+						'badKey4'      => 'I am Evil!',
+						'fontFamilies' => array(
+							'custom' => array(
+								array(
+									'badKey4'    => 'I am Evil!',
+									'name'       => 'Arial',
+									'slug'       => 'arial',
+									'fontFamily' => 'Arial, sans-serif',
+								),
+							),
+							'theme'  => array(
+								array(
+									'badKey5'    => 'I am Evil!',
+									'name'       => 'Piazzolla',
+									'slug'       => 'piazzolla',
+									'fontFamily' => 'Piazzolla',
+									'fontFace'   => array(
+										array(
+											'badKey6'    => 'I am Evil!',
+											'fontFamily' => 'Piazzolla',
+											'fontStyle'  => 'italic',
+											'fontWeight' => '400',
+											'src'        => 'https://example.com/font.ttf',
+										),
+										array(
+											'badKey7'    => 'I am Evil!',
+											'fontFamily' => 'Piazzolla',
+											'fontStyle'  => 'italic',
+											'fontWeight' => '400',
+											'src'        => 'https://example.com/font.ttf',
+										),
+									),
+								),
+								array(
+									'badKey8'    => 'I am Evil!',
+									'name'       => 'Inter',
+									'slug'       => 'Inter',
+									'fontFamily' => 'Inter',
+									'fontFace'   => array(
+										array(
+											'badKey9'    => 'I am Evil!',
+											'fontFamily' => 'Inter',
+											'fontStyle'  => 'italic',
+											'fontWeight' => '400',
+											'src'        => 'https://example.com/font.ttf',
+										),
+										array(
+											'badKey10'   => 'I am Evil!',
+											'fontFamily' => 'Inter',
+											'fontStyle'  => 'italic',
+											'fontWeight' => '400',
+											'src'        => 'https://example.com/font.ttf',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected_sanitized   = array(
+			'version'  => '2',
+			'settings' => array(
+				'typography' => array(
+					'fontFamilies' => array(
+						'custom' => array(
+							array(
+								'name'       => 'Arial',
+								'slug'       => 'arial',
+								'fontFamily' => 'Arial, sans-serif',
+							),
+						),
+						'theme'  => array(
+							array(
+								'name'       => 'Piazzolla',
+								'slug'       => 'piazzolla',
+								'fontFamily' => 'Piazzolla',
+								'fontFace'   => array(
+									array(
+										'fontFamily' => 'Piazzolla',
+										'fontStyle'  => 'italic',
+										'fontWeight' => '400',
+										'src'        => 'https://example.com/font.ttf',
+									),
+									array(
+										'fontFamily' => 'Piazzolla',
+										'fontStyle'  => 'italic',
+										'fontWeight' => '400',
+										'src'        => 'https://example.com/font.ttf',
+									),
+								),
+							),
+							array(
+								'name'       => 'Inter',
+								'slug'       => 'Inter',
+								'fontFamily' => 'Inter',
+								'fontFace'   => array(
+									array(
+										'fontFamily' => 'Inter',
+										'fontStyle'  => 'italic',
+										'fontWeight' => '400',
+										'src'        => 'https://example.com/font.ttf',
+									),
+									array(
+										'fontFamily' => 'Inter',
+										'fontStyle'  => 'italic',
+										'fontWeight' => '400',
+										'src'        => 'https://example.com/font.ttf',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+		$sanitized_theme_json = $theme_json->get_raw_data();
+		$this->assertSameSetsWithIndex( $expected_sanitized, $sanitized_theme_json, 'Sanitized theme.json does not match' );
+	}
+
+	/**
+	 * Tests the correct application of a block style variation's selector to
+	 * a block's selector.
+	 *
+	 * @ticket 60453
+	 *
+	 * @dataProvider data_get_block_style_variation_selector
+	 *
+	 * @param string $selector  CSS selector.
+	 * @param string $expected  Expected block style variation CSS selector.
+	 */
+	public function test_get_block_style_variation_selector( $selector, $expected ) {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'get_block_style_variation_selector' );
+		$func->setAccessible( true );
+
+		$actual = $func->invoke( null, 'custom', $selector );
+
+		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for generating block style variation selectors.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_block_style_variation_selector() {
+		return array(
+			'empty block selector'     => array(
+				'selector' => '',
+				'expected' => '.is-style-custom',
+			),
+			'class selector'           => array(
+				'selector' => '.wp-block',
+				'expected' => '.wp-block.is-style-custom',
+			),
+			'id selector'              => array(
+				'selector' => '#wp-block',
+				'expected' => '#wp-block.is-style-custom',
+			),
+			'element tag selector'     => array(
+				'selector' => 'p',
+				'expected' => 'p.is-style-custom',
+			),
+			'attribute selector'       => array(
+				'selector' => '[style*="color"]',
+				'expected' => '[style*="color"].is-style-custom',
+			),
+			'descendant selector'      => array(
+				'selector' => '.wp-block .inner',
+				'expected' => '.wp-block.is-style-custom .inner',
+			),
+			'comma separated selector' => array(
+				'selector' => '.wp-block .inner, .wp-block .alternative',
+				'expected' => '.wp-block.is-style-custom .inner, .wp-block.is-style-custom .alternative',
+			),
+			'pseudo selector'          => array(
+				'selector' => 'div:first-child',
+				'expected' => 'div.is-style-custom:first-child',
+			),
+			':is selector'             => array(
+				'selector' => '.wp-block:is(.outer .inner:first-child)',
+				'expected' => '.wp-block.is-style-custom:is(.outer .inner:first-child)',
+			),
+			':not selector'            => array(
+				'selector' => '.wp-block:not(.outer .inner:first-child)',
+				'expected' => '.wp-block.is-style-custom:not(.outer .inner:first-child)',
+			),
+			':has selector'            => array(
+				'selector' => '.wp-block:has(.outer .inner:first-child)',
+				'expected' => '.wp-block.is-style-custom:has(.outer .inner:first-child)',
+			),
+			':where selector'          => array(
+				'selector' => '.wp-block:where(.outer .inner:first-child)',
+				'expected' => '.wp-block.is-style-custom:where(.outer .inner:first-child)',
+			),
+			'wrapping :where selector' => array(
+				'selector' => ':where(.outer .inner:first-child)',
+				'expected' => ':where(.outer.is-style-custom .inner:first-child)',
+			),
+			'complex'                  => array(
+				'selector' => '.wp:where(.something):is(.test:not(.nothing p)):has(div[style]) .content, .wp:where(.nothing):not(.test:is(.something div)):has(span[style]) .inner',
+				'expected' => '.wp.is-style-custom:where(.something):is(.test:not(.nothing p)):has(div[style]) .content, .wp.is-style-custom:where(.nothing):not(.test:is(.something div)):has(span[style]) .inner',
+			),
+		);
 	}
 }

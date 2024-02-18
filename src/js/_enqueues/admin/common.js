@@ -354,6 +354,21 @@ window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
 window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
 
 /**
+ * Removed in 6.5.0, needed for back-compatibility.
+ *
+ * @since 4.5.0
+ * @deprecated 6.5.0
+ */
+window.uiAutocompleteL10n = window.uiAutocompleteL10n || {
+	noResults: '',
+	oneResult: '',
+	manyResults: '',
+	itemSelected: ''
+};
+
+window.uiAutocompleteL10n = deprecateL10nObject( 'uiAutocompleteL10n', window.uiAutocompleteL10n, '6.5.0' );
+
+/**
  * Removed in 3.3.0, needed for back-compatibility.
  *
  * @since 2.7.0
@@ -2129,8 +2144,8 @@ $( function( $ ) {
 /**
  * Freeze animated plugin icons when reduced motion is enabled.
  *
- * When the user has enabled the 'prefers-reduced-motion' setting, this module 
- * stops animations for all GIFs on the page with the class 'plugin-icon' or 
+ * When the user has enabled the 'prefers-reduced-motion' setting, this module
+ * stops animations for all GIFs on the page with the class 'plugin-icon' or
  * plugin icon images in the update plugins table.
  *
  * @since 6.4.0
@@ -2156,7 +2171,7 @@ $( function( $ ) {
 			var width = img.width;
 			var height = img.height;
 			var canvas = document.createElement( 'canvas' );
-			
+
 			// Set canvas dimensions.
 			canvas.width = width;
 			canvas.height = height;
@@ -2219,23 +2234,27 @@ $( function( $ ) {
 
 	// Listen for jQuery AJAX events.
 	( function( $ ) {
-		$( document ).ajaxComplete( function( event, xhr, settings ) {
-			// Check if this is the 'search-install-plugins' request.
-			if ( settings.data && settings.data.includes( 'action=search-install-plugins' ) ) {
-				// Recheck if the user prefers reduced motion.
-				if ( window.matchMedia ) {
-					var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
-					if ( mediaQuery.matches ) {
-						pub.freezeAll();
-					}
-				} else {
-					// Fallback for browsers that don't support matchMedia.
-					if ( true === priv.pauseAll ) {
-						pub.freezeAll();
+		if ( window.pagenow === 'plugin-install' ) {
+			// Only listen for ajaxComplete if this is the plugin-install.php page.
+			$( document ).ajaxComplete( function( event, xhr, settings ) {
+
+				// Check if this is the 'search-install-plugins' request.
+				if ( settings.data && typeof settings.data === 'string' && settings.data.includes( 'action=search-install-plugins' ) ) {
+					// Recheck if the user prefers reduced motion.
+					if ( window.matchMedia ) {
+						var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+						if ( mediaQuery.matches ) {
+							pub.freezeAll();
+						}
+					} else {
+						// Fallback for browsers that don't support matchMedia.
+						if ( true === priv.pauseAll ) {
+							pub.freezeAll();
+						}
 					}
 				}
-			}
-		} );
+			} );
+		}
 	} )( jQuery );
 
 	// Expose public methods.

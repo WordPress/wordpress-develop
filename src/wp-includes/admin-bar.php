@@ -436,6 +436,18 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 
 		// Add the appearance submenu items.
 		wp_admin_bar_appearance_menu( $wp_admin_bar );
+
+		// Add a Plugins link.
+		if ( current_user_can( 'activate_plugins' ) ) {
+			$wp_admin_bar->add_node(
+				array(
+					'parent' => 'site-name',
+					'id'     => 'plugins',
+					'title'  => __( 'Plugins' ),
+					'href'   => admin_url( 'plugins.php' ),
+				)
+			);
+		}
 	}
 }
 
@@ -926,6 +938,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
  * Adds "Add New" menu.
  *
  * @since 3.1.0
+ * @since 6.5.0 Added a New Site link for network installations.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -993,6 +1006,17 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 				'id'     => $id,
 				'title'  => $title,
 				'href'   => admin_url( $link ),
+			)
+		);
+	}
+
+	if ( is_multisite() && current_user_can( 'create_sites' ) ) {
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => 'new-content',
+				'id'     => 'add-new-site',
+				'title'  => _x( 'Site', 'add new from admin bar' ),
+				'href'   => network_admin_url( 'site-new.php' ),
 			)
 		);
 	}

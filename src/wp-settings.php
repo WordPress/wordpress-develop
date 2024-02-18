@@ -53,8 +53,9 @@ require_once ABSPATH . WPINC . '/plugin.php';
  * If not already configured, `$blog_id` will default to 1 in a single site
  * configuration. In multisite, it will be overridden by default in ms-settings.php.
  *
- * @global int $blog_id
  * @since 2.0.0
+ *
+ * @global int $blog_id
  */
 global $blog_id;
 
@@ -114,10 +115,16 @@ require ABSPATH . WPINC . '/class-wp-matchesmapregex.php';
 require ABSPATH . WPINC . '/class-wp.php';
 require ABSPATH . WPINC . '/class-wp-error.php';
 require ABSPATH . WPINC . '/pomo/mo.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translations.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
+require ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 
 /**
- * @global wpdb $wpdb WordPress database abstraction object.
  * @since 0.71
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 global $wpdb;
 // Include the wpdb class and, if present, a db.php database drop-in.
@@ -303,6 +310,9 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widgets-controller.
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-templates-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-url-details-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -322,6 +332,8 @@ require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-stylesheet.php';
 require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-posts.php';
 require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-taxonomies.php';
 require ABSPATH . WPINC . '/sitemaps/providers/class-wp-sitemaps-users.php';
+require ABSPATH . WPINC . '/class-wp-block-bindings-source.php';
+require ABSPATH . WPINC . '/class-wp-block-bindings-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-editor-context.php';
 require ABSPATH . WPINC . '/class-wp-block-type.php';
 require ABSPATH . WPINC . '/class-wp-block-pattern-categories-registry.php';
@@ -335,6 +347,9 @@ require ABSPATH . WPINC . '/class-wp-block-parser-frame.php';
 require ABSPATH . WPINC . '/class-wp-block-parser.php';
 require ABSPATH . WPINC . '/class-wp-classic-to-block-menu-converter.php';
 require ABSPATH . WPINC . '/class-wp-navigation-fallback.php';
+require ABSPATH . WPINC . '/block-bindings.php';
+require ABSPATH . WPINC . '/block-bindings/pattern-overrides.php';
+require ABSPATH . WPINC . '/block-bindings/post-meta.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-editor.php';
@@ -363,8 +378,19 @@ require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rule.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-rules-store.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-processor.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face-resolver.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-collection.php';
 require ABSPATH . WPINC . '/fonts/class-wp-font-face.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-library.php';
+require ABSPATH . WPINC . '/fonts/class-wp-font-utils.php';
 require ABSPATH . WPINC . '/fonts.php';
+require ABSPATH . WPINC . '/class-wp-script-modules.php';
+require ABSPATH . WPINC . '/script-modules.php';
+require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
+require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
+require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
+
+wp_script_modules()->add_hooks();
+wp_interactivity()->add_hooks();
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
@@ -378,6 +404,7 @@ $GLOBALS['wp_embed'] = new WP_Embed();
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  */
 $GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
+$GLOBALS['wp_textdomain_registry']->init();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {
@@ -391,6 +418,12 @@ if ( is_multisite() ) {
 wp_plugin_directory_constants();
 
 $GLOBALS['wp_plugin_paths'] = array();
+
+// Load and initialize WP_Plugin_Dependencies.
+require_once ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
+if ( ! defined( 'WP_RUN_CORE_TESTS' ) ) {
+	WP_Plugin_Dependencies::initialize();
+}
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {
@@ -466,7 +499,85 @@ if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 }
 
 // Load active plugins.
+$all_plugin_data    = get_option( 'plugin_data', array() );
+$failed_plugins     = array();
+$plugins_dir_strlen = strlen( trailingslashit( WP_PLUGIN_DIR ) );
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
+	$plugin_file = substr( $plugin, $plugins_dir_strlen );
+
+	/*
+	 * Skip any plugins that have not been added to the 'plugin_data' option yet.
+	 *
+	 * Some plugin files may be added locally and activated, but will not yet be
+	 * added to the 'plugin_data' option. This causes the 'active_plugins' option
+	 * and the 'plugin_data' option to be temporarily out of sync until the next
+	 * call to `get_plugins()`.
+	 */
+	if ( isset( $all_plugin_data[ $plugin_file ] ) ) {
+		$plugin_headers = $all_plugin_data[ $plugin_file ];
+		$errors         = array();
+		$requirements   = array(
+			'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+			'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		);
+		$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
+		$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
+
+		$php_update_message = '</p><p>' . sprintf(
+			/* translators: %s: URL to Update PHP page. */
+			__( '<a href="%s">Learn more about updating PHP</a>.' ),
+			esc_url( wp_get_update_php_url() )
+		);
+
+		$annotation = wp_get_update_php_annotation();
+
+		if ( $annotation ) {
+			$php_update_message .= '</p><p><em>' . $annotation . '</em>';
+		}
+
+		if ( ! $compatible_wp && ! $compatible_php ) {
+			$errors[] = sprintf(
+				/* translators: 1: Current WordPress version, 2: Current PHP version, 3: Plugin name, 4: Required WordPress version, 5: Required PHP version. */
+				_x( '<strong>Error:</strong> Current versions of WordPress (%1$s) and PHP (%2$s) do not meet minimum requirements for %3$s. The plugin requires WordPress %4$s and PHP %5$s.', 'plugin' ),
+				get_bloginfo( 'version' ),
+				PHP_VERSION,
+				$plugin_headers['Name'],
+				$requirements['requires'],
+				$requirements['requires_php']
+			) . $php_update_message;
+		} elseif ( ! $compatible_php ) {
+			$errors[] = sprintf(
+				/* translators: 1: Current PHP version, 2: Plugin name, 3: Required PHP version. */
+				_x( '<strong>Error:</strong> Current PHP version (%1$s) does not meet minimum requirements for %2$s. The plugin requires PHP %3$s.', 'plugin' ),
+				PHP_VERSION,
+				$plugin_headers['Name'],
+				$requirements['requires_php']
+			) . $php_update_message;
+		} elseif ( ! $compatible_wp ) {
+			$errors[] = sprintf(
+				/* translators: 1: Current WordPress version, 2: Plugin name, 3: Required WordPress version. */
+				_x( '<strong>Error:</strong> Current WordPress version (%1$s) does not meet minimum requirements for %2$s. The plugin requires WordPress %3$s.', 'plugin' ),
+				get_bloginfo( 'version' ),
+				$plugin_headers['Name'],
+				$requirements['requires']
+			);
+		}
+
+		if ( ! empty( $errors ) ) {
+			$failed_plugins[ $plugin_file ] = '';
+			foreach ( $errors as $error ) {
+				$failed_plugins[ $plugin_file ] .= wp_get_admin_notice(
+					$error,
+					array(
+						'type'        => 'error',
+						'dismissible' => true,
+					)
+				);
+			}
+			continue;
+		}
+	}
+
 	wp_register_plugin_realpath( $plugin );
 
 	$_wp_plugin_file = $plugin;
@@ -483,6 +594,20 @@ foreach ( wp_get_active_and_valid_plugins() as $plugin ) {
 	do_action( 'plugin_loaded', $plugin );
 }
 unset( $plugin, $_wp_plugin_file );
+
+if ( ! empty( $failed_plugins ) ) {
+	add_action(
+		'admin_notices',
+		function () use ( $failed_plugins ) {
+			global $pagenow;
+
+			if ( 'index.php' === $pagenow || 'plugins.php' === $pagenow ) {
+				echo implode( '', $failed_plugins );
+			}
+		}
+	);
+}
+unset( $failed_plugins );
 
 // Load pluggable functions.
 require ABSPATH . WPINC . '/pluggable.php';
@@ -521,8 +646,9 @@ do_action( 'sanitize_comment_cookies' );
 /**
  * WordPress Query object
  *
- * @global WP_Query $wp_the_query WordPress Query object.
  * @since 2.0.0
+ *
+ * @global WP_Query $wp_the_query WordPress Query object.
  */
 $GLOBALS['wp_the_query'] = new WP_Query();
 
@@ -530,40 +656,45 @@ $GLOBALS['wp_the_query'] = new WP_Query();
  * Holds the reference to {@see $wp_the_query}.
  * Use this global for WordPress queries
  *
- * @global WP_Query $wp_query WordPress Query object.
  * @since 1.5.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
  */
 $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
 
 /**
  * Holds the WordPress Rewrite object for creating pretty URLs
  *
- * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  * @since 1.5.0
+ *
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
 $GLOBALS['wp_rewrite'] = new WP_Rewrite();
 
 /**
  * WordPress Object
  *
- * @global WP $wp Current WordPress environment instance.
  * @since 2.0.0
+ *
+ * @global WP $wp Current WordPress environment instance.
  */
 $GLOBALS['wp'] = new WP();
 
 /**
  * WordPress Widget Factory Object
  *
- * @global WP_Widget_Factory $wp_widget_factory
  * @since 2.8.0
+ *
+ * @global WP_Widget_Factory $wp_widget_factory
  */
 $GLOBALS['wp_widget_factory'] = new WP_Widget_Factory();
 
 /**
  * WordPress User Roles
  *
- * @global WP_Roles $wp_roles WordPress role management object.
  * @since 2.0.0
+ *
+ * @global WP_Roles $wp_roles WordPress role management object.
  */
 $GLOBALS['wp_roles'] = new WP_Roles();
 
@@ -590,8 +721,9 @@ unset( $locale_file );
 /**
  * WordPress Locale object for loading locale domain date and various strings.
  *
- * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @since 2.1.0
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
  */
 $GLOBALS['wp_locale'] = new WP_Locale();
 
@@ -604,6 +736,8 @@ $GLOBALS['wp_locale'] = new WP_Locale();
  */
 $GLOBALS['wp_locale_switcher'] = new WP_Locale_Switcher();
 $GLOBALS['wp_locale_switcher']->init();
+
+WP_Translation_Controller::get_instance()->set_locale( $locale );
 
 // Load the functions for the active theme, for both parent and child theme if applicable.
 foreach ( wp_get_active_and_valid_themes() as $theme ) {

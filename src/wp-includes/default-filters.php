@@ -521,7 +521,7 @@ add_action( 'init', 'wp_sitemaps_get_server' );
  */
 // Theme.
 add_action( 'setup_theme', 'create_initial_theme_features', 0 );
-add_action( 'setup_theme', '_add_default_theme_supports', 1 );
+add_action( 'after_setup_theme', '_add_default_theme_supports', 1 );
 add_action( 'wp_loaded', '_custom_header_background_just_in_time' );
 add_action( 'wp_head', '_custom_logo_header_styles' );
 add_action( 'plugins_loaded', '_wp_customize_include' );
@@ -687,6 +687,7 @@ add_action( 'embed_head', 'wp_print_styles', 20 );
 add_action( 'embed_head', 'wp_robots' );
 add_action( 'embed_head', 'rel_canonical' );
 add_action( 'embed_head', 'locale_stylesheet', 30 );
+add_action( 'enqueue_embed_scripts', 'wp_enqueue_emoji_styles' );
 
 add_action( 'embed_content_meta', 'print_embed_comments_button' );
 add_action( 'embed_content_meta', 'print_embed_sharing_button' );
@@ -718,7 +719,7 @@ add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug',
 add_action( 'save_post_wp_template_part', 'wp_set_unique_slug_on_create_template_part' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_template_skip_link' );
 add_action( 'wp_footer', 'the_block_template_skip_link' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_block_template_skip_link().
-add_action( 'setup_theme', 'wp_enable_block_templates' );
+add_action( 'after_setup_theme', 'wp_enable_block_templates', 1 );
 add_action( 'wp_loaded', '_add_template_loader_filters' );
 
 // wp_navigation post type.
@@ -747,5 +748,13 @@ add_action( 'wp_restore_post_revision', 'wp_restore_post_revision_meta', 10, 2 )
 
 // Font management.
 add_action( 'wp_head', 'wp_print_font_faces', 50 );
+add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
+add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
+add_action( 'init', '_wp_register_default_font_collections' );
+
+// It might be nice to use a filter instead of an action, but the `WP_REST_Templates_Controller` doesn't
+// provide one (unlike e.g. `WP_REST_Posts_Controller`, which has `rest_pre_insert_{$this->post_type}`).
+add_action( 'rest_after_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 3 );
+add_action( 'rest_after_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 3 );
 
 unset( $filter, $action );

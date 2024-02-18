@@ -316,7 +316,9 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 					$redirect['query'] = remove_query_arg( 'year', $redirect['query'] );
 				}
 			}
-		} elseif ( is_author() && ! empty( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] ) ) {
+		} elseif ( is_author() && ! empty( $_GET['author'] )
+			&& is_string( $_GET['author'] ) && preg_match( '|^[0-9]+$|', $_GET['author'] )
+		) {
 			$author = get_userdata( get_query_var( 'author' ) );
 
 			if ( false !== $author
@@ -548,13 +550,23 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	$is_attachment_redirect = false;
 
 	if ( is_attachment() && ! get_option( 'wp_attachment_pages_enabled' ) ) {
-		$attachment_id = get_query_var( 'attachment_id' );
+		$attachment_id        = get_query_var( 'attachment_id' );
+		$attachment_post      = get_post( $attachment_id );
+		$attachment_parent_id = $attachment_post ? $attachment_post->post_parent : 0;
 
-		if ( current_user_can( 'read_post', $attachment_id ) ) {
-			$redirect_url = wp_get_attachment_url( $attachment_id );
-
-			$is_attachment_redirect = true;
+		$attachment_url = wp_get_attachment_url( $attachment_id );
+		if ( $attachment_url !== $redirect_url ) {
+			/*
+			* If an attachment is attached to a post, it inherits the parent post's status. Fetch the
+			* parent post to check its status later.
+			*/
+			if ( $attachment_parent_id ) {
+				$redirect_obj = get_post( $attachment_parent_id );
+			}
+			$redirect_url = $attachment_url;
 		}
+
+		$is_attachment_redirect = true;
 	}
 
 	$redirect['query'] = preg_replace( '#^\??&*?#', '', $redirect['query'] );
@@ -937,6 +949,9 @@ function redirect_guess_404_permalink() {
 	}
 
 	if ( get_query_var( 'name' ) ) {
+		$publicly_viewable_statuses   = array_filter( get_post_stati(), 'is_post_status_viewable' );
+		$publicly_viewable_post_types = array_filter( get_post_types( array( 'exclude_from_search' => false ) ), 'is_post_type_viewable' );
+
 		/**
 		 * Filters whether to perform a strict guess for a 404 redirect.
 		 *
@@ -957,12 +972,19 @@ function redirect_guess_404_permalink() {
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
 		if ( get_query_var( 'post_type' ) ) {
 			if ( is_array( get_query_var( 'post_type' ) ) ) {
+				$post_types = array_intersect( get_query_var( 'post_type' ), $publicly_viewable_post_types );
+				if ( empty( $post_types ) ) {
+					return false;
+				}
 				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
 			} else {
+				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
+					return false;
+				}
 				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
 			}
 		} else {
-			$where .= " AND post_type IN ('" . implode( "', '", get_post_types( array( 'public' => true ) ) ) . "')";
+			$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $publicly_viewable_post_types ) ) . "')";
 		}
 
 		if ( get_query_var( 'year' ) ) {
@@ -975,7 +997,6 @@ function redirect_guess_404_permalink() {
 			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 		}
 
-		$publicly_viewable_statuses = array_filter( get_post_stati(), 'is_post_status_viewable' );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
 

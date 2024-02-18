@@ -329,7 +329,7 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.2.0 Extracted from WP_Comment_Query::query().
 	 *
-	 * @param string|array $query WP_Comment_Query arguments. See WP_Comment_Query::__construct()
+	 * @param string|array $query WP_Comment_Query arguments. See WP_Comment_Query::__construct().
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -470,7 +470,7 @@ class WP_Comment_Query {
 		}
 
 		if ( $this->found_comments && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_comments / $this->query_vars['number'] );
+			$this->max_num_pages = (int) ceil( $this->found_comments / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.

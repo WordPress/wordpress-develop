@@ -656,7 +656,7 @@ function wp_edit_theme_plugin_file( $args ) {
 /**
  * Returns a filename of a temporary unique file.
  *
- * Please note that the calling function must unlink() this itself.
+ * Please note that the calling function must delete or move the file.
  *
  * The filename is based off the passed parameter or defaults to the current unix timestamp,
  * while the directory can either be passed as well, or by leaving it blank, default to a writable
@@ -1139,7 +1139,7 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
 /**
  * Downloads a URL to a local temporary file using the WordPress HTTP API.
  *
- * Please note that the calling function must unlink() the file.
+ * Please note that the calling function must delete or move the file.
  *
  * @since 2.5.0
  * @since 5.2.0 Signature Verification with SoftFail was added.
@@ -1153,7 +1153,7 @@ function wp_handle_sideload( &$file, $overrides = false, $time = null ) {
  * @return string|WP_Error Filename on success, WP_Error on failure.
  */
 function download_url( $url, $timeout = 300, $signature_verification = false ) {
-	// WARNING: The file is not automatically deleted, the script must unlink() the file.
+	// WARNING: The file is not automatically deleted, the script must delete or move the file.
 	if ( ! $url ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
 	}
@@ -1561,6 +1561,37 @@ function wp_trusted_keys() {
 	 * @param string[] $trusted_keys The trusted keys that may sign packages.
 	 */
 	return apply_filters( 'wp_trusted_keys', $trusted_keys );
+}
+
+/**
+ * Determines whether the given file is a valid ZIP file.
+ *
+ * This function does not test to ensure that a file exists. Non-existent files
+ * are not valid ZIPs, so those will also return false.
+ *
+ * @since 6.4.4
+ *
+ * @param string $file Full path to the ZIP file.
+ * @return bool Whether the file is a valid ZIP file.
+ */
+function wp_zip_file_is_valid( $file ) {
+	/** This filter is documented in wp-admin/includes/file.php */
+	if ( class_exists( 'ZipArchive', false ) && apply_filters( 'unzip_file_use_ziparchive', true ) ) {
+		$archive          = new ZipArchive();
+		$archive_is_valid = $archive->open( $file, ZipArchive::CHECKCONS );
+		if ( true === $archive_is_valid ) {
+			$archive->close();
+			return true;
+		}
+	}
+
+	// Fall through to PclZip if ZipArchive is not available, or encountered an error opening the file.
+	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
+
+	$archive          = new PclZip( $file );
+	$archive_is_valid = is_array( $archive->properties() );
+
+	return $archive_is_valid;
 }
 
 /**
