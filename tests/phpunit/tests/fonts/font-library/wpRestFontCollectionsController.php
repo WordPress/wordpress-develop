@@ -41,8 +41,8 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		wp_register_font_collection(
 			'mock-col-slug',
 			array(
-				'name' => 'My collection',
-				'src'  => $mock_file,
+				'name'          => 'My collection',
+				'font_families' => $mock_file,
 			)
 		);
 	}
@@ -87,8 +87,8 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		wp_register_font_collection(
 			'invalid-collection',
 			array(
-				'name' => 'My collection',
-				'src'  => 'invalid-collection-file',
+				'name'          => 'My collection',
+				'font_families' => 'invalid-collection-file',
 			)
 		);
 
@@ -147,8 +147,8 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		wp_register_font_collection(
 			$slug,
 			array(
-				'name' => 'My collection',
-				'src'  => 'invalid-collection-file',
+				'name'          => 'My collection',
+				'font_families' => 'invalid-collection-file',
 			)
 		);
 
@@ -157,7 +157,7 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 
 		wp_unregister_font_collection( $slug );
 
-		$this->assertErrorResponse( 'font_collection_json_missing', $response, 500, 'When the collection json file is invalid, the response should return an error for "font_collection_json_missing" with 500 status.' );
+		$this->assertErrorResponse( 'font_collection_json_missing', $response, 500 );
 	}
 
 	/**
@@ -168,11 +168,11 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 
 		wp_set_current_user( 0 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 401, 'The response status should be 401 for non-authenticated users.' );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403, 'The response status should be 403 for users without the right permissions.' );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**

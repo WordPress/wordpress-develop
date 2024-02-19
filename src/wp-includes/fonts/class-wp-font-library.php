@@ -39,7 +39,7 @@ class WP_Font_Library {
 	 *
 	 * @param string $slug Font collection slug. May only contain alphanumeric characters, dashes,
 	 *                     and underscores. See sanitize_title().
-	 * @param array  $args Font collection data. See {@see wp_register_font_collection()} for the supported fields.
+	 * @param array  $args Font collection data. See wp_register_font_collection() for information on accepted arguments.
 	 * @return WP_Font_Collection|WP_Error A font collection if it was registered successfully,
 	 *                                     or WP_Error object on failure.
 	 */

@@ -34,13 +34,21 @@ final class WP_Font_Collection {
 	private $data;
 
 	/**
+	 * Font collection JSON file path or URL.
+	 *
+	 * @since 6.5.0
+	 * @var string|null
+	 */
+	private $src;
+
+	/**
 	 * WP_Font_Collection constructor.
 	 *
 	 * @since 6.5.0
 	 *
 	 * @param string $slug Font collection slug. May only contain alphanumeric characters, dashes,
 	 *                     and underscores. See sanitize_title().
-	 * @param array  $args Font collection data. See {@see wp_register_font_collection()} for the supported fields.
+	 * @param array  $args Font collection data. See wp_register_font_collection() for information on accepted arguments.
 	 */
 	public function __construct( string $slug, array $args ) {
 		$this->slug = sanitize_title( $slug );
@@ -53,7 +61,17 @@ final class WP_Font_Collection {
 			);
 		}
 
-		$this->data = $this->sanitize_and_validate_data( $args );
+		$required_properties = array( 'name', 'font_families' );
+
+		if ( isset( $args['font_families'] ) && is_string( $args['font_families'] ) ) {
+			// JSON data is lazy loaded by ::get_data().
+			$this->src = $args['font_families'];
+			unset( $args['font_families'] );
+
+			$required_properties = array( 'name' );
+		}
+
+		$this->data = $this->sanitize_and_validate_data( $args, $required_properties );
 	}
 
 	/**
@@ -69,8 +87,8 @@ final class WP_Font_Collection {
 		}
 
 		// If the collection uses JSON data, load it and cache the data/error.
-		if ( isset( $this->data['src'] ) && empty( $this->data['font_families'] ) ) {
-			$this->data = $this->load_from_json( $this->data['src'] );
+		if ( isset( $this->src ) ) {
+			$this->data = $this->load_from_json( $this->src );
 		}
 
 		if ( is_wp_error( $this->data ) ) {
@@ -190,40 +208,13 @@ final class WP_Font_Collection {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $data Font collection data to sanitize and validate.
+	 * @param array $data                Font collection data to sanitize and validate.
+	 * @param array $required_properties Required properties that must exist in the passed data.
 	 * @return array|WP_Error Sanitized data if valid, otherwise a WP_Error instance.
 	 */
-	private function sanitize_and_validate_data( $data ) {
+	private function sanitize_and_validate_data( $data, $required_properties = array( 'name', 'font_families' ) ) {
 		$schema = self::get_sanitization_schema();
 		$data   = WP_Font_Utils::sanitize_from_schema( $data, $schema );
-
-		if ( ! isset( $data['src'] ) && ! isset( $data['font_families'] ) ) {
-			$message = sprintf(
-				// translators: 1: src. 2: font_families.
-				__( 'Font collection must provide either "%1$s" or "%2$s".' ),
-				'src',
-				'font_families'
-			);
-			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
-			return new WP_Error( 'font_collection_missing_property', $message );
-		}
-
-		if ( isset( $data['src'], $data['font_families'] ) ) {
-			$message = sprintf(
-				// translators: 1: src. 2: font_families or categories.
-				__( 'Font collection must only provide "%1$s" or "%2$s", not both.' ),
-				'src',
-				'font_families'
-			);
-			_doing_it_wrong( __METHOD__, $message, '6.5.0' );
-			return new WP_Error( 'font_collection_mutually_exclusive_property', $message );
-		}
-
-		$required_properties = array( 'name' );
-
-		if ( ! isset( $data['src'] ) ) {
-			$required_properties[] = 'font_families';
-		}
 
 		foreach ( $required_properties as $property ) {
 			if ( empty( $data[ $property ] ) ) {
@@ -250,7 +241,6 @@ final class WP_Font_Collection {
 	 */
 	private static function get_sanitization_schema() {
 		return array(
-			'src'           => 'sanitize_text_field',
 			'name'          => 'sanitize_text_field',
 			'description'   => 'sanitize_text_field',
 			'font_families' => array(

@@ -43,8 +43,8 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		$collection = new WP_Font_Collection(
 			$slug,
 			array(
-				'name' => $config['name'],
-				'src'  => $mock_file,
+				'name'          => $config['name'],
+				'font_families' => $mock_file,
 			)
 		);
 		$data       = $collection->get_data();
@@ -67,8 +67,8 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		$collection                 = new WP_Font_Collection(
 			$slug,
 			array(
-				'name' => 'My Collection',
-				'src'  => 'https://example.com/fonts/mock-font-collection.json',
+				'name'          => 'My Collection',
+				'font_families' => 'https://example.com/fonts/mock-font-collection.json',
 			)
 		);
 		$data                       = $collection->get_data();
@@ -250,37 +250,14 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		);
 	}
 
-
-	public function test_should_error_for_mutually_exclusive_properties() {
-		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::sanitize_and_validate_data' );
-
-		$collection = new WP_Font_Collection(
-			'my-collection',
-			array(
-				'name'          => 'My collection',
-				'src'           => 'foo',
-				'font_families' => array( array() ),
-			)
-		);
-
-		$data = $collection->get_data();
-
-		$this->assertWPError( $data, 'Error is not returned when property is missing or invalid.' );
-		$this->assertSame(
-			'font_collection_mutually_exclusive_property',
-			$data->get_error_code(),
-			'Incorrect error code when property is missing or invalid.'
-		);
-	}
-
 	public function test_should_error_with_invalid_json_file_path() {
 		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 
 		$collection = new WP_Font_Collection(
 			'my-collection',
 			array(
-				'name' => 'My collection',
-				'src'  => 'non-existing.json',
+				'name'          => 'My collection',
+				'font_families' => 'non-existing.json',
 			)
 		);
 		$data       = $collection->get_data();
@@ -300,8 +277,8 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		$collection = new WP_Font_Collection(
 			'my-collection',
 			array(
-				'name' => 'Invalid collection',
-				'src'  => $mock_file,
+				'name'          => 'Invalid collection',
+				'font_families' => $mock_file,
 			)
 		);
 
@@ -322,8 +299,8 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		$collection = new WP_Font_Collection(
 			'my-collection',
 			array(
-				'name' => 'Invalid collection',
-				'src'  => 'not-a-url',
+				'name'          => 'Invalid collection',
+				'font_families' => 'not-a-url',
 			)
 		);
 		$data       = $collection->get_data();
@@ -342,8 +319,8 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		$collection = new WP_Font_Collection(
 			'my-collection',
 			array(
-				'name' => 'Missing collection',
-				'src'  => 'https://example.com/fonts/missing-collection.json',
+				'name'          => 'Missing collection',
+				'font_families' => 'https://example.com/fonts/missing-collection.json',
 			)
 		);
 		$data       = $collection->get_data();
@@ -364,8 +341,8 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		$collection = new WP_Font_Collection(
 			'my-collection',
 			array(
-				'name' => 'Invalid collection',
-				'src'  => 'https://example.com/fonts/invalid-collection.json',
+				'name'          => 'Invalid collection',
+				'font_families' => 'https://example.com/fonts/invalid-collection.json',
 			)
 		);
 		$data       = $collection->get_data();
