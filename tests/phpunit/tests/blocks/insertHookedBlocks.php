@@ -126,7 +126,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		};
 		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 4 );
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 4 );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10 );
 
 		$this->assertSame(
 			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' {"layout":{"type":"constrained"}} /-->',
@@ -172,7 +172,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		};
 		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10 );
 
 		$this->assertSame(
 			'<!-- wp:group --><div class="wp-block-group"><!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /--></div><!-- /wp:group -->',
