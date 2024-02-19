@@ -1975,12 +1975,12 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->exists() ) {
 			return false;
 		}
-		if( wp_using_ext_object_cache() ) {
+		if ( wp_using_ext_object_cache() ) {
 			$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
 		} else {
 			$pattern_data = get_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
 		}
-		
+
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}
@@ -2000,9 +2000,9 @@ final class WP_Theme implements ArrayAccess {
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
 		);
-		if( wp_using_ext_object_cache() ) {
+		if ( wp_using_ext_object_cache() ) {
 			wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files' );
-		} else  {
+		} else {
 			set_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet, $pattern_data );
 		}
 	}
@@ -2014,9 +2014,9 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.5.0 The method support transient caching.
 	 */
 	public function delete_pattern_cache() {
-		if( wp_using_ext_object_cache() ) {
+		if ( wp_using_ext_object_cache() ) {
 			wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
-		} else  {
+		} else {
 			delete_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
 		}
 	}
