@@ -146,7 +146,7 @@ function export_wp( $args = array() ) {
 
 	// Get IDs for the attachments of each post, unless all content is already being exported.
 	if ( ! in_array( $args['content'], array( 'all', 'attachment' ), true ) ) {
-		// Array to hold all additional IDs (attachments and thumbnails)
+		// Array to hold all additional IDs (attachments and thumbnails).
 		$additional_ids = array();
 
 		// Create a copy of the post IDs array to avoid modifying the original array.
@@ -159,7 +159,7 @@ function export_wp( $args = array() ) {
 			// Create a string for the placeholders.
 			$in_placeholder = implode( ',', $placeholders );
 
-			// Prepare the SQL statement for attachment ids
+			// Prepare the SQL statement for attachment ids.
 			$attachment_ids = $wpdb->get_col(
 				$wpdb->prepare(
 					"
