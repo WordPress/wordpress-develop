@@ -904,8 +904,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
-		$parsed_hooked_block = apply_filters( "hooked_block", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
-
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
 
 		/**
 		 * Filters the parsed block array for a given hooked block.
