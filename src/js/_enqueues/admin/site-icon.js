@@ -8,12 +8,6 @@
 /* global jQuery, wp */
 
 ( function( $ ) {
-	var $chooseButton = $( '#choose-from-library-button' ),
-	$iconPreview = $( '#site-icon-preview' ),
-	$hiddenDataField = $( '#site_icon_hidden_field' ),
-	$removeButton = $( '#js-remove-site-icon' ),
-	frame;
-
 	/**
 	 * Calculates image selection options based on the attachment dimensions.
 	 *
@@ -69,69 +63,74 @@
 	 *
 	 * @since 6.5.0
 	 */
-	$chooseButton.on( 'click', function() {
-		var $el = $( this );
+	( function() {
+		var frame;
 
-		// Create the media frame.
-		frame = wp.media({
-			button: {
+		// Build the choose from library frame.
+		$( '#choose-from-library-button' ).on( 'click', function() {
+			var $el = $( this );
 
-				// Set the text of the button.
-				text: $el.data( 'update' ),
+			// Create the media frame.
+			frame = wp.media({
+				button: {
 
-				// Don't close, we might need to crop.
-				close: false
-			},
-			states: [
-				new wp.media.controller.Library({
-					title: $el.data( 'choose-text' ),
-					library: wp.media.query({ type: 'image' }),
-					date: false,
-					suggestedWidth: $el.data( 'size' ),
-					suggestedHeight: $el.data( 'size' )
-				}),
-				new wp.media.controller.SiteIconCropper({
-					control: {
-						params: {
-							width: $el.data( 'size' ),
-							height: $el.data( 'size' )
-						}
-					},
-					imgSelectOptions: calculateImageSelectOptions
-				})
-			]
-		});
+					// Set the text of the button.
+					text: $el.data( 'update' ),
 
-		frame.on( 'cropped', function( attachment ) {
-			$hiddenDataField.val( attachment.id );
-			switchToUpdate( attachment );
-			frame.close();
-			// Start over with a frame that is so fresh and so clean clean.
-			frame = null;
-		});
+					// Don't close, we might need to crop.
+					close: false
+				},
+				states: [
+					new wp.media.controller.Library({
+						title: $el.data( 'choose-text' ),
+						library: wp.media.query({ type: 'image' }),
+						date: false,
+						suggestedWidth: $el.data( 'size' ),
+						suggestedHeight: $el.data( 'size' )
+					}),
+					new wp.media.controller.SiteIconCropper({
+						control: {
+							params: {
+								width: $el.data( 'size' ),
+								height: $el.data( 'size' )
+							}
+						},
+						imgSelectOptions: calculateImageSelectOptions
+					})
+				]
+			});
 
-		// When an image is selected, run a callback.
-		frame.on( 'select', function() {
-
-			// Grab the selected attachment.
-			var attachment = frame.state().get( 'selection' ).first();
-
-			if (
-				attachment.attributes.height === $el.data( 'size' ) &&
-				$el.data( 'size' ) === attachment.attributes.width
-			) {
-
-				// Set the value of the hidden input to the attachment id.
-				$hiddenDataField.val( attachment.id );
-				switchToUpdate( attachment.attributes );
+			frame.on( 'cropped', function( attachment ) {
+				$( '#site_icon_hidden_field' ).val( attachment.id );
+				switchToUpdate( attachment );
 				frame.close();
-			} else {
-				frame.setState( 'cropper' );
-			}
-		});
+				// Start over with a frame that is so fresh and so clean clean.
+				frame = null;
+			});
 
-		frame.open();
-	});
+			// When an image is selected, run a callback.
+			frame.on( 'select', function() {
+
+				// Grab the selected attachment.
+				var attachment = frame.state().get( 'selection' ).first();
+
+				if (
+					attachment.attributes.height === $el.data( 'size' ) &&
+					$el.data( 'size' ) === attachment.attributes.width
+				) {
+
+					// Set the value of the hidden input to the attachment id.
+					$( '#site_icon_hidden_field' ).val( attachment.id );
+					switchToUpdate( attachment.attributes );
+					frame.close();
+				} else {
+					frame.setState( 'cropper' );
+				}
+			});
+
+			frame.open();
+		});
+	})();
 
 	/**
 	 * Updates the UI when a site icon is selected.
@@ -141,7 +140,9 @@
 	 * @param {array} attributes The attributes for the attachment.
 	 */
 	function switchToUpdate( attributes ) {
-		var i18nAltString;
+		var $chooseButton = $( '#choose-from-library-button' ),
+			$iconPreview = $( '#site-icon-preview' ),
+			i18nAltString;
 
 			if ( attributes.alt ) {
 				i18nAltString = wp.i18n.sprintf(
@@ -159,17 +160,17 @@
 
 			// Set site-icon-img src to the url and remove the hidden class.
 			$iconPreview.find( 'img' ).not( '.browser-preview' )
-				.each( function( i, img ) {
-					$( img )
-						.attr({
-							'src': attributes.url,
-							'alt': i18nAltString 
-						});
+			.each( function( i, img ) {
+				$( img )
+				.attr({
+					'src': attributes.url,
+					'alt': i18nAltString 
 				});
+			});
 			$iconPreview.removeClass( 'hidden' );
 
 		// Remove hidden class from the remove button.
-		$removeButton.removeClass( 'hidden' );
+		$( '#js-remove-site-icon' ).removeClass( 'hidden' );
 
 		// If the choose button is not in the update state, swap the classes.
 		if ( $chooseButton.attr( 'data-state' ) !== '1' ) {
@@ -187,35 +188,40 @@
 	}
 
 	/**
-	 * Handles the click event of the remove button.
+	 * Initializes the functionality to remove the site icon.
 	 *
 	 * @since 6.5.0
 	 */
-	$removeButton.on( 'click', function() {
-		$hiddenDataField.val( 'false' );
-		$( this ).toggleClass( 'hidden' );
-		$iconPreview.toggleClass( 'hidden' );
-		$iconPreview.find( 'img' ).not( '.browser-preview' )
+	( function () {
+		var $chooseButton = $( '#choose-from-library-button' ),
+			$iconPreview = $( '#site-icon-preview' );
+
+		$( '#js-remove-site-icon' ).on( 'click', function() {
+			$( '#site_icon_hidden_field' ).val( 'false' );
+			$( this ).toggleClass( 'hidden' );
+			$iconPreview.toggleClass( 'hidden' );
+			$iconPreview.find( 'img' ).not( '.browser-preview' )
 			.each( function( i, img ) {
 				$( img )
-					.attr({
-						'src': '',
-						'alt': '' 
-					});
+				.attr({
+					'src': '',
+					'alt': '' 
+				});
 			});
 
-		/**
-		 * Resets initial state to the button, for correct visual style and state.
-		 * Updates the text of the button.
-		 * Sets focus state to the button.
-		 */
-		$chooseButton
-			.attr({
-				'class': $chooseButton.attr( 'data-alt-classes' ),
-				'data-alt-classes': $chooseButton.attr( 'class' ),
-				'data-state': ''
-			})
-			.text( $chooseButton.attr( 'data-choose-text' ) )
-			.trigger( 'focus' );
-	});
+			/**
+			 * Resets initial state to the button, for correct visual style and state.
+			 * Updates the text of the button.
+			 * Sets focus state to the button.
+			 */
+			$chooseButton
+				.attr({
+					'class': $chooseButton.attr( 'data-alt-classes' ),
+					'data-alt-classes': $chooseButton.attr( 'class' ),
+					'data-state': ''
+				})
+				.text( $chooseButton.attr( 'data-choose-text' ) )
+				.trigger( 'focus' );
+		});
+	})();
 })( jQuery );
