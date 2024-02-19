@@ -1967,6 +1967,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Gets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.5.0 The method support transient caching.
 	 *
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
@@ -1974,7 +1975,12 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->exists() ) {
 			return false;
 		}
-		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		if( wp_using_ext_object_cache() ) {
+			$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		} else {
+			$pattern_data = get_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
+		}
+		
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}
@@ -1985,6 +1991,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Sets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.5.0 The method support transient caching.
 	 *
 	 * @param array $patterns Block patterns data to set in cache.
 	 */
@@ -1993,16 +2000,25 @@ final class WP_Theme implements ArrayAccess {
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
 		);
-		wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files' );
+		if( wp_using_ext_object_cache() ) {
+			wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files' );
+		} else  {
+			set_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet, $pattern_data );
+		}
 	}
 
 	/**
 	 * Clears block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.5.0 The method support transient caching.
 	 */
 	public function delete_pattern_cache() {
-		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		if( wp_using_ext_object_cache() ) {
+			wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		} else  {
+			delete_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
+		}
 	}
 
 	/**
