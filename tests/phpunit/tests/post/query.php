@@ -631,7 +631,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -654,7 +654,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -680,7 +680,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', '__return_true' );
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -707,7 +707,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', '__return_false' );
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
