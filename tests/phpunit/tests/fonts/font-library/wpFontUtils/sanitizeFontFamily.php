@@ -55,7 +55,7 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 				'expected'    => '"Rock 3D"',
 			),
 			'data_font_family_with_generic_names' => array(
-				'font_family' => "generic(kai), generic(font[name]), generic(fangsong), Rock 3D",
+				'font_family' => 'generic(kai), generic(font[name]), generic(fangsong), Rock 3D',
 				'expected'    => 'generic(kai), "generic(font[name])", generic(fangsong), "Rock 3D"',
 			),
 		);
