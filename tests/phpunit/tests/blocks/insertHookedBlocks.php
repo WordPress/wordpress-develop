@@ -216,6 +216,6 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
 		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter );
 
-		$this->assertSame( '', $actual, "No markup should've been generatedfor hooked block suppressed by filter." );
+		$this->assertSame( '', $actual, "No markup should've been generated for hooked block suppressed by filter." );
 	}
 }
