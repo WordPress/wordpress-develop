@@ -44,7 +44,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		);
 
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
-		$this->assertSame( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], array( 'tests/hooked-block' ) );
+		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 	}
 
 	/**
@@ -70,8 +70,8 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
 		$this->assertSame(
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			array( 'tests/other-ignored-block', 'tests/hooked-block' )
+			array( 'tests/other-ignored-block', 'tests/hooked-block' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		);
 	}
 
@@ -101,8 +101,8 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		remove_filter( 'hooked_block_types', $filter, 10 );
 
 		$this->assertSame(
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			array( 'tests/hooked-block-added-by-filter' )
+			array( 'tests/hooked-block-added-by-filter' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		);
 	}
 
@@ -140,8 +140,8 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		remove_filter( 'hooked_block_types', $filter, 10 );
 
 		$this->assertSame(
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			array( 'tests/hooked-block-added-by-filter' )
+			array( 'tests/hooked-block-added-by-filter' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		);
 	}
 }
