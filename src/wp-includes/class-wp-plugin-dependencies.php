@@ -16,7 +16,16 @@
 class WP_Plugin_Dependencies {
 
 	/**
-	 * Holds 'get_plugins()'.
+	 * Holds Must-Use plugins.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var array
+	 */
+	protected static $mustuse_plugins;
+
+	/**
+	 * Holds plugins and Must-Use plugins.
 	 *
 	 * @since 6.5.0
 	 *
