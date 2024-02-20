@@ -249,7 +249,10 @@ class WP_Plugin_Dependencies {
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
 
-			if ( false === $dependency_filepath || is_plugin_inactive( $dependency_filepath ) ) {
+			if (
+				false === $dependency_filepath ||
+				( ! isset( self::$mustuse_plugins[ $dependency_filepath ] ) && is_plugin_inactive( $dependency_filepath ) )
+			) {
 				return true;
 			}
 		}
