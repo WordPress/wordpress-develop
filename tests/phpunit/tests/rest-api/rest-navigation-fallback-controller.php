@@ -61,11 +61,11 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 403, $response->get_status(), 'Response should indicate user does not have permission.' );
+		$this->assertSame( 403, $response->get_status(), 'Response should indicate user does not have permission.' );
 
-		$this->assertEquals( 'rest_cannot_create', $data['code'], 'Response should indicate user cannot create.' );
+		$this->assertSame( 'rest_cannot_create', $data['code'], 'Response should indicate user cannot create.' );
 
-		$this->assertEquals( 'Sorry, you are not allowed to create Navigation Menus as this user.', $data['message'], 'Response should indicate failed request status.' );
+		$this->assertSame( 'Sorry, you are not allowed to create Navigation Menus as this user.', $data['message'], 'Response should indicate failed request status.' );
 	}
 
 	/**
@@ -80,13 +80,13 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status(), 'Status should indicate successful request.' );
+		$this->assertSame( 200, $response->get_status(), 'Status should indicate successful request.' );
 
 		$this->assertIsArray( $data, 'Response should be of correct type.' );
 
 		$this->assertArrayHasKey( 'id', $data, 'Response should contain expected fields.' );
 
-		$this->assertEquals( 'wp_navigation', get_post_type( $data['id'] ), '"id" field should represent a post of type "wp_navigation"' );
+		$this->assertSame( 'wp_navigation', get_post_type( $data['id'] ), '"id" field should represent a post of type "wp_navigation"' );
 
 		// Check that only a single Navigation fallback was created.
 		$navs_in_db = $this->get_navigations_in_database();
@@ -105,16 +105,16 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 200, $response->get_status(), 'Status should indicate successful request.' );
+		$this->assertSame( 200, $response->get_status(), 'Status should indicate successful request.' );
 
 		$this->assertArrayHasKey( 'schema', $data, '"schema" key should exist in response.' );
 
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'object', $schema['type'], 'The schema type should match the expected type.' );
+		$this->assertSame( 'object', $schema['type'], 'The schema type should match the expected type.' );
 
 		$this->assertArrayHasKey( 'id', $schema['properties'], 'Schema should have an "id" property.' );
-		$this->assertEquals( 'integer', $schema['properties']['id']['type'], 'Schema "id" property should be an integer.' );
+		$this->assertSame( 'integer', $schema['properties']['id']['type'], 'Schema "id" property should be an integer.' );
 		$this->assertTrue( $schema['properties']['id']['readonly'], 'Schema "id" property should be readonly.' );
 	}
 

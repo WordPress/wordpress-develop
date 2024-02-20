@@ -40,6 +40,8 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( $query_args_to_remove, $_SERVER['REQ
 
 wp_enqueue_script( 'updates' );
 
+WP_Plugin_Dependencies::initialize();
+
 if ( $action ) {
 
 	switch ( $action ) {
@@ -427,8 +429,9 @@ if ( $action ) {
 
 			$delete_result = delete_plugins( $plugins );
 
-			// Store the result in a cache rather than a URL param due to object type & length.
-			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
+			// Store the result in an option rather than a URL param due to object type & length.
+			// Cannot use transient/cache, as that could get flushed if any plugin flushes data on uninstall/delete.
+			update_option( 'plugins_delete_result_' . $user_ID, $delete_result, false );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
 		case 'clear-recent-list':
@@ -690,9 +693,9 @@ if ( isset( $_GET['error'] ) ) {
 	);
 
 } elseif ( isset( $_GET['deleted'] ) ) {
-	$delete_result = get_transient( 'plugins_delete_result_' . $user_ID );
+	$delete_result = get_option( 'plugins_delete_result_' . $user_ID );
 	// Delete it once we're done.
-	delete_transient( 'plugins_delete_result_' . $user_ID );
+	delete_option( 'plugins_delete_result_' . $user_ID );
 
 	if ( is_wp_error( $delete_result ) ) {
 		$plugin_not_deleted_message = sprintf(
@@ -739,6 +742,8 @@ if ( isset( $_GET['error'] ) ) {
 }
 ?>
 
+<?php WP_Plugin_Dependencies::display_admin_notice_for_unmet_dependencies(); ?>
+<?php WP_Plugin_Dependencies::display_admin_notice_for_circular_dependencies(); ?>
 <div class="wrap">
 <h1 class="wp-heading-inline">
 <?php
