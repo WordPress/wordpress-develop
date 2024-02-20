@@ -272,6 +272,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 * Tests that dependent files are loaded and slugified.
 	 *
 	 * @ticket 22316
+	 * @ticket 60504
 	 *
 	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
 	 * @covers WP_Plugin_Dependencies::convert_to_slug
@@ -285,7 +286,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 			if ( 'hello.php' === $plugin_file ) {
 				$slug = 'hello-dolly';
 			} else {
-				$slug = str_replace( '.php', '', explode( '/', $plugin_file )[0] );
+				$slug = explode( '/', $plugin_file )[0];
 			}
 
 			$expected_slugs[ $plugin_file ] = $slug;
