@@ -533,7 +533,8 @@ class WP_Plugin_Dependencies {
 		}
 
 		require_once ABSPATH . '/wp-admin/includes/plugin.php';
-		self::$plugins = get_plugins();
+		self::$mustuse_plugins = get_mu_plugins();
+		self::$plugins         = array_merge( get_plugins(), self::$mustuse_plugins );
 
 		return self::$plugins;
 	}
