@@ -10,6 +10,8 @@
 ( function( $ ) {
 	var $chooseButton = $( '#choose-from-library-button' ),
 	$iconPreview = $( '#site-icon-preview' ),
+	$browserIconPreview = $( '#browser-icon-preview' ),
+	$appIconPreview = $( '#app-icon-preview' ),
 	$hiddenDataField = $( '#site_icon_hidden_field' ),
 	$removeButton = $( '#js-remove-site-icon' ),
 	frame;
@@ -141,32 +143,52 @@
 	 * @param {array} attributes The attributes for the attachment.
 	 */
 	function switchToUpdate( attributes ) {
-		var i18nAltString;
+		var i18nAltString,
+		i18nAppAlternativeString,
+		i18nBrowserAlternativeString;
 
-			if ( attributes.alt ) {
-				i18nAltString = wp.i18n.sprintf(
-					/* translators: %s: The selected image alt text. */
-					wp.i18n.__( 'Current image: %s' ),
-					attributes.alt
-				);
-			} else {
-				i18nAltString = wp.i18n.sprintf(
-					/* Translators: %s: The selected image filename. */
-					wp.i18n.__( 'The current image has no alternative text. The file name is: %s' ),
-					attributes.filename
-				);
-			}
+		if ( attributes.alt ) {
+			i18nAltString = wp.i18n.sprintf(
+				/* translators: %s: The selected image alt text. */
+				wp.i18n.__( 'Current image: %s' ),
+				attributes.alt
+			);
+		} else {
+			i18nAltString = wp.i18n.sprintf(
+				/* Translators: %s: The selected image filename. */
+				wp.i18n.__( 'The current image has no alternative text. The file name is: %s' ),
+				attributes.filename
+			);
+		}
 
-			// Set site-icon-img src to the url and remove the hidden class.
-			$iconPreview.find( 'img' ).not( '.browser-preview' )
-				.each( function( i, img ) {
-					$( img )
-						.attr({
-							'src': attributes.url,
-							'alt': i18nAltString 
-						});
-				});
-			$iconPreview.removeClass( 'hidden' );
+		i18nAppAlternativeString = wp.i18n.sprintf(
+			/* Translators: 1: Prefix used for alternative text of the preview of the site icon. 2: Alternative text of the site icon image, */
+			wp.i18n.__( '%1$s: %2$s' ),
+			$appIconPreview.data( 'alt-prefix' ),
+			i18nAltString
+		);
+
+		i18nBrowserAlternativeString = wp.i18n.sprintf(
+			/* Translators: 1: Prefix used for alternative text of the preview of the site icon. 2: Alternative text of the site icon image, */
+			wp.i18n.__( '%1$s: %2$s' ),
+			$browserIconPreview.data( 'alt-prefix' ),
+			i18nAltString
+		);
+
+		// Set site-icon-img src and alternative text to browser preview.
+		$browserIconPreview.attr({
+			'src': attributes.url,
+			'alt': i18nBrowserAlternativeString 
+		});
+
+		// Set site-icon-img src and alternative text to app icon preview.
+		$appIconPreview.attr({
+			'src': attributes.url,
+			'alt': i18nAppAlternativeString 
+		});
+
+		// Remove hidden class from icon preview div.
+		$iconPreview.removeClass( 'hidden' );
 
 		// Remove hidden class from the remove button.
 		$removeButton.removeClass( 'hidden' );

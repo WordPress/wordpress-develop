@@ -120,8 +120,11 @@ $tagline_description = sprintf(
 	}
 
 	// Handle alt text for site icon on page load.
-	$img_alt_value = '';
-	$site_icon_id  = (int) get_option( 'site_icon' );
+	$img_alt_value           = '';
+	$site_icon_id            = (int) get_option( 'site_icon' );
+	$app_icon_alt_prefix     = _x( 'App icon preview', 'Prefix for alternative text of the site icon preview' );
+	$browser_icon_alt_prefix = _x( 'Browser icon preview', 'Prefix for alternative text of the site icon preview' );
+
 	if ( $site_icon_id ) {
 		$img_alt  = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
 		$filename = wp_basename( get_site_icon_url() );
@@ -140,16 +143,29 @@ $tagline_description = sprintf(
 		}
 	}
 
+	$app_icon_alt_value = sprintf(
+		/* Translators: 1: Prefix used for alternative text of the preview of the site icon. 2: Alternative text of the site icon image, */
+		__( '%1$s: %2$s' ),
+		$app_icon_alt_prefix,
+		$img_alt_value
+	);
+
+	$browser_icon_alt_value = sprintf(
+		/* Translators: 1: Prefix used for alternative text of the preview of the site icon. 2: Alternative text of the site icon image, */
+		__( '%1$s: %2$s' ),
+		$browser_icon_alt_prefix,
+		$img_alt_value
+	);
 	?>
 	<div id="site-icon-preview" class="site-icon-preview wp-clearfix <?php echo esc_attr( $classes_for_wrapper ); ?>">
 		<div class="favicon-preview">
 			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
 			<div class="favicon">
-				<img src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $img_alt_value ); ?>">
+				<img id="browser-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $browser_icon_alt_value ); ?>" data-alt-prefix="<?php esc_attr_e( $browser_icon_alt_prefix ); ?>">
 			</div>
 			<span class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
 		</div>
-		<img class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $img_alt_value ); ?>">
+		<img id="app-icon-preview" class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>" data-alt-prefix="<?php esc_attr_e( $app_icon_alt_prefix ); ?>">
 	</div>
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<div class="action-buttons">
