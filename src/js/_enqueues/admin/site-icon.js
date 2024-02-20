@@ -32,9 +32,7 @@
 			ratio = xInit / yInit,
 			xImg = xInit,
 			yImg = yInit,
-			x1,
-			y1,
-			imgSelectOptions;
+			x1, y1, imgSelectOptions;
 
 		if ( realWidth / realHeight > ratio ) {
 			yInit = realHeight;
