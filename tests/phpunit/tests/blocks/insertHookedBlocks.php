@@ -110,7 +110,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 			'innerContent' => array(),
 		);
 
-		$filter = function ( $parsed_hooked_block, $relative_position, $parsed_anchor_block ) {
+		$filter = function ( $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block ) {
 			// Is the hooked block adjacent to the anchor block?
 			if ( 'before' !== $relative_position && 'after' !== $relative_position ) {
 				return $parsed_hooked_block;
@@ -124,9 +124,9 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 
 			return $parsed_hooked_block;
 		};
-		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 4 );
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter );
 
 		$this->assertSame(
 			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' {"layout":{"type":"constrained"}} /-->',
@@ -172,7 +172,7 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 		};
 		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
 		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 3 );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter );
 
 		$this->assertSame(
 			'<!-- wp:group --><div class="wp-block-group"><!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /--></div><!-- /wp:group -->',
