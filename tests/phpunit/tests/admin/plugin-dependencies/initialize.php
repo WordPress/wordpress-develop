@@ -301,4 +301,71 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 		self::$instance->initialize();
 		$this->assertSame( $expected_slugs, $this->get_property_value( 'dependent_slugs' ) );
 	}
+
+	/**
+	 * Tests that dependent slugs are sanitized when slugified.
+	 *
+	 * @ticket 60504
+	 *
+	 * @covers WP_Plugin_Dependencies::read_dependencies_from_plugin_headers
+	 * @covers WP_Plugin_Dependencies::convert_to_slug
+	 *
+	 * @dataProvider data_dependent_files_to_be_slugified
+	 */
+	public function test_should_sanitize_dependent_slugs( $plugin_file, $expected ) {
+		$this->set_property_value(
+			'plugins',
+			array(
+				$plugin_file => array(
+					'Name'            => 'Dependent 1',
+					'RequiresPlugins' => 'dependency',
+				),
+			)
+		);
+
+		self::$instance->initialize();
+		$this->assertSame( array( $plugin_file => $expected ), $this->get_property_value( 'dependent_slugs' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_dependent_files_to_be_slugified() {
+		return array(
+			'a dependent with a leading slash'             => array(
+				'plugin_file' => '/dependent/dependent.php',
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with a leading slash' => array(
+				'plugin_file' => '/dependent.php',
+				'expected'    => 'dependent.php',
+			),
+			'a dependent with path traversal'              => array(
+				'plugin_file' => '../../dependent/dependent.php',
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with path traversal'  => array(
+				'plugin_file' => '../../dependent.php',
+				'expected'    => 'dependent.php',
+			),
+			'a dependent with various spaces'              => array(
+				'plugin_file' => " \n\r\t\v\x00dependent/dependent.php",
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with various spaces'  => array(
+				'plugin_file' => " \n\r\t\v\x00dependent.php",
+				'expected'    => 'dependent.php',
+			),
+			'a dependent with various spaces and path traversal' => array(
+				'plugin_file' => " \n\r\t\v\x00../../dependent/dependent.php",
+				'expected'    => 'dependent',
+			),
+			'a single-file dependent with various spaces and path traversal' => array(
+				'plugin_file' => " \n\r\t\v\x00../../dependent.php",
+				'expected'    => 'dependent.php',
+			),
+		);
+	}
 }
