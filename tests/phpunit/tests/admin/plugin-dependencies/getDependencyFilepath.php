@@ -18,6 +18,30 @@ require_once __DIR__ . '/base.php';
 class Tests_Admin_WPPluginDependencies_GetDependencyFilepath extends WP_PluginDependencies_UnitTestCase {
 
 	/**
+	 * Tests that false is returned if Plugin Dependencies has not been initialized.
+	 *
+	 * @ticket 60457
+	 */
+	public function test_should_return_false_before_initialization() {
+		// Ensure Plugin Dependencies has not been initialized.
+		$this->assertFalse(
+			$this->get_property_value( 'initialized' ),
+			'Plugin Dependencies has been initialized.'
+		);
+
+		$this->assertSame(
+			self::$static_properties['dependency_slugs'],
+			$this->get_property_value( 'dependency_slugs' ),
+			'"dependency_slugs" was not set to its default value.'
+		);
+
+		$this->assertFalse(
+			self::$instance->get_dependency_filepath( 'dependency' ),
+			'false was not returned before initialization.'
+		);
+	}
+
+	/**
 	 * Tests that the expected dependency filepaths are retrieved for installed dependencies.
 	 *
 	 * @ticket 22316
