@@ -124,7 +124,26 @@ final class WP_Font_Collection {
 			return new WP_Error( 'font_collection_json_missing', $message );
 		}
 
-		return $url ? $this->load_from_url( $url ) : $this->load_from_file( $file );
+		$data = $url ? $this->load_from_url( $url ) : $this->load_from_file( $file );
+
+		if ( is_wp_error( $data ) ) {
+			return $data;
+		}
+
+		$data = array(
+			'name'          => $this->data['name'],
+			'font_families' => $data['font_families'],
+		);
+
+		if ( isset( $this->data['description'] ) ) {
+			$data['description'] = $this->data['description'];
+		}
+
+		if ( isset( $this->data['categories'] ) ) {
+			$data['categories'] = $this->data['categories'];
+		}
+
+		return $data;
 	}
 
 	/**
@@ -140,16 +159,6 @@ final class WP_Font_Collection {
 		$data = wp_json_file_decode( $file, array( 'associative' => true ) );
 		if ( empty( $data ) ) {
 			return new WP_Error( 'font_collection_decode_error', __( 'Error decoding the font collection JSON file contents.' ) );
-		}
-
-		$data['name'] = $this->data['name'];
-
-		if ( isset( $this->data['description'] ) ) {
-			$data['description'] = $this->data['description'];
-		}
-
-		if ( isset( $this->data['categories'] ) ) {
-			$data['categories'] = $this->data['categories'];
 		}
 
 		return $this->sanitize_and_validate_data( $data, array( 'font_families' ) );
@@ -194,16 +203,6 @@ final class WP_Font_Collection {
 			}
 
 			set_site_transient( $transient_key, $data, DAY_IN_SECONDS );
-		}
-
-		$data['name'] = $this->data['name'];
-
-		if ( isset( $this->data['description'] ) ) {
-			$data['description'] = $this->data['description'];
-		}
-
-		if ( isset( $this->data['categories'] ) ) {
-			$data['categories'] = $this->data['categories'];
 		}
 
 		return $data;

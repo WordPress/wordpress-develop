@@ -42,15 +42,15 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 
 		$collection = new WP_Font_Collection(
 			$slug,
-			array(
-				'name'          => $config['name'],
-				'font_families' => $mock_file,
+			array_merge(
+				$config,
+				array( 'font_families' => $mock_file )
 			)
 		);
 		$data       = $collection->get_data();
 
 		$this->assertSame( $slug, $collection->slug, 'The slug should match.' );
-		$this->assertSame( $expected_data, $data, 'The collection data should match.' );
+		$this->assertEqualSetsWithIndex( $expected_data, $data, 'The collection data should match.' );
 	}
 
 	/**
@@ -66,9 +66,11 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		self::$mock_collection_data = $config;
 		$collection                 = new WP_Font_Collection(
 			$slug,
-			array(
-				'name'          => 'My Collection',
-				'font_families' => 'https://example.com/fonts/mock-font-collection.json',
+			array_merge(
+				$config,
+				array(
+					'font_families' => 'https://example.com/fonts/mock-font-collection.json',
+				)
 			)
 		);
 		$data                       = $collection->get_data();
@@ -76,7 +78,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 		remove_filter( 'pre_http_request', array( $this, 'mock_request' ) );
 
 		$this->assertSame( $slug, $collection->slug, 'The slug should match.' );
-		$this->assertSame( $expected_data, $data, 'The collection data should match.' );
+		$this->assertEqualSetsWithIndex( $expected_data, $data, 'The collection data should match.' );
 	}
 
 	/**
