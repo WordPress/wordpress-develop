@@ -23,6 +23,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * @var array
 	 */
 	protected static $static_properties = array(
+		'mustuse_plugins'             => null,
 		'plugins'                     => null,
 		'plugin_dirnames'             => null,
 		'dependencies'                => null,

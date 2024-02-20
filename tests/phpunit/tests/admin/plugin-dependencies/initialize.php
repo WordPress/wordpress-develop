@@ -69,6 +69,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 		 */
 		return self::text_array_to_dataprovider(
 			array(
+				'mustuse_plugins',
 				'plugins',
 				'dependencies',
 				'dependency_slugs',
