@@ -922,6 +922,10 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 */
 		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
 
+		if ( null === $parsed_hooked_block ) {
+			continue;
+		}
+
 		// It's possible that the filter returned a block of a different type, so we explicitly
 		// look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
 		if (
