@@ -966,6 +966,25 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		return '';
 	}
 
+	foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+		$parsed_hooked_block = array(
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
+		);
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		if ( null === $parsed_hooked_block ) {
+			unset( $hooked_block_types[ $index ] );
+		}
+	}
+
 	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )
 		? $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		: array();
