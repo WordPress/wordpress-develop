@@ -132,20 +132,20 @@ $tagline_description = sprintf(
 			__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
 			$filename
 		);
-	
+
 		$browser_icon_alt_value = sprintf(
 			/* Translators: %s: The selected image filename. */
 			__( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ),
 			$filename
 		);
-	
+
 		if ( $img_alt ) {
 			$app_icon_alt_value = sprintf(
 				/* Translators: %s: The selected image alt text. */
 				__( 'App icon preview: Current image: %s' ),
 				$img_alt
 			);
-		
+
 			$browser_icon_alt_value = sprintf(
 				/* Translators: %s: The selected image alt text. */
 				__( 'Browser icon preview: Current image: %s' ),
