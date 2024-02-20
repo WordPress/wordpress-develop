@@ -9,12 +9,12 @@
 
 ( function( $ ) {
 	var $chooseButton = $( '#choose-from-library-button' ),
-	$iconPreview = $( '#site-icon-preview' ),
-	$browserIconPreview = $( '#browser-icon-preview' ),
-	$appIconPreview = $( '#app-icon-preview' ),
-	$hiddenDataField = $( '#site_icon_hidden_field' ),
-	$removeButton = $( '#js-remove-site-icon' ),
-	frame;
+		$iconPreview = $( '#site-icon-preview' ),
+		$browserIconPreview = $( '#browser-icon-preview' ),
+		$appIconPreview = $( '#app-icon-preview' ),
+		$hiddenDataField = $( '#site_icon_hidden_field' ),
+		$removeButton = $( '#js-remove-site-icon' ),
+		frame;
 
 	/**
 	 * Calculates image selection options based on the attachment dimensions.
@@ -173,14 +173,14 @@
 		// Set site-icon-img src and alternative text to app icon preview.
 		$appIconPreview.attr({
 			'src': attributes.url,
-			'alt': i18nAppAlternativeString 
+			'alt': i18nAppAlternativeString
 		});
 
 		// Set site-icon-img src and alternative text to browser preview.
 		$browserIconPreview.attr({
 			'src': attributes.url,
-			'alt': i18nBrowserAlternativeString 
-		});	
+			'alt': i18nBrowserAlternativeString
+		});
 
 		// Remove hidden class from icon preview div and remove button.
 		$iconPreview.removeClass( 'hidden' );
@@ -212,11 +212,11 @@
 		$iconPreview.toggleClass( 'hidden' );
 		$browserIconPreview.attr({
 			'src': '',
-			'alt': '' 
+			'alt': ''
 		});
 		$appIconPreview.attr({
 			'src': '',
-			'alt': '' 
+			'alt': ''
 		});
 
 		/**
