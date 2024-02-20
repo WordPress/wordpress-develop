@@ -143,8 +143,7 @@
 	 * @param {array} attributes The attributes for the attachment.
 	 */
 	function switchToUpdate( attributes ) {
-		var i18nAppAlternativeString,
-		i18nBrowserAlternativeString;
+		var i18nAppAlternativeString, i18nBrowserAlternativeString;
 
 		if ( attributes.alt ) {
 			i18nAppAlternativeString = wp.i18n.sprintf(
