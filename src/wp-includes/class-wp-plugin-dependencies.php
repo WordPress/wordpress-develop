@@ -597,7 +597,7 @@ class WP_Plugin_Dependencies {
 			$slug = apply_filters( 'wp_plugin_dependencies_slug', $slug );
 
 			// Match to WordPress.org slug format.
-			if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*$/mu', $slug ) ) {
+			if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*?(\.php)?$/mu', $slug ) ) {
 				$sanitized_slugs[] = $slug;
 			}
 		}
@@ -864,9 +864,12 @@ class WP_Plugin_Dependencies {
 	 * @return string The plugin's slug.
 	 */
 	protected static function convert_to_slug( $plugin_file ) {
+		$plugin_file = trim( $plugin_file, " \n\r\t\v\x00./" );
+
 		if ( 'hello.php' === $plugin_file ) {
 			return 'hello-dolly';
 		}
-		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
+
+		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : basename( $plugin_file );
 	}
 }
