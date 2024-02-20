@@ -75,3 +75,107 @@
 	flex-wrap: wrap;
 	gap: 10px;
 }
+
+.site-icon-preview {
+	display: flex;
+	height: 60px;
+	padding: 8px 0px 0px 8px;
+	align-items: flex-start;
+	gap: 8px;
+	position: relative;
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.site-icon-preview.customizer {
+	width: 275px;
+}
+
+.site-icon-preview.settings {
+	width: 350px;
+	padding: 16px 0px 0px 16px;
+	gap: 16px;
+	height: 88px;
+	margin-bottom: 20px;
+}
+
+  .site-icon-preview.settings .home-icon {
+	width: 58px;
+	height: 58px;
+	border-radius: 12.95px;
+  }
+
+.site-icon-preview.settings:after {
+	background: var( --site-icon-url );
+}
+
+.site-icon-preview:after {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 200%;
+	height: 200%;
+	transform: translateX(-25%) translateY(-25%);
+	/* background: linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.3) 100%), var( --site-icon-url ) 50%/cover no-repeat; */
+	filter: blur(6px);
+}
+
+.home-icon {
+	width: 44px;
+	height: 44px;
+	flex-shrink: 0;
+	z-index: 1;
+	border-radius: 9.824px;
+	box-shadow: 0px 1.517px 3.034px 0px rgba(0, 0, 0, 0.1), 0px 4.552px 4.552px 0px rgba(0, 0, 0, 0.09), 0px 10.621px 6.828px 0px rgba(0, 0, 0, 0.05), 0px 19.724px 7.586px 0px rgba(0, 0, 0, 0.01), 0px 30.345px 8.345px 0px rgba(0, 0, 0, 0);
+}
+
+.browser {
+	display: flex;
+	height: 100%;
+	padding: 4px 4px 4px 12px;
+	align-items: flex-start;
+	gap: 16px;
+	flex: 1 0 0;
+	z-index: 1;
+	border-radius: 9.824px 0px 0px 0px;
+	border-top: 1px solid rgba(255, 255, 255, 0.2);
+	border-left: 1px solid rgba(255, 255, 255, 0.2);
+	background: linear-gradient(180deg, #DCDCDE 0%, #BDBDBD 100%);
+	box-shadow: 0px 10px 22px 0px rgba(0, 0, 0, 0.2), 0px 40px 40px 0px rgba(0, 0, 0, 0.17), 0px 89px 53px 0px rgba(0, 0, 0, 0.1), 0px 158px 63px 0px rgba(0, 0, 0, 0.03), 0px 247px 69px 0px rgba(0, 0, 0, 0);
+}
+
+.browser-buttons {
+	fill: #8C8F94;
+}
+
+.tab {
+	display: flex;
+	padding: 8px;
+	align-items: center;
+	gap: 8px;
+	flex: 1 0 0;
+	border-radius: 4px;
+	background: #F6F7F7;
+	box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.04), 0px 5px 5px 0px rgba(0, 0, 0, 0.03), 0px 12px 7px 0px rgba(0, 0, 0, 0.02), 0px 22px 9px 0px rgba(0, 0, 0, 0.01), 0px 34px 9px 0px rgba(0, 0, 0, 0);
+}
+
+.site-icon {
+	width: 24px;
+	height: 24px;
+}
+
+.close-button {
+	fill: #50575E;
+}
+
+.site-title {
+	width: 51px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1 0 0;
+	overflow: hidden;
+	font-size: 14px;
+	font-weight: 500;
+}
