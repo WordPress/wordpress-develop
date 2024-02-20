@@ -1560,13 +1560,22 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}
 
-		$dependency_note = __( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
+		$error_message = '';
+		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
+			$error_message .= wp_get_admin_notice(
+				__( 'This plugin cannot be activated because required plugins are missing or inactive.' ),
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'inline', 'notice-alt' ),
+				)
+			);
+		}
 
 		printf(
-			'<div class="requires"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
+			'<div class="requires"><p><strong>%1$s</strong> %2$s</p>%3$s</div>',
 			__( 'Requires:' ),
 			implode( ' | ', $links ),
-			$dependency_note
+			$error_message
 		);
 	}
 
