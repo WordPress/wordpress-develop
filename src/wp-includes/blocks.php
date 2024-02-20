@@ -897,7 +897,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param array                           $parsed_hooked_block The parsed block array for the given hooked block type.
+		 * @param array|null                      $parsed_hooked_block The parsed block array for the given hooked block type, or null to suppress the block.
 		 * @param string                          $hooked_block_type   The hooked block type name.
 		 * @param string                          $relative_position   The relative position of the hooked block.
 		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
@@ -913,7 +913,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param array                           $parsed_hooked_block The parsed block array for the given hooked block type.
+		 * @param array|null                      $parsed_hooked_block The parsed block array for the given hooked block type, or null to suppress the block.
 		 * @param string                          $hooked_block_type   The hooked block type name.
 		 * @param string                          $relative_position   The relative position of the hooked block.
 		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
