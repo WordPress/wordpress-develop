@@ -152,7 +152,7 @@ final class WP_Font_Collection {
 			$data['categories'] = $this->data['categories'];
 		}
 
-		return $this->sanitize_and_validate_data( $data );
+		return $this->sanitize_and_validate_data( $data, array( 'font_families' ) );
 	}
 
 	/**
@@ -172,8 +172,14 @@ final class WP_Font_Collection {
 		if ( false === $data ) {
 			$response = wp_safe_remote_get( $url );
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-				// translators: %s: Font collection URL.
-				return new WP_Error( 'font_collection_request_error', sprintf( __( 'Error fetching the font collection data from "%s".' ), $url ) );
+				return new WP_Error(
+					'font_collection_request_error',
+					sprintf(
+						// translators: %s: Font collection URL.
+						__( 'Error fetching the font collection data from "%s".' ),
+						$url
+					)
+				);
 			}
 
 			$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -182,7 +188,7 @@ final class WP_Font_Collection {
 			}
 
 			// Make sure the data is valid before storing it in a transient.
-			$data = $this->sanitize_and_validate_data( $data );
+			$data = $this->sanitize_and_validate_data( $data, array( 'font_families' ) );
 			if ( is_wp_error( $data ) ) {
 				return $data;
 			}
@@ -212,7 +218,7 @@ final class WP_Font_Collection {
 	 * @param array $required_properties Required properties that must exist in the passed data.
 	 * @return array|WP_Error Sanitized data if valid, otherwise a WP_Error instance.
 	 */
-	private function sanitize_and_validate_data( $data, $required_properties = array( 'name', 'font_families' ) ) {
+	private function sanitize_and_validate_data( $data, $required_properties = array() ) {
 		$schema = self::get_sanitization_schema();
 		$data   = WP_Font_Utils::sanitize_from_schema( $data, $schema );
 

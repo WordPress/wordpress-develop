@@ -203,7 +203,7 @@ function _wp_register_default_font_collections() {
 		array(
 			'name'          => _x( 'Google Fonts', 'font collection name' ),
 			'description'   => __( 'Install from Google Fonts. Fonts are copied to and served from your site.' ),
-			'font_families' => 'https://raw.githubusercontent.com/WordPress/google-fonts-to-wordpress-collection/e9037d48ec56988dbaa7036186619415ef6761f7/releases/core-6.5.beta/google-fonts-with-preview.json',
+			'font_families' => 'https://s.w.org/images/fonts/17.7/collections/google-fonts-with-preview.json',
 			'categories'    => array(
 				array(
 					'name' => _x( 'Sans Serif', 'font category' ),
