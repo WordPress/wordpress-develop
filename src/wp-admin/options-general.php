@@ -205,12 +205,9 @@ $tagline_description = sprintf(
 	</div>
 
 	<p class="description">
-		<?php _e( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ); ?>
-	</p>
-	<p class="description">
 		<?php
 			/* translators: %s: Site Icon size in pixels. */
-			printf( __( 'Site Icons should be square and at least %s pixels.' ), '<strong>512 &times; 512</strong>' );
+			printf( __( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. They should be square and at least %s pixels.' ), '<strong>512 &times; 512</strong>' );
 		?>
 	</p>
 
