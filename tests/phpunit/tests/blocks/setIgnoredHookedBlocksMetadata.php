@@ -172,7 +172,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 
 		add_filter( 'hooked_block_tests/hooked-block-suppressed-by-filter', $filter, 10, 4 );
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
-		remove_filter( 'hooked_block_tests/hooked-block-suppressed-by-filter', $filter, 10 );
+		remove_filter( 'hooked_block_tests/hooked-block-suppressed-by-filter', $filter );
 
 		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 	}
