@@ -180,4 +180,42 @@ class Tests_Blocks_InsertHookedBlocks extends WP_UnitTestCase {
 			"Markup wasn't generated correctly for hooked block wrapped in Group block by filter."
 		);
 	}
+
+	/**
+	 * @ticket 60580
+	 *
+	 * @covers ::insert_hooked_blocks
+	 */
+	public function test_insert_hooked_blocks_filter_can_suppress_hooked_block() {
+		$anchor_block = array(
+			'blockName'    => self::ANCHOR_BLOCK_TYPE,
+			'attrs'        => array(
+				'layout' => array(
+					'type' => 'flex',
+				),
+			),
+			'innerContent' => array(),
+		);
+
+		$filter = function ( $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block ) {
+			// Is the hooked block adjacent to the anchor block?
+			if ( 'before' !== $relative_position && 'after' !== $relative_position ) {
+				return $parsed_hooked_block;
+			}
+
+			if (
+				isset( $parsed_anchor_block['attrs']['layout']['type'] ) &&
+				'flex' === $parsed_anchor_block['attrs']['layout']['type']
+			) {
+				return null;
+			}
+
+			return $parsed_hooked_block;
+		};
+		add_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter, 10, 4 );
+		$actual = insert_hooked_blocks( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
+		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter );
+
+		$this->assertSame( '', $actual, "No markup should've been generated for hooked block suppressed by filter." );
+	}
 }
