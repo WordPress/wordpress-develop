@@ -143,43 +143,32 @@
 	 * @param {array} attributes The attributes for the attachment.
 	 */
 	function switchToUpdate( attributes ) {
-		var i18nAltString,
-		i18nAppAlternativeString,
+		var i18nAppAlternativeString,
 		i18nBrowserAlternativeString;
 
 		if ( attributes.alt ) {
-			i18nAltString = wp.i18n.sprintf(
+			i18nAppAlternativeString = wp.i18n.sprintf(
 				/* translators: %s: The selected image alt text. */
-				wp.i18n.__( 'Current image: %s' ),
+				wp.i18n.__( 'App icon preview: Current image: %s' ),
+				attributes.alt
+			);
+			i18nBrowserAlternativeString = wp.i18n.sprintf(
+				/* translators: %s: The selected image alt text. */
+				wp.i18n.__( 'Browser icon preview: Current image: %s' ),
 				attributes.alt
 			);
 		} else {
-			i18nAltString = wp.i18n.sprintf(
+			i18nAppAlternativeString = wp.i18n.sprintf(
 				/* Translators: %s: The selected image filename. */
-				wp.i18n.__( 'The current image has no alternative text. The file name is: %s' ),
+				wp.i18n.__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
+				attributes.filename
+			);
+			i18nBrowserAlternativeString = wp.i18n.sprintf(
+				/* Translators: %s: The selected image filename. */
+				wp.i18n.__( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ),
 				attributes.filename
 			);
 		}
-
-		i18nAppAlternativeString = wp.i18n.sprintf(
-			/* Translators: 1: Prefix used for alternative text of the preview of the site icon. 2: Alternative text of the site icon image, */
-			wp.i18n.__( '%1$s: %2$s' ),
-			$appIconPreview.data( 'alt-prefix' ),
-			i18nAltString
-		);
-
-		i18nBrowserAlternativeString = wp.i18n.sprintf(
-			/* Translators: 1: Prefix used for alternative text of the preview of the site icon. 2: Alternative text of the site icon image, */
-			wp.i18n.__( '%1$s: %2$s' ),
-			$browserIconPreview.data( 'alt-prefix' ),
-			i18nAltString
-		);
-
-		// Set site-icon-img src and alternative text to browser preview.
-		$browserIconPreview.attr({
-			'src': attributes.url,
-			'alt': i18nBrowserAlternativeString 
-		});
 
 		// Set site-icon-img src and alternative text to app icon preview.
 		$appIconPreview.attr({
@@ -187,10 +176,14 @@
 			'alt': i18nAppAlternativeString 
 		});
 
-		// Remove hidden class from icon preview div.
-		$iconPreview.removeClass( 'hidden' );
+		// Set site-icon-img src and alternative text to browser preview.
+		$browserIconPreview.attr({
+			'src': attributes.url,
+			'alt': i18nBrowserAlternativeString 
+		});	
 
-		// Remove hidden class from the remove button.
+		// Remove hidden class from icon preview div and remove button.
+		$iconPreview.removeClass( 'hidden' );
 		$removeButton.removeClass( 'hidden' );
 
 		// If the choose button is not in the update state, swap the classes.
@@ -217,14 +210,14 @@
 		$hiddenDataField.val( 'false' );
 		$( this ).toggleClass( 'hidden' );
 		$iconPreview.toggleClass( 'hidden' );
-		$iconPreview.find( 'img' ).not( '.browser-preview' )
-			.each( function( i, img ) {
-				$( img )
-					.attr({
-						'src': '',
-						'alt': '' 
-					});
-			});
+		$browserIconPreview.attr({
+			'src': '',
+			'alt': '' 
+		});
+		$appIconPreview.attr({
+			'src': '',
+			'alt': '' 
+		});
 
 		/**
 		 * Resets initial state to the button, for correct visual style and state.
