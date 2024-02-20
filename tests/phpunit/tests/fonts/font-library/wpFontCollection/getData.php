@@ -159,7 +159,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 					'font_families' => array(
 						array(
 							'font_family_settings' => array(
-								'fontFamily' => 'Open Sans, sans-serif',
+								'fontFamily' => '"Open Sans", sans-serif',
 								'slug'       => 'open-sans',
 								'name'       => 'Open Sans',
 								'fontFace'   => array(
