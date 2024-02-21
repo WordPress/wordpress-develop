@@ -481,6 +481,7 @@ twentytwenty.primaryMenu = {
 			// If pressed key is esc, remove focus class from main parent menu li.
 			if (isEscape) {
 				if(menu.querySelector('li.menu-item-has-children').classList.contains('focus')){
+					menu.querySelector('li.focus.menu-item-has-children > a').focus();
 					menu.querySelector('li.focus.menu-item-has-children').classList.remove('focus');
 				}
 			}
