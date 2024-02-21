@@ -493,11 +493,10 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  * @return array Properties of attachment.
  */
 function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, $context ) {
-
-	$parent     = get_post( $parent_attachment_id );
-	$parent_url = wp_get_attachment_url( $parent->ID );
+	$parent          = get_post( $parent_attachment_id );
+	$parent_url      = wp_get_attachment_url( $parent->ID );
 	$parent_basename = wp_basename( $parent_url );
-	$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
+	$url             = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
 	$size       = wp_getimagesize( $cropped );
 	$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';

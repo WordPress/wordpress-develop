@@ -4035,7 +4035,7 @@ function wp_ajax_crop_image() {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
-			$cropped    = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
+			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
 			// Copy attachment properties.
 			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
