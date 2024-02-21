@@ -175,9 +175,9 @@ function export_wp( $args = array() ) {
 				$wpdb->prepare(
 					"
 				SELECT meta_value
-				FROM {$wpdb->postmeta}
-				WHERE {$wpdb->postmeta}.post_id IN ($in_placeholder)
-				AND {$wpdb->postmeta}.meta_key = '_thumbnail_id'
+				FROM $wpdb->postmeta
+				WHERE $wpdb->postmeta.post_id IN ($in_placeholder)
+				AND $wpdb->postmeta.meta_key = '_thumbnail_id'
 					",
 					$posts_in
 				)
