@@ -150,14 +150,14 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	* Prepare a single collection output for response.
-	*
-	* @since 6.5.0
-	*
-	* @param WP_Font_Collection $item    Font collection object.
-	* @param WP_REST_Request    $request Request object.
-	* @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
-	*/
+	 * Prepare a single collection output for response.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param WP_Font_Collection $item    Font collection object.
+	 * @param WP_REST_Request    $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -167,7 +167,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		}
 
 		// If any data fields are requested, get the collection data.
-		$data_fields = array( 'name', 'description', 'font_families', 'categories' );
+		$data_fields = array( 'name', 'description', 'font_families', 'categories', 'terms_and_conditions' );
 		if ( ! empty( array_intersect( $fields, $data_fields ) ) ) {
 			$collection_data = $item->get_data();
 			if ( is_wp_error( $collection_data ) ) {
@@ -222,30 +222,35 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 			'title'      => 'font-collection',
 			'type'       => 'object',
 			'properties' => array(
-				'slug'          => array(
+				'slug'                 => array(
 					'description' => __( 'Unique identifier for the font collection.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
-				'name'          => array(
+				'name'                 => array(
 					'description' => __( 'The name for the font collection.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'description'   => array(
+				'description'          => array(
 					'description' => __( 'The description for the font collection.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'font_families' => array(
+				'font_families'        => array(
 					'description' => __( 'The font families for the font collection.' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'categories'    => array(
+				'categories'           => array(
 					'description' => __( 'The categories for the font collection.' ),
 					'type'        => 'array',
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'terms_and_conditions' => array(
+					'description' => __( 'The terms and conditions for the font collection.' ),
+					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
