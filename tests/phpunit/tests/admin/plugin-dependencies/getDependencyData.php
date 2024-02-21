@@ -71,6 +71,11 @@ class Tests_Admin_WPPluginDependencies_GetDependencyData extends WP_PluginDepend
 		$this->assertFalse( $actual );
 	}
 
+	/**
+	 * Tests that a 'slug' key in the Plugins API response object is not assumed.
+	 *
+	 * @ticket 60540
+	 */
 	public function test_should_not_assume_a_slug_key_exists_in_the_response() {
 		global $pagenow;
 
