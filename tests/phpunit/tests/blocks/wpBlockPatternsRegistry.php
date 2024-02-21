@@ -562,7 +562,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 59532
 	 *
-	 * @covers ::get_all_registered
+	 * @covers WP_Block_Patterns_Registry::get_all_registered
 	 */
 	public function test_lazy_loading_block_patterns_get_all_registered() {
 		// This test needs to use access static class properties.
@@ -621,7 +621,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 59532
 	 *
-	 * @covers ::get_registered
+	 * @covers WP_Block_Patterns_Registry::get_registered
 	 */
 	public function test_lazy_loading_block_patterns_get_registered() {
 		// This test needs to use access static class properties.
