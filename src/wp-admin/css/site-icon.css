@@ -132,7 +132,7 @@
 	flex-shrink: 0;
 	z-index: 1;
 	border-radius: 9.824px;
-	box-shadow: 0px 1.517px 3.034px 0px rgba(0, 0, 0, 0.1), 0px 4.552px 4.552px 0px rgba(0, 0, 0, 0.09), 0px 10.621px 6.828px 0px rgba(0, 0, 0, 0.05), 0px 19.724px 7.586px 0px rgba(0, 0, 0, 0.01), 0px 30.345px 8.345px 0px rgba(0, 0, 0, 0);
+	box-shadow: 0 1.517px 3.034px 0 rgba(0, 0, 0, 0.1), 0 4.552px 4.552px 0 rgba(0, 0, 0, 0.09), 0 10.621px 6.828px 0 rgba(0, 0, 0, 0.05), 0 19.724px 7.586px 0 rgba(0, 0, 0, 0.01), 0 30.345px 8.345px 0 rgba(0, 0, 0, 0);
 }
 
 .site-icon-preview-browser {
