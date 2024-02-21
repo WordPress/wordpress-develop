@@ -17,7 +17,7 @@
 		frame;
 
 	/**
-	 * Calculates image selection options based on the attachment dimensions.
+	 * Calculate image selection options based on the attachment dimensions.
 	 *
 	 * @since 6.5.0
 	 *
@@ -106,6 +106,7 @@
 			$hiddenDataField.val( attachment.id );
 			switchToUpdate( attachment );
 			frame.close();
+
 			// Start over with a frame that is so fresh and so clean clean.
 			frame = null;
 		});
@@ -120,11 +121,11 @@
 				attachment.attributes.height === $el.data( 'size' ) &&
 				$el.data( 'size' ) === attachment.attributes.width
 			) {
+				switchToUpdate( attachment.attributes );
+				frame.close();
 
 				// Set the value of the hidden input to the attachment id.
 				$hiddenDataField.val( attachment.id );
-				switchToUpdate( attachment.attributes );
-				frame.close();
 			} else {
 				frame.setState( 'cropper' );
 			}
@@ -134,7 +135,7 @@
 	});
 
 	/**
-	 * Updates the UI when a site icon is selected.
+	 * Update the UI when a site icon is selected.
 	 *
 	 * @since 6.5.0
 	 *
@@ -217,7 +218,7 @@
 		});
 
 		/**
-		 * Resets initial state to the button, for correct visual style and state.
+		 * Resets state to the button, for correct visual style and state.
 		 * Updates the text of the button.
 		 * Sets focus state to the button.
 		 */
