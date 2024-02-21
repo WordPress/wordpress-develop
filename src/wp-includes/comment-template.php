@@ -1401,7 +1401,6 @@ function wp_comment_form_unfiltered_html_nonce() {
  * @global bool       $withcomments
  * @global string     $wp_stylesheet_path Path to current theme's stylesheet directory.
  * @global string     $wp_template_path   Path to current theme's template directory.
-
  *
  * @param string $file              Optional. The file to load. Default '/comments.php'.
  * @param bool   $separate_comments Optional. Whether to separate the comments by comment type.
