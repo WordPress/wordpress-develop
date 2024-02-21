@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Interactivity_API_Directives_Processor
  */
-class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
+class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_UnitTestCase {
 	/**
 	 * Tests the `get_content_between_balanced_template_tags` method on template
 	 * tags.
@@ -777,5 +777,52 @@ class Tests_WP_Interactivity_API_Directives_Processor extends WP_UnitTestCase {
 		$p->next_tag();
 		$p->next_tag( array( 'tag_closers' => 'visit' ) );
 		$this->assertFalse( $p->next_balanced_tag_closer_tag() );
+	}
+
+	/**
+	 * Tests that skip_to_tag_closer skips to the next tag,
+	 * independant of the content.
+	 *
+	 * @ticket 60517
+	 *
+	 * @covers ::skip_to_tag_closer
+	 */
+	public function test_skip_to_tag_closer() {
+		$content = '<div><span>Not closed</div>';
+		$p       = new WP_Interactivity_API_Directives_Processor( $content );
+		$p->next_tag();
+		$this->assertTrue( $p->skip_to_tag_closer() );
+		$this->assertTrue( $p->is_tag_closer() );
+		$this->assertEquals( 'DIV', $p->get_tag() );
+	}
+
+	/**
+	 * Tests that skip_to_tag_closer does not skip to the
+	 * next tag if there is no closing tag.
+	 *
+	 * @ticket 60517
+	 *
+	 * @covers ::skip_to_tag_closer
+	 */
+	public function test_skip_to_tag_closer_bails_not_closed() {
+		$content = '<div>Not closed parent';
+		$p       = new WP_Interactivity_API_Directives_Processor( $content );
+		$p->next_tag();
+		$this->assertFalse( $p->skip_to_tag_closer() );
+	}
+
+	/**
+	 * Tests that skip_to_tag_closer does not skip to the next
+	 * tag if the closing tag is different from the current tag.
+	 *
+	 * @ticket 60517
+	 *
+	 * @covers ::skip_to_tag_closer
+	 */
+	public function test_skip_to_tag_closer_bails_different_tags() {
+		$content = '<div></span>';
+		$p       = new WP_Interactivity_API_Directives_Processor( $content );
+		$p->next_tag();
+		$this->assertFalse( $p->skip_to_tag_closer() );
 	}
 }
