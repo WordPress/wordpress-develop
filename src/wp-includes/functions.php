@@ -8736,7 +8736,6 @@ function is_wp_version_compatible( $required ) {
 	list( $version ) = explode( '-', $wp_version );
 
 	if ( is_string( $required ) ) {
-		$passed  = $required;
 		$trimmed = trim( $required );
 
 		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
