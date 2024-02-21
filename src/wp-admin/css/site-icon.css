@@ -103,11 +103,11 @@
 	margin-bottom: 20px;
 }
 
-  .site-icon-preview-inline.settings .home-icon {
+.site-icon-preview-inline.settings .home-icon {
 	width: 58px;
 	height: 58px;
 	border-radius: 12.95px;
-  }
+}
 
 .site-icon-preview-inline.settings:after {
 	background: var( --site-icon-url );
