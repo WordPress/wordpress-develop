@@ -161,7 +161,7 @@ $tagline_description = sprintf(
 }
 </style>
 
-<div id="site-icon-preview" class="site-icon-preview settings <?php echo esc_attr( $classes_for_wrapper ); ?>">
+<div id="site-icon-preview" class="site-icon-preview-inline settings <?php echo esc_attr( $classes_for_wrapper ); ?>">
 	<img src="<?php site_icon_url(); ?>" id="app-icon-preview" class="home-icon" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>"/>
 	<div class="site-icon-preview-browser">
 		<svg role="img" aria-label="" width="48" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" class="site-icon-preview-browser-buttons"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 20a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm18 0a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm24-6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z" /></svg>

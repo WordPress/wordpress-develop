@@ -76,7 +76,7 @@
 	gap: 10px;
 }
 
-.site-icon-preview {
+.site-icon-preview-inline {
 	display: flex;
 	height: 60px;
 	padding: 8px 0px 0px 8px;
@@ -87,15 +87,15 @@
 	box-sizing: border-box;
 }
 
-.site-icon-preview.hidden {
+.site-icon-preview-inline.hidden {
 	display: none;
 }
 
-.site-icon-preview.customizer {
+.site-icon-preview-inline.customizer {
 	width: 275px;
 }
 
-.site-icon-preview.settings {
+.site-icon-preview-inline.settings {
 	width: 350px;
 	padding: 16px 0px 0px 16px;
 	gap: 16px;
@@ -103,17 +103,17 @@
 	margin-bottom: 20px;
 }
 
-  .site-icon-preview.settings .home-icon {
+  .site-icon-preview-inline.settings .home-icon {
 	width: 58px;
 	height: 58px;
 	border-radius: 12.95px;
   }
 
-.site-icon-preview.settings:after {
+.site-icon-preview-inline.settings:after {
 	background: var( --site-icon-url );
 }
 
-.site-icon-preview:after {
+.site-icon-preview-inline:after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -165,7 +165,7 @@
 	box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.04), 0px 5px 5px 0px rgba(0, 0, 0, 0.03), 0px 12px 7px 0px rgba(0, 0, 0, 0.02), 0px 22px 9px 0px rgba(0, 0, 0, 0.01), 0px 34px 9px 0px rgba(0, 0, 0, 0);
 }
 
-.site-icon {
+.site-icon-preview-tab .site-icon {
 	width: 24px;
 	height: 24px;
 }
