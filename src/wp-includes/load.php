@@ -1060,7 +1060,7 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	if ( $wp_template_path !== $wp_stylesheet_path ) {
+	if ( is_child_theme() ) {
 		$themes[] = $wp_stylesheet_path;
 	}
 
