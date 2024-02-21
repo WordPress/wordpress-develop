@@ -7,7 +7,7 @@
  *
  * @covers ::wp_autoload_values_to_autoload
  */
-class Tests_Option_wpAutoloadValuesToAutoload extends WP_UnitTestCase{
+class Tests_Option_wpAutoloadValuesToAutoload extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42441
