@@ -44,7 +44,7 @@ class WP_Script_Modules {
 	 * @param array             $deps     {
 	 *                                        Optional. List of dependencies.
 	 *
-	 *                                        @type string|array $0... {
+	 *                                        @type string|array ...$0 {
 	 *                                            An array of script module identifiers of the dependencies of this script
 	 *                                            module. The dependencies can be strings or arrays. If they are arrays,
 	 *                                            they need an `id` key with the script module identifier, and can contain
@@ -109,7 +109,7 @@ class WP_Script_Modules {
 	 * @param array             $deps     {
 	 *                                        Optional. List of dependencies.
 	 *
-	 *                                        @type string|array $0... {
+	 *                                        @type string|array ...$0 {
 	 *                                            An array of script module identifiers of the dependencies of this script
 	 *                                            module. The dependencies can be strings or arrays. If they are arrays,
 	 *                                            they need an `id` key with the script module identifier, and can contain
@@ -148,6 +148,18 @@ class WP_Script_Modules {
 		if ( isset( $this->registered[ $id ] ) ) {
 			$this->registered[ $id ]['enqueue'] = false;
 		}
+		unset( $this->enqueued_before_registered[ $id ] );
+	}
+
+	/**
+	 * Removes a registered script module.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $id The identifier of the script module.
+	 */
+	public function deregister( string $id ) {
+		unset( $this->registered[ $id ] );
 		unset( $this->enqueued_before_registered[ $id ] );
 	}
 
@@ -211,10 +223,26 @@ class WP_Script_Modules {
 	 * Prints the import map using a script tag with a type="importmap" attribute.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @global WP_Scripts $wp_scripts The WP_Scripts object for printing the polyfill.
 	 */
 	public function print_import_map() {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
+			global $wp_scripts;
+			if ( isset( $wp_scripts ) ) {
+				wp_print_inline_script_tag(
+					wp_get_script_polyfill(
+						$wp_scripts,
+						array(
+							'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")' => 'wp-polyfill-importmap',
+						)
+					),
+					array(
+						'id' => 'wp-load-polyfill-importmap',
+					)
+				);
+			}
 			wp_print_inline_script_tag(
 				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
 				array(

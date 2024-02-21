@@ -431,7 +431,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$found_a_token = parent::next_token();
 
 		if ( '#tag' === $this->get_token_type() ) {
-			$this->step( self::REPROCESS_CURRENT_NODE );
+			$this->step( self::PROCESS_CURRENT_NODE );
 		}
 
 		return $found_a_token;
@@ -513,7 +513,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
+		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
 			/*
 			 * Void elements still hop onto the stack of open elements even though
 			 * there's no corresponding closing tag. This is important for managing
@@ -532,7 +532,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if ( $top_node && self::is_void( $top_node->node_name ) ) {
 				$this->state->stack_of_open_elements->pop();
 			}
+		}
 
+		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			while ( parent::next_token() && '#tag' !== $this->get_token_type() ) {
 				continue;
 			}
@@ -546,7 +548,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->state->current_token = new WP_HTML_Token(
 			$this->bookmark_tag(),
 			$this->get_tag(),
-			$this->is_tag_closer(),
+			$this->has_self_closing_flag(),
 			$this->release_internal_bookmark_on_destruct
 		);
 
@@ -1235,6 +1237,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether the internal cursor was successfully moved to the bookmark's location.
 	 */
 	public function seek( $bookmark_name ) {
+		// Flush any pending updates to the document before beginning.
+		$this->get_updated_html();
+
 		$actual_bookmark_name = "_{$bookmark_name}";
 		$processor_started_at = $this->state->current_token
 			? $this->bookmarks[ $this->state->current_token->bookmark_name ]->start
@@ -1244,7 +1249,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		switch ( $direction ) {
 			case 'forward':
-				// When moving forwards, re-parse the document until reaching the same location as the original bookmark.
+				// When moving forwards, reparse the document until reaching the same location as the original bookmark.
 				while ( $this->step() ) {
 					if ( $bookmark_starts_at === $this->bookmarks[ $this->state->current_token->bookmark_name ]->start ) {
 						return true;
@@ -1364,6 +1369,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function set_bookmark( $bookmark_name ) {
 		return parent::set_bookmark( "_{$bookmark_name}" );
+	}
+
+	/**
+	 * Checks whether a bookmark with the given name exists.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $bookmark_name Name to identify a bookmark that potentially exists.
+	 * @return bool Whether that bookmark exists.
+	 */
+	public function has_bookmark( $bookmark_name ) {
+		return parent::has_bookmark( "_{$bookmark_name}" );
 	}
 
 	/*
@@ -1780,6 +1797,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @var string
 	 */
 	const REPROCESS_CURRENT_NODE = 'reprocess-current-node';
+
+	/**
+	 * Indicates that the current HTML token should be processed without advancing the parser.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var string
+	 */
+	const PROCESS_CURRENT_NODE = 'process-current-node';
 
 	/**
 	 * Indicates that the parser encountered unsupported markup and has bailed.

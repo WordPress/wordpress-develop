@@ -6660,6 +6660,381 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/font-families": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by post attribute.",
+                            "type": "string",
+                            "default": "id",
+                            "enum": [
+                                "id",
+                                "include"
+                            ],
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Limit result set to posts with one or more specific slugs.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "theme_json_version": {
+                            "description": "Version of the theme.json schema used for the typography settings.",
+                            "type": "integer",
+                            "default": 2,
+                            "minimum": 2,
+                            "maximum": 2,
+                            "required": false
+                        },
+                        "font_family_settings": {
+                            "description": "font-family declaration in theme.json format, encoded as a string.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/font-families"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/font-families/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "theme_json_version": {
+                            "description": "Version of the theme.json schema used for the typography settings.",
+                            "type": "integer",
+                            "default": 2,
+                            "minimum": 2,
+                            "maximum": 2,
+                            "required": false
+                        },
+                        "font_family_settings": {
+                            "description": "font-family declaration in theme.json format, encoded as a string.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/font-families/(?P<font_family_id>[\\d]+)/font-faces": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "font_family_id": {
+                            "description": "The ID for the parent font family of the font face.",
+                            "type": "integer",
+                            "required": true
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by post attribute.",
+                            "type": "string",
+                            "default": "id",
+                            "enum": [
+                                "id",
+                                "include"
+                            ],
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "font_family_id": {
+                            "description": "The ID for the parent font family of the font face.",
+                            "type": "integer",
+                            "required": true
+                        },
+                        "theme_json_version": {
+                            "description": "Version of the theme.json schema used for the typography settings.",
+                            "type": "integer",
+                            "default": 2,
+                            "minimum": 2,
+                            "maximum": 2,
+                            "required": false
+                        },
+                        "font_face_settings": {
+                            "description": "font-face declaration in theme.json format, encoded as a string.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/font-families/(?P<font_family_id>[\\d]+)/font-faces/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "font_family_id": {
+                            "description": "The ID for the parent font family of the font face.",
+                            "type": "integer",
+                            "required": true
+                        },
+                        "id": {
+                            "description": "Unique identifier for the font face.",
+                            "type": "integer",
+                            "required": true
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "font_family_id": {
+                            "description": "The ID for the parent font family of the font face.",
+                            "type": "integer",
+                            "required": true
+                        },
+                        "id": {
+                            "description": "Unique identifier for the font face.",
+                            "type": "integer",
+                            "required": true
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/media": {
             "namespace": "wp/v2",
             "methods": [
@@ -6940,6 +7315,11 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
+                        "featured_media": {
+                            "description": "The ID of the featured media for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "comment_status": {
                             "description": "Whether or not comments are open on the post.",
                             "type": "string",
@@ -7139,6 +7519,11 @@ mockedApiResponse.Schema = {
                         },
                         "author": {
                             "description": "The ID for the author of the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "featured_media": {
+                            "description": "The ID of the featured media for the post.",
                             "type": "integer",
                             "required": false
                         },
@@ -8785,6 +9170,8 @@ mockedApiResponse.Schema = {
                                     "wp_template": "wp_template",
                                     "wp_template_part": "wp_template_part",
                                     "wp_navigation": "wp_navigation",
+                                    "wp_font_family": "wp_font_family",
+                                    "wp_font_face": "wp_font_face",
                                     "attachment": "attachment"
                                 }
                             },
@@ -10038,6 +10425,42 @@ mockedApiResponse.Schema = {
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/global-styles/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The ID for the parent of the global styles revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "Unique identifier for the global styles revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
                             "required": false
                         }
                     }
@@ -11468,6 +11891,80 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp/v2/font-collections": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/font-collections"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/font-collections/(?P<slug>[\\/\\w-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     },
     "site_logo": 0,
@@ -12206,6 +12703,7 @@ mockedApiResponse.MediaCollection = [
             "rendered": "REST API Client Fixture: Attachment"
         },
         "author": 0,
+        "featured_media": 0,
         "comment_status": "open",
         "ping_status": "closed",
         "template": "",
@@ -12267,6 +12765,7 @@ mockedApiResponse.MediaModel = {
         "rendered": "REST API Client Fixture: Attachment"
     },
     "author": 0,
+    "featured_media": 0,
     "comment_status": "open",
     "ping_status": "closed",
     "template": "",
@@ -12494,6 +12993,66 @@ mockedApiResponse.TypesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/navigation"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "wp_font_family": {
+        "description": "",
+        "hierarchical": false,
+        "has_archive": false,
+        "name": "Font Families",
+        "slug": "wp_font_family",
+        "icon": null,
+        "taxonomies": [],
+        "rest_base": "font-families",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/font-families"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "wp_font_face": {
+        "description": "",
+        "hierarchical": false,
+        "has_archive": false,
+        "name": "Font Faces",
+        "slug": "wp_font_face",
+        "icon": null,
+        "taxonomies": [],
+        "rest_base": "font-families/(?P<font_family_id>[\\d]+)/font-faces",
+        "rest_namespace": "wp/v2",
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/font-families/(?P<font_family_id>[\\d]+)/font-faces"
                 }
             ],
             "curies": [
