@@ -14,17 +14,20 @@
  * This function provides access to the WP_Script_Modules instance, creating one
  * if it doesn't exist yet.
  *
+ * @global WP_Script_Modules $wp_script_modules
+ *
  * @since 6.5.0
  *
  * @return WP_Script_Modules The main WP_Script_Modules instance.
  */
 function wp_script_modules(): WP_Script_Modules {
-	static $instance = null;
-	if ( is_null( $instance ) ) {
-		$instance = new WP_Script_Modules();
-		$instance->add_hooks();
+	global $wp_script_modules;
+
+	if ( ! ( $wp_script_modules instanceof WP_Script_Modules ) ) {
+		$wp_script_modules = new WP_Script_Modules();
 	}
-	return $instance;
+
+	return $wp_script_modules;
 }
 
 /**
@@ -41,7 +44,7 @@ function wp_script_modules(): WP_Script_Modules {
  * @param array             $deps     {
  *                                        Optional. List of dependencies.
  *
- *                                        @type string|array $0... {
+ *                                        @type string|array ...$0 {
  *                                            An array of script module identifiers of the dependencies of this script
  *                                            module. The dependencies can be strings or arrays. If they are arrays,
  *                                            they need an `id` key with the script module identifier, and can contain
@@ -78,7 +81,7 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  * @param array             $deps     {
  *                                        Optional. List of dependencies.
  *
- *                                        @type string|array $0... {
+ *                                        @type string|array ...$0 {
  *                                            An array of script module identifiers of the dependencies of this script
  *                                            module. The dependencies can be strings or arrays. If they are arrays,
  *                                            they need an `id` key with the script module identifier, and can contain
@@ -108,4 +111,15 @@ function wp_enqueue_script_module( string $id, string $src = '', array $deps = a
  */
 function wp_dequeue_script_module( string $id ) {
 	wp_script_modules()->dequeue( $id );
+}
+
+/**
+ * Deregisters the script module.
+ *
+ * @since 6.5.0
+ *
+ * @param string $id The identifier of the script module.
+ */
+function wp_deregister_script_module( string $id ) {
+	wp_script_modules()->deregister( $id );
 }

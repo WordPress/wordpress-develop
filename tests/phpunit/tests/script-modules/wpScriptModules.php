@@ -11,7 +11,8 @@
  *
  * @coversDefaultClass WP_Script_Modules
  */
-class Tests_WP_Script_Modules extends WP_UnitTestCase {
+class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
+
 	/**
 	 * Instance of WP_Script_Modules.
 	 *
@@ -24,6 +25,7 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		// Set up the WP_Script_Modules instance.
 		$this->script_modules = new WP_Script_Modules();
 	}
 
@@ -122,6 +124,79 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 		$this->assertCount( 1, $enqueued_script_modules );
 		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
 		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
+	}
+
+
+	/**
+	 * Tests that a script module can be deregistered
+	 * after being enqueued, and that will be removed
+	 * from the enqueue list too.
+	 *
+	 * @ticket 60463
+	 *
+	 * @covers ::register()
+	 * @covers ::enqueue()
+	 * @covers ::deregister()
+	 * @covers ::get_enqueued_script_modules()
+	 */
+	public function test_wp_deregister_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->enqueue( 'bar' );
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+		$this->assertTrue( isset( $enqueued_script_modules['bar'] ) );
+	}
+
+	/**
+	 * Tests that a script module is not deregistered
+	 * if it has not been registered before, causing
+	 * no errors.
+	 *
+	 * @ticket 60463
+	 *
+	 * @covers ::deregister()
+	 * @covers ::get_enqueued_script_modules()
+	 */
+	public function test_wp_deregister_unexistent_script_module() {
+		$this->script_modules->deregister( 'unexistent' );
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertFalse( isset( $enqueued_script_modules['unexistent'] ) );
+	}
+
+	/**
+	 * Tests that a script module is not deregistered
+	 * if it has been deregistered previously, causing
+	 * no errors.
+	 *
+	 * @ticket 60463
+	 *
+	 * @covers ::get_enqueued_script_modules()
+	 * @covers ::register()
+	 * @covers ::deregister()
+	 * @covers ::enqueue()
+	 */
+	public function test_wp_deregister_already_deregistered_script_module() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->enqueue( 'foo' );
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
+
+		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 0, $enqueued_script_modules );
+		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
 	}
 
 	/**
@@ -599,5 +674,38 @@ class Tests_WP_Script_Modules extends WP_UnitTestCase {
 		$this->assertEquals( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
+	}
+
+	/**
+	 * @ticket 60348
+	 *
+	 * @covers ::print_import_map_polyfill()
+	 */
+	public function test_wp_print_import_map_has_no_polyfill_when_no_modules_registered() {
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+
+		$this->assertEquals( '', $import_map_polyfill );
+	}
+
+	/**
+	 * @ticket 60348
+	 *
+	 * @covers ::print_import_map_polyfill()
+	 */
+	public function test_wp_print_import_map_has_polyfill_when_modules_registered() {
+		$script_name = 'wp-polyfill-importmap';
+		wp_register_script( $script_name, '/wp-polyfill-importmap.js' );
+
+		$this->script_modules->enqueue( 'foo', '/foo.js', array( 'dep' ), '1.0' );
+		$this->script_modules->register( 'dep', '/dep.js' );
+		$import_map_polyfill = get_echo( array( $this->script_modules, 'print_import_map' ) );
+
+		wp_deregister_script( $script_name );
+
+		$p = new WP_HTML_Tag_Processor( $import_map_polyfill );
+		$p->next_tag( array( 'tag' => 'SCRIPT' ) );
+		$id = $p->get_attribute( 'id' );
+
+		$this->assertEquals( 'wp-load-polyfill-importmap', $id );
 	}
 }
