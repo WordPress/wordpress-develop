@@ -38,7 +38,13 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		$mock_file       = wp_tempnam( 'my-collection-data-' );
 		file_put_contents( $mock_file, '{"name": "Mock Collection", "font_families": [ "mock" ], "categories": [ "mock" ] }' );
 
-		wp_register_font_collection( 'mock-col-slug', $mock_file );
+		wp_register_font_collection(
+			'mock-col-slug',
+			array(
+				'name'          => 'My collection',
+				'font_families' => $mock_file,
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -78,7 +84,13 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 		$this->setExpectedIncorrectUsage( 'WP_Font_Collection::load_from_json' );
 
 		wp_set_current_user( self::$admin_id );
-		wp_register_font_collection( 'invalid-collection', 'invalid-collection-file' );
+		wp_register_font_collection(
+			'invalid-collection',
+			array(
+				'name'          => 'My collection',
+				'font_families' => 'invalid-collection-file',
+			)
+		);
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections' );
 		$response = rest_get_server()->dispatch( $request );
@@ -132,14 +144,20 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 
 		wp_set_current_user( self::$admin_id );
 		$slug = 'invalid-collection';
-		wp_register_font_collection( $slug, 'invalid-collection-file' );
+		wp_register_font_collection(
+			$slug,
+			array(
+				'name'          => 'My collection',
+				'font_families' => 'invalid-collection-file',
+			)
+		);
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/font-collections/' . $slug );
 		$response = rest_get_server()->dispatch( $request );
 
 		wp_unregister_font_collection( $slug );
 
-		$this->assertErrorResponse( 'font_collection_json_missing', $response, 500, 'When the collection json file is invalid, the response should return an error for "font_collection_json_missing" with 500 status.' );
+		$this->assertErrorResponse( 'font_collection_json_missing', $response, 500 );
 	}
 
 	/**
@@ -150,11 +168,11 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 
 		wp_set_current_user( 0 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 401, 'The response status should be 401 for non-authenticated users.' );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403, 'The response status should be 403 for users without the right permissions.' );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	/**
