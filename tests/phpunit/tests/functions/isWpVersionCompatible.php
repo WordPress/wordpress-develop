@@ -116,7 +116,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Tests that is_wp_version_compatible() throws a notice for incorrect version numbering.
 	 *
-	 * @dataProvider data_is_wp_version_compatible_should_throw_a_notice
+	 * @dataProvider data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers
 	 *
 	 * @ticket 59448
 	 *
@@ -124,25 +124,17 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 * @param string $wp       The value for the $wp_version global variable.
 	 * @param bool   $expected The expected result.
 	 */
-	public function test_is_wp_version_compatible_should_throw_a_notice( $required, $wp, $expected ) {
+	public function test_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers( $required, $wp, $expected ) {
 		global $wp_version;
 		$original_version = $wp_version;
 		$wp_version       = $wp;
 
-		$this->override_error_handler();
 		$actual = is_wp_version_compatible( $required );
-		restore_error_handler();
 
 		// Reset the version before the assertion in case of failure.
 		$wp_version = $original_version;
 
 		$this->assertSame( $expected, $actual, 'The expected result was not returned.' );
-
-		$this->assertStringStartsWith(
-			E_USER_NOTICE . " is_wp_version_compatible(): `$required` Not a valid WordPress version string.",
-			$this->expected_notice,
-			'The expected notice was not thrown.'
-		);
 	}
 
 	/**
@@ -150,7 +142,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_wp_version_compatible_should_throw_a_notice() {
+	public function data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers() {
 		return array(
 			'an incorrect trailing .0 and the same version' => array(
 				'required' => '5.2.0',
@@ -197,25 +189,6 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 				'wp'       => '6.0',
 				'expected' => true,
 			),
-		);
-	}
-
-	/**
-	 * Overrides the error handler to store the error data in a property.
-	 *
-	 * @throws Exception If a non-E_USER_NOTICE is thrown.
-	 */
-	private function override_error_handler() {
-		set_error_handler(
-			function ( $errno, $errstr ) {
-				restore_error_handler();
-				if ( E_USER_NOTICE === $errno ) {
-					$this->expected_notice = $errno . ' ' . $errstr;
-				} else {
-					throw new Exception( $errstr, $errno );
-				}
-			},
-			E_ALL
 		);
 	}
 
