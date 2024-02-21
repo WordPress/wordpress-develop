@@ -79,7 +79,7 @@
 .site-icon-preview-inline {
 	display: flex;
 	height: 60px;
-	padding: 8px 0px 0px 8px;
+	padding: 8px 0 0 8px;
 	align-items: flex-start;
 	gap: 8px;
 	position: relative;
