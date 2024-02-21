@@ -87,6 +87,10 @@
 	box-sizing: border-box;
 }
 
+.site-icon-preview.hidden {
+	display: none;
+}
+
 .site-icon-preview.customizer {
 	width: 275px;
 }
