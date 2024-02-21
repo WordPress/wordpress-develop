@@ -452,14 +452,15 @@ twentytwenty.primaryMenu = {
 				if(el.classList.contains('focus')){
 					el.classList.remove('focus');
 				}
-			})
+			});
 			
 			// Add focus to current a tag parent li.
 			self.parentElement.classList.add('focus');
 
 			// If current element is inside sub-menu find main parent li and add focus.
-			if(self.closest('.menu-item-has-children')) 
+			if(self.closest('.menu-item-has-children')) {
 				self.closest('.menu-item-has-children').classList.add('focus');
+			}
 
 		}
 
