@@ -163,12 +163,12 @@ $tagline_description = sprintf(
 
 <div id="site-icon-preview" class="site-icon-preview settings <?php echo esc_attr( $classes_for_wrapper ); ?>">
 	<img src="<?php site_icon_url(); ?>" id="app-icon-preview" class="home-icon" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>"/>
-	<div class="browser">
-		<svg role="img" aria-label="" width="48" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" class="browser-buttons"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 20a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm18 0a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm24-6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z" /></svg>
-		<div class="tab">
+	<div class="site-icon-preview-browser">
+		<svg role="img" aria-label="" width="48" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" class="site-icon-preview-browser-buttons"><path fill-rule="evenodd" clip-rule="evenodd" d="M0 20a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm18 0a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm24-6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z" /></svg>
+		<div class="site-icon-preview-tab">
 			<img src="<?php site_icon_url(); ?>" class="site-icon" id="browser-icon-preview" />
-			<div class="site-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></div>
-			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="close-button">
+			<div class="site-icon-preview-site-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></div>
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="site-icon-preview-close-button">
 				<path d="M12 13.0607L15.7123 16.773L16.773 15.7123L13.0607 12L16.773 8.28772L15.7123 7.22706L12 10.9394L8.28771 7.22705L7.22705 8.28771L10.9394 12L7.22706 15.7123L8.28772 16.773L12 13.0607Z" />
 			</svg>
 		</div>
