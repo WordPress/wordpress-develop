@@ -479,7 +479,7 @@ twentytwenty.primaryMenu = {
 				isEscape = (e.keyCode === 27);
 			}
 
-			// If pressed key is esc, remove focus class from main parent menu li and focus parent menu a link.
+			// If pressed key is esc, remove focus class from main parent menu li.
 			if (isEscape) {
 				if(menu.querySelector('li.menu-item-has-children').classList.contains('focus')){
 					menu.querySelector('li.focus.menu-item-has-children > a').focus();
