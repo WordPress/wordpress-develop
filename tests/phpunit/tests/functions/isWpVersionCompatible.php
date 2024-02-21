@@ -9,21 +9,6 @@
  */
 class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
-	 * A notice expected during the tests.
-	 *
-	 * @var string
-	 */
-	private $expected_notice = '';
-
-	/**
-	 * Resets the `$expected_notice` property after each test runs.
-	 */
-	public function tear_down() {
-		$this->expected_notice = '';
-		parent::tear_down();
-	}
-
-	/**
 	 * Tests is_wp_version_compatible().
 	 *
 	 * @dataProvider data_is_wp_version_compatible
