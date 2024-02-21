@@ -6803,7 +6803,7 @@ function wp_attachment_is_image( $post = null ) {
  *
  * @since 2.1.0
  *
- * @param string|int $mime MIME type or attachment ID.
+ * @param string|int $mime          MIME type or attachment ID.
  * @param string     $preferred_ext File format to prefer in return. Default .png.
  * @return string|false Icon, false otherwise.
  */
