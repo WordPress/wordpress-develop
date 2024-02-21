@@ -26,7 +26,7 @@
 				<a href="<?php echo esc_url( __( 'https://wordpress.org/', 'twentyfourteen' ) ); ?>" class="imprint">
 					<?php
 					/* translators: %s: WordPress */
-					printf( __( 'Proudly powered by %s', 'twentyfourteen' ), 'WordPress' );
+					printf( __( 'Tüm Hakları Saklıdır %s', 'Giges' ), 'By Ayzio Technology' );
 					?>
 				</a>
 			</div><!-- .site-info -->

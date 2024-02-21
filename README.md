@@ -1,164 +1,167 @@
 # WordPress
 
-Welcome to the WordPress development repository! Please check out the [contributor handbook](https://make.wordpress.org/core/handbook/) for information about how to open bug reports, contribute patches, test changes, write documentation, or get involved in any way you can.
+WordPress development repository'ye hoş geldiniz! Lütfen hata raporları açma, yama gönderme, değişiklikleri test etme, belge yazma veya herhangi bir şekilde katkıda bulunma hakkında bilgi almak için [katkıda bulunucu el kitabını](https://make.wordpress.org/core/handbook/) inceleyin.
 
-* [Getting Started](#getting-started)
-* [Credentials](#credentials)
+## İçindekiler
 
-## Getting Started
+- [Başlarken](#başlarken)
+- [GitHub Codespaces Kullanma](#github-codespaces-kullanma)
+- [Yerel Geliştirme](#yerel-geliştirme)
+- [Geliştirme Ortamı Komutları](#geliştirme-ortamı-komutları)
+- [Apple Silicone makineleri ve eski MySQL sürümleri](#apple-silicone-makineleri-ve-eski-mysql-sürümleri)
+- [Kimlik Bilgileri](#kimlik-bilgileri)
+- [Notlar](#notlar)
 
-### Using GitHub Codespaces
+## Başlarken
 
-To get started, create a codespace for this repository by clicking this 👇 
+### GitHub Codespaces Kullanma
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659)
+Bu depo için bir kod alanı oluşturmak için [buraya tıklayın](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659). Kod alanı, Visual Studio Code'un web tabanlı bir sürümünde açılacaktır. [dev container](.devcontainer/devcontainer.json), bu projede gereken yazılımlarla tam olarak yapılandırılmıştır.
 
-A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with softwares needed for this project.
+**Not**: Dev konteynerler, [GitHub Codespaces](https://github.com/codespaces) ve [diğer araçlar](https://containers.dev/supporting) tarafından desteklenen bir açık belirlemedir.
 
-**Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
+Bazı tarayıcılarda komut paletini açma klavye kısayolu (Ctrl/Command + Shift + P) maya çakışabilir. Komut paletini açmak için `F1` tuşunu veya editörün alt sol köşesindeki dişli simgesini kullanabilirsiniz.
 
-In some browsers the keyboard shortcut for opening the command palette (Ctrl/Command + Shift + P) may collide with a browser shortcut. The command palette can be opened via the `F1` key or via the cog icon in the bottom left of the editor.
+Kod alanınızı açarken, WordPress kurulumunuzun başarıyla yapılandırıldığından emin olmak için `postCreateCommand`'in çalışmasını bekleyin. Bu birkaç dakika sürebilir.
 
-When opening your codespace, be sure to wait for the `postCreateCommand` to finish running to ensure your WordPress install is successfully set up. This can take a few minutes.
+### Yerel Geliştirme
 
-### Local development
+WordPress, PHP, MySQL ve JavaScript tabanlı bir projedir ve JavaScript bağımlılıkları için Node'u kullanır. Hızlı bir şekilde başlamak için yerel bir geliştirme ortamı kullanılabilir.
 
-WordPress is a PHP, MySQL, and JavaScript based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
+Bilgisayarınızda komut satırını nasıl kullanacağınıza dair temel bir anlayışa ihtiyacınız olacak. Bu, yerel geliştirme ortamını kurmanıza, başlatmanıza ve gerektiğinde durdurmanıza, ve testleri çalıştırmanıza olanak tanır.
 
-You will need a basic understanding of how to use the command line on your computer. This will allow you to set up the local development environment, to start it and stop it when necessary, and to run the tests.
-
-You will need Node and npm installed on your computer. Node is a JavaScript runtime used for developer tooling, and npm is the package manager included with Node. If you have a package manager installed for your operating system, setup can be as straightforward as:
+Bilgisayarınızda Node ve npm yüklü olmalıdır. Node, geliştirici araçları için kullanılan bir JavaScript çalıştırma ortamıdır ve npm, Node ile birlikte gelen paket yöneticisidir. İşletim sisteminiz için bir paket yöneticisi yüklüyse, kurulum şu kadar basit olabilir:
 
 * macOS: `brew install node`
 * Windows: `choco install nodejs`
 * Ubuntu: `apt install nodejs npm`
 
-If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
+Paket yöneticisi kullanmıyorsanız, [Node.js indirme sayfasına](https://nodejs.org/en/download/) giderek yükleyicileri ve ikili dosyaları bulabilirsiniz.
 
-**Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
+**Not:** WordPress şu anda resmi olarak sadece Node.js `20.x` ve npm `10.x`'i desteklemektedir.
 
-You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
+Ayrıca bilgisayarınızda [Docker](https://www.docker.com/products/docker-desktop) yüklü ve çalışır durumda olmalıdır. Docker, yerel geliştirme ortamını destekleyen sanallaştırma yazılımıdır. Docker, diğer normal bir uygulama gibi yüklenebilir.
 
-### Development Environment Commands
+### Geliştirme Ortamı Komutları
 
-Ensure [Docker](https://www.docker.com/products/docker-desktop) is running before using these commands.
+Bu komutları kullanmadan önce [Docker](https://www.docker.com/products/docker-desktop)'ın çalıştığından emin olun.
 
-#### To start the development environment for the first time
+#### Geliştirme ortamını ilk kez başlatmak için
 
 Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
 
-```
+```bash
 npm install
 npm run build:dev
 npm run env:start
 npm run env:install
-```
 
+markdown
+Copy code
 Your WordPress site will be accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
 
-#### To watch for changes
+#### Değişiklikleri izlemek için
 
-If you're making changes to WordPress core files, you should start the file watcher in order to build or copy the files as necessary:
+Eğer WordPress çekirdek dosyalarında değişiklik yapıyorsanız, dosya izleyiciyi başlatmalısınız:
 
-```
+```bash
 npm run dev
-```
+Izleyiciyi durdurmak için  tuşlarına basın.ctrl+c
 
-To stop the watcher, press `ctrl+c`.
+WP-CLI komutu çalıştırmak için
+bash
+Copy code
+npm run env:cli -- <komut>
+WP-CLI'nin çeşitli kullanışlı komutları vardır. Dokümantasyonda  komutunu kullanmanız gerektiğinde,  kullanmalısınız. Örneğin:wpnpm run env:cli --
 
-#### To run a [WP-CLI](https://make.wordpress.org/cli/handbook/) command
-
-```
-npm run env:cli -- <command>
-```
-
-WP-CLI has [many useful commands](https://developer.wordpress.org/cli/commands/) you can use to work on your WordPress site. Where the documentation mentions running `wp`, run `npm run env:cli --` instead. For example:
-
-```
+bash
+Copy code
 npm run env:cli -- help
+Testleri çalıştırmak için
+Bu komutlar PHP
+
+
+```markdown
+run test:e2e
 ```
 
-#### To run the tests
+PHP testlerine ek parametreler eklemek için `--` ve ardından [komut satırı seçenekleri](https://docs.phpunit.de/en/10.4/textui.html#command-line-options) ekleyebilirsiniz:
 
-These commands run the PHP and end-to-end test suites, respectively:
-
-```
-npm run test:php
-npm run test:e2e
+```bash
+npm run test:php -- --filter <test adı>
+npm run test:php -- --group <grup adı veya bilet numarası>
 ```
 
-You can pass extra parameters into the PHP tests by adding `--` and then the [command-line options](https://docs.phpunit.de/en/10.4/textui.html#command-line-options):
+#### Geliştirme ortamını yeniden başlatmak için
 
-```
-npm run test:php -- --filter <test name>
-npm run test:php -- --group <group name or ticket number>
-```
+`docker-compose.yml` veya `.env` dosyalarındaki yapılandırmalarda değişiklik yaptıysanız, ortamı yeniden başlatmak isteyebilirsiniz:
 
-#### To restart the development environment
-
-You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
-
-```
+```bash
 npm run env:restart
 ```
 
-#### To stop the development environment
+#### Geliştirme ortamını durdurmak için
 
-You can stop the environment when you're not using it to preserve your computer's power and resources:
+Ortamı kullanmadığınızda bilgisayarınızın gücünü ve kaynaklarını korumak için ortamı durdurabilirsiniz:
 
-```
+```bash
 npm run env:stop
 ```
 
-#### To start the development environment again
+#### Geliştirme ortamını tekrar başlatmak için
 
-Starting the environment again is a single command:
+Ortamı tekrar başlatmak için tek bir komut:
 
-```
+```bash
 npm run env:start
 ```
 
-#### Resetting the development environment
+#### Geliştirme ortamını sıfırlama
 
-The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+Geliştirme ortamı sıfırlanabilir. Bu, veritabanını yok eder ve çekilen Docker görüntülerini kaldırmaya çalışır.
 
-```
+```bash
 npm run env:reset
 ```
 
-### Apple Silicone machines and old MySQL versions
+### Apple Silicone makineleri ve eski MySQL sürümleri
 
-The MySQL Docker images do not support Apple Silicone processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
+MySQL Docker görüntüleri, MySQL sürümleri 5.7 ve önceki sürümler için Apple Silicone işlemcilerini (M1, M2, vb.) desteklemez.
 
-When using MySQL <= 5.7 on an Apple Silicone machine, you must create a `docker-compose.override.yml` file with the following contents:
+Apple Silicone makinesinde MySQL <= 5.7 kullanırken, şu içeriğe sahip bir `docker-compose.override.yml` dosyası oluşturmalısınız:
 
-```
+```yaml
 services:
 
   mysql:
     platform: linux/amd64
 ```
 
-Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
+Ayrıca, bu geçici çözüm için Docker'da "Apple Silicon üzerinde x86/AMD64 emülasyonu için Rosetta'yı kullan" ayarı devre dışı bırakılmalıdır.
 
-## Credentials
+## Kimlik Bilgileri
 
-These are the default environment credentials:
+Bu projenin varsayılan çevresel kimlik bilgileri şunlardır:
 
-* Database Name: `wordpress_develop`
-* Username: `root`
-* Password: `password`
+- **Veritabanı Adı:** `wordpress_develop`
+- **Kullanıcı Adı:** `root`
+- **Şifre:** `password`
 
-To login to the site, navigate to http://localhost:8889/wp-admin.
+Sitenize giriş yapmak için http://localhost:8889 adresine gidin.
 
-* Username: `admin`
-* Password: `password`
+- **Kullanıcı Adı:** `admin`
+- **Şifre:** `password`
 
-**Note:** With Codespaces, open the portforwarded URL from the ports tab in the terminal, and append `/wp-admin` to login to the site.
+**Not**: Codespaces ile kullanıyorsanız, terminaldeki portlar sekmesinden port yönlendirmesi yapılan URL'yi açın ve siteye giriş yapmak için `/wp-admin` ekleyin.
 
-To generate a new password (recommended):
+Yeni bir şifre oluşturmak için (önerilen):
 
-1. Go to the Dashboard
-2. Click the Users menu on the left
-3. Click the Edit link below the admin user
-4. Scroll down and click 'Generate password'. Either use this password (recommended) or change it, then click 'Update User'. If you use the generated password be sure to save it somewhere (password manager, etc).
+1. Gösterge Tablosuna gidin
+2. Soldaki Kullanıcılar menüsüne tıklayın
+3. Admin kullanıcısı altındaki Düzenle bağlantısına tıklayın
+4. Aşağı kaydırın ve 'Şifre Oluştur' seçeneğine tıklayın. Oluşturulan şifreyi kullanabilir veya değiştirebilir, ardından 'Kullanıcıyı Güncelle'ye tıklayın. Oluşturulan şifreyi kullanıyorsanız, bir yerde kaydetmeyi unutmayın (şifre yöneticisi, vb.).
+
+## Notlar
+
+Bu README dosyası, WordPress geliştirme ortamını başlatmak, testleri çalıştırmak ve diğer işlemleri gerçekleştirmek için kullanılabilecek temel komutları içermektedir. Daha fazla bilgi için [katkıda bulunucu el kitabını](https://make.wordpress.org/core/handbook/) inceleyin.
+```
