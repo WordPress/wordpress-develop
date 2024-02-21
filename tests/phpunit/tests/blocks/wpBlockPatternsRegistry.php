@@ -45,6 +45,19 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			$registry->unregister( 'tests/my-block' );
 		}
 
+		/**
+		 * Clear the registered patterns.
+		 */
+		$registry = WP_Block_Patterns_Registry::get_instance();
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Reset the property to null.
+		$property->setValue( $registry, null );
+		$property->setAccessible( false );
+
 		parent::tear_down();
 	}
 
@@ -542,5 +555,114 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		wp_installing( false );
 
 		$this->assertEmpty( array_intersect( $theme_patterns, $registered ), 'Theme patterns were were incorrectly registered.' );
+	}
+
+	/**
+	 * Ensures theme patterns are lazy loaded.
+	 *
+	 * @ticket 59532
+	 *
+	 * @covers ::get_all_registered
+	 */
+	public function test_lazy_loading_block_patterns_get_all_registered() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Get the value of the private property.
+		$registered_patterns = $property->getValue( $registry );
+
+		// Testing only the first pattern loaded from the theme.
+		$pattern_name = 'twentytwentythree/footer-default';
+
+		$this->assertTrue(
+			isset( $registered_patterns[ $pattern_name ]['file_path'] ) &&
+			! isset( $registered_patterns[ $pattern_name ]['content'] ),
+			'Pattern was not lazy loaded.'
+		);
+
+		$all_patterns = $registry->get_all_registered();
+
+		$loaded_pattern = array_values(
+			array_filter(
+				$all_patterns,
+				function ( $pattern ) use ( $pattern_name ) {
+					return $pattern['name'] === $pattern_name;
+				}
+			)
+		);
+
+		$this->assertTrue(
+			! empty( $loaded_pattern[0]['content'] ),
+			'Content not loaded.'
+		);
+
+		// check if original property was updated.
+		$registered_patterns = $property->getValue( $registry );
+		$this->assertTrue(
+			! empty( $registered_patterns[ $pattern_name ]['content'] ),
+			'Content not updated.'
+		);
+		$property->setAccessible( false );
+	}
+
+	/**
+	 * Ensures theme patterns are lazy loaded.
+	 *
+	 * @ticket 59532
+	 *
+	 * @covers ::get_registered
+	 */
+	public function test_lazy_loading_block_patterns_get_registered() {
+		// This test needs to use access static class properties.
+		$registry = WP_Block_Patterns_Registry::get_instance();
+
+		// Ensure we're using a theme with patterns.
+		switch_theme( 'twentytwentythree' );
+
+		// This helper is fired on the init hook.
+		_register_theme_block_patterns();
+
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Get the value of the private property.
+		$registered_patterns = $property->getValue( $registry );
+
+		// Testing only the first pattern loaded from the theme.
+		$pattern_name = 'twentytwentythree/footer-default';
+
+		$this->assertTrue(
+			isset( $registered_patterns[ $pattern_name ]['file_path'] ) &&
+			! isset( $registered_patterns[ $pattern_name ]['content'] ),
+			'Pattern was not lazy loaded.'
+		);
+
+		$loaded_pattern = $registry->get_registered( $pattern_name );
+
+		$this->assertTrue(
+			! empty( $loaded_pattern['content'] ),
+			'Content not loaded.'
+		);
+
+		// check if original property was updated.
+		$registered_patterns = $property->getValue( $registry );
+		$this->assertTrue(
+			! empty( $registered_patterns[ $pattern_name ]['content'] ),
+			'Content not updated.'
+		);
+		$property->setAccessible( false );
 	}
 }
