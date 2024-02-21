@@ -1077,7 +1077,11 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
+		$context = 'custom-header';
+
+		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
+
+		$attachment['post_parent'] = $attachment_id;
 
 		if ( ! empty( $_POST['create-new-attachment'] ) ) {
 			unset( $attachment['ID'] );
@@ -1421,7 +1425,11 @@ endif;
 		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-		$attachment = $this->create_attachment_object( $cropped, $attachment_id );
+		$context = 'custom-header';
+
+		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
+
+		$attachment['post_parent'] = $attachment_id;
 
 		$previous = $this->get_previous_crop( $attachment );
 
