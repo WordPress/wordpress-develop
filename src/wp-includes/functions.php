@@ -8741,11 +8741,6 @@ function is_wp_version_compatible( $required ) {
 
 		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
 			$required = preg_replace( '/\.0$/', '', $trimmed, 1 );
-			wp_trigger_error(
-				__FUNCTION__,
-				/* translators: 1: Version string sent to function, 2: Version string returned from function. */
-				sprintf( __( '`%1$s` Not a valid WordPress version string. `%2$s` is assumed.' ), $passed, $required )
-			);
 		}
 	}
 
