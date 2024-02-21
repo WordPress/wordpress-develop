@@ -8739,7 +8739,7 @@ function is_wp_version_compatible( $required ) {
 		$trimmed = trim( $required );
 
 		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
-			$required = preg_replace( '/\.0$/', '', $trimmed, 1 );
+			$required = substr( $trimmed, 0, -2 );
 		}
 	}
 
