@@ -473,7 +473,7 @@ twentytwenty.primaryMenu = {
 
 			// Find is pressed key is esc.
 			if ("key" in e) {
-				isEscape = (e.key === "Escape" || e.key === "Esc");
+				isEscape = (e.key === 'Escape' || e.key === 'Esc');
 			} else {
 				isEscape = (e.keyCode === 27);
 			}
