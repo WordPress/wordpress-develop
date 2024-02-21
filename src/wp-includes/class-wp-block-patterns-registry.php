@@ -184,8 +184,8 @@ final class WP_Block_Patterns_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $pattern_name     Block pattern name including namespace.
-	 * @param bool   $outside_init_only Return only patterns registered outside the `init` action.
+	 * @param string $pattern_name      Block pattern name including namespace.
+	 * @param bool   $outside_init_only Optional. Return only patterns registered outside the `init` action. Default false.
 	 * @return string The content of the block pattern.
 	 */
 	private function get_content( $pattern_name, $outside_init_only = false ) {
