@@ -157,14 +157,14 @@
 			);
 		} else {
 			i18nAppAlternativeString = wp.i18n.sprintf(
-				/* Translators: %s: The selected image filename. */
+				/* translators: %s: The selected image filename. */
 				wp.i18n.__(
 					'App icon preview: The current image has no alternative text. The file name is: %s'
 				),
 				attributes.filename
 			);
 			i18nBrowserAlternativeString = wp.i18n.sprintf(
-				/* Translators: %s: The selected image filename. */
+				/* translators: %s: The selected image filename. */
 				wp.i18n.__(
 					'Browser icon preview: The current image has no alternative text. The file name is: %s'
 				),
