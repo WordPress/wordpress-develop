@@ -111,7 +111,7 @@
 }
 
 .site-icon-preview-inline.settings:after {
-	background: var( --site-icon-url );
+	background: var(--site-icon-url);
 }
 
 .site-icon-preview-inline:after {
