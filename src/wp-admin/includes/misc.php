@@ -66,7 +66,7 @@ function got_url_rewrite() {
  * @return string[] An array of strings from a file (.htaccess) from between BEGIN and END markers.
  */
 function extract_from_markers( $filename, $marker ) {
-	$result = array();
+	$result = [];
 
 	if ( ! file_exists( $filename ) ) {
 		return $result;
@@ -181,16 +181,16 @@ Any changes to the directives between these markers will be overwritten.'
 	// Attempt to get a lock. If the filesystem supports locking, this will block until the lock is acquired.
 	flock( $fp, LOCK_EX );
 
-	$lines = array();
+	$lines = [];
 
 	while ( ! feof( $fp ) ) {
 		$lines[] = rtrim( fgets( $fp ), "\r\n" );
 	}
 
 	// Split out the existing file into the preceding lines, and those that appear after the marker.
-	$pre_lines        = array();
-	$post_lines       = array();
-	$existing_lines   = array();
+	$pre_lines        = [];
+	$post_lines       = [];
+	$existing_lines   = [];
 	$found_marker     = false;
 	$found_end_marker = false;
 
@@ -365,7 +365,7 @@ function update_recently_edited( $file ) {
  * @return array Tree structure for listing theme files.
  */
 function wp_make_theme_file_tree( $allowed_files ) {
-	$tree_list = array();
+	$tree_list = [];
 
 	foreach ( $allowed_files as $file_name => $absolute_filename ) {
 		$list     = explode( '/', $file_name );
@@ -470,7 +470,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
  * @return array Tree structure for listing plugin files.
  */
 function wp_make_plugin_file_tree( $plugin_editable_files ) {
-	$tree_list = array();
+	$tree_list = [];
 
 	foreach ( $plugin_editable_files as $plugin_file ) {
 		$list     = explode( '/', preg_replace( '#^.+?/#', '', $plugin_file ) );
@@ -630,17 +630,17 @@ function show_message( $message ) {
  */
 function wp_doc_link_parse( $content ) {
 	if ( ! is_string( $content ) || empty( $content ) ) {
-		return array();
+		return [];
 	}
 
 	if ( ! function_exists( 'token_get_all' ) ) {
-		return array();
+		return [];
 	}
 
 	$tokens           = token_get_all( $content );
 	$count            = count( $tokens );
-	$functions        = array();
-	$ignore_functions = array();
+	$functions        = [];
+	$ignore_functions = [];
 
 	for ( $t = 0; $t < $count - 2; $t++ ) {
 		if ( ! is_array( $tokens[ $t ] ) ) {
@@ -674,7 +674,7 @@ function wp_doc_link_parse( $content ) {
 
 	$ignore_functions = array_unique( $ignore_functions );
 
-	$output = array();
+	$output = [];
 
 	foreach ( $functions as $function ) {
 		if ( in_array( $function, $ignore_functions, true ) ) {
@@ -1134,7 +1134,7 @@ function _customizer_mobile_viewport_meta( $viewport_meta ) {
  * @return array The Heartbeat response.
  */
 function wp_check_locked_posts( $response, $data, $screen_id ) {
-	$checked = array();
+	$checked = [];
 
 	if ( array_key_exists( 'wp-check-locked-posts', $data ) && is_array( $data['wp-check-locked-posts'] ) ) {
 		foreach ( $data['wp-check-locked-posts'] as $key ) {
@@ -1187,7 +1187,7 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 function wp_refresh_post_lock( $response, $data, $screen_id ) {
 	if ( array_key_exists( 'wp-refresh-post-lock', $data ) ) {
 		$received = $data['wp-refresh-post-lock'];
-		$send     = array();
+		$send     = [];
 
 		$post_id = absint( $received['post_id'] );
 

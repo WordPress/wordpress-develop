@@ -299,7 +299,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 22074
 	 */
 	public function test_get_pages_include_exclude() {
-		$page_ids = array();
+		$page_ids = [];
 
 		foreach ( range( 1, 20 ) as $i ) {
 			$page_ids[] = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -334,8 +334,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 				'post_type' => 'wptests_pt',
 			)
 		);
-		$query_args_values  = array();
-		$parsed_args_values = array();
+		$query_args_values  = [];
+		$parsed_args_values = [];
 
 		// Filter the query to return the wptests_pt post type.
 		add_filter(

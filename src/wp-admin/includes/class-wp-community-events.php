@@ -464,7 +464,7 @@ class WP_Community_Events {
 	 * @return array The response body with events trimmed.
 	 */
 	protected function trim_events( array $events ) {
-		$future_events = array();
+		$future_events = [];
 
 		foreach ( $events as $event ) {
 			/*

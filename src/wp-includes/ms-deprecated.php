@@ -191,14 +191,14 @@ function get_blog_list( $start = 0, $num = 10, $deprecated = '' ) {
 	global $wpdb;
 	$blogs = $wpdb->get_results( $wpdb->prepare( "SELECT blog_id, domain, path FROM $wpdb->blogs WHERE site_id = %d AND public = '1' AND archived = '0' AND mature = '0' AND spam = '0' AND deleted = '0' ORDER BY registered DESC", get_current_network_id() ), ARRAY_A );
 
-	$blog_list = array();
+	$blog_list = [];
 	foreach ( (array) $blogs as $details ) {
 		$blog_list[ $details['blog_id'] ] = $details;
 		$blog_list[ $details['blog_id'] ]['postcount'] = $wpdb->get_var( "SELECT COUNT(ID) FROM " . $wpdb->get_blog_prefix( $details['blog_id'] ). "posts WHERE post_status='publish' AND post_type='post'" );
 	}
 
 	if ( ! $blog_list ) {
-		return array();
+		return [];
 	}
 
 	if ( 'all' === $num ) {
@@ -224,15 +224,15 @@ function get_most_active_blogs( $num = 10, $display = true ) {
 	$blogs = get_blog_list( 0, 'all', false ); // $blog_id -> $details
 	if ( is_array( $blogs ) ) {
 		reset( $blogs );
-		$most_active = array();
-		$blog_list = array();
+		$most_active = [];
+		$blog_list = [];
 		foreach ( (array) $blogs as $key => $details ) {
 			$most_active[ $details['blog_id'] ] = $details['postcount'];
 			$blog_list[ $details['blog_id'] ] = $details; // array_slice() removes keys!
 		}
 		arsort( $most_active );
 		reset( $most_active );
-		$t = array();
+		$t = [];
 		foreach ( (array) $most_active as $key => $details ) {
 			$t[ $key ] = $blog_list[ $key ];
 		}
@@ -483,7 +483,7 @@ function wp_get_sites( $args = array() ) {
 	_deprecated_function( __FUNCTION__, '4.6.0', 'get_sites()' );
 
 	if ( wp_is_large_network() )
-		return array();
+		return [];
 
 	$defaults = array(
 		'network_id' => get_current_network_id(),
@@ -517,7 +517,7 @@ function wp_get_sites( $args = array() ) {
 
 	$_sites  = get_sites( $args );
 
-	$results = array();
+	$results = [];
 
 	foreach ( $_sites as $_site ) {
 		$_site = get_site( $_site );

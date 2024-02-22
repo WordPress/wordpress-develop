@@ -226,13 +226,13 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 				}
 			}
 		} else {
-			$revisions       = array();
+			$revisions       = [];
 			$total_revisions = 0;
 			$max_pages       = 0;
 			$page            = (int) $request['page'];
 		}
 
-		$response = array();
+		$response = [];
 
 		foreach ( $revisions as $revision ) {
 			$data       = $this->prepare_item_for_response( $revision, $request );
@@ -360,7 +360,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
 			$global_styles_config = ( new WP_Theme_JSON( $global_styles_config, 'custom' ) )->get_raw_data();

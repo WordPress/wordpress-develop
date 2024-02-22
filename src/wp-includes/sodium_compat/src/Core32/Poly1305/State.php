@@ -12,7 +12,7 @@ class ParagonIE_Sodium_Core32_Poly1305_State extends ParagonIE_Sodium_Core32_Uti
     /**
      * @var array<int, int>
      */
-    protected $buffer = array();
+    protected $buffer = [];
 
     /**
      * @var bool

@@ -43,7 +43,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		$count = get_option( 'posts_per_rss' ) + 1;
 
-		self::$posts = array();
+		self::$posts = [];
 		// Create a few posts.
 		for ( $i = 1; $i <= $count; $i++ ) {
 			self::$posts[] = $factory->post->create(
@@ -233,7 +233,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 			// Categories (perhaps multiple).
 			$categories = xml_find( $items[ $key ]['child'], 'category' );
-			$cats       = array();
+			$cats       = [];
 			foreach ( get_the_category( $post->ID ) as $term ) {
 				$cats[] = $term->name;
 			}

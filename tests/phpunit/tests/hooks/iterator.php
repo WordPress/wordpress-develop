@@ -19,8 +19,8 @@ class Tests_Hooks_Iterator extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
 		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 
-		$functions  = array();
-		$priorities = array();
+		$functions  = [];
+		$priorities = [];
 		foreach ( $hook as $key => $callbacks ) {
 			$priorities[] = $key;
 			foreach ( $callbacks as $function_index => $the_ ) {

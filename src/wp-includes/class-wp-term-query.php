@@ -436,7 +436,7 @@ class WP_Term_Query {
 				if ( 'count' === $args['fields'] ) {
 					return 0;
 				} else {
-					$this->terms = array();
+					$this->terms = [];
 					return $this->terms;
 				}
 			}
@@ -462,11 +462,11 @@ class WP_Term_Query {
 		}
 
 		if ( empty( $args['exclude'] ) ) {
-			$args['exclude'] = array();
+			$args['exclude'] = [];
 		}
 
 		if ( empty( $args['include'] ) ) {
-			$args['include'] = array();
+			$args['include'] = [];
 		}
 
 		$exclude      = $args['exclude'];
@@ -484,7 +484,7 @@ class WP_Term_Query {
 			$this->sql_clauses['where']['inclusions'] = 't.term_id IN ( ' . $inclusions . ' )';
 		}
 
-		$exclusions = array();
+		$exclusions = [];
 		if ( ! empty( $exclude_tree ) ) {
 			$exclude_tree      = wp_parse_id_list( $exclude_tree );
 			$excluded_children = $exclude_tree;
@@ -542,7 +542,7 @@ class WP_Term_Query {
 		}
 
 		if ( '' === $args['name'] ) {
-			$args['name'] = array();
+			$args['name'] = [];
 		} else {
 			$args['name'] = (array) $args['name'];
 		}
@@ -559,7 +559,7 @@ class WP_Term_Query {
 		}
 
 		if ( '' === $args['slug'] ) {
-			$args['slug'] = array();
+			$args['slug'] = [];
 		} else {
 			$args['slug'] = array_map( 'sanitize_title', (array) $args['slug'] );
 		}
@@ -571,7 +571,7 @@ class WP_Term_Query {
 		}
 
 		if ( '' === $args['term_taxonomy_id'] ) {
-			$args['term_taxonomy_id'] = array();
+			$args['term_taxonomy_id'] = [];
 		} else {
 			$args['term_taxonomy_id'] = array_map( 'intval', (array) $args['term_taxonomy_id'] );
 		}
@@ -597,7 +597,7 @@ class WP_Term_Query {
 		}
 
 		if ( '' === $args['object_ids'] ) {
-			$args['object_ids'] = array();
+			$args['object_ids'] = [];
 		} else {
 			$args['object_ids'] = array_map( 'intval', (array) $args['object_ids'] );
 		}
@@ -666,7 +666,7 @@ class WP_Term_Query {
 
 		}
 
-		$selects = array();
+		$selects = [];
 		switch ( $args['fields'] ) {
 			case 'count':
 				$orderby = '';
@@ -820,7 +820,7 @@ class WP_Term_Query {
 			if ( $args['cache_results'] ) {
 				wp_cache_add( $cache_key, array(), 'term-queries' );
 			}
-			return array();
+			return [];
 		}
 
 		$term_ids = wp_list_pluck( $terms, 'term_id' );
@@ -867,7 +867,7 @@ class WP_Term_Query {
 		// Hierarchical queries are not limited, so 'offset' and 'number' must be handled now.
 		if ( $hierarchical && $number && is_array( $term_objects ) ) {
 			if ( $offset >= count( $term_objects ) ) {
-				$term_objects = array();
+				$term_objects = [];
 			} else {
 				$term_objects = array_slice( $term_objects, $offset, $number, true );
 			}
@@ -880,7 +880,7 @@ class WP_Term_Query {
 		}
 
 		if ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) ) {
-			$term_cache = array();
+			$term_cache = [];
 			foreach ( $term_objects as $term ) {
 				$object            = new stdClass();
 				$object->term_id   = $term->term_id;
@@ -888,7 +888,7 @@ class WP_Term_Query {
 				$term_cache[]      = $object;
 			}
 		} elseif ( 'all' === $_fields && $args['pad_counts'] ) {
-			$term_cache = array();
+			$term_cache = [];
 			foreach ( $term_objects as $term ) {
 				$object          = new stdClass();
 				$object->term_id = $term->term_id;
@@ -978,7 +978,7 @@ class WP_Term_Query {
 	 * @return WP_Term[]|int[]|string[] Array of terms / strings / ints depending on field requested.
 	 */
 	protected function format_terms( $term_objects, $_fields ) {
-		$_terms = array();
+		$_terms = [];
 		if ( 'id=>parent' === $_fields ) {
 			foreach ( $term_objects as $term ) {
 				$_terms[ $term->term_id ] = $term->parent;
@@ -1032,7 +1032,7 @@ class WP_Term_Query {
 			return $orderby;
 		}
 
-		$allowed_keys       = array();
+		$allowed_keys       = [];
 		$primary_meta_key   = null;
 		$primary_meta_query = reset( $meta_clauses );
 		if ( ! empty( $primary_meta_query['key'] ) ) {
@@ -1122,7 +1122,7 @@ class WP_Term_Query {
 	 * @return WP_Term[] Array of `WP_Term` objects.
 	 */
 	protected function populate_terms( $terms ) {
-		$term_objects = array();
+		$term_objects = [];
 		if ( ! is_array( $terms ) ) {
 			return $term_objects;
 		}

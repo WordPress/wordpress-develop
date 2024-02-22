@@ -23,8 +23,8 @@ class WPProfiler {
 	 * PHP5 constructor.
 	 */
 	public function __construct() {
-		$this->stack   = array();
-		$this->profile = array();
+		$this->stack   = [];
+		$this->profile = [];
 	}
 
 	public function start( $name ) {
@@ -40,7 +40,7 @@ class WPProfiler {
 		if ( $this->stack ) {
 			$this->stack[ count( $this->stack ) - 1 ]['queries'] = $wpdb->queries;
 		}
-		$wpdb->queries = array();
+		$wpdb->queries = [];
 
 		global $wp_object_cache;
 
@@ -82,7 +82,7 @@ class WPProfiler {
 			#$this->_query_summary($item['queries'], $this->profile[$name]['queries']);
 
 		} else {
-			$queries = array();
+			$queries = [];
 			$this->_query_summary( $item['queries'], $queries );
 			$this->profile[ $name ] = array(
 				'time'                        => $time,
@@ -149,7 +149,7 @@ class WPProfiler {
 
 	public function _query_count( $queries ) {
 		// This requires the SAVEQUERIES patch at https://core.trac.wordpress.org/ticket/5218
-		$out = array();
+		$out = [];
 		foreach ( $queries as $q ) {
 			if ( empty( $q[2] ) ) {
 				++$out['unknown'];
@@ -161,7 +161,7 @@ class WPProfiler {
 	}
 
 	public function _dirty_objects_count( $dirty_objects ) {
-		$out = array();
+		$out = [];
 		foreach ( array_keys( $dirty_objects ) as $group ) {
 			$out[ $group ] = count( $dirty_objects[ $group ] );
 		}

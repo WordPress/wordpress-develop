@@ -55,7 +55,7 @@ function get_categories( $args = '' ) {
 	$categories = get_terms( $args );
 
 	if ( is_wp_error( $categories ) ) {
-		$categories = array();
+		$categories = [];
 	} else {
 		$categories = (array) $categories;
 		foreach ( array_keys( $categories ) as $k ) {
@@ -298,7 +298,7 @@ function get_tags( $args = '' ) {
 	$tags = get_terms( $args );
 
 	if ( empty( $tags ) ) {
-		$tags = array();
+		$tags = [];
 	} else {
 		/**
 		 * Filters the array of term objects returned for the 'post_tag' taxonomy.

@@ -67,7 +67,7 @@ function twentyfifteen_hex2rgb( $color ) {
 		$g = hexdec( substr( $color, 2, 2 ) );
 		$b = hexdec( substr( $color, 4, 2 ) );
 	} else {
-		return array();
+		return [];
 	}
 
 	return array(

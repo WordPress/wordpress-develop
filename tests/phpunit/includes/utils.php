@@ -39,7 +39,7 @@ function rand_long_str( $length ) {
  */
 function strip_ws( $txt ) {
 	$lines  = explode( "\n", $txt );
-	$result = array();
+	$result = [];
 	foreach ( $lines as $line ) {
 		if ( trim( $line ) ) {
 			$result[] = trim( $line );
@@ -77,7 +77,7 @@ class MockAction {
 	 * @since UT (3.7.0)
 	 */
 	public function reset() {
-		$this->events = array();
+		$this->events = [];
 	}
 
 	/**
@@ -249,7 +249,7 @@ class MockAction {
 	 * @since 6.1.0
 	 */
 	public function get_hook_names() {
-		$out = array();
+		$out = [];
 
 		foreach ( $this->events as $e ) {
 			$out[] = $e['hook_name'];
@@ -274,7 +274,7 @@ class MockAction {
 	 * @since UT (3.7.0)
 	 */
 	public function get_args() {
-		$out = array();
+		$out = [];
 
 		foreach ( $this->events as $e ) {
 			$out[] = $e['args'];
@@ -288,7 +288,7 @@ class MockAction {
 // Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
 	public $xml;
-	public $data = array();
+	public $data = [];
 
 	/**
 	 * PHP5 constructor.
@@ -370,7 +370,7 @@ function xml_to_array( $in ) {
  */
 function xml_find( $tree, ...$elements ) {
 	$n   = count( $elements );
-	$out = array();
+	$out = [];
 
 	if ( $n < 1 ) {
 		return $out;
@@ -394,7 +394,7 @@ function xml_find( $tree, ...$elements ) {
 }
 
 function xml_join_atts( $atts ) {
-	$a = array();
+	$a = [];
 	foreach ( $atts as $k => $v ) {
 		$a[] = $k . '="' . $v . '"';
 	}
@@ -402,7 +402,7 @@ function xml_join_atts( $atts ) {
 }
 
 function xml_array_dumbdown( &$data ) {
-	$out = array();
+	$out = [];
 
 	foreach ( array_keys( $data ) as $i ) {
 		$name = $data[ $i ]['name'];
@@ -439,7 +439,7 @@ function get_echo( $callback, $args = array() ) {
 
 // Recursively generate some quick assertEquals() tests based on an array.
 function gen_tests_array( $name, $expected_data ) {
-	$out = array();
+	$out = [];
 
 	foreach ( $expected_data as $k => $v ) {
 		if ( is_numeric( $k ) ) {
@@ -596,7 +596,7 @@ function benchmark_pcre_backtracking( $pattern, $subject, $strategy ) {
 				preg_match( $pattern, $subject );
 				break;
 			case 'match_all':
-				$matches = array();
+				$matches = [];
 				preg_match_all( $pattern, $subject, $matches );
 				break;
 		}

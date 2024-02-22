@@ -205,7 +205,7 @@ function twentynineteen_add_mobile_parent_nav_menu_items( $sorted_menu_items, $a
 		return $sorted_menu_items;
 	}
 
-	$amended_menu_items = array();
+	$amended_menu_items = [];
 	foreach ( $sorted_menu_items as $nav_menu_item ) {
 		$amended_menu_items[] = $nav_menu_item;
 		if ( in_array( 'menu-item-has-children', $nav_menu_item->classes, true ) ) {

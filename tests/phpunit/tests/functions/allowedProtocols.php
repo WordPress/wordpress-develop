@@ -16,7 +16,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	}
 
 	public function test_allowed_protocol_has_an_example() {
-		$example_protocols = array();
+		$example_protocols = [];
 		foreach ( $this->data_example_urls() as $example ) {
 			$example_protocols[] = $example[0];
 		}

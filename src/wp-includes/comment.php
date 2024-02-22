@@ -167,7 +167,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
  */
 function get_approved_comments( $post_id, $args = array() ) {
 	if ( ! $post_id ) {
-		return array();
+		return [];
 	}
 
 	$defaults    = array(
@@ -408,7 +408,7 @@ function get_comment_count( $post_id = 0 ) {
 		'trash'               => 'trash',
 		'post-trashed'        => 'post-trashed',
 	);
-	$comment_count = array();
+	$comment_count = [];
 	foreach ( $mapping as $key => $value ) {
 		$comment_count[ $key ] = get_comments( array_merge( $args, array( 'status' => $value ) ) );
 	}
@@ -1859,7 +1859,7 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
  */
 function _clear_modified_cache_on_transition_comment_status( $new_status, $old_status ) {
 	if ( 'approved' === $new_status || 'approved' === $old_status ) {
-		$data = array();
+		$data = [];
 		foreach ( array( 'server', 'gmt', 'blog' ) as $timezone ) {
 			$data[] = "lastcommentmodified:$timezone";
 		}
@@ -2043,7 +2043,7 @@ function wp_insert_comment( $commentdata ) {
 	if ( 1 == $comment_approved ) {
 		wp_update_comment_count( $comment_post_id );
 
-		$data = array();
+		$data = [];
 		foreach ( array( 'server', 'gmt', 'blog' ) as $timezone ) {
 			$data[] = "lastcommentmodified:$timezone";
 		}
@@ -2681,7 +2681,7 @@ function wp_defer_comment_counting( $defer = null ) {
  *                   not exist.
  */
 function wp_update_comment_count( $post_id, $do_deferred = false ) {
-	static $_deferred = array();
+	static $_deferred = [];
 
 	if ( empty( $post_id ) && ! $do_deferred ) {
 		return false;
@@ -3049,7 +3049,7 @@ function pingback( $content, $post ) {
 	require_once ABSPATH . WPINC . '/class-wp-http-ixr-client.php';
 
 	// Original code by Mort (http://mort.mine.nu:8080).
-	$post_links = array();
+	$post_links = [];
 
 	$post = get_post( $post );
 
@@ -3184,7 +3184,7 @@ function trackback( $trackback_url, $title, $excerpt, $post_id ) {
 		return;
 	}
 
-	$options            = array();
+	$options            = [];
 	$options['timeout'] = 10;
 	$options['body']    = array(
 		'title'     => $title,
@@ -3304,7 +3304,7 @@ function clean_comment_cache( $ids ) {
  * @param bool         $update_meta_cache Whether to update commentmeta cache. Default true.
  */
 function update_comment_cache( $comments, $update_meta_cache = true ) {
-	$data = array();
+	$data = [];
 	foreach ( (array) $comments as $comment ) {
 		$data[ $comment->comment_ID ] = $comment;
 	}
@@ -3312,7 +3312,7 @@ function update_comment_cache( $comments, $update_meta_cache = true ) {
 
 	if ( $update_meta_cache ) {
 		// Avoid `wp_list_pluck()` in case `$comments` is passed by reference.
-		$comment_ids = array();
+		$comment_ids = [];
 		foreach ( $comments as $comment ) {
 			$comment_ids[] = $comment->comment_ID;
 		}
@@ -3716,7 +3716,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 	$number = 500;
 	$page   = (int) $page;
 
-	$data_to_export = array();
+	$data_to_export = [];
 
 	$comments = get_comments(
 		array(
@@ -3741,7 +3741,7 @@ function wp_comments_personal_data_exporter( $email_address, $page = 1 ) {
 	);
 
 	foreach ( (array) $comments as $comment ) {
-		$comment_data_to_export = array();
+		$comment_data_to_export = [];
 
 		foreach ( $comment_prop_to_export as $key => $name ) {
 			$value = '';
@@ -3861,10 +3861,10 @@ function wp_comments_personal_data_eraser( $email_address, $page = 1 ) {
 
 	/* translators: Name of a comment's author after being anonymized. */
 	$anon_author = __( 'Anonymous' );
-	$messages    = array();
+	$messages    = [];
 
 	foreach ( (array) $comments as $comment ) {
-		$anonymized_comment                         = array();
+		$anonymized_comment                         = [];
 		$anonymized_comment['comment_agent']        = '';
 		$anonymized_comment['comment_author']       = $anon_author;
 		$anonymized_comment['comment_author_email'] = '';

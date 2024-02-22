@@ -123,7 +123,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		}
 
-		$data = array();
+		$data = [];
 
 		foreach ( $taxonomies as $tax_type => $value ) {
 			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->assign_terms ) ) ) {
@@ -213,7 +213,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( in_array( 'name', $fields, true ) ) {
 			$data['name'] = $taxonomy->label;
@@ -441,7 +441,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$new_params            = array();
+		$new_params            = [];
 		$new_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
 		$new_params['type']    = array(
 			'description' => __( 'Limit results to taxonomies associated with a specific post type.' ),

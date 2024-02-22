@@ -117,8 +117,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		if ( $this->show_autoupdates ) {
 			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
 
-			$plugins['auto-update-enabled']  = array();
-			$plugins['auto-update-disabled'] = array();
+			$plugins['auto-update-enabled']  = [];
+			$plugins['auto-update-disabled'] = [];
 		}
 
 		$screen = $this->screen;
@@ -307,7 +307,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		 */
 		$plugins = apply_filters( 'plugins_list', $plugins );
 
-		$totals = array();
+		$totals = [];
 		foreach ( $plugins as $type => $list ) {
 			$totals[ $type ] = count( $list );
 		}
@@ -316,7 +316,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$status = 'all';
 		}
 
-		$this->items = array();
+		$this->items = [];
 		foreach ( $plugins[ $status ] as $plugin_file => $plugin_data ) {
 			// Translate, don't apply markup, sanitize HTML.
 			$this->items[ $plugin_file ] = _get_plugin_data_markup_translate( $plugin_file, $plugin_data, false, true );
@@ -324,7 +324,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$total_this_page = $totals[ $status ];
 
-		$js_plugins = array();
+		$js_plugins = [];
 		foreach ( $plugins as $key => $list ) {
 			$js_plugins[ $key ] = array_keys( $list );
 		}
@@ -484,7 +484,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_sortable_columns() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -495,7 +495,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $totals, $status;
 
-		$status_links = array();
+		$status_links = [];
 		foreach ( $totals as $type => $count ) {
 			if ( ! $count ) {
 				continue;
@@ -604,7 +604,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	protected function get_bulk_actions() {
 		global $status;
 
-		$actions = array();
+		$actions = [];
 
 		if ( 'active' !== $status ) {
 			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Activate' ) : __( 'Activate' );
@@ -717,7 +717,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 */
 	public function single_row( $item ) {
 		global $status, $page, $s, $totals;
-		static $plugin_id_attrs = array();
+		static $plugin_id_attrs = [];
 
 		list( $plugin_file, $plugin_data ) = $item;
 
@@ -1160,7 +1160,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 						<div class='plugin-description'>$description</div>
 						<div class='$class second plugin-version-author-uri'>";
 
-					$plugin_meta = array();
+					$plugin_meta = [];
 
 					if ( ! empty( $plugin_data['Version'] ) ) {
 						/* translators: %s: Plugin version number. */
@@ -1296,7 +1296,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 					echo "<td class='column-auto-updates{$extra_classes}'>";
 
-					$html = array();
+					$html = [];
 
 					if ( isset( $plugin_data['auto-update-forced'] ) ) {
 						if ( $plugin_data['auto-update-forced'] ) {
@@ -1555,7 +1555,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$links = array();
+		$links = [];
 		foreach ( $dependency_names as $slug => $name ) {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}

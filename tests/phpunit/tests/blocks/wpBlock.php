@@ -47,7 +47,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( $parsed_block, $block->parsed_block );
@@ -73,7 +73,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$this->registry->register( 'core/example', $block_type_settings );
 
 		$parsed_block = array( 'blockName' => 'core/example' );
-		$context      = array();
+		$context      = [];
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertInstanceOf( WP_Block_Type::class, $block->block_type );
@@ -112,7 +112,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'explicit' => 20,
 			),
 		);
-		$context      = array();
+		$context      = [];
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame(
@@ -144,7 +144,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			'blockName' => 'core/example',
 			'attrs'     => array(),
 		);
-		$context      = array();
+		$context      = [];
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( array( 'defaulted' => 10 ), $block->attributes );
@@ -181,7 +181,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertCount( 1, $block->inner_blocks );
@@ -285,7 +285,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:static -->a<!-- wp:dynamic /-->c<!-- /wp:static -->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( 'abc', $block->render() );
@@ -306,7 +306,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:greeting /-->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( 'Hello from core/greeting', $block->render() );
@@ -322,7 +322,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example -->Static<!-- wp:example -->Inner<!-- /wp:example --><!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$rendered_content = $block->render();
@@ -342,7 +342,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example -->Static<!-- wp:example -->Inner<!-- /wp:example --><!-- /wp:example -->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$rendered_content = $block->render();
@@ -380,7 +380,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:greeting {"toWhom":"world"} /-->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( 'Hello world!', $block->render() );
@@ -409,7 +409,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$parsed_blocks = parse_blocks( '<!-- wp:outer -->a<!-- wp:inner /-->c<!-- /wp:outer -->' );
 		$parsed_block  = $parsed_blocks[0];
-		$context       = array();
+		$context       = [];
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( 'abc', $block->render() );

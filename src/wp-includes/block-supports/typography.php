@@ -48,7 +48,7 @@ function wp_register_typography_support( $block_type ) {
 		|| $has_writing_mode_support;
 
 	if ( ! $block_type->attributes ) {
-		$block_type->attributes = array();
+		$block_type->attributes = [];
 	}
 
 	if ( $has_typography_support && ! array_key_exists( 'style', $block_type->attributes ) ) {
@@ -86,18 +86,18 @@ function wp_register_typography_support( $block_type ) {
  */
 function wp_apply_typography_support( $block_type, $block_attributes ) {
 	if ( ! ( $block_type instanceof WP_Block_Type ) ) {
-		return array();
+		return [];
 	}
 
 	$typography_supports = isset( $block_type->supports['typography'] )
 		? $block_type->supports['typography']
 		: false;
 	if ( ! $typography_supports ) {
-		return array();
+		return [];
 	}
 
 	if ( wp_should_skip_block_supports_serialization( $block_type, 'typography' ) ) {
-		return array();
+		return [];
 	}
 
 	$has_font_family_support     = isset( $typography_supports['__experimentalFontFamily'] ) ? $typography_supports['__experimentalFontFamily'] : false;
@@ -123,7 +123,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$should_skip_letter_spacing  = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'letterSpacing' );
 	$should_skip_writing_mode    = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'writingMode' );
 
-	$typography_block_styles = array();
+	$typography_block_styles = [];
 	if ( $has_font_size_support && ! $should_skip_font_size ) {
 		$preset_font_size                    = array_key_exists( 'fontSize', $block_attributes )
 			? "var:preset|font-size|{$block_attributes['fontSize']}"
@@ -224,7 +224,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 			: null;
 	}
 
-	$attributes = array();
+	$attributes = [];
 	$styles     = wp_style_engine_get_styles(
 		array( 'typography' => $typography_block_styles ),
 		array( 'convert_vars_to_classnames' => true )
@@ -525,8 +525,8 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 
 	// Checks if fluid font sizes are activated.
 	$global_settings     = wp_get_global_settings();
-	$typography_settings = isset( $global_settings['typography'] ) ? $global_settings['typography'] : array();
-	$layout_settings     = isset( $global_settings['layout'] ) ? $global_settings['layout'] : array();
+	$typography_settings = isset( $global_settings['typography'] ) ? $global_settings['typography'] : [];
+	$layout_settings     = isset( $global_settings['layout'] ) ? $global_settings['layout'] : [];
 
 	if (
 		isset( $typography_settings['fluid'] ) &&
@@ -541,7 +541,7 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 
 	$fluid_settings = isset( $typography_settings['fluid'] ) && is_array( $typography_settings['fluid'] )
 		? $typography_settings['fluid']
-		: array();
+		: [];
 
 	// Defaults.
 	$default_maximum_viewport_width       = '1600px';

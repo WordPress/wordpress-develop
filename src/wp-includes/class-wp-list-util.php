@@ -21,7 +21,7 @@ class WP_List_Util {
 	 * @since 4.7.0
 	 * @var array
 	 */
-	private $input = array();
+	private $input = [];
 
 	/**
 	 * The output array.
@@ -29,7 +29,7 @@ class WP_List_Util {
 	 * @since 4.7.0
 	 * @var array
 	 */
-	private $output = array();
+	private $output = [];
 
 	/**
 	 * Temporary arguments for sorting.
@@ -37,7 +37,7 @@ class WP_List_Util {
 	 * @since 4.7.0
 	 * @var string[]
 	 */
-	private $orderby = array();
+	private $orderby = [];
 
 	/**
 	 * Constructor.
@@ -103,12 +103,12 @@ class WP_List_Util {
 		$operator = strtoupper( $operator );
 
 		if ( ! in_array( $operator, array( 'AND', 'OR', 'NOT' ), true ) ) {
-			$this->output = array();
+			$this->output = [];
 			return $this->output;
 		}
 
 		$count    = count( $args );
-		$filtered = array();
+		$filtered = [];
 
 		foreach ( $this->output as $key => $obj ) {
 			$matched = 0;
@@ -156,7 +156,7 @@ class WP_List_Util {
 	 *               `$list` will be preserved in the results.
 	 */
 	public function pluck( $field, $index_key = null ) {
-		$newlist = array();
+		$newlist = [];
 
 		if ( ! $index_key ) {
 			/*
@@ -247,7 +247,7 @@ class WP_List_Util {
 			usort( $this->output, array( $this, 'sort_callback' ) );
 		}
 
-		$this->orderby = array();
+		$this->orderby = [];
 
 		return $this->output;
 	}

@@ -31,7 +31,7 @@ CAP;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
-		$GLOBALS['_wp_additional_image_sizes'] = array();
+		$GLOBALS['_wp_additional_image_sizes'] = [];
 
 		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
@@ -521,8 +521,8 @@ https://w.org</a>',
 	 * @ticket 22960
 	 */
 	public function test_post_galleries_images() {
-		$ids1      = array();
-		$ids1_srcs = array();
+		$ids1      = [];
+		$ids1_srcs = [];
 		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -538,8 +538,8 @@ https://w.org</a>',
 			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids2      = array();
-		$ids2_srcs = array();
+		$ids2      = [];
+		$ids2_srcs = [];
 		foreach ( range( 4, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -572,8 +572,8 @@ BLOB;
 	 * @ticket 22960
 	 */
 	public function test_post_gallery_images() {
-		$ids1      = array();
-		$ids1_srcs = array();
+		$ids1      = [];
+		$ids1_srcs = [];
 		foreach ( range( 1, 3 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -589,8 +589,8 @@ BLOB;
 			$ids1_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids2      = array();
-		$ids2_srcs = array();
+		$ids2      = [];
+		$ids2_srcs = [];
 		foreach ( range( 4, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -625,9 +625,9 @@ BLOB;
 	 */
 	public function test_block_post_gallery_images() {
 		// Similar to test_post_gallery_images but with blocks instead of shortcodes
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -663,9 +663,9 @@ BLOB;
 	 */
 	public function test_block_post_gallery_images_json() {
 		// Similar to test_block_post_gallery_images, with IDs in the json blob
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -701,9 +701,9 @@ BLOB;
 	 */
 	public function test_mixed_post_gallery_images() {
 		// Similar to test_post_gallery_images but with a shortcode and a block in the same post
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -744,9 +744,9 @@ BLOB;
 	 */
 	public function test_block_inner_post_gallery_images() {
 		// Make sure get_post_gallery_images() works with gallery blocks that are nested inside something else
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 3 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -787,9 +787,9 @@ BLOB;
 	 */
 	public function test_block_post_gallery_innerblock_images() {
 		// Make sure get_post_gallery_images() works with new version of gallery block with nested image blocks.
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 3 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -3536,7 +3536,7 @@ EOF;
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$image_src  = wp_get_attachment_image_url( self::$large_id, 'full' );
 
-		$image_meta['sizes'] = array();
+		$image_meta['sizes'] = [];
 
 		$this->assertTrue( wp_image_file_matches_image_meta( $image_src, $image_meta ) );
 	}
@@ -5865,7 +5865,7 @@ EOF;
 			static function ( $loading_attrs ) {
 				if ( false === $loading_attrs ) {
 					// Initialize as an empty array.
-					$loading_attrs = array();
+					$loading_attrs = [];
 				}
 				$loading_attrs['fetchpriority'] = 'high';
 
@@ -5910,7 +5910,7 @@ EOF;
 			static function ( $loading_attrs ) {
 				if ( false === $loading_attrs ) {
 					// Initialize as an empty array.
-					$loading_attrs = array();
+					$loading_attrs = [];
 				}
 				$loading_attrs['custom_attr'] = 'custom_value';
 

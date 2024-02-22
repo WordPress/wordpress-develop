@@ -130,8 +130,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		global $menu;
 
 		// Reset menus.
-		$submenu = array();
-		$menu    = array();
+		$submenu = [];
+		$menu    = [];
 
 		$current_user = get_current_user_id();
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -186,7 +186,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 			),
 		);
 
-		$actual_positions = array();
+		$actual_positions = [];
 
 		foreach ( $helper_functions as $helper_function ) {
 
@@ -280,8 +280,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		global $submenu, $menu;
 
 		// Reset menus.
-		$submenu      = array();
-		$menu         = array();
+		$submenu      = [];
+		$menu         = [];
 		$current_user = get_current_user_id();
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_user );
@@ -313,8 +313,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		global $submenu, $menu;
 
 		// Reset menus.
-		$submenu      = array();
-		$menu         = array();
+		$submenu      = [];
+		$menu         = [];
 		$current_user = get_current_user_id();
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_user );
@@ -341,8 +341,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		global $submenu, $menu;
 
 		// Reset menus.
-		$submenu      = array();
-		$menu         = array();
+		$submenu      = [];
+		$menu         = [];
 		$current_user = get_current_user_id();
 		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_user );

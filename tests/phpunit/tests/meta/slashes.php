@@ -55,7 +55,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 			$meta_3 = add_post_meta( $post_id, 'slash_test_3', addslashes( 'foo' ) );
 		}
 
-		$_POST                  = array();
+		$_POST                  = [];
 		$_POST['post_ID']       = $post_id;
 		$_POST['metakeyselect'] = '#NONE#';
 		$_POST['metakeyinput']  = 'slash_test_0';
@@ -85,7 +85,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 		$this->assertSame( self::SLASH_3, get_post_meta( $post_id, 'slash_test_2', true ) );
 		$this->assertSame( self::SLASH_4, get_post_meta( $post_id, 'slash_test_3', true ) );
 
-		$_POST                  = array();
+		$_POST                  = [];
 		$_POST['post_ID']       = $post_id;
 		$_POST['metakeyselect'] = '#NONE#';
 		$_POST['metakeyinput']  = 'slash_test_0';

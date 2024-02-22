@@ -130,7 +130,7 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 * @var array
 	 */
-	private $_help_tabs = array();
+	private $_help_tabs = [];
 
 	/**
 	 * The help sidebar data associated with screen, if any.
@@ -146,14 +146,14 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 * @var string[]
 	 */
-	private $_screen_reader_content = array();
+	private $_screen_reader_content = [];
 
 	/**
 	 * Stores old string-based help.
 	 *
 	 * @var array
 	 */
-	private static $_old_compat_help = array();
+	private static $_old_compat_help = [];
 
 	/**
 	 * The screen options associated with screen, if any.
@@ -161,7 +161,7 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 * @var array
 	 */
-	private $_options = array();
+	private $_options = [];
 
 	/**
 	 * The screen object registry.
@@ -170,7 +170,7 @@ final class WP_Screen {
 	 *
 	 * @var array
 	 */
-	private static $_registry = array();
+	private static $_registry = [];
 
 	/**
 	 * Stores the result of the public show_screen_options function.
@@ -523,7 +523,7 @@ final class WP_Screen {
 	 * @since 3.8.0
 	 */
 	public function remove_options() {
-		$this->_options = array();
+		$this->_options = [];
 	}
 
 	/**
@@ -571,7 +571,7 @@ final class WP_Screen {
 	public function get_help_tabs() {
 		$help_tabs = $this->_help_tabs;
 
-		$priorities = array();
+		$priorities = [];
 		foreach ( $help_tabs as $help_tab ) {
 			if ( isset( $priorities[ $help_tab['priority'] ] ) ) {
 				$priorities[ $help_tab['priority'] ][] = $help_tab;
@@ -582,7 +582,7 @@ final class WP_Screen {
 
 		ksort( $priorities );
 
-		$sorted = array();
+		$sorted = [];
 		foreach ( $priorities as $list ) {
 			foreach ( $list as $tab ) {
 				$sorted[ $tab['id'] ] = $tab;
@@ -669,7 +669,7 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 */
 	public function remove_help_tabs() {
-		$this->_help_tabs = array();
+		$this->_help_tabs = [];
 	}
 
 	/**
@@ -775,7 +775,7 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 */
 	public function remove_screen_reader_content() {
-		$this->_screen_reader_content = array();
+		$this->_screen_reader_content = [];
 	}
 
 	/**

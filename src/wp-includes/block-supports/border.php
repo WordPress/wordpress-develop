@@ -19,7 +19,7 @@
 function wp_register_border_support( $block_type ) {
 	// Setup attributes and styles within that if needed.
 	if ( ! $block_type->attributes ) {
-		$block_type->attributes = array();
+		$block_type->attributes = [];
 	}
 
 	if ( block_has_support( $block_type, '__experimentalBorder' ) && ! array_key_exists( 'style', $block_type->attributes ) ) {
@@ -49,10 +49,10 @@ function wp_register_border_support( $block_type ) {
  */
 function wp_apply_border_support( $block_type, $block_attributes ) {
 	if ( wp_should_skip_block_supports_serialization( $block_type, 'border' ) ) {
-		return array();
+		return [];
 	}
 
-	$border_block_styles      = array();
+	$border_block_styles      = [];
 	$has_border_color_support = wp_has_border_feature_support( $block_type, 'color' );
 	$has_border_width_support = wp_has_border_feature_support( $block_type, 'width' );
 
@@ -120,7 +120,7 @@ function wp_apply_border_support( $block_type, $block_attributes ) {
 	}
 
 	// Collect classes and styles.
-	$attributes = array();
+	$attributes = [];
 	$styles     = wp_style_engine_get_styles( array( 'border' => $border_block_styles ) );
 
 	if ( ! empty( $styles['classnames'] ) ) {

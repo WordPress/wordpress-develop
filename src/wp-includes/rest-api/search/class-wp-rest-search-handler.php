@@ -39,7 +39,7 @@ abstract class WP_REST_Search_Handler {
 	 * @since 5.0.0
 	 * @var string[]
 	 */
-	protected $subtypes = array();
+	protected $subtypes = [];
 
 	/**
 	 * Gets the object type managed by this search handler.

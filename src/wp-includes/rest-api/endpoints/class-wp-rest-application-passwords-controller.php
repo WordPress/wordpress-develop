@@ -143,7 +143,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		}
 
 		$passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
-		$response  = array();
+		$response  = [];
 
 		foreach ( $passwords as $password ) {
 			$response[] = $this->prepare_response_for_collection(

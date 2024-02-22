@@ -315,7 +315,7 @@ final class WP_Post {
 			}
 
 			if ( empty( $terms ) ) {
-				return array();
+				return [];
 			}
 
 			return wp_list_pluck( $terms, 'term_id' );
@@ -327,7 +327,7 @@ final class WP_Post {
 			}
 
 			if ( empty( $terms ) ) {
-				return array();
+				return [];
 			}
 
 			return wp_list_pluck( $terms, 'name' );

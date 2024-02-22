@@ -39,19 +39,19 @@ global $wp_current_filter;
 if ( $wp_filter ) {
 	$wp_filter = WP_Hook::build_preinitialized_hooks( $wp_filter );
 } else {
-	$wp_filter = array();
+	$wp_filter = [];
 }
 
 if ( ! isset( $wp_actions ) ) {
-	$wp_actions = array();
+	$wp_actions = [];
 }
 
 if ( ! isset( $wp_filters ) ) {
-	$wp_filters = array();
+	$wp_filters = [];
 }
 
 if ( ! isset( $wp_current_filter ) ) {
-	$wp_current_filter = array();
+	$wp_current_filter = [];
 }
 
 /**

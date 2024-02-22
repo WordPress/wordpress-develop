@@ -83,7 +83,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		$actions           = array();
+		$actions           = [];
 		$actions['delete'] = __( 'Delete' );
 
 		return $actions;
@@ -228,7 +228,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	public function column_categories( $link ) {
 		global $cat_id;
 
-		$cat_names = array();
+		$cat_names = [];
 		foreach ( $link->link_category as $category ) {
 			$cat = get_term( $category, 'link_category', OBJECT, 'display' );
 			if ( is_wp_error( $cat ) ) {
@@ -339,7 +339,7 @@ class WP_Links_List_Table extends WP_List_Table {
 
 		$edit_link = get_edit_bookmark_link( $link );
 
-		$actions           = array();
+		$actions           = [];
 		$actions['edit']   = '<a href="' . $edit_link . '">' . __( 'Edit' ) . '</a>';
 		$actions['delete'] = sprintf(
 			'<a class="submitdelete" href="%s" onclick="return confirm( \'%s\' );">%s</a>',

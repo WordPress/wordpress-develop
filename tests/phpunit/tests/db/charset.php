@@ -484,9 +484,9 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 		}
 
 		// The data above is easy to edit. Now, prepare it for the data provider.
-		$data_provider     = array();
-		$multiple          = array();
-		$multiple_expected = array();
+		$data_provider     = [];
+		$multiple          = [];
+		$multiple_expected = [];
 		foreach ( $fields as $test_case => $field ) {
 			$expected          = $field;
 			$expected['value'] = $expected['expected'];
@@ -776,7 +776,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	public function data_get_table_charset() {
 		$table_name = 'test_get_table_charset';
 
-		$vars = array();
+		$vars = [];
 		foreach ( $this->table_and_column_defs as $i => $value ) {
 			$this_table_name = $table_name . '_' . $i;
 			$drop            = "DROP TABLE IF EXISTS $this_table_name";
@@ -817,7 +817,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	public function data_get_column_charset() {
 		$table_name = 'test_get_column_charset';
 
-		$vars = array();
+		$vars = [];
 		foreach ( $this->table_and_column_defs as $i => $value ) {
 			$this_table_name = $table_name . '_' . $i;
 			$drop            = "DROP TABLE IF EXISTS $this_table_name";

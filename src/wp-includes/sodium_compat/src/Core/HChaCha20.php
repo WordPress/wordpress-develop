@@ -18,7 +18,7 @@ class ParagonIE_Sodium_Core_HChaCha20 extends ParagonIE_Sodium_Core_ChaCha20
      */
     public static function hChaCha20($in = '', $key = '', $c = null)
     {
-        $ctx = array();
+        $ctx = [];
 
         if ($c === null) {
             $ctx[0] = 0x61707865;

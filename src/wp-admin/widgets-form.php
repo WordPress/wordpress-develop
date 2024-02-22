@@ -139,7 +139,7 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 	$position   = isset( $_POST[ $sidebar_id . '_position' ] ) ? (int) $_POST[ $sidebar_id . '_position' ] - 1 : 0;
 
 	$id_base = $_POST['id_base'];
-	$sidebar = isset( $sidebars_widgets[ $sidebar_id ] ) ? $sidebars_widgets[ $sidebar_id ] : array();
+	$sidebar = isset( $sidebars_widgets[ $sidebar_id ] ) ? $sidebars_widgets[ $sidebar_id ] : [];
 
 	// Delete.
 	if ( isset( $_POST['removewidget'] ) && $_POST['removewidget'] ) {
@@ -306,7 +306,7 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 		} else {
 			if ( ! isset( $sidebars_widgets[ $sbname ] ) || ! is_array( $sidebars_widgets[ $sbname ] ) ) {
 				$j                           = 1;
-				$sidebars_widgets[ $sbname ] = array();
+				$sidebars_widgets[ $sbname ] = [];
 			} else {
 				$j = count( $sidebars_widgets[ $sbname ] );
 				if ( isset( $_GET['addnew'] ) || ! in_array( $widget_id, $sidebars_widgets[ $sbname ], true ) ) {
@@ -462,7 +462,7 @@ do_action( 'widgets_admin_page' );
 
 <?php
 
-$theme_sidebars = array();
+$theme_sidebars = [];
 foreach ( $wp_registered_sidebars as $sidebar => $registered_sidebar ) {
 	if ( str_contains( $registered_sidebar['class'], 'inactive-sidebar' ) || str_starts_with( $sidebar, 'orphaned_widgets' ) ) {
 		$wrap_class = 'widgets-holder-wrap';

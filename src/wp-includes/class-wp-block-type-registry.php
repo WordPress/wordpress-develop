@@ -20,7 +20,7 @@ final class WP_Block_Type_Registry {
 	 * @since 5.0.0
 	 * @var WP_Block_Type[]
 	 */
-	private $registered_block_types = array();
+	private $registered_block_types = [];
 
 	/**
 	 * Container for the main instance of the class.

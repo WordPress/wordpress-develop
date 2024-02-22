@@ -45,7 +45,7 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 * @var array
 	 */
-	private $state_data = array();
+	private $state_data = [];
 
 	/**
 	 * Holds the configuration required by the different Interactivity API stores.
@@ -56,7 +56,7 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 * @var array
 	 */
-	private $config_data = array();
+	private $config_data = [];
 
 	/**
 	 * Flag that indicates whether the `data-wp-router-region` directive has
@@ -90,7 +90,7 @@ final class WP_Interactivity_API {
 	 */
 	public function state( string $store_namespace, array $state = array() ): array {
 		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {
-			$this->state_data[ $store_namespace ] = array();
+			$this->state_data[ $store_namespace ] = [];
 		}
 		if ( is_array( $state ) ) {
 			$this->state_data[ $store_namespace ] = array_replace_recursive(
@@ -118,7 +118,7 @@ final class WP_Interactivity_API {
 	 */
 	public function config( string $store_namespace, array $config = array() ): array {
 		if ( ! isset( $this->config_data[ $store_namespace ] ) ) {
-			$this->config_data[ $store_namespace ] = array();
+			$this->config_data[ $store_namespace ] = [];
 		}
 		if ( is_array( $config ) ) {
 			$this->config_data[ $store_namespace ] = array_replace_recursive(
@@ -140,7 +140,7 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 */
 	public function print_client_interactivity_data() {
-		$store      = array();
+		$store      = [];
 		$has_state  = ! empty( $this->state_data );
 		$has_config = ! empty( $this->config_data );
 
@@ -204,8 +204,8 @@ final class WP_Interactivity_API {
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
 	 */
 	public function process_directives( string $html ): string {
-		$context_stack   = array();
-		$namespace_stack = array();
+		$context_stack   = [];
+		$namespace_stack = [];
 		$result          = $this->process_directives_args( $html, $context_stack, $namespace_stack );
 		return null === $result ? $html : $result;
 	}
@@ -226,7 +226,7 @@ final class WP_Interactivity_API {
 	 */
 	private function process_directives_args( string $html, array &$context_stack, array &$namespace_stack ) {
 		$p          = new WP_Interactivity_API_Directives_Processor( $html );
-		$tag_stack  = array();
+		$tag_stack  = [];
 		$unbalanced = false;
 
 		$directive_processor_prefixes          = array_keys( self::$directive_processors );
@@ -270,7 +270,7 @@ final class WP_Interactivity_API {
 					$p->next_balanced_tag_closer_tag();
 					continue;
 				} else {
-					$directives_prefixes = array();
+					$directives_prefixes = [];
 
 					// Checks if there is a server directive processor registered for each directive.
 					foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) as $attribute_name ) {
@@ -700,7 +700,7 @@ final class WP_Interactivity_API {
 	 */
 	private function merge_style_property( string $style_attribute_value, string $style_property_name, $style_property_value ): string {
 		$style_assignments    = explode( ';', $style_attribute_value );
-		$result               = array();
+		$result               = [];
 		$style_property_value = ! empty( $style_property_value ) ? rtrim( trim( $style_property_value ), ';' ) : null;
 		$new_style_property   = $style_property_value ? $style_property_name . ':' . $style_property_value . ';' : '';
 

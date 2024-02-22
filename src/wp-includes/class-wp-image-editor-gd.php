@@ -270,7 +270,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return array An array of resized images' metadata by size.
 	 */
 	public function multi_resize( $sizes ) {
-		$metadata = array();
+		$metadata = [];
 
 		foreach ( $sizes as $size => $size_data ) {
 			$meta = $this->make_subsize( $size_data );

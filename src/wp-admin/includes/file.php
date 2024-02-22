@@ -147,7 +147,7 @@ function list_files( $folder = '', $levels = 100, $exclusions = array(), $includ
 		return false;
 	}
 
-	$files = array();
+	$files = [];
 
 	$dir = @opendir( $folder );
 
@@ -457,7 +457,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		$editable_extensions = wp_get_theme_file_editable_extensions( $theme );
 
-		$allowed_files = array();
+		$allowed_files = [];
 		foreach ( $editable_extensions as $type ) {
 			switch ( $type ) {
 				case 'php':
@@ -1544,7 +1544,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
  * @return string[] Array of base64-encoded signing keys.
  */
 function wp_trusted_keys() {
-	$trusted_keys = array();
+	$trusted_keys = [];
 
 	if ( time() < 1617235200 ) {
 		// WordPress.org Key #1 - This key is only valid before April 1st, 2021.
@@ -1622,7 +1622,7 @@ function unzip_file( $file, $to ) {
 	// Unzip can use a lot of memory, but not this much hopefully.
 	wp_raise_memory_limit( 'admin' );
 
-	$needed_dirs = array();
+	$needed_dirs = [];
 	$to          = trailingslashit( $to );
 
 	// Determine any parent directories needed (of the upgrade directory).
@@ -2059,7 +2059,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			}
 
 			// Generate the $sub_skip_list for the subdirectory as a sub-set of the existing $skip_list.
-			$sub_skip_list = array();
+			$sub_skip_list = [];
 
 			foreach ( $skip_list as $skip_item ) {
 				if ( str_starts_with( $skip_item, $filename . '/' ) ) {
@@ -2523,7 +2523,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		);
 	}
 
-	$types = array();
+	$types = [];
 	if ( extension_loaded( 'ftp' ) || extension_loaded( 'sockets' ) || function_exists( 'fsockopen' ) ) {
 		$types['ftp'] = __( 'FTP' );
 	}

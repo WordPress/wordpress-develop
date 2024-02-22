@@ -12,7 +12,7 @@
 class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 
 	public static $test_source_name       = 'test/source';
-	public static $test_source_properties = array();
+	public static $test_source_properties = [];
 
 	/**
 	 * Set up before each test.

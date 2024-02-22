@@ -6,7 +6,7 @@
  */
 class Tests_Template extends WP_UnitTestCase {
 
-	protected $hierarchy = array();
+	protected $hierarchy = [];
 
 	protected static $page_on_front;
 	protected static $page_for_posts;
@@ -640,7 +640,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$themes = wp_get_themes();
 
 		// Look for parent themes with an index.php template.
-		$relevant_themes = array();
+		$relevant_themes = [];
 		foreach ( $themes as $theme ) {
 			if ( $theme->get_stylesheet() !== $theme->get_template() ) {
 				continue;
@@ -708,7 +708,7 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		}
 		$hierarchy       = $this->hierarchy;
-		$this->hierarchy = array();
+		$this->hierarchy = [];
 		return $hierarchy;
 	}
 

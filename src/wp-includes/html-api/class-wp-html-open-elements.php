@@ -35,7 +35,7 @@ class WP_HTML_Open_Elements {
 	 *
 	 * @var WP_HTML_Token[]
 	 */
-	public $stack = array();
+	public $stack = [];
 
 	/**
 	 * Whether a P element is in button scope currently.

@@ -20,7 +20,7 @@ final class WP_Block_Patterns_Registry {
 	 * @since 5.5.0
 	 * @var array[]
 	 */
-	private $registered_patterns = array();
+	private $registered_patterns = [];
 
 	/**
 	 * Patterns registered outside the `init` action.
@@ -28,7 +28,7 @@ final class WP_Block_Patterns_Registry {
 	 * @since 6.0.0
 	 * @var array[]
 	 */
-	private $registered_patterns_outside_init = array();
+	private $registered_patterns_outside_init = [];
 
 	/**
 	 * Container for the main instance of the class.
@@ -270,7 +270,7 @@ final class WP_Block_Patterns_Registry {
 				throw new UnexpectedValueException();
 			}
 		}
-		$this->registered_patterns_outside_init = array();
+		$this->registered_patterns_outside_init = [];
 	}
 
 	/**

@@ -344,7 +344,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	public function dataAllCapsAndRoles() {
-		$data = array();
+		$data = [];
 		$caps = $this->getAllCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
@@ -615,7 +615,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$expected_roles = array( $role );
 		if ( 'anonymous' === $role ) {
 			//  Anonymous role does not exist, user roles should be empty.
-			$expected_roles = array();
+			$expected_roles = [];
 		}
 		$this->assertSame( $expected_roles, $user->roles, "User should only have the {$role} role" );
 
@@ -810,7 +810,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	public function data_user_with_role_can_edit_own_post() {
-		$data = array();
+		$data = [];
 		$caps = $this->getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
@@ -824,7 +824,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	public function data_user_with_role_can_edit_others_posts() {
-		$data = array();
+		$data = [];
 		$caps = $this->getPrimitiveCapsAndRoles();
 
 		foreach ( self::$users as $role => $null ) {
@@ -2358,7 +2358,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'subscriber'    => array(),
 		);
 
-		$data = array();
+		$data = [];
 
 		foreach ( $roles as $role => $caps ) {
 			foreach ( $caps as $cap ) {

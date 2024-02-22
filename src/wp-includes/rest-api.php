@@ -67,7 +67,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		$common_args = $args['args'];
 		unset( $args['args'] );
 	} else {
-		$common_args = array();
+		$common_args = [];
 	}
 
 	if ( isset( $args['callback'] ) ) {
@@ -780,7 +780,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	}
 
 	$response = new WP_REST_Response();
-	$data     = array();
+	$data     = [];
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $matches );
@@ -789,7 +789,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
-		$args = array();
+		$args = [];
 		foreach ( $matches as $param => $value ) {
 			if ( ! is_int( $param ) ) {
 				$args[ $param ] = $value;
@@ -832,7 +832,7 @@ function rest_send_allow_header( $response, $server, $request ) {
 
 	$routes = $server->get_routes();
 
-	$allowed_methods = array();
+	$allowed_methods = [];
 
 	// Get the allowed methods across the routes.
 	foreach ( $routes[ $matched_route ] as $_handler ) {
@@ -906,7 +906,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	$fields = array_map( 'trim', $fields );
 
 	// Create nested array of accepted field hierarchy.
-	$fields_as_keyed = array();
+	$fields_as_keyed = [];
 	foreach ( $fields as $field ) {
 		$parts = explode( '.', $field );
 		$ref   = &$fields_as_keyed;
@@ -916,7 +916,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = isset( $ref[ $next ] ) ? $ref[ $next ] : array();
+			$ref[ $next ] = isset( $ref[ $next ] ) ? $ref[ $next ] : [];
 			$ref          = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
@@ -924,7 +924,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	}
 
 	if ( wp_is_numeric_array( $data ) ) {
-		$new_data = array();
+		$new_data = [];
 		foreach ( $data as $item ) {
 			$new_data[] = _rest_array_intersect_key_recursive( $item, $fields_as_keyed );
 		}
@@ -1239,7 +1239,7 @@ function rest_add_application_passwords_to_index( $response ) {
 function rest_get_avatar_urls( $id_or_email ) {
 	$avatar_sizes = rest_get_avatar_sizes();
 
-	$urls = array();
+	$urls = [];
 	foreach ( $avatar_sizes as $size ) {
 		$urls[ $size ] = get_avatar_url( $id_or_email, array( 'size' => $size ) );
 	}
@@ -1549,7 +1549,7 @@ function rest_sanitize_array( $maybe_array ) {
 	}
 
 	if ( ! is_array( $maybe_array ) ) {
-		return array();
+		return [];
 	}
 
 	// Normalize to numeric array so nothing unexpected is in the keys.
@@ -1590,7 +1590,7 @@ function rest_is_object( $maybe_object ) {
  */
 function rest_sanitize_object( $maybe_object ) {
 	if ( '' === $maybe_object ) {
-		return array();
+		return [];
 	}
 
 	if ( $maybe_object instanceof stdClass ) {
@@ -1602,7 +1602,7 @@ function rest_sanitize_object( $maybe_object ) {
 	}
 
 	if ( ! is_array( $maybe_object ) ) {
-		return array();
+		return [];
 	}
 
 	return $maybe_object;
@@ -1694,7 +1694,7 @@ function rest_handle_multi_type_schema( $value, $args, $param = '' ) {
  * @return bool True if the array contains unique items, false otherwise.
  */
 function rest_validate_array_contains_unique_items( $input_array ) {
-	$seen = array();
+	$seen = [];
 
 	foreach ( $input_array as $item ) {
 		$stabilized = rest_stabilize_value( $item );
@@ -1827,7 +1827,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 	}
 
 	// Filter out all errors related to type validation.
-	$filtered_errors = array();
+	$filtered_errors = [];
 	foreach ( $errors as $error ) {
 		$error_code = $error['error_object']->get_error_code();
 		$error_data = $error['error_object']->get_error_data();
@@ -1863,7 +1863,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 	}
 
 	// If each schema has a title, include those titles in the error message.
-	$schema_titles = array();
+	$schema_titles = [];
 	foreach ( $errors as $error ) {
 		if ( isset( $error['schema']['title'] ) ) {
 			$schema_titles[] = $error['schema']['title'];
@@ -1890,7 +1890,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
  * @return array|WP_Error The matching schema or WP_Error instance if all schemas do not match.
  */
 function rest_find_any_matching_schema( $value, $args, $param ) {
-	$errors = array();
+	$errors = [];
 
 	foreach ( $args['anyOf'] as $index => $schema ) {
 		if ( ! isset( $schema['type'] ) && isset( $args['type'] ) ) {
@@ -1924,8 +1924,8 @@ function rest_find_any_matching_schema( $value, $args, $param ) {
  * @return array|WP_Error                The matching schema or WP_Error instance if the number of matching schemas is not equal to one.
  */
 function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first_match = false ) {
-	$matching_schemas = array();
-	$errors           = array();
+	$matching_schemas = [];
+	$errors           = [];
 
 	foreach ( $args['oneOf'] as $index => $schema ) {
 		if ( ! isset( $schema['type'] ) && isset( $args['type'] ) ) {
@@ -1956,8 +1956,8 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 	}
 
 	if ( count( $matching_schemas ) > 1 ) {
-		$schema_positions = array();
-		$schema_titles    = array();
+		$schema_positions = [];
+		$schema_titles    = [];
 
 		foreach ( $matching_schemas as $schema ) {
 			$schema_positions[] = $schema['index'];
@@ -2047,7 +2047,7 @@ function rest_validate_enum( $value, $args, $param ) {
 		}
 	}
 
-	$encoded_enum_values = array();
+	$encoded_enum_values = [];
 	foreach ( $args['enum'] as $enum_value ) {
 		$encoded_enum_values[] = is_scalar( $enum_value ) ? $enum_value : wp_json_encode( $enum_value );
 	}
@@ -2886,7 +2886,7 @@ function rest_preload_api_request( $memo, $path ) {
 	 * so we need to make sure we start with one.
 	 */
 	if ( ! is_array( $memo ) ) {
-		$memo = array();
+		$memo = [];
 	}
 
 	if ( empty( $path ) ) {
@@ -3026,10 +3026,10 @@ function rest_filter_response_by_context( $response_data, $schema, $context ) {
 	$has_additional_properties = $is_object_type && isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] );
 
 	foreach ( $response_data as $key => $value ) {
-		$check = array();
+		$check = [];
 
 		if ( $is_array_type ) {
-			$check = isset( $schema['items'] ) ? $schema['items'] : array();
+			$check = isset( $schema['items'] ) ? $schema['items'] : [];
 		} elseif ( $is_object_type ) {
 			if ( isset( $schema['properties'][ $key ] ) ) {
 				$check = $schema['properties'][ $key ];
@@ -3050,7 +3050,7 @@ function rest_filter_response_by_context( $response_data, $schema, $context ) {
 		if ( ! in_array( $context, $check['context'], true ) ) {
 			if ( $is_array_type ) {
 				// All array items share schema, so there's no need to check each one.
-				$response_data = array();
+				$response_data = [];
 				break;
 			}
 
@@ -3288,8 +3288,8 @@ function rest_get_queried_resource_route() {
  */
 function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::CREATABLE ) {
 
-	$schema_properties       = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
-	$endpoint_args           = array();
+	$schema_properties       = ! empty( $schema['properties'] ) ? $schema['properties'] : [];
+	$endpoint_args           = [];
 	$valid_schema_properties = rest_get_allowed_schema_keywords();
 	$valid_schema_properties = array_diff( $valid_schema_properties, array( 'default', 'required' ) );
 
@@ -3363,7 +3363,7 @@ function rest_convert_error_to_response( $error ) {
 		500
 	);
 
-	$errors = array();
+	$errors = [];
 
 	foreach ( (array) $error->errors as $code => $messages ) {
 		$all_data  = $error->get_all_error_data( $code );

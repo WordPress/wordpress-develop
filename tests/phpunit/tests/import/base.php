@@ -27,9 +27,9 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 		$this->assertNotEmpty( $file, 'Path to import file is empty.' );
 		$this->assertTrue( is_file( $file ), 'Import file is not a file.' );
 
-		$authors = array();
-		$mapping = array();
-		$new     = array();
+		$authors = [];
+		$mapping = [];
+		$new     = [];
 		$i       = 0;
 
 		// Each user is either mapped to a given ID, mapped to a new user
@@ -56,6 +56,6 @@ abstract class WP_Import_UnitTestCase extends WP_UnitTestCase {
 		$importer->import( $file );
 		ob_end_clean();
 
-		$_POST = array();
+		$_POST = [];
 	}
 }

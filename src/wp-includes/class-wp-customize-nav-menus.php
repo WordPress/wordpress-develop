@@ -96,8 +96,8 @@ final class WP_Customize_Nav_Menus {
 			wp_die( -1 );
 		}
 
-		$all_items  = array();
-		$item_types = array();
+		$all_items  = [];
+		$item_types = [];
 		if ( isset( $_POST['item_types'] ) && is_array( $_POST['item_types'] ) ) {
 			$item_types = wp_unslash( $_POST['item_types'] );
 		} elseif ( isset( $_POST['type'] ) && isset( $_POST['object'] ) ) { // Back compat.
@@ -139,7 +139,7 @@ final class WP_Customize_Nav_Menus {
 	 * @return array|WP_Error An array of menu items on success, a WP_Error object on failure.
 	 */
 	public function load_available_items_query( $object_type = 'post_type', $object_name = 'page', $page = 0 ) {
-		$items = array();
+		$items = [];
 
 		if ( 'post_type' === $object_type ) {
 			$post_type = get_post_type_object( $object_name );
@@ -151,8 +151,8 @@ final class WP_Customize_Nav_Menus {
 			 * If we're dealing with pages, let's prioritize the Front Page,
 			 * Posts Page and Privacy Policy Page at the top of the list.
 			 */
-			$important_pages   = array();
-			$suppress_page_ids = array();
+			$important_pages   = [];
+			$suppress_page_ids = [];
 			if ( 0 === $page && 'page' === $object_name ) {
 				// Insert Front Page or custom "Home" link.
 				$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
@@ -202,7 +202,7 @@ final class WP_Customize_Nav_Menus {
 			}
 
 			// Prepend posts with nav_menus_created_posts on first page.
-			$posts = array();
+			$posts = [];
 			if ( 0 === $page && $this->manager->get_setting( 'nav_menus_created_posts' ) ) {
 				foreach ( $this->manager->get_setting( 'nav_menus_created_posts' )->value() as $post_id ) {
 					$auto_draft_post = get_post( $post_id );
@@ -350,7 +350,7 @@ final class WP_Customize_Nav_Menus {
 	 * @return array Menu items.
 	 */
 	public function search_available_items_query( $args = array() ) {
-		$items = array();
+		$items = [];
 
 		$post_type_objects = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
 		$query             = array(
@@ -369,7 +369,7 @@ final class WP_Customize_Nav_Menus {
 			$query['s'] = $args['s'];
 		}
 
-		$posts = array();
+		$posts = [];
 
 		// Prepend list of posts with nav_menus_created_posts search results on first page.
 		$nav_menus_created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
@@ -628,7 +628,7 @@ final class WP_Customize_Nav_Menus {
 		$changeset = $this->manager->unsanitized_post_values();
 
 		// Preview settings for nav menus early so that the sections and controls will be added properly.
-		$nav_menus_setting_ids = array();
+		$nav_menus_setting_ids = [];
 		foreach ( array_keys( $changeset ) as $setting_id ) {
 			if ( preg_match( '/^(nav_menu_locations|nav_menu|nav_menu_item)\[/', $setting_id ) ) {
 				$nav_menus_setting_ids[] = $setting_id;
@@ -710,13 +710,13 @@ final class WP_Customize_Nav_Menus {
 		}
 
 		// Attempt to re-map the nav menu location assignments when previewing a theme switch.
-		$mapped_nav_menu_locations = array();
+		$mapped_nav_menu_locations = [];
 		if ( ! $this->manager->is_theme_active() ) {
 			$theme_mods = get_option( 'theme_mods_' . $this->manager->get_stylesheet(), array() );
 
 			// If there is no data from a previous activation, start fresh.
 			if ( empty( $theme_mods['nav_menu_locations'] ) ) {
-				$theme_mods['nav_menu_locations'] = array();
+				$theme_mods['nav_menu_locations'] = [];
 			}
 
 			$mapped_nav_menu_locations = wp_map_nav_menu_locations( $theme_mods['nav_menu_locations'], $this->original_nav_menu_locations );
@@ -887,7 +887,7 @@ final class WP_Customize_Nav_Menus {
 	 * @return array The available menu item types.
 	 */
 	public function available_item_types() {
-		$item_types = array();
+		$item_types = [];
 
 		$post_types = get_post_types( array( 'show_in_nav_menus' => true ), 'objects' );
 		if ( $post_types ) {
@@ -966,7 +966,7 @@ final class WP_Customize_Nav_Menus {
 			$postarr['post_name'] = sanitize_title( $postarr['post_title'] );
 		}
 		if ( ! isset( $postarr['meta_input'] ) ) {
-			$postarr['meta_input'] = array();
+			$postarr['meta_input'] = [];
 		}
 		$postarr['meta_input']['_customize_draft_post_name'] = $postarr['post_name'];
 		$postarr['meta_input']['_customize_changeset_uuid']  = $this->manager->changeset_uuid();
@@ -1307,7 +1307,7 @@ final class WP_Customize_Nav_Menus {
 	 * @since 4.3.0
 	 * @var array
 	 */
-	public $preview_nav_menu_instance_args = array();
+	public $preview_nav_menu_instance_args = [];
 
 	/**
 	 * Filters arguments for dynamic nav_menu selective refresh partials.
@@ -1322,7 +1322,7 @@ final class WP_Customize_Nav_Menus {
 
 		if ( preg_match( '/^nav_menu_instance\[[0-9a-f]{32}\]$/', $partial_id ) ) {
 			if ( false === $partial_args ) {
-				$partial_args = array();
+				$partial_args = [];
 			}
 			$partial_args = array_merge(
 				$partial_args,
@@ -1373,7 +1373,7 @@ final class WP_Customize_Nav_Menus {
 	 * @return array Post IDs.
 	 */
 	public function sanitize_nav_menus_created_posts( $value ) {
-		$post_ids = array();
+		$post_ids = [];
 		foreach ( wp_parse_id_list( $value ) as $post_id ) {
 			if ( empty( $post_id ) ) {
 				continue;

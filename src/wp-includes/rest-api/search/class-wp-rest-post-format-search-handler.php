@@ -42,7 +42,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 		$format_strings = get_post_format_strings();
 		$format_slugs   = array_keys( $format_strings );
 
-		$query_args = array();
+		$query_args = [];
 
 		if ( ! empty( $request['search'] ) ) {
 			$query_args['search'] = $request['search'];
@@ -60,7 +60,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 		 */
 		$query_args = apply_filters( 'rest_post_format_search_query', $query_args, $request );
 
-		$found_ids = array();
+		$found_ids = [];
 		foreach ( $format_slugs as $index => $format_slug ) {
 			if ( ! empty( $query_args['search'] ) ) {
 				$format_string       = get_post_format_string( $format_slug );
@@ -103,7 +103,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	 *}
 	 */
 	public function prepare_item( $id, array $fields ) {
-		$data = array();
+		$data = [];
 
 		if ( in_array( WP_REST_Search_Controller::PROP_ID, $fields, true ) ) {
 			$data[ WP_REST_Search_Controller::PROP_ID ] = $id;
@@ -133,6 +133,6 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	 * @return array Links for the given item.
 	 */
 	public function prepare_item_links( $id ) {
-		return array();
+		return [];
 	}
 }

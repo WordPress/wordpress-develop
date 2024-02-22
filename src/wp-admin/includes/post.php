@@ -356,7 +356,7 @@ function edit_post( $post_data = null ) {
 	if ( 'attachment' === $post_data['post_type'] && preg_match( '#^(audio|video)/#', $post_data['post_mime_type'] ) ) {
 		$id3data = wp_get_attachment_metadata( $post_id );
 		if ( ! is_array( $id3data ) ) {
-			$id3data = array();
+			$id3data = [];
 		}
 
 		foreach ( wp_get_attachment_id3_keys( $post, 'edit' ) as $key => $label ) {
@@ -429,7 +429,7 @@ function edit_post( $post_data = null ) {
 			}
 		}
 
-		$attachment_data = isset( $post_data['attachments'][ $post_id ] ) ? $post_data['attachments'][ $post_id ] : array();
+		$attachment_data = isset( $post_data['attachments'][ $post_id ] ) ? $post_data['attachments'][ $post_id ] : [];
 
 		/** This filter is documented in wp-admin/includes/media.php */
 		$translated = apply_filters( 'attachment_fields_to_save', $translated, $attachment_data );
@@ -563,7 +563,7 @@ function bulk_edit_posts( $post_data = null ) {
 		}
 	}
 
-	$tax_input = array();
+	$tax_input = [];
 	if ( isset( $post_data['tax_input'] ) ) {
 		foreach ( $post_data['tax_input'] as $tax_name => $terms ) {
 			if ( empty( $terms ) ) {
@@ -585,7 +585,7 @@ function bulk_edit_posts( $post_data = null ) {
 	if ( isset( $post_data['post_parent'] ) && (int) $post_data['post_parent'] ) {
 		$parent   = (int) $post_data['post_parent'];
 		$pages    = $wpdb->get_results( "SELECT ID, post_parent FROM $wpdb->posts WHERE post_type = 'page'" );
-		$children = array();
+		$children = [];
 
 		for ( $i = 0; $i < 50 && $parent > 0; $i++ ) {
 			$children[] = $parent;
@@ -599,9 +599,9 @@ function bulk_edit_posts( $post_data = null ) {
 		}
 	}
 
-	$updated          = array();
-	$skipped          = array();
-	$locked           = array();
+	$updated          = [];
+	$skipped          = [];
+	$locked           = [];
 	$shared_post_data = $post_data;
 
 	foreach ( $post_ids as $post_id ) {
@@ -636,7 +636,7 @@ function bulk_edit_posts( $post_data = null ) {
 			if ( isset( $tax_input[ $tax_name ] ) && current_user_can( $taxonomy_obj->cap->assign_terms ) ) {
 				$new_terms = $tax_input[ $tax_name ];
 			} else {
-				$new_terms = array();
+				$new_terms = [];
 			}
 
 			if ( $taxonomy_obj->hierarchical ) {
@@ -657,7 +657,7 @@ function bulk_edit_posts( $post_data = null ) {
 			) {
 				$indeterminate_post_category = $post_data['indeterminate_post_category'];
 			} else {
-				$indeterminate_post_category = array();
+				$indeterminate_post_category = [];
 			}
 
 			$indeterminate_cats         = array_intersect( $cats, $indeterminate_post_category );
@@ -856,7 +856,7 @@ function post_exists( $title, $content = '', $date = '', $type = '', $status = '
 	$post_status  = wp_unslash( sanitize_post_field( 'post_status', $status, 0, 'db' ) );
 
 	$query = "SELECT ID FROM $wpdb->posts WHERE 1=1";
-	$args  = array();
+	$args  = [];
 
 	if ( ! empty( $date ) ) {
 		$query .= ' AND post_date = %s';
@@ -1825,7 +1825,7 @@ function _admin_notice_post_locked() {
 	<?php
 
 	if ( $locked ) {
-		$query_args = array();
+		$query_args = [];
 		if ( get_post_type_object( $post->post_type )->public ) {
 			if ( 'publish' === $post->post_status || $user->ID != $post->post_author ) {
 				// Latest content is in autosave.
@@ -2097,7 +2097,7 @@ function post_preview() {
 		wp_die( $saved_post_id->get_error_message() );
 	}
 
-	$query_args = array();
+	$query_args = [];
 
 	if ( $is_autosave && $saved_post_id ) {
 		$query_args['preview_id']    = $post->ID;
@@ -2255,7 +2255,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 		$terms = explode( ',', trim( $terms, " \n\t\r\0\x0B," ) );
 	}
 
-	$clean_terms = array();
+	$clean_terms = [];
 	foreach ( $terms as $term ) {
 		// Empty terms are invalid input.
 		if ( empty( $term ) ) {
@@ -2296,7 +2296,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
  */
 function get_block_editor_server_block_settings() {
 	$block_registry = WP_Block_Type_Registry::get_instance();
-	$blocks         = array();
+	$blocks         = [];
 	$fields_to_pick = array(
 		'api_version'      => 'apiVersion',
 		'title'            => 'title',
@@ -2326,7 +2326,7 @@ function get_block_editor_server_block_settings() {
 			}
 
 			if ( ! isset( $blocks[ $block_name ] ) ) {
-				$blocks[ $block_name ] = array();
+				$blocks[ $block_name ] = [];
 			}
 
 			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
@@ -2391,9 +2391,9 @@ function the_block_editor_meta_boxes() {
 	<?php endforeach; ?>
 	<?php
 
-	$meta_boxes_per_location = array();
+	$meta_boxes_per_location = [];
 	foreach ( $locations as $location ) {
-		$meta_boxes_per_location[ $location ] = array();
+		$meta_boxes_per_location[ $location ] = [];
 
 		if ( ! isset( $wp_meta_boxes[ $current_screen->id ][ $location ] ) ) {
 			continue;

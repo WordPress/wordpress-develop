@@ -99,7 +99,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 		}
 
 		if ( is_wp_error( $errors ) ) {
-			$messages = array();
+			$messages = [];
 			foreach ( $errors->get_error_messages() as $emessage ) {
 				if ( $errors->get_error_data() && is_string( $errors->get_error_data() ) ) {
 					$messages[] = $emessage . ' ' . esc_html( strip_tags( $errors->get_error_data() ) );

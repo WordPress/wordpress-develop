@@ -36,7 +36,7 @@ if ( isset( $_GET['action'] ) ) {
 		} elseif ( isset( $_POST['checked'] ) ) {
 			$plugins = (array) $_POST['checked'];
 		} else {
-			$plugins = array();
+			$plugins = [];
 		}
 
 		$plugins = array_map( 'urldecode', $plugins );
@@ -241,7 +241,7 @@ if ( isset( $_GET['action'] ) ) {
 		} elseif ( isset( $_POST['checked'] ) ) {
 			$themes = (array) $_POST['checked'];
 		} else {
-			$themes = array();
+			$themes = [];
 		}
 
 		$themes = array_map( 'urldecode', $themes );

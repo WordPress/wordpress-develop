@@ -174,7 +174,7 @@ function get_option( $option, $default_value = false ) {
 
 				// Prevent non-existent `notoptions` key from triggering multiple key lookups.
 				if ( ! is_array( $notoptions ) ) {
-					$notoptions = array();
+					$notoptions = [];
 					wp_cache_set( 'notoptions', $notoptions, 'options' );
 				} elseif ( isset( $notoptions[ $option ] ) ) {
 					/**
@@ -265,11 +265,11 @@ function wp_prime_option_caches( $options ) {
 	$cached_options = wp_cache_get_multiple( $options, 'options' );
 	$notoptions     = wp_cache_get( 'notoptions', 'options' );
 	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
+		$notoptions = [];
 	}
 
 	// Filter options that are not in the cache.
-	$options_to_prime = array();
+	$options_to_prime = [];
 	foreach ( $options as $option ) {
 		if (
 			( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] )
@@ -295,7 +295,7 @@ function wp_prime_option_caches( $options ) {
 		)
 	);
 
-	$options_found = array();
+	$options_found = [];
 	foreach ( $results as $result ) {
 		/*
 		 * The cache is primed with the raw value (i.e. not maybe_unserialized).
@@ -358,7 +358,7 @@ function wp_prime_option_caches_by_group( $option_group ) {
 function get_options( $options ) {
 	wp_prime_option_caches( $options );
 
-	$result = array();
+	$result = [];
 	foreach ( $options as $option ) {
 		$result[ $option ] = get_option( $option );
 	}
@@ -388,14 +388,14 @@ function wp_set_option_autoload_values( array $options ) {
 	global $wpdb;
 
 	if ( ! $options ) {
-		return array();
+		return [];
 	}
 
 	$grouped_options = array(
 		'yes' => array(),
 		'no'  => array(),
 	);
-	$results         = array();
+	$results         = [];
 	foreach ( $options as $option => $autoload ) {
 		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
 		if ( 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
@@ -406,8 +406,8 @@ function wp_set_option_autoload_values( array $options ) {
 		$results[ $option ] = false; // Initialize result value.
 	}
 
-	$where      = array();
-	$where_args = array();
+	$where      = [];
+	$where_args = [];
 	foreach ( $grouped_options as $autoload => $options ) {
 		if ( ! $options ) {
 			continue;
@@ -454,7 +454,7 @@ function wp_set_option_autoload_values( array $options ) {
 		);
 		if ( ! $success ) {
 			// Set option list to an empty array to indicate no options were updated.
-			$grouped_options[ $autoload ] = array();
+			$grouped_options[ $autoload ] = [];
 			continue;
 		}
 
@@ -612,7 +612,7 @@ function wp_load_alloptions( $force_cache = false ) {
 		}
 		$wpdb->suppress_errors( $suppress );
 
-		$alloptions = array();
+		$alloptions = [];
 		foreach ( (array) $alloptions_db as $o ) {
 			$alloptions[ $o->option_name ] = $o->option_value;
 		}
@@ -665,7 +665,7 @@ function wp_load_core_site_options( $network_id = null ) {
 	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
 
 	if ( wp_using_ext_object_cache() ) {
-		$cache_keys = array();
+		$cache_keys = [];
 		foreach ( $core_options as $option ) {
 			$cache_keys[] = "{$network_id}:{$option}";
 		}
@@ -677,7 +677,7 @@ function wp_load_core_site_options( $network_id = null ) {
 	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
 	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
 
-	$data = array();
+	$data = [];
 	foreach ( $options as $option ) {
 		$key                = $option->meta_key;
 		$cache_key          = "{$network_id}:$key";
@@ -1578,14 +1578,14 @@ function get_all_user_settings() {
 
 	$user_id = get_current_user_id();
 	if ( ! $user_id ) {
-		return array();
+		return [];
 	}
 
 	if ( isset( $_updated_user_settings ) && is_array( $_updated_user_settings ) ) {
 		return $_updated_user_settings;
 	}
 
-	$user_settings = array();
+	$user_settings = [];
 
 	if ( isset( $_COOKIE[ 'wp-settings-' . $user_id ] ) ) {
 		$cookie = preg_replace( '/[^A-Za-z0-9=&_-]/', '', $_COOKIE[ 'wp-settings-' . $user_id ] );
@@ -1828,7 +1828,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 				wp_cache_set( $cache_key, $value, 'site-options' );
 			} else {
 				if ( ! is_array( $notoptions ) ) {
-					$notoptions = array();
+					$notoptions = [];
 				}
 
 				$notoptions[ $option ] = true;
@@ -1841,7 +1841,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	}
 
 	if ( ! is_array( $notoptions ) ) {
-		$notoptions = array();
+		$notoptions = [];
 		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
 	}
 
@@ -2730,7 +2730,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	}
 
 	if ( ! is_array( $wp_registered_settings ) ) {
-		$wp_registered_settings = array();
+		$wp_registered_settings = [];
 	}
 
 	if ( 'misc' === $option_group ) {
@@ -2893,7 +2893,7 @@ function get_registered_settings() {
 	global $wp_registered_settings;
 
 	if ( ! is_array( $wp_registered_settings ) ) {
-		return array();
+		return [];
 	}
 
 	return $wp_registered_settings;

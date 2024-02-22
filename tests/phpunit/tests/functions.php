@@ -23,7 +23,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	public function test_wp_parse_args_array() {
 		// Arrays.
-		$a = array();
+		$a = [];
 		$this->assertSame( array(), wp_parse_args( $a ) );
 		$b = array(
 			'_baba' => 5,
@@ -1219,7 +1219,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 38164
 	 */
 	public function test_wp_generate_uuid4() {
-		$uuids = array();
+		$uuids = [];
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$uuid = wp_generate_uuid4();
 			$this->assertTrue( wp_is_uuid( $uuid, 4 ) );
@@ -1289,7 +1289,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_unique_id() {
 
 		// Test without prefix.
-		$ids = array();
+		$ids = [];
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id();
 			$this->assertIsString( $id );
@@ -1299,7 +1299,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $ids, array_unique( $ids ) );
 
 		// Test with prefix.
-		$ids = array();
+		$ids = [];
 		for ( $i = 0; $i < 20; $i += 1 ) {
 			$id = wp_unique_id( 'foo-' );
 			$this->assertMatchesRegularExpression( '/^foo-\d+$/', $id );

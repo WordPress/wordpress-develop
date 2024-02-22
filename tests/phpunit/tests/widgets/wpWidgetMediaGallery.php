@@ -57,7 +57,7 @@ class Tests_Widgets_wpWidgetMediaGallery extends WP_UnitTestCase {
 	public function test_render_media() {
 		$widget = new WP_Widget_Media_Gallery();
 
-		$attachments = array();
+		$attachments = [];
 		foreach ( array( 'canola.jpg', 'waffles.jpg' ) as $filename ) {
 			$test_image = get_temp_dir() . $filename;
 			copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );

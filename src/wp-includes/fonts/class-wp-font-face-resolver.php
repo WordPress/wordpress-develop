@@ -30,7 +30,7 @@ class WP_Font_Face_Resolver {
 
 		// Bail out early if there are no font settings.
 		if ( empty( $settings['typography']['fontFamilies'] ) ) {
-			return array();
+			return [];
 		}
 
 		return static::parse_settings( $settings );
@@ -45,7 +45,7 @@ class WP_Font_Face_Resolver {
 	 * @return array Returns an array of fonts, grouped by font-family.
 	 */
 	private static function parse_settings( array $settings ) {
-		$fonts = array();
+		$fonts = [];
 
 		foreach ( $settings['typography']['fontFamilies'] as $font_families ) {
 			foreach ( $font_families as $definition ) {
@@ -69,7 +69,7 @@ class WP_Font_Face_Resolver {
 
 				// Prepare the fonts array structure for this font-family.
 				if ( ! array_key_exists( $font_family_name, $fonts ) ) {
-					$fonts[ $font_family_name ] = array();
+					$fonts[ $font_family_name ] = [];
 				}
 
 				$fonts[ $font_family_name ] = static::convert_font_face_properties( $definition['fontFace'], $font_family_name );
@@ -108,7 +108,7 @@ class WP_Font_Face_Resolver {
 	 * @return array Converted font-face properties.
 	 */
 	private static function convert_font_face_properties( array $font_face_definition, $font_family_property ) {
-		$converted_font_faces = array();
+		$converted_font_faces = [];
 
 		foreach ( $font_face_definition as $font_face ) {
 			// Add the font-family property to the font-face.

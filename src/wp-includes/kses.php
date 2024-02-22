@@ -698,7 +698,7 @@ if ( ! CUSTOM_TAGS ) {
 		'allowedentitynames',
 		'allowedxmlentitynames',
 	);
-	$missing_kses_globals  = array();
+	$missing_kses_globals  = [];
 
 	foreach ( $required_kses_globals as $global_name ) {
 		if ( ! isset( $GLOBALS[ $global_name ] ) || ! is_array( $GLOBALS[ $global_name ] ) ) {
@@ -774,7 +774,7 @@ function wp_kses_one_attr( $attr, $element ) {
 	$attr              = wp_kses_no_null( $attr, array( 'slash_zero' => 'keep' ) );
 
 	// Preserve leading and trailing whitespace.
-	$matches = array();
+	$matches = [];
 	preg_match( '/^\s*/', $attr, $matches );
 	$lead = $matches[0];
 	preg_match( '/\s*$/', $attr, $matches );
@@ -1329,7 +1329,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  * @return array[] Array of attribute information after parsing.
  */
 function wp_kses_hair( $attr, $allowed_protocols ) {
-	$attrarr  = array();
+	$attrarr  = [];
 	$mode     = 0;
 	$attrname = '';
 	$uris     = wp_kses_uri_attributes();
@@ -1533,7 +1533,7 @@ function wp_kses_attr_parse( $element ) {
  */
 function wp_kses_hair_parse( $attr ) {
 	if ( '' === $attr ) {
-		return array();
+		return [];
 	}
 
 	$regex =
@@ -1774,11 +1774,11 @@ function wp_kses_stripslashes( $content ) {
  * @return array Fixed array with all lowercase keys.
  */
 function wp_kses_array_lc( $inarray ) {
-	$outarray = array();
+	$outarray = [];
 
 	foreach ( (array) $inarray as $inkey => $inval ) {
 		$outkey              = strtolower( $inkey );
-		$outarray[ $outkey ] = array();
+		$outarray[ $outkey ] = [];
 
 		foreach ( (array) $inval as $inkey2 => $inval2 ) {
 			$outkey2                         = strtolower( $inkey2 );
@@ -2668,7 +2668,7 @@ function _wp_add_global_attributes( $value ) {
 	);
 
 	if ( true === $value ) {
-		$value = array();
+		$value = [];
 	}
 
 	if ( is_array( $value ) ) {

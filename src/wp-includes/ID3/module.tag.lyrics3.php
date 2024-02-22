@@ -156,7 +156,7 @@ class getid3_lyrics3 extends getid3_handler
 		}
 		$rawdata = $this->fread($length);
 
-		$ParsedLyrics3 = array();
+		$ParsedLyrics3 = [];
 
 		$ParsedLyrics3['raw']['lyrics3version'] = $version;
 		$ParsedLyrics3['raw']['lyrics3tagsize'] = $length;
@@ -284,9 +284,9 @@ class getid3_lyrics3 extends getid3_handler
 	 */
 	public function Lyrics3LyricsTimestampParse(&$Lyrics3data) {
 		$lyricsarray = explode("\r\n", $Lyrics3data['raw']['LYR']);
-		$notimestamplyricsarray = array();
+		$notimestamplyricsarray = [];
 		foreach ($lyricsarray as $key => $lyricline) {
-			$regs = array();
+			$regs = [];
 			unset($thislinetimestamps);
 			while (preg_match('#^(\\[[0-9]{2}:[0-9]{2}\\])#', $lyricline, $regs)) {
 				$thislinetimestamps[] = $this->Lyrics3Timestamp2Seconds($regs[0]);

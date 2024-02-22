@@ -58,7 +58,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 
 	public function test_register_meta_back_compat_with_auth_and_sanitize_callback_has_old_style_filters() {
 		register_meta( 'post', 'flight_number', array( $this, '_old_sanitize_meta_cb' ), array( $this, '_old_auth_meta_cb' ) );
-		$has_filters             = array();
+		$has_filters             = [];
 		$has_filters['auth']     = has_filter( 'auth_post_meta_flight_number', array( $this, '_old_auth_meta_cb' ) );
 		$has_filters['sanitize'] = has_filter( 'sanitize_post_meta_flight_number', array( $this, '_old_sanitize_meta_cb' ) );
 		remove_filter( 'auth_post_meta_flight_number', array( $this, '_old_auth_meta_cb' ) );
@@ -354,7 +354,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$actual = $wp_meta_keys;
 
 		// Reset global so subsequent data tests do not get polluted.
-		$wp_meta_keys = array();
+		$wp_meta_keys = [];
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -372,7 +372,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$actual = $wp_meta_keys;
 
 		// Reset global so subsequent data tests do not get polluted.
-		$wp_meta_keys = array();
+		$wp_meta_keys = [];
 
 		$this->assertEmpty( $actual );
 	}
@@ -408,7 +408,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$actual = $wp_meta_keys;
 
 		// Reset global so subsequent data tests do not get polluted.
-		$wp_meta_keys = array();
+		$wp_meta_keys = [];
 
 		$this->assertSame( $expected, $actual );
 	}

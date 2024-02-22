@@ -158,7 +158,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	 * @return WP_HTTP_Cookie[] List of cookie objects.
 	 */
 	public function get_cookies() {
-		$cookies = array();
+		$cookies = [];
 		foreach ( $this->response->cookies as $cookie ) {
 			$cookies[] = new WP_Http_Cookie(
 				array(

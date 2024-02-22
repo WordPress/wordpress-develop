@@ -32,7 +32,7 @@ class Tests_Ajax_wpAjaxAjaxTagSearch extends WP_Ajax_UnitTestCase {
 		'impropriation',
 	);
 
-	private static $term_ids = array();
+	private static $term_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		foreach ( self::$terms as $t ) {

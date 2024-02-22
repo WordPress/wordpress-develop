@@ -779,7 +779,7 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 * @return array Export data response.
 	 */
 	public function callback_custom_personal_data_exporter( $email_address, $page = 1 ) {
-		$data_to_export = array();
+		$data_to_export = [];
 
 		if ( 1 === $page ) {
 			$data_to_export = array(

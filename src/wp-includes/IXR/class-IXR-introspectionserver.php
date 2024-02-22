@@ -134,7 +134,7 @@ class IXR_IntrospectionServer extends IXR_Server
         }
         // We should be returning an array of types
         $types = $this->signatures[$method];
-        $return = array();
+        $return = [];
         foreach ($types as $type) {
             switch ($type) {
                 case 'string':

@@ -52,7 +52,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * @since 5.0.0
 	 * @var WP_REST_Search_Handler[]
 	 */
-	protected $search_handlers = array();
+	protected $search_handlers = [];
 
 	/**
 	 * Constructor.
@@ -142,7 +142,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 
 		$ids = $result[ WP_REST_Search_Handler::RESULT_IDS ];
 
-		$results = array();
+		$results = [];
 
 		foreach ( $ids as $id ) {
 			$data      = $this->prepare_item_for_response( $id, $request );
@@ -234,8 +234,8 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			return $this->add_additional_fields_schema( $this->schema );
 		}
 
-		$types    = array();
-		$subtypes = array();
+		$types    = [];
+		$subtypes = [];
 
 		foreach ( $this->search_handlers as $search_handler ) {
 			$types[]  = $search_handler->get_type();
@@ -299,8 +299,8 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$types    = array();
-		$subtypes = array();
+		$types    = [];
+		$subtypes = [];
 
 		foreach ( $this->search_handlers as $search_handler ) {
 			$types[]  = $search_handler->get_type();

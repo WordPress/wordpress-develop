@@ -59,7 +59,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 	}
 
 	// Adding an existing user to this blog.
-	$new_user_email = array();
+	$new_user_email = [];
 	$redirect       = 'user-new.php';
 	$username       = $user_details->user_login;
 	$user_id        = $user_details->ID;
@@ -321,7 +321,7 @@ if ( is_multisite() && current_user_can( 'promote_users' ) && ! wp_is_large_netw
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['update'] ) ) {
-	$messages = array();
+	$messages = [];
 	if ( is_multisite() ) {
 		$edit_link = '';
 		if ( ( isset( $_GET['user_id'] ) ) ) {

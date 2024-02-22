@@ -12,10 +12,10 @@
 final class _WP_Editors {
 	public static $mce_locale;
 
-	private static $mce_settings = array();
-	private static $qt_settings  = array();
-	private static $plugins      = array();
-	private static $qt_buttons   = array();
+	private static $mce_settings = [];
+	private static $qt_settings  = [];
+	private static $plugins      = [];
+	private static $qt_buttons   = [];
 	private static $ext_plugins;
 	private static $baseurl;
 	private static $first_init;
@@ -486,7 +486,7 @@ final class _WP_Editors {
 						 */
 						$mce_external_languages = apply_filters( 'mce_external_languages', array(), $editor_id );
 
-						$loaded_langs = array();
+						$loaded_langs = [];
 						$strings      = '';
 
 						if ( ! empty( $mce_external_languages ) ) {
@@ -634,9 +634,9 @@ final class _WP_Editors {
 				 * @param string $editor_id   Unique editor identifier, e.g. 'content'.
 				 */
 				$mce_buttons   = apply_filters( 'teeny_mce_buttons', $mce_buttons, $editor_id );
-				$mce_buttons_2 = array();
-				$mce_buttons_3 = array();
-				$mce_buttons_4 = array();
+				$mce_buttons_2 = [];
+				$mce_buttons_3 = [];
+				$mce_buttons_4 = [];
 			} else {
 				$mce_buttons = array(
 					'formatselect',
@@ -1067,7 +1067,7 @@ final class _WP_Editors {
 	private static function default_settings() {
 		global $tinymce_version;
 
-		$shortcut_labels = array();
+		$shortcut_labels = [];
 
 		foreach ( self::get_translation() as $name => $value ) {
 			if ( is_array( $value ) ) {
@@ -1816,7 +1816,7 @@ final class _WP_Editors {
 		$posts     = $get_posts->query( $query );
 
 		// Build results.
-		$results = array();
+		$results = [];
 		foreach ( $posts as $post ) {
 			if ( 'post' === $post->post_type ) {
 				$info = mysql2date( __( 'Y/m/d' ), $post->post_date );

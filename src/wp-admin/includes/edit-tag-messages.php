@@ -7,7 +7,7 @@
  * @since 4.4.0
  */
 
-$messages = array();
+$messages = [];
 // 0 = unused. Messages start at index 1.
 $messages['_item'] = array(
 	0 => '',

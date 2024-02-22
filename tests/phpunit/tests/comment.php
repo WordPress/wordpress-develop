@@ -8,7 +8,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
-	protected $preprocess_comment_data = array();
+	protected $preprocess_comment_data = [];
 
 	public function set_up() {
 		parent::set_up();

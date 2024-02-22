@@ -45,7 +45,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	if ( ! is_object( $current ) ) {
 		$current                  = new stdClass();
-		$current->updates         = array();
+		$current->updates         = [];
 		$current->version_checked = $wp_version;
 	}
 
@@ -334,9 +334,9 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	$updates               = new stdClass();
 	$updates->last_checked = time();
-	$updates->response     = array();
-	$updates->translations = array();
-	$updates->no_update    = array();
+	$updates->response     = [];
+	$updates->translations = [];
+	$updates->no_update    = [];
 
 	$doing_cron = wp_doing_cron();
 
@@ -600,9 +600,9 @@ function wp_update_themes( $extra_stats = array() ) {
 		$last_update = new stdClass();
 	}
 
-	$themes  = array();
-	$checked = array();
-	$request = array();
+	$themes  = [];
+	$checked = [];
+	$request = [];
 
 	// Put slug of active theme into request.
 	$request['active'] = get_option( 'stylesheet' );
@@ -860,7 +860,7 @@ function wp_maybe_auto_update() {
  * @return object[] Array of translation objects that have available updates.
  */
 function wp_get_translation_updates() {
-	$updates    = array();
+	$updates    = [];
 	$transients = array(
 		'update_core'    => 'core',
 		'update_plugins' => 'plugin',
@@ -935,7 +935,7 @@ function wp_get_update_data() {
 	}
 
 	$counts['total'] = $counts['plugins'] + $counts['themes'] + $counts['wordpress'] + $counts['translations'];
-	$titles          = array();
+	$titles          = [];
 
 	if ( $counts['wordpress'] ) {
 		/* translators: %d: Number of available WordPress updates. */
@@ -1135,7 +1135,7 @@ function _wp_delete_all_temp_backups() {
 
 	$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade-temp-backup/';
 	$dirlist         = $wp_filesystem->dirlist( $temp_backup_dir );
-	$dirlist         = $dirlist ? $dirlist : array();
+	$dirlist         = $dirlist ? $dirlist : [];
 
 	foreach ( array_keys( $dirlist ) as $dir ) {
 		if ( '.' === $dir || '..' === $dir ) {

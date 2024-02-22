@@ -14,7 +14,7 @@
  */
 #[AllowDynamicProperties]
 class WP_Admin_Bar {
-	private $nodes = array();
+	private $nodes = [];
 	private $bound = false;
 	public $user;
 
@@ -26,7 +26,7 @@ class WP_Admin_Bar {
 	 *                   WP_Admin_Bar::add_node(), and WP_Admin_Bar::remove_node().
 	 * @var array
 	 */
-	public $menu = array();
+	public $menu = [];
 
 	/**
 	 * Initializes the admin bar.
@@ -327,7 +327,7 @@ class WP_Admin_Bar {
 
 		// Normalize nodes: define internal 'children' and 'type' properties.
 		foreach ( $this->_get_nodes() as $node ) {
-			$node->children = array();
+			$node->children = [];
 			$node->type     = ( $node->group ) ? 'group' : 'item';
 			unset( $node->group );
 

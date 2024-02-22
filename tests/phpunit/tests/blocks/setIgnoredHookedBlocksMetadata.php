@@ -86,7 +86,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 			'attrs'     => array(),
 		);
 
-		$hooked_blocks = array();
+		$hooked_blocks = [];
 
 		$filter = function ( $hooked_block_types, $relative_position, $anchor_block_type ) {
 			if ( 'tests/anchor-block' === $anchor_block_type && 'after' === $relative_position ) {

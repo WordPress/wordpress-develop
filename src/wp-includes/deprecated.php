@@ -522,7 +522,7 @@ function get_linkobjects($category = 0, $orderby = 'name', $limit = 0) {
 
 	$links = get_bookmarks( array( 'category' => $category, 'orderby' => $orderby, 'limit' => $limit ) ) ;
 
-	$links_array = array();
+	$links_array = [];
 	foreach ($links as $link)
 		$links_array[] = $link;
 
@@ -2133,7 +2133,7 @@ function register_sidebar_widget($name, $output_callback, $classname = '', ...$p
 	}
 
 	$id      = sanitize_title( $name );
-	$options = array();
+	$options = [];
 	if ( ! empty( $classname ) && is_string( $classname ) ) {
 		$options['classname'] = $classname;
 	}
@@ -2187,7 +2187,7 @@ function register_widget_control($name, $control_callback, $width = '', $height 
 	}
 
 	$id      = sanitize_title( $name );
-	$options = array();
+	$options = [];
 	if ( ! empty( $width ) ) {
 		$options['width'] = $width;
 	}
@@ -2296,7 +2296,7 @@ function get_usermeta( $user_id, $meta_key = '' ) {
 
 	if ( empty($metas) ) {
 		if ( empty($meta_key) )
-			return array();
+			return [];
 		else
 			return '';
 	}
@@ -2612,11 +2612,11 @@ function the_editor($content, $id = 'content', $prev_id = 'title', $media_button
 function get_user_metavalues($ids) {
 	_deprecated_function( __FUNCTION__, '3.3.0' );
 
-	$objects = array();
+	$objects = [];
 
 	$ids = array_map('intval', $ids);
 	foreach ( $ids as $id )
-		$objects[$id] = array();
+		$objects[$id] = [];
 
 	$metas = update_meta_cache('user', $ids);
 
@@ -2913,7 +2913,7 @@ function get_themes() {
 		return $wp_themes;
 
 	$themes = wp_get_themes();
-	$wp_themes = array();
+	$wp_themes = [];
 
 	foreach ( $themes as $theme ) {
 		$name = $theme->get('Name');
@@ -3040,7 +3040,7 @@ function remove_custom_image_header() {
  */
 function add_custom_background( $wp_head_callback = '', $admin_head_callback = '', $admin_preview_callback = '' ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'add_theme_support( \'custom-background\', $args )' );
-	$args = array();
+	$args = [];
 	if ( $wp_head_callback )
 		$args['wp-head-callback'] = $wp_head_callback;
 	if ( $admin_head_callback )
@@ -3680,7 +3680,7 @@ function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	if ( $red > 5 )
 		return false;
 
-	$options = array();
+	$options = [];
 	$options['redirection'] = 5;
 
 	if ( false == $file_path )
@@ -4397,10 +4397,10 @@ function wp_get_attachment_thumb_file( $post_id = 0 ) {
 function _get_path_to_translation( $domain, $reset = false ) {
 	_deprecated_function( __FUNCTION__, '6.1.0', 'WP_Textdomain_Registry' );
 
-	static $available_translations = array();
+	static $available_translations = [];
 
 	if ( true === $reset ) {
-		$available_translations = array();
+		$available_translations = [];
 	}
 
 	if ( ! isset( $available_translations[ $domain ] ) ) {
@@ -4430,7 +4430,7 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 	static $cached_mofiles = null;
 
 	if ( null === $cached_mofiles ) {
-		$cached_mofiles = array();
+		$cached_mofiles = [];
 
 		$locations = array(
 			WP_LANG_DIR . '/plugins',
@@ -4663,7 +4663,7 @@ function wlwmanifest_link() {
 function wp_queue_comments_for_comment_meta_lazyload( $comments ) {
 	_deprecated_function( __FUNCTION__, '6.3.0', 'wp_lazyload_comment_meta()' );
 	// Don't use `wp_list_pluck()` to avoid by-reference manipulation.
-	$comment_ids = array();
+	$comment_ids = [];
 	if ( is_array( $comments ) ) {
 		foreach ( $comments as $comment ) {
 			if ( $comment instanceof WP_Comment ) {
@@ -5426,7 +5426,7 @@ function _wp_theme_json_webfonts_handler() {
 	}
 
 	// Webfonts to be processed.
-	$registered_webfonts = array();
+	$registered_webfonts = [];
 
 	/**
 	 * Gets the webfonts from theme.json.
@@ -5450,13 +5450,13 @@ function _wp_theme_json_webfonts_handler() {
 
 				// Initialize the array structure.
 				if ( empty( $settings['typography'] ) ) {
-					$settings['typography'] = array();
+					$settings['typography'] = [];
 				}
 				if ( empty( $settings['typography']['fontFamilies'] ) ) {
-					$settings['typography']['fontFamilies'] = array();
+					$settings['typography']['fontFamilies'] = [];
 				}
 				if ( empty( $settings['typography']['fontFamilies']['theme'] ) ) {
-					$settings['typography']['fontFamilies']['theme'] = array();
+					$settings['typography']['fontFamilies']['theme'] = [];
 				}
 
 				// Combine variations with settings. Remove duplicates.
@@ -5467,10 +5467,10 @@ function _wp_theme_json_webfonts_handler() {
 
 		// Bail out early if there are no settings for webfonts.
 		if ( empty( $settings['typography']['fontFamilies'] ) ) {
-			return array();
+			return [];
 		}
 
-		$webfonts = array();
+		$webfonts = [];
 
 		// Look for fontFamilies.
 		foreach ( $settings['typography']['fontFamilies'] as $font_families ) {
@@ -5631,7 +5631,7 @@ function _wp_theme_json_webfonts_handler() {
 	 * @uses $fn_validate_webfont To run the function that validates each font-face (webfont) from theme.json.
 	 */
 	$fn_register_webfonts = static function() use ( &$registered_webfonts, $fn_get_webfonts_from_theme_json, $fn_convert_keys_to_kebab_case, $fn_validate_webfont, $fn_transform_src_into_uri ) {
-		$registered_webfonts = array();
+		$registered_webfonts = [];
 
 		foreach ( $fn_get_webfonts_from_theme_json() as $webfont ) {
 			if ( ! is_array( $webfont ) ) {
@@ -5662,8 +5662,8 @@ function _wp_theme_json_webfonts_handler() {
 	 * @return array Ordered `src` items.
 	 */
 	$fn_order_src = static function( array $webfont ) {
-		$src         = array();
-		$src_ordered = array();
+		$src         = [];
+		$src_ordered = [];
 
 		foreach ( $webfont['src'] as $url ) {
 			// Add data URIs first.

@@ -100,7 +100,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$data = array();
+		$data = [];
 
 		foreach ( get_registered_nav_menus() as $name => $description ) {
 			$location              = new stdClass();
@@ -174,7 +174,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'name', $fields ) ) {
 			$data['name'] = $location->name;

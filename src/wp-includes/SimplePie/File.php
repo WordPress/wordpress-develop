@@ -57,7 +57,7 @@ class SimplePie_File
 	var $url;
 	var $useragent;
 	var $success = true;
-	var $headers = array();
+	var $headers = [];
 	var $body;
 	var $status_code;
 	var $redirects = 0;
@@ -85,13 +85,13 @@ class SimplePie_File
 			}
 			if (!is_array($headers))
 			{
-				$headers = array();
+				$headers = [];
 			}
 			if (!$force_fsockopen && function_exists('curl_exec'))
 			{
 				$this->method = SIMPLEPIE_FILE_SOURCE_REMOTE | SIMPLEPIE_FILE_SOURCE_CURL;
 				$fp = curl_init();
-				$headers2 = array();
+				$headers2 = [];
 				foreach ($headers as $key => $value)
 				{
 					$headers2[] = "$key: $value";

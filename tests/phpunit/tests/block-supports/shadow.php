@@ -82,7 +82,7 @@ class Test_Block_Supports_Shadow extends WP_UnitTestCase {
 		);
 
 		$actual   = wp_apply_spacing_support( $block_type, $block_atts );
-		$expected = array();
+		$expected = [];
 
 		$this->assertSame( $expected, $actual );
 	}

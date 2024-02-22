@@ -813,7 +813,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 		$preferred_format = 'php';
 	}
 
-	$translation_files = array();
+	$translation_files = [];
 
 	if ( 'mo' !== $preferred_format ) {
 		$translation_files[] = substr_replace( $mofile, ".l10n.$preferred_format", - strlen( '.mo' ) );
@@ -1453,7 +1453,7 @@ function translate_user_role( $name, $domain = 'default' ) {
 function get_available_languages( $dir = null ) {
 	global $wp_textdomain_registry;
 
-	$languages = array();
+	$languages = [];
 
 	$path       = is_null( $dir ) ? WP_LANG_DIR : $dir;
 	$lang_files = $wp_textdomain_registry->get_language_files_from_path( $path );
@@ -1494,25 +1494,25 @@ function get_available_languages( $dir = null ) {
  */
 function wp_get_installed_translations( $type ) {
 	if ( 'themes' !== $type && 'plugins' !== $type && 'core' !== $type ) {
-		return array();
+		return [];
 	}
 
 	$dir = 'core' === $type ? '' : "/$type";
 
 	if ( ! is_dir( WP_LANG_DIR ) ) {
-		return array();
+		return [];
 	}
 
 	if ( $dir && ! is_dir( WP_LANG_DIR . $dir ) ) {
-		return array();
+		return [];
 	}
 
 	$files = scandir( WP_LANG_DIR . $dir );
 	if ( ! $files ) {
-		return array();
+		return [];
 	}
 
-	$language_data = array();
+	$language_data = [];
 
 	foreach ( $files as $file ) {
 		if ( '.' === $file[0] || is_dir( WP_LANG_DIR . "$dir/$file" ) ) {
@@ -1632,7 +1632,7 @@ function wp_dropdown_languages( $args = array() ) {
 	 * $parsed_args['languages'] should only contain the locales. Find the locale in
 	 * $translations to get the native name. Fall back to locale.
 	 */
-	$languages = array();
+	$languages = [];
 	foreach ( $parsed_args['languages'] as $locale ) {
 		if ( isset( $translations[ $locale ] ) ) {
 			$translation = $translations[ $locale ];
@@ -1656,7 +1656,7 @@ function wp_dropdown_languages( $args = array() ) {
 	$translations_available = ( ! empty( $translations ) && $parsed_args['show_available_translations'] );
 
 	// Holds the HTML markup.
-	$structure = array();
+	$structure = [];
 
 	// List installed languages.
 	if ( $translations_available ) {
@@ -1862,7 +1862,7 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 		return translate_with_gettext_context( $settings, $i18n_schema, $textdomain );
 	}
 	if ( is_array( $i18n_schema ) && is_array( $settings ) ) {
-		$translated_settings = array();
+		$translated_settings = [];
 		foreach ( $settings as $value ) {
 			$translated_settings[] = translate_settings_using_i18n_schema( $i18n_schema[0], $value, $textdomain );
 		}
@@ -1870,7 +1870,7 @@ function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdom
 	}
 	if ( is_object( $i18n_schema ) && is_array( $settings ) ) {
 		$group_key           = '*';
-		$translated_settings = array();
+		$translated_settings = [];
 		foreach ( $settings as $key => $value ) {
 			if ( isset( $i18n_schema->$key ) ) {
 				$translated_settings[ $key ] = translate_settings_using_i18n_schema( $i18n_schema->$key, $value, $textdomain );

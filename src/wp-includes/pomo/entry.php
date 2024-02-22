@@ -24,11 +24,11 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		public $context             = null;
 		public $singular            = null;
 		public $plural              = null;
-		public $translations        = array();
+		public $translations        = [];
 		public $translator_comments = '';
 		public $extracted_comments  = '';
-		public $references          = array();
-		public $flags               = array();
+		public $references          = [];
+		public $flags               = [];
 
 		/**
 		 * @param array $args {
@@ -62,13 +62,13 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 				$this->is_plural = true;
 			}
 			if ( ! is_array( $this->translations ) ) {
-				$this->translations = array();
+				$this->translations = [];
 			}
 			if ( ! is_array( $this->references ) ) {
-				$this->references = array();
+				$this->references = [];
 			}
 			if ( ! is_array( $this->flags ) ) {
-				$this->flags = array();
+				$this->flags = [];
 			}
 		}
 

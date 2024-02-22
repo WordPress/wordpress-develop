@@ -6,7 +6,7 @@
 class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 
 	public function test_invalid_username_password() {
-		$post   = array();
+		$post   = [];
 		$result = $this->myxmlrpcserver->mw_editPost( array( 1, 'username', 'password', $post ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );

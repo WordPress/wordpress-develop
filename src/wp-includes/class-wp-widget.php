@@ -447,7 +447,7 @@ class WP_Widget {
 				$new_instance = stripslashes_deep( $new_instance );
 				$this->_set( $number );
 
-				$old_instance = isset( $all_instances[ $number ] ) ? $all_instances[ $number ] : array();
+				$old_instance = isset( $all_instances[ $number ] ) ? $all_instances[ $number ] : [];
 
 				$was_cache_addition_suspended = wp_suspend_cache_addition();
 				if ( $this->is_preview() && ! $was_cache_addition_suspended ) {
@@ -511,7 +511,7 @@ class WP_Widget {
 		if ( -1 === $widget_args['number'] ) {
 			// We echo out a form where 'number' can be set later.
 			$this->_set( '__i__' );
-			$instance = array();
+			$instance = [];
 		} else {
 			$this->_set( $widget_args['number'] );
 			$instance = $all_instances[ $widget_args['number'] ];
@@ -613,7 +613,7 @@ class WP_Widget {
 		$settings = get_option( $this->option_name );
 
 		if ( false === $settings ) {
-			$settings = array();
+			$settings = [];
 			if ( isset( $this->alt_option_name ) ) {
 				// Get settings from alternative (legacy) option.
 				$settings = get_option( $this->alt_option_name, array() );
@@ -626,7 +626,7 @@ class WP_Widget {
 		}
 
 		if ( ! is_array( $settings ) && ! ( $settings instanceof ArrayObject || $settings instanceof ArrayIterator ) ) {
-			$settings = array();
+			$settings = [];
 		}
 
 		if ( ! empty( $settings ) && ! isset( $settings['_multiwidget'] ) ) {

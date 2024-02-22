@@ -37,7 +37,7 @@ function get_header( $name = null, $args = array() ) {
 	 */
 	do_action( 'get_header', $name, $args );
 
-	$templates = array();
+	$templates = [];
 	$name      = (string) $name;
 	if ( '' !== $name ) {
 		$templates[] = "header-{$name}.php";
@@ -81,7 +81,7 @@ function get_footer( $name = null, $args = array() ) {
 	 */
 	do_action( 'get_footer', $name, $args );
 
-	$templates = array();
+	$templates = [];
 	$name      = (string) $name;
 	if ( '' !== $name ) {
 		$templates[] = "footer-{$name}.php";
@@ -125,7 +125,7 @@ function get_sidebar( $name = null, $args = array() ) {
 	 */
 	do_action( 'get_sidebar', $name, $args );
 
-	$templates = array();
+	$templates = [];
 	$name      = (string) $name;
 	if ( '' !== $name ) {
 		$templates[] = "sidebar-{$name}.php";
@@ -181,7 +181,7 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 */
 	do_action( "get_template_part_{$slug}", $slug, $name, $args );
 
-	$templates = array();
+	$templates = [];
 	$name      = (string) $name;
 	if ( '' !== $name ) {
 		$templates[] = "{$slug}-{$name}.php";
@@ -264,7 +264,7 @@ function get_search_form( $args = array() ) {
 		$echo = (bool) $args;
 
 		// Set an empty array and allow default arguments to take over.
-		$args = array();
+		$args = [];
 	}
 
 	// Defaults are to echo and to output no custom label on the form.
@@ -414,7 +414,7 @@ function wp_loginout( $redirect = '', $display = true ) {
  * @return string The logout URL. Note: HTML-encoded via esc_html() in wp_nonce_url().
  */
 function wp_logout_url( $redirect = '' ) {
-	$args = array();
+	$args = [];
 	if ( ! empty( $redirect ) ) {
 		$args['redirect_to'] = urlencode( $redirect );
 	}
@@ -2250,7 +2250,7 @@ function get_calendar( $initial = true, $display = true ) {
 	}
 
 	if ( ! is_array( $cache ) ) {
-		$cache = array();
+		$cache = [];
 	}
 
 	// Quick check. If we have no posts at all, abort!
@@ -2323,7 +2323,7 @@ function get_calendar( $initial = true, $display = true ) {
 	<thead>
 	<tr>';
 
-	$myweek = array();
+	$myweek = [];
 
 	for ( $wdcount = 0; $wdcount <= 6; $wdcount++ ) {
 		$myweek[] = $wp_locale->get_weekday( ( $wdcount + $week_begins ) % 7 );
@@ -2341,7 +2341,7 @@ function get_calendar( $initial = true, $display = true ) {
 	<tbody>
 	<tr>';
 
-	$daywithpost = array();
+	$daywithpost = [];
 
 	// Get days with posts.
 	$dayswithposts = $wpdb->get_results(
@@ -3403,7 +3403,7 @@ function wp_site_icon() {
 		return;
 	}
 
-	$meta_tags = array();
+	$meta_tags = [];
 	$icon_32   = get_site_icon_url( 32 );
 	if ( empty( $icon_32 ) && is_customize_preview() ) {
 		$icon_32 = '/favicon.ico'; // Serve default favicon URL in customizer so element can be updated for preview.
@@ -3460,7 +3460,7 @@ function wp_resource_hints() {
 	);
 
 	foreach ( $hints as $relation_type => $urls ) {
-		$unique_urls = array();
+		$unique_urls = [];
 
 		/**
 		 * Filters domains and URLs for resource hints of the given relation type.
@@ -3489,7 +3489,7 @@ function wp_resource_hints() {
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
 		foreach ( $urls as $key => $url ) {
-			$atts = array();
+			$atts = [];
 
 			if ( is_array( $url ) ) {
 				if ( isset( $url['href'] ) ) {
@@ -3603,7 +3603,7 @@ function wp_preload_resources() {
 		return;
 	}
 
-	$unique_resources = array();
+	$unique_resources = [];
 
 	// Parse the complete resource list and extract unique resources.
 	foreach ( $preload_resources as $resource ) {
@@ -3685,7 +3685,7 @@ function wp_preload_resources() {
 function wp_dependencies_unique_hosts() {
 	global $wp_scripts, $wp_styles;
 
-	$unique_hosts = array();
+	$unique_hosts = [];
 
 	foreach ( array( $wp_scripts, $wp_styles ) as $dependencies ) {
 		if ( $dependencies instanceof WP_Dependencies && ! empty( $dependencies->queue ) ) {
@@ -4338,7 +4338,7 @@ function the_search_query() {
  * @return string A space-separated list of language attributes.
  */
 function get_language_attributes( $doctype = 'html' ) {
-	$attributes = array();
+	$attributes = [];
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
 		$attributes[] = 'dir="rtl"';
@@ -4503,7 +4503,7 @@ function paginate_links( $args = '' ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	if ( ! is_array( $args['add_args'] ) ) {
-		$args['add_args'] = array();
+		$args['add_args'] = [];
 	}
 
 	// Merge additional query vars found in the original URL into 'add_args' array.
@@ -4541,7 +4541,7 @@ function paginate_links( $args = '' ) {
 
 	$add_args   = $args['add_args'];
 	$r          = '';
-	$page_links = array();
+	$page_links = [];
 	$dots       = false;
 
 	if ( $args['prev_next'] && $current && 1 < $current ) :
@@ -4675,7 +4675,7 @@ function wp_admin_css_color( $key, $name, $url, $colors = array(), $icons = arra
 	global $_wp_admin_css_colors;
 
 	if ( ! isset( $_wp_admin_css_colors ) ) {
-		$_wp_admin_css_colors = array();
+		$_wp_admin_css_colors = [];
 	}
 
 	$_wp_admin_css_colors[ $key ] = (object) array(

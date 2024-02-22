@@ -205,7 +205,7 @@ function wp_register_layout_support( $block_type ) {
 	$support_layout = block_has_support( $block_type, 'layout', false ) || block_has_support( $block_type, '__experimentalLayout', false );
 	if ( $support_layout ) {
 		if ( ! $block_type->attributes ) {
-			$block_type->attributes = array();
+			$block_type->attributes = [];
 		}
 
 		if ( ! array_key_exists( 'layout', $block_type->attributes ) ) {
@@ -236,7 +236,7 @@ function wp_register_layout_support( $block_type ) {
  */
 function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false, $gap_value = null, $should_skip_gap_serialization = false, $fallback_gap_value = '0.5em', $block_spacing = null ) {
 	$layout_type   = isset( $layout['type'] ) ? $layout['type'] : 'default';
-	$layout_styles = array();
+	$layout_styles = [];
 
 	if ( 'default' === $layout_type ) {
 		if ( $has_block_gap_support ) {
@@ -561,12 +561,12 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$outer_class_names = array();
+	$outer_class_names = [];
 
 	if ( 'fixed' === $layout_from_parent || 'fill' === $layout_from_parent ) {
 		$container_content_class = wp_unique_id( 'wp-container-content-' );
 
-		$child_layout_styles = array();
+		$child_layout_styles = [];
 
 		if ( 'fixed' === $layout_from_parent && isset( $block['attrs']['style']['layout']['flexSize'] ) ) {
 			$child_layout_styles[] = array(
@@ -623,15 +623,15 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$global_settings = wp_get_global_settings();
 	$fallback_layout = isset( $block_type->supports['layout']['default'] )
 		? $block_type->supports['layout']['default']
-		: array();
+		: [];
 	if ( empty( $fallback_layout ) ) {
 		$fallback_layout = isset( $block_type->supports['__experimentalLayout']['default'] )
 			? $block_type->supports['__experimentalLayout']['default']
-			: array();
+			: [];
 	}
 	$used_layout = isset( $block['attrs']['layout'] ) ? $block['attrs']['layout'] : $fallback_layout;
 
-	$class_names        = array();
+	$class_names        = [];
 	$layout_definitions = wp_get_layout_definitions();
 
 	/*
@@ -891,7 +891,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	 * This filter runs after the layout classnames have been added to the block, so they
 	 * have to be removed from the outer wrapper and then added to the inner.
 	 */
-	$layout_classes = array();
+	$layout_classes = [];
 	$processor      = new WP_HTML_Tag_Processor( $block_content );
 
 	if ( $processor->next_tag( array( 'class_name' => 'wp-block-group' ) ) ) {

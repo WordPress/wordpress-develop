@@ -63,7 +63,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * @since 4.9.0
 		 * @var array $tokens List of tokens.
 		 */
-		protected $tokens = array();
+		protected $tokens = [];
 
 		/**
 		 * Cache for repeated calls to the function.
@@ -71,7 +71,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * @since 4.9.0
 		 * @var array $cache Map of $n => $result
 		 */
-		protected $cache = array();
+		protected $cache = [];
 
 		/**
 		 * Constructor.
@@ -101,8 +101,8 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 			$len = strlen( $str );
 
 			// Convert infix operators to postfix using the shunting-yard algorithm.
-			$output = array();
-			$stack  = array();
+			$output = [];
+			$stack  = [];
 			while ( $pos < $len ) {
 				$next = substr( $str, $pos, 1 );
 
@@ -259,7 +259,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * @return int Plural form value.
 		 */
 		public function execute( $n ) {
-			$stack = array();
+			$stack = [];
 			$i     = 0;
 			$total = count( $this->tokens );
 			while ( $i < $total ) {

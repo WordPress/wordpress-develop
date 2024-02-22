@@ -99,7 +99,7 @@ class WP_Duotone {
 	 *
 	 * @var array
 	 */
-	private static $used_global_styles_presets = array();
+	private static $used_global_styles_presets = [];
 
 	/**
 	 * All of the duotone filter data for SVGs on the page. Includes both
@@ -124,7 +124,7 @@ class WP_Duotone {
 	 *
 	 * @var array
 	 */
-	private static $used_svg_filter_data = array();
+	private static $used_svg_filter_data = [];
 
 	/**
 	 * All of the block CSS declarations for styles on the page.
@@ -146,7 +146,7 @@ class WP_Duotone {
 	 *
 	 * @var array
 	 */
-	private static $block_css_declarations = array();
+	private static $block_css_declarations = [];
 
 	/**
 	 * Clamps a value between an upper and lower bound.
@@ -843,7 +843,7 @@ class WP_Duotone {
 		// Build the CSS selectors to which the filter will be applied.
 		$selectors = explode( ',', $duotone_selector );
 
-		$selectors_scoped = array();
+		$selectors_scoped = [];
 		foreach ( $selectors as $selector_part ) {
 			/*
 			 * Assuming the selector part is a subclass selector (not a tag name)
@@ -927,7 +927,7 @@ class WP_Duotone {
 		 */
 		if ( block_has_support( $block_type, array( 'filter', 'duotone' ), null ) ) {
 			if ( ! $block_type->attributes ) {
-				$block_type->attributes = array();
+				$block_type->attributes = [];
 			}
 
 			if ( ! array_key_exists( 'style', $block_type->attributes ) ) {
@@ -1002,9 +1002,9 @@ class WP_Duotone {
 		}
 		// Get the per block settings from the theme.json.
 		$tree              = wp_get_global_settings();
-		$presets_by_origin = isset( $tree['color']['duotone'] ) ? $tree['color']['duotone'] : array();
+		$presets_by_origin = isset( $tree['color']['duotone'] ) ? $tree['color']['duotone'] : [];
 
-		self::$global_styles_presets = array();
+		self::$global_styles_presets = [];
 		foreach ( $presets_by_origin as $presets ) {
 			foreach ( $presets as $preset ) {
 				$filter_id = self::get_filter_id( _wp_to_kebab_case( $preset['slug'] ) );
@@ -1035,7 +1035,7 @@ class WP_Duotone {
 		$block_nodes = $tree->get_styles_block_nodes();
 		$theme_json  = $tree->get_raw_data();
 
-		self::$global_styles_block_names = array();
+		self::$global_styles_block_names = [];
 
 		foreach ( $block_nodes as $block_node ) {
 			// This block definition doesn't include any duotone settings. Skip it.
@@ -1227,7 +1227,7 @@ class WP_Duotone {
 		$global_styles_presets = self::get_all_global_styles_presets();
 		if ( ! empty( $global_styles_presets ) ) {
 			if ( ! isset( $settings['styles'] ) ) {
-				$settings['styles'] = array();
+				$settings['styles'] = [];
 			}
 
 			$settings['styles'][] = array(

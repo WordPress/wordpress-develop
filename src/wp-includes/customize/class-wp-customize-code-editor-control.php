@@ -39,7 +39,7 @@ class WP_Customize_Code_Editor_Control extends WP_Customize_Control {
 	 * @since 4.9.0
 	 * @var array|false
 	 */
-	public $editor_settings = array();
+	public $editor_settings = [];
 
 	/**
 	 * Enqueue control related scripts/styles.

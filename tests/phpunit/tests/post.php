@@ -9,7 +9,7 @@ class Tests_Post extends WP_UnitTestCase {
 	protected static $editor_id;
 	protected static $grammarian_id;
 
-	private $post_ids = array();
+	private $post_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );

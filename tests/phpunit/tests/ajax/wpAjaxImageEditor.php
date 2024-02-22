@@ -94,7 +94,7 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 
 		$file_path = dirname( get_attached_file( $id ) );
 
-		$files_that_should_not_exist = array();
+		$files_that_should_not_exist = [];
 
 		foreach ( $sizes1 as $key => $size ) {
 			if ( $sizes2[ $key ]['file'] !== $size['file'] ) {

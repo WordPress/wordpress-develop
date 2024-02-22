@@ -101,7 +101,7 @@ class Tests_Block_Supports_Colors extends WP_UnitTestCase {
 		);
 
 		$actual   = wp_apply_colors_support( $block_type, $block_atts );
-		$expected = array();
+		$expected = [];
 
 		$this->assertSame( $expected, $actual );
 	}

@@ -259,12 +259,12 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		}
 
 		// Headers.
-		$cc       = array();
-		$bcc      = array();
-		$reply_to = array();
+		$cc       = [];
+		$bcc      = [];
+		$reply_to = [];
 
 		if ( empty( $headers ) ) {
-			$headers = array();
+			$headers = [];
 		} else {
 			if ( ! is_array( $headers ) ) {
 				/*
@@ -275,7 +275,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			} else {
 				$tempheaders = $headers;
 			}
-			$headers = array();
+			$headers = [];
 
 			// If it's actually got contents.
 			if ( ! empty( $tempheaders ) ) {
@@ -1656,7 +1656,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		$author = get_userdata( $post->post_author );
 
 		// Who to notify? By default, just the post author, but others can be added.
-		$emails = array();
+		$emails = [];
 		if ( $author ) {
 			$emails[] = $author->user_email;
 		}
@@ -2422,7 +2422,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 	 * @return string Salt value
 	 */
 	function wp_salt( $scheme = 'auth' ) {
-		static $cached_salts = array();
+		static $cached_salts = [];
 		if ( isset( $cached_salts[ $scheme ] ) ) {
 			/**
 			 * Filters the WordPress salt.
@@ -2869,7 +2869,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		);
 
 		if ( empty( $args ) ) {
-			$args = array();
+			$args = [];
 		}
 
 		$args['size']    = (int) $size;

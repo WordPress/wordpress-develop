@@ -22,7 +22,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 * @var array
 	 */
-	protected $links = array();
+	protected $links = [];
 
 	/**
 	 * The route that was to create the response.
@@ -57,7 +57,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
-			$this->links[ $rel ] = array();
+			$this->links[ $rel ] = [];
 		}
 
 		if ( isset( $attributes['href'] ) ) {
@@ -88,7 +88,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		if ( $href ) {
 			$this->links[ $rel ] = wp_list_filter( $this->links[ $rel ], array( 'href' => $href ), 'NOT' );
 		} else {
-			$this->links[ $rel ] = array();
+			$this->links[ $rel ] = [];
 		}
 
 		if ( ! $this->links[ $rel ] ) {

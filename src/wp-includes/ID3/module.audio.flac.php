@@ -74,7 +74,7 @@ class getid3_flac extends getid3_handler
 				break;
 			}
 
-			$info['flac'][$BlockTypeText]['raw'] = array();
+			$info['flac'][$BlockTypeText]['raw'] = [];
 			$BlockTypeText_raw = &$info['flac'][$BlockTypeText]['raw'];
 
 			$BlockTypeText_raw['offset']          = $BlockOffset;
@@ -149,9 +149,9 @@ class getid3_flac extends getid3_handler
 			foreach ($info['flac']['PICTURE'] as $entry) {
 				if (!empty($entry['data'])) {
 					if (!isset($info['flac']['comments']['picture'])) {
-						$info['flac']['comments']['picture'] = array();
+						$info['flac']['comments']['picture'] = [];
 					}
-					$comments_picture_data = array();
+					$comments_picture_data = [];
 					foreach (array('data', 'image_mime', 'image_width', 'image_height', 'imagetype', 'picturetype', 'description', 'datalength') as $picture_key) {
 						if (isset($entry[$picture_key])) {
 							$comments_picture_data[$picture_key] = $entry[$picture_key];
@@ -214,7 +214,7 @@ class getid3_flac extends getid3_handler
 	 * @return array
 	 */
 	public static function parseSTREAMINFOdata($BlockData) {
-		$streaminfo = array();
+		$streaminfo = [];
 		$streaminfo['min_block_size']  = getid3_lib::BigEndian2Int(substr($BlockData, 0, 2));
 		$streaminfo['max_block_size']  = getid3_lib::BigEndian2Int(substr($BlockData, 2, 2));
 		$streaminfo['min_frame_size']  = getid3_lib::BigEndian2Int(substr($BlockData, 4, 3));
@@ -402,7 +402,7 @@ class getid3_flac extends getid3_handler
 	public function parsePICTURE() {
 		$info = &$this->getid3->info;
 
-		$picture = array();
+		$picture = [];
 		$picture['typeid']         = getid3_lib::BigEndian2Int($this->fread(4));
 		$picture['picturetype']    = self::pictureTypeLookup($picture['typeid']);
 		$picture['image_mime']     = $this->fread(getid3_lib::BigEndian2Int($this->fread(4)));

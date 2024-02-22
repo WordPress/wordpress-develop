@@ -76,7 +76,7 @@ function wp_create_category( $cat_name, $category_parent = 0 ) {
  * @return int[] Array of IDs of categories assigned to the given post.
  */
 function wp_create_categories( $categories, $post_id = '' ) {
-	$cat_ids = array();
+	$cat_ids = [];
 	foreach ( $categories as $category ) {
 		$id = category_exists( $category );
 		if ( $id ) {
@@ -275,7 +275,7 @@ function get_terms_to_edit( $post_id, $taxonomy = 'post_tag' ) {
 	if ( is_wp_error( $terms ) ) {
 		return $terms;
 	}
-	$term_names = array();
+	$term_names = [];
 	foreach ( $terms as $term ) {
 		$term_names[] = $term->name;
 	}

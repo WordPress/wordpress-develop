@@ -21,7 +21,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 			'test_option2' => 'value2',
 		);
 
-		$expected = array();
+		$expected = [];
 		foreach ( $options as $option => $value ) {
 			add_option( $option, $value, '', 'no' );
 			$expected[ $option ] = true;
@@ -50,7 +50,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 			'test_option2' => 'value2',
 		);
 
-		$expected = array();
+		$expected = [];
 		foreach ( $options as $option => $value ) {
 			add_option( $option, $value, '', 'yes' );
 			$expected[ $option ] = true;
@@ -78,7 +78,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 			'test_option2' => 'value2',
 		);
 
-		$expected = array();
+		$expected = [];
 		foreach ( $options as $option => $value ) {
 			add_option( $option, $value, '', 'yes' );
 			$expected[ $option ] = false;
@@ -103,7 +103,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 			'test_option2',
 		);
 
-		$expected = array();
+		$expected = [];
 		foreach ( $options as $option ) {
 			$expected[ $option ] = false;
 		}

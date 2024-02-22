@@ -54,19 +54,19 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 		// Unregister all widgets and sidebars.
 		global $wp_registered_sidebars, $_wp_sidebars_widgets;
-		$wp_registered_sidebars = array();
-		$_wp_sidebars_widgets   = array();
+		$wp_registered_sidebars = [];
+		$_wp_sidebars_widgets   = [];
 		update_option( 'sidebars_widgets', array() );
 	}
 
 	public function clean_up_global_scope() {
 		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
 
-		$wp_registered_sidebars        = array();
-		$wp_registered_widgets         = array();
-		$wp_registered_widget_controls = array();
-		$wp_registered_widget_updates  = array();
-		$wp_widget_factory->widgets    = array();
+		$wp_registered_sidebars        = [];
+		$wp_registered_widgets         = [];
+		$wp_registered_widget_controls = [];
+		$wp_registered_widget_updates  = [];
+		$wp_widget_factory->widgets    = [];
 
 		parent::clean_up_global_scope();
 	}

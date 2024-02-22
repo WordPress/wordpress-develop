@@ -47,7 +47,7 @@ class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
 			1
 		);
 
-		$mailer->mock_sent = array();
+		$mailer->mock_sent = [];
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		update_option_new_admin_email( 'old@example.com', 'new@example.com' );

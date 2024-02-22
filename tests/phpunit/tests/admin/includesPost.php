@@ -10,7 +10,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	protected static $admin_id;
 	protected static $post_id;
 
-	protected static $user_ids = array();
+	protected static $user_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids   = $factory->user->create_many( 2, array( 'role' => 'author' ) );
@@ -30,7 +30,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		wp_set_current_user( self::$contributor_id );
 
 		// Create new draft post.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
 		$_post_data['saveasdraft'] = true;
@@ -41,7 +41,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'draft', $_results['post_status'] );
 
 		// Submit post for approval.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
 		$_post_data['publish']     = true;
@@ -52,7 +52,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'pending', $_results['post_status'] );
 
 		// Create new draft post for another user.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
 		$_post_data['saveasdraft'] = true;
@@ -63,7 +63,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
 
 		// Edit draft post for another user.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_ID']     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
@@ -80,7 +80,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		wp_set_current_user( self::$editor_id );
 
 		// Create new draft post.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
 		$_post_data['saveasdraft'] = true;
@@ -91,7 +91,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'draft', $_results['post_status'] );
 
 		// Publish post.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_author'] = self::$editor_id;
 		$_post_data['post_type']   = 'post';
 		$_post_data['publish']     = true;
@@ -102,7 +102,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'publish', $_results['post_status'] );
 
 		// Create new draft post for another user.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';
 		$_post_data['saveasdraft'] = true;
@@ -113,7 +113,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertSame( 'draft', $_results['post_status'] );
 
 		// Edit draft post for another user.
-		$_post_data                = array();
+		$_post_data                = [];
 		$_post_data['post_ID']     = self::factory()->post->create( array( 'post_author' => self::$contributor_id ) );
 		$_post_data['post_author'] = self::$contributor_id;
 		$_post_data['post_type']   = 'post';

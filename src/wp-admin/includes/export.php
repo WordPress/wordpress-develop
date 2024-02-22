@@ -147,7 +147,7 @@ function export_wp( $args = array() ) {
 	// Get IDs for the attachments of each post, unless all content is already being exported.
 	if ( ! in_array( $args['content'], array( 'all', 'attachment' ), true ) ) {
 		// Array to hold all additional IDs (attachments and thumbnails).
-		$additional_ids = array();
+		$additional_ids = [];
 
 		// Create a copy of the post IDs array to avoid modifying the original array.
 		$processing_ids = $post_ids;
@@ -194,9 +194,9 @@ function export_wp( $args = array() ) {
 	 * Get the requested terms ready, empty unless posts filtered by category
 	 * or all content.
 	 */
-	$cats  = array();
-	$tags  = array();
-	$terms = array();
+	$cats  = [];
+	$tags  = [];
+	$terms = [];
 	if ( isset( $term ) && $term ) {
 		$cat  = get_term( $term['term_id'], 'category' );
 		$cats = array( $cat->term_id => $cat );
@@ -411,7 +411,7 @@ function export_wp( $args = array() ) {
 			$and = '';
 		}
 
-		$authors = array();
+		$authors = [];
 		$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
 		foreach ( (array) $results as $result ) {
 			$authors[] = get_userdata( $result->post_author );

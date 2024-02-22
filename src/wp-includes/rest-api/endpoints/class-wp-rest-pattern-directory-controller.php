@@ -168,7 +168,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			return $raw_patterns;
 		}
 
-		$response = array();
+		$response = [];
 
 		if ( $raw_patterns ) {
 			foreach ( $raw_patterns as $pattern ) {

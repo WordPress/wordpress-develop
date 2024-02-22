@@ -46,7 +46,7 @@ class getid3_id3v1 extends getid3_handler
 
 			$info['avdataend'] = $info['filesize'] - 128;
 
-			$ParsedID3v1            = array();
+			$ParsedID3v1            = [];
 			$ParsedID3v1['title']   = $this->cutfield(substr($id3v1tag,   3, 30));
 			$ParsedID3v1['artist']  = $this->cutfield(substr($id3v1tag,  33, 30));
 			$ParsedID3v1['album']   = $this->cutfield(substr($id3v1tag,  63, 30));
@@ -356,7 +356,7 @@ class getid3_id3v1 extends getid3_handler
 			'RX' => 'Remix'
 		);
 
-		static $GenreLookupSCMPX = array();
+		static $GenreLookupSCMPX = [];
 		if ($allowSCMPXextended && empty($GenreLookupSCMPX)) {
 			$GenreLookupSCMPX = $GenreLookup;
 			// http://www.geocities.co.jp/SiliconValley-Oakland/3664/alittle.html#GenreExtended

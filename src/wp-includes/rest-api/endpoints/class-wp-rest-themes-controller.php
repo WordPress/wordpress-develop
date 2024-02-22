@@ -195,7 +195,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$themes = array();
+		$themes = [];
 
 		$active_themes = wp_get_themes();
 		$current_theme = wp_get_theme();
@@ -234,7 +234,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$theme = $item;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'stylesheet', $fields ) ) {
 			$data['stylesheet'] = $theme->get_stylesheet();

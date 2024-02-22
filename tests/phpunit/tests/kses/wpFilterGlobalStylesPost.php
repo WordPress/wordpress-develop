@@ -47,7 +47,7 @@ class Tests_Kses_WpFilterGlobalStylesPost extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_should_not_remove_safe_global_style_rules() {
-		$result = array();
+		$result = [];
 		foreach ( WP_Theme_JSON::VALID_TOP_LEVEL_KEYS as $safe_rule ) {
 			$result[ $safe_rule ] = array( $safe_rule );
 		}

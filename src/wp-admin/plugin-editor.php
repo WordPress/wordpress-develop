@@ -266,7 +266,7 @@ endif;
 	<h2 id="plugin-files-label"><?php _e( 'Plugin Files' ); ?></h2>
 
 	<?php
-	$plugin_editable_files = array();
+	$plugin_editable_files = [];
 	foreach ( $plugin_files as $plugin_file ) {
 		if ( preg_match( '/\.([^.]+)$/', $plugin_file, $matches ) && in_array( $matches[1], $editable_extensions, true ) ) {
 			$plugin_editable_files[] = $plugin_file;

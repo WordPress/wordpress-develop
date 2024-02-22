@@ -170,7 +170,7 @@ class Twenty_Twenty_One_SVG_Icons {
 		} elseif ( 'social' === $group ) {
 			$arr = self::$social_icons;
 		} else {
-			$arr = array();
+			$arr = [];
 		}
 
 		/**
@@ -211,7 +211,7 @@ class Twenty_Twenty_One_SVG_Icons {
 		static $regex_map; // Only compute regex map once, for performance.
 
 		if ( ! isset( $regex_map ) ) {
-			$regex_map = array();
+			$regex_map = [];
 
 			/**
 			 * Filters Twenty Twenty-Ones's array of domain mappings for social icons.

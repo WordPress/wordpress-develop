@@ -983,7 +983,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$now         = time();
 		$offset      = 0;
 		$p           = self::factory()->post->create();
-		$comment_ids = array();
+		$comment_ids = [];
 
 		for ( $num = 1; $num <= 6; $num++ ) {
 			$comment_ids[ $num ] = self::factory()->comment->create(
@@ -1024,7 +1024,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$found = get_echo( 'comments_template' );
 		preg_match_all( '/id="comment-([0-9]+)"/', $found, $matches );
 
-		$expected_ids = array();
+		$expected_ids = [];
 		foreach ( $expected['ids'] as $index ) {
 			$expected_ids[] = $comment_ids[ $index ];
 		}

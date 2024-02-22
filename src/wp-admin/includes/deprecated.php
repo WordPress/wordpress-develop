@@ -287,14 +287,14 @@ function get_editable_user_ids( $user_id, $exclude_zeros = true, $post_type = 'p
 	global $wpdb;
 
 	if ( ! $user = get_userdata( $user_id ) )
-		return array();
+		return [];
 	$post_type_obj = get_post_type_object($post_type);
 
 	if ( ! $user->has_cap($post_type_obj->cap->edit_others_posts) ) {
 		if ( $user->has_cap($post_type_obj->cap->edit_posts) || ! $exclude_zeros )
 			return array($user->ID);
 		else
-			return array();
+			return [];
 	}
 
 	if ( !is_multisite() )
@@ -537,7 +537,7 @@ class WP_User_Search {
 
 		$search_sql = '';
 		if ( $this->search_term ) {
-			$searches = array();
+			$searches = [];
 			$search_sql = 'AND (';
 			foreach ( array('user_login', 'user_nicename', 'user_email', 'user_url', 'display_name') as $col )
 				$searches[] = $wpdb->prepare( $col . ' LIKE %s', '%' . like_escape($this->search_term) . '%' );
@@ -595,7 +595,7 @@ class WP_User_Search {
 	 */
 	public function do_paging() {
 		if ( $this->total_users_for_query > $this->users_per_page ) { // Have to page the results.
-			$args = array();
+			$args = [];
 			if ( ! empty($this->search_term) )
 				$args['usersearch'] = urlencode($this->search_term);
 			if ( ! empty($this->role) )
@@ -1017,7 +1017,7 @@ function get_allowed_themes() {
 
 	$themes = wp_get_themes( array( 'allowed' => true ) );
 
-	$wp_themes = array();
+	$wp_themes = [];
 	foreach ( $themes as $theme ) {
 		$wp_themes[ $theme->get('Name') ] = $theme;
 	}
@@ -1038,7 +1038,7 @@ function get_broken_themes() {
 	_deprecated_function( __FUNCTION__, '3.4.0', "wp_get_themes( array( 'errors' => true )" );
 
 	$themes = wp_get_themes( array( 'errors' => true ) );
-	$broken = array();
+	$broken = [];
 	foreach ( $themes as $theme ) {
 		$name = $theme->get('Name');
 		$broken[ $name ] = array(

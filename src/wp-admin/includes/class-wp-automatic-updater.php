@@ -21,7 +21,7 @@ class WP_Automatic_Updater {
 	 *
 	 * @var array
 	 */
-	protected $update_results = array();
+	protected $update_results = [];
 
 	/**
 	 * Determines whether the entire automatic updater is disabled.
@@ -131,7 +131,7 @@ class WP_Automatic_Updater {
 		}
 
 		$vcs_dirs   = array( '.svn', '.git', '.hg', '.bzr' );
-		$check_dirs = array();
+		$check_dirs = [];
 
 		foreach ( $context_dirs as $context_dir ) {
 			// Walk up from $context_dir to the root.
@@ -554,7 +554,7 @@ class WP_Automatic_Updater {
 		 * Clean up, and check for any pending translations.
 		 * (Core_Upgrader checks for core updates.)
 		 */
-		$theme_stats = array();
+		$theme_stats = [];
 		if ( isset( $this->update_results['theme'] ) ) {
 			foreach ( $this->update_results['theme'] as $upgrade ) {
 				$theme_stats[ $upgrade->item->theme ] = ( true === $upgrade->result );
@@ -562,7 +562,7 @@ class WP_Automatic_Updater {
 		}
 		wp_update_themes( $theme_stats ); // Check for theme updates.
 
-		$plugin_stats = array();
+		$plugin_stats = [];
 		if ( isset( $this->update_results['plugin'] ) ) {
 			foreach ( $this->update_results['plugin'] as $upgrade ) {
 				$plugin_stats[ $upgrade->item->plugin ] = ( true === $upgrade->result );
@@ -985,8 +985,8 @@ class WP_Automatic_Updater {
 	 * @param array $update_results The results of update tasks.
 	 */
 	protected function after_plugin_theme_update( $update_results ) {
-		$successful_updates = array();
-		$failed_updates     = array();
+		$successful_updates = [];
+		$failed_updates     = [];
 
 		if ( ! empty( $update_results['plugin'] ) ) {
 			/**
@@ -1090,7 +1090,7 @@ class WP_Automatic_Updater {
 			}
 		}
 
-		$body               = array();
+		$body               = [];
 		$successful_plugins = ( ! empty( $successful_updates['plugin'] ) );
 		$successful_themes  = ( ! empty( $successful_updates['theme'] ) );
 		$failed_plugins     = ( ! empty( $failed_updates['plugin'] ) );
@@ -1374,7 +1374,7 @@ class WP_Automatic_Updater {
 			$update_count += count( $updates );
 		}
 
-		$body     = array();
+		$body     = [];
 		$failures = 0;
 
 		/* translators: %s: Network home URL. */

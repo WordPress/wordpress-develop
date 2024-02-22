@@ -230,7 +230,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $item->ID;
@@ -493,7 +493,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function prepare_font_face_links( $font_family_id ) {
 		$font_face_ids = $this->get_font_face_ids( $font_family_id );
-		$links         = array();
+		$links         = [];
 		foreach ( $font_face_ids as $font_face_id ) {
 			$links[] = array(
 				'embeddable' => true,

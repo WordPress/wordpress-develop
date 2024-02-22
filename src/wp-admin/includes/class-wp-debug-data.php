@@ -62,7 +62,7 @@ class WP_Debug_Data {
 		}
 
 		// Set up the array that holds all debug information.
-		$info = array();
+		$info = [];
 
 		$info['wp-core'] = array(
 			'label'  => __( 'WordPress' ),
@@ -617,7 +617,7 @@ class WP_Debug_Data {
 			try {
 				$formats = Imagick::queryFormats( '*' );
 			} catch ( Exception $e ) {
-				$formats = array();
+				$formats = [];
 			}
 
 			$info['wp-media']['fields']['imagemagick_file_formats'] = array(
@@ -640,7 +640,7 @@ class WP_Debug_Data {
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
 		);
 
-		$gd_image_formats     = array();
+		$gd_image_formats     = [];
 		$gd_supported_formats = array(
 			'GIF Create' => 'GIF',
 			'JPEG'       => 'JPEG',
@@ -977,7 +977,7 @@ class WP_Debug_Data {
 		$plugin_updates = get_plugin_updates();
 		$transient      = get_site_transient( 'update_plugins' );
 
-		$auto_updates = array();
+		$auto_updates = [];
 
 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
 
@@ -1079,7 +1079,7 @@ class WP_Debug_Data {
 		}
 
 		// Populate the section for the currently active theme.
-		$theme_features = array();
+		$theme_features = [];
 
 		if ( ! empty( $_wp_theme_features ) ) {
 			foreach ( $_wp_theme_features as $feature => $options ) {
@@ -1094,7 +1094,7 @@ class WP_Debug_Data {
 		$active_theme_version       = $active_theme->version;
 		$active_theme_version_debug = $active_theme_version;
 
-		$auto_updates         = array();
+		$auto_updates         = [];
 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
 		if ( $auto_updates_enabled ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
@@ -1643,7 +1643,7 @@ class WP_Debug_Data {
 		$exclude = array_values( $exclude );
 
 		$size_total = 0;
-		$all_sizes  = array();
+		$all_sizes  = [];
 
 		// Loop over all the directories we want to gather the sizes for.
 		foreach ( $paths as $name => $path ) {

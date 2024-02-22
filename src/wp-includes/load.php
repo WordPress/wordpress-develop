@@ -933,7 +933,7 @@ function wp_not_installed() {
  * @return string[] Array of absolute paths of files to include.
  */
 function wp_get_mu_plugins() {
-	$mu_plugins = array();
+	$mu_plugins = [];
 
 	if ( ! is_dir( WPMU_PLUGIN_DIR ) ) {
 		return $mu_plugins;
@@ -972,7 +972,7 @@ function wp_get_mu_plugins() {
  * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
-	$plugins        = array();
+	$plugins        = [];
 	$active_plugins = (array) get_option( 'active_plugins', array() );
 
 	// Check for hacks file if the option is enabled.
@@ -1055,7 +1055,7 @@ function wp_skip_paused_plugins( array $plugins ) {
 function wp_get_active_and_valid_themes() {
 	global $pagenow, $wp_stylesheet_path, $wp_template_path;
 
-	$themes = array();
+	$themes = [];
 
 	if ( wp_installing() && 'wp-activate.php' !== $pagenow ) {
 		return $themes;
@@ -1498,8 +1498,8 @@ function wp_load_translations_early() {
 	// General libraries.
 	require_once ABSPATH . WPINC . '/plugin.php';
 
-	$locales   = array();
-	$locations = array();
+	$locales   = [];
+	$locations = [];
 
 	if ( ! $wp_textdomain_registry instanceof WP_Textdomain_Registry ) {
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
@@ -1894,7 +1894,7 @@ function wp_is_jsonp_request() {
  * @return bool True if string is a valid JSON Media Type.
  */
 function wp_is_json_media_type( $media_type ) {
-	static $cache = array();
+	static $cache = [];
 
 	if ( ! isset( $cache[ $media_type ] ) ) {
 		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );

@@ -72,7 +72,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
 	foreach ( $menu as $key => $item ) {
 		$admin_is_parent = false;
-		$class           = array();
+		$class           = [];
 		$aria_attributes = '';
 		$aria_hidden     = '';
 		$is_separator    = false;
@@ -82,7 +82,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			$first   = false;
 		}
 
-		$submenu_items = array();
+		$submenu_items = [];
 		if ( ! empty( $submenu[ $item[2] ] ) ) {
 			$class[]       = 'wp-has-submenu';
 			$submenu_items = $submenu[ $item[2] ];
@@ -203,7 +203,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					continue;
 				}
 
-				$class           = array();
+				$class           = [];
 				$aria_attributes = '';
 
 				if ( $first ) {

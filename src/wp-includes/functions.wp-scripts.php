@@ -102,7 +102,7 @@ function wp_print_scripts( $handles = false ) {
 
 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
 		if ( ! $handles ) {
-			return array(); // No need to instantiate if nothing is there.
+			return []; // No need to instantiate if nothing is there.
 		}
 	}
 

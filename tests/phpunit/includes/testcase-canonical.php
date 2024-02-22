@@ -3,11 +3,11 @@
 abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	public static $old_current_user;
 	public static $author_id;
-	public static $post_ids    = array();
-	public static $comment_ids = array();
-	public static $term_ids    = array();
-	public static $terms       = array();
-	public static $old_options = array();
+	public static $post_ids    = [];
+	public static $comment_ids = [];
+	public static $term_ids    = [];
+	public static $terms       = [];
+	public static $old_options = [];
 
 	/**
 	 * This can be defined in a subclass of this class which contains its own data() method.
@@ -269,10 +269,10 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public static function delete_shared_fixtures() {
 		self::$author_id   = null;
-		self::$post_ids    = array();
-		self::$comment_ids = array();
-		self::$term_ids    = array();
-		self::$terms       = array();
+		self::$post_ids    = [];
+		self::$comment_ids = [];
+		self::$term_ids    = [];
+		self::$terms       = [];
 	}
 
 	/**

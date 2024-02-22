@@ -48,7 +48,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 2.8.0
 	 * @var array
 	 */
-	public $in_footer = array();
+	public $in_footer = [];
 
 	/**
 	 * Holds a list of script handles which will be concatenated.
@@ -129,7 +129,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 6.3.0
 	 * @var array
 	 */
-	private $dependents_map = array();
+	private $dependents_map = [];
 
 	/**
 	 * Holds a reference to the delayed (non-blocking) script loading strategies.
@@ -849,7 +849,7 @@ JS;
 			return $this->dependents_map[ $handle ];
 		}
 
-		$dependents = array();
+		$dependents = [];
 
 		// Iterate over all registered scripts, finding dependents of the script passed to this method.
 		foreach ( $this->registered as $registered_handle => $args ) {
@@ -951,12 +951,12 @@ JS;
 
 		// For non-alias handles, an empty intended strategy filters all strategies.
 		if ( ! $is_alias && empty( $intended_strategy ) ) {
-			return array();
+			return [];
 		}
 
 		// Handles with inline scripts attached in the 'after' position cannot be delayed.
 		if ( $this->has_inline_script( $handle, 'after' ) ) {
-			return array();
+			return [];
 		}
 
 		// If the intended strategy is 'defer', filter out 'async'.
@@ -970,7 +970,7 @@ JS;
 		foreach ( $dependents as $dependent ) {
 			// Bail early once we know the eligible strategy is blocking.
 			if ( empty( $eligible ) ) {
-				return array();
+				return [];
 			}
 
 			$eligible = $this->filter_eligible_strategies( $dependent, $eligible, $checked );

@@ -30,7 +30,7 @@ class WP_Object_Cache {
 	 * @since 2.0.0
 	 * @var array
 	 */
-	private $cache = array();
+	private $cache = [];
 
 	/**
 	 * The amount of times the cache data was already stored in the cache.
@@ -54,7 +54,7 @@ class WP_Object_Cache {
 	 * @since 3.0.0
 	 * @var string[]
 	 */
-	protected $global_groups = array();
+	protected $global_groups = [];
 
 	/**
 	 * The blog prefix to prepend to keys in non-global groups.
@@ -234,7 +234,7 @@ class WP_Object_Cache {
 	 *                true on success, or false if cache key and group already exist.
 	 */
 	public function add_multiple( array $data, $group = '', $expire = 0 ) {
-		$values = array();
+		$values = [];
 
 		foreach ( $data as $key => $value ) {
 			$values[ $key ] = $this->add( $key, $value, $group, $expire );
@@ -332,7 +332,7 @@ class WP_Object_Cache {
 	 * @return bool[] Array of return values, grouped by key. Each value is always true.
 	 */
 	public function set_multiple( array $data, $group = '', $expire = 0 ) {
-		$values = array();
+		$values = [];
 
 		foreach ( $data as $key => $value ) {
 			$values[ $key ] = $this->set( $key, $value, $group, $expire );
@@ -401,7 +401,7 @@ class WP_Object_Cache {
 	 *               the cache contents on success, or false on failure.
 	 */
 	public function get_multiple( $keys, $group = 'default', $force = false ) {
-		$values = array();
+		$values = [];
 
 		foreach ( $keys as $key ) {
 			$values[ $key ] = $this->get( $key, $group, $force );
@@ -454,7 +454,7 @@ class WP_Object_Cache {
 	 *                true on success, or false if the contents were not deleted.
 	 */
 	public function delete_multiple( array $keys, $group = '' ) {
-		$values = array();
+		$values = [];
 
 		foreach ( $keys as $key ) {
 			$values[ $key ] = $this->delete( $key, $group );
@@ -557,7 +557,7 @@ class WP_Object_Cache {
 	 * @return true Always returns true.
 	 */
 	public function flush() {
-		$this->cache = array();
+		$this->cache = [];
 
 		return true;
 	}

@@ -103,7 +103,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'theme_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
-		$this->queries = array();
+		$this->queries = [];
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -253,7 +253,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			return $expected_block_names;
 		}
 
-		$expected_block_names = array();
+		$expected_block_names = [];
 		$resolver             = WP_Block_Type_Registry::get_instance();
 		$blocks               = $resolver->get_all_registered();
 		foreach ( array_keys( $blocks ) as $block_name ) {

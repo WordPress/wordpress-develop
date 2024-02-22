@@ -14,7 +14,7 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->cat_id     = self::factory()->category->create( array( 'name' => 'other' ) );
-		$this->post_ids   = array();
+		$this->post_ids   = [];
 		$this->post_ids[] = self::factory()->post->create(
 			array(
 				'post_type'   => 'post',

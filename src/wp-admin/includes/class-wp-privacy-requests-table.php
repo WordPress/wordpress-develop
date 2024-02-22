@@ -146,7 +146,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	protected function get_views() {
 		$current_status = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';
 		$statuses       = _wp_privacy_statuses();
-		$views          = array();
+		$views          = [];
 		$counts         = $this->get_request_counts();
 		$total_requests = absint( array_sum( (array) $counts ) );
 
@@ -222,7 +222,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function process_bulk_action() {
 		$action      = $this->current_action();
-		$request_ids = isset( $_REQUEST['request_id'] ) ? wp_parse_id_list( wp_unslash( $_REQUEST['request_id'] ) ) : array();
+		$request_ids = isset( $_REQUEST['request_id'] ) ? wp_parse_id_list( wp_unslash( $_REQUEST['request_id'] ) ) : [];
 
 		if ( empty( $request_ids ) ) {
 			return;
@@ -360,7 +360,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 5.1.0 Added support for column sorting.
 	 */
 	public function prepare_items() {
-		$this->items    = array();
+		$this->items    = [];
 		$posts_per_page = $this->get_items_per_page( $this->request_type . '_requests_per_page' );
 		$args           = array(
 			'post_type'      => $this->post_type,

@@ -315,7 +315,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 		$handle = 'media-image-widget';
 		wp_enqueue_script( $handle );
 
-		$exported_schema = array();
+		$exported_schema = [];
 		foreach ( $this->get_instance_schema() as $field => $field_schema ) {
 			$exported_schema[ $field ] = wp_array_slice_assoc( $field_schema, array( 'type', 'default', 'enum', 'minimum', 'format', 'media_prop', 'should_preview_update' ) );
 		}

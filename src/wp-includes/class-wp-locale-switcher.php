@@ -20,7 +20,7 @@ class WP_Locale_Switcher {
 	 * @since 6.2.0
 	 * @var array
 	 */
-	private $stack = array();
+	private $stack = [];
 
 	/**
 	 * Original locale.
@@ -245,7 +245,7 @@ class WP_Locale_Switcher {
 	private function load_translations( $locale ) {
 		global $l10n;
 
-		$domains = $l10n ? array_keys( $l10n ) : array();
+		$domains = $l10n ? array_keys( $l10n ) : [];
 
 		load_default_textdomain( $locale );
 

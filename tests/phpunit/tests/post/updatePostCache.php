@@ -38,7 +38,7 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 	 * @ticket 50567
 	 */
 	public function test_should_return_null_with_an_empty_array() {
-		$posts = array();
+		$posts = [];
 		$this->assertNull( update_post_cache( $posts ) );
 	}
 

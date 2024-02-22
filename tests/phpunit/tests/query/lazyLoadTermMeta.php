@@ -9,11 +9,11 @@ class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
 	/**
 	 * @var array
 	 */
-	protected static $post_ids = array();
+	protected static $post_ids = [];
 	/**
 	 * @var array
 	 */
-	protected static $term_ids = array();
+	protected static $term_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$post_type      = 'post';

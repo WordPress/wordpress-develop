@@ -47,7 +47,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @var array
 	 */
-	public $context = array();
+	public $context = [];
 
 	/**
 	 * All available context of the current hierarchy.
@@ -73,7 +73,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @var WP_Block_List
 	 */
-	public $inner_blocks = array();
+	public $inner_blocks = [];
 
 	/**
 	 * Resultant HTML from inside block comment delimiters after removing inner
@@ -98,7 +98,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @var array
 	 */
-	public $inner_content = array();
+	public $inner_content = [];
 
 	/**
 	 * Constructor.
@@ -232,7 +232,7 @@ class WP_Block {
 	 */
 	private function process_block_bindings() {
 		$parsed_block               = $this->parsed_block;
-		$computed_attributes        = array();
+		$computed_attributes        = [];
 		$supported_block_attributes = array(
 			'core/paragraph' => array( 'content' ),
 			'core/heading'   => array( 'content' ),
@@ -265,7 +265,7 @@ class WP_Block {
 				continue;
 			}
 
-			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : [];
 			$source_value = $block_binding_source->get_value( $source_args, $this, $attribute_name );
 
 			// If the value is not null, process the HTML based on the block and the attribute.
@@ -312,7 +312,7 @@ class WP_Block {
 				if ( 'core/button' === $this->name ) {
 					$button_wrapper                 = $block_reader->get_tag();
 					$button_wrapper_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
-					$button_wrapper_attrs           = array();
+					$button_wrapper_attrs           = [];
 					foreach ( $button_wrapper_attribute_names as $name ) {
 						$button_wrapper_attrs[ $name ] = $block_reader->get_attribute( $name );
 					}
@@ -331,7 +331,7 @@ class WP_Block {
 						// Until then, it is hardcoded for the paragraph, heading, and button blocks.
 						// Store the tag and its attributes to be able to restore them later.
 						$selector_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
-						$selector_attrs           = array();
+						$selector_attrs           = [];
 						foreach ( $selector_attribute_names as $name ) {
 							$selector_attrs[ $name ] = $block_reader->get_attribute( $name );
 						}

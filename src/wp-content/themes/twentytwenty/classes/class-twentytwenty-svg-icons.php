@@ -31,7 +31,7 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			} elseif ( 'social' === $group ) {
 				$arr = self::$social_icons;
 			} else {
-				$arr = array();
+				$arr = [];
 			}
 
 			/**
@@ -80,7 +80,7 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		public static function get_social_link_svg( $uri ) {
 			static $regex_map; // Only compute regex map once, for performance.
 			if ( ! isset( $regex_map ) ) {
-				$regex_map = array();
+				$regex_map = [];
 
 				/**
 				 * Filters Twenty Twenty's array of domain mappings for social icons.

@@ -27,7 +27,7 @@ class WP_User_Meta_Session_Tokens extends WP_Session_Tokens {
 		$sessions = get_user_meta( $this->user_id, 'session_tokens', true );
 
 		if ( ! is_array( $sessions ) ) {
-			return array();
+			return [];
 		}
 
 		$sessions = array_map( array( $this, 'prepare_session' ), $sessions );

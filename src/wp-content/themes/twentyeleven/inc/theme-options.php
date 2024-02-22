@@ -564,7 +564,7 @@ function twentyeleven_customize_register( $wp_customize ) {
 	);
 
 	$schemes = twentyeleven_color_schemes();
-	$choices = array();
+	$choices = [];
 	foreach ( $schemes as $scheme ) {
 		$choices[ $scheme['value'] ] = $scheme['label'];
 	}
@@ -623,7 +623,7 @@ function twentyeleven_customize_register( $wp_customize ) {
 	);
 
 	$layouts = twentyeleven_layouts();
-	$choices = array();
+	$choices = [];
 	foreach ( $layouts as $layout ) {
 		$choices[ $layout['value'] ] = $layout['label'];
 	}

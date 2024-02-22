@@ -96,7 +96,7 @@ if ( $action ) {
 
 			check_admin_referer( 'bulk-plugins' );
 
-			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : [];
 
 			if ( is_network_admin() ) {
 				foreach ( $plugins as $i => $plugin ) {
@@ -152,7 +152,7 @@ if ( $action ) {
 			} elseif ( isset( $_POST['checked'] ) ) {
 				$plugins = (array) wp_unslash( $_POST['checked'] );
 			} else {
-				$plugins = array();
+				$plugins = [];
 			}
 
 			// Used in the HTML title tag.
@@ -230,7 +230,7 @@ if ( $action ) {
 
 			check_admin_referer( 'bulk-plugins' );
 
-			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+			$plugins = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : [];
 			// Do not deactivate plugins which are already deactivated.
 			if ( is_network_admin() ) {
 				$plugins = array_filter( $plugins, 'is_plugin_active_for_network' );
@@ -252,7 +252,7 @@ if ( $action ) {
 
 			deactivate_plugins( $plugins, false, is_network_admin() );
 
-			$deactivated = array();
+			$deactivated = [];
 			foreach ( $plugins as $plugin ) {
 				$deactivated[ $plugin ] = time();
 			}
@@ -274,7 +274,7 @@ if ( $action ) {
 			check_admin_referer( 'bulk-plugins' );
 
 			// $_POST = from the plugin form; $_GET = from the FTP details screen.
-			$plugins = isset( $_REQUEST['checked'] ) ? (array) wp_unslash( $_REQUEST['checked'] ) : array();
+			$plugins = isset( $_REQUEST['checked'] ) ? (array) wp_unslash( $_REQUEST['checked'] ) : [];
 			if ( empty( $plugins ) ) {
 				wp_redirect( self_admin_url( "plugins.php?plugin_status=$status&paged=$page&s=$s" ) );
 				exit;
@@ -306,7 +306,7 @@ if ( $action ) {
 				<div class="wrap">
 				<?php
 
-				$plugin_info              = array();
+				$plugin_info              = [];
 				$have_non_network_plugins = false;
 
 				foreach ( (array) $plugins as $plugin ) {
@@ -539,7 +539,7 @@ if ( $action ) {
 
 				$screen   = get_current_screen()->id;
 				$sendback = wp_get_referer();
-				$plugins  = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : array();
+				$plugins  = isset( $_POST['checked'] ) ? (array) wp_unslash( $_POST['checked'] ) : [];
 
 				/** This action is documented in wp-admin/edit.php */
 				$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $action, $plugins ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores

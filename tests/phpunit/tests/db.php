@@ -12,7 +12,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $_queries = array();
+	protected $_queries = [];
 
 	/**
 	 * Our special WPDB
@@ -31,7 +31,7 @@ class Tests_DB extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		$this->_queries = array();
+		$this->_queries = [];
 		add_filter( 'query', array( $this, 'query_filter' ) );
 		self::$_wpdb->last_error     = null;
 		$GLOBALS['wpdb']->last_error = null;

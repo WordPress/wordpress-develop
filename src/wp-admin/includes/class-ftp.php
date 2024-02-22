@@ -164,7 +164,7 @@ class ftp_base {
 	function parselisting($line) {
 		$is_windows = ($this->OS_remote == FTP_OS_Windows);
 		if ($is_windows && preg_match("/([0-9]{2})-([0-9]{2})-([0-9]{2}) +([0-9]{2}):([0-9]{2})(AM|PM) +([0-9]+|<DIR>) +(.+)/",$line,$lucifer)) {
-			$b = array();
+			$b = [];
 			if ($lucifer[3]<70) { $lucifer[3]+=2000; } else { $lucifer[3]+=1900; } // 4digit year fix
 			$b['isdir'] = ($lucifer[7]=="<DIR>");
 			if ( $b['isdir'] )
@@ -184,7 +184,7 @@ class ftp_base {
 			//echo $line."\n";
 			$lcount=count($lucifer);
 			if ($lcount<8) return '';
-			$b = array();
+			$b = [];
 			$b['isdir'] = $lucifer[0][0] === "d";
 			$b['islink'] = $lucifer[0][0] === "l";
 			if ( $b['isdir'] )
@@ -831,7 +831,7 @@ class ftp_base {
 			return false;
 		}
 
-		$dirlist = array();
+		$dirlist = [];
 		foreach($list as $k=>$v) {
 			$entry=$this->parselisting($v);
 			if ( empty($entry) )

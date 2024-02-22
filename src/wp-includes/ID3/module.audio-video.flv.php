@@ -161,7 +161,7 @@ class getid3_flv extends getid3_handler
 						$info['flv']['video']['videoCodec'] = $LastHeaderByte & 0x07;
 
 						$FLVvideoHeader = $this->fread(11);
-						$PictureSizeEnc = array();
+						$PictureSizeEnc = [];
 
 						if ($info['flv']['video']['videoCodec'] == GETID3_FLV_VIDEO_H264) {
 							// this code block contributed by: moysevichØgmail*com
@@ -670,7 +670,7 @@ class AMFReader
 		// Get highest numerical index - ignored
 //		$highestIndex = $this->stream->readLong();
 
-		$data = array();
+		$data = [];
 		$key = null;
 
 		while ($key = $this->stream->readUTF()) {
@@ -691,7 +691,7 @@ class AMFReader
 		// Get highest numerical index - ignored
 		$highestIndex = $this->stream->readLong();
 
-		$data = array();
+		$data = [];
 		$key = null;
 
 		while ($key = $this->stream->readUTF()) {
@@ -714,7 +714,7 @@ class AMFReader
 	 */
 	public function readArray() {
 		$length = $this->stream->readLong();
-		$data = array();
+		$data = [];
 
 		for ($i = 0; $i < $length; $i++) {
 			$data[] = $this->readData();

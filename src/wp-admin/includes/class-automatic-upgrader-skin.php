@@ -19,7 +19,7 @@
  * @see Bulk_Upgrader_Skin
  */
 class Automatic_Upgrader_Skin extends WP_Upgrader_Skin {
-	protected $messages = array();
+	protected $messages = [];
 
 	/**
 	 * Determines whether the upgrader needs FTP/SSH details in order to connect

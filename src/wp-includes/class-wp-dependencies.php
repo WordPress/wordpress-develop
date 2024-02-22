@@ -24,7 +24,7 @@ class WP_Dependencies {
 	 *
 	 * @var _WP_Dependency[]
 	 */
-	public $registered = array();
+	public $registered = [];
 
 	/**
 	 * An array of handles of queued dependencies.
@@ -33,7 +33,7 @@ class WP_Dependencies {
 	 *
 	 * @var string[]
 	 */
-	public $queue = array();
+	public $queue = [];
 
 	/**
 	 * An array of handles of dependencies to queue.
@@ -42,7 +42,7 @@ class WP_Dependencies {
 	 *
 	 * @var string[]
 	 */
-	public $to_do = array();
+	public $to_do = [];
 
 	/**
 	 * An array of handles of dependencies already queued.
@@ -51,7 +51,7 @@ class WP_Dependencies {
 	 *
 	 * @var string[]
 	 */
-	public $done = array();
+	public $done = [];
 
 	/**
 	 * An array of additional arguments passed when a handle is registered.
@@ -62,7 +62,7 @@ class WP_Dependencies {
 	 *
 	 * @var array
 	 */
-	public $args = array();
+	public $args = [];
 
 	/**
 	 * An array of dependency groups to enqueue.
@@ -74,7 +74,7 @@ class WP_Dependencies {
 	 *
 	 * @var (int|false)[]
 	 */
-	public $groups = array();
+	public $groups = [];
 
 	/**
 	 * A handle group to enqueue.
@@ -102,7 +102,7 @@ class WP_Dependencies {
 	 *
 	 * @var array
 	 */
-	private $queued_before_register = array();
+	private $queued_before_register = [];
 
 	/**
 	 * Processes the items and dependencies.
@@ -409,8 +409,8 @@ class WP_Dependencies {
 		}
 
 		$all_deps = array_fill_keys( $queue, true );
-		$queues   = array();
-		$done     = array();
+		$queues   = [];
+		$done     = [];
 
 		while ( $queue ) {
 			foreach ( $queue as $queued ) {

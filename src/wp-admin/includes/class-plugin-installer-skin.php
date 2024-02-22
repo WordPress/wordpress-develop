@@ -39,7 +39,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		$this->type      = $args['type'];
 		$this->url       = $args['url'];
-		$this->api       = isset( $args['api'] ) ? $args['api'] : array();
+		$this->api       = isset( $args['api'] ) ? $args['api'] : [];
 		$this->overwrite = $args['overwrite'];
 
 		parent::__construct( $args );
@@ -93,7 +93,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 
 		$plugin_file = $this->upgrader->plugin_info();
 
-		$install_actions = array();
+		$install_actions = [];
 
 		$from = isset( $_GET['from'] ) ? wp_unslash( $_GET['from'] ) : 'plugins';
 
@@ -253,7 +253,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		 */
 		echo apply_filters( 'install_plugin_overwrite_comparison', $table, $current_plugin_data, $new_plugin_data );
 
-		$install_actions = array();
+		$install_actions = [];
 		$can_update      = true;
 
 		$blocked_message  = '<p>' . esc_html__( 'The plugin cannot be updated due to the following:' ) . '</p>';

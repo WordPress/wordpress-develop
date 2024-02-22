@@ -508,7 +508,7 @@ function comment_class( $css_class = '', $comment = null, $post = null, $display
 function get_comment_class( $css_class = '', $comment_id = null, $post = null ) {
 	global $comment_alt, $comment_depth, $comment_thread_alt;
 
-	$classes = array();
+	$classes = [];
 
 	$comment = get_comment( $comment_id );
 	if ( ! $comment ) {
@@ -1551,7 +1551,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 
 	// Trees must be flattened before they're passed to the walker.
 	if ( $comment_args['hierarchical'] ) {
-		$comments_flat = array();
+		$comments_flat = [];
 		foreach ( $_comments as $_comment ) {
 			$comments_flat[]  = $_comment;
 			$comment_children = $_comment->get_children(
@@ -1588,7 +1588,7 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 		$wp_query->comments_by_type = separate_comments( $comments );
 		$comments_by_type           = &$wp_query->comments_by_type;
 	} else {
-		$wp_query->comments_by_type = array();
+		$wp_query->comments_by_type = [];
 	}
 
 	$overridden_cpage = false;

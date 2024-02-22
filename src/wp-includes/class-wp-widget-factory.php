@@ -22,7 +22,7 @@ class WP_Widget_Factory {
 	 * @since 2.8.0
 	 * @var array
 	 */
-	public $widgets = array();
+	public $widgets = [];
 
 	/**
 	 * PHP5 constructor.

@@ -10,7 +10,7 @@
  */
 class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
 
-	private $original_theme_features = array();
+	private $original_theme_features = [];
 
 	public function set_up() {
 		global $_wp_theme_features;
@@ -208,7 +208,7 @@ JS;
 	public function test_cdata_wrapper_omitted_for_non_javascript_scripts( $type, $data, $expected_cdata ) {
 		remove_theme_support( 'html5' );
 
-		$attrs = array();
+		$attrs = [];
 		if ( $type ) {
 			$attrs['type'] = $type;
 		}

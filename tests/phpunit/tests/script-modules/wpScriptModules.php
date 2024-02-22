@@ -37,7 +37,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	public function get_enqueued_script_modules() {
 		$script_modules_markup   = get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
 		$p                       = new WP_HTML_Tag_Processor( $script_modules_markup );
-		$enqueued_script_modules = array();
+		$enqueued_script_modules = [];
 
 		while ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
 			if ( 'module' === $p->get_attribute( 'type' ) ) {
@@ -68,7 +68,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	public function get_preloaded_script_modules() {
 		$preloaded_markup         = get_echo( array( $this->script_modules, 'print_script_module_preloads' ) );
 		$p                        = new WP_HTML_Tag_Processor( $preloaded_markup );
-		$preloaded_script_modules = array();
+		$preloaded_script_modules = [];
 
 		while ( $p->next_tag( array( 'tag' => 'LINK' ) ) ) {
 			if ( 'modulepreload' === $p->get_attribute( 'rel' ) ) {

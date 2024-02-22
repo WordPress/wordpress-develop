@@ -39,7 +39,7 @@ class WP_Roles {
 	 * @since 2.0.0
 	 * @var WP_Role[]
 	 */
-	public $role_objects = array();
+	public $role_objects = [];
 
 	/**
 	 * List of role names.
@@ -47,7 +47,7 @@ class WP_Roles {
 	 * @since 2.0.0
 	 * @var string[]
 	 */
-	public $role_names = array();
+	public $role_names = [];
 
 	/**
 	 * Option name for storing role list.
@@ -286,8 +286,8 @@ class WP_Roles {
 			return;
 		}
 
-		$this->role_objects = array();
-		$this->role_names   = array();
+		$this->role_objects = [];
+		$this->role_names   = [];
 		foreach ( array_keys( $this->roles ) as $role ) {
 			$this->role_objects[ $role ] = new WP_Role( $role, $this->roles[ $role ]['capabilities'] );
 			$this->role_names[ $role ]   = $this->roles[ $role ]['name'];

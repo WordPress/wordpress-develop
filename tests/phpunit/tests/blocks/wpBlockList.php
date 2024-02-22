@@ -41,7 +41,7 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 	 */
 	public function test_array_access() {
 		$parsed_blocks = parse_blocks( '<!-- wp:example /-->' );
-		$context       = array();
+		$context       = [];
 		$blocks        = new WP_Block_List( $parsed_blocks, $context, $this->registry );
 
 		// Test "offsetExists".
@@ -65,7 +65,7 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 	 */
 	public function test_iterable() {
 		$parsed_blocks = parse_blocks( '<!-- wp:example --><!-- wp:example /--><!-- /wp:example -->' );
-		$context       = array();
+		$context       = [];
 		$blocks        = new WP_Block_List( $parsed_blocks, $context, $this->registry );
 		$assertions    = 0;
 
@@ -97,7 +97,7 @@ class Tests_Blocks_wpBlockList extends WP_UnitTestCase {
 	 */
 	public function test_countable() {
 		$parsed_blocks = parse_blocks( '<!-- wp:example /-->' );
-		$context       = array();
+		$context       = [];
 		$blocks        = new WP_Block_List( $parsed_blocks, $context, $this->registry );
 
 		$this->assertCount( 1, $blocks );

@@ -40,7 +40,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @var ReflectionMethod[]|ReflectionProperty[]
 	 */
-	protected static $reflected_members = array();
+	protected static $reflected_members = [];
 
 	/**
 	 * Sets up the WP_Plugin_Dependencies instance before any tests run.
@@ -55,7 +55,7 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	 * Empties the '$reflected_members' property after all tests run.
 	 */
 	public static function tear_down_after_class() {
-		self::$reflected_members = array();
+		self::$reflected_members = [];
 
 		parent::tear_down_after_class();
 	}

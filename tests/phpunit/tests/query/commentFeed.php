@@ -7,7 +7,7 @@
  */
 class Tests_Query_CommentFeed extends WP_UnitTestCase {
 	public static $post_type   = 'post';
-	protected static $post_ids = array();
+	protected static $post_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many(

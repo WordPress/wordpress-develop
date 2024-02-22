@@ -798,7 +798,7 @@ class SimplePie_IRI
 		}
 		if (!$cache)
 		{
-			$cache = array();
+			$cache = [];
 		}
 
 		if ($iri === null)
@@ -882,7 +882,7 @@ class SimplePie_IRI
 			return;
 		}
 		if (!$cache)
-			$cache = array();
+			$cache = [];
 
 		if ($authority === null)
 		{
@@ -1054,7 +1054,7 @@ class SimplePie_IRI
 		}
 		if (!$cache)
 		{
-			$cache = array();
+			$cache = [];
 		}
 
 		$ipath = (string) $ipath;

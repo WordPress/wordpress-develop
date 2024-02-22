@@ -524,7 +524,7 @@ EOF;
 	public function test_spaces_around_shortcodes() {
 		$nbsp = "\xC2\xA0";
 
-		$input = array();
+		$input = [];
 
 		$input[] = '<p>[gallery ids="37,15,11"]</p>';
 		$input[] = '<p> [gallery ids="37,15,11"] </p>';

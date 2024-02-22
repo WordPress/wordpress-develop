@@ -529,7 +529,7 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 	 */
 	public function ParseOggPageHeader() {
 		// http://xiph.org/ogg/vorbis/doc/framing.html
-		$oggheader = array();
+		$oggheader = [];
 		$oggheader['page_start_offset'] = $this->ftell(); // where we started from in the file
 
 		$filedata = $this->fread($this->getid3->fread_buffer_size());
@@ -831,7 +831,7 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 	 * @return string|null
 	 */
 	public static function SpeexBandModeLookup($mode) {
-		static $SpeexBandModeLookup = array();
+		static $SpeexBandModeLookup = [];
 		if (empty($SpeexBandModeLookup)) {
 			$SpeexBandModeLookup[0] = 'narrow';
 			$SpeexBandModeLookup[1] = 'wide';
@@ -895,7 +895,7 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 	 */
 	public static function TheoraColorSpace($colorspace_id) {
 		// http://www.theora.org/doc/Theora.pdf (table 6.3)
-		static $TheoraColorSpaceLookup = array();
+		static $TheoraColorSpaceLookup = [];
 		if (empty($TheoraColorSpaceLookup)) {
 			$TheoraColorSpaceLookup[0] = 'Undefined';
 			$TheoraColorSpaceLookup[1] = 'Rec. 470M';
@@ -912,7 +912,7 @@ $this->warning('Ogg Theora (v3) not fully supported in this version of getID3 ['
 	 */
 	public static function TheoraPixelFormat($pixelformat_id) {
 		// http://www.theora.org/doc/Theora.pdf (table 6.4)
-		static $TheoraPixelFormatLookup = array();
+		static $TheoraPixelFormatLookup = [];
 		if (empty($TheoraPixelFormatLookup)) {
 			$TheoraPixelFormatLookup[0] = '4:2:0';
 			$TheoraPixelFormatLookup[1] = 'Reserved';

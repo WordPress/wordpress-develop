@@ -910,7 +910,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $term_id, $assigned_terms[0]->term_id );
 
 		// Remove the term from the post.
-		$post->post_category = array();
+		$post->post_category = [];
 		wp_insert_post( $post );
 		$assigned_terms = wp_get_object_terms( array( $post_id ), array( 'category' ), array() );
 

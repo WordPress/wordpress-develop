@@ -470,7 +470,7 @@ function wp_list_authors( $args = '' ) {
 	$query_args = apply_filters( 'wp_list_authors_args', $query_args, $parsed_args );
 
 	$authors     = get_users( $query_args );
-	$post_counts = array();
+	$post_counts = [];
 
 	/**
 	 * Filters whether to short-circuit performing the query for author post counts.
@@ -483,7 +483,7 @@ function wp_list_authors( $args = '' ) {
 	$post_counts = apply_filters( 'pre_wp_list_authors_post_counts_query', false, $parsed_args );
 
 	if ( ! is_array( $post_counts ) ) {
-		$post_counts       = array();
+		$post_counts       = [];
 		$post_counts_query = $wpdb->get_results(
 			"SELECT DISTINCT post_author, COUNT(ID) AS count
 			FROM $wpdb->posts

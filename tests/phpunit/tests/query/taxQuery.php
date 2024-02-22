@@ -1296,8 +1296,8 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 
 		$posts = self::factory()->post->create_many( 5 );
 
-		$cats = array();
-		$tags = array();
+		$cats = [];
+		$tags = [];
 
 		// Need term_taxonomy_ids in addition to term_ids, so no factory.
 		for ( $i = 0; $i < 5; $i++ ) {

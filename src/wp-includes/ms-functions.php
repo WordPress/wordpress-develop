@@ -1941,7 +1941,7 @@ function get_most_recent_post_of_user( $user_id ) {
 	global $wpdb;
 
 	$user_blogs       = get_blogs_of_user( (int) $user_id );
-	$most_recent_post = array();
+	$most_recent_post = [];
 
 	/*
 	 * Walk through each blog and get the most recent post
@@ -1994,7 +1994,7 @@ function get_most_recent_post_of_user( $user_id ) {
  */
 function check_upload_mimes( $mimes ) {
 	$site_exts  = explode( ' ', get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) );
-	$site_mimes = array();
+	$site_mimes = [];
 	foreach ( $site_exts as $ext ) {
 		foreach ( $mimes as $ext_pattern => $mime ) {
 			if ( '' !== $ext && str_contains( $ext_pattern, $ext ) ) {

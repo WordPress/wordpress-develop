@@ -150,7 +150,7 @@ class WP_REST_Navigation_Fallback_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response $response The response data.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
-		$data = array();
+		$data = [];
 
 		$fields = $this->get_fields_for_response( $request );
 

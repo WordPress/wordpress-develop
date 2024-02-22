@@ -89,7 +89,7 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 		$this->expectNotice();
 		$this->expectNoticeMessage( $expected_message );
 
-		$ids = array();
+		$ids = [];
 		for ( $i = 0; $i < $number_of_ids_to_generate; $i++ ) {
 			$ids[] = wp_unique_prefixed_id( $non_string_prefix );
 		}
@@ -160,7 +160,7 @@ class Tests_Functions_WpUniquePrefixedId extends WP_UnitTestCase {
 		$original_error_reporting = error_reporting();
 		error_reporting( $original_error_reporting & ~E_USER_NOTICE );
 
-		$ids = array();
+		$ids = [];
 		foreach ( $prefixes as $prefix ) {
 			$ids[] = wp_unique_prefixed_id( $prefix );
 		}

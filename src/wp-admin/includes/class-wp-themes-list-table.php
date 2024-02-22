@@ -16,8 +16,8 @@
  */
 class WP_Themes_List_Table extends WP_List_Table {
 
-	protected $search_terms = array();
-	public $features        = array();
+	protected $search_terms = [];
+	public $features        = [];
 
 	/**
 	 * Constructor.
@@ -173,7 +173,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -206,7 +206,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 
 			$activate_link = wp_nonce_url( 'themes.php?action=activate&amp;template=' . urlencode( $template ) . '&amp;stylesheet=' . urlencode( $stylesheet ), 'switch-theme_' . $stylesheet );
 
-			$actions             = array();
+			$actions             = [];
 			$actions['activate'] = sprintf(
 				'<a href="%s" class="activatelink" title="%s">%s</a>',
 				$activate_link,

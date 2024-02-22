@@ -526,7 +526,7 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 	public function data_export_matrix(): array {
 		$formats = array( 'mo', 'php' );
 
-		$matrix = array();
+		$matrix = [];
 
 		foreach ( $formats as $input_format ) {
 			foreach ( $formats as $output_format ) {

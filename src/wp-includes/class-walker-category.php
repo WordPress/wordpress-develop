@@ -110,7 +110,7 @@ class Walker_Category extends Walker {
 			return;
 		}
 
-		$atts         = array();
+		$atts         = [];
 		$atts['href'] = get_term_link( $category );
 
 		if ( $args['use_desc_for_title'] && ! empty( $category->description ) ) {

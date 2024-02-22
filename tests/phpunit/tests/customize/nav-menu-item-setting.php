@@ -405,7 +405,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 
 		$menu_id  = wp_create_nav_menu( 'Primary' );
 		$post_id  = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
-		$item_ids = array();
+		$item_ids = [];
 		for ( $i = 0; $i < 5; $i += 1 ) {
 			$item_id    = wp_update_nav_menu_item(
 				$menu_id,
@@ -464,7 +464,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 
 		$menu_id  = wp_create_nav_menu( 'Primary' );
 		$post_id  = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
-		$item_ids = array();
+		$item_ids = [];
 		for ( $i = 0; $i < 5; $i += 1 ) {
 			$item_id    = wp_update_nav_menu_item(
 				$menu_id,
@@ -711,7 +711,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 
 		$menu_id  = wp_create_nav_menu( 'Primary' );
 		$post_id  = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
-		$item_ids = array();
+		$item_ids = [];
 		for ( $i = 0; $i < 5; $i += 1 ) {
 			$item_id    = wp_update_nav_menu_item(
 				$menu_id,
@@ -784,7 +784,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 
 		$menu_id  = wp_create_nav_menu( 'Primary' );
 		$post_id  = self::factory()->post->create( array( 'post_title' => 'Hello World' ) );
-		$item_ids = array();
+		$item_ids = [];
 		for ( $i = 0; $i < 5; $i += 1 ) {
 			$item_id    = wp_update_nav_menu_item(
 				$menu_id,

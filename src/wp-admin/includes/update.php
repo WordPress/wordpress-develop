@@ -48,7 +48,7 @@ function get_core_updates( $options = array() ) {
 	$dismissed = get_site_option( 'dismissed_update_core' );
 
 	if ( ! is_array( $dismissed ) ) {
-		$dismissed = array();
+		$dismissed = [];
 	}
 
 	$from_api = get_site_transient( 'update_core' );
@@ -58,7 +58,7 @@ function get_core_updates( $options = array() ) {
 	}
 
 	$updates = $from_api->updates;
-	$result  = array();
+	$result  = [];
 
 	foreach ( $updates as $update ) {
 		if ( 'autoupdate' === $update->response ) {
@@ -407,7 +407,7 @@ function update_right_now_message() {
  */
 function get_plugin_updates() {
 	$all_plugins     = get_plugins();
-	$upgrade_plugins = array();
+	$upgrade_plugins = [];
 	$current         = get_site_transient( 'update_plugins' );
 
 	foreach ( (array) $all_plugins as $plugin_file => $plugin_data ) {
@@ -632,10 +632,10 @@ function get_theme_updates() {
 	$current = get_site_transient( 'update_themes' );
 
 	if ( ! isset( $current->response ) ) {
-		return array();
+		return [];
 	}
 
-	$update_themes = array();
+	$update_themes = [];
 
 	foreach ( $current->response as $stylesheet => $data ) {
 		$update_themes[ $stylesheet ]         = wp_get_theme( $stylesheet );

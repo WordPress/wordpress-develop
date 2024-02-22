@@ -177,7 +177,7 @@ function get_bookmarks( $args = '' ) {
 	}
 
 	if ( ! is_array( $cache ) ) {
-		$cache = array();
+		$cache = [];
 	}
 
 	$inclusions = '';
@@ -223,7 +223,7 @@ function get_bookmarks( $args = '' ) {
 		if ( $parsed_args['category'] ) {
 			$parsed_args['category'] = $parsed_args['category']->term_id;
 		} else {
-			$cache[ $key ] = array();
+			$cache[ $key ] = [];
 			wp_cache_set( 'get_bookmarks', $cache, 'bookmark' );
 			/** This filter is documented in wp-includes/bookmark.php */
 			return apply_filters( 'get_bookmarks', array(), $parsed_args );
@@ -276,7 +276,7 @@ function get_bookmarks( $args = '' ) {
 			$orderby = "$wpdb->links.link_id";
 			break;
 		default:
-			$orderparams = array();
+			$orderparams = [];
 			$keys        = array( 'link_id', 'link_name', 'link_url', 'link_visible', 'link_rating', 'link_owner', 'link_updated', 'link_notes', 'link_description' );
 			foreach ( explode( ',', $orderby ) as $ordparam ) {
 				$ordparam = trim( $ordparam );

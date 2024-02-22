@@ -100,7 +100,7 @@ class WP_Widget_Form_Customize_Control extends WP_Customize_Control {
 
 		$widget = $wp_registered_widgets[ $this->widget_id ];
 		if ( ! isset( $widget['params'][0] ) ) {
-			$widget['params'][0] = array();
+			$widget['params'][0] = [];
 		}
 
 		$args = array(

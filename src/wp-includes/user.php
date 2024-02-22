@@ -600,7 +600,7 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 function count_many_users_posts( $users, $post_type = 'post', $public_only = false ) {
 	global $wpdb;
 
-	$count = array();
+	$count = [];
 	if ( empty( $users ) || ! is_array( $users ) ) {
 		return $count;
 	}
@@ -935,7 +935,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	// Logged out users can't have sites.
 	if ( empty( $user_id ) ) {
-		return array();
+		return [];
 	}
 
 	/**
@@ -959,7 +959,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	$keys = get_user_meta( $user_id );
 	if ( empty( $keys ) ) {
-		return array();
+		return [];
 	}
 
 	if ( ! is_multisite() ) {
@@ -977,7 +977,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 		return $sites;
 	}
 
-	$site_ids = array();
+	$site_ids = [];
 
 	if ( isset( $keys[ $wpdb->base_prefix . 'capabilities' ] ) && defined( 'MULTISITE' ) ) {
 		$site_ids[] = 1;
@@ -1001,7 +1001,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 		$site_ids[] = (int) $site_id;
 	}
 
-	$sites = array();
+	$sites = [];
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
@@ -1250,7 +1250,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	}
 
 	$blog_prefix = $wpdb->get_blog_prefix( $site_id );
-	$result      = array();
+	$result      = [];
 
 	if ( 'time' === $strategy ) {
 		if ( is_multisite() && get_current_blog_id() != $site_id ) {
@@ -1262,7 +1262,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 		}
 
 		// Build a CPU-intensive query that will return concise information.
-		$select_count = array();
+		$select_count = [];
 		foreach ( $avail_roles as $this_role => $name ) {
 			$select_count[] = $wpdb->prepare( 'COUNT(NULLIF(`meta_value` LIKE %s, false))', '%' . $wpdb->esc_like( '"' . $this_role . '"' ) . '%' );
 		}
@@ -1282,7 +1282,7 @@ function count_users( $strategy = 'time', $site_id = null ) {
 
 		// Run the previous loop again to associate results with role names.
 		$col         = 0;
-		$role_counts = array();
+		$role_counts = [];
 		foreach ( $avail_roles as $this_role => $name ) {
 			$count = (int) $row[ $col++ ];
 			if ( $count > 0 ) {
@@ -2232,7 +2232,7 @@ function wp_insert_user( $userdata ) {
 	$spam = empty( $userdata['spam'] ) ? 0 : (bool) $userdata['spam'];
 
 	// Store values to save in user meta.
-	$meta = array();
+	$meta = [];
 
 	$nickname = empty( $userdata['nickname'] ) ? $user_login : $userdata['nickname'];
 
@@ -2410,7 +2410,7 @@ function wp_insert_user( $userdata ) {
 	 */
 	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update, $userdata );
 
-	$custom_meta = array();
+	$custom_meta = [];
 	if ( array_key_exists( 'meta_input', $userdata ) && is_array( $userdata['meta_input'] ) && ! empty( $userdata['meta_input'] ) ) {
 		$custom_meta = $userdata['meta_input'];
 	}
@@ -2816,7 +2816,7 @@ function _get_additional_user_keys( $user ) {
  * @return string[] Array of contact method labels keyed by contact method.
  */
 function wp_get_user_contact_methods( $user = null ) {
-	$methods = array();
+	$methods = [];
 	if ( get_site_option( 'initial_db_version' ) < 23588 ) {
 		$methods = array(
 			'aim'    => __( 'AIM' ),
@@ -3822,7 +3822,7 @@ function wp_register_user_personal_data_exporter( $exporters ) {
 function wp_user_personal_data_exporter( $email_address ) {
 	$email_address = trim( $email_address );
 
-	$data_to_export = array();
+	$data_to_export = [];
 
 	$user = get_user_by( 'email', $email_address );
 
@@ -3849,7 +3849,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		'description'     => __( 'User Description' ),
 	);
 
-	$user_data_to_export = array();
+	$user_data_to_export = [];
 
 	foreach ( $user_props_to_export as $key => $name ) {
 		$value = '';
@@ -3945,7 +3945,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 			'ip'          => __( 'IP' ),
 		);
 
-		$location_data_to_export = array();
+		$location_data_to_export = [];
 
 		foreach ( $location_props_to_export as $key => $name ) {
 			if ( ! empty( $location[ $key ] ) ) {
@@ -3976,7 +3976,7 @@ function wp_user_personal_data_exporter( $email_address ) {
 		);
 
 		foreach ( $session_tokens as $token_key => $session_token ) {
-			$session_tokens_data_to_export = array();
+			$session_tokens_data_to_export = [];
 
 			foreach ( $session_tokens_props_to_export as $key => $name ) {
 				if ( ! empty( $session_token[ $key ] ) ) {

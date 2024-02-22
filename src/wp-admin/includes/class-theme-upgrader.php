@@ -45,7 +45,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *
 	 * @see check_package()
 	 */
-	public $new_theme_data = array();
+	public $new_theme_data = [];
 
 	/**
 	 * Initializes the upgrade strings.
@@ -425,7 +425,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->maintenance_mode( true );
 		}
 
-		$results = array();
+		$results = [];
 
 		$this->update_count   = count( $themes );
 		$this->update_current = 0;
@@ -566,7 +566,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	public function check_package( $source ) {
 		global $wp_filesystem, $wp_version;
 
-		$this->new_theme_data = array();
+		$this->new_theme_data = [];
 
 		if ( is_wp_error( $source ) ) {
 			return $source;

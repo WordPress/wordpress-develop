@@ -121,7 +121,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$this->retrieve_widgets();
 
-		$data              = array();
+		$data              = [];
 		$permissions_check = $this->do_permissions_check();
 
 		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
@@ -360,7 +360,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 		}
 
 		$schema = $this->get_item_schema();
-		$data   = array();
+		$data   = [];
 		foreach ( $schema['properties'] as $property_id => $property ) {
 			if ( isset( $sidebar[ $property_id ] ) && true === rest_validate_value_from_schema( $sidebar[ $property_id ], $property ) ) {
 				$data[ $property_id ] = $sidebar[ $property_id ];

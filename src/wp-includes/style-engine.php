@@ -73,7 +73,7 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
 	$parsed_styles = WP_Style_Engine::parse_block_styles( $block_styles, $options );
 
 	// Output.
-	$styles_output = array();
+	$styles_output = [];
 
 	if ( ! empty( $parsed_styles['declarations'] ) ) {
 		$styles_output['css']          = WP_Style_Engine::compile_css( $parsed_styles['declarations'], $options['selector'] );
@@ -148,7 +148,7 @@ function wp_style_engine_get_stylesheet_from_css_rules( $css_rules, $options = a
 		)
 	);
 
-	$css_rule_objects = array();
+	$css_rule_objects = [];
 	foreach ( $css_rules as $css_rule ) {
 		if ( empty( $css_rule['selector'] ) || empty( $css_rule['declarations'] ) || ! is_array( $css_rule['declarations'] ) ) {
 			continue;

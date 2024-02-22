@@ -252,7 +252,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$query = array();
+		$query = [];
 		if ( isset( $request['wp_id'] ) ) {
 			$query['wp_id'] = $request['wp_id'];
 		}
@@ -263,7 +263,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$query['post_type'] = $request['post_type'];
 		}
 
-		$templates = array();
+		$templates = [];
 		foreach ( get_block_templates( $query, $this->post_type ) as $template ) {
 			$data        = $this->prepare_item_for_response( $template, $request );
 			$templates[] = $this->prepare_response_for_collection( $data );
@@ -640,7 +640,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		// Base fields for every template.
-		$data = array();
+		$data = [];
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $template->id;
@@ -651,7 +651,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'content', $fields ) ) {
-			$data['content'] = array();
+			$data['content'] = [];
 		}
 		if ( rest_is_field_included( 'content.raw', $fields ) ) {
 			$data['content']['raw'] = $template->content;
@@ -682,7 +682,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'title', $fields ) ) {
-			$data['title'] = array();
+			$data['title'] = [];
 		}
 
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
@@ -887,7 +887,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return string[] List of link relations.
 	 */
 	protected function get_available_actions() {
-		$rels = array();
+		$rels = [];
 
 		$post_type = get_post_type_object( $this->post_type );
 

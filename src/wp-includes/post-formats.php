@@ -47,7 +47,7 @@ function get_post_format( $post = null ) {
  *              false otherwise.
  */
 function has_post_format( $format = array(), $post = null ) {
-	$prefixed = array();
+	$prefixed = [];
 
 	if ( $format ) {
 		foreach ( (array) $format as $single ) {

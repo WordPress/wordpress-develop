@@ -4,7 +4,7 @@
  * @group meta
  */
 class Tests_Meta extends WP_UnitTestCase {
-	protected $updated_mids = array();
+	protected $updated_mids = [];
 
 	/**
 	 * @var \WP_User
@@ -105,7 +105,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		remove_action( 'updated_postmeta', array( $this, 'updated_meta' ) );
 
 		$found              = $this->updated_mids;
-		$this->updated_mids = array();
+		$this->updated_mids = [];
 
 		foreach ( $found as $action => $mids ) {
 			$this->assertCount( 2, $mids );

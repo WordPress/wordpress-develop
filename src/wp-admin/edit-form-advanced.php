@@ -108,7 +108,7 @@ if ( ! $permalink ) {
 	$permalink = '';
 }
 
-$messages = array();
+$messages = [];
 
 $preview_post_link_html   = '';
 $scheduled_post_link_html = '';

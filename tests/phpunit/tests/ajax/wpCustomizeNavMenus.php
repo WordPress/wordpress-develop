@@ -685,7 +685,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_ajax_insert_auto_draft_failures() {
 		// No nonce.
-		$_POST                = array();
+		$_POST                = [];
 		$this->_last_response = '';
 		$this->make_ajax_call( 'customize-nav-menus-insert-auto-draft' );
 		$response = json_decode( $this->_last_response, true );

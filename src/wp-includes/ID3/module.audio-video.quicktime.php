@@ -89,7 +89,7 @@ class getid3_quicktime extends getid3_handler
 				$info['quicktime'][$atomname]['offset'] = $offset;
 				break;
 			}
-			$atomHierarchy = array();
+			$atomHierarchy = [];
 			$parsedAtomData = $this->QuicktimeParseAtom($atomname, $atomsize, $this->fread(min($atomsize - $atom_size_extended_bytes, $atom_data_read_buffer_size)), $offset, $atomHierarchy, $this->ParseAllPossibleAtoms);
 			$parsedAtomData['name']   = $atomname;
 			$parsedAtomData['size']   = $atomsize;
@@ -117,7 +117,7 @@ class getid3_quicktime extends getid3_handler
 		if (isset($info['quicktime']['comments']['chapters']) && is_array($info['quicktime']['comments']['chapters']) && (count($info['quicktime']['comments']['chapters']) > 0)) {
 			$durations = $this->quicktime_time_to_sample_table($info);
 			for ($i = 0; $i < count($info['quicktime']['comments']['chapters']); $i++) {
-				$bookmark = array();
+				$bookmark = [];
 				$bookmark['title'] = $info['quicktime']['comments']['chapters'][$i];
 				if (isset($durations[$i])) {
 					$bookmark['duration_sample'] = $durations[$i]['sample_duration'];
@@ -252,7 +252,7 @@ class getid3_quicktime extends getid3_handler
 
 		$atom_parent = end($atomHierarchy); // not array_pop($atomHierarchy); see https://www.getid3.org/phpBB3/viewtopic.php?t=1717
 		array_push($atomHierarchy, $atomname);
-		$atom_structure              = array();
+		$atom_structure              = [];
 		$atom_structure['hierarchy'] = implode(' ', $atomHierarchy);
 		$atom_structure['name']      = $atomname;
 		$atom_structure['size']      = $atomsize;
@@ -295,7 +295,7 @@ class getid3_quicktime extends getid3_handler
 							}
 						}
 						if ($allnumericnames) {
-							$newData = array();
+							$newData = [];
 							foreach ($atom_structure['subatoms'] as $subatomarray) {
 								foreach ($subatomarray['subatoms'] as $newData_subatomarray) {
 									unset($newData_subatomarray['hierarchy'], $newData_subatomarray['name']);
@@ -1009,7 +1009,7 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$atom_structure['flags_raw']      = getid3_lib::BigEndian2Int(substr($atom_data,  1, 3)); // hardcoded: 0x0000
 					$atom_structure['number_entries'] = getid3_lib::BigEndian2Int(substr($atom_data,  4, 4));
 					$sttsEntriesDataOffset = 8;
-					//$FrameRateCalculatorArray = array();
+					//$FrameRateCalculatorArray = [];
 					$frames_count = 0;
 
 					$max_stts_entries_to_scan = ($info['php_memory_limit'] ? min(floor($this->getid3->memory_limit / 10000), $atom_structure['number_entries']) : $atom_structure['number_entries']);
@@ -1803,15 +1803,15 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 									'unknown_data'   => array(),
 									'debug_list'     => '',      // Used to debug variables stored as comma delimited strings
 							);
-							$debug_structure = array();
-							$debug_structure['debug_items'] = array();
+							$debug_structure = [];
+							$debug_structure['debug_items'] = [];
 							// Can start loop here to decode all sensor data in 32 Byte chunks:
 							foreach (str_split($atom_SENSOR_data, 32) as $sensor_key => $sensor_data) {
 								// This gets me a data_type code to work out what data is in the next 31 bytes.
 								$sensor_data_type = substr($sensor_data, 0, 1);
 								$sensor_data_content = substr($sensor_data, 1);
 								$uuid_bytes_read = unpack('C*', $sensor_data_type);
-								$sensor_data_array = array();
+								$sensor_data_array = [];
 								switch ($uuid_bytes_read[1]) {
 									case 250:
 										$atom_structure['sensor_data']['data_type']['fusion_count']++;
@@ -1903,12 +1903,12 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 					$GPS_rowsize = 8; // 4 bytes for offset, 4 bytes for size
 					if (strlen($atom_data) > 0) {
 						if ((strlen($atom_data) % $GPS_rowsize) == 0) {
-							$atom_structure['gps_toc'] = array();
+							$atom_structure['gps_toc'] = [];
 							foreach (str_split($atom_data, $GPS_rowsize) as $counter => $datapair) {
 								$atom_structure['gps_toc'][] = unpack('Noffset/Nsize', substr($atom_data, $counter * $GPS_rowsize, $GPS_rowsize));
 							}
 
-							$atom_structure['gps_entries'] = array();
+							$atom_structure['gps_entries'] = [];
 							$previous_offset = $this->ftell();
 							foreach ($atom_structure['gps_toc'] as $key => $gps_pointer) {
 								if ($key == 0) {
@@ -1937,8 +1937,8 @@ $this->warning('incomplete/incorrect handling of "stsd" with Parrot metadata in 
 								// $GPRMC,002454,A,3553.5295,N,13938.6570,E,0.0,43.1,180700,7.1,W,A*3F
 								// $GPRMC,094347.000,A,5342.0061,N,00737.9908,W,0.01,156.75,140217,,,A*7D
 								if (preg_match('#\\$GPRMC,([0-9\\.]*),([AV]),([0-9\\.]*),([NS]),([0-9\\.]*),([EW]),([0-9\\.]*),([0-9\\.]*),([0-9]*),([0-9\\.]*),([EW]?)(,[A])?(\\*[0-9A-F]{2})#', $GPS_free_data, $matches)) {
-									$GPS_this_GPRMC = array();
-									$GPS_this_GPRMC_raw = array();
+									$GPS_this_GPRMC = [];
+									$GPS_this_GPRMC_raw = [];
 									list(
 										$GPS_this_GPRMC_raw['gprmc'],
 										$GPS_this_GPRMC_raw['timestamp'],
@@ -2235,7 +2235,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return array|false
 	 */
 	public function QuicktimeParseContainerAtom($atom_data, $baseoffset, &$atomHierarchy, $ParseAllPossibleAtoms) {
-		$atom_structure = array();
+		$atom_structure = [];
 		$subatomoffset  = 0;
 		$subatomcounter = 0;
 		if ((strlen($atom_data) == 4) && (getid3_lib::BigEndian2Int($atom_data) == 0x00000000)) {
@@ -2296,7 +2296,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 */
 	public function QuicktimeLanguageLookup($languageid) {
 		// http://developer.apple.com/library/mac/#documentation/QuickTime/QTFF/QTFFChap4/qtff4.html#//apple_ref/doc/uid/TP40000939-CH206-34353
-		static $QuicktimeLanguageLookup = array();
+		static $QuicktimeLanguageLookup = [];
 		if (empty($QuicktimeLanguageLookup)) {
 			$QuicktimeLanguageLookup[0]     = 'English';
 			$QuicktimeLanguageLookup[1]     = 'French';
@@ -2437,7 +2437,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeVideoCodecLookup($codecid) {
-		static $QuicktimeVideoCodecLookup = array();
+		static $QuicktimeVideoCodecLookup = [];
 		if (empty($QuicktimeVideoCodecLookup)) {
 			$QuicktimeVideoCodecLookup['.SGI'] = 'SGI';
 			$QuicktimeVideoCodecLookup['3IV1'] = '3ivx MPEG-4 v1';
@@ -2502,7 +2502,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return mixed|string
 	 */
 	public function QuicktimeAudioCodecLookup($codecid) {
-		static $QuicktimeAudioCodecLookup = array();
+		static $QuicktimeAudioCodecLookup = [];
 		if (empty($QuicktimeAudioCodecLookup)) {
 			$QuicktimeAudioCodecLookup['.mp3']          = 'Fraunhofer MPEG Layer-III alias';
 			$QuicktimeAudioCodecLookup['aac ']          = 'ISO/IEC 14496-3 AAC';
@@ -2552,7 +2552,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeDCOMLookup($compressionid) {
-		static $QuicktimeDCOMLookup = array();
+		static $QuicktimeDCOMLookup = [];
 		if (empty($QuicktimeDCOMLookup)) {
 			$QuicktimeDCOMLookup['zlib'] = 'ZLib Deflate';
 			$QuicktimeDCOMLookup['adec'] = 'Apple Compression';
@@ -2566,7 +2566,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeColorNameLookup($colordepthid) {
-		static $QuicktimeColorNameLookup = array();
+		static $QuicktimeColorNameLookup = [];
 		if (empty($QuicktimeColorNameLookup)) {
 			$QuicktimeColorNameLookup[1]  = '2-color (monochrome)';
 			$QuicktimeColorNameLookup[2]  = '4-color';
@@ -2589,7 +2589,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeSTIKLookup($stik) {
-		static $QuicktimeSTIKLookup = array();
+		static $QuicktimeSTIKLookup = [];
 		if (empty($QuicktimeSTIKLookup)) {
 			$QuicktimeSTIKLookup[0]  = 'Movie';
 			$QuicktimeSTIKLookup[1]  = 'Normal';
@@ -2611,7 +2611,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeIODSaudioProfileName($audio_profile_id) {
-		static $QuicktimeIODSaudioProfileNameLookup = array();
+		static $QuicktimeIODSaudioProfileNameLookup = [];
 		if (empty($QuicktimeIODSaudioProfileNameLookup)) {
 			$QuicktimeIODSaudioProfileNameLookup = array(
 				0x00 => 'ISO Reserved (0x00)',
@@ -2675,7 +2675,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeIODSvideoProfileName($video_profile_id) {
-		static $QuicktimeIODSvideoProfileNameLookup = array();
+		static $QuicktimeIODSvideoProfileNameLookup = [];
 		if (empty($QuicktimeIODSvideoProfileNameLookup)) {
 			$QuicktimeIODSvideoProfileNameLookup = array(
 				0x00 => 'Reserved (0x00) Profile',
@@ -2751,7 +2751,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeContentRatingLookup($rtng) {
-		static $QuicktimeContentRatingLookup = array();
+		static $QuicktimeContentRatingLookup = [];
 		if (empty($QuicktimeContentRatingLookup)) {
 			$QuicktimeContentRatingLookup[0]  = 'None';
 			$QuicktimeContentRatingLookup[1]  = 'Explicit';
@@ -2767,7 +2767,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeStoreAccountTypeLookup($akid) {
-		static $QuicktimeStoreAccountTypeLookup = array();
+		static $QuicktimeStoreAccountTypeLookup = [];
 		if (empty($QuicktimeStoreAccountTypeLookup)) {
 			$QuicktimeStoreAccountTypeLookup[0] = 'iTunes';
 			$QuicktimeStoreAccountTypeLookup[1] = 'AOL';
@@ -2781,7 +2781,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return string
 	 */
 	public function QuicktimeStoreFrontCodeLookup($sfid) {
-		static $QuicktimeStoreFrontCodeLookup = array();
+		static $QuicktimeStoreFrontCodeLookup = [];
 		if (empty($QuicktimeStoreFrontCodeLookup)) {
 			$QuicktimeStoreFrontCodeLookup[143460] = 'Australia';
 			$QuicktimeStoreFrontCodeLookup[143445] = 'Austria';
@@ -2817,7 +2817,7 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return bool
 	 */
 	public function CopyToAppropriateCommentsSection($keyname, $data, $boxname='') {
-		static $handyatomtranslatorarray = array();
+		static $handyatomtranslatorarray = [];
 		if (empty($handyatomtranslatorarray)) {
 			// http://www.geocities.com/xhelmboyx/quicktime/formats/qtm-layout.txt
 			// http://www.geocities.com/xhelmboyx/quicktime/formats/mp4-layout.txt
@@ -3069,20 +3069,20 @@ $this->error('fragmented mp4 files not currently supported');
 	 * @return array
 	 */
 	public function quicktime_time_to_sample_table($info) {
-		$res = array();
+		$res = [];
 		$this->search_tag_by_pair($info['quicktime']['moov'], 'name', 'stbl', 'quicktime/moov', $res);
 		foreach ($res as $value) {
-			$stbl_res = array();
+			$stbl_res = [];
 			$this->search_tag_by_pair($value[1], 'data_format', 'text', $value[0], $stbl_res);
 			if (count($stbl_res) > 0) {
-				$stts_res = array();
+				$stts_res = [];
 				$this->search_tag_by_key($value[1], 'time_to_sample_table', $value[0], $stts_res);
 				if (count($stts_res) > 0) {
 					return $stts_res[0][1]['time_to_sample_table'];
 				}
 			}
 		}
-		return array();
+		return [];
 	}
 
 
@@ -3094,13 +3094,13 @@ $this->error('fragmented mp4 files not currently supported');
 	public function quicktime_bookmark_time_scale($info) {
 		$time_scale = '';
 		$ts_prefix_len = 0;
-		$res = array();
+		$res = [];
 		$this->search_tag_by_pair($info['quicktime']['moov'], 'name', 'stbl', 'quicktime/moov', $res);
 		foreach ($res as $value) {
-			$stbl_res = array();
+			$stbl_res = [];
 			$this->search_tag_by_pair($value[1], 'data_format', 'text', $value[0], $stbl_res);
 			if (count($stbl_res) > 0) {
-				$ts_res = array();
+				$ts_res = [];
 				$this->search_tag_by_key($info['quicktime']['moov'], 'time_scale', 'quicktime/moov', $ts_res);
 				foreach ($ts_res as $sub_value) {
 					$prefix = substr($sub_value[0], 0, -12);

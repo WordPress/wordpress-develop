@@ -741,7 +741,7 @@ class Iri {
 	protected function set_iri($iri) {
 		static $cache;
 		if (!$cache) {
-			$cache = array();
+			$cache = [];
 		}
 
 		if ($iri === null) {
@@ -812,7 +812,7 @@ class Iri {
 	protected function set_authority($authority) {
 		static $cache;
 		if (!$cache) {
-			$cache = array();
+			$cache = [];
 		}
 
 		if ($authority === null) {
@@ -959,7 +959,7 @@ class Iri {
 	protected function set_path($ipath) {
 		static $cache;
 		if (!$cache) {
-			$cache = array();
+			$cache = [];
 		}
 
 		$ipath = (string) $ipath;

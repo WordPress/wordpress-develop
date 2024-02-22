@@ -51,7 +51,7 @@ final class WP_Post_Type {
 	 * @since 6.0.0
 	 * @var (string|null)[][] $default_labels
 	 */
-	protected static $default_labels = array();
+	protected static $default_labels = [];
 
 	/**
 	 * A short descriptive summary of what the post type is.
@@ -224,7 +224,7 @@ final class WP_Post_Type {
 	 * @since 4.6.0
 	 * @var string[] $taxonomies
 	 */
-	public $taxonomies = array();
+	public $taxonomies = [];
 
 	/**
 	 * Whether there should be post type archives, or if a string, the archive slug to use.
@@ -284,7 +284,7 @@ final class WP_Post_Type {
 	 * @since 5.0.0
 	 * @var array[] $template
 	 */
-	public $template = array();
+	public $template = [];
 
 	/**
 	 * Whether the block template should be locked if $template is set.
@@ -624,7 +624,7 @@ final class WP_Post_Type {
 
 		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( ! is_array( $args['rewrite'] ) ) {
-				$args['rewrite'] = array();
+				$args['rewrite'] = [];
 			}
 			if ( empty( $args['rewrite']['slug'] ) ) {
 				$args['rewrite']['slug'] = $this->name;
@@ -1010,6 +1010,6 @@ final class WP_Post_Type {
 	 * @since 6.0.0
 	 */
 	public static function reset_default_labels() {
-		self::$default_labels = array();
+		self::$default_labels = [];
 	}
 }

@@ -88,7 +88,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$found_ids = array();
+		$found_ids = [];
 		foreach ( $found as $bookmark ) {
 			$found_ids[] = $bookmark->link_id;
 		}
@@ -106,7 +106,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$found_ids = array();
+		$found_ids = [];
 		foreach ( $found as $bookmark ) {
 			$found_ids[] = $bookmark->link_id;
 		}
@@ -134,7 +134,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$found_ids = array();
+		$found_ids = [];
 		foreach ( $found as $bookmark ) {
 			$found_ids[] = $bookmark->link_id;
 		}

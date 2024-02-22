@@ -8,8 +8,8 @@
 class Tests_Canonical_Category extends WP_Canonical_UnitTestCase {
 	public $structure = '/%category%/%postname%/';
 
-	public static $posts = array();
-	public static $cats  = array();
+	public static $posts = [];
+	public static $cats  = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 

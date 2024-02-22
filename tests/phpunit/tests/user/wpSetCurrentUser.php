@@ -6,7 +6,7 @@
 class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 	protected static $user_id;
 	protected static $user_id2;
-	protected static $user_ids = array();
+	protected static $user_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id    = $factory->user->create();

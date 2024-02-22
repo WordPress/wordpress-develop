@@ -37,7 +37,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 * @since 4.2.0
 	 * @var array
 	 */
-	public $button_labels = array();
+	public $button_labels = [];
 
 	/**
 	 * Constructor.

@@ -67,7 +67,7 @@ function twentynineteen_get_discussion_data() {
 		)
 	);
 
-	$authors = array();
+	$authors = [];
 	foreach ( $comments as $comment ) {
 		$authors[] = ( (int) $comment->user_id > 0 ) ? (int) $comment->user_id : $comment->comment_author_email;
 	}

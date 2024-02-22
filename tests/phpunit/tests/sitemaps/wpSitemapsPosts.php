@@ -96,7 +96,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 
 		$this->assertCount( count( $post_ids ), $url_list, 'The post count did not match.' );
 
-		$expected = array();
+		$expected = [];
 
 		foreach ( $post_ids as $post_id ) {
 			$expected[] = array(

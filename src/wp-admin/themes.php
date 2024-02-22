@@ -353,7 +353,7 @@ if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage
 	);
 }
 
-$current_theme_actions = array();
+$current_theme_actions = [];
 
 if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 	$forbidden_paths = array(

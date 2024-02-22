@@ -7,7 +7,7 @@
  */
 class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	protected static $admin_id;
-	protected static $user_ids = array();
+	protected static $user_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );

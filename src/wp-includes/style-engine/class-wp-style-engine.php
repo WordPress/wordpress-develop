@@ -459,10 +459,10 @@ final class WP_Style_Engine {
 	 */
 	protected static function get_classnames( $style_value, $style_definition ) {
 		if ( empty( $style_value ) ) {
-			return array();
+			return [];
 		}
 
-		$classnames = array();
+		$classnames = [];
 		if ( ! empty( $style_definition['classnames'] ) ) {
 			foreach ( $style_definition['classnames'] as $classname => $property_key ) {
 				if ( true === $property_key ) {
@@ -507,7 +507,7 @@ final class WP_Style_Engine {
 			return call_user_func( $style_definition['value_func'], $style_value, $style_definition, $options );
 		}
 
-		$css_declarations     = array();
+		$css_declarations     = [];
 		$style_property_keys  = $style_definition['property_keys'];
 		$should_skip_css_vars = isset( $options['convert_vars_to_classnames'] ) && true === $options['convert_vars_to_classnames'];
 
@@ -588,7 +588,7 @@ final class WP_Style_Engine {
 	 */
 	protected static function get_individual_property_css_declarations( $style_value, $individual_property_definition, $options = array() ) {
 		if ( ! is_array( $style_value ) || empty( $style_value ) || empty( $individual_property_definition['path'] ) ) {
-			return array();
+			return [];
 		}
 
 		/*
@@ -602,7 +602,7 @@ final class WP_Style_Engine {
 		$definition_group_key    = $individual_property_definition['path'][0];
 		$individual_property_key = $individual_property_definition['path'][1];
 		$should_skip_css_vars    = isset( $options['convert_vars_to_classnames'] ) && true === $options['convert_vars_to_classnames'];
-		$css_declarations        = array();
+		$css_declarations        = [];
 
 		foreach ( $style_value as $css_property => $value ) {
 			if ( empty( $value ) ) {
@@ -643,10 +643,10 @@ final class WP_Style_Engine {
 	 */
 	protected static function get_url_or_value_css_declaration( $style_value, $style_definition ) {
 		if ( empty( $style_value ) ) {
-			return array();
+			return [];
 		}
 
-		$css_declarations = array();
+		$css_declarations = [];
 
 		if ( isset( $style_definition['property_keys']['default'] ) ) {
 			$value = null;

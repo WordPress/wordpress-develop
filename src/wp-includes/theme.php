@@ -60,7 +60,7 @@ function wp_get_themes( $args = array() ) {
 	}
 
 	if ( empty( $theme_directories ) ) {
-		return array();
+		return [];
 	}
 
 	if ( is_multisite() && null !== $args['allowed'] ) {
@@ -76,8 +76,8 @@ function wp_get_themes( $args = array() ) {
 		}
 	}
 
-	$themes         = array();
-	static $_themes = array();
+	$themes         = [];
+	static $_themes = [];
 
 	foreach ( $theme_directories as $theme => $theme_root ) {
 		if ( isset( $_themes[ $theme_root['theme_root'] . '/' . $theme ] ) ) {
@@ -425,7 +425,7 @@ function register_theme_directory( $directory ) {
 	}
 
 	if ( ! is_array( $wp_theme_directories ) ) {
-		$wp_theme_directories = array();
+		$wp_theme_directories = [];
 	}
 
 	$untrailed = untrailingslashit( $directory );
@@ -458,10 +458,10 @@ function search_theme_directories( $force = false ) {
 		return $found_themes;
 	}
 
-	$found_themes = array();
+	$found_themes = [];
 
 	$wp_theme_directories = (array) $wp_theme_directories;
-	$relative_theme_roots = array();
+	$relative_theme_roots = [];
 
 	/*
 	 * Set up maybe-relative, maybe-absolute array of theme directories.
@@ -570,7 +570,7 @@ function search_theme_directories( $force = false ) {
 
 	asort( $found_themes );
 
-	$theme_roots          = array();
+	$theme_roots          = [];
 	$relative_theme_roots = array_flip( $relative_theme_roots );
 
 	foreach ( $found_themes as $theme_dir => $theme_data ) {
@@ -1031,7 +1031,7 @@ function get_theme_mods() {
 	}
 
 	if ( ! is_array( $mods ) ) {
-		$mods = array();
+		$mods = [];
 	}
 
 	return $mods;
@@ -1388,7 +1388,7 @@ function _get_random_header_data() {
 
 	if ( empty( $_wp_random_header ) ) {
 		$header_image_mod = get_theme_mod( 'header_image', '' );
-		$headers          = array();
+		$headers          = [];
 
 		if ( 'random-uploaded-image' === $header_image_mod ) {
 			$headers = get_uploaded_header_images();
@@ -1498,7 +1498,7 @@ function header_image() {
  * @return array
  */
 function get_uploaded_header_images() {
-	$header_images = array();
+	$header_images = [];
 
 	// @todo Caching.
 	$headers = get_posts(
@@ -1512,7 +1512,7 @@ function get_uploaded_header_images() {
 	);
 
 	if ( empty( $headers ) ) {
-		return array();
+		return [];
 	}
 
 	foreach ( (array) $headers as $header ) {
@@ -1520,7 +1520,7 @@ function get_uploaded_header_images() {
 		$header_data  = wp_get_attachment_metadata( $header->ID );
 		$header_index = $header->ID;
 
-		$header_images[ $header_index ]                  = array();
+		$header_images[ $header_index ]                  = [];
 		$header_images[ $header_index ]['attachment_id'] = $header->ID;
 		$header_images[ $header_index ]['url']           = $url;
 		$header_images[ $header_index ]['thumbnail_url'] = $url;
@@ -1561,7 +1561,7 @@ function get_custom_header() {
 		$data = get_theme_mod( 'header_image_data' );
 		if ( ! $data && current_theme_supports( 'custom-header', 'default-image' ) ) {
 			$directory_args        = array( get_template_directory_uri(), get_stylesheet_directory_uri() );
-			$data                  = array();
+			$data                  = [];
 			$data['url']           = vsprintf( get_theme_support( 'custom-header', 'default-image' ), $directory_args );
 			$data['thumbnail_url'] = $data['url'];
 			if ( ! empty( $_wp_default_headers ) ) {
@@ -2210,7 +2210,7 @@ function remove_editor_styles() {
 	}
 	_remove_theme_support( 'editor-style' );
 	if ( is_admin() ) {
-		$GLOBALS['editor_styles'] = array();
+		$GLOBALS['editor_styles'] = [];
 	}
 	return true;
 }
@@ -2225,7 +2225,7 @@ function remove_editor_styles() {
  * @return string[] If registered, a list of editor stylesheet URLs.
  */
 function get_editor_stylesheets() {
-	$stylesheets = array();
+	$stylesheets = [];
 	// Load editor_style.css if the active theme supports it.
 	if ( ! empty( $GLOBALS['editor_styles'] ) && is_array( $GLOBALS['editor_styles'] ) ) {
 		$editor_styles = $GLOBALS['editor_styles'];
@@ -2283,7 +2283,7 @@ function get_theme_starter_content() {
 	if ( is_array( $theme_support ) && ! empty( $theme_support[0] ) && is_array( $theme_support[0] ) ) {
 		$config = $theme_support[0];
 	} else {
-		$config = array();
+		$config = [];
 	}
 
 	$core_content = array(
@@ -2477,7 +2477,7 @@ function get_theme_starter_content() {
 		),
 	);
 
-	$content = array();
+	$content = [];
 
 	foreach ( $config as $type => $args ) {
 		switch ( $type ) {
@@ -3281,7 +3281,7 @@ function register_theme_feature( $feature, $args = array() ) {
 	global $_wp_registered_theme_features;
 
 	if ( ! is_array( $_wp_registered_theme_features ) ) {
-		$_wp_registered_theme_features = array();
+		$_wp_registered_theme_features = [];
 	}
 
 	$defaults = array(
@@ -3294,7 +3294,7 @@ function register_theme_feature( $feature, $args = array() ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	if ( true === $args['show_in_rest'] ) {
-		$args['show_in_rest'] = array();
+		$args['show_in_rest'] = [];
 	}
 
 	if ( is_array( $args['show_in_rest'] ) ) {
@@ -3397,7 +3397,7 @@ function get_registered_theme_features() {
 	global $_wp_registered_theme_features;
 
 	if ( ! is_array( $_wp_registered_theme_features ) ) {
-		return array();
+		return [];
 	}
 
 	return $_wp_registered_theme_features;
@@ -3885,7 +3885,7 @@ function _wp_keep_alive_customize_changeset_dependent_auto_drafts( $new_status, 
 		return;
 	}
 
-	$post_args = array();
+	$post_args = [];
 	if ( 'auto-draft' === $new_status ) {
 		/*
 		 * Keep the post date for the post matching the changeset
@@ -4265,7 +4265,7 @@ function create_initial_theme_features() {
 					'default' => array( 'standard' ),
 				),
 				'prepare_callback' => static function ( $formats ) {
-					$formats = is_array( $formats ) ? array_values( $formats[0] ) : array();
+					$formats = is_array( $formats ) ? array_values( $formats[0] ) : [];
 					$formats = array_merge( array( 'standard' ), $formats );
 
 					return $formats;

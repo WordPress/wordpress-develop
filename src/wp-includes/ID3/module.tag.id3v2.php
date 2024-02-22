@@ -54,7 +54,7 @@ class getid3_id3v2 extends getid3_handler
 		// shortcuts
 		$info['id3v2']['header'] = true;
 		$thisfile_id3v2                  = &$info['id3v2'];
-		$thisfile_id3v2['flags']         =  array();
+		$thisfile_id3v2['flags']         =  [];
 		$thisfile_id3v2_flags            = &$thisfile_id3v2['flags'];
 
 
@@ -345,7 +345,7 @@ class getid3_id3v2 extends getid3_handler
 				}
 				if (($frame_size <= strlen($framedata)) && ($this->IsValidID3v2FrameName($frame_name, $id3v2_majorversion))) {
 
-					$parsedFrame                    = array();
+					$parsedFrame                    = [];
 					$parsedFrame['frame_name']      = $frame_name;
 					$parsedFrame['frame_flags_raw'] = $frame_flags;
 					$parsedFrame['data']            = substr($framedata, 0, $frame_size);
@@ -452,7 +452,7 @@ class getid3_id3v2 extends getid3_handler
 		} // end footer
 
 		if (isset($thisfile_id3v2['comments']['genre'])) {
-			$genres = array();
+			$genres = [];
 			foreach ($thisfile_id3v2['comments']['genre'] as $key => $value) {
 				foreach ($this->ParseID3v2GenreString($value) as $genre) {
 					$genres[] = $genre;
@@ -517,7 +517,7 @@ class getid3_id3v2 extends getid3_handler
 		// Parse genres into arrays of genreName and genreID
 		// ID3v2.2.x, ID3v2.3.x: '(21)' or '(4)Eurodisco' or '(51)(39)' or '(55)((I think...)'
 		// ID3v2.4.x: '21' $00 'Eurodisco' $00
-		$clean_genres = array();
+		$clean_genres = [];
 
 		// hack-fixes for some badly-written ID3v2.3 taggers, while trying not to break correctly-written tags
 		if (($this->getid3->info['id3v2']['majorversion'] == 3) && !preg_match('#[\x00]#', $genrestring)) {
@@ -736,7 +736,7 @@ class getid3_id3v2 extends getid3_handler
 						$wordsize = 1;
 						break;
 				}
-				$Txxx_elements = array();
+				$Txxx_elements = [];
 				$Txxx_elements_start_offset = 0;
 				for ($i = 0; $i < strlen($parsedFrame['data']); $i += $wordsize) {
 					if (substr($parsedFrame['data'], $i, $wordsize) == str_repeat("\x00", $wordsize)) {
@@ -821,9 +821,9 @@ class getid3_id3v2 extends getid3_handler
 			// https://www.getid3.org/phpBB3/viewtopic.php?t=1369
 			// "this tag typically contains null terminated strings, which are associated in pairs"
 			// "there are users that use the tag incorrectly"
-			$IPLS_parts = array();
+			$IPLS_parts = [];
 			if (strpos($parsedFrame['data_raw'], "\x00") !== false) {
-				$IPLS_parts_unsorted = array();
+				$IPLS_parts_unsorted = [];
 				if (((strlen($parsedFrame['data_raw']) % 2) == 0) && ((substr($parsedFrame['data_raw'], 0, 2) == "\xFF\xFE") || (substr($parsedFrame['data_raw'], 0, 2) == "\xFE\xFF"))) {
 					// UTF-16, be careful looking for null bytes since most 2-byte characters may contain one; you need to find twin null bytes, and on even padding
 					$thisILPS  = '';
@@ -1429,7 +1429,7 @@ class getid3_id3v2 extends getid3_handler
 				$parsedFrame['datalength']    = strlen($parsedFrame['data']);
 
 				$parsedFrame['image_mime']    = '';
-				$imageinfo = array();
+				$imageinfo = [];
 				if ($imagechunkcheck = getid3_lib::GetDataImageSize($parsedFrame['data'], $imageinfo)) {
 					if (($imagechunkcheck[2] >= 1) && ($imagechunkcheck[2] <= 3)) {
 						$parsedFrame['image_mime']       = image_type_to_mime_type($imagechunkcheck[2]);
@@ -1482,9 +1482,9 @@ class getid3_id3v2 extends getid3_handler
 					} else {
 						if (!empty($parsedFrame['framenameshort']) && !empty($parsedFrame['data'])) {
 							if (!isset($info['id3v2']['comments']['picture'])) {
-								$info['id3v2']['comments']['picture'] = array();
+								$info['id3v2']['comments']['picture'] = [];
 							}
-							$comments_picture_data = array();
+							$comments_picture_data = [];
 							foreach (array('data', 'image_mime', 'image_width', 'image_height', 'imagetype', 'picturetype', 'description', 'datalength') as $picture_key) {
 								if (isset($parsedFrame[$picture_key])) {
 									$comments_picture_data[$picture_key] = $parsedFrame[$picture_key];
@@ -2014,10 +2014,10 @@ class getid3_id3v2 extends getid3_handler
 			$frame_offset += 4;
 
 			if ($frame_offset < strlen($parsedFrame['data'])) {
-				$parsedFrame['subframes'] = array();
+				$parsedFrame['subframes'] = [];
 				while ($frame_offset < strlen($parsedFrame['data'])) {
 					// <Optional embedded sub-frames>
-					$subframe = array();
+					$subframe = [];
 					$subframe['name']      =                           substr($parsedFrame['data'], $frame_offset, 4);
 					$frame_offset += 4;
 					$subframe['size']      = getid3_lib::BigEndian2Int(substr($parsedFrame['data'], $frame_offset, 4));
@@ -2097,14 +2097,14 @@ class getid3_id3v2 extends getid3_handler
 				unset($parsedFrame['data']); // debatable whether this this be here, without it the returned structure may contain a large amount of duplicate data if chapters contain APIC
 			}
 
-			$id3v2_chapter_entry = array();
+			$id3v2_chapter_entry = [];
 			foreach (array('id', 'time_begin', 'time_end', 'offset_begin', 'offset_end', 'chapter_name', 'chapter_description', 'chapter_url', 'picture_present') as $id3v2_chapter_key) {
 				if (isset($parsedFrame[$id3v2_chapter_key])) {
 					$id3v2_chapter_entry[$id3v2_chapter_key] = $parsedFrame[$id3v2_chapter_key];
 				}
 			}
 			if (!isset($info['id3v2']['chapters'])) {
-				$info['id3v2']['chapters'] = array();
+				$info['id3v2']['chapters'] = [];
 			}
 			$info['id3v2']['chapters'][] = $id3v2_chapter_entry;
 			unset($id3v2_chapter_entry, $id3v2_chapter_key);
@@ -2140,10 +2140,10 @@ class getid3_id3v2 extends getid3_handler
 			unset($ctoc_flags_raw, $terminator_position);
 
 			if ($frame_offset < strlen($parsedFrame['data'])) {
-				$parsedFrame['subframes'] = array();
+				$parsedFrame['subframes'] = [];
 				while ($frame_offset < strlen($parsedFrame['data'])) {
 					// <Optional embedded sub-frames>
-					$subframe = array();
+					$subframe = [];
 					$subframe['name']      =                           substr($parsedFrame['data'], $frame_offset, 4);
 					$frame_offset += 4;
 					$subframe['size']      = getid3_lib::BigEndian2Int(substr($parsedFrame['data'], $frame_offset, 4));

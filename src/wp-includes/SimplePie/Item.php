@@ -68,7 +68,7 @@ class SimplePie_Item
 	 * @access private
 	 * @var array
 	 */
-	var $data = array();
+	var $data = [];
 
 	/**
 	 * Registry object
@@ -459,7 +459,7 @@ class SimplePie_Item
 	 */
 	public function get_categories()
 	{
-		$categories = array();
+		$categories = [];
 
 		$type = 'category';
 		foreach ((array) $this->get_item_tags(SIMPLEPIE_NAMESPACE_ATOM_10, $type) as $category)
@@ -561,7 +561,7 @@ class SimplePie_Item
 	 */
 	public function get_contributors()
 	{
-		$contributors = array();
+		$contributors = [];
 		foreach ((array) $this->get_item_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'contributor') as $contributor)
 		{
 			$name = null;
@@ -625,7 +625,7 @@ class SimplePie_Item
 	 */
 	public function get_authors()
 	{
-		$authors = array();
+		$authors = [];
 		foreach ((array) $this->get_item_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'author') as $author)
 		{
 			$name = null;
@@ -979,7 +979,7 @@ class SimplePie_Item
 	{
 		if (!isset($this->data['links']))
 		{
-			$this->data['links'] = array();
+			$this->data['links'] = [];
 			foreach ((array) $this->get_item_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'link') as $link)
 			{
 				if (isset($link['attribs']['']['href']))
@@ -1086,7 +1086,7 @@ class SimplePie_Item
 	{
 		if (!isset($this->data['enclosures']))
 		{
-			$this->data['enclosures'] = array();
+			$this->data['enclosures'] = [];
 
 			// Elements
 			$captions_parent = null;

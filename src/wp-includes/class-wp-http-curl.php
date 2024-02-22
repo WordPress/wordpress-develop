@@ -208,7 +208,7 @@ class WP_Http_Curl {
 
 		if ( ! empty( $parsed_args['headers'] ) ) {
 			// cURL expects full header strings in each element.
-			$headers = array();
+			$headers = [];
 			foreach ( $parsed_args['headers'] as $name => $value ) {
 				$headers[] = "{$name}: $value";
 			}

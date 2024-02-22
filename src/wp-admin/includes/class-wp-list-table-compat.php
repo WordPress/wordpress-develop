@@ -48,7 +48,7 @@ class _WP_List_Table_Compat extends WP_List_Table {
 	protected function get_column_info() {
 		$columns  = get_column_headers( $this->_screen );
 		$hidden   = get_hidden_columns( $this->_screen );
-		$sortable = array();
+		$sortable = [];
 		$primary  = $this->get_default_primary_column_name();
 
 		return array( $columns, $hidden, $sortable, $primary );

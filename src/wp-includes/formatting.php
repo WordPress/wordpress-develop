@@ -150,7 +150,7 @@ function wptexturize( $text, $reset = false ) {
 			'quote' => array(),
 			'dash'  => array(),
 		);
-		$dynamic              = array();
+		$dynamic              = [];
 		$spaces               = wp_spaces_regexp();
 
 		// '99' and '99" are ambiguous among other patterns; assume it's an abbreviated year at the end of a quotation.
@@ -183,7 +183,7 @@ function wptexturize( $text, $reset = false ) {
 
 		$dynamic_characters['apos']   = array_keys( $dynamic );
 		$dynamic_replacements['apos'] = array_values( $dynamic );
-		$dynamic                      = array();
+		$dynamic                      = [];
 
 		// Quoted numbers like "42".
 		if ( '"' !== $opening_quote && '"' !== $closing_quote ) {
@@ -197,7 +197,7 @@ function wptexturize( $text, $reset = false ) {
 
 		$dynamic_characters['quote']   = array_keys( $dynamic );
 		$dynamic_replacements['quote'] = array_values( $dynamic );
-		$dynamic                       = array();
+		$dynamic                       = [];
 
 		// Dashes and spaces.
 		$dynamic['/---/'] = $em_dash;
@@ -227,8 +227,8 @@ function wptexturize( $text, $reset = false ) {
 	 */
 	$no_texturize_shortcodes = apply_filters( 'no_texturize_shortcodes', $default_no_texturize_shortcodes );
 
-	$no_texturize_tags_stack       = array();
-	$no_texturize_shortcodes_stack = array();
+	$no_texturize_tags_stack       = [];
+	$no_texturize_shortcodes_stack = [];
 
 	// Look for shortcodes and HTML elements.
 
@@ -444,7 +444,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
  * @return string Text which has been converted into correct paragraph tags.
  */
 function wpautop( $text, $br = true ) {
-	$pre_tags = array();
+	$pre_tags = [];
 
 	if ( trim( $text ) === '' ) {
 		return '';
@@ -1157,7 +1157,7 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
  */
 function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = false ) {
 	$unicode        = '';
-	$values         = array();
+	$values         = [];
 	$num_octets     = 1;
 	$unicode_length = 0;
 
@@ -1201,7 +1201,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
 
 				$unicode_length += $num_octets * 3;
 
-				$values     = array();
+				$values     = [];
 				$num_octets = 1;
 			}
 		}
@@ -1987,7 +1987,7 @@ function remove_accents( $text, $locale = '' ) {
 
 		$text = strtr( $text, $chars );
 	} else {
-		$chars = array();
+		$chars = [];
 		// Assume ISO-8859-1 if not UTF-8.
 		$chars['in'] = "\x80\x83\x8a\x8e\x9a\x9e"
 			. "\x9f\xa2\xa5\xb5\xc0\xc1\xc2"
@@ -2003,7 +2003,7 @@ function remove_accents( $text, $locale = '' ) {
 		$chars['out'] = 'EfSZszYcYuAAAAAACEEEEIIIINOOOOOOUUUUYaaaaaaceeeeiiiinoooooouuuuyy';
 
 		$text                = strtr( $text, $chars['in'], $chars['out'] );
-		$double_chars        = array();
+		$double_chars        = [];
 		$double_chars['in']  = array( "\x8c", "\x9c", "\xc6", "\xd0", "\xde", "\xdf", "\xe6", "\xf0", "\xfe" );
 		$double_chars['out'] = array( 'OE', 'oe', 'AE', 'DH', 'TH', 'ss', 'ae', 'dh', 'th' );
 		$text                = str_replace( $double_chars['in'], $double_chars['out'], $text );
@@ -2580,7 +2580,7 @@ function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.Namin
  * @return string Balanced text.
  */
 function force_balance_tags( $text ) {
-	$tagstack  = array();
+	$tagstack  = [];
 	$stacksize = 0;
 	$tagqueue  = '';
 	$newtext   = '';
@@ -3030,7 +3030,7 @@ function _make_email_clickable_cb( $matches ) {
  * @return string The rel attribute for the anchor or an empty string if no rel attribute should be added.
  */
 function _make_clickable_rel_attr( $url ) {
-	$rel_parts        = array();
+	$rel_parts        = [];
 	$scheme           = strtolower( wp_parse_url( $url, PHP_URL_SCHEME ) );
 	$nofollow_schemes = array_intersect( wp_allowed_protocols(), array( 'https', 'http' ) );
 
@@ -3178,7 +3178,7 @@ function make_clickable( $text ) {
  * @return array Numeric array of chunks.
  */
 function _split_str_by_whitespace( $text, $goal ) {
-	$chunks = array();
+	$chunks = [];
 
 	$string_nullspace = strtr( $text, "\r\n\t\v\f ", "\000\000\000\000\000\000" );
 
@@ -3462,7 +3462,7 @@ function translate_smiley( $matches ) {
 	$smiley = trim( reset( $matches ) );
 	$img    = $wpsmiliestrans[ $smiley ];
 
-	$matches    = array();
+	$matches    = [];
 	$ext        = preg_match( '/\.([^.]+)$/', $img, $matches ) ? strtolower( $matches[1] ) : false;
 	$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif' );
 
@@ -3831,7 +3831,7 @@ function sanitize_email( $email ) {
 	}
 
 	// Create an array that will contain valid subs.
-	$new_subs = array();
+	$new_subs = [];
 
 	// Loop through each sub.
 	foreach ( $subs as $sub ) {
@@ -5039,7 +5039,7 @@ function sanitize_option( $option, $value ) {
 				}
 
 				$domains = array_values( array_filter( array_map( 'trim', $value ) ) );
-				$value   = array();
+				$value   = [];
 
 				foreach ( $domains as $domain ) {
 					if ( ! preg_match( '/(--|\.\.)/', $domain ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $domain ) ) {
@@ -6022,7 +6022,7 @@ function wp_staticize_emoji( $text ) {
 	$emoji = _wp_emoji_list( 'entities' );
 
 	// Quickly narrow down the list of emoji that might be in the text and need replacing.
-	$possible_emoji = array();
+	$possible_emoji = [];
 	foreach ( $emoji as $emojum ) {
 		if ( str_contains( $text, $emojum ) ) {
 			$possible_emoji[ $emojum ] = html_entity_decode( $emojum );
@@ -6111,7 +6111,7 @@ function wp_staticize_emoji_for_email( $mail ) {
 	 * then pass it through the {@see 'wp_mail_content_type'} filter, in case
 	 * a plugin is handling changing the `Content-Type`.
 	 */
-	$headers = array();
+	$headers = [];
 	if ( isset( $mail['headers'] ) ) {
 		if ( is_array( $mail['headers'] ) ) {
 			$headers = $mail['headers'];

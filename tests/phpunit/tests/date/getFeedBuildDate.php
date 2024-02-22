@@ -52,7 +52,7 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
 		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
 
-		$wp_query->posts = array();
+		$wp_query->posts = [];
 
 		$this->assertFalse( get_feed_build_date( DATE_RFC3339 ), 'False when unable to determine valid time' );
 

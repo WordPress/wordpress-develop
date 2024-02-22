@@ -290,7 +290,7 @@ class WP_Network_Query {
 		}
 
 		// Fetch full network objects from the primed cache.
-		$_networks = array();
+		$_networks = [];
 		foreach ( $network_ids as $network_id ) {
 			$_network = get_network( $network_id );
 			if ( $_network ) {
@@ -336,7 +336,7 @@ class WP_Network_Query {
 				$this->query_vars['orderby'] :
 				preg_split( '/[,\s]/', $this->query_vars['orderby'] );
 
-			$orderby_array = array();
+			$orderby_array = [];
 			foreach ( $ordersby as $_key => $_value ) {
 				if ( ! $_value ) {
 					continue;
@@ -541,7 +541,7 @@ class WP_Network_Query {
 
 		$like = '%' . $wpdb->esc_like( $search ) . '%';
 
-		$searches = array();
+		$searches = [];
 		foreach ( $columns as $column ) {
 			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 		}

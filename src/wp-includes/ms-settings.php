@@ -97,7 +97,7 @@ if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 $wpdb->set_prefix( $table_prefix, false ); // $table_prefix can be set in sunrise.php.
 $wpdb->set_blog_id( $current_blog->blog_id, $current_blog->site_id );
 $table_prefix       = $wpdb->get_blog_prefix();
-$_wp_switched_stack = array();
+$_wp_switched_stack = [];
 $switched           = false;
 
 // Need to init cache again after blog_id is set.

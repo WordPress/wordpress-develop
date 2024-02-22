@@ -22,7 +22,7 @@ class WP_Font_Library {
 	 * @since 6.5.0
 	 * @var array
 	 */
-	private $collections = array();
+	private $collections = [];
 
 	/**
 	 * Container for the main instance of the class.

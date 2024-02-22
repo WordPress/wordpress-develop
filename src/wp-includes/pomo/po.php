@@ -228,7 +228,7 @@ if ( ! class_exists( 'PO', false ) ) :
 			if ( null === $entry->singular || '' === $entry->singular ) {
 				return false;
 			}
-			$po = array();
+			$po = [];
 			if ( ! empty( $entry->translator_comments ) ) {
 				$po[] = PO::comment_block( $entry->translator_comments );
 			}
@@ -450,7 +450,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				}
 			}
 			if ( false === $have_translations ) {
-				$entry->translations = array();
+				$entry->translations = [];
 			}
 
 			return array(

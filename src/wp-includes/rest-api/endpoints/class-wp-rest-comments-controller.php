@@ -154,7 +154,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			$protected_params = array( 'author', 'author_exclude', 'author_email', 'type', 'status' );
-			$forbidden_params = array();
+			$forbidden_params = [];
 
 			foreach ( $protected_params as $param ) {
 				if ( 'status' === $param ) {
@@ -219,7 +219,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'           => 'type',
 		);
 
-		$prepared_args = array();
+		$prepared_args = [];
 
 		/*
 		 * For each known parameter which is both registered and present in the request,
@@ -246,7 +246,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_args['update_comment_post_cache'] = true;
 
-		$prepared_args['date_query'] = array();
+		$prepared_args['date_query'] = [];
 
 		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['before'], $request['before'] ) ) {
@@ -277,7 +277,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query        = new WP_Comment_Query();
 		$query_result = $query->query( $prepared_args );
 
-		$comments = array();
+		$comments = [];
 
 		foreach ( $query_result as $comment ) {
 			if ( ! $this->check_read_permission( $comment, $request ) ) {
@@ -1042,7 +1042,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment = $item;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = (int) $comment->comment_ID;
@@ -1282,7 +1282,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error Prepared comment, otherwise WP_Error object.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_comment = array();
+		$prepared_comment = [];
 
 		/*
 		 * Allow the comment_content to be set via the 'content' or
@@ -1509,7 +1509,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		if ( get_option( 'show_avatars' ) ) {
-			$avatar_properties = array();
+			$avatar_properties = [];
 
 			$avatar_sizes = rest_get_avatar_sizes();
 

@@ -11,14 +11,14 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @var int[]
 	 */
-	private static $post_ids = array();
+	private static $post_ids = [];
 
 	/**
 	 * Page IDs.
 	 *
 	 * @var int[]
 	 */
-	private static $page_ids = array();
+	private static $page_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Register CPT for use with shared fixtures.
@@ -52,7 +52,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$q = new WP_Query( $query_args );
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids as $post_id ) {
 			$expected[] = (object) array(
 				'ID'          => $post_id,
@@ -133,7 +133,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$q = new WP_Query( $query_args );
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids as $post_id ) {
 			$expected[] = (object) array(
 				'ID'                => $post_id,

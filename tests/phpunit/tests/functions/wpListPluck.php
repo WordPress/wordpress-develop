@@ -8,8 +8,8 @@
  * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListPluck extends WP_UnitTestCase {
-	public $object_list = array();
-	public $array_list  = array();
+	public $object_list = [];
+	public $array_list  = [];
 
 	public function set_up() {
 		/*

@@ -17,7 +17,7 @@ class Tests_Admin_IncludesComment extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	public static $comment_ids = array();
+	public static $comment_ids = [];
 
 	/**
 	 * Create the post and comments for the tests.

@@ -370,8 +370,8 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 		);
 		$_POST['customized'] = wp_slash( wp_json_encode( $post_data_overrides ) );
 
-		$this->custom_type_data_saved     = array();
-		$this->custom_type_data_previewed = array();
+		$this->custom_type_data_saved     = [];
+		$this->custom_type_data_previewed = [];
 
 		add_action( "customize_preview_{$type}", array( $this, 'custom_type_preview' ) );
 

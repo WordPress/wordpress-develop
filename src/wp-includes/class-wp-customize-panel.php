@@ -170,7 +170,7 @@ class WP_Customize_Panel {
 		self::$instance_count += 1;
 		$this->instance_number = self::$instance_count;
 
-		$this->sections = array(); // Users cannot customize the $sections array.
+		$this->sections = []; // Users cannot customize the $sections array.
 	}
 
 	/**

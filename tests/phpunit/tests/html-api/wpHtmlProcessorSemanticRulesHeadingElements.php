@@ -112,7 +112,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesHeadingElements extends WP_UnitT
 	public static function data_heading_combinations() {
 		$headings = array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' );
 
-		$combinations = array();
+		$combinations = [];
 
 		// Create all unique pairs of H1 - H6 elements.
 		foreach ( $headings as $first_tag ) {

@@ -16,7 +16,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	private $test_blocks = array();
+	private $test_blocks = [];
 
 	public function set_up() {
 		parent::set_up();
@@ -29,7 +29,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 			foreach ( $this->test_blocks as $test_block ) {
 				unregister_block_type( $test_block );
 			}
-			$this->test_blocks = array();
+			$this->test_blocks = [];
 		}
 
 		parent::tear_down();
@@ -242,6 +242,6 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 	private function get_global_styles() {
 		$actual = wp_styles()->get_data( 'global-styles', 'after' );
-		return is_array( $actual ) ? $actual : array();
+		return is_array( $actual ) ? $actual : [];
 	}
 }

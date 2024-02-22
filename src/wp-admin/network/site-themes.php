@@ -81,7 +81,7 @@ if ( $action ) {
 			$action = 'disabled';
 			$n      = 1;
 			if ( ! $allowed_themes ) {
-				$allowed_themes = array();
+				$allowed_themes = [];
 			} else {
 				unset( $allowed_themes[ $theme ] );
 			}

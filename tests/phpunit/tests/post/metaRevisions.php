@@ -601,7 +601,7 @@ class MetaRevisionTests extends WP_UnitTestCase {
 		$this->assertEquals( $expected_is_revisioned, 'bar' === $revisioned_meta );
 
 		// Reset global so subsequent data tests do not get polluted.
-		$GLOBALS['wp_meta_keys'] = array();
+		$GLOBALS['wp_meta_keys'] = [];
 	}
 
 	public function data_register_post_meta_supports_revisions() {

@@ -74,8 +74,8 @@ foreach ( $menu as $menu_page ) {
 }
 unset( $menu_page, $compat );
 
-$_wp_submenu_nopriv = array();
-$_wp_menu_nopriv    = array();
+$_wp_submenu_nopriv = [];
+$_wp_menu_nopriv    = [];
 // Loop over submenus and remove pages for which the user does not have privs.
 foreach ( $submenu as $parent => $sub ) {
 	foreach ( $sub as $index => $data ) {
@@ -282,7 +282,7 @@ uksort( $menu, 'strnatcasecmp' ); // Make it all pretty.
  * @param bool $custom Whether custom ordering is enabled. Default false.
  */
 if ( apply_filters( 'custom_menu_order', false ) ) {
-	$menu_order = array();
+	$menu_order = [];
 
 	foreach ( $menu as $menu_item ) {
 		$menu_order[] = $menu_item[2];

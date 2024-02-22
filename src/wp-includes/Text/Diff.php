@@ -129,7 +129,7 @@ class Text_Diff {
         } else {
             $rev = $this;
         }
-        $rev->_edits = array();
+        $rev->_edits = [];
         foreach ($this->_edits as $edit) {
             $rev->_edits[] = $edit->reverse();
         }
@@ -178,7 +178,7 @@ class Text_Diff {
      */
     function getOriginal()
     {
-        $lines = array();
+        $lines = [];
         foreach ($this->_edits as $edit) {
             if ($edit->orig) {
                 array_splice($lines, count($lines), 0, $edit->orig);
@@ -196,7 +196,7 @@ class Text_Diff {
      */
     function getFinal()
     {
-        $lines = array();
+        $lines = [];
         foreach ($this->_edits as $edit) {
             if ($edit->final) {
                 array_splice($lines, count($lines), 0, $edit->final);

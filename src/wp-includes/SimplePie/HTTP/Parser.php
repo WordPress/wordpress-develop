@@ -76,7 +76,7 @@ class SimplePie_HTTP_Parser
 	 *
 	 * @var array
 	 */
-	public $headers = array();
+	public $headers = [];
 
 	/**
 	 * Body of the response
@@ -159,7 +159,7 @@ class SimplePie_HTTP_Parser
 		$this->http_version = '';
 		$this->status_code = '';
 		$this->reason = '';
-		$this->headers = array();
+		$this->headers = [];
 		$this->body = '';
 		return false;
 	}

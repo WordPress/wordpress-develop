@@ -431,7 +431,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 		$nav_menu_option = (array) get_option( 'nav_menu_options', array( 'auto_add' => array() ) );
 
 		if ( ! isset( $nav_menu_option['auto_add'] ) ) {
-			$nav_menu_option['auto_add'] = array();
+			$nav_menu_option['auto_add'] = [];
 		}
 
 		$auto_add = $request['auto_add'];
@@ -462,7 +462,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 	 */
 	protected function get_menu_locations( $menu_id ) {
 		$locations      = get_nav_menu_locations();
-		$menu_locations = array();
+		$menu_locations = [];
 
 		foreach ( $locations as $location => $assigned_menu_id ) {
 			if ( $menu_id === $assigned_menu_id ) {
@@ -489,7 +489,7 @@ class WP_REST_Menus_Controller extends WP_REST_Terms_Controller {
 
 		$menu_locations = get_registered_nav_menus();
 		$menu_locations = array_keys( $menu_locations );
-		$new_locations  = array();
+		$new_locations  = [];
 		foreach ( $request['locations'] as $location ) {
 			if ( ! in_array( $location, $menu_locations, true ) ) {
 				return new WP_Error(

@@ -85,7 +85,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 	}
 
 	public function test_export_mo_file() {
-		$entries              = array();
+		$entries              = [];
 		$entries[]            = new Translation_Entry(
 			array(
 				'singular'     => 'pink',
@@ -143,7 +143,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 	}
 
 	public function test_export_should_not_include_empty_translations() {
-		$entries = array();
+		$entries = [];
 		$mo      = new MO();
 		$mo->add_entry(
 			array(

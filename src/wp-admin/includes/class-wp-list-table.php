@@ -37,7 +37,7 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 * @var array
 	 */
-	protected $_pagination_args = array();
+	protected $_pagination_args = [];
 
 	/**
 	 * The current screen.
@@ -69,7 +69,7 @@ class WP_List_Table {
 	 * @since 4.1.0
 	 * @var array
 	 */
-	protected $modes = array();
+	protected $modes = [];
 
 	/**
 	 * Stores the value returned by ->get_column_info().
@@ -437,7 +437,7 @@ class WP_List_Table {
 			return array( '' );
 		}
 
-		$views_links = array();
+		$views_links = [];
 
 		foreach ( $link_data as $view => $link ) {
 			if ( empty( $link['url'] ) || ! is_string( $link['url'] ) || '' === trim( $link['url'] ) ) {
@@ -492,7 +492,7 @@ class WP_List_Table {
 	 * @return array
 	 */
 	protected function get_views() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -556,7 +556,7 @@ class WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -1043,7 +1043,7 @@ class WP_List_Table {
 
 		$current_url = remove_query_arg( $removable_query_args, $current_url );
 
-		$page_links = array();
+		$page_links = [];
 
 		$total_pages_before = '<span class="paging-input">';
 		$total_pages_after  = '</span></span>';
@@ -1204,7 +1204,7 @@ class WP_List_Table {
 	 * @return array
 	 */
 	protected function get_sortable_columns() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -1337,7 +1337,7 @@ class WP_List_Table {
 		 */
 		$_sortable = apply_filters( "manage_{$this->screen->id}_sortable_columns", $sortable_columns );
 
-		$sortable = array();
+		$sortable = [];
 		foreach ( $_sortable as $id => $data ) {
 			if ( empty( $data ) ) {
 				continue;

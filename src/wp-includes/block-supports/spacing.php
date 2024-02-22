@@ -22,7 +22,7 @@ function wp_register_spacing_support( $block_type ) {
 
 	// Setup attributes and styles within that if needed.
 	if ( ! $block_type->attributes ) {
-		$block_type->attributes = array();
+		$block_type->attributes = [];
 	}
 
 	if ( $has_spacing_support && ! array_key_exists( 'style', $block_type->attributes ) ) {
@@ -46,10 +46,10 @@ function wp_register_spacing_support( $block_type ) {
  */
 function wp_apply_spacing_support( $block_type, $block_attributes ) {
 	if ( wp_should_skip_block_supports_serialization( $block_type, 'spacing' ) ) {
-		return array();
+		return [];
 	}
 
-	$attributes          = array();
+	$attributes          = [];
 	$has_padding_support = block_has_support( $block_type, array( 'spacing', 'padding' ), false );
 	$has_margin_support  = block_has_support( $block_type, array( 'spacing', 'margin' ), false );
 	$block_styles        = isset( $block_attributes['style'] ) ? $block_attributes['style'] : null;

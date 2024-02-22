@@ -2066,7 +2066,7 @@ HTML;
 		$processor = new WP_HTML_Tag_Processor( '<div class="one two three">' );
 		$processor->next_tag();
 
-		$found_classes = array();
+		$found_classes = [];
 		foreach ( $processor->class_list() as $class ) {
 			$found_classes[] = $class;
 		}
@@ -2083,7 +2083,7 @@ HTML;
 		$processor = new WP_HTML_Tag_Processor( '<div class="&notin;-class &lt;egg&gt; &#xff03;">' );
 		$processor->next_tag();
 
-		$found_classes = array();
+		$found_classes = [];
 		foreach ( $processor->class_list() as $class ) {
 			$found_classes[] = $class;
 		}
@@ -2100,7 +2100,7 @@ HTML;
 		$processor = new WP_HTML_Tag_Processor( '<div class="one one &#x6f;ne">' );
 		$processor->next_tag();
 
-		$found_classes = array();
+		$found_classes = [];
 		foreach ( $processor->class_list() as $class ) {
 			$found_classes[] = $class;
 		}

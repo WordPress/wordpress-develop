@@ -35,7 +35,7 @@ if ( isset($_GET['201-location']) ) {
 	exit;
 }
 if ( isset($_GET['header-check']) ) {
-	$out = array();
+	$out = [];
 	header("Content-Type: text/plain");
 	foreach ( $_SERVER as $key => $value ) {
 		if ( stripos($key, 'http') === 0 ) {

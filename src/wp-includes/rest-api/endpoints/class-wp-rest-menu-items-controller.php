@@ -494,14 +494,14 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		// Base fields for every post.
 		$fields    = $this->get_fields_for_response( $request );
 		$menu_item = $this->get_nav_menu_item( $item->ID );
-		$data      = array();
+		$data      = [];
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $menu_item->ID;
 		}
 
 		if ( rest_is_field_included( 'title', $fields ) ) {
-			$data['title'] = array();
+			$data['title'] = [];
 		}
 
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
@@ -594,7 +594,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 				if ( ! is_array( $terms ) ) {
 					continue;
 				}
-				$term_ids = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : array();
+				$term_ids = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : [];
 				if ( 'nav_menu' === $taxonomy->name ) {
 					$data[ $base ] = $term_ids ? array_shift( $term_ids ) : 0;
 				} else {

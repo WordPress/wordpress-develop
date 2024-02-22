@@ -121,8 +121,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		if ( $this->show_autoupdates ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 
-			$themes['auto-update-enabled']  = array();
-			$themes['auto-update-disabled'] = array();
+			$themes['auto-update-enabled']  = [];
+			$themes['auto-update-disabled'] = [];
 		}
 
 		if ( $this->is_site_themes ) {
@@ -205,8 +205,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			$themes['search'] = array_filter( array_merge( $themes['all'], $themes['broken'] ), array( $this, '_search_callback' ) );
 		}
 
-		$totals    = array();
-		$js_themes = array();
+		$totals    = [];
+		$js_themes = [];
 		foreach ( $themes as $type => $list ) {
 			$totals[ $type ]    = count( $list );
 			$js_themes[ $type ] = array_keys( $list );
@@ -366,7 +366,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $totals, $status;
 
-		$status_links = array();
+		$status_links = [];
 		foreach ( $totals as $type => $count ) {
 			if ( ! $count ) {
 				continue;
@@ -462,7 +462,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	protected function get_bulk_actions() {
 		global $status;
 
-		$actions = array();
+		$actions = [];
 		if ( 'enabled' !== $status ) {
 			$actions['enable-selected'] = $this->is_site_themes ? __( 'Enable' ) : __( 'Network Enable' );
 		}
@@ -718,7 +718,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			<div class='$class second theme-version-author-uri'>";
 
 		$stylesheet = $theme->get_stylesheet();
-		$theme_meta = array();
+		$theme_meta = [];
 
 		if ( $theme->get( 'Version' ) ) {
 			/* translators: %s: Theme version. */

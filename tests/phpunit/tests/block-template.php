@@ -200,7 +200,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query;
 
 		// Register test block to log `in_the_loop()` results.
-		$in_the_loop_logs = array();
+		$in_the_loop_logs = [];
 		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
 
 		// Set main query to single post.
@@ -233,7 +233,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query;
 
 		// Register test block to log `in_the_loop()` results.
-		$in_the_loop_logs = array();
+		$in_the_loop_logs = [];
 		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
 
 		// Set main query to a general post query (i.e. not for a specific post).
@@ -293,7 +293,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query;
 
 		// Register test block to log `in_the_loop()` results.
-		$in_the_loop_logs = array();
+		$in_the_loop_logs = [];
 		$this->register_in_the_loop_logger_block( $in_the_loop_logs );
 
 		// Set main query to single post.

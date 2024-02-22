@@ -98,7 +98,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 * @return array A list of sitemap entires.
 	 */
 	public function _get_sitemap_entries() {
-		$entries = array();
+		$entries = [];
 
 		$providers = wp_get_sitemap_providers();
 

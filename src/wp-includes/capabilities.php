@@ -42,7 +42,7 @@
  * @return string[] Primitive capabilities required of the user.
  */
 function map_meta_cap( $cap, $user_id, ...$args ) {
-	$caps = array();
+	$caps = [];
 
 	switch ( $cap ) {
 		case 'remove_user':

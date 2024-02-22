@@ -260,7 +260,7 @@ class POP3 {
         }
 
         $count = 0;
-        $MsgArray = array();
+        $MsgArray = [];
 
         $line = fgets($fp,$buffer);
         while ( !preg_match('/^\.\r\n/',$line))
@@ -323,7 +323,7 @@ class POP3 {
             $this->ERROR = "POP3 pop_list: " . _("Error ") .  "[$reply]";
             return false;
         }
-        $MsgArray = array();
+        $MsgArray = [];
         $MsgArray[0] = $Total;
         for($msgC=1;$msgC <= $Total; $msgC++)
         {
@@ -373,7 +373,7 @@ class POP3 {
         }
 
         $count = 0;
-        $MsgArray = array();
+        $MsgArray = [];
 
         $line = fgets($fp,$buffer);
         while ( !preg_match('/^\.\r\n/',$line))
@@ -542,7 +542,7 @@ class POP3 {
         } else {
             $this->update_timer();
 
-            $UIDLArray = array();
+            $UIDLArray = [];
             $Total = $this->COUNT;
             $UIDLArray[0] = $Total;
 

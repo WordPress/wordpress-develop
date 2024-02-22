@@ -1654,7 +1654,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		);
 		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/uniqueitems.json' ), true );
 
-		$tests = array();
+		$tests = [];
 
 		foreach ( $suites as $suite ) {
 			if ( in_array( $suite['description'], $skip, true ) ) {
@@ -1806,7 +1806,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			'nested anyOf, to check validation semantics',
 		);
 
-		$tests = array();
+		$tests = [];
 
 		foreach ( $suites as $suite ) {
 			if ( in_array( $suite['description'], $skip, true ) ) {
@@ -1858,7 +1858,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			'nested oneOf, to check validation semantics',
 		);
 
-		$tests = array();
+		$tests = [];
 
 		foreach ( $suites as $suite ) {
 			if ( in_array( $suite['description'], $skip, true ) ) {

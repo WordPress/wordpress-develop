@@ -6,7 +6,7 @@ add_filter(
 
 		global $timestart;
 
-		$server_timing_values = array();
+		$server_timing_values = [];
 		$template_start       = microtime( true );
 
 		$server_timing_values['before-template'] = $template_start - $timestart;
@@ -32,7 +32,7 @@ add_filter(
 				 */
 				$server_timing_values['memory-usage'] = memory_get_usage();
 
-				$header_values = array();
+				$header_values = [];
 				foreach ( $server_timing_values as $slug => $value ) {
 					if ( is_float( $value ) ) {
 						$value = round( $value * 1000.0, 2 );

@@ -81,7 +81,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			$headers  = $response->get_headers();
 			$response = $response->get_data();
 		} else {
-			$headers = array();
+			$headers = [];
 		}
 
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
@@ -1215,7 +1215,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 2, $data[0]['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	/**

@@ -80,7 +80,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	 * @return array[].
 	 */
 	public static function data_article_container_group() {
-		$group = array();
+		$group = [];
 
 		foreach (
 			array(
@@ -331,7 +331,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	public static function data_heading_combinations() {
 		$headings = array( 'H1', 'H2', 'H3', 'H4', 'H5', 'H6' );
 
-		$combinations = array();
+		$combinations = [];
 
 		// Create all unique pairs of H1 - H6 elements.
 		foreach ( $headings as $first_tag ) {

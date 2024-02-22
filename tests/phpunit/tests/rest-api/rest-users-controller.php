@@ -15,9 +15,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $subscriber;
 	protected static $author;
 
-	protected static $authors     = array();
-	protected static $posts       = array();
-	protected static $user_ids    = array();
+	protected static $authors     = [];
+	protected static $posts       = [];
+	protected static $user_ids    = [];
 	protected static $total_users = 30;
 	protected static $per_page    = 50;
 
@@ -2797,7 +2797,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 123, $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function test_additional_field_update_errors() {
@@ -2837,7 +2837,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function additional_field_get_callback( $response_data, $field_name ) {

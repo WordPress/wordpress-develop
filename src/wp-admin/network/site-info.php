@@ -116,7 +116,7 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 }
 
 if ( isset( $_GET['update'] ) ) {
-	$messages = array();
+	$messages = [];
 	if ( 'updated' === $_GET['update'] ) {
 		$messages[] = __( 'Site info updated.' );
 	}

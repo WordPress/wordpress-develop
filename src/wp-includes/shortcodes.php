@@ -39,7 +39,7 @@
  * @var array
  * @global array $shortcode_tags
  */
-$shortcode_tags = array();
+$shortcode_tags = [];
 
 /**
  * Adds a new shortcode.
@@ -117,7 +117,7 @@ function remove_shortcode( $tag ) {
 function remove_all_shortcodes() {
 	global $shortcode_tags;
 
-	$shortcode_tags = array();
+	$shortcode_tags = [];
 }
 
 /**
@@ -183,15 +183,15 @@ function has_shortcode( $content, $tag ) {
  */
 function get_shortcode_tags_in_content( $content ) {
 	if ( false === strpos( $content, '[' ) ) {
-		return array();
+		return [];
 	}
 
 	preg_match_all( '/' . get_shortcode_regex() . '/', $content, $matches, PREG_SET_ORDER );
 	if ( empty( $matches ) ) {
-		return array();
+		return [];
 	}
 
-	$tags = array();
+	$tags = [];
 	foreach ( $matches as $shortcode ) {
 		$tags[] = $shortcode[2];
 
@@ -512,7 +512,7 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 		// Get element name.
 		$front   = array_shift( $attributes );
 		$back    = array_pop( $attributes );
-		$matches = array();
+		$matches = [];
 		preg_match( '%[a-zA-Z0-9]+%', $front, $matches );
 		$elname = $matches[0];
 
@@ -609,7 +609,7 @@ function get_shortcode_atts_regex() {
  *               or if the original arguments string cannot be parsed.
  */
 function shortcode_parse_atts( $text ) {
-	$atts    = array();
+	$atts    = [];
 	$pattern = get_shortcode_atts_regex();
 	$text    = preg_replace( "/[\x{00a0}\x{200b}]+/u", ' ', $text );
 	if ( preg_match_all( $pattern, $text, $match, PREG_SET_ORDER ) ) {
@@ -661,7 +661,7 @@ function shortcode_parse_atts( $text ) {
  */
 function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
 	$atts = (array) $atts;
-	$out  = array();
+	$out  = [];
 	foreach ( $pairs as $name => $default ) {
 		if ( array_key_exists( $name, $atts ) ) {
 			$out[ $name ] = $atts[ $name ];

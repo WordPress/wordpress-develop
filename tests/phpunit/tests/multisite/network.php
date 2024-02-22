@@ -12,7 +12,7 @@ if ( is_multisite() ) :
 		protected $plugin_hook_count = 0;
 
 		protected static $different_network_id;
-		protected static $different_site_ids = array();
+		protected static $different_site_ids = [];
 
 		public function tear_down() {
 			global $current_site;

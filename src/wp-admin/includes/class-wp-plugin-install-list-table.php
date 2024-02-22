@@ -18,7 +18,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 	public $order   = 'ASC';
 	public $orderby = null;
-	public $groups  = array();
+	public $groups  = [];
 
 	private $error;
 
@@ -41,7 +41,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_installed_plugins() {
-		$plugins = array();
+		$plugins = [];
 
 		$plugin_info = get_site_transient( 'update_plugins' );
 		if ( isset( $plugin_info->no_update ) ) {
@@ -99,7 +99,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$per_page = 36;
 
 		// These are the tabs which are shown on the page.
-		$tabs = array();
+		$tabs = [];
 
 		if ( 'search' === $tab ) {
 			$tabs['search'] = __( 'Search Results' );
@@ -316,7 +316,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $tabs, $tab;
 
-		$display_tabs = array();
+		$display_tabs = [];
 		foreach ( (array) $tabs as $action => $text ) {
 			$display_tabs[ 'plugin-install-' . $action ] = array(
 				'url'     => self_admin_url( 'plugin-install.php?tab=' . $action ),
@@ -436,7 +436,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -553,7 +553,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$compatible_wp  = is_wp_version_compatible( $requires_wp );
 			$tested_wp      = ( empty( $plugin['tested'] ) || version_compare( get_bloginfo( 'version' ), $plugin['tested'], '<=' ) );
 
-			$action_links = array();
+			$action_links = [];
 
 			$action_links[] = wp_get_plugin_action_button( $name, $plugin, $compatible_php, $compatible_wp );
 

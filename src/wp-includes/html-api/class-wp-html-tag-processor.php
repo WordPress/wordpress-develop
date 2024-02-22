@@ -655,7 +655,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Attribute_Token[]
 	 */
-	private $attributes = array();
+	private $attributes = [];
 
 	/**
 	 * Tracks spans of duplicate attributes on a given tag, used for removing
@@ -690,7 +690,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var bool[]
 	 */
-	private $classname_updates = array();
+	private $classname_updates = [];
 
 	/**
 	 * Tracks a semantic location in the original HTML which
@@ -699,7 +699,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Span[]
 	 */
-	protected $bookmarks = array();
+	protected $bookmarks = [];
 
 	const ADD_CLASS    = true;
 	const REMOVE_CLASS = false;
@@ -747,7 +747,7 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 * @var WP_HTML_Text_Replacement[]
 	 */
-	protected $lexical_updates = array();
+	protected $lexical_updates = [];
 
 	/**
 	 * Tracks and limits `seek()` calls to prevent accidental infinite loops.
@@ -1050,7 +1050,7 @@ class WP_HTML_Tag_Processor {
 			return;
 		}
 
-		$seen = array();
+		$seen = [];
 
 		$at = 0;
 		while ( $at < strlen( $class ) ) {
@@ -2048,7 +2048,7 @@ class WP_HTML_Tag_Processor {
 		$this->text_starts_at       = 0;
 		$this->text_length          = 0;
 		$this->is_closing_tag       = null;
-		$this->attributes           = array();
+		$this->attributes           = [];
 		$this->comment_type         = null;
 		$this->duplicate_attributes = null;
 	}
@@ -2183,7 +2183,7 @@ class WP_HTML_Tag_Processor {
 			}
 		}
 
-		$this->classname_updates = array();
+		$this->classname_updates = [];
 		if ( ! $modified ) {
 			return;
 		}
@@ -2289,7 +2289,7 @@ class WP_HTML_Tag_Processor {
 			$bookmark->length += $tail_delta - $head_delta;
 		}
 
-		$this->lexical_updates = array();
+		$this->lexical_updates = [];
 
 		return $accumulated_shift_for_given_point;
 	}
@@ -2547,7 +2547,7 @@ class WP_HTML_Tag_Processor {
 
 		$comparable = strtolower( $prefix );
 
-		$matches = array();
+		$matches = [];
 		foreach ( array_keys( $this->attributes ) as $attr_name ) {
 			if ( str_starts_with( $attr_name, $comparable ) ) {
 				$matches[] = $attr_name;
@@ -2972,7 +2972,7 @@ class WP_HTML_Tag_Processor {
 		 * enqueued class changes from `add_class` and `remove_class`.
 		 */
 		if ( 'class' === $comparable_name && ! empty( $this->classname_updates ) ) {
-			$this->classname_updates = array();
+			$this->classname_updates = [];
 		}
 
 		return true;
@@ -3009,7 +3009,7 @@ class WP_HTML_Tag_Processor {
 		 * enqueued class changes from `add_class` and `remove_class`.
 		 */
 		if ( 'class' === $name && count( $this->classname_updates ) !== 0 ) {
-			$this->classname_updates = array();
+			$this->classname_updates = [];
 		}
 
 		/*

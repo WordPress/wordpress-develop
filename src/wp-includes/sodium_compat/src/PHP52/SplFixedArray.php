@@ -14,7 +14,7 @@ if (class_exists('SplFixedArray')) {
 class SplFixedArray implements Iterator, ArrayAccess, Countable
 {
     /** @var array<int, mixed> */
-    private $internalArray = array();
+    private $internalArray = [];
 
     /** @var int $size */
     private $size = 0;
@@ -26,7 +26,7 @@ class SplFixedArray implements Iterator, ArrayAccess, Countable
     public function __construct($size = 0)
     {
         $this->size = $size;
-        $this->internalArray = array();
+        $this->internalArray = [];
     }
 
     /**

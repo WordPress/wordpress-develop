@@ -28,7 +28,7 @@ class WP_Filesystem_Base {
 	 * @since 2.7.0
 	 * @var array
 	 */
-	public $cache = array();
+	public $cache = [];
 
 	/**
 	 * The Access method of the current connection, Set automatically.
@@ -45,7 +45,7 @@ class WP_Filesystem_Base {
 
 	/**
 	 */
-	public $options = array();
+	public $options = [];
 
 	/**
 	 * Returns the path on the remote filesystem of ABSPATH.

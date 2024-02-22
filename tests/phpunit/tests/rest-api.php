@@ -408,7 +408,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_filter_response_fields_no_request_filter() {
 		$response = new WP_REST_Response();
 		$response->set_data( array( 'a' => true ) );
-		$request = array();
+		$request = [];
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame( array( 'a' => true ), $response->get_data() );

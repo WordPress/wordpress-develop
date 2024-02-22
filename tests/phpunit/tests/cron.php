@@ -20,7 +20,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		parent::set_up();
 		// Make sure the schedule is clear.
 		_set_cron_array( array() );
-		$this->preflight_cron_array = array();
+		$this->preflight_cron_array = [];
 		$this->plus_thirty_minutes  = strtotime( '+30 minutes' );
 	}
 

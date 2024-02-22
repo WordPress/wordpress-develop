@@ -316,7 +316,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_nav_menu_items_cache_primes_posts() {
 		$post_ids     = self::factory()->post->create_many( 3 );
-		$menu_nav_ids = array();
+		$menu_nav_ids = [];
 		foreach ( $post_ids as $post_id ) {
 			$menu_nav_ids[] = wp_update_nav_menu_item(
 				$this->menu_id,
@@ -356,7 +356,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	public function test_wp_get_nav_menu_items_cache_primes_terms() {
 		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
 		$term_ids     = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
-		$menu_nav_ids = array();
+		$menu_nav_ids = [];
 		foreach ( $term_ids as $term_id ) {
 			$menu_nav_ids[] = wp_update_nav_menu_item(
 				$this->menu_id,

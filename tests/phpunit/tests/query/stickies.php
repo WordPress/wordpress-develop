@@ -7,7 +7,7 @@
  * @covers WP_Query::get_posts
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
-	public static $posts = array();
+	public static $posts = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Set post times to get a reliable order.

@@ -574,7 +574,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	public function callback_remove_safe_ports( $ports ) {
-		return array();
+		return [];
 	}
 
 	/**

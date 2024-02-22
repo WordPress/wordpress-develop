@@ -523,7 +523,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( isset( $request['modifiers'] ) ) {
 			$modifiers = $request['modifiers'];
 		} else {
-			$modifiers = array();
+			$modifiers = [];
 
 			if ( ! empty( $request['rotation'] ) ) {
 				$modifiers[] = array(
@@ -1186,7 +1186,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			list( $type, $attr_parts ) = explode( ';', $value, 2 );
 
 			$attr_parts = explode( ';', $attr_parts );
-			$attributes = array();
+			$attributes = [];
 
 			foreach ( $attr_parts as $part ) {
 				if ( ! str_contains( $part, '=' ) ) {
@@ -1316,13 +1316,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return array Array of supported media types.
 	 */
 	protected function get_media_types() {
-		$media_types = array();
+		$media_types = [];
 
 		foreach ( get_allowed_mime_types() as $mime_type ) {
 			$parts = explode( '/', $mime_type );
 
 			if ( ! isset( $media_types[ $parts[0] ] ) ) {
-				$media_types[ $parts[0] ] = array();
+				$media_types[ $parts[0] ] = [];
 			}
 
 			$media_types[ $parts[0] ][] = $mime_type;

@@ -131,7 +131,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$data        = array();
+		$data        = [];
 		$block_types = $this->block_registry->get_all_registered();
 
 		// Retrieve the list of registered collection query parameters.
@@ -251,7 +251,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 		$block_type = $item;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'attributes', $fields ) ) {
 			$data['attributes'] = $block_type->get_attributes();

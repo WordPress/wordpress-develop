@@ -51,7 +51,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 			)
 		);
 
-		self::$http_request_urls = array();
+		self::$http_request_urls = [];
 
 		static::$controller = new WP_REST_Pattern_Directory_Controller();
 	}
@@ -71,7 +71,7 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	 * @since 6.2.0
 	 */
 	public function tear_down() {
-		self::$http_request_urls = array();
+		self::$http_request_urls = [];
 		parent::tear_down();
 	}
 

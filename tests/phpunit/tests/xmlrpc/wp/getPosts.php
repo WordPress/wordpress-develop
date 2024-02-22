@@ -54,7 +54,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$post_ids  = array();
+		$post_ids  = [];
 		$num_posts = 4;
 		foreach ( range( 1, $num_posts ) as $i ) {
 			$post_ids[] = self::factory()->post->create(
@@ -74,7 +74,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertCount( $num_posts, $results );
 
 		// Page through results.
-		$posts_found      = array();
+		$posts_found      = [];
 		$filter['number'] = 2;
 		$filter['offset'] = 0;
 		do {
@@ -136,7 +136,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		}
 
 		// Request specific fields and verify that only those are returned.
-		$filter   = array();
+		$filter   = [];
 		$fields   = array( 'post_name', 'post_author', 'enclosure' );
 		$results2 = $this->myxmlrpcserver->wp_getPosts( array( 1, 'editor', 'editor', $filter, $fields ) );
 		$this->assertNotIXRError( $results2 );

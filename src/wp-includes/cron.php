@@ -607,7 +607,7 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
 		return 0;
 	}
 
-	$results = array();
+	$results = [];
 	$key     = md5( serialize( $args ) );
 
 	foreach ( $crons as $timestamp => $cron ) {
@@ -691,7 +691,7 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
 		return 0;
 	}
 
-	$results = array();
+	$results = [];
 
 	foreach ( $crons as $timestamp => $args ) {
 		if ( ! empty( $crons[ $timestamp ][ $hook ] ) ) {
@@ -1011,7 +1011,7 @@ function _wp_cron() {
 	}
 
 	$schedules = wp_get_schedules();
-	$results   = array();
+	$results   = [];
 
 	foreach ( $crons as $timestamp => $cronhooks ) {
 		if ( $timestamp > $gmt_time ) {
@@ -1178,7 +1178,7 @@ function wp_get_ready_cron_jobs() {
 
 	$crons    = _get_cron_array();
 	$gmt_time = microtime( true );
-	$results  = array();
+	$results  = [];
 
 	foreach ( $crons as $timestamp => $cronhooks ) {
 		if ( $timestamp > $gmt_time ) {
@@ -1207,7 +1207,7 @@ function wp_get_ready_cron_jobs() {
 function _get_cron_array() {
 	$cron = get_option( 'cron' );
 	if ( ! is_array( $cron ) ) {
-		return array();
+		return [];
 	}
 
 	if ( ! isset( $cron['version'] ) ) {
@@ -1234,7 +1234,7 @@ function _get_cron_array() {
  */
 function _set_cron_array( $cron, $wp_error = false ) {
 	if ( ! is_array( $cron ) ) {
-		$cron = array();
+		$cron = [];
 	}
 
 	$cron['version'] = 2;
@@ -1267,7 +1267,7 @@ function _upgrade_cron_array( $cron ) {
 		return $cron;
 	}
 
-	$new_cron = array();
+	$new_cron = [];
 
 	foreach ( (array) $cron as $timestamp => $hooks ) {
 		foreach ( (array) $hooks as $hook => $args ) {

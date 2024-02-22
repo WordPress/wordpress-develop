@@ -48,7 +48,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 
 			$new_notoptions = wp_cache_get( $option, 'notoptions' );
 			if ( ! is_array( $new_notoptions ) ) {
-				$new_notoptions = array();
+				$new_notoptions = [];
 			}
 			$this->assertArrayNotHasKey(
 				$option,
@@ -338,7 +338,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 
 			$new_notoptions = wp_cache_get( $option, 'notoptions' );
 			if ( ! is_array( $new_notoptions ) ) {
-				$new_notoptions = array();
+				$new_notoptions = [];
 			}
 			$this->assertArrayNotHasKey(
 				$option,
@@ -395,7 +395,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 
 			$new_notoptions = wp_cache_get( $option, 'notoptions' );
 			if ( ! is_array( $new_notoptions ) ) {
-				$new_notoptions = array();
+				$new_notoptions = [];
 			}
 			$this->assertArrayNotHasKey(
 				$option,
@@ -405,7 +405,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 
 			$new_alloptions = wp_cache_get( 'alloptions', 'options' );
 			if ( ! is_array( $new_alloptions ) ) {
-				$new_alloptions = array();
+				$new_alloptions = [];
 			}
 			$this->assertArrayHasKey(
 				$option,

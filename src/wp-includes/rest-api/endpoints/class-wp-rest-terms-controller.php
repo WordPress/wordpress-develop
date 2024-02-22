@@ -337,7 +337,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$total_terms = 0;
 		}
 
-		$response = array();
+		$response = [];
 
 		foreach ( $query_result as $term ) {
 			$data       = $this->prepare_item_for_response( $term, $request );
@@ -871,7 +871,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = (int) $item->term_id;
@@ -978,7 +978,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $links;
 		}
 
-		$post_type_links = array();
+		$post_type_links = [];
 
 		foreach ( $taxonomy_obj->object_type as $type ) {
 			$rest_path = rest_get_route_for_post_type_items( $type );

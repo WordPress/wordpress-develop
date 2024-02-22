@@ -36,7 +36,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.0 Initialize as an empty array.
 	 * @var array
 	 */
-	protected static $blocks_metadata = array();
+	protected static $blocks_metadata = [];
 
 	/**
 	 * The CSS selector for the top-level styles.
@@ -707,7 +707,7 @@ class WP_Theme_JSON {
 		$this->theme_json    = WP_Theme_JSON_Schema::migrate( $theme_json );
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
-		$valid_variations    = array();
+		$valid_variations    = [];
 		foreach ( self::get_blocks_metadata() as $block_name => $block_meta ) {
 			if ( ! isset( $block_meta['styleVariations'] ) ) {
 				continue;
@@ -801,7 +801,7 @@ class WP_Theme_JSON {
 	 */
 	protected static function sanitize( $input, $valid_block_names, $valid_element_names, $valid_variations ) {
 
-		$output = array();
+		$output = [];
 
 		if ( ! is_array( $input ) ) {
 			return $output;
@@ -828,8 +828,8 @@ class WP_Theme_JSON {
 		}
 
 		// Build the schema based on valid block & element names.
-		$schema                 = array();
-		$schema_styles_elements = array();
+		$schema                 = [];
+		$schema_styles_elements = [];
 
 		/*
 		 * Set allowed element pseudo selectors based on per element allow list.
@@ -848,11 +848,11 @@ class WP_Theme_JSON {
 			}
 		}
 
-		$schema_styles_blocks   = array();
-		$schema_settings_blocks = array();
+		$schema_styles_blocks   = [];
+		$schema_settings_blocks = [];
 		foreach ( $valid_block_names as $block ) {
 			// Build the schema for each block style variation.
-			$style_variation_names = array();
+			$style_variation_names = [];
 			if (
 				! empty( $input['styles']['blocks'][ $block ]['variations'] ) &&
 				is_array( $input['styles']['blocks'][ $block ]['variations'] ) &&
@@ -864,7 +864,7 @@ class WP_Theme_JSON {
 				);
 			}
 
-			$schema_styles_variations = array();
+			$schema_styles_variations = [];
 			if ( ! empty( $style_variation_names ) ) {
 				$schema_styles_variations = array_fill_keys( $style_variation_names, $styles_non_top_level );
 			}
@@ -924,7 +924,7 @@ class WP_Theme_JSON {
 		if ( ! str_contains( $selector, ',' ) ) {
 			return $selector . $to_append;
 		}
-		$new_selectors = array();
+		$new_selectors = [];
 		$selectors     = explode( ',', $selector );
 		foreach ( $selectors as $sel ) {
 			$new_selectors[] = $sel . $to_append;
@@ -949,7 +949,7 @@ class WP_Theme_JSON {
 		if ( ! str_contains( $selector, ',' ) ) {
 			return $to_prepend . $selector;
 		}
-		$new_selectors = array();
+		$new_selectors = [];
 		$selectors     = explode( ',', $selector );
 		foreach ( $selectors as $sel ) {
 			$new_selectors[] = $to_prepend . $sel;
@@ -1030,7 +1030,7 @@ class WP_Theme_JSON {
 
 			// If the block has style variations, append their selectors to the block metadata.
 			if ( ! empty( $block_type->styles ) ) {
-				$style_selectors = array();
+				$style_selectors = [];
 				foreach ( $block_type->styles as $style ) {
 					$style_selectors[ $style['name'] ] = static::get_block_style_variation_selector( $style['name'], static::$blocks_metadata[ $block_name ]['selector'] );
 				}
@@ -1133,7 +1133,7 @@ class WP_Theme_JSON {
 	 */
 	public function get_settings() {
 		if ( ! isset( $this->theme_json['settings'] ) ) {
-			return array();
+			return [];
 		} else {
 			return $this->theme_json['settings'];
 		}
@@ -1328,7 +1328,7 @@ class WP_Theme_JSON {
 	 * @return array
 	 */
 	public function get_custom_templates() {
-		$custom_templates = array();
+		$custom_templates = [];
 		if ( ! isset( $this->theme_json['customTemplates'] ) || ! is_array( $this->theme_json['customTemplates'] ) ) {
 			return $custom_templates;
 		}
@@ -1352,7 +1352,7 @@ class WP_Theme_JSON {
 	 * @return array
 	 */
 	public function get_template_parts() {
-		$template_parts = array();
+		$template_parts = [];
 		if ( ! isset( $this->theme_json['templateParts'] ) || ! is_array( $this->theme_json['templateParts'] ) ) {
 			return $template_parts;
 		}
@@ -1473,14 +1473,14 @@ class WP_Theme_JSON {
 					}
 
 					$class_name    = isset( $layout_definition['className'] ) ? $layout_definition['className'] : false;
-					$spacing_rules = isset( $layout_definition['spacingStyles'] ) ? $layout_definition['spacingStyles'] : array();
+					$spacing_rules = isset( $layout_definition['spacingStyles'] ) ? $layout_definition['spacingStyles'] : [];
 
 					if (
 						! empty( $class_name ) &&
 						! empty( $spacing_rules )
 					) {
 						foreach ( $spacing_rules as $spacing_rule ) {
-							$declarations = array();
+							$declarations = [];
 							if (
 								isset( $spacing_rule['selector'] ) &&
 								preg_match( $layout_selector_pattern, $spacing_rule['selector'] ) &&
@@ -1530,7 +1530,7 @@ class WP_Theme_JSON {
 			$valid_display_modes = array( 'block', 'flex', 'grid' );
 			foreach ( $layout_definitions as $layout_definition ) {
 				$class_name       = isset( $layout_definition['className'] ) ? $layout_definition['className'] : false;
-				$base_style_rules = isset( $layout_definition['baseStyles'] ) ? $layout_definition['baseStyles'] : array();
+				$base_style_rules = isset( $layout_definition['baseStyles'] ) ? $layout_definition['baseStyles'] : [];
 
 				if (
 					! empty( $class_name ) &&
@@ -1559,7 +1559,7 @@ class WP_Theme_JSON {
 					}
 
 					foreach ( $base_style_rules as $base_style_rule ) {
-						$declarations = array();
+						$declarations = [];
 
 						if (
 							isset( $base_style_rule['selector'] ) &&
@@ -1774,7 +1774,7 @@ class WP_Theme_JSON {
 		$scopes    = explode( ',', $scope );
 		$selectors = explode( ',', $selector );
 
-		$selectors_scoped = array();
+		$selectors_scoped = [];
 		foreach ( $scopes as $outer ) {
 			foreach ( $selectors as $inner ) {
 				$outer = trim( $outer );
@@ -1832,7 +1832,7 @@ class WP_Theme_JSON {
 	protected static function get_settings_values_by_slug( $settings, $preset_metadata, $origins ) {
 		$preset_per_origin = _wp_array_get( $settings, $preset_metadata['path'], array() );
 
-		$result = array();
+		$result = [];
 		foreach ( $origins as $origin ) {
 			if ( ! isset( $preset_per_origin[ $origin ] ) ) {
 				continue;
@@ -1878,7 +1878,7 @@ class WP_Theme_JSON {
 
 		$preset_per_origin = _wp_array_get( $settings, $preset_metadata['path'], array() );
 
-		$result = array();
+		$result = [];
 		foreach ( $origins as $origin ) {
 			if ( ! isset( $preset_per_origin[ $origin ] ) ) {
 				continue;
@@ -1924,7 +1924,7 @@ class WP_Theme_JSON {
 	 * @return array The modified $declarations.
 	 */
 	protected static function compute_preset_vars( $settings, $origins ) {
-		$declarations = array();
+		$declarations = [];
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 			if ( empty( $preset_metadata['css_vars'] ) ) {
 				continue;
@@ -1957,8 +1957,8 @@ class WP_Theme_JSON {
 	 * @return array The modified $declarations.
 	 */
 	protected static function compute_theme_vars( $settings ) {
-		$declarations  = array();
-		$custom_values = isset( $settings['custom'] ) ? $settings['custom'] : array();
+		$declarations  = [];
+		$custom_values = isset( $settings['custom'] ) ? $settings['custom'] : [];
 		$css_vars      = static::flatten_tree( $custom_values );
 		foreach ( $css_vars as $key => $value ) {
 			$declarations[] = array(
@@ -2008,7 +2008,7 @@ class WP_Theme_JSON {
 	 * @return array The flattened tree.
 	 */
 	protected static function flatten_tree( $tree, $prefix = '', $token = '--' ) {
-		$result = array();
+		$result = [];
 		foreach ( $tree as $property => $value ) {
 			$new_key = $prefix . str_replace(
 				'/',
@@ -2056,12 +2056,12 @@ class WP_Theme_JSON {
 			$properties = static::PROPERTIES_METADATA;
 		}
 
-		$declarations = array();
+		$declarations = [];
 		if ( empty( $styles ) ) {
 			return $declarations;
 		}
 
-		$root_variable_duplicates = array();
+		$root_variable_duplicates = [];
 
 		foreach ( $properties as $css_property => $value_path ) {
 			$value = static::get_property_value( $styles, $value_path, $theme_json );
@@ -2226,7 +2226,7 @@ class WP_Theme_JSON {
 	 * @return array An array of setting nodes metadata.
 	 */
 	protected static function get_setting_nodes( $theme_json, $selectors = array() ) {
-		$nodes = array();
+		$nodes = [];
 		if ( ! isset( $theme_json['settings'] ) ) {
 			return $nodes;
 		}
@@ -2280,7 +2280,7 @@ class WP_Theme_JSON {
 	 * @return array An array of style nodes metadata.
 	 */
 	protected static function get_style_nodes( $theme_json, $selectors = array() ) {
-		$nodes = array();
+		$nodes = [];
 		if ( ! isset( $theme_json['styles'] ) ) {
 			return $nodes;
 		}
@@ -2398,7 +2398,7 @@ class WP_Theme_JSON {
 	 */
 	private static function get_block_nodes( $theme_json ) {
 		$selectors = static::get_blocks_metadata();
-		$nodes     = array();
+		$nodes     = [];
 		if ( ! isset( $theme_json['styles'] ) ) {
 			return $nodes;
 		}
@@ -2424,7 +2424,7 @@ class WP_Theme_JSON {
 				$feature_selectors = $selectors[ $name ]['selectors'];
 			}
 
-			$variation_selectors = array();
+			$variation_selectors = [];
 			if ( isset( $node['variations'] ) ) {
 				foreach ( $node['variations'] as $variation => $node ) {
 					$variation_selectors[] = array(
@@ -2482,11 +2482,11 @@ class WP_Theme_JSON {
 		$node                 = _wp_array_get( $this->theme_json, $block_metadata['path'], array() );
 		$use_root_padding     = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
 		$selector             = $block_metadata['selector'];
-		$settings             = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : array();
+		$settings             = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : [];
 		$feature_declarations = static::get_feature_declarations_for_node( $block_metadata, $node );
 
 		// If there are style variations, generate the declarations for them, including any feature selectors the block may have.
-		$style_variation_declarations = array();
+		$style_variation_declarations = [];
 		if ( ! empty( $block_metadata['variations'] ) ) {
 			foreach ( $block_metadata['variations'] as $style_variation ) {
 				$style_variation_node           = _wp_array_get( $this->theme_json, $style_variation['path'], array() );
@@ -2528,7 +2528,7 @@ class WP_Theme_JSON {
 
 		$current_element = $is_processing_element ? $block_metadata['path'][ count( $block_metadata['path'] ) - 1 ] : null;
 
-		$element_pseudo_allowed = array();
+		$element_pseudo_allowed = [];
 
 		if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
@@ -2569,7 +2569,7 @@ class WP_Theme_JSON {
 		 * 1. Separate the declarations that use the general selector
 		 * from the ones using the duotone selector.
 		 */
-		$declarations_duotone = array();
+		$declarations_duotone = [];
 		foreach ( $declarations as $index => $declaration ) {
 			if ( 'filter' === $declaration['name'] ) {
 				unset( $declarations[ $index ] );
@@ -2622,7 +2622,7 @@ class WP_Theme_JSON {
 	 */
 	public function get_root_layout_rules( $selector, $block_metadata ) {
 		$css              = '';
-		$settings         = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : array();
+		$settings         = isset( $this->theme_json['settings'] ) ? $this->theme_json['settings'] : [];
 		$use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
 
 		/*
@@ -2919,7 +2919,7 @@ class WP_Theme_JSON {
 	 * @return array
 	 */
 	protected static function get_default_slugs( $data, $node_path ) {
-		$slugs = array();
+		$slugs = [];
 
 		foreach ( static::PRESETS_METADATA as $metadata ) {
 			$path = $node_path;
@@ -2933,7 +2933,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$slugs_for_preset = array();
+			$slugs_for_preset = [];
 			foreach ( $preset as $item ) {
 				if ( isset( $item['slug'] ) ) {
 					$slugs_for_preset[] = $item['slug'];
@@ -2984,7 +2984,7 @@ class WP_Theme_JSON {
 			return $node;
 		}
 
-		$new_node = array();
+		$new_node = [];
 		foreach ( $node as $value ) {
 			if ( isset( $value['slug'] ) && ! in_array( $value['slug'], $slugs, true ) ) {
 				$new_node[] = $value;
@@ -3004,13 +3004,13 @@ class WP_Theme_JSON {
 	 * @return array Sanitized structure.
 	 */
 	public static function remove_insecure_properties( $theme_json ) {
-		$sanitized = array();
+		$sanitized = [];
 
 		$theme_json = WP_Theme_JSON_Schema::migrate( $theme_json );
 
 		$valid_block_names   = array_keys( static::get_blocks_metadata() );
 		$valid_element_names = array_keys( static::ELEMENTS );
-		$valid_variations    = array();
+		$valid_variations    = [];
 		foreach ( self::get_blocks_metadata() as $block_name => $block_meta ) {
 			if ( ! isset( $block_meta['styleVariations'] ) ) {
 				continue;
@@ -3111,7 +3111,7 @@ class WP_Theme_JSON {
 	 * @return array
 	 */
 	protected static function remove_insecure_settings( $input ) {
-		$output = array();
+		$output = [];
 		foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 			foreach ( static::VALID_ORIGINS as $origin ) {
 				$path_with_origin   = $preset_metadata['path'];
@@ -3121,7 +3121,7 @@ class WP_Theme_JSON {
 					continue;
 				}
 
-				$escaped_preset = array();
+				$escaped_preset = [];
 				foreach ( $presets as $preset ) {
 					if (
 						esc_attr( esc_html( $preset['name'] ) ) === $preset['name'] &&
@@ -3173,7 +3173,7 @@ class WP_Theme_JSON {
 	 * @return array
 	 */
 	protected static function remove_insecure_styles( $input ) {
-		$output       = array();
+		$output       = [];
 		$declarations = static::compute_style_properties( $input );
 
 		foreach ( $declarations as $declaration ) {
@@ -3264,35 +3264,35 @@ class WP_Theme_JSON {
 		// Deprecated theme supports.
 		if ( isset( $settings['disableCustomColors'] ) ) {
 			if ( ! isset( $theme_settings['settings']['color'] ) ) {
-				$theme_settings['settings']['color'] = array();
+				$theme_settings['settings']['color'] = [];
 			}
 			$theme_settings['settings']['color']['custom'] = ! $settings['disableCustomColors'];
 		}
 
 		if ( isset( $settings['disableCustomGradients'] ) ) {
 			if ( ! isset( $theme_settings['settings']['color'] ) ) {
-				$theme_settings['settings']['color'] = array();
+				$theme_settings['settings']['color'] = [];
 			}
 			$theme_settings['settings']['color']['customGradient'] = ! $settings['disableCustomGradients'];
 		}
 
 		if ( isset( $settings['disableCustomFontSizes'] ) ) {
 			if ( ! isset( $theme_settings['settings']['typography'] ) ) {
-				$theme_settings['settings']['typography'] = array();
+				$theme_settings['settings']['typography'] = [];
 			}
 			$theme_settings['settings']['typography']['customFontSize'] = ! $settings['disableCustomFontSizes'];
 		}
 
 		if ( isset( $settings['enableCustomLineHeight'] ) ) {
 			if ( ! isset( $theme_settings['settings']['typography'] ) ) {
-				$theme_settings['settings']['typography'] = array();
+				$theme_settings['settings']['typography'] = [];
 			}
 			$theme_settings['settings']['typography']['lineHeight'] = $settings['enableCustomLineHeight'];
 		}
 
 		if ( isset( $settings['enableCustomUnits'] ) ) {
 			if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
-				$theme_settings['settings']['spacing'] = array();
+				$theme_settings['settings']['spacing'] = [];
 			}
 			$theme_settings['settings']['spacing']['units'] = ( true === $settings['enableCustomUnits'] ) ?
 				array( 'px', 'em', 'rem', 'vh', 'vw', '%' ) :
@@ -3301,14 +3301,14 @@ class WP_Theme_JSON {
 
 		if ( isset( $settings['colors'] ) ) {
 			if ( ! isset( $theme_settings['settings']['color'] ) ) {
-				$theme_settings['settings']['color'] = array();
+				$theme_settings['settings']['color'] = [];
 			}
 			$theme_settings['settings']['color']['palette'] = $settings['colors'];
 		}
 
 		if ( isset( $settings['gradients'] ) ) {
 			if ( ! isset( $theme_settings['settings']['color'] ) ) {
-				$theme_settings['settings']['color'] = array();
+				$theme_settings['settings']['color'] = [];
 			}
 			$theme_settings['settings']['color']['gradients'] = $settings['gradients'];
 		}
@@ -3322,14 +3322,14 @@ class WP_Theme_JSON {
 				}
 			}
 			if ( ! isset( $theme_settings['settings']['typography'] ) ) {
-				$theme_settings['settings']['typography'] = array();
+				$theme_settings['settings']['typography'] = [];
 			}
 			$theme_settings['settings']['typography']['fontSizes'] = $font_sizes;
 		}
 
 		if ( isset( $settings['enableCustomSpacing'] ) ) {
 			if ( ! isset( $theme_settings['settings']['spacing'] ) ) {
-				$theme_settings['settings']['spacing'] = array();
+				$theme_settings['settings']['spacing'] = [];
 			}
 			$theme_settings['settings']['spacing']['padding'] = $settings['enableCustomSpacing'];
 		}
@@ -3349,7 +3349,7 @@ class WP_Theme_JSON {
 		if ( isset( $this->theme_json['patterns'] ) && is_array( $this->theme_json['patterns'] ) ) {
 			return $this->theme_json['patterns'];
 		}
-		return array();
+		return [];
 	}
 
 	/**
@@ -3403,7 +3403,7 @@ class WP_Theme_JSON {
 					continue;
 				}
 
-				$items = array();
+				$items = [];
 				if ( isset( $preset['theme'] ) ) {
 					foreach ( $preset['theme'] as $item ) {
 						$slug = $item['slug'];
@@ -3418,7 +3418,7 @@ class WP_Theme_JSON {
 						$items[ $slug ] = $item;
 					}
 				}
-				$flattened_preset = array();
+				$flattened_preset = [];
 				foreach ( $items as $slug => $value ) {
 					$flattened_preset[] = array_merge( array( 'slug' => (string) $slug ), $value );
 				}
@@ -3513,7 +3513,7 @@ class WP_Theme_JSON {
 	public function set_spacing_sizes() {
 		$spacing_scale = isset( $this->theme_json['settings']['spacing']['spacingScale'] )
 			? $this->theme_json['settings']['spacing']['spacingScale']
-			: array();
+			: [];
 
 		if ( ! isset( $spacing_scale['steps'] )
 			|| ! is_numeric( $spacing_scale['steps'] )
@@ -3548,7 +3548,7 @@ class WP_Theme_JSON {
 		$current_step    = $spacing_scale['mediumStep'];
 		$steps_mid_point = round( $spacing_scale['steps'] / 2, 0 );
 		$x_small_count   = null;
-		$below_sizes     = array();
+		$below_sizes     = [];
 		$slug            = 40;
 		$remainder       = 0;
 
@@ -3594,7 +3594,7 @@ class WP_Theme_JSON {
 
 		$current_step  = $spacing_scale['mediumStep'];
 		$x_large_count = null;
-		$above_sizes   = array();
+		$above_sizes   = [];
 		$slug          = 60;
 		$steps_above   = ( $spacing_scale['steps'] - $steps_mid_point ) + $remainder;
 
@@ -3724,9 +3724,9 @@ class WP_Theme_JSON {
 		 * individual block selector.
 		 */
 		$block_selectors   = explode( ',', $root_selector );
-		$element_selectors = array();
+		$element_selectors = [];
 		foreach ( static::ELEMENTS as $el_name => $el_selector ) {
-			$element_selector = array();
+			$element_selector = [];
 			foreach ( $block_selectors as $selector ) {
 				if ( $selector === $el_selector ) {
 					$element_selector = array( $el_selector );
@@ -3754,7 +3754,7 @@ class WP_Theme_JSON {
 	 * selectors.
 	 */
 	protected function get_feature_declarations_for_node( $metadata, &$node ) {
-		$declarations = array();
+		$declarations = [];
 
 		if ( ! isset( $metadata['selectors'] ) ) {
 			return $declarations;
@@ -3762,7 +3762,7 @@ class WP_Theme_JSON {
 
 		$settings = isset( $this->theme_json['settings'] )
 			? $this->theme_json['settings']
-			: array();
+			: [];
 
 		foreach ( $metadata['selectors'] as $feature => $feature_selectors ) {
 			/*
@@ -3944,7 +3944,7 @@ class WP_Theme_JSON {
 
 		$limit          = 1;
 		$selector_parts = explode( ',', $block_selector );
-		$result         = array();
+		$result         = [];
 
 		foreach ( $selector_parts as $part ) {
 			$result[] = preg_replace_callback(

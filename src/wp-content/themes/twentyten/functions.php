@@ -705,7 +705,7 @@ endif;
  * @return array List of image IDs from the post gallery.
  */
 function twentyten_get_gallery_images() {
-	$images = array();
+	$images = [];
 
 	if ( function_exists( 'get_post_galleries' ) ) {
 		$galleries = get_post_galleries( get_the_ID(), false );

@@ -127,7 +127,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'VIDEO',
 		);
 
-		$data = array();
+		$data = [];
 		foreach ( $supported_elements as $tag_name ) {
 			$data[ $tag_name ] = array( "<{$tag_name}>", $tag_name );
 		}
@@ -213,7 +213,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 			'XMP', // Deprecated, use PRE instead.
 		);
 
-		$data = array();
+		$data = [];
 		foreach ( $unsupported_elements as $tag_name ) {
 			$data[ $tag_name ] = array( "<{$tag_name}>" );
 		}

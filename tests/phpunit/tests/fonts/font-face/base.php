@@ -25,7 +25,7 @@ abstract class WP_Font_Face_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @var ReflectionProperty[]
 	 */
-	protected $property = array();
+	protected $property = [];
 
 	/**
 	 * Indicates the test class uses `switch_theme()` and requires
@@ -94,7 +94,7 @@ abstract class WP_Font_Face_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$this->property = array();
+		$this->property = [];
 
 		// Reset the error reporting when modified within a test.
 		if ( is_int( $this->error_reporting_level ) ) {

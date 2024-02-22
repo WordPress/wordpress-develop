@@ -2258,7 +2258,7 @@ HTML
 	public function test_get_inline_script( $position, $inline_scripts, $delayed, $expected_data, $expected_tag ) {
 		global $wp_scripts;
 
-		$deps = array();
+		$deps = [];
 		if ( $delayed ) {
 			$wp_scripts->add( 'dep', 'https://example.com/dependency.js', array(), false ); // TODO: Cannot pass strategy to $args e.g. array( 'strategy' => 'defer' )
 			$wp_scripts->add_data( 'dep', 'strategy', 'defer' );
@@ -3416,7 +3416,7 @@ HTML
 		$package = file_get_contents( ABSPATH . '../package.json' );
 		$data    = json_decode( $package, true );
 
-		$provider = array();
+		$provider = [];
 		return $data['dependencies'];
 	}
 }

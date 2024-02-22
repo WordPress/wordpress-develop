@@ -504,7 +504,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 			)
 		);
 		if ( $should_remove ) {
-			$filtered_items = array();
+			$filtered_items = [];
 			foreach ( $items as $item ) {
 				if ( $item->db_id !== $this->post_id ) {
 					$filtered_items[] = $item;
@@ -891,7 +891,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 */
 	public function amend_customize_save_response( $data ) {
 		if ( ! isset( $data['nav_menu_item_updates'] ) ) {
-			$data['nav_menu_item_updates'] = array();
+			$data['nav_menu_item_updates'] = [];
 		}
 
 		$data['nav_menu_item_updates'][] = array(

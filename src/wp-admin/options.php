@@ -153,9 +153,9 @@ $allowed_options            = array(
 		'default_post_format',
 	),
 );
-$allowed_options['misc']    = array();
-$allowed_options['options'] = array();
-$allowed_options['privacy'] = array();
+$allowed_options['misc']    = [];
+$allowed_options['options'] = [];
+$allowed_options['privacy'] = [];
 
 $mail_options = array( 'mailserver_url', 'mailserver_port', 'mailserver_login', 'mailserver_pass' );
 

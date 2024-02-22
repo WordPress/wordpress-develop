@@ -292,10 +292,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type = $this->screen->post_type;
 
 		if ( ! empty( $locked_post_status ) ) {
-			return array();
+			return [];
 		}
 
-		$status_links = array();
+		$status_links = [];
 		$num_posts    = wp_count_posts( $post_type, 'readable' );
 		$total_posts  = array_sum( (array) $num_posts );
 		$class        = '';
@@ -430,7 +430,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		$actions       = array();
+		$actions       = [];
 		$post_type_obj = get_post_type_object( $this->screen->post_type );
 
 		if ( current_user_can( $post_type_obj->cap->edit_posts ) ) {
@@ -656,7 +656,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	public function get_columns() {
 		$post_type = $this->screen->post_type;
 
-		$posts_columns = array();
+		$posts_columns = [];
 
 		$posts_columns['cb'] = '<input type="checkbox" />';
 
@@ -819,7 +819,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type = $this->screen->post_type;
 
 		// Create array of post IDs.
-		$post_ids = array();
+		$post_ids = [];
 
 		foreach ( $posts as $a_post ) {
 			$post_ids[] = $a_post->ID;
@@ -863,8 +863,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * If searching, ignore hierarchy and treat everything as top level
 		 */
 		if ( empty( $_REQUEST['s'] ) ) {
-			$top_level_pages = array();
-			$children_pages  = array();
+			$top_level_pages = [];
+			$children_pages  = [];
 
 			foreach ( $pages as $page ) {
 				// Catch and repair bad pages.
@@ -887,7 +887,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$count      = 0;
 		$start      = ( $pagenum - 1 ) * $per_page;
 		$end        = $start + $per_page;
-		$to_display = array();
+		$to_display = [];
 
 		foreach ( $pages as $page ) {
 			if ( $count >= $end ) {
@@ -967,7 +967,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			// If the page starts in a subtree, print the parents.
 			if ( $count === $start && $page->post_parent > 0 ) {
-				$my_parents = array();
+				$my_parents = [];
 				$my_parent  = $page->post_parent;
 
 				while ( $my_parent ) {
@@ -1311,10 +1311,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$terms           = get_the_terms( $post->ID, $taxonomy );
 
 			if ( is_array( $terms ) ) {
-				$term_links = array();
+				$term_links = [];
 
 				foreach ( $terms as $t ) {
-					$posts_in_term_qv = array();
+					$posts_in_term_qv = [];
 
 					if ( 'post' !== $post->post_type ) {
 						$posts_in_term_qv['post_type'] = $post->post_type;
@@ -1468,7 +1468,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
-		$actions          = array();
+		$actions          = [];
 		$title            = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
@@ -1614,8 +1614,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type_object = get_post_type_object( $screen->post_type );
 
 		$taxonomy_names          = get_object_taxonomies( $screen->post_type );
-		$hierarchical_taxonomies = array();
-		$flat_taxonomies         = array();
+		$hierarchical_taxonomies = [];
+		$flat_taxonomies         = [];
 
 		foreach ( $taxonomy_names as $taxonomy_name ) {
 			$taxonomy = get_taxonomy( $taxonomy_name );

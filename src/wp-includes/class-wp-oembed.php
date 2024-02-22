@@ -25,7 +25,7 @@ class WP_oEmbed {
 	 * @since 2.9.0
 	 * @var array
 	 */
-	public $providers = array();
+	public $providers = [];
 
 	/**
 	 * A list of an early oEmbed providers.
@@ -33,7 +33,7 @@ class WP_oEmbed {
 	 * @since 4.0.0
 	 * @var array
 	 */
-	public static $early_providers = array();
+	public static $early_providers = [];
 
 	/**
 	 * A list of private/protected methods, used for backward compatibility.
@@ -124,7 +124,7 @@ class WP_oEmbed {
 			}
 		}
 
-		self::$early_providers = array();
+		self::$early_providers = [];
 
 		/**
 		 * Filters the list of sanctioned oEmbed providers.
@@ -311,7 +311,7 @@ class WP_oEmbed {
 	 */
 	public static function _add_provider_early( $format, $provider, $regex = false ) {
 		if ( empty( self::$early_providers['add'] ) ) {
-			self::$early_providers['add'] = array();
+			self::$early_providers['add'] = [];
 		}
 
 		self::$early_providers['add'][ $format ] = array( $provider, $regex );
@@ -334,7 +334,7 @@ class WP_oEmbed {
 	 */
 	public static function _remove_provider_early( $format ) {
 		if ( empty( self::$early_providers['remove'] ) ) {
-			self::$early_providers['remove'] = array();
+			self::$early_providers['remove'] = [];
 		}
 
 		self::$early_providers['remove'][] = $format;
@@ -436,7 +436,7 @@ class WP_oEmbed {
 	 * @return string|false The oEmbed provider URL on success, false on failure.
 	 */
 	public function discover( $url ) {
-		$providers = array();
+		$providers = [];
 		$args      = array(
 			'limit_response_size' => 153600, // 150 KB
 		);
@@ -760,7 +760,7 @@ class WP_oEmbed {
 		}
 
 		$count     = 1;
-		$found     = array();
+		$found     = [];
 		$token     = '__PRE__';
 		$search    = array( "\t", "\n", "\r", ' ' );
 		$replace   = array( '__TAB__', '__NL__', '__CR__', '__SPACE__' );

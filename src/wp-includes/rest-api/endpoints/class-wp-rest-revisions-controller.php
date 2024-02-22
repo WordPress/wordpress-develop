@@ -329,13 +329,13 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				}
 			}
 		} else {
-			$revisions       = array();
+			$revisions       = [];
 			$total_revisions = 0;
 			$max_pages       = 0;
 			$page            = (int) $request['page'];
 		}
 
-		$response = array();
+		$response = [];
 
 		foreach ( $revisions as $revision ) {
 			$data       = $this->prepare_item_for_response( $revision, $request );
@@ -530,7 +530,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @return array Items query arguments.
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
-		$query_args = array();
+		$query_args = [];
 
 		foreach ( $prepared_args as $key => $value ) {
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
@@ -575,7 +575,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		setup_postdata( $post );
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( in_array( 'author', $fields, true ) ) {
 			$data['author'] = (int) $post->post_author;

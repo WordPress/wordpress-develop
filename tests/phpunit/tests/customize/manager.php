@@ -70,7 +70,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		$_REQUEST = array();
+		$_REQUEST = [];
 		parent::tear_down();
 	}
 
@@ -691,7 +691,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'text-2', 'meta-2' ), $changeset_values['sidebars_widgets[sidebar-1]'] );
 
-		$posts_by_name = array();
+		$posts_by_name = [];
 		$this->assertCount( 7, $changeset_values['nav_menus_created_posts'] );
 		$this->assertContains( $existing_published_home_page_id, $changeset_values['nav_menus_created_posts'], 'Expected reuse of non-auto-draft posts.' );
 		$this->assertContains( $existing_canola_attachment_id, $changeset_values['nav_menus_created_posts'], 'Expected reuse of non-auto-draft attachment.' );
@@ -1180,7 +1180,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'wp_after_insert_post'          => 2,
 			'trashed_post'                  => 1,
 		);
-		$action_counts    = array();
+		$action_counts    = [];
 		foreach ( array_keys( $expected_actions ) as $action_name ) {
 			$action_counts[ $action_name ] = did_action( $action_name );
 		}
@@ -1599,12 +1599,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// Ensure the modifying user set as the current user when each is saved, simulating WP Cron envronment.
 		wp_set_current_user( 0 );
-		$save_counts = array();
+		$save_counts = [];
 		foreach ( array_keys( $data ) as $setting_id ) {
 			$setting_id                 = preg_replace( '/^.+::/', '', $setting_id );
 			$save_counts[ $setting_id ] = did_action( sprintf( 'customize_save_%s', $setting_id ) );
 		}
-		$this->filtered_setting_current_user_ids = array();
+		$this->filtered_setting_current_user_ids = [];
 		foreach ( $wp_customize->settings() as $setting ) {
 			add_filter( sprintf( 'customize_sanitize_%s', $setting->id ), array( $this, 'filter_customize_setting_to_log_current_user' ), 10, 2 );
 		}
@@ -2220,7 +2220,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $filtered_setting_current_user_ids = array();
+	protected $filtered_setting_current_user_ids = [];
 
 	/**
 	 * Filter setting to capture the current user when the filter applies.
@@ -2822,7 +2822,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see Tests_WP_Customize_Manager::capture_customize_post_value_set_actions()
 	 * @var array
 	 */
-	protected $captured_customize_post_value_set_actions = array();
+	protected $captured_customize_post_value_set_actions = [];
 
 	/**
 	 * Capture the actions fired when calling WP_Customize_Manager::set_post_value().
@@ -3290,7 +3290,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			)
 		);
 
-		$added_control_ids = array();
+		$added_control_ids = [];
 		$count             = 9;
 		for ( $i = 0; $i < $count; $i += 1 ) {
 			$id                  = 'sort-test-' . $i;

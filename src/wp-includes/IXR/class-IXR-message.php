@@ -14,12 +14,12 @@ class IXR_Message
     var $faultCode   = false;
     var $faultString = false;
     var $methodName  = '';
-    var $params      = array();
+    var $params      = [];
 
     // Current variable stacks
-    var $_arraystructs = array();   // The stack used to keep track of the current array/struct
-    var $_arraystructstypes = array(); // Stack keeping track of if things are structs or array
-    var $_currentStructName = array();  // A stack as well
+    var $_arraystructs = [];   // The stack used to keep track of the current array/struct
+    var $_arraystructstypes = []; // Stack keeping track of if things are structs or array
+    var $_currentStructName = [];  // A stack as well
     var $_param;
     var $_value;
     var $_currentTag;
@@ -154,11 +154,11 @@ class IXR_Message
                 /* Deal with stacks of arrays and structs */
             case 'data':    // data is to all intents and puposes more interesting than array
                 $this->_arraystructstypes[] = 'array';
-                $this->_arraystructs[] = array();
+                $this->_arraystructs[] = [];
                 break;
             case 'struct':
                 $this->_arraystructstypes[] = 'struct';
-                $this->_arraystructs[] = array();
+                $this->_arraystructs[] = [];
                 break;
         }
     }

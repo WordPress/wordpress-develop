@@ -231,7 +231,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	public function test_post__in_attachment_ordering() {
 		$post_id    = self::factory()->post->create();
-		$att_ids    = array();
+		$att_ids    = [];
 		$file       = DIR_TESTDATA . '/images/canola.jpg';
 		$att_ids[1] = self::factory()->attachment->create_object(
 			$file,

@@ -86,11 +86,11 @@ class Walker_Category_Checklist extends Walker {
 			$name = 'tax_input[' . $taxonomy . ']';
 		}
 
-		$args['popular_cats'] = ! empty( $args['popular_cats'] ) ? array_map( 'intval', $args['popular_cats'] ) : array();
+		$args['popular_cats'] = ! empty( $args['popular_cats'] ) ? array_map( 'intval', $args['popular_cats'] ) : [];
 
 		$class = in_array( $category->term_id, $args['popular_cats'], true ) ? ' class="popular-category"' : '';
 
-		$args['selected_cats'] = ! empty( $args['selected_cats'] ) ? array_map( 'intval', $args['selected_cats'] ) : array();
+		$args['selected_cats'] = ! empty( $args['selected_cats'] ) ? array_map( 'intval', $args['selected_cats'] ) : [];
 
 		if ( ! empty( $args['list_only'] ) ) {
 			$aria_checked = 'false';

@@ -320,7 +320,7 @@ function get_object_taxonomies( $object_type, $output = 'names' ) {
 
 	$object_type = (array) $object_type;
 
-	$taxonomies = array();
+	$taxonomies = [];
 	foreach ( (array) $wp_taxonomies as $tax_name => $tax_obj ) {
 		if ( array_intersect( $object_type, (array) $tax_obj->object_type ) ) {
 			if ( 'names' === $output ) {
@@ -519,7 +519,7 @@ function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
 	global $wp_taxonomies;
 
 	if ( ! is_array( $wp_taxonomies ) ) {
-		$wp_taxonomies = array();
+		$wp_taxonomies = [];
 	}
 
 	$args = wp_parse_args( $args );
@@ -899,7 +899,7 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 	}
 
 	if ( ! $object_ids ) {
-		return array();
+		return [];
 	}
 	return $object_ids;
 }
@@ -1176,7 +1176,7 @@ function get_term_children( $term_id, $taxonomy ) {
 	$terms = _get_term_hierarchy( $taxonomy );
 
 	if ( ! isset( $terms[ $term_id ] ) ) {
-		return array();
+		return [];
 	}
 
 	$children = $terms[ $term_id ];
@@ -2021,7 +2021,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 
 	$tt_id = $ids['term_taxonomy_id'];
 
-	$defaults = array();
+	$defaults = [];
 
 	if ( 'category' === $taxonomy ) {
 		$defaults['default'] = (int) get_option( 'default_category' );
@@ -2245,7 +2245,7 @@ function wp_delete_category( $cat_id ) {
  */
 function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	if ( empty( $object_ids ) || empty( $taxonomies ) ) {
-		return array();
+		return [];
 	}
 
 	if ( ! is_array( $taxonomies ) ) {
@@ -2285,7 +2285,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 * When one or more queried taxonomies is registered with an 'args' array,
 	 * those params override the `$args` passed to this function.
 	 */
-	$terms = array();
+	$terms = [];
 	if ( count( $taxonomies ) > 1 ) {
 		foreach ( $taxonomies as $index => $taxonomy ) {
 			$t = get_taxonomy( $taxonomy );
@@ -2798,7 +2798,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	}
 
 	if ( empty( $terms ) ) {
-		$terms = array();
+		$terms = [];
 	} elseif ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
@@ -2814,12 +2814,12 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 			)
 		);
 	} else {
-		$old_tt_ids = array();
+		$old_tt_ids = [];
 	}
 
-	$tt_ids     = array();
-	$term_ids   = array();
-	$new_tt_ids = array();
+	$tt_ids     = [];
+	$term_ids   = [];
+	$new_tt_ids = [];
 
 	foreach ( (array) $terms as $term ) {
 		if ( '' === trim( $term ) ) {
@@ -2906,7 +2906,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 	$t = get_taxonomy( $taxonomy );
 
 	if ( ! $append && isset( $t->sort ) && $t->sort ) {
-		$values     = array();
+		$values     = [];
 		$term_order = 0;
 
 		$final_tt_ids = wp_get_object_terms(
@@ -2990,7 +2990,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		$terms = array( $terms );
 	}
 
-	$tt_ids = array();
+	$tt_ids = [];
 
 	foreach ( (array) $terms as $term ) {
 		if ( '' === trim( $term ) ) {
@@ -3516,7 +3516,7 @@ function wp_defer_term_counting( $defer = null ) {
  * @return bool If no terms will return false, and if successful will return true.
  */
 function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
-	static $_deferred = array();
+	static $_deferred = [];
 
 	if ( $do_deferred ) {
 		foreach ( (array) array_keys( $_deferred ) as $tax ) {
@@ -3535,7 +3535,7 @@ function wp_update_term_count( $terms, $taxonomy, $do_deferred = false ) {
 
 	if ( wp_defer_term_counting() ) {
 		if ( ! isset( $_deferred[ $taxonomy ] ) ) {
-			$_deferred[ $taxonomy ] = array();
+			$_deferred[ $taxonomy ] = [];
 		}
 		$_deferred[ $taxonomy ] = array_unique( array_merge( $_deferred[ $taxonomy ], $terms ) );
 		return true;
@@ -3656,13 +3656,13 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 		$ids = array( $ids );
 	}
 
-	$taxonomies = array();
+	$taxonomies = [];
 	// If no taxonomy, assume tt_ids.
 	if ( empty( $taxonomy ) ) {
 		$tt_ids = array_map( 'intval', $ids );
 		$tt_ids = implode( ', ', $tt_ids );
 		$terms  = $wpdb->get_results( "SELECT term_id, taxonomy FROM $wpdb->term_taxonomy WHERE term_taxonomy_id IN ($tt_ids)" );
-		$ids    = array();
+		$ids    = [];
 
 		foreach ( (array) $terms as $term ) {
 			$taxonomies[] = $term->taxonomy;
@@ -3748,7 +3748,7 @@ function get_object_term_cache( $id, $taxonomy ) {
 	}
 
 	// Backward compatibility for if a plugin is putting objects into the cache, rather than IDs.
-	$term_ids = array();
+	$term_ids = [];
 	foreach ( $_term_ids as $term_id ) {
 		if ( is_numeric( $term_id ) ) {
 			$term_ids[] = (int) $term_id;
@@ -3760,7 +3760,7 @@ function get_object_term_cache( $id, $taxonomy ) {
 	// Fill the term objects.
 	_prime_term_caches( $term_ids );
 
-	$terms = array();
+	$terms = [];
 	foreach ( $term_ids as $term_id ) {
 		$term = get_term( $term_id, $taxonomy );
 		if ( is_wp_error( $term ) ) {
@@ -3800,7 +3800,7 @@ function update_object_term_cache( $object_ids, $object_type ) {
 	}
 
 	$object_ids     = array_map( 'intval', $object_ids );
-	$non_cached_ids = array();
+	$non_cached_ids = [];
 
 	$taxonomies = get_object_taxonomies( $object_type );
 
@@ -3830,7 +3830,7 @@ function update_object_term_cache( $object_ids, $object_type ) {
 		)
 	);
 
-	$object_terms = array();
+	$object_terms = [];
 	foreach ( (array) $terms as $term ) {
 		$object_terms[ $term->object_id ][ $term->taxonomy ][] = $term->term_id;
 	}
@@ -3839,14 +3839,14 @@ function update_object_term_cache( $object_ids, $object_type ) {
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( ! isset( $object_terms[ $id ][ $taxonomy ] ) ) {
 				if ( ! isset( $object_terms[ $id ] ) ) {
-					$object_terms[ $id ] = array();
+					$object_terms[ $id ] = [];
 				}
-				$object_terms[ $id ][ $taxonomy ] = array();
+				$object_terms[ $id ][ $taxonomy ] = [];
 			}
 		}
 	}
 
-	$cache_values = array();
+	$cache_values = [];
 	foreach ( $object_terms as $id => $value ) {
 		foreach ( $value as $taxonomy => $terms ) {
 			$cache_values[ $taxonomy ][ $id ] = $terms;
@@ -3866,7 +3866,7 @@ function update_object_term_cache( $object_ids, $object_type ) {
  * @param string    $taxonomy Not used.
  */
 function update_term_cache( $terms, $taxonomy = '' ) {
-	$data = array();
+	$data = [];
 	foreach ( (array) $terms as $term ) {
 		// Create a copy in case the array was passed by reference.
 		$_term = clone $term;
@@ -3894,14 +3894,14 @@ function update_term_cache( $terms, $taxonomy = '' ) {
  */
 function _get_term_hierarchy( $taxonomy ) {
 	if ( ! is_taxonomy_hierarchical( $taxonomy ) ) {
-		return array();
+		return [];
 	}
 	$children = get_option( "{$taxonomy}_children" );
 
 	if ( is_array( $children ) ) {
 		return $children;
 	}
-	$children = array();
+	$children = [];
 	$terms    = get_terms(
 		array(
 			'taxonomy'               => $taxonomy,
@@ -3941,13 +3941,13 @@ function _get_term_hierarchy( $taxonomy ) {
  * @return array|WP_Error The subset of $terms that are descendants of $term_id.
  */
 function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() ) {
-	$empty_array = array();
+	$empty_array = [];
 	if ( empty( $terms ) ) {
 		return $empty_array;
 	}
 
 	$term_id      = (int) $term_id;
-	$term_list    = array();
+	$term_list    = [];
 	$has_children = _get_term_hierarchy( $taxonomy );
 
 	if ( $term_id && ! isset( $has_children[ $term_id ] ) ) {
@@ -4025,9 +4025,9 @@ function _pad_term_counts( &$terms, $taxonomy ) {
 		return;
 	}
 
-	$term_items  = array();
-	$terms_by_id = array();
-	$term_ids    = array();
+	$term_items  = [];
+	$terms_by_id = [];
+	$term_ids    = [];
 
 	foreach ( (array) $terms as $key => $term ) {
 		$terms_by_id[ $term->term_id ]       = & $terms[ $key ];
@@ -4048,7 +4048,7 @@ function _pad_term_counts( &$terms, $taxonomy ) {
 	// Touch every ancestor's lookup row for each post in each term.
 	foreach ( $term_ids as $term_id ) {
 		$child     = $term_id;
-		$ancestors = array();
+		$ancestors = [];
 		while ( ! empty( $terms_by_id[ $child ] ) && $parent = $terms_by_id[ $child ]->parent ) {
 			$ancestors[] = $child;
 
@@ -4318,7 +4318,7 @@ function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
 	if ( $record ) {
 		$split_term_data = get_option( '_split_terms', array() );
 		if ( ! isset( $split_term_data[ $term_id ] ) ) {
-			$split_term_data[ $term_id ] = array();
+			$split_term_data[ $term_id ] = [];
 		}
 
 		$split_term_data[ $term_id ][ $term_taxonomy->taxonomy ] = $new_term_id;
@@ -4400,7 +4400,7 @@ function _wp_batch_split_terms() {
 	wp_schedule_single_event( time() + ( 2 * MINUTE_IN_SECONDS ), 'wp_split_shared_term_batch' );
 
 	// Rekey shared term array for faster lookups.
-	$_shared_terms = array();
+	$_shared_terms = [];
 	foreach ( $shared_terms as $shared_term ) {
 		$term_id                   = (int) $shared_term->term_id;
 		$_shared_terms[ $term_id ] = $shared_term;
@@ -4413,8 +4413,8 @@ function _wp_batch_split_terms() {
 
 	// Split term data recording is slow, so we do it just once, outside the loop.
 	$split_term_data    = get_option( '_split_terms', array() );
-	$skipped_first_term = array();
-	$taxonomies         = array();
+	$skipped_first_term = [];
+	$taxonomies         = [];
 	foreach ( $shared_tts as $shared_tt ) {
 		$term_id = (int) $shared_tt->term_id;
 
@@ -4425,7 +4425,7 @@ function _wp_batch_split_terms() {
 		}
 
 		if ( ! isset( $split_term_data[ $term_id ] ) ) {
-			$split_term_data[ $term_id ] = array();
+			$split_term_data[ $term_id ] = [];
 		}
 
 		// Keep track of taxonomies whose hierarchies need flushing.
@@ -4557,7 +4557,7 @@ function _wp_check_split_nav_menu_terms( $term_id, $new_term_id, $term_taxonomy_
 function wp_get_split_terms( $old_term_id ) {
 	$split_terms = get_option( '_split_terms', array() );
 
-	$terms = array();
+	$terms = [];
 	if ( isset( $split_terms[ $old_term_id ] ) ) {
 		$terms = $split_terms[ $old_term_id ];
 	}
@@ -4671,7 +4671,7 @@ function get_term_link( $term, $taxonomy = '' ) {
 		$termlink = home_url( $termlink );
 	} else {
 		if ( ! empty( $t->rewrite['hierarchical'] ) ) {
-			$hierarchical_slugs = array();
+			$hierarchical_slugs = [];
 			$ancestors          = get_ancestors( $term->term_id, $taxonomy, 'taxonomy' );
 			foreach ( (array) $ancestors as $ancestor ) {
 				$ancestor_term        = get_term( $ancestor, $taxonomy );
@@ -4790,7 +4790,7 @@ function get_the_taxonomies( $post = 0, $args = array() ) {
 		)
 	);
 
-	$taxonomies = array();
+	$taxonomies = [];
 
 	if ( ! $post ) {
 		return $taxonomies;
@@ -4802,7 +4802,7 @@ function get_the_taxonomies( $post = 0, $args = array() ) {
 			$t['label'] = $taxonomy;
 		}
 		if ( empty( $t['args'] ) ) {
-			$t['args'] = array();
+			$t['args'] = [];
 		}
 		if ( empty( $t['template'] ) ) {
 			$t['template'] = $args['template'];
@@ -4815,7 +4815,7 @@ function get_the_taxonomies( $post = 0, $args = array() ) {
 		if ( false === $terms ) {
 			$terms = wp_get_object_terms( $post->ID, $taxonomy, $t['args'] );
 		}
-		$links = array();
+		$links = [];
 
 		foreach ( $terms as $term ) {
 			$links[] = wp_sprintf( $t['term_template'], esc_attr( get_term_link( $term ) ), $term->name );
@@ -4949,7 +4949,7 @@ function is_object_in_taxonomy( $object_type, $taxonomy ) {
 function get_ancestors( $object_id = 0, $object_type = '', $resource_type = '' ) {
 	$object_id = (int) $object_id;
 
-	$ancestors = array();
+	$ancestors = [];
 
 	if ( empty( $object_id ) ) {
 

@@ -24,7 +24,7 @@ class WP_Date_Query {
 	 * @since 3.7.0
 	 * @var array
 	 */
-	public $queries = array();
+	public $queries = [];
 
 	/**
 	 * The default relation between top-level queries. Can be either 'AND' or 'OR'.
@@ -187,7 +187,7 @@ class WP_Date_Query {
 	 * @return array Sanitized queries.
 	 */
 	public function sanitize_query( $queries, $parent_query = null ) {
-		$cleaned_query = array();
+		$cleaned_query = [];
 
 		$defaults = array(
 			'column'   => 'post_date',
@@ -303,7 +303,7 @@ class WP_Date_Query {
 		}
 
 		// Array containing all min-max checks.
-		$min_max_checks = array();
+		$min_max_checks = [];
 
 		// Days per year.
 		if ( array_key_exists( 'year', $date_query ) ) {
@@ -716,7 +716,7 @@ class WP_Date_Query {
 		global $wpdb;
 
 		// The sub-parts of a $where part.
-		$where_parts = array();
+		$where_parts = [];
 
 		$column = ( ! empty( $query['column'] ) ) ? esc_sql( $query['column'] ) : $this->column;
 
@@ -984,7 +984,7 @@ class WP_Date_Query {
 
 		// Complex combined queries aren't supported for multi-value queries.
 		if ( in_array( $compare, array( 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN' ), true ) ) {
-			$return = array();
+			$return = [];
 
 			$value = $this->build_value( $compare, $hour );
 			if ( false !== $value ) {

@@ -205,12 +205,12 @@ class WP_HTTP_Proxy {
 		}
 
 		static $bypass_hosts   = null;
-		static $wildcard_regex = array();
+		static $wildcard_regex = [];
 		if ( null === $bypass_hosts ) {
 			$bypass_hosts = preg_split( '|,\s*|', WP_PROXY_BYPASS_HOSTS );
 
 			if ( str_contains( WP_PROXY_BYPASS_HOSTS, '*' ) ) {
-				$wildcard_regex = array();
+				$wildcard_regex = [];
 				foreach ( $bypass_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
 				}

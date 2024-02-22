@@ -4,7 +4,7 @@
  * @group post
  */
 class Tests_Post_GetPageChildren extends WP_UnitTestCase {
-	protected $pages = array();
+	protected $pages = [];
 
 	/*
 	 * Here's the tree we are testing (4 is not in the tree):

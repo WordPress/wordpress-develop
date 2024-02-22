@@ -23,7 +23,7 @@ class Tests_Ajax_wpAjaxDimComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $_comments = array();
+	protected $_comments = [];
 
 	/**
 	 * Sets up the test fixture.

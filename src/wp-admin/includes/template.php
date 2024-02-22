@@ -124,7 +124,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	} elseif ( $post_id ) {
 		$args['selected_cats'] = wp_get_object_terms( $post_id, $taxonomy, array_merge( $args, array( 'fields' => 'ids' ) ) );
 	} else {
-		$args['selected_cats'] = array();
+		$args['selected_cats'] = [];
 	}
 
 	if ( is_array( $parsed_args['popular_cats'] ) ) {
@@ -169,7 +169,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 		 * Post-process $categories rather than adding an exclude to the get_terms() query
 		 * to keep the query the same across all posts (for any query cache).
 		 */
-		$checked_categories = array();
+		$checked_categories = [];
 		$keys               = array_keys( $categories );
 
 		foreach ( $keys as $k ) {
@@ -214,7 +214,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
 	if ( $post && $post->ID ) {
 		$checked_terms = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
 	} else {
-		$checked_terms = array();
+		$checked_terms = [];
 	}
 
 	$terms = get_terms(
@@ -229,7 +229,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
 
 	$tax = get_taxonomy( $taxonomy );
 
-	$popular_ids = array();
+	$popular_ids = [];
 
 	foreach ( (array) $terms as $term ) {
 		$popular_ids[] = $term->term_id;
@@ -267,7 +267,7 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
 function wp_link_category_checklist( $link_id = 0 ) {
 	$default = 1;
 
-	$checked_categories = array();
+	$checked_categories = [];
 
 	if ( $link_id ) {
 		$checked_categories = wp_get_link_cats( $link_id );
@@ -1095,13 +1095,13 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 	$page = $screen->id;
 
 	if ( ! isset( $wp_meta_boxes ) ) {
-		$wp_meta_boxes = array();
+		$wp_meta_boxes = [];
 	}
 	if ( ! isset( $wp_meta_boxes[ $page ] ) ) {
-		$wp_meta_boxes[ $page ] = array();
+		$wp_meta_boxes[ $page ] = [];
 	}
 	if ( ! isset( $wp_meta_boxes[ $page ][ $context ] ) ) {
-		$wp_meta_boxes[ $page ][ $context ] = array();
+		$wp_meta_boxes[ $page ][ $context ] = [];
 	}
 
 	foreach ( array_keys( $wp_meta_boxes[ $page ] ) as $a_context ) {
@@ -1155,7 +1155,7 @@ function add_meta_box( $id, $title, $callback, $screen = null, $context = 'advan
 	}
 
 	if ( ! isset( $wp_meta_boxes[ $page ][ $context ][ $priority ] ) ) {
-		$wp_meta_boxes[ $page ][ $context ][ $priority ] = array();
+		$wp_meta_boxes[ $page ][ $context ][ $priority ] = [];
 	}
 
 	$wp_meta_boxes[ $page ][ $context ][ $priority ][ $id ] = array(
@@ -1504,13 +1504,13 @@ function remove_meta_box( $id, $screen, $context ) {
 	$page = $screen->id;
 
 	if ( ! isset( $wp_meta_boxes ) ) {
-		$wp_meta_boxes = array();
+		$wp_meta_boxes = [];
 	}
 	if ( ! isset( $wp_meta_boxes[ $page ] ) ) {
-		$wp_meta_boxes[ $page ] = array();
+		$wp_meta_boxes[ $page ] = [];
 	}
 	if ( ! isset( $wp_meta_boxes[ $page ][ $context ] ) ) {
-		$wp_meta_boxes[ $page ][ $context ] = array();
+		$wp_meta_boxes[ $page ][ $context ] = [];
 	}
 
 	foreach ( array( 'high', 'core', 'default', 'low' ) as $priority ) {
@@ -1931,12 +1931,12 @@ function get_settings_errors( $setting = '', $sanitize = false ) {
 
 	// Check global in case errors have been added on this pageload.
 	if ( empty( $wp_settings_errors ) ) {
-		return array();
+		return [];
 	}
 
 	// Filter the results to those of a specific setting if one was set.
 	if ( $setting ) {
-		$setting_errors = array();
+		$setting_errors = [];
 
 		foreach ( (array) $wp_settings_errors as $key => $details ) {
 			if ( $setting === $details['setting'] ) {
@@ -2283,7 +2283,7 @@ function _post_states( $post, $display = true ) {
  * @return string[] Array of post state labels keyed by their state.
  */
 function get_post_states( $post ) {
-	$post_states = array();
+	$post_states = [];
 
 	if ( isset( $_REQUEST['post_status'] ) ) {
 		$post_status = $_REQUEST['post_status'];
@@ -2399,7 +2399,7 @@ function _media_states( $post, $display = true ) {
 function get_media_states( $post ) {
 	static $header_images;
 
-	$media_states = array();
+	$media_states = [];
 	$stylesheet   = get_option( 'stylesheet' );
 
 	if ( current_theme_supports( 'custom-header' ) ) {

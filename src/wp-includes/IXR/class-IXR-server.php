@@ -9,7 +9,7 @@
 class IXR_Server
 {
     var $data;
-    var $callbacks = array();
+    var $callbacks = [];
     var $message;
     var $capabilities;
 
@@ -197,7 +197,7 @@ EOD;
     function multiCall($methodcalls)
     {
         // See http://www.xmlrpc.com/discuss/msgReader$1208
-        $return = array();
+        $return = [];
         foreach ($methodcalls as $call) {
             $method = $call['methodName'];
             $params = $call['params'];

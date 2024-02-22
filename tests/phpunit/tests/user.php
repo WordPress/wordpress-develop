@@ -12,7 +12,7 @@ class Tests_User extends WP_UnitTestCase {
 	protected static $contrib_id;
 	protected static $sub_id;
 
-	protected static $user_ids = array();
+	protected static $user_ids = [];
 
 	protected static $_author;
 	protected $author;
@@ -79,7 +79,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_list = get_users();
 
 		// Find the role of each user as returned by get_users_of_blog().
-		$found = array();
+		$found = [];
 		foreach ( $user_list as $user ) {
 			// Only include the users we just created - there might be some others that existed previously.
 			if ( in_array( $user->ID, $nusers, true ) ) {
@@ -1611,9 +1611,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 42766
 	 */
 	public function test_edit_user_blank_password() {
-		$_POST                 = array();
-		$_GET                  = array();
-		$_REQUEST              = array();
+		$_POST                 = [];
+		$_GET                  = [];
+		$_REQUEST              = [];
 		$_POST['role']         = 'subscriber';
 		$_POST['email']        = 'user1@example.com';
 		$_POST['user_login']   = 'user_login1';
@@ -1803,9 +1803,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 42564
 	 */
 	public function test_edit_user_role_update() {
-		$_POST    = array();
-		$_GET     = array();
-		$_REQUEST = array();
+		$_POST    = [];
+		$_GET     = [];
+		$_REQUEST = [];
 
 		$administrator = self::factory()->user->create(
 			array(

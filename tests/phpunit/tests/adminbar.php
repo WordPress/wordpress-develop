@@ -12,7 +12,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $blog_id;
 
-	protected static $user_ids = array();
+	protected static $user_ids = [];
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
@@ -730,7 +730,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertNotEmpty( $node );
 
 		$parsed_url   = wp_parse_url( $node->href );
-		$query_params = array();
+		$query_params = [];
 		wp_parse_str( $parsed_url['query'], $query_params );
 		$this->assertSame( $uuid, $query_params['changeset_uuid'] );
 		$this->assertStringNotContainsString( 'changeset_uuid', $query_params['url'] );

@@ -115,10 +115,10 @@ class Features {
                                           //   (1 monochrome or 3 colors) + (0 or 1 alpha)
   );
 
-  public $tiles = array(); // Tile[]
-  public $props = array(); // Prop[]
-  public $dim_props = array(); // Dim_Prop[]
-  public $chan_props = array(); // Chan_Prop[]
+  public $tiles = []; // Tile[]
+  public $props = []; // Prop[]
+  public $dim_props = []; // Dim_Prop[]
+  public $chan_props = []; // Chan_Prop[]
 
   /**
    * Binds the width, height, bit depth and number of channels from stored internal features.

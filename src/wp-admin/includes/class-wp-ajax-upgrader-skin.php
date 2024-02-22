@@ -26,7 +26,7 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	 *
 	 * @var array Plugin data. Values will be empty if not supplied by the plugin.
 	 */
-	public $plugin_info = array();
+	public $plugin_info = [];
 
 	/**
 	 * Theme info.
@@ -86,7 +86,7 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	 * @return string Error messages during an upgrade.
 	 */
 	public function get_error_messages() {
-		$messages = array();
+		$messages = [];
 
 		foreach ( $this->errors->get_error_codes() as $error_code ) {
 			$error_data = $this->errors->get_error_data( $error_code );

@@ -260,7 +260,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$args['object_subtype'] = $post_type;
 
 		// Reset global so subsequent data tests do not get polluted.
-		$GLOBALS['wp_meta_keys'] = array();
+		$GLOBALS['wp_meta_keys'] = [];
 
 		$this->assertSame( 'post', $this->last_register_meta_call['object_type'] );
 		$this->assertSame( $meta_key, $this->last_register_meta_call['meta_key'] );
@@ -296,7 +296,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$actual = $wp_meta_keys;
 
 		// Reset global so subsequent data tests do not get polluted.
-		$wp_meta_keys = array();
+		$wp_meta_keys = [];
 
 		$this->assertEmpty( $actual );
 	}

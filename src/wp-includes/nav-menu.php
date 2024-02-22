@@ -151,7 +151,7 @@ function get_registered_nav_menus() {
 	if ( isset( $_wp_registered_nav_menus ) ) {
 		return $_wp_registered_nav_menus;
 	}
-	return array();
+	return [];
 }
 
 /**
@@ -164,7 +164,7 @@ function get_registered_nav_menus() {
  */
 function get_nav_menu_locations() {
 	$locations = get_theme_mod( 'nav_menu_locations' );
-	return ( is_array( $locations ) ) ? $locations : array();
+	return ( is_array( $locations ) ) ? $locations : [];
 }
 
 /**
@@ -726,7 +726,7 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 	if ( $menu->count > 0 ) {
 		$items = get_posts( $args );
 	} else {
-		$items = array();
+		$items = [];
 	}
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
@@ -770,8 +770,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
  * @param WP_Post[] $menu_items Array of menu item post objects.
  */
 function update_menu_item_cache( $menu_items ) {
-	$post_ids = array();
-	$term_ids = array();
+	$post_ids = [];
+	$term_ids = [];
 
 	foreach ( $menu_items as $menu_item ) {
 		if ( 'nav_menu_item' !== $menu_item->post_type ) {
@@ -987,7 +987,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 
 			/** This filter is documented in wp-includes/nav-menu.php */
 			$menu_item->description = apply_filters( 'nav_menu_description', '' );
-			$menu_item->classes     = array();
+			$menu_item->classes     = [];
 			$menu_item->xfn         = '';
 		}
 	} elseif ( isset( $menu_item->taxonomy ) ) {
@@ -1007,7 +1007,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 		$menu_item->target      = '';
 		$menu_item->attr_title  = '';
 		$menu_item->description = get_term_field( 'description', $menu_item->term_id, $menu_item->taxonomy );
-		$menu_item->classes     = array();
+		$menu_item->classes     = [];
 		$menu_item->xfn         = '';
 
 	}
@@ -1036,7 +1036,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
  */
 function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_type', $taxonomy = '' ) {
 	$object_id     = (int) $object_id;
-	$menu_item_ids = array();
+	$menu_item_ids = [];
 
 	$query      = new WP_Query();
 	$menu_items = $query->query(

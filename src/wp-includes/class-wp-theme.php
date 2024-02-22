@@ -106,7 +106,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	private $headers = array();
+	private $headers = [];
 
 	/**
 	 * Header data from the theme's style.css file after being sanitized.
@@ -789,7 +789,7 @@ final class WP_Theme implements ArrayAccess {
 				throw new UnexpectedValueException();
 			}
 		}
-		$this->headers_sanitized = array();
+		$this->headers_sanitized = [];
 	}
 
 	/**
@@ -839,7 +839,7 @@ final class WP_Theme implements ArrayAccess {
 		$this->name_translated        = null;
 		$this->block_theme            = null;
 		$this->block_template_folders = null;
-		$this->headers                = array();
+		$this->headers                = [];
 		$this->__construct( $this->stylesheet, $this->theme_root );
 		$this->delete_pattern_cache();
 	}
@@ -868,7 +868,7 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! isset( $this->headers_sanitized ) ) {
 			$this->headers_sanitized = $this->cache_get( 'headers' );
 			if ( ! is_array( $this->headers_sanitized ) ) {
-				$this->headers_sanitized = array();
+				$this->headers_sanitized = [];
 			}
 		}
 
@@ -1312,13 +1312,13 @@ final class WP_Theme implements ArrayAccess {
 	public function get_post_templates() {
 		// If you screw up your active theme and we invalidate your parent, most things still work. Let it slide.
 		if ( $this->errors() && $this->errors()->get_error_codes() !== array( 'theme_parent_invalid' ) ) {
-			return array();
+			return [];
 		}
 
 		$post_templates = $this->cache_get( 'post_templates' );
 
 		if ( ! is_array( $post_templates ) ) {
-			$post_templates = array();
+			$post_templates = [];
 
 			$files = (array) $this->get_files( 'php', 1, true );
 
@@ -1335,7 +1335,7 @@ final class WP_Theme implements ArrayAccess {
 				foreach ( $types as $type ) {
 					$type = sanitize_key( $type );
 					if ( ! isset( $post_templates[ $type ] ) ) {
-						$post_templates[ $type ] = array();
+						$post_templates[ $type ] = [];
 					}
 
 					$post_templates[ $type ][ $file ] = _cleanup_header_comment( $header[1] );
@@ -1390,7 +1390,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$post_templates = $this->get_post_templates();
-		$post_templates = isset( $post_templates[ $post_type ] ) ? $post_templates[ $post_type ] : array();
+		$post_templates = isset( $post_templates[ $post_type ] ) ? $post_templates[ $post_type ] : [];
 
 		/**
 		 * Filters list of page templates for a theme.
@@ -1461,7 +1461,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$results = scandir( $path );
-		$files   = array();
+		$files   = [];
 
 		/**
 		 * Filters the array of excluded directories and files while scanning theme folder.
@@ -1696,7 +1696,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @return string[] Array of stylesheet names.
 	 */
 	public static function get_allowed_on_site( $blog_id = null ) {
-		static $allowed_themes = array();
+		static $allowed_themes = [];
 
 		if ( ! $blog_id || ! is_multisite() ) {
 			$blog_id = get_current_blog_id();
@@ -1738,9 +1738,9 @@ final class WP_Theme implements ArrayAccess {
 			}
 
 			if ( ! is_array( $allowed_themes[ $blog_id ] ) || empty( $allowed_themes[ $blog_id ] ) ) {
-				$allowed_themes[ $blog_id ] = array();
+				$allowed_themes[ $blog_id ] = [];
 			} else {
-				$converted = array();
+				$converted = [];
 				$themes    = wp_get_themes();
 				foreach ( $themes as $stylesheet => $theme_data ) {
 					if ( isset( $allowed_themes[ $blog_id ][ $theme_data->get( 'Name' ) ] ) ) {
@@ -1842,7 +1842,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		$dirpath      = $this->get_stylesheet_directory() . '/patterns/';
-		$pattern_data = array();
+		$pattern_data = [];
 
 		if ( ! file_exists( $dirpath ) ) {
 			if ( $can_use_cached ) {

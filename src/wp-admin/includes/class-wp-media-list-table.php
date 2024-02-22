@@ -21,7 +21,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @since 4.4.0
 	 * @var array
 	 */
-	protected $comment_pending_count = array();
+	protected $comment_pending_count = [];
 
 	private $detached;
 
@@ -75,7 +75,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		 * if they are for zip packages for interrupted or failed updates.
 		 * See File_Upload_Upgrader class.
 		 */
-		$not_in = array();
+		$not_in = [];
 
 		$crons = _get_cron_array();
 
@@ -124,7 +124,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $post_mime_types, $avail_post_mime_types;
 
-		$type_links = array();
+		$type_links = [];
 
 		$filter = empty( $_GET['attachment-filter'] ) ? '' : $_GET['attachment-filter'];
 
@@ -177,7 +177,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		$actions = array();
+		$actions = [];
 
 		if ( MEDIA_TRASH ) {
 			if ( $this->is_trash ) {
@@ -331,7 +331,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
-		$posts_columns       = array();
+		$posts_columns       = [];
 		$posts_columns['cb'] = '<input type="checkbox" />';
 		/* translators: Column name. */
 		$posts_columns['title']  = _x( 'File', 'column name' );
@@ -672,10 +672,10 @@ class WP_Media_List_Table extends WP_List_Table {
 			$terms = get_the_terms( $post->ID, $taxonomy );
 
 			if ( is_array( $terms ) ) {
-				$output = array();
+				$output = [];
 
 				foreach ( $terms as $t ) {
-					$posts_in_term_qv             = array();
+					$posts_in_term_qv             = [];
 					$posts_in_term_qv['taxonomy'] = $taxonomy;
 					$posts_in_term_qv['term']     = $t->slug;
 
@@ -756,7 +756,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	private function _get_row_actions( $post, $att_title ) {
-		$actions = array();
+		$actions = [];
 
 		if ( ! $this->is_trash && current_user_can( 'edit_post', $post->ID ) ) {
 			$actions['edit'] = sprintf(

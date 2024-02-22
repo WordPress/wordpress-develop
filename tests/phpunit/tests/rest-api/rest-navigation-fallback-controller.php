@@ -187,7 +187,7 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 			)
 		);
 
-		return $navs_in_db->posts ? $navs_in_db->posts : array();
+		return $navs_in_db->posts ? $navs_in_db->posts : [];
 	}
 
 	/**

@@ -14,13 +14,13 @@ require_once __DIR__ . '/trac.php';
  */
 abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
-	protected static $forced_tickets   = array();
-	protected $expected_deprecated     = array();
-	protected $caught_deprecated       = array();
-	protected $expected_doing_it_wrong = array();
-	protected $caught_doing_it_wrong   = array();
+	protected static $forced_tickets   = [];
+	protected $expected_deprecated     = [];
+	protected $caught_deprecated       = [];
+	protected $expected_doing_it_wrong = [];
+	protected $caught_doing_it_wrong   = [];
 
-	protected static $hooks_saved = array();
+	protected static $hooks_saved = [];
 	protected static $ignore_files;
 
 	/**
@@ -209,9 +209,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * Cleans the global scope (e.g `$_GET` and `$_POST`).
 	 */
 	public function clean_up_global_scope() {
-		$_GET     = array();
-		$_POST    = array();
-		$_REQUEST = array();
+		$_GET     = [];
+		$_POST    = [];
+		$_REQUEST = [];
 		self::flush_cache();
 	}
 
@@ -348,7 +348,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @global array $wp_current_filter
 	 */
 	protected function _backup_hooks() {
-		self::$hooks_saved['wp_filter'] = array();
+		self::$hooks_saved['wp_filter'] = [];
 
 		foreach ( $GLOBALS['wp_filter'] as $hook_name => $hook_object ) {
 			self::$hooks_saved['wp_filter'][ $hook_name ] = clone $hook_object;
@@ -372,7 +372,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	protected function _restore_hooks() {
 		if ( isset( self::$hooks_saved['wp_filter'] ) ) {
-			$GLOBALS['wp_filter'] = array();
+			$GLOBALS['wp_filter'] = [];
 
 			foreach ( self::$hooks_saved['wp_filter'] as $hook_name => $hook_object ) {
 				$GLOBALS['wp_filter'][ $hook_name ] = clone $hook_object;
@@ -595,7 +595,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *              or deprecation notice in the output if one is encountered.
 	 */
 	public function expectedDeprecated() {
-		$errors = array();
+		$errors = [];
 
 		$not_caught_deprecated = array_diff(
 			$this->expected_deprecated,
@@ -1175,7 +1175,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return array Array which is usable as a test data provider with named data sets.
 	 */
 	public static function text_array_to_dataprovider( $input ) {
-		$data = array();
+		$data = [];
 
 		foreach ( $input as $value ) {
 			if ( ! is_string( $value ) ) {
@@ -1215,8 +1215,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 * from all over the place (globals, GET, etc), which makes it tricky
 		 * to run them more than once without very carefully clearing everything.
 		 */
-		$_GET  = array();
-		$_POST = array();
+		$_GET  = [];
+		$_POST = [];
 		foreach ( array( 'query_string', 'id', 'postdata', 'authordata', 'day', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages', 'pagenow', 'current_screen' ) as $v ) {
 			if ( isset( $GLOBALS[ $v ] ) ) {
 				unset( $GLOBALS[ $v ] );
@@ -1431,7 +1431,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return array List of file paths.
 	 */
 	public function files_in_dir( $dir ) {
-		$files = array();
+		$files = [];
 
 		$iterator = new RecursiveDirectoryIterator( $dir );
 		$objects  = new RecursiveIteratorIterator( $iterator );
@@ -1452,7 +1452,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return array List of file paths.
 	 */
 	public function scan_user_uploads() {
-		static $files = array();
+		static $files = [];
 		if ( ! empty( $files ) ) {
 			return $files;
 		}
@@ -1497,7 +1497,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @return string[] List of directories.
 	 */
 	public function scandir( $dir ) {
-		$matched_dirs = array();
+		$matched_dirs = [];
 
 		foreach ( scandir( $dir ) as $path ) {
 			if ( 0 !== strpos( $path, '.' ) && is_dir( $dir . '/' . $path ) ) {
@@ -1511,7 +1511,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 * See: https://3v4l.org/BIQMA
 		 */
 		if ( array() === $matched_dirs ) {
-			return array();
+			return [];
 		}
 
 		return array_merge( ...$matched_dirs );

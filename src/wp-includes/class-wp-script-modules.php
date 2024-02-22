@@ -20,7 +20,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @var array
 	 */
-	private $registered = array();
+	private $registered = [];
 
 	/**
 	 * Holds the script module identifiers that were enqueued before registered.
@@ -28,7 +28,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @var array<string, true>
 	 */
-	private $enqueued_before_registered = array();
+	private $enqueued_before_registered = [];
 
 	/**
 	 * Registers the script module if no script module with that script module
@@ -63,7 +63,7 @@ class WP_Script_Modules {
 	 */
 	public function register( string $id, string $src, array $deps = array(), $version = false ) {
 		if ( ! isset( $this->registered[ $id ] ) ) {
-			$dependencies = array();
+			$dependencies = [];
 			foreach ( $deps as $dependency ) {
 				if ( is_array( $dependency ) ) {
 					if ( ! isset( $dependency['id'] ) ) {
@@ -262,7 +262,7 @@ class WP_Script_Modules {
 	 *               URLs, including the version query.
 	 */
 	private function get_import_map(): array {
-		$imports = array();
+		$imports = [];
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $id => $script_module ) {
 			$imports[ $id ] = $this->get_versioned_src( $script_module );
 		}
@@ -277,7 +277,7 @@ class WP_Script_Modules {
 	 * @return array Script modules marked for enqueue, keyed by script module identifier.
 	 */
 	private function get_marked_for_enqueue(): array {
-		$enqueued = array();
+		$enqueued = [];
 		foreach ( $this->registered as $id => $script_module ) {
 			if ( true === $script_module['enqueue'] ) {
 				$enqueued[ $id ] = $script_module;
@@ -306,7 +306,7 @@ class WP_Script_Modules {
 		return array_reduce(
 			$ids,
 			function ( $dependency_script_modules, $id ) use ( $import_types ) {
-				$dependencies = array();
+				$dependencies = [];
 				foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
 					if (
 					in_array( $dependency['import'], $import_types, true ) &&
@@ -335,7 +335,7 @@ class WP_Script_Modules {
 	 * @return string The script module src with a version if relevant.
 	 */
 	private function get_versioned_src( array $script_module ): string {
-		$args = array();
+		$args = [];
 		if ( false === $script_module['version'] ) {
 			$args['ver'] = get_bloginfo( 'version' );
 		} elseif ( null !== $script_module['version'] ) {

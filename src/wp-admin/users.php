@@ -603,7 +603,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
-		$messages = array();
+		$messages = [];
 		if ( isset( $_GET['update'] ) ) :
 			switch ( $_GET['update'] ) {
 				case 'del':

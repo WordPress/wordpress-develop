@@ -30,7 +30,7 @@ class WP_Tax_Query {
 	 * @since 3.1.0
 	 * @var array
 	 */
-	public $queries = array();
+	public $queries = [];
 
 	/**
 	 * The relation between the queries. Can be one of 'AND' or 'OR'.
@@ -57,7 +57,7 @@ class WP_Tax_Query {
 	 * @since 4.1.0
 	 * @var array
 	 */
-	protected $table_aliases = array();
+	protected $table_aliases = [];
 
 	/**
 	 * Terms and taxonomies fetched by this query.
@@ -68,7 +68,7 @@ class WP_Tax_Query {
 	 * @since 4.1.0
 	 * @var array
 	 */
-	public $queried_terms = array();
+	public $queried_terms = [];
 
 	/**
 	 * Database table that where the metadata's objects are stored (eg $wpdb->users).
@@ -134,7 +134,7 @@ class WP_Tax_Query {
 	 * @return array Sanitized array of query clauses.
 	 */
 	public function sanitize_query( $queries ) {
-		$cleaned_query = array();
+		$cleaned_query = [];
 
 		$defaults = array(
 			'taxonomy'         => '',
@@ -162,7 +162,7 @@ class WP_Tax_Query {
 				if ( ! empty( $cleaned_clause['taxonomy'] ) && 'NOT IN' !== $cleaned_clause['operator'] ) {
 					$taxonomy = $cleaned_clause['taxonomy'];
 					if ( ! isset( $this->queried_terms[ $taxonomy ] ) ) {
-						$this->queried_terms[ $taxonomy ] = array();
+						$this->queried_terms[ $taxonomy ] = [];
 					}
 
 					/*
@@ -570,7 +570,7 @@ class WP_Tax_Query {
 				return;
 			}
 
-			$children = array();
+			$children = [];
 			foreach ( $query['terms'] as $term ) {
 				$children   = array_merge( $children, get_term_children( $term, $query['taxonomy'] ) );
 				$children[] = $term;
@@ -607,7 +607,7 @@ class WP_Tax_Query {
 		// Empty 'terms' always results in a null transformation.
 		$terms = array_filter( $query['terms'] );
 		if ( empty( $terms ) ) {
-			$query['terms'] = array();
+			$query['terms'] = [];
 			$query['field'] = $resulting_field;
 			return;
 		}

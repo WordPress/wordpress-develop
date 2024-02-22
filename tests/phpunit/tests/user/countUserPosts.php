@@ -6,7 +6,7 @@
  */
 class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	public static $user_id;
-	public static $post_ids = array();
+	public static $post_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(

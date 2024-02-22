@@ -9,9 +9,9 @@
 class Tests_Query_Results extends WP_UnitTestCase {
 	protected $q;
 
-	public static $cat_ids  = array();
-	public static $tag_ids  = array();
-	public static $post_ids = array();
+	public static $cat_ids  = [];
+	public static $tag_ids  = [];
+	public static $post_ids = [];
 
 	public static $parent_one;
 	public static $parent_two;

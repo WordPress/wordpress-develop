@@ -59,7 +59,7 @@ class Tests_Functions_wpArraySet extends WP_UnitTestCase {
 	 * @ticket 53175
 	 */
 	public function test_wp_array_set_simple_non_subtree() {
-		$test_array = array();
+		$test_array = [];
 		_wp_array_set( $test_array, array( 'a' ), 1 );
 		$this->assertSame(
 			$test_array,
@@ -90,7 +90,7 @@ class Tests_Functions_wpArraySet extends WP_UnitTestCase {
 	 * @ticket 53175
 	 */
 	public function test_wp_array_set_subtree() {
-		$test_array = array();
+		$test_array = [];
 		_wp_array_set( $test_array, array( 'a', 'b', 'c' ), 1 );
 		$this->assertSame(
 			$test_array,

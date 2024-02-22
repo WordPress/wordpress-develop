@@ -480,7 +480,7 @@ class getID3
 				$this->startup_warning .= '"'.$helperappsdir.'" cannot be defined as GETID3_HELPERAPPSDIR because it does not exist'."\n";
 			} elseif (strpos(realpath($helperappsdir), ' ') !== false) {
 				$DirPieces = explode(DIRECTORY_SEPARATOR, realpath($helperappsdir));
-				$path_so_far = array();
+				$path_so_far = [];
 				foreach ($DirPieces as $key => $value) {
 					if (strpos($value, ' ') !== false) {
 						if (!empty($path_so_far)) {
@@ -567,7 +567,7 @@ class getID3
 
 			// init result array and set parameters
 			$this->filename = $filename;
-			$this->info = array();
+			$this->info = [];
 			$this->info['GETID3_VERSION']   = $this->version();
 			$this->info['php_memory_limit'] = (($this->memory_limit > 0) ? $this->memory_limit : false);
 
@@ -586,7 +586,7 @@ class getID3
 			} elseif ((is_readable($filename) || file_exists($filename)) && is_file($filename) && ($this->fp = fopen($filename, 'rb'))) {
 				// great
 			} else {
-				$errormessagelist = array();
+				$errormessagelist = [];
 				if (!is_readable($filename)) {
 					$errormessagelist[] = '!is_readable';
 				}
@@ -616,10 +616,10 @@ class getID3
 			$this->info['fileformat']          = '';                // filled in later
 			$this->info['audio']['dataformat'] = '';                // filled in later, unset if not used
 			$this->info['video']['dataformat'] = '';                // filled in later, unset if not used
-			$this->info['tags']                = array();           // filled in later, unset if not used
-			$this->info['error']               = array();           // filled in later, unset if not used
-			$this->info['warning']             = array();           // filled in later, unset if not used
-			$this->info['comments']            = array();           // filled in later, unset if not used
+			$this->info['tags']                = [];           // filled in later, unset if not used
+			$this->info['error']               = [];           // filled in later, unset if not used
+			$this->info['warning']             = [];           // filled in later, unset if not used
+			$this->info['comments']            = [];           // filled in later, unset if not used
 			$this->info['encoding']            = $this->encoding;   // required by id3v2 and iso modules - can be unset at the end if desired
 
 			// option_max_2gb_check
@@ -837,7 +837,7 @@ class getID3
 	public function error($message) {
 		$this->CleanUp();
 		if (!isset($this->info['error'])) {
-			$this->info['error'] = array();
+			$this->info['error'] = [];
 		}
 		$this->info['error'][] = $message;
 		return $this->info;
@@ -912,7 +912,7 @@ class getID3
 	 * @return array
 	 */
 	public function GetFileFormatArray() {
-		static $format_info = array();
+		static $format_info = [];
 		if (empty($format_info)) {
 			$format_info = array(
 

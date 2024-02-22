@@ -63,7 +63,7 @@ class SimplePie_Parser
 	var $xml_base = array('');
 	var $xml_base_explicit = array(false);
 	var $xml_lang = array('');
-	var $data = array();
+	var $data = [];
 	var $datas = array(array());
 	var $current_xhtml_construct = -1;
 	var $encoding;
@@ -224,7 +224,7 @@ class SimplePie_Parser
 					{
 						$tagName = $xml->localName;
 					}
-					$attributes = array();
+					$attributes = [];
 					while ($xml->moveToNextAttribute())
 					{
 						if ($xml->namespaceURI !== '')
@@ -296,7 +296,7 @@ class SimplePie_Parser
 	{
 		list($this->namespace[], $this->element[]) = $this->split_ns($tag);
 
-		$attribs = array();
+		$attribs = [];
 		foreach ($attributes as $name => $value)
 		{
 			list($attrib_namespace, $attribute) = $this->split_ns($name);
@@ -396,7 +396,7 @@ class SimplePie_Parser
 
 	public function split_ns($string)
 	{
-		static $cache = array();
+		static $cache = [];
 		if (!isset($cache[$string]))
 		{
 			if ($pos = strpos($string, $this->separator))
@@ -459,12 +459,12 @@ class SimplePie_Parser
 	private function parse_microformats(&$data, $url) {
 		$feed_title = '';
 		$feed_author = NULL;
-		$author_cache = array();
-		$items = array();
-		$entries = array();
+		$author_cache = [];
+		$items = [];
+		$entries = [];
 		$mf = Mf2\parse($data, $url);
 		// First look for an h-feed.
-		$h_feed = array();
+		$h_feed = [];
 		foreach ($mf['items'] as $mf_item) {
 			if (in_array('h-feed', $mf_item['type'])) {
 				$h_feed = $mf_item;
@@ -503,7 +503,7 @@ class SimplePie_Parser
 		for ($i = 0; $i < count($entries); $i++) {
 			$entry = $entries[$i];
 			if (in_array('h-entry', $entry['type'])) {
-				$item = array();
+				$item = [];
 				$title = '';
 				$description = '';
 				if (isset($entry['properties']['url'][0])) {
@@ -563,7 +563,7 @@ class SimplePie_Parser
 					if (isset($entry['properties']['content'][0]['html'])) {
 						$content = $entry['properties']['content'][0]['html'];
 					}
-					$photo_list = array();
+					$photo_list = [];
 					for ($j = 0; $j < count($entry['properties']['photo']); $j++) {
 						$photo = $entry['properties']['photo'][$j];
 						if (!empty($photo) && strpos($content, $photo) === false) {
@@ -657,7 +657,7 @@ class SimplePie_Parser
 		else if ($position = strpos($data, '<title>')) {
 			$start = $position < 200 ? 0 : $position - 200;
 			$check = substr($data, $start, 400);
-			$matches = array();
+			$matches = [];
 			if (preg_match('/<title>(.+)<\/title>/', $check, $matches)) {
 				$feed_title = array(array('data' => htmlspecialchars($matches[1])));
 			}

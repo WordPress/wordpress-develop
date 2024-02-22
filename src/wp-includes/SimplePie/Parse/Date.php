@@ -576,7 +576,7 @@ class SimplePie_Parse_Date
 	 * @access private
 	 * @var array
 	 */
-	var $built_in = array();
+	var $built_in = [];
 
 	/**
 	 * Array of user-added callback methods
@@ -584,7 +584,7 @@ class SimplePie_Parse_Date
 	 * @access private
 	 * @var array
 	 */
-	var $user = array();
+	var $user = [];
 
 	/**
 	 * Create new SimplePie_Parse_Date object, and set self::day_pcre,

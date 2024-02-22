@@ -140,7 +140,7 @@ class WP_Site_Icon {
 	 * @return array[] Array of arrays containing additional image sizes.
 	 */
 	public function additional_sizes( $sizes = array() ) {
-		$only_crop_sizes = array();
+		$only_crop_sizes = [];
 
 		/**
 		 * Filters the different dimensions that a site icon is saved in.

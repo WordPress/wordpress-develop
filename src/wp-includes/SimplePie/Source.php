@@ -54,7 +54,7 @@
 class SimplePie_Source
 {
 	var $item;
-	var $data = array();
+	var $data = [];
 	protected $registry;
 
 	public function __construct($item, $data)
@@ -145,7 +145,7 @@ class SimplePie_Source
 
 	public function get_categories()
 	{
-		$categories = array();
+		$categories = [];
 
 		foreach ((array) $this->get_source_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'category') as $category)
 		{
@@ -211,7 +211,7 @@ class SimplePie_Source
 
 	public function get_authors()
 	{
-		$authors = array();
+		$authors = [];
 		foreach ((array) $this->get_source_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'author') as $author)
 		{
 			$name = null;
@@ -290,7 +290,7 @@ class SimplePie_Source
 
 	public function get_contributors()
 	{
-		$contributors = array();
+		$contributors = [];
 		foreach ((array) $this->get_source_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'contributor') as $contributor)
 		{
 			$name = null;
@@ -367,7 +367,7 @@ class SimplePie_Source
 	{
 		if (!isset($this->data['links']))
 		{
-			$this->data['links'] = array();
+			$this->data['links'] = [];
 			if ($links = $this->get_source_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'link'))
 			{
 				foreach ($links as $link)

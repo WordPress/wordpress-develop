@@ -21,7 +21,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : [];
 		self::$post_id            = $factory->post->create();
 		self::$cpt_post_id        = $factory->post->create( array( 'post_type' => 'cpt' ) );
 	}

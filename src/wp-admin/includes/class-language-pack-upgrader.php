@@ -209,7 +209,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return false;
 		}
 
-		$results = array();
+		$results = [];
 
 		$this->update_count   = count( $language_updates );
 		$this->update_current = 0;
@@ -225,7 +225,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			}
 		}
 
-		$language_updates_results = array();
+		$language_updates_results = [];
 
 		foreach ( $language_updates as $language_update ) {
 
@@ -451,7 +451,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		}
 
 		// Check all files are writable before attempting to clear the destination.
-		$unwritable_files = array();
+		$unwritable_files = [];
 
 		// Check writability.
 		foreach ( $files as $file ) {

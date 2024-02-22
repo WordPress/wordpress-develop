@@ -3,7 +3,7 @@
  * @group taxonomy
  */
 class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
-	protected $terms = array();
+	protected $terms = [];
 
 	/**
 	 * Testing when passed $tags array is empty
@@ -14,7 +14,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 * @param $args     Options for `wp_generate_tag_cloud()`.
 	 */
 	public function test_empty_tags_passed( $expected, $args ) {
-		$empty_tags = array();
+		$empty_tags = [];
 		$this->assertSame( $expected, wp_generate_tag_cloud( $empty_tags, $args ) );
 	}
 
@@ -28,7 +28,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 */
 	public function test_empty_tags_list_returned( $expected, $args ) {
 		$term_ids    = self::factory()->term->create_many( 4, array( 'taxonomy' => 'post_tag' ) );
-		$this->terms = array();
+		$this->terms = [];
 		foreach ( $term_ids as $term_id ) {
 			$this->terms[] = get_term( $term_id, 'post_tag' );
 		}
@@ -136,7 +136,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 
 	public function test_hide_empty_false_multi() {
 		$term_ids = self::factory()->tag->create_many( 4 );
-		$terms    = array();
+		$terms    = [];
 		foreach ( $term_ids as $term_id ) {
 			$terms[] = get_term( $term_id, 'post_tag' );
 		}
@@ -163,7 +163,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 
 	public function test_hide_empty_false_multi_format_list() {
 		$term_ids = self::factory()->tag->create_many( 4 );
-		$terms    = array();
+		$terms    = [];
 		foreach ( $term_ids as $term_id ) {
 			$terms[] = get_term( $term_id, 'post_tag' );
 		}
@@ -195,7 +195,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	public function test_topic_count_text() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$term_ids    = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
-		$this->terms = array();
+		$this->terms = [];
 		foreach ( $term_ids as $term_id ) {
 			$this->terms[] = get_term( $term_id, 'post_tag' );
 		}
@@ -231,7 +231,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	public function test_topic_count_text_callback() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$term_ids    = self::factory()->term->create_many( 2, array( 'taxonomy' => 'wptests_tax' ) );
-		$this->terms = array();
+		$this->terms = [];
 		foreach ( $term_ids as $term_id ) {
 			$this->terms[] = get_term( $term_id, 'post_tag' );
 		}
@@ -302,7 +302,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	protected function retrieve_terms( $get_terms_args, $taxonomy = 'post_tag' ) {
 		$terms = get_terms( array( $taxonomy ), $get_terms_args );
 
-		$tags = array();
+		$tags = [];
 		foreach ( $terms as $term ) {
 			// Add the link.
 			$term->link = get_term_link( $term );

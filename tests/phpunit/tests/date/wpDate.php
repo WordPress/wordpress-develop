@@ -155,8 +155,8 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 		$utc      = new DateTimeZone( 'UTC' );
 		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
 
-		$wp_locale->month   = array();
-		$wp_locale->weekday = array();
+		$wp_locale->month   = [];
+		$wp_locale->weekday = [];
 		$actual             = wp_date( 'F', $datetime->getTimestamp(), $utc );
 
 		$this->assertSame( 'October', $actual );

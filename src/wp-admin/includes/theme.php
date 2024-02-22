@@ -389,7 +389,7 @@ function get_theme_feature_list( $api = true ) {
 		'Subject'  => __( 'Subject' ),
 	);
 
-	$wporg_features = array();
+	$wporg_features = [];
 
 	// Loop over the wp.org canonical list and apply translations.
 	foreach ( (array) $feature_list as $feature_category => $feature_items ) {
@@ -397,7 +397,7 @@ function get_theme_feature_list( $api = true ) {
 			$feature_category = $category_translations[ $feature_category ];
 		}
 
-		$wporg_features[ $feature_category ] = array();
+		$wporg_features[ $feature_category ] = [];
 
 		foreach ( $feature_items as $feature ) {
 			if ( isset( $features[ $feature_category ][ $feature ] ) ) {
@@ -672,7 +672,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 	}
 
 	// Make sure the active theme is listed first.
-	$prepared_themes[ $current_theme ] = array();
+	$prepared_themes[ $current_theme ] = [];
 
 	if ( null === $themes ) {
 		$themes = wp_get_themes( array( 'allowed' => true ) );
@@ -681,8 +681,8 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		}
 	}
 
-	$updates    = array();
-	$no_updates = array();
+	$updates    = [];
+	$no_updates = [];
 	if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 		$updates_transient = get_site_transient( 'update_themes' );
 		if ( isset( $updates_transient->response ) ) {
@@ -695,7 +695,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 	WP_Theme::sort_by_name( $themes );
 
-	$parents = array();
+	$parents = [];
 
 	$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 

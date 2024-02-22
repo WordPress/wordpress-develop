@@ -47,7 +47,7 @@ class WP_Customize_Partial {
 	 *     @type array  $keys Keys for multidimensional.
 	 * }
 	 */
-	protected $id_data = array();
+	protected $id_data = [];
 
 	/**
 	 * Type of this partial.

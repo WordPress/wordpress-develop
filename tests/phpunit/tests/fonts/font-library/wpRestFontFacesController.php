@@ -22,7 +22,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	protected static $font_face_id1;
 	protected static $font_face_id2;
 
-	private static $post_ids_for_cleanup = array();
+	private static $post_ids_for_cleanup = [];
 
 	protected static $default_settings = array(
 		'fontFamily' => '"Open Sans"',
@@ -65,7 +65,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			)
 		);
 
-		self::$post_ids_for_cleanup = array();
+		self::$post_ids_for_cleanup = [];
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -82,7 +82,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		foreach ( self::$post_ids_for_cleanup as $post_id ) {
 			wp_delete_post( $post_id, true );
 		}
-		self::$post_ids_for_cleanup = array();
+		self::$post_ids_for_cleanup = [];
 		parent::tear_down();
 	}
 
@@ -1055,7 +1055,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	}
 
 	protected function setup_font_file_upload( $formats ) {
-		$files = array();
+		$files = [];
 		foreach ( $formats as $format ) {
 			$font_file = DIR_TESTDATA . '/fonts/OpenSans-Regular.' . $format;
 			$font_path = wp_tempnam( 'OpenSans-Regular.' . $format );

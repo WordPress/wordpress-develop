@@ -28,7 +28,7 @@ class WP_HTTP_Requests_Hooks extends WpOrg\Requests\Hooks {
 	 *
 	 * @var array Request data in WP_Http format.
 	 */
-	protected $request = array();
+	protected $request = [];
 
 	/**
 	 * Constructor.

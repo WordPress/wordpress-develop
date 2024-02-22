@@ -69,7 +69,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		$supported_types = $this->get_object_subtypes();
 
 		if ( ! isset( $supported_types[ $post_type ] ) ) {
-			return array();
+			return [];
 		}
 
 		/**
@@ -100,7 +100,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 
 		$query = new WP_Query( $args );
 
-		$url_list = array();
+		$url_list = [];
 
 		/*
 		 * Add a URL for the homepage in the pages sitemap.

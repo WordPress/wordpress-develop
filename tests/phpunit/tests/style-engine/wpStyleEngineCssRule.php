@@ -129,7 +129,7 @@ class Tests_Style_Engine_wpStyleEngineCSSRule extends WP_UnitTestCase {
 	 */
 	public function test_should_return_empty_string_with_no_declarations() {
 		$selector           = '.holmes';
-		$input_declarations = array();
+		$input_declarations = [];
 		$css_declarations   = new WP_Style_Engine_CSS_Declarations( $input_declarations );
 		$css_rule           = new WP_Style_Engine_CSS_Rule( $selector, $css_declarations );
 

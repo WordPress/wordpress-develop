@@ -240,7 +240,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
 
-		$headers = array();
+		$headers = [];
 		foreach ( explode( "\n", $res['body'] ) as $key => $value ) {
 			if ( empty( $value ) ) {
 				continue;

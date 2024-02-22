@@ -86,7 +86,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 						'description'       => __( 'Serialized widget form data to encode into instance settings.' ),
 						'type'              => 'string',
 						'sanitize_callback' => static function ( $form_data ) {
-							$array = array();
+							$array = [];
 							wp_parse_str( $form_data, $array );
 							return $array;
 						},
@@ -145,7 +145,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$data = array();
+		$data = [];
 		foreach ( $this->get_widgets() as $widget ) {
 			$widget_type = $this->prepare_item_for_response( $widget, $request );
 			$data[]      = $this->prepare_response_for_collection( $widget_type );
@@ -228,7 +228,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	protected function get_widgets() {
 		global $wp_widget_factory, $wp_registered_widgets;
 
-		$widgets = array();
+		$widgets = [];
 
 		foreach ( $wp_registered_widgets as $widget ) {
 			$parsed_id     = wp_parse_widget_id( $widget['id'] );
@@ -486,7 +486,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			}
 			$instance = unserialize( $serialized_instance );
 		} else {
-			$instance = array();
+			$instance = [];
 		}
 
 		if (

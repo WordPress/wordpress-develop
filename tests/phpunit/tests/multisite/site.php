@@ -10,9 +10,9 @@ if ( is_multisite() ) :
 	 */
 	class Tests_Multisite_Site extends WP_UnitTestCase {
 		protected $suppress                = false;
-		protected $site_status_hooks       = array();
-		protected $wp_initialize_site_args = array();
-		protected $wp_initialize_site_meta = array();
+		protected $site_status_hooks       = [];
+		protected $wp_initialize_site_args = [];
+		protected $wp_initialize_site_meta = [];
 		protected static $network_ids;
 		protected static $site_ids;
 		protected static $uninitialized_site_id;
@@ -1802,7 +1802,7 @@ if ( is_multisite() ) :
 		}
 
 		private function listen_to_site_status_hooks() {
-			$this->site_status_hooks = array();
+			$this->site_status_hooks = [];
 
 			$hooknames = array(
 				'make_spam_blog',
@@ -1854,12 +1854,12 @@ if ( is_multisite() ) :
 
 			switch_to_blog( self::$uninitialized_site_id );
 
-			$options = array();
+			$options = [];
 			foreach ( $expected_options as $option => $value ) {
 				$options[ $option ] = get_option( $option );
 			}
 
-			$meta = array();
+			$meta = [];
 			foreach ( $expected_meta as $meta_key => $value ) {
 				$meta[ $meta_key ] = get_site_meta( self::$uninitialized_site_id, $meta_key, true );
 			}
@@ -2162,7 +2162,7 @@ if ( is_multisite() ) :
 
 			$this->assertSameSetsWithIndex( $expected_meta, $this->wp_initialize_site_meta );
 
-			$this->wp_initialize_site_meta = array();
+			$this->wp_initialize_site_meta = [];
 		}
 
 		/**

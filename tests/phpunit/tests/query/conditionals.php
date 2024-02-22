@@ -158,7 +158,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 	// '(about)/trackback/?$' => 'index.php?pagename=$matches[1]&tb=1'
 	public function test_page_trackback() {
-		$page_ids   = array();
+		$page_ids   = [];
 		$page_id    = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -196,7 +196,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 	// '(about)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?pagename=$matches[1]&feed=$matches[2]'
 	public function test_page_feed() {
-		$page_ids   = array();
+		$page_ids   = [];
 		$page_id    = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -234,7 +234,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	}
 
 	public function test_page_feed_with_no_comments() {
-		$page_ids   = array();
+		$page_ids   = [];
 		$page_id    = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',
@@ -272,7 +272,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 
 	// '(about)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?pagename=$matches[1]&feed=$matches[2]'
 	public function test_page_feed_atom() {
-		$page_ids   = array();
+		$page_ids   = [];
 		$page_id    = self::factory()->post->create(
 			array(
 				'post_type'  => 'page',

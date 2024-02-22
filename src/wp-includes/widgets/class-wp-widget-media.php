@@ -55,7 +55,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @since 6.0.0
 	 * @var string[]
 	 */
-	protected static $l10n_defaults = array();
+	protected static $l10n_defaults = [];
 
 	/**
 	 * Constructor.
@@ -451,7 +451,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 */
 	public static function reset_default_labels() {
 		self::$default_description = '';
-		self::$l10n_defaults       = array();
+		self::$l10n_defaults       = [];
 	}
 
 	/**

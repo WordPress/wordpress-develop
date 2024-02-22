@@ -218,7 +218,7 @@ function wp_remote_head( $url, $args = array() ) {
  */
 function wp_remote_retrieve_headers( $response ) {
 	if ( is_wp_error( $response ) || ! isset( $response['headers'] ) ) {
-		return array();
+		return [];
 	}
 
 	return $response['headers'];
@@ -309,7 +309,7 @@ function wp_remote_retrieve_body( $response ) {
  */
 function wp_remote_retrieve_cookies( $response ) {
 	if ( is_wp_error( $response ) || empty( $response['cookies'] ) ) {
-		return array();
+		return [];
 	}
 
 	return $response['cookies'];
@@ -651,7 +651,7 @@ function allowed_http_request_hosts( $is_external, $host ) {
  */
 function ms_allowed_http_request_hosts( $is_external, $host ) {
 	global $wpdb;
-	static $queried = array();
+	static $queried = [];
 	if ( $is_external ) {
 		return $is_external;
 	}
@@ -691,7 +691,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  *               PHP_URL_PORT - integer when it does. See parse_url()'s return values.
  */
 function wp_parse_url( $url, $component = -1 ) {
-	$to_unset = array();
+	$to_unset = [];
 	$url      = (string) $url;
 
 	if ( str_starts_with( $url, '//' ) ) {

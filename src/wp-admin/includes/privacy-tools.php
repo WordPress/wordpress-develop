@@ -793,7 +793,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 		wp_send_json_error( __( 'Invalid request ID when merging personal data to export.' ) );
 	}
 
-	$export_data = array();
+	$export_data = [];
 
 	// First exporter, first page? Reset the report data accumulation array.
 	if ( 1 === $exporter_index && 1 === $page ) {
@@ -822,7 +822,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	// Last exporter, last page - let's prepare the export file.
 
 	// First we need to re-organize the raw data hierarchically in groups and items.
-	$groups = array();
+	$groups = [];
 	foreach ( (array) $export_data as $export_datum ) {
 		$group_id    = $export_datum['group_id'];
 		$group_label = $export_datum['group_label'];
@@ -842,7 +842,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 
 		$item_id = $export_datum['item_id'];
 		if ( ! array_key_exists( $item_id, $groups[ $group_id ]['items'] ) ) {
-			$groups[ $group_id ]['items'][ $item_id ] = array();
+			$groups[ $group_id ]['items'][ $item_id ] = [];
 		}
 
 		$old_item_data                            = $groups[ $group_id ]['items'][ $item_id ];

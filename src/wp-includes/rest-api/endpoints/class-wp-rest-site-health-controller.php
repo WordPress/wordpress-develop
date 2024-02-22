@@ -292,7 +292,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 
 		foreach ( $sizes_data as $name => $value ) {
 			$name = sanitize_text_field( $name );
-			$data = array();
+			$data = [];
 
 			if ( isset( $value['size'] ) ) {
 				if ( is_string( $value['size'] ) ) {

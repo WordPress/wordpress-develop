@@ -237,7 +237,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 */
 	public function test_update() {
 		$widget   = $this->get_mocked_class_instance();
-		$instance = array();
+		$instance = [];
 
 		// Should return valid attachment ID.
 		$expected = array(
@@ -340,7 +340,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		ob_start();
 		$widget = $this->get_mocked_class_instance();
 		$widget->expects( $this->atLeastOnce() )->method( 'render_media' )->with( $instance );
-		$this->widget_instance_filter_args = array();
+		$this->widget_instance_filter_args = [];
 		$widget->widget( $args, $instance );
 		$this->assertCount( 3, $this->widget_instance_filter_args );
 		$this->assertSameSetsWithIndex( $instance, $this->widget_instance_filter_args[0] );
@@ -376,7 +376,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $widget_instance_filter_args = array();
+	protected $widget_instance_filter_args = [];
 
 	/**
 	 * Filters the media widget instance prior to rendering the media.

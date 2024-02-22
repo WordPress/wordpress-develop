@@ -65,7 +65,7 @@ abstract class WP_Sitemaps_Provider {
 	 * @return array[] Array of sitemap types including object subtype name and number of pages.
 	 */
 	public function get_sitemap_type_data() {
-		$sitemap_data = array();
+		$sitemap_data = [];
 
 		$object_subtypes = $this->get_object_subtypes();
 
@@ -104,7 +104,7 @@ abstract class WP_Sitemaps_Provider {
 	 * @return array[] Array of sitemap entries.
 	 */
 	public function get_sitemap_entries() {
-		$sitemaps = array();
+		$sitemaps = [];
 
 		$sitemap_types = $this->get_sitemap_type_data();
 
@@ -177,6 +177,6 @@ abstract class WP_Sitemaps_Provider {
 	 * @return array List of object subtypes objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
-		return array();
+		return [];
 	}
 }

@@ -115,7 +115,7 @@ class Featured_Content {
 
 		// No need to query if there is are no featured posts.
 		if ( empty( $post_ids ) ) {
-			return array();
+			return [];
 		}
 
 		$featured_posts = get_posts(
@@ -486,7 +486,7 @@ class Featured_Content {
 	 * @return array Validated settings output.
 	 */
 	public static function validate_settings( $input ) {
-		$output = array();
+		$output = [];
 
 		if ( empty( $input['tag-name'] ) ) {
 			$output['tag-id'] = 0;

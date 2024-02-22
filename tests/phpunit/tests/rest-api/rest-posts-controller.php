@@ -17,8 +17,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	protected static $private_reader_id;
 
 	protected static $supported_formats;
-	protected static $post_ids    = array();
-	protected static $terms       = array();
+	protected static $post_ids    = [];
+	protected static $terms       = [];
 	protected static $total_posts = 30;
 	protected static $per_page    = 50;
 
@@ -128,7 +128,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
-		$this->posts_clauses = array();
+		$this->posts_clauses = [];
 		return $result;
 	}
 
@@ -1584,8 +1584,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_get_items_primes_thumbnail_cache_for_featured_media() {
 		$file           = DIR_TESTDATA . '/images/canola.jpg';
-		$attachment_ids = array();
-		$post_ids       = array();
+		$attachment_ids = [];
+		$post_ids       = [];
 		for ( $i = 0; $i < 3; $i++ ) {
 			$post_ids[ $i ]       = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 			$attachment_ids[ $i ] = self::factory()->attachment->create_object(
@@ -1624,7 +1624,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$parent_id1       = self::$post_ids[0];
 		$parent_id2       = self::$post_ids[1];
 		$parent_ids       = array( $parent_id1, $parent_id2 );
-		$attachment_ids   = array();
+		$attachment_ids   = [];
 		$attachment_ids[] = self::factory()->attachment->create_object(
 			DIR_TESTDATA . '/images/canola.jpg',
 			$parent_id1,
@@ -2431,7 +2431,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			),
 		);
 
-		$cases = array();
+		$cases = [];
 		foreach ( $cases_short as $description => $case ) {
 			foreach ( $case['statuses'] as $status ) {
 				$cases[ $description . ', status=' . $status ] = array(
@@ -4559,7 +4559,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 123, $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	/**
@@ -4595,7 +4595,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayNotHasKey( 'my_custom_int', $response->data );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function test_additional_field_update_errors() {
@@ -4631,7 +4631,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function additional_field_get_callback( $response_data, $field_name ) {

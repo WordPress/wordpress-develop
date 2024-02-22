@@ -19,7 +19,7 @@ function wp_get_additional_image_sizes() {
 	global $_wp_additional_image_sizes;
 
 	if ( ! $_wp_additional_image_sizes ) {
-		$_wp_additional_image_sizes = array();
+		$_wp_additional_image_sizes = [];
 	}
 
 	return $_wp_additional_image_sizes;
@@ -779,11 +779,11 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 		return false;
 	}
 
-	$data = array();
+	$data = [];
 
 	// Find the best match when '$size' is an array.
 	if ( is_array( $size ) ) {
-		$candidates = array();
+		$candidates = [];
 
 		if ( ! isset( $imagedata['file'] ) && isset( $imagedata['sizes']['full'] ) ) {
 			$imagedata['height'] = $imagedata['sizes']['full']['height'];
@@ -903,7 +903,7 @@ function get_intermediate_image_sizes() {
  */
 function wp_get_registered_image_subsizes() {
 	$additional_sizes = wp_get_additional_image_sizes();
-	$all_sizes        = array();
+	$all_sizes        = [];
 
 	foreach ( get_intermediate_image_sizes() as $size_name ) {
 		$size_data = array(
@@ -1390,7 +1390,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	$max_srcset_image_width = apply_filters( 'max_srcset_image_width', 2048, $size_array );
 
 	// Array to hold URL candidates.
-	$sources = array();
+	$sources = [];
 
 	/**
 	 * To make sure the ID matches our image src, we will check to see if any sizes in our attachment
@@ -1841,10 +1841,10 @@ function wp_filter_content_tags( $content, $context = null ) {
 	}
 
 	// List of the unique `img` tags found in $content.
-	$images = array();
+	$images = [];
 
 	// List of the unique `iframe` tags found in $content.
-	$iframes = array();
+	$iframes = [];
 
 	foreach ( $matches as $match ) {
 		list( $tag, $tag_name ) = $match;
@@ -2616,7 +2616,7 @@ function gallery_shortcode( $attr ) {
 			)
 		);
 
-		$attachments = array();
+		$attachments = [];
 		foreach ( $_attachments as $key => $val ) {
 			$attachments[ $val->ID ] = $_attachments[ $key ];
 		}
@@ -2977,7 +2977,7 @@ function wp_playlist_shortcode( $attr ) {
 		$args['include'] = $atts['include'];
 		$_attachments    = get_posts( $args );
 
-		$attachments = array();
+		$attachments = [];
 		foreach ( $_attachments as $key => $val ) {
 			$attachments[ $val->ID ] = $_attachments[ $key ];
 		}
@@ -3028,7 +3028,7 @@ function wp_playlist_shortcode( $attr ) {
 		'artists'      => wp_validate_boolean( $atts['artists'] ),
 	);
 
-	$tracks = array();
+	$tracks = [];
 	foreach ( $attachments as $attachment ) {
 		$url   = wp_get_attachment_url( $attachment->ID );
 		$ftype = wp_check_filetype( $url, wp_get_mime_types() );
@@ -3040,7 +3040,7 @@ function wp_playlist_shortcode( $attr ) {
 			'description' => $attachment->post_content,
 		);
 
-		$track['meta'] = array();
+		$track['meta'] = [];
 		$meta          = wp_get_attachment_metadata( $attachment->ID );
 		if ( ! empty( $meta ) ) {
 
@@ -3352,7 +3352,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$attr_strings = array();
+	$attr_strings = [];
 
 	foreach ( $html_atts as $k => $v ) {
 		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
@@ -3626,7 +3626,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$attr_strings = array();
+	$attr_strings = [];
 	foreach ( $html_atts as $k => $v ) {
 		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
 	}
@@ -3857,7 +3857,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	}
 
 	if ( ! is_object( $attachment ) ) {
-		return array();
+		return [];
 	}
 
 	$file     = get_attached_file( $attachment->ID );
@@ -3881,7 +3881,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 		}
 	}
 
-	$taxonomies = array();
+	$taxonomies = [];
 
 	foreach ( $objects as $object ) {
 		$taxes = get_object_taxonomies( $object, $output );
@@ -3912,7 +3912,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
  * @return string[]|WP_Taxonomy[] Array of names or objects of registered taxonomies for attachments.
  */
 function get_taxonomies_for_attachments( $output = 'names' ) {
-	$taxonomies = array();
+	$taxonomies = [];
 
 	foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy ) {
 		foreach ( $taxonomy->object_type as $object_type ) {
@@ -4177,7 +4177,7 @@ function wp_plupload_default_settings() {
 
 	$max_upload_size    = wp_max_upload_size();
 	$allowed_extensions = array_keys( get_allowed_mime_types() );
-	$extensions         = array();
+	$extensions         = [];
 	foreach ( $allowed_extensions as $extension ) {
 		$extensions = array_merge( $extensions, explode( '|', $extension ) );
 	}
@@ -4408,7 +4408,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	}
 
 	if ( $meta && ( 'image' === $type || ! empty( $meta['sizes'] ) ) ) {
-		$sizes = array();
+		$sizes = [];
 
 		/** This filter is documented in wp-admin/includes/media.php */
 		$possible_sizes = apply_filters(
@@ -4505,7 +4505,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			$response['fileLengthHumanReadable'] = human_readable_duration( $meta['length_formatted'] );
 		}
 
-		$response['meta'] = array();
+		$response['meta'] = [];
 		foreach ( wp_get_attachment_id3_keys( $attachment, 'js' ) as $key => $label ) {
 			$response['meta'][ $key ] = false;
 
@@ -4605,7 +4605,7 @@ function wp_enqueue_media( $args = array() ) {
 
 	$exts      = array_merge( wp_get_audio_extensions(), wp_get_video_extensions() );
 	$mimes     = get_allowed_mime_types();
-	$ext_mimes = array();
+	$ext_mimes = [];
 	foreach ( $exts as $ext ) {
 		foreach ( $mimes as $ext_preg => $mime_match ) {
 			if ( preg_match( '#' . $ext . '#i', $ext_preg ) ) {
@@ -4970,7 +4970,7 @@ function get_attached_media( $type, $post = 0 ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return array();
+		return [];
 	}
 
 	$args = array(
@@ -5017,7 +5017,7 @@ function get_attached_media( $type, $post = 0 ) {
  * @return string[] Array of found HTML media elements.
  */
 function get_media_embedded_in_content( $content, $types = null ) {
-	$html = array();
+	$html = [];
 
 	/**
 	 * Filters the embedded media types that are allowed to be returned from the content blob.
@@ -5062,22 +5062,22 @@ function get_post_galleries( $post, $html = true ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return array();
+		return [];
 	}
 
 	if ( ! has_shortcode( $post->post_content, 'gallery' ) && ! has_block( 'gallery', $post->post_content ) ) {
-		return array();
+		return [];
 	}
 
-	$galleries = array();
+	$galleries = [];
 	if ( preg_match_all( '/' . get_shortcode_regex() . '/s', $post->post_content, $matches, PREG_SET_ORDER ) ) {
 		foreach ( $matches as $shortcode ) {
 			if ( 'gallery' === $shortcode[2] ) {
-				$srcs = array();
+				$srcs = [];
 
 				$shortcode_attrs = shortcode_parse_atts( $shortcode[3] );
 				if ( ! is_array( $shortcode_attrs ) ) {
-					$shortcode_attrs = array();
+					$shortcode_attrs = [];
 				}
 
 				// Specify the post ID of the gallery we're viewing if the shortcode doesn't reference another post already.
@@ -5134,7 +5134,7 @@ function get_post_galleries( $post, $html = true ) {
 				continue;
 			}
 
-			$srcs = array();
+			$srcs = [];
 
 			// New Gallery block format as an array.
 			if ( $has_inner_blocks ) {
@@ -5164,7 +5164,7 @@ function get_post_galleries( $post, $html = true ) {
 			}
 
 			// Old Gallery block format as an array.
-			$ids = ! empty( $block['attrs']['ids'] ) ? $block['attrs']['ids'] : array();
+			$ids = ! empty( $block['attrs']['ids'] ) ? $block['attrs']['ids'] : [];
 
 			// If present, use the image IDs from the JSON blob as canonical.
 			if ( ! empty( $ids ) ) {
@@ -5404,7 +5404,7 @@ function wp_media_personal_data_exporter( $email_address, $page = 1 ) {
 	$number = 50;
 	$page   = (int) $page;
 
-	$data_to_export = array();
+	$data_to_export = [];
 
 	$user = get_user_by( 'email', $email_address );
 	if ( false === $user ) {
@@ -5741,7 +5741,7 @@ function wp_get_loading_optimization_attributes( $tag_name, $attr, $context ) {
 		return $loading_attrs;
 	}
 
-	$loading_attrs = array();
+	$loading_attrs = [];
 
 	/*
 	 * Skip lazy-loading for the overall block template, as it is handled more granularly.

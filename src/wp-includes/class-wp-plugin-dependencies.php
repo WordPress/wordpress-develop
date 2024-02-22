@@ -180,7 +180,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependent plugin filepaths, relative to the plugins directory.
 	 */
 	public static function get_dependents( $slug ) {
-		$dependents = array();
+		$dependents = [];
 
 		foreach ( (array) self::$dependencies as $dependent => $dependencies ) {
 			if ( in_array( $slug, $dependencies, true ) ) {
@@ -204,7 +204,7 @@ class WP_Plugin_Dependencies {
 			return self::$dependencies[ $plugin_file ];
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -281,7 +281,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of dependent names.
 	 */
 	public static function get_dependent_names( $plugin_file ) {
-		$dependent_names = array();
+		$dependent_names = [];
 		$plugins         = self::get_plugins();
 		$slug            = self::convert_to_slug( $plugin_file );
 
@@ -306,7 +306,7 @@ class WP_Plugin_Dependencies {
 		$dependencies        = self::get_dependencies( $plugin_file );
 		$plugins             = self::get_plugins();
 
-		$dependency_names = array();
+		$dependency_names = [];
 		foreach ( $dependencies as $dependency ) {
 			// Use the name if it's available, otherwise fall back to the slug.
 			if ( isset( $dependency_api_data[ $dependency ]['name'] ) ) {
@@ -476,7 +476,7 @@ class WP_Plugin_Dependencies {
 
 		require_once ABSPATH . '/wp-admin/includes/plugin.php';
 
-		$inactive_dependencies = array();
+		$inactive_dependencies = [];
 		foreach ( $dependencies as $dependency ) {
 			if ( false === self::$plugin_dirnames[ $dependency ] || is_plugin_inactive( self::$plugin_dirnames[ $dependency ] ) ) {
 				$inactive_dependencies[] = $dependency;
@@ -537,9 +537,9 @@ class WP_Plugin_Dependencies {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 */
 	protected static function read_dependencies_from_plugin_headers() {
-		self::$dependencies     = array();
-		self::$dependency_slugs = array();
-		self::$dependent_slugs  = array();
+		self::$dependencies     = [];
+		self::$dependency_slugs = [];
+		self::$dependent_slugs  = [];
 		$plugins                = self::get_plugins();
 		foreach ( $plugins as $plugin => $header ) {
 			if ( '' === $header['RequiresPlugins'] ) {
@@ -565,7 +565,7 @@ class WP_Plugin_Dependencies {
 	 * @return array An array of sanitized plugin dependency slugs.
 	 */
 	protected static function sanitize_dependency_slugs( $slugs ) {
-		$sanitized_slugs = array();
+		$sanitized_slugs = [];
 		$slugs           = explode( ',', $slugs );
 
 		foreach ( $slugs as $slug ) {
@@ -608,10 +608,10 @@ class WP_Plugin_Dependencies {
 		}
 
 		if ( null === self::$dependency_slugs ) {
-			return array();
+			return [];
 		}
 
-		self::$dependency_filepaths = array();
+		self::$dependency_filepaths = [];
 
 		$plugin_dirnames = self::get_plugin_dirnames();
 		foreach ( self::$dependency_slugs as $slug ) {
@@ -724,7 +724,7 @@ class WP_Plugin_Dependencies {
 			return self::$plugin_dirnames;
 		}
 
-		self::$plugin_dirnames = array();
+		self::$plugin_dirnames = [];
 
 		$plugin_files = array_keys( self::get_plugins() );
 		foreach ( $plugin_files as $plugin_file ) {
@@ -748,12 +748,12 @@ class WP_Plugin_Dependencies {
 		}
 
 		if ( null === self::$dependencies ) {
-			return array();
+			return [];
 		}
 
-		self::$circular_dependencies_slugs = array();
+		self::$circular_dependencies_slugs = [];
 
-		self::$circular_dependencies_pairs = array();
+		self::$circular_dependencies_pairs = [];
 		foreach ( self::$dependencies as $dependent => $dependencies ) {
 			/*
 			 * $dependent is in 'a/a.php' format. Dependencies are stored as slugs, i.e. 'a'.
@@ -781,7 +781,7 @@ class WP_Plugin_Dependencies {
 	 * @return array A circular dependency pairing, or an empty array if none exists.
 	 */
 	protected static function check_for_circular_dependencies( $dependents, $dependencies ) {
-		$circular_dependencies_pairs = array();
+		$circular_dependencies_pairs = [];
 
 		// Check for a self-dependency.
 		$dependents_location_in_its_own_dependencies = array_intersect( $dependents, $dependencies );

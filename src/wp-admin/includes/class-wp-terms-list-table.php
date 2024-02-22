@@ -163,7 +163,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		$actions = array();
+		$actions = [];
 
 		if ( current_user_can( get_taxonomy( $this->screen->taxonomy )->cap->delete_terms ) ) {
 			$actions['delete'] = __( 'Delete' );
@@ -244,7 +244,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		if ( is_taxonomy_hierarchical( $taxonomy ) && ! isset( $this->callback_args['orderby'] ) ) {
 			if ( ! empty( $this->callback_args['search'] ) ) {// Ignore children on searches.
-				$children = array();
+				$children = [];
 			} else {
 				$children = _get_term_hierarchy( $taxonomy );
 			}
@@ -287,8 +287,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 			// If the page starts in a subtree, print the parents.
 			if ( $count === $start && $term->parent > 0 && empty( $_REQUEST['s'] ) ) {
-				$my_parents = array();
-				$parent_ids = array();
+				$my_parents = [];
+				$parent_ids = [];
 				$p          = $term->parent;
 
 				while ( $p ) {
@@ -474,7 +474,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		$taxonomy = $this->screen->taxonomy;
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
 
-		$actions = array();
+		$actions = [];
 
 		if ( current_user_can( 'edit_term', $tag->term_id ) ) {
 			$actions['edit'] = sprintf(

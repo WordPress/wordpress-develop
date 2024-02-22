@@ -261,7 +261,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			),
 		);
 
-		$view_links       = array();
+		$view_links       = [];
 		$requested_status = isset( $_REQUEST['status'] ) ? wp_unslash( trim( $_REQUEST['status'] ) ) : '';
 		$url              = 'sites.php';
 
@@ -289,7 +289,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		$actions = array();
+		$actions = [];
 		if ( current_user_can( 'delete_sites' ) ) {
 			$actions['delete'] = __( 'Delete' );
 		}
@@ -641,7 +641,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 * @param array $site
 	 */
 	protected function site_states( $site ) {
-		$site_states = array();
+		$site_states = [];
 
 		// $site is still an array, so get the object.
 		$_site = WP_Site::get_instance( $site['blog_id'] );

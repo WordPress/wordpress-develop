@@ -5,7 +5,7 @@
  * @covers ::wp_list_users
  */
 class Tests_User_wpListUsers extends WP_UnitTestCase {
-	private static $user_ids = array();
+	private static $user_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids[] = $factory->user->create(

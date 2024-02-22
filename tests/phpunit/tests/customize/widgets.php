@@ -81,11 +81,11 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	public function clean_up_global_scope() {
 		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
 
-		$wp_registered_sidebars        = array();
-		$wp_registered_widgets         = array();
-		$wp_registered_widget_controls = array();
-		$wp_registered_widget_updates  = array();
-		$wp_widget_factory->widgets    = array();
+		$wp_registered_sidebars        = [];
+		$wp_registered_widgets         = [];
+		$wp_registered_widget_controls = [];
+		$wp_registered_widget_updates  = [];
+		$wp_widget_factory->widgets    = [];
 
 		parent::clean_up_global_scope();
 	}
@@ -162,8 +162,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$this->manager->widgets->customize_register();
 
-		$label       = array();
-		$description = array();
+		$label       = [];
+		$description = [];
 		foreach ( array_keys( $sidebars ) as $sidebar_id ) {
 			$control_id    = "sidebars_widgets[{$sidebar_id}]";
 			$control       = $this->manager->get_control( $control_id );
@@ -302,7 +302,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 				'title' => 'Not as good as Google!',
 			),
 		);
-		$customized            = array();
+		$customized            = [];
 		foreach ( $raw_widget_customized as $setting_id => $instance ) {
 			$customized[ $setting_id ] = $this->manager->widgets->sanitize_widget_js_instance( $instance );
 		}
@@ -634,7 +634,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertTrue( $this->manager->widgets->is_panel_active() );
 		$this->assertTrue( $this->manager->get_panel( 'widgets' )->active() );
 
-		$wp_registered_sidebars = array();
+		$wp_registered_sidebars = [];
 		$this->assertFalse( $this->manager->widgets->is_panel_active() );
 		$this->assertFalse( $this->manager->get_panel( 'widgets' )->active() );
 	}

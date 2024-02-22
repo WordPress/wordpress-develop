@@ -404,7 +404,7 @@ function wp_get_block_name_from_theme_json_path( $path ) {
  * @return bool Returns true if theme or its parent has a theme.json file, false otherwise.
  */
 function wp_theme_has_theme_json() {
-	static $theme_has_support = array();
+	static $theme_has_support = [];
 
 	$stylesheet = get_stylesheet();
 

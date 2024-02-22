@@ -7,8 +7,8 @@
  * @covers ::wp_filter_object_list
  */
 class Tests_Functions_wpFilterObjectList extends WP_UnitTestCase {
-	public $object_list = array();
-	public $array_list  = array();
+	public $object_list = [];
+	public $array_list  = [];
 
 	public function set_up() {
 		parent::set_up();

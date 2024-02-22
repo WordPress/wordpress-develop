@@ -75,7 +75,7 @@ $headers[] = "CC: {$cc}";
 
 wp_mail( $to, $subject, $message, $headers );
 
-$headers   = array();
+$headers   = [];
 $subject   = 'RFC2822 Testing 2';
 $message   = 'My RFC822 Test Message 2';
 $to        = 'To <wp.mail.testing+to@gmail.com>';

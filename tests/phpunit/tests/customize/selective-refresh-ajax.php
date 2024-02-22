@@ -134,7 +134,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 */
 	public function test_handle_render_partials_request_for_unrecognized_partial() {
 		$this->setup_valid_render_partials_request_environment();
-		$context_data = array();
+		$context_data = [];
 		$placements   = array( $context_data );
 
 		$_POST['partials'] = wp_slash(
@@ -174,7 +174,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$this->wp_customize->add_setting( 'home' );
 		$this->wp_customize->selective_refresh->add_partial( 'foo', array( 'settings' => array( 'home' ) ) );
-		$context_data = array();
+		$context_data = [];
 		$placements   = array( $context_data );
 
 		$_POST['partials'] = wp_slash(
@@ -217,7 +217,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		);
 		$this->wp_customize->selective_refresh->add_partial( 'secret_message', array( 'settings' => 'secret_message' ) );
 
-		$context_data      = array();
+		$context_data      = [];
 		$placements        = array( $context_data );
 		$_POST['partials'] = wp_slash(
 			wp_json_encode(
@@ -247,7 +247,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$this->wp_customize->selective_refresh->add_partial( 'bar', array( 'settings' => 'bar' ) );
 
-		$context_data      = array();
+		$context_data      = [];
 		$placements        = array( $context_data );
 		$_POST['partials'] = wp_slash(
 			wp_json_encode(
@@ -310,7 +310,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 			)
 		);
 
-		$context_data = array();
+		$context_data = [];
 		$placements   = array( $context_data );
 
 		$_POST['partials'] = wp_slash(
@@ -417,7 +417,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		$this->setup_valid_render_partials_request_environment();
 		add_filter( 'customize_dynamic_partial_args', array( $this, 'filter_customize_dynamic_partial_args' ), 10, 2 );
 
-		$context_data = array();
+		$context_data = [];
 		$placements   = array( $context_data );
 
 		$_POST['partials'] = wp_slash(
@@ -467,7 +467,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 			)
 		);
 
-		$placement_context_data = array();
+		$placement_context_data = [];
 
 		$_POST['partials'] = wp_slash(
 			wp_json_encode(

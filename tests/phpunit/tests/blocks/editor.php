@@ -587,7 +587,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			if ( empty( $post ) ) {
 				return $preload_paths;
 			}
-			return array();
+			return [];
 		}
 		add_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths', 10, 2 );
 

@@ -54,7 +54,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @var array Map of key to value. Key is always lowercase, as per HTTP specification.
 	 */
-	protected $headers = array();
+	protected $headers = [];
 
 	/**
 	 * Body data.
@@ -81,7 +81,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @var array Attributes for the request.
 	 */
-	protected $attributes = array();
+	protected $attributes = [];
 
 	/**
 	 * Used to determine if the JSON data has been parsed yet.
@@ -254,7 +254,7 @@ class WP_REST_Request implements ArrayAccess {
 		$value = (array) $value;
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
-			$this->headers[ $key ] = array();
+			$this->headers[ $key ] = [];
 		}
 
 		$this->headers[ $key ] = array_merge( $this->headers[ $key ], $value );
@@ -282,7 +282,7 @@ class WP_REST_Request implements ArrayAccess {
 	 */
 	public function set_headers( $headers, $override = true ) {
 		if ( true === $override ) {
-			$this->headers = array();
+			$this->headers = [];
 		}
 
 		foreach ( $headers as $key => $value ) {
@@ -347,7 +347,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return string[] Array of types to check, in order of priority.
 	 */
 	protected function get_parameter_order() {
-		$order = array();
+		$order = [];
 
 		if ( $this->is_json_content_type() ) {
 			$order[] = 'JSON';
@@ -471,7 +471,7 @@ class WP_REST_Request implements ArrayAccess {
 		$order = $this->get_parameter_order();
 		$order = array_reverse( $order, true );
 
-		$params = array();
+		$params = [];
 		foreach ( $order as $type ) {
 			/*
 			 * array_merge() / the "+" operator will mess up
@@ -805,8 +805,8 @@ class WP_REST_Request implements ArrayAccess {
 
 		$order = $this->get_parameter_order();
 
-		$invalid_params  = array();
-		$invalid_details = array();
+		$invalid_params  = [];
+		$invalid_details = [];
 
 		foreach ( $order as $type ) {
 			if ( empty( $this->params[ $type ] ) ) {
@@ -873,7 +873,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$attributes = $this->get_attributes();
-		$required   = array();
+		$required   = [];
 
 		$args = empty( $attributes['args'] ) ? array() : $attributes['args'];
 
@@ -901,8 +901,8 @@ class WP_REST_Request implements ArrayAccess {
 		 *
 		 * This is done after required checking as required checking is cheaper.
 		 */
-		$invalid_params  = array();
-		$invalid_details = array();
+		$invalid_params  = [];
+		$invalid_details = [];
 
 		foreach ( $args as $key => $arg ) {
 
@@ -1026,7 +1026,7 @@ class WP_REST_Request implements ArrayAccess {
 	 */
 	public static function from_url( $url ) {
 		$bits         = parse_url( $url );
-		$query_params = array();
+		$query_params = [];
 
 		if ( ! empty( $bits['query'] ) ) {
 			wp_parse_str( $bits['query'], $query_params );

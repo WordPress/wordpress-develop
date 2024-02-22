@@ -86,7 +86,7 @@ final class WP_User_Request {
 	 * @since 4.9.6
 	 * @var array
 	 */
-	public $request_data = array();
+	public $request_data = [];
 
 	/**
 	 * Key used to confirm this request.

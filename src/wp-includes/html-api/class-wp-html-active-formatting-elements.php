@@ -41,7 +41,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *
 	 * @var WP_HTML_Token[]
 	 */
-	private $stack = array();
+	private $stack = [];
 
 	/**
 	 * Reports if a specific node is in the stack of active formatting elements.

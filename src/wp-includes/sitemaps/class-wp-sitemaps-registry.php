@@ -23,7 +23,7 @@ class WP_Sitemaps_Registry {
 	 *
 	 * @var WP_Sitemaps_Provider[] Array of registered sitemap providers.
 	 */
-	private $providers = array();
+	private $providers = [];
 
 	/**
 	 * Adds a new sitemap provider.

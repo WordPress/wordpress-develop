@@ -448,7 +448,7 @@ class WP_Http_Streams {
 		 */
 		$host_type = ( WP_Http::is_ip_address( $host ) ? 'ip' : 'dns' );
 
-		$certificate_hostnames = array();
+		$certificate_hostnames = [];
 		if ( ! empty( $cert['extensions']['subjectAltName'] ) ) {
 			$match_against = preg_split( '/,\s*/', $cert['extensions']['subjectAltName'] );
 			foreach ( $match_against as $match ) {

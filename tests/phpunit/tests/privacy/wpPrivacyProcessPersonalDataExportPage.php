@@ -235,7 +235,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 */
 	public function filter_register_custom_personal_data_exporters( $exporters ) {
 		// Let's override other unrelated exporters.
-		$exporters = array();
+		$exporters = [];
 
 		$exporters[ self::$exporter_key_first ] = array(
 			'exporter_friendly_name' => __( 'Custom Exporter #1' ),

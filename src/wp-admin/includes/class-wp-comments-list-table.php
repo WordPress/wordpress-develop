@@ -18,7 +18,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 	public $checkbox = true;
 
-	public $pending_count = array();
+	public $pending_count = [];
 
 	public $extra_items;
 
@@ -234,7 +234,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $post_id, $comment_status, $comment_type;
 
-		$status_links = array();
+		$status_links = [];
 		$num_comments = ( $post_id ) ? wp_count_comments( $post_id ) : wp_count_comments();
 
 		$stati = array(
@@ -357,7 +357,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	protected function get_bulk_actions() {
 		global $comment_status;
 
-		$actions = array();
+		$actions = [];
 
 		if ( in_array( $comment_status, array( 'all', 'approved' ), true ) ) {
 			$actions['unapprove'] = __( 'Unapprove' );
@@ -463,7 +463,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	public function get_columns() {
 		global $post_id;
 
-		$columns = array();
+		$columns = [];
 
 		if ( $this->checkbox ) {
 			$columns['cb'] = '<input type="checkbox" />';

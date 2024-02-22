@@ -1025,7 +1025,7 @@ class WP_Site_Health {
 		 */
 		$modules = apply_filters( 'site_status_test_php_modules', $modules );
 
-		$failures = array();
+		$failures = [];
 
 		foreach ( $modules as $library => $module ) {
 			$extension_name = ( isset( $module['extension'] ) ? $module['extension'] : null );
@@ -2171,7 +2171,7 @@ class WP_Site_Health {
 		);
 
 		$blocked = false;
-		$hosts   = array();
+		$hosts   = [];
 
 		if ( defined( 'WP_HTTP_BLOCK_EXTERNAL' ) && WP_HTTP_BLOCK_EXTERNAL ) {
 			$blocked = true;
@@ -2543,7 +2543,7 @@ class WP_Site_Health {
 				}
 		}
 
-		$page_cache_test_summary = array();
+		$page_cache_test_summary = [];
 
 		if ( empty( $page_cache_detail['response_time'] ) ) {
 			$page_cache_test_summary[] = '<span class="dashicons dashicons-dismiss"></span> ' . __( 'Server response time could not be determined. Verify that loopback requests are working.' );
@@ -2945,7 +2945,7 @@ class WP_Site_Health {
 			return;
 		}
 
-		$this->crons = array();
+		$this->crons = [];
 
 		foreach ( $cron_tasks as $time => $cron ) {
 			foreach ( $cron as $hook => $dings ) {
@@ -3199,7 +3199,7 @@ class WP_Site_Health {
 
 		$tests = WP_Site_Health::get_tests();
 
-		$results = array();
+		$results = [];
 
 		$site_status = array(
 			'good'        => 0,
@@ -3376,7 +3376,7 @@ class WP_Site_Health {
 		/** This filter is documented in wp-includes/class-wp-http-streams.php */
 		$sslverify = apply_filters( 'https_local_ssl_verify', false );
 
-		$headers = array();
+		$headers = [];
 
 		/*
 		 * Include basic auth in loopback requests. Note that this will only pass along basic auth when user is
@@ -3388,8 +3388,8 @@ class WP_Site_Health {
 		}
 
 		$caching_headers               = $this->get_page_cache_headers();
-		$page_caching_response_headers = array();
-		$response_timing               = array();
+		$page_caching_response_headers = [];
+		$response_timing               = [];
 
 		for ( $i = 1; $i <= 3; $i++ ) {
 			$start_time    = microtime( true );
@@ -3406,7 +3406,7 @@ class WP_Site_Health {
 				);
 			}
 
-			$response_headers = array();
+			$response_headers = [];
 
 			foreach ( $caching_headers as $header => $callback ) {
 				$header_values = wp_remote_retrieve_header( $http_response, $header );
@@ -3463,7 +3463,7 @@ class WP_Site_Health {
 		$page_speed = $response_timings[ floor( count( $response_timings ) / 2 ) ];
 
 		// Obtain unique set of all client caching response headers.
-		$headers = array();
+		$headers = [];
 		foreach ( $page_cache_detail['page_caching_response_headers'] as $page_caching_response_headers ) {
 			$headers = array_merge( $headers, array_keys( $page_caching_response_headers ) );
 		}

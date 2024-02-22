@@ -38,7 +38,7 @@ class Text_Diff_Engine_xdiff {
          * lines using this approach, so we can't add Text_Diff_Op_changed
          * instances to the $edits array.  The result is still perfectly
          * valid, albeit a little less descriptive and efficient. */
-        $edits = array();
+        $edits = [];
         foreach ($diff as $line) {
             if (!strlen($line)) {
                 continue;

@@ -79,7 +79,7 @@ class SimplePie_Sanitize
 	 * Array is a tree split at DNS levels. Example:
 	 * array('biz' => true, 'com' => array('example' => true), 'net' => array('example' => array('www' => true)))
 	 */
-	var $https_domains = array();
+	var $https_domains = [];
 
 	public function __construct()
 	{
@@ -257,7 +257,7 @@ class SimplePie_Sanitize
 	 */
 	public function set_https_domains($domains)
 	{
-		$this->https_domains = array();
+		$this->https_domains = [];
 		foreach ($domains as $domain)
 		{
 			$domain = trim($domain, ". \t\n\r\0\x0B");
@@ -271,7 +271,7 @@ class SimplePie_Sanitize
 				}
 				if (!isset($node[$segment]))
 				{
-					$node[$segment] = array();
+					$node[$segment] = [];
 				}
 				$node =& $node[$segment];
 			}
@@ -563,7 +563,7 @@ class SimplePie_Sanitize
 					$text = '<' . $tag;
 					if ($element->hasAttributes())
 					{
-						$attrs = array();
+						$attrs = [];
 						foreach ($element->attributes as $name => $attr)
 						{
 							$value = $attr->value;

@@ -7,13 +7,13 @@
  * @covers WP_Hook::do_action
  */
 class Tests_Hooks_DoAction extends WP_UnitTestCase {
-	private $events        = array();
+	private $events        = [];
 	private $action_output = '';
 	private $hook;
 
 	public function set_up() {
 		parent::set_up();
-		$this->events = array();
+		$this->events = [];
 	}
 
 	public function test_do_action_with_callback() {

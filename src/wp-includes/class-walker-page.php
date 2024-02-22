@@ -167,7 +167,7 @@ class Walker_Page extends Walker {
 		$args['link_before'] = empty( $args['link_before'] ) ? '' : $args['link_before'];
 		$args['link_after']  = empty( $args['link_after'] ) ? '' : $args['link_after'];
 
-		$atts                 = array();
+		$atts                 = [];
 		$atts['href']         = get_permalink( $page->ID );
 		$atts['aria-current'] = ( $page->ID === (int) $current_page_id ) ? 'page' : '';
 

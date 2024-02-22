@@ -31,7 +31,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 	public function test_intermediate_image_sizes() {
 		$image_sizes = $this->wp_site_icon->intermediate_image_sizes( array() );
 
-		$sizes = array();
+		$sizes = [];
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[] = 'site_icon-' . $size;
 		}
@@ -43,7 +43,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		add_filter( 'site_icon_image_sizes', array( $this, 'custom_test_sizes' ) );
 		$image_sizes = $this->wp_site_icon->intermediate_image_sizes( array() );
 
-		$sizes = array();
+		$sizes = [];
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[] = 'site_icon-' . $size;
 		}
@@ -63,7 +63,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 	public function test_additional_sizes() {
 		$image_sizes = $this->wp_site_icon->additional_sizes( array() );
 
-		$sizes = array();
+		$sizes = [];
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
 				'width ' => $size,
@@ -79,7 +79,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		add_filter( 'site_icon_image_sizes', array( $this, 'custom_test_sizes' ) );
 		$image_sizes = $this->wp_site_icon->additional_sizes( array() );
 
-		$sizes = array();
+		$sizes = [];
 		foreach ( $this->wp_site_icon->site_icon_sizes as $size ) {
 			$sizes[ 'site_icon-' . $size ] = array(
 				'width ' => $size,

@@ -68,7 +68,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	/**
 	 * @var array
 	 */
-	private static $revisions = array();
+	private static $revisions = [];
 
 	/**
 	 * Create fake data before our tests run.

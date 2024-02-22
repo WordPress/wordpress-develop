@@ -2188,13 +2188,13 @@ function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start 
 		'update_post_meta_cache' => false,
 	);
 
-	$term_array = array();
+	$term_array = [];
 
 	if ( ! is_array( $excluded_terms ) ) {
 		if ( ! empty( $excluded_terms ) ) {
 			$excluded_terms = explode( ',', $excluded_terms );
 		} else {
-			$excluded_terms = array();
+			$excluded_terms = [];
 		}
 	}
 
@@ -2207,7 +2207,7 @@ function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start 
 			$excluded_terms = array_map( 'intval', $excluded_terms );
 			$excluded_terms = array_diff( $excluded_terms, $term_array );
 
-			$inverse_terms = array();
+			$inverse_terms = [];
 			foreach ( $excluded_terms as $excluded_term ) {
 				$inverse_terms[] = $excluded_term * -1;
 			}
@@ -2431,7 +2431,7 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 		$qs_regex = '|\?.*?$|';
 		preg_match( $qs_regex, $request, $qs_match );
 
-		$parts   = array();
+		$parts   = [];
 		$parts[] = untrailingslashit( get_bloginfo( 'url' ) );
 
 		if ( ! empty( $qs_match[0] ) ) {

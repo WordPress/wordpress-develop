@@ -13,8 +13,8 @@ require_once __DIR__ . '/entry.php';
 if ( ! class_exists( 'Translations', false ) ) :
 	#[AllowDynamicProperties]
 	class Translations {
-		public $entries = array();
-		public $headers = array();
+		public $entries = [];
+		public $headers = [];
 
 		/**
 		 * Add entry to the PO structure
@@ -285,7 +285,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * @return array
 		 */
 		public function make_headers( $translation ) {
-			$headers = array();
+			$headers = [];
 			// Sometimes \n's are used instead of real new lines.
 			$translation = str_replace( '\n', "\n", $translation );
 			$lines       = explode( "\n", $translation );
@@ -320,8 +320,8 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 	 */
 	#[AllowDynamicProperties]
 	class NOOP_Translations {
-		public $entries = array();
-		public $headers = array();
+		public $entries = [];
+		public $headers = [];
 
 		public function add_entry( $entry ) {
 			return true;

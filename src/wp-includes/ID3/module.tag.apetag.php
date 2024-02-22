@@ -126,7 +126,7 @@ class getid3_apetag extends getid3_handler
 		}
 
 		// shortcut
-		$info['replay_gain'] = array();
+		$info['replay_gain'] = [];
 		$thisfile_replaygain = &$info['replay_gain'];
 
 		for ($i = 0; $i < $thisfile_ape['footer']['raw']['tag_items']; $i++) {
@@ -142,7 +142,7 @@ class getid3_apetag extends getid3_handler
 			$item_key      = strtolower(substr($APEtagData, $offset, $ItemKeyLength));
 
 			// shortcut
-			$thisfile_ape['items'][$item_key] = array();
+			$thisfile_ape['items'][$item_key] = [];
 			$thisfile_ape_items_current = &$thisfile_ape['items'][$item_key];
 
 			$thisfile_ape_items_current['offset'] = $thisfile_ape['tag_offset_start'] + $offset;
@@ -278,7 +278,7 @@ class getid3_apetag extends getid3_handler
 
 					do {
 						$thisfile_ape_items_current['image_mime'] = '';
-						$imageinfo = array();
+						$imageinfo = [];
 						$imagechunkcheck = getid3_lib::GetDataImageSize($thisfile_ape_items_current['data'], $imageinfo);
 						if (($imagechunkcheck === false) || !isset($imagechunkcheck[2])) {
 							$this->warning('APEtag "'.$item_key.'" contains invalid image data');
@@ -321,9 +321,9 @@ class getid3_apetag extends getid3_handler
 							unset($thisfile_ape_items_current['data']);
 						} else {
 							if (!isset($info['ape']['comments']['picture'])) {
-								$info['ape']['comments']['picture'] = array();
+								$info['ape']['comments']['picture'] = [];
 							}
-							$comments_picture_data = array();
+							$comments_picture_data = [];
 							foreach (array('data', 'image_mime', 'image_width', 'image_height', 'imagetype', 'picturetype', 'description', 'datalength') as $picture_key) {
 								if (isset($thisfile_ape_items_current[$picture_key])) {
 									$comments_picture_data[$picture_key] = $thisfile_ape_items_current[$picture_key];
@@ -360,8 +360,8 @@ class getid3_apetag extends getid3_handler
 		// http://www.uni-jena.de/~pfk/mpp/sv8/apeheader.html
 
 		// shortcut
-		$headerfooterinfo = array();
-		$headerfooterinfo['raw'] = array();
+		$headerfooterinfo = [];
+		$headerfooterinfo['raw'] = [];
 		$headerfooterinfo_raw = &$headerfooterinfo['raw'];
 
 		$headerfooterinfo_raw['footer_tag']   =                  substr($APEheaderFooterData,  0, 8);
@@ -390,7 +390,7 @@ class getid3_apetag extends getid3_handler
 		// "Note: APE Tags 1.0 do not use any of the APE Tag flags.
 		// All are set to zero on creation and ignored on reading."
 		// http://wiki.hydrogenaud.io/index.php?title=Ape_Tags_Flags
-		$flags                      = array();
+		$flags                      = [];
 		$flags['header']            = (bool) ($rawflagint & 0x80000000);
 		$flags['footer']            = (bool) ($rawflagint & 0x40000000);
 		$flags['this_is_header']    = (bool) ($rawflagint & 0x20000000);

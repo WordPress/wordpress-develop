@@ -14,7 +14,7 @@
 class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 
 	public static $test_source_name       = 'test/source';
-	public static $test_source_properties = array();
+	public static $test_source_properties = [];
 
 	/**
 	 * Fake block bindings registry.

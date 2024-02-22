@@ -629,7 +629,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		}
 
 		if ( $is_windows && preg_match( '/([0-9]{2})-([0-9]{2})-([0-9]{2}) +([0-9]{2}):([0-9]{2})(AM|PM) +([0-9]+|<DIR>) +(.+)/', $line, $lucifer ) ) {
-			$b = array();
+			$b = [];
 
 			if ( $lucifer[3] < 70 ) {
 				$lucifer[3] += 2000;
@@ -665,7 +665,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 					return '';
 				}
 
-				$b           = array();
+				$b           = [];
 				$b['isdir']  = 'd' === $lucifer[0][0];
 				$b['islink'] = 'l' === $lucifer[0][0];
 
@@ -775,7 +775,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
-		$dirlist = array();
+		$dirlist = [];
 
 		foreach ( $list as $k => $v ) {
 			$entry = $this->parselisting( $v );
@@ -800,14 +800,14 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		}
 
 		$path = trailingslashit( $path );
-		$ret  = array();
+		$ret  = [];
 
 		foreach ( (array) $dirlist as $struc ) {
 			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
-					$struc['files'] = array();
+					$struc['files'] = [];
 				}
 			}
 

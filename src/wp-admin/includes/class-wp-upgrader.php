@@ -57,7 +57,7 @@ class WP_Upgrader {
 	 * @since 2.8.0
 	 * @var array $strings
 	 */
-	public $strings = array();
+	public $strings = [];
 
 	/**
 	 * The upgrader skin being used.
@@ -90,7 +90,7 @@ class WP_Upgrader {
 	 *     @type bool   $clear_destination  Whether the destination folder was cleared.
 	 * }
 	 */
-	public $result = array();
+	public $result = [];
 
 	/**
 	 * The total number of updates being performed.
@@ -120,7 +120,7 @@ class WP_Upgrader {
 	 * @since 6.3.0
 	 * @var array
 	 */
-	private $temp_backups = array();
+	private $temp_backups = [];
 
 	/**
 	 * Stores the list of plugins or themes to be restored from temporary backup directory.
@@ -130,7 +130,7 @@ class WP_Upgrader {
 	 * @since 6.3.0
 	 * @var array
 	 */
-	private $temp_restores = array();
+	private $temp_restores = [];
 
 	/**
 	 * Construct the upgrader with a skin.
@@ -408,7 +408,7 @@ class WP_Upgrader {
 	 * @return array A flattened array of the $nested_files specified.
 	 */
 	protected function flatten_dirlist( $nested_files, $path = '' ) {
-		$files = array();
+		$files = [];
 
 		foreach ( $nested_files as $name => $details ) {
 			$files[ $path . $name ] = $details;
@@ -449,7 +449,7 @@ class WP_Upgrader {
 		$files = $this->flatten_dirlist( $files );
 
 		// Check all files are writable before attempting to clear the destination.
-		$unwritable_files = array();
+		$unwritable_files = [];
 
 		// Check writability.
 		foreach ( $files as $filename => $file_details ) {

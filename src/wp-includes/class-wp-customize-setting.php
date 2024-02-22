@@ -121,7 +121,7 @@ class WP_Customize_Setting {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	protected $id_data = array();
+	protected $id_data = [];
 
 	/**
 	 * Whether or not preview() was called.
@@ -137,7 +137,7 @@ class WP_Customize_Setting {
 	 * @since 4.4.0
 	 * @var array
 	 */
-	protected static $aggregated_multidimensionals = array();
+	protected static $aggregated_multidimensionals = [];
 
 	/**
 	 * Whether the multidimensional setting is aggregated.
@@ -244,7 +244,7 @@ class WP_Customize_Setting {
 	protected function aggregate_multidimensional() {
 		$id_base = $this->id_data['base'];
 		if ( ! isset( self::$aggregated_multidimensionals[ $this->type ] ) ) {
-			self::$aggregated_multidimensionals[ $this->type ] = array();
+			self::$aggregated_multidimensionals[ $this->type ] = [];
 		}
 		if ( ! isset( self::$aggregated_multidimensionals[ $this->type ][ $id_base ] ) ) {
 			self::$aggregated_multidimensionals[ $this->type ][ $id_base ] = array(
@@ -270,7 +270,7 @@ class WP_Customize_Setting {
 	 * @ignore
 	 */
 	public static function reset_aggregated_multidimensionals() {
-		self::$aggregated_multidimensionals = array();
+		self::$aggregated_multidimensionals = [];
 	}
 
 	/**
@@ -855,7 +855,7 @@ class WP_Customize_Setting {
 	 */
 	final protected function multidimensional( &$root, $keys, $create = false ) {
 		if ( $create && empty( $root ) ) {
-			$root = array();
+			$root = [];
 		}
 
 		if ( ! isset( $root ) || empty( $keys ) ) {
@@ -867,7 +867,7 @@ class WP_Customize_Setting {
 
 		foreach ( $keys as $key ) {
 			if ( $create && ! isset( $node[ $key ] ) ) {
-				$node[ $key ] = array();
+				$node[ $key ] = [];
 			}
 
 			if ( ! is_array( $node ) || ! isset( $node[ $key ] ) ) {
@@ -880,10 +880,10 @@ class WP_Customize_Setting {
 		if ( $create ) {
 			if ( ! is_array( $node ) ) {
 				// Account for an array overriding a string or object value.
-				$node = array();
+				$node = [];
 			}
 			if ( ! isset( $node[ $last ] ) ) {
-				$node[ $last ] = array();
+				$node[ $last ] = [];
 			}
 		}
 

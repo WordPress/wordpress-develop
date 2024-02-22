@@ -157,8 +157,8 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 * Resets $_POST, removes the wp_die() override, restores error reporting.
 	 */
 	public function tear_down() {
-		$_POST = array();
-		$_GET  = array();
+		$_POST = [];
+		$_GET  = [];
 		unset( $GLOBALS['post'] );
 		unset( $GLOBALS['comment'] );
 		remove_filter( 'wp_die_ajax_handler', array( $this, 'getDieHandler' ), 1, 1 );

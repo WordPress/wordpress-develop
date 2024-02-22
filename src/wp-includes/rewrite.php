@@ -587,7 +587,7 @@ function url_to_postid( $url ) {
 	$url = trim( $url, '/' );
 
 	$request              = $url;
-	$post_type_query_vars = array();
+	$post_type_query_vars = [];
 
 	foreach ( get_post_types( array(), 'objects' ) as $post_type => $t ) {
 		if ( ! empty( $t->query_var ) ) {
@@ -635,7 +635,7 @@ function url_to_postid( $url ) {
 			// Filter out non-public query vars.
 			global $wp;
 			parse_str( $query, $query_vars );
-			$query = array();
+			$query = [];
 			foreach ( (array) $query_vars as $key => $value ) {
 				if ( in_array( (string) $key, $wp->public_query_vars, true ) ) {
 					$query[ $key ] = $value;

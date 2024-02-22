@@ -305,7 +305,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			return $parent;
 		}
 
-		$response  = array();
+		$response  = [];
 		$parent_id = $parent->ID;
 		$revisions = wp_get_post_revisions( $parent_id, array( 'check_enabled' => false ) );
 
@@ -454,7 +454,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		if ( in_array( 'preview_link', $fields, true ) ) {
 			$parent_id          = wp_is_post_autosave( $post );
 			$preview_post_id    = false === $parent_id ? $post->ID : $parent_id;
-			$preview_query_args = array();
+			$preview_query_args = [];
 
 			if ( false !== $parent_id ) {
 				$preview_query_args['preview_id']    = $parent_id;

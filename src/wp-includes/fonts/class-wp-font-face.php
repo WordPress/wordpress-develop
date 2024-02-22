@@ -70,7 +70,7 @@ class WP_Font_Face {
 	 *
 	 * @var string[]
 	 */
-	private $style_tag_attrs = array();
+	private $style_tag_attrs = [];
 
 	/**
 	 * Creates and initializes an instance of WP_Font_Face.
@@ -130,7 +130,7 @@ class WP_Font_Face {
 	 * @return array Prepared font-faces organized by provider and font-family.
 	 */
 	private function validate_fonts( array $fonts ) {
-		$validated_fonts = array();
+		$validated_fonts = [];
 
 		foreach ( $fonts as $font_faces ) {
 			foreach ( $font_faces as $font_face ) {
@@ -287,8 +287,8 @@ class WP_Font_Face {
 			$font_face['src'] = (array) $font_face['src'];
 		}
 
-		$src         = array();
-		$src_ordered = array();
+		$src         = [];
+		$src_ordered = [];
 
 		foreach ( $font_face['src'] as $url ) {
 			// Add data URIs first.

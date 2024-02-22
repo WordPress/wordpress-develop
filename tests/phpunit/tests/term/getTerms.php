@@ -697,7 +697,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$tax = 'deep';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$parent = 0;
-		$t      = array();
+		$t      = [];
 		foreach ( range( 1, 7 ) as $depth ) {
 			$t[ $depth ] = self::factory()->term->create(
 				array(
@@ -3432,7 +3432,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	protected function create_hierarchical_terms_and_posts() {
-		$terms = array();
+		$terms = [];
 
 		$terms['parent1']     = self::factory()->term->create(
 			array(

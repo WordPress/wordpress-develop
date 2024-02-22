@@ -120,7 +120,7 @@ class SimplePie_Cache_MySQL extends SimplePie_Cache_DB
 			return;
 		}
 
-		$db = array();
+		$db = [];
 		while ($row = $query->fetchColumn())
 		{
 			$db[] = $row;
@@ -232,7 +232,7 @@ class SimplePie_Cache_MySQL extends SimplePie_Cache_DB
 
 					if ($query->execute())
 					{
-						$existing_ids = array();
+						$existing_ids = [];
 						while ($row = $query->fetchColumn())
 						{
 							$existing_ids[] = $row;

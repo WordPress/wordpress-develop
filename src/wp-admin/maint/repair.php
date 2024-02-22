@@ -52,7 +52,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 		)
 	);
 	$missing_key     = false;
-	$duplicated_keys = array();
+	$duplicated_keys = [];
 
 	foreach ( array( 'AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT' ) as $key ) {
 		if ( defined( $key ) ) {
@@ -93,7 +93,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 
 	$optimize = '2' === $_GET['repair'];
 	$okay     = true;
-	$problems = array();
+	$problems = [];
 
 	$tables = $wpdb->tables();
 

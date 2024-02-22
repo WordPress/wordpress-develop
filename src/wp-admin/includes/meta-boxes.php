@@ -572,7 +572,7 @@ endif;
 function post_tags_meta_box( $post, $box ) {
 	$defaults = array( 'taxonomy' => 'post_tag' );
 	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
-		$args = array();
+		$args = [];
 	} else {
 		$args = $box['args'];
 	}
@@ -635,7 +635,7 @@ function post_tags_meta_box( $post, $box ) {
 function post_categories_meta_box( $post, $box ) {
 	$defaults = array( 'taxonomy' => 'category' );
 	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
-		$args = array();
+		$args = [];
 	} else {
 		$args = $box['args'];
 	}
@@ -1528,7 +1528,7 @@ function post_thumbnail_meta_box( $post ) {
  * @param WP_Post $post Current post object.
  */
 function attachment_id3_data_meta_box( $post ) {
-	$meta = array();
+	$meta = [];
 	if ( ! empty( $post->ID ) ) {
 		$meta = wp_get_attachment_metadata( $post->ID );
 	}

@@ -280,7 +280,7 @@ if ( ! function_exists( 'twentyfifteen_get_color_scheme_choices' ) ) :
 	 */
 	function twentyfifteen_get_color_scheme_choices() {
 		$color_schemes                = twentyfifteen_get_color_schemes();
-		$color_scheme_control_options = array();
+		$color_scheme_control_options = [];
 
 		foreach ( $color_schemes as $color_scheme => $value ) {
 			$color_scheme_control_options[ $color_scheme ] = $value['label'];

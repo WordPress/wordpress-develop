@@ -56,7 +56,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 		$cache = wp_cache_get( 'widget_twentyeleven_ephemera', 'widget' );
 
 		if ( ! is_array( $cache ) ) {
-			$cache = array();
+			$cache = [];
 		}
 
 		if ( ! isset( $args['widget_id'] ) ) {

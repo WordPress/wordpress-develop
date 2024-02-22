@@ -58,7 +58,7 @@ class Text_Diff_Engine_shell {
 
         $from_line_no = 1;
         $to_line_no = 1;
-        $edits = array();
+        $edits = [];
 
         // Get changed lines by parsing something like:
         // 0a1,2
@@ -145,7 +145,7 @@ class Text_Diff_Engine_shell {
     function _getLines(&$text_lines, &$line_no, $end = false)
     {
         if (!empty($end)) {
-            $lines = array();
+            $lines = [];
             // We can shift even more
             while ($line_no <= $end) {
                 array_push($lines, array_shift($text_lines));

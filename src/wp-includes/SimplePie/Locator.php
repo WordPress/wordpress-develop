@@ -54,16 +54,16 @@ class SimplePie_Locator
 	var $useragent;
 	var $timeout;
 	var $file;
-	var $local = array();
-	var $elsewhere = array();
-	var $cached_entities = array();
+	var $local = [];
+	var $elsewhere = [];
+	var $cached_entities = [];
 	var $http_base;
 	var $base;
 	var $base_location = 0;
 	var $checked_feeds = 0;
 	var $max_checked_feeds = 10;
 	var $force_fsockopen = false;
-	var $curl_options = array();
+	var $curl_options = [];
 	var $dom;
 	protected $registry;
 
@@ -206,8 +206,8 @@ class SimplePie_Locator
 
 	public function autodiscovery()
 	{
-		$done = array();
-		$feeds = array();
+		$done = [];
+		$feeds = [];
 		$feeds = array_merge($feeds, $this->search_elements_by_tag('link', $done, $feeds));
 		$feeds = array_merge($feeds, $this->search_elements_by_tag('a', $done, $feeds));
 		$feeds = array_merge($feeds, $this->search_elements_by_tag('area', $done, $feeds));

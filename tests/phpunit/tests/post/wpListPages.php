@@ -44,7 +44,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	public static $children = array();
+	public static $children = [];
 
 	/**
 	 * Current timestamp cache, so that it is consistent across posts.

@@ -6,9 +6,9 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 
 		public static $load_return = true;
 		public static $test_return = true;
-		public static $save_return = array();
-		public static $spy         = array();
-		public static $edit_return = array();
+		public static $save_return = [];
+		public static $spy         = [];
+		public static $edit_return = [];
 		public static $size_return = null;
 
 		// Allow testing of jpeg_quality filter.

@@ -24,7 +24,7 @@ class WP_Style_Engine_CSS_Declarations {
 	 *
 	 * @var string[]
 	 */
-	protected $declarations = array();
+	protected $declarations = [];
 
 	/**
 	 * Constructor for this object.

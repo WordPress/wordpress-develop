@@ -175,7 +175,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		);
 
 		$actual   = wp_apply_typography_support( $block_type, $block_atts );
-		$expected = array();
+		$expected = [];
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -213,7 +213,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		$block_atts = array( 'style' => array( 'typography' => array( 'letterSpacing' => '22px' ) ) );
 
 		$actual   = wp_apply_typography_support( $block_type, $block_atts );
-		$expected = array();
+		$expected = [];
 
 		$this->assertSame( $expected, $actual );
 	}

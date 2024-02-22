@@ -110,7 +110,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 			'WP_Users_List_Table'                         => 'username',
 		);
 
-		$datasets = array();
+		$datasets = [];
 
 		foreach ( $list_primary_columns as $list_class => $primary_column ) {
 			$datasets[ $list_class . ' - three columns' ] = array(

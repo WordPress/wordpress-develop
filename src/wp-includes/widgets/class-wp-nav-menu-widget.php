@@ -122,7 +122,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 	 * @return array Updated settings to save.
 	 */
 	public function update( $new_instance, $old_instance ) {
-		$instance = array();
+		$instance = [];
 		if ( ! empty( $new_instance['title'] ) ) {
 			$instance['title'] = sanitize_text_field( $new_instance['title'] );
 		}

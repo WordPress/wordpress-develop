@@ -31,7 +31,7 @@ global $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_co
  * @global array $wp_registered_sidebars The registered sidebars.
  * @since 2.2.0
  */
-$wp_registered_sidebars = array();
+$wp_registered_sidebars = [];
 
 /**
  * Stores the registered widgets.
@@ -39,7 +39,7 @@ $wp_registered_sidebars = array();
  * @global array $wp_registered_widgets The registered widgets.
  * @since 2.2.0
  */
-$wp_registered_widgets = array();
+$wp_registered_widgets = [];
 
 /**
  * Stores the registered widget controls (options).
@@ -47,18 +47,18 @@ $wp_registered_widgets = array();
  * @global array $wp_registered_widget_controls The registered widget controls.
  * @since 2.2.0
  */
-$wp_registered_widget_controls = array();
+$wp_registered_widget_controls = [];
 /**
  * @global array $wp_registered_widget_updates The registered widget updates.
  */
-$wp_registered_widget_updates = array();
+$wp_registered_widget_updates = [];
 
 /**
  * Private
  *
  * @global array $_wp_sidebars_widgets
  */
-$_wp_sidebars_widgets = array();
+$_wp_sidebars_widgets = [];
 
 /**
  * Private
@@ -1107,10 +1107,10 @@ function wp_set_sidebars_widgets( $sidebars_widgets ) {
 function wp_get_widget_defaults() {
 	global $wp_registered_sidebars;
 
-	$defaults = array();
+	$defaults = [];
 
 	foreach ( (array) $wp_registered_sidebars as $index => $sidebar ) {
-		$defaults[ $index ] = array();
+		$defaults[ $index ] = [];
 	}
 
 	return $defaults;
@@ -1322,7 +1322,7 @@ function retrieve_widgets( $theme_changed = false ) {
 
 	if ( ! is_array( get_theme_mod( 'sidebars_widgets' ) ) ) {
 		if ( empty( $sidebars_widgets ) ) {
-			return array();
+			return [];
 		}
 
 		unset( $sidebars_widgets['array_version'] );
@@ -1409,7 +1409,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 			$new_sidebars_widgets[ $sidebar ] = $existing_sidebars_widgets[ $sidebar ];
 			unset( $existing_sidebars_widgets[ $sidebar ] );
 		} elseif ( ! array_key_exists( $sidebar, $new_sidebars_widgets ) ) {
-			$new_sidebars_widgets[ $sidebar ] = array();
+			$new_sidebars_widgets[ $sidebar ] = [];
 		}
 	}
 
@@ -1906,7 +1906,7 @@ function wp_use_widgets_block_editor() {
  * @return array Array containing a widget's id_base and number components.
  */
 function wp_parse_widget_id( $id ) {
-	$parsed = array();
+	$parsed = [];
 
 	if ( preg_match( '/^(.+)-(\d+)$/', $id, $matches ) ) {
 		$parsed['id_base'] = $matches[1];
@@ -1989,7 +1989,7 @@ function wp_render_widget( $widget_id, $sidebar_id ) {
 	if ( isset( $wp_registered_sidebars[ $sidebar_id ] ) ) {
 		$sidebar = $wp_registered_sidebars[ $sidebar_id ];
 	} elseif ( 'wp_inactive_widgets' === $sidebar_id ) {
-		$sidebar = array();
+		$sidebar = [];
 	} else {
 		return '';
 	}

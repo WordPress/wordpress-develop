@@ -62,7 +62,7 @@ get_current_screen()->set_help_sidebar(
 
 // If the 'download' URL parameter is set, a WXR export file is baked and returned.
 if ( isset( $_GET['download'] ) ) {
-	$args = array();
+	$args = [];
 
 	if ( ! isset( $_GET['content'] ) || 'all' === $_GET['content'] ) {
 		$args['content'] = 'all';

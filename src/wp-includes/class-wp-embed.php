@@ -8,11 +8,11 @@
  */
 #[AllowDynamicProperties]
 class WP_Embed {
-	public $handlers = array();
+	public $handlers = [];
 	public $post_ID;
 	public $usecache      = true;
 	public $linkifunknown = true;
-	public $last_attr     = array();
+	public $last_attr     = [];
 	public $last_url      = '';
 
 	/**

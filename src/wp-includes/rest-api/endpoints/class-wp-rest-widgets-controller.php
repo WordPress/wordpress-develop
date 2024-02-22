@@ -138,7 +138,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$this->retrieve_widgets();
 
-		$prepared          = array();
+		$prepared          = [];
 		$permissions_check = $this->permissions_check( $request );
 
 		foreach ( wp_get_sidebars_widgets() as $sidebar_id => $widget_ids ) {
@@ -599,7 +599,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		} elseif ( isset( $request['form_data'] ) ) {
 			$form_data = $request['form_data'];
 		} else {
-			$form_data = array();
+			$form_data = [];
 		}
 
 		$original_post    = $_POST;
@@ -862,7 +862,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 					'context'     => array(),
 					'arg_options' => array(
 						'sanitize_callback' => static function ( $form_data ) {
-							$array = array();
+							$array = [];
 							wp_parse_str( $form_data, $array );
 							return $array;
 						},

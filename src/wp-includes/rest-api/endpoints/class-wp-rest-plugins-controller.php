@@ -132,7 +132,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
-		$plugins = array();
+		$plugins = [];
 
 		foreach ( get_plugins() as $file => $data ) {
 			if ( is_wp_error( $this->check_read_permission( $file ) ) ) {

@@ -14,21 +14,21 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @var array
 	 */
-	private static $my_title_post_ids = array();
+	private static $my_title_post_ids = [];
 
 	/**
 	 * Pages with title 'my-footitle'.
 	 *
 	 * @var array
 	 */
-	private static $my_title_page_ids = array();
+	private static $my_title_page_ids = [];
 
 	/**
 	 * Posts with content 'my-foocontent'.
 	 *
 	 * @var array
 	 */
-	private static $my_content_post_ids = array();
+	private static $my_content_post_ids = [];
 
 	/**
 	 * Categories.

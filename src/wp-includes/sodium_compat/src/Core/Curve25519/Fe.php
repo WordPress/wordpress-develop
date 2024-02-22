@@ -14,7 +14,7 @@ class ParagonIE_Sodium_Core_Curve25519_Fe implements ArrayAccess
     /**
      * @var array<int, int>
      */
-    protected $container = array();
+    protected $container = [];
 
     /**
      * @var int

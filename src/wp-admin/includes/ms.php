@@ -632,7 +632,7 @@ function check_import_new_users( $permission ) {
  */
 function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	$flag   = false;
-	$output = array();
+	$output = [];
 
 	foreach ( (array) $lang_files as $val ) {
 		$code_lang = basename( $val, '.mo' );
@@ -1098,7 +1098,7 @@ function network_edit_site_nav( $args = array() ) {
 	);
 
 	// Setup the links array.
-	$screen_links = array();
+	$screen_links = [];
 
 	// Loop through tabs.
 	foreach ( $parsed_args['links'] as $link_id => $link ) {

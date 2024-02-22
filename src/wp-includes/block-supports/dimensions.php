@@ -21,7 +21,7 @@
 function wp_register_dimensions_support( $block_type ) {
 	// Setup attributes and styles within that if needed.
 	if ( ! $block_type->attributes ) {
-		$block_type->attributes = array();
+		$block_type->attributes = [];
 	}
 
 	// Check for existing style attribute definition e.g. from block.json.
@@ -52,10 +52,10 @@ function wp_register_dimensions_support( $block_type ) {
  */
 function wp_apply_dimensions_support( $block_type, $block_attributes ) {
 	if ( wp_should_skip_block_supports_serialization( $block_type, 'dimensions' ) ) {
-		return array();
+		return [];
 	}
 
-	$attributes = array();
+	$attributes = [];
 
 	// Width support to be added in near future.
 
@@ -67,7 +67,7 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) {
 	}
 
 	$skip_min_height                      = wp_should_skip_block_supports_serialization( $block_type, 'dimensions', 'minHeight' );
-	$dimensions_block_styles              = array();
+	$dimensions_block_styles              = [];
 	$dimensions_block_styles['minHeight'] = null;
 	if ( $has_min_height_support && ! $skip_min_height ) {
 		$dimensions_block_styles['minHeight'] = isset( $block_styles['dimensions']['minHeight'] )
@@ -97,7 +97,7 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) {
  */
 function wp_render_dimensions_support( $block_content, $block ) {
 	$block_type               = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$block_attributes         = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
+	$block_attributes         = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : [];
 	$has_aspect_ratio_support = block_has_support( $block_type, array( 'dimensions', 'aspectRatio' ), false );
 
 	if (
@@ -107,7 +107,7 @@ function wp_render_dimensions_support( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$dimensions_block_styles                = array();
+	$dimensions_block_styles                = [];
 	$dimensions_block_styles['aspectRatio'] = $block_attributes['style']['dimensions']['aspectRatio'] ?? null;
 
 	// To ensure the aspect ratio does not get overridden by `minHeight` unset any existing rule.

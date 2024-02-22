@@ -90,7 +90,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			return $response;
 		}
 
-		$result = array();
+		$result = [];
 
 		foreach ( $response->plugins as $plugin ) {
 			// If the API returned a plugin with empty data for 'blocks', skip it.

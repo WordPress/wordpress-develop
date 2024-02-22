@@ -350,8 +350,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	public function test_get_objects_in_term_should_return_objects_ids() {
 		$tag_id              = self::factory()->tag->create();
 		$cat_id              = self::factory()->category->create();
-		$posts_with_tag      = array();
-		$posts_with_category = array();
+		$posts_with_tag      = [];
+		$posts_with_category = [];
 
 		for ( $i = 0; $i < 3; $i++ ) {
 			$post_id = self::factory()->post->create();

@@ -33,16 +33,16 @@ define('MAGPIE_USER_AGENT', 'WordPress/' . $GLOBALS['wp_version']);
 
 class MagpieRSS {
 	var $parser;
-	var $current_item	= array();	// item currently being parsed
-	var $items			= array();	// collection of parsed items
-	var $channel		= array();	// hash of channel fields
-	var $textinput		= array();
-	var $image			= array();
+	var $current_item	= [];	// item currently being parsed
+	var $items			= [];	// collection of parsed items
+	var $channel		= [];	// hash of channel fields
+	var $textinput		= [];
+	var $image			= [];
 	var $feed_type;
 	var $feed_version;
 
 	// parser variables
-	var $stack				= array(); // parser stack
+	var $stack				= []; // parser stack
 	var $inchannel			= false;
 	var $initem 			= false;
 	var $incontent			= false; // if in Atom <content mode="xml"> field
@@ -235,7 +235,7 @@ class MagpieRSS {
 		if ( $el == 'item' or $el == 'entry' )
 		{
 			$this->items[] = $this->current_item;
-			$this->current_item = array();
+			$this->current_item = [];
 			$this->initem = false;
 		}
 		elseif ($this->feed_type == RSS and $this->current_namespace == '' and $el == 'textinput' )
@@ -442,7 +442,7 @@ function fetch_rss ($url) {
 		}
 
 		$cache_status 	 = 0;		// response of check_cache
-		$request_headers = array(); // HTTP headers to send with fetch
+		$request_headers = []; // HTTP headers to send with fetch
 		$rss 			 = 0;		// parsed RSS object
 		$errormsg		 = 0;		// errors, if any
 
@@ -558,7 +558,7 @@ function _fetch_remote_file($url, $headers = "" ) {
 
 	// Snoopy returns headers unprocessed.
 	// Also note, WP_HTTP lowercases all keys, Snoopy did not.
-	$return_headers = array();
+	$return_headers = [];
 	foreach ( wp_remote_retrieve_headers( $resp ) as $key => $value ) {
 		if ( !is_array($value) ) {
 			$return_headers[] = "$key: $value";

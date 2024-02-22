@@ -37,7 +37,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 5.7.1
 	 * @var int[]
 	 */
-	protected $password_check_passed = array();
+	protected $password_check_passed = [];
 
 	/**
 	 * Whether the controller supports batching.
@@ -228,7 +228,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Retrieve the list of registered collection query parameters.
 		$registered = $this->get_collection_params();
-		$args       = array();
+		$args       = [];
 
 		/*
 		 * This array defines mappings between public API query parameters whose
@@ -265,7 +265,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Check for & assign any parameters which require special handling or setting.
-		$args['date_query'] = array();
+		$args['date_query'] = [];
 
 		if ( isset( $registered['before'], $request['before'] ) ) {
 			$args['date_query'][] = array(
@@ -303,7 +303,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( isset( $registered['sticky'], $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
 			if ( ! is_array( $sticky_posts ) ) {
-				$sticky_posts = array();
+				$sticky_posts = [];
 			}
 			if ( $request['sticky'] ) {
 				/*
@@ -368,7 +368,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		$posts = array();
+		$posts = [];
 
 		update_post_author_caches( $query_result );
 		update_post_parent_caches( $query_result );
@@ -1113,7 +1113,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array Items query arguments.
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
-		$query_args = array();
+		$query_args = [];
 
 		foreach ( $prepared_args as $key => $value ) {
 			/**
@@ -1759,7 +1759,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$fields = $this->get_fields_for_response( $request );
 
 		// Base fields for every post.
-		$data = array();
+		$data = [];
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $post->ID;
@@ -1831,7 +1831,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'title', $fields ) ) {
-			$data['title'] = array();
+			$data['title'] = [];
 		}
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
 			$data['title']['raw'] = $post->post_title;
@@ -1855,7 +1855,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'content', $fields ) ) {
-			$data['content'] = array();
+			$data['content'] = [];
 		}
 		if ( rest_is_field_included( 'content.raw', $fields ) ) {
 			$data['content']['raw'] = $post->post_content;
@@ -1947,7 +1947,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			if ( rest_is_field_included( $base, $fields ) ) {
 				$terms         = get_the_terms( $post, $taxonomy->name );
-				$data[ $base ] = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : array();
+				$data[ $base ] = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : [];
 			}
 		}
 
@@ -2120,7 +2120,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = get_object_taxonomies( $post->post_type );
 
 		if ( ! empty( $taxonomies ) ) {
-			$links['https://api.w.org/term'] = array();
+			$links['https://api.w.org/term'] = [];
 
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_route = rest_get_route_for_taxonomy_items( $tax );
@@ -2158,10 +2158,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function get_available_actions( $post, $request ) {
 
 		if ( 'edit' !== $request['context'] ) {
-			return array();
+			return [];
 		}
 
-		$rels = array();
+		$rels = [];
 
 		$post_type = get_post_type_object( $post->post_type );
 
@@ -2646,7 +2646,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$href = rest_url( "{$this->namespace}/{$this->rest_base}/{id}" );
 
-		$links = array();
+		$links = [];
 
 		if ( 'attachment' !== $this->post_type ) {
 			$links[] = array(
@@ -3024,7 +3024,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$tax_exclude = $request[ $base . '_exclude' ];
 
 			if ( $tax_include ) {
-				$terms            = array();
+				$terms            = [];
 				$include_children = false;
 				$operator         = 'IN';
 
@@ -3051,7 +3051,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			if ( $tax_exclude ) {
-				$terms            = array();
+				$terms            = [];
 				$include_children = false;
 
 				if ( rest_is_array( $tax_exclude ) ) {

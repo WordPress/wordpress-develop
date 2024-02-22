@@ -9,10 +9,10 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		if ( empty( $_POST ) ) {
-			$_POST = array();
+			$_POST = [];
 		}
 
-		$data                   = array();
+		$data                   = [];
 		$data[0]                = new StdClass();
 		$data[0]->name          = 'yesorno';
 		$data[0]->value         = 'yes';
@@ -32,10 +32,10 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		if ( empty( $_POST ) ) {
-			$_POST = array();
+			$_POST = [];
 		}
 
-		$data                   = array();
+		$data                   = [];
 		$data[0]                = new StdClass();
 		$data[0]->name          = 'would[1][do][the][trick]';
 		$data[0]->value         = 'yes';
@@ -62,10 +62,10 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		if ( empty( $_POST ) ) {
-			$_POST = array();
+			$_POST = [];
 		}
 
-		$data                   = array();
+		$data                   = [];
 		$data[0]                = new StdClass();
 		$data[0]->name          = 'would[1][do][the][trick]';
 		$data[0]->value         = 'yes';

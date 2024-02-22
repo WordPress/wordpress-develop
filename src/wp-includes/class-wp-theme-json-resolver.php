@@ -89,7 +89,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 6.1.0
 	 * @var array
 	 */
-	protected static $theme_json_file_cache = array();
+	protected static $theme_json_file_cache = [];
 
 	/**
 	 * Processes a file that adheres to the theme.json schema
@@ -114,7 +114,7 @@ class WP_Theme_JSON_Resolver {
 			}
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -127,7 +127,7 @@ class WP_Theme_JSON_Resolver {
 	 */
 	public static function get_fields_to_translate() {
 		_deprecated_function( __METHOD__, '5.9.0' );
-		return array();
+		return [];
 	}
 
 	/**
@@ -244,7 +244,7 @@ class WP_Theme_JSON_Resolver {
 				$theme_json_data = static::read_json_file( $theme_json_file );
 				$theme_json_data = static::translate( $theme_json_data, $wp_theme->get( 'TextDomain' ) );
 			} else {
-				$theme_json_data = array();
+				$theme_json_data = [];
 			}
 
 			/**
@@ -289,7 +289,7 @@ class WP_Theme_JSON_Resolver {
 		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( get_classic_theme_supports_block_editor_settings() );
 		if ( ! wp_theme_has_theme_json() ) {
 			if ( ! isset( $theme_support_data['settings']['color'] ) ) {
-				$theme_support_data['settings']['color'] = array();
+				$theme_support_data['settings']['color'] = [];
 			}
 
 			$default_palette = false;
@@ -432,10 +432,10 @@ class WP_Theme_JSON_Resolver {
 		 * present here.
 		 */
 		if ( $theme->get_stylesheet() === get_stylesheet() && ! wp_theme_has_theme_json() ) {
-			return array();
+			return [];
 		}
 
-		$user_cpt         = array();
+		$user_cpt         = [];
 		$post_type_filter = 'wp_global_styles';
 		$stylesheet       = $theme->get_stylesheet();
 		$args             = array(
@@ -495,7 +495,7 @@ class WP_Theme_JSON_Resolver {
 			return static::$user;
 		}
 
-		$config   = array();
+		$config   = [];
 		$user_cpt = static::get_user_data_from_wp_global_styles( wp_get_theme() );
 
 		if ( array_key_exists( 'post_content', $user_cpt ) ) {
@@ -706,8 +706,8 @@ class WP_Theme_JSON_Resolver {
 	 * @return array
 	 */
 	public static function get_style_variations() {
-		$variation_files    = array();
-		$variations         = array();
+		$variation_files    = [];
+		$variations         = [];
 		$base_directory     = get_stylesheet_directory() . '/styles';
 		$template_directory = get_template_directory() . '/styles';
 		if ( is_dir( $base_directory ) ) {

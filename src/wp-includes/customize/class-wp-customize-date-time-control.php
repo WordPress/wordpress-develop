@@ -226,7 +226,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 */
 	public function get_month_choices() {
 		global $wp_locale;
-		$months = array();
+		$months = [];
 		for ( $i = 1; $i < 13; $i++ ) {
 			$month_text = $wp_locale->get_month_abbrev( $wp_locale->get_month( $i ) );
 
@@ -253,7 +253,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 */
 	public function get_timezone_info() {
 		$tz_string     = get_option( 'timezone_string' );
-		$timezone_info = array();
+		$timezone_info = [];
 
 		if ( $tz_string ) {
 			try {

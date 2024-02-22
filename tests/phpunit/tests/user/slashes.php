@@ -38,9 +38,9 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 	 * Tests the controller function that expects slashed data.
 	 */
 	public function test_add_user() {
-		$_POST                 = array();
-		$_GET                  = array();
-		$_REQUEST              = array();
+		$_POST                 = [];
+		$_GET                  = [];
+		$_REQUEST              = [];
 		$_POST['user_login']   = 'slash_example_user_1';
 		$_POST['pass1']        = 'password';
 		$_POST['pass2']        = 'password';
@@ -63,9 +63,9 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertSame( self::SLASH_7, $user->display_name );
 		$this->assertSame( self::SLASH_3, $user->description );
 
-		$_POST                 = array();
-		$_GET                  = array();
-		$_REQUEST              = array();
+		$_POST                 = [];
+		$_GET                  = [];
+		$_REQUEST              = [];
 		$_POST['user_login']   = 'slash_example_user_2';
 		$_POST['pass1']        = 'password';
 		$_POST['pass2']        = 'password';
@@ -95,9 +95,9 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 	public function test_edit_user() {
 		$user_id = self::$user_id;
 
-		$_POST                 = array();
-		$_GET                  = array();
-		$_REQUEST              = array();
+		$_POST                 = [];
+		$_GET                  = [];
+		$_REQUEST              = [];
 		$_POST['role']         = 'subscriber';
 		$_POST['email']        = 'user1@example.com';
 		$_POST['first_name']   = self::SLASH_1;
@@ -117,9 +117,9 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertSame( self::SLASH_7, $user->display_name );
 		$this->assertSame( self::SLASH_3, $user->description );
 
-		$_POST                 = array();
-		$_GET                  = array();
-		$_REQUEST              = array();
+		$_POST                 = [];
+		$_GET                  = [];
+		$_REQUEST              = [];
 		$_POST['role']         = 'subscriber';
 		$_POST['email']        = 'user2@example.com';
 		$_POST['first_name']   = self::SLASH_2;

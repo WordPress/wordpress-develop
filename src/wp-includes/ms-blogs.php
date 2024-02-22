@@ -943,7 +943,7 @@ function wp_count_sites( $network_id = null ) {
 		$network_id = get_current_network_id();
 	}
 
-	$counts = array();
+	$counts = [];
 	$args   = array(
 		'network_id'    => $network_id,
 		'number'        => 1,

@@ -91,7 +91,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 
 		// Not testing comment_author_email or comment_author_url
 		// as slashes are not permitted in that data.
-		$_POST                            = array();
+		$_POST                            = [];
 		$_POST['comment_ID']              = $comment_id;
 		$_POST['comment_status']          = '';
 		$_POST['newcomment_author']       = self::SLASH_1;
@@ -107,7 +107,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 		$this->assertSame( self::SLASH_1, $comment->comment_author );
 		$this->assertSame( self::SLASH_7, $comment->comment_content );
 
-		$_POST                            = array();
+		$_POST                            = [];
 		$_POST['comment_ID']              = $comment_id;
 		$_POST['comment_status']          = '';
 		$_POST['newcomment_author']       = self::SLASH_2;

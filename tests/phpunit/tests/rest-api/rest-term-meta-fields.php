@@ -21,7 +21,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : [];
 		self::$category_id        = $factory->category->create();
 		self::$customtax_term_id  = $factory->term->create( array( 'taxonomy' => 'customtax' ) );
 	}

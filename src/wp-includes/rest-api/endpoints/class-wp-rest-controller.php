@@ -391,7 +391,7 @@ abstract class WP_REST_Controller {
 			return array_merge( $param_details, $args );
 		}
 
-		$contexts = array();
+		$contexts = [];
 
 		foreach ( $schema['properties'] as $attributes ) {
 			if ( ! empty( $attributes['context'] ) ) {
@@ -532,11 +532,11 @@ abstract class WP_REST_Controller {
 		}
 
 		if ( ! $object_type ) {
-			return array();
+			return [];
 		}
 
 		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[ $object_type ] ) ) {
-			return array();
+			return [];
 		}
 
 		return $wp_rest_additional_fields[ $object_type ];
@@ -571,7 +571,7 @@ abstract class WP_REST_Controller {
 	 */
 	public function get_fields_for_response( $request ) {
 		$schema     = $this->get_item_schema();
-		$properties = isset( $schema['properties'] ) ? $schema['properties'] : array();
+		$properties = isset( $schema['properties'] ) ? $schema['properties'] : [];
 
 		$additional_fields = $this->get_additional_fields();
 

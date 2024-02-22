@@ -24,7 +24,7 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$entries = $compat_instance ? $compat_instance->entries : array();
+		$entries = $compat_instance ? $compat_instance->entries : [];
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 
@@ -61,7 +61,7 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$entries = $compat_instance ? $compat_instance->entries : array();
+		$entries = $compat_instance ? $compat_instance->entries : [];
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 
@@ -100,7 +100,7 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$entries = $compat_instance ? $compat_instance->entries : array();
+		$entries = $compat_instance ? $compat_instance->entries : [];
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 
@@ -143,7 +143,7 @@ class WP_Translations_Tests extends WP_UnitTestCase {
 
 		$compat_instance = $l10n['wp-tests-domain'] ?? null;
 
-		$headers = $compat_instance ? $compat_instance->headers : array();
+		$headers = $compat_instance ? $compat_instance->headers : [];
 
 		$unload_successful = unload_textdomain( 'wp-tests-domain' );
 

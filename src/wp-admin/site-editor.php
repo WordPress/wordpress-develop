@@ -50,7 +50,7 @@ add_filter(
 	}
 );
 
-$indexed_template_types = array();
+$indexed_template_types = [];
 foreach ( get_default_block_template_types() as $slug => $template_type ) {
 	$template_type['slug']    = (string) $slug;
 	$indexed_template_types[] = $template_type;

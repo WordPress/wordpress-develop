@@ -16,7 +16,7 @@ class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 		$html   = '<p></p><iframe onload="alert(1)" src="http://example.com/sample-page/"></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), 'http://example.com/sample-page/' );
 
-		$matches = array();
+		$matches = [];
 		preg_match( '|src=".*#\?secret=([\w\d]+)" data-secret="([\w\d]+)"|', $actual, $matches );
 
 		$this->assertArrayHasKey( 1, $matches );
@@ -60,7 +60,7 @@ EOD;
 		$html   = '<iframe src="https://wordpress.org"></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$matches = array();
+		$matches = [];
 		preg_match( '|src="https://wordpress.org#\?secret=([\w\d]+)" data-secret="([\w\d]+)"|', $actual, $matches );
 
 		$this->assertArrayHasKey( 1, $matches );

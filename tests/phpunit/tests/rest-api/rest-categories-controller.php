@@ -13,7 +13,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	protected static $contributor;
 	protected static $subscriber;
 
-	protected static $category_ids     = array();
+	protected static $category_ids     = [];
 	protected static $total_categories = 30;
 	protected static $per_page         = 50;
 
@@ -1175,7 +1175,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function additional_field_get_callback( $response_data, $field_name ) {

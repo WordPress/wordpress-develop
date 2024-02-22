@@ -505,7 +505,7 @@ function list_plugin_updates() {
 	<tbody class="plugins">
 	<?php
 
-	$auto_updates = array();
+	$auto_updates = [];
 	if ( wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
 		$auto_updates       = (array) get_site_option( 'auto_update_plugins', array() );
 		$auto_update_notice = ' | ' . wp_get_auto_update_message();
@@ -680,7 +680,7 @@ function list_theme_updates() {
 
 	<tbody class="plugins">
 	<?php
-	$auto_updates = array();
+	$auto_updates = [];
 	if ( wp_is_auto_update_enabled_for_type( 'theme' ) ) {
 		$auto_updates       = (array) get_site_option( 'auto_update_themes', array() );
 		$auto_update_notice = ' | ' . wp_get_auto_update_message();

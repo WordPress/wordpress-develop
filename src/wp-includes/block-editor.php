@@ -175,7 +175,7 @@ function get_default_block_editor_settings() {
 		)
 	);
 
-	$available_image_sizes = array();
+	$available_image_sizes = [];
 	foreach ( $image_size_names as $image_size_slug => $image_size_name ) {
 		$available_image_sizes[] = array(
 			'slug' => $image_size_slug,
@@ -186,7 +186,7 @@ function get_default_block_editor_settings() {
 	$default_size       = get_option( 'image_default_size', 'large' );
 	$image_default_size = in_array( $default_size, array_keys( $image_size_names ), true ) ? $default_size : 'large';
 
-	$image_dimensions = array();
+	$image_dimensions = [];
 	$all_sizes        = wp_get_registered_image_subsizes();
 	foreach ( $available_image_sizes as $size ) {
 		$key = $size['slug'];
@@ -204,7 +204,7 @@ function get_default_block_editor_settings() {
 		$default_editor_styles_file_contents = file_get_contents( $default_editor_styles_file );
 	}
 
-	$default_editor_styles = array();
+	$default_editor_styles = [];
 	if ( $default_editor_styles_file_contents ) {
 		$default_editor_styles = array(
 			array( 'css' => $default_editor_styles_file_contents ),
@@ -244,7 +244,7 @@ function get_default_block_editor_settings() {
  * @return array Settings to be used with get_block_editor_settings().
  */
 function get_legacy_widget_block_editor_settings() {
-	$editor_settings = array();
+	$editor_settings = [];
 
 	/**
 	 * Filters the list of widget-type IDs that should **not** be offered by the
@@ -322,7 +322,7 @@ function _wp_get_iframed_editor_assets() {
 	 * these reset styles.
 	 */
 	$wp_styles->done =
-		wp_theme_has_theme_json() ? array( 'wp-reset-editor-styles' ) : array();
+		wp_theme_has_theme_json() ? array( 'wp-reset-editor-styles' ) : [];
 
 	wp_enqueue_script( 'wp-polyfill' );
 	// Enqueue the `editorStyle` handles for all core block, and dependencies.
@@ -410,7 +410,7 @@ function wp_get_first_block( $blocks, $block_name ) {
 		}
 	}
 
-	return array();
+	return [];
 }
 
 /**
@@ -494,7 +494,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$custom_settings
 	);
 
-	$global_styles = array();
+	$global_styles = [];
 	$presets       = array(
 		array(
 			'css'            => 'variables',
@@ -780,7 +780,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 function get_block_editor_theme_styles() {
 	global $editor_styles;
 
-	$styles = array();
+	$styles = [];
 
 	if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 		foreach ( $editor_styles as $style ) {

@@ -61,7 +61,7 @@ function wp_print_styles( $handles = false ) {
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
 		if ( ! $handles ) {
-			return array(); // No need to instantiate if nothing is there.
+			return []; // No need to instantiate if nothing is there.
 		}
 	}
 

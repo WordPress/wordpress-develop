@@ -23,7 +23,7 @@ class WP_Test_Stream {
 	/**
 	 * In-memory storage for files and directories simulated by this wrapper.
 	 */
-	public static $data = array();
+	public static $data = [];
 
 	public $position;
 	public $file;
@@ -61,7 +61,7 @@ class WP_Test_Stream {
 		}
 
 		if ( ! isset( WP_Test_Stream::$data[ $this->bucket ] ) ) {
-			WP_Test_Stream::$data[ $this->bucket ] = array();
+			WP_Test_Stream::$data[ $this->bucket ] = [];
 		}
 
 		$this->data_ref =& WP_Test_Stream::$data[ $this->bucket ][ $this->file ];

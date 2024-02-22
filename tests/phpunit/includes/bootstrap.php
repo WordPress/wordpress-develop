@@ -168,7 +168,7 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 	$required_extensions = array(
 		'gd',
 	);
-	$missing_extensions  = array();
+	$missing_extensions  = [];
 
 	foreach ( $required_extensions as $extension ) {
 		if ( ! extension_loaded( $extension ) ) {
@@ -192,7 +192,7 @@ $required_constants = array(
 	'WP_TESTS_TITLE',
 	'WP_PHP_BINARY',
 );
-$missing_constants  = array();
+$missing_constants  = [];
 
 foreach ( $required_constants as $constant ) {
 	if ( ! defined( $constant ) ) {
@@ -252,7 +252,7 @@ $phpmailer = new MockPHPMailer( true );
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 	define( 'WP_DEFAULT_THEME', 'default' );
 }
-$wp_theme_directories = array();
+$wp_theme_directories = [];
 
 if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';

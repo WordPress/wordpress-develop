@@ -81,7 +81,7 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$response   = array();
+		$response   = [];
 		$categories = WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered();
 		foreach ( $categories as $category ) {
 			$prepared_category = $this->prepare_item_for_response( $category, $request );
@@ -103,7 +103,7 @@ class WP_REST_Block_Pattern_Categories_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
 		$keys   = array( 'name', 'label', 'description' );
-		$data   = array();
+		$data   = [];
 		foreach ( $keys as $key ) {
 			if ( isset( $item[ $key ] ) && rest_is_field_included( $key, $fields ) ) {
 				$data[ $key ] = $item[ $key ];

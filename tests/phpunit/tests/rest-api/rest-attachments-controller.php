@@ -106,7 +106,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function wpSetUpBeforeRequest( $result ) {
-		$this->posts_clauses = array();
+		$this->posts_clauses = [];
 		return $result;
 	}
 
@@ -119,8 +119,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->remove_added_uploads();
 
 		if ( class_exists( WP_Image_Editor_Mock::class ) ) {
-			WP_Image_Editor_Mock::$spy         = array();
-			WP_Image_Editor_Mock::$edit_return = array();
+			WP_Image_Editor_Mock::$spy         = [];
+			WP_Image_Editor_Mock::$edit_return = [];
 			WP_Image_Editor_Mock::$size_return = null;
 		}
 
@@ -1724,7 +1724,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function test_additional_field_update_errors() {
@@ -1768,7 +1768,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function additional_field_get_callback( $response_data, $field_name ) {

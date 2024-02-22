@@ -452,7 +452,7 @@ class SimplePie
 	 * @var array Raw data
 	 * @access private
 	 */
-	public $data = array();
+	public $data = [];
 
 	/**
 	 * @var mixed Error string
@@ -521,7 +521,7 @@ class SimplePie
 	 * @see SimplePie::set_curl_options()
 	 * @access private
 	 */
-	public $curl_options = array();
+	public $curl_options = [];
 
 	/**
 	 * @var bool Forces fsockopen() to be used for remote files instead
@@ -623,7 +623,7 @@ class SimplePie
 	 * @see SimplePie::get_all_discovered_feeds()
 	 * @access private
 	 */
-	public $all_discovered_feeds = array();
+	public $all_discovered_feeds = [];
 
 	/**
 	 * @var string Web-accessible path to the handler_image.php file.
@@ -637,13 +637,13 @@ class SimplePie
 	 * @see SimplePie::set_feed_url()
 	 * @access private
 	 */
-	public $multifeed_url = array();
+	public $multifeed_url = [];
 
 	/**
 	 * @var array Stores SimplePie objects when multiple feeds initialized.
 	 * @access private
 	 */
-	public $multifeed_objects = array();
+	public $multifeed_objects = [];
 
 	/**
 	 * @var array Stores the get_object_vars() array for use with multifeeds.
@@ -801,7 +801,7 @@ class SimplePie
 	 */
 	public function set_feed_url($url)
 	{
-		$this->multifeed_url = array();
+		$this->multifeed_url = [];
 		if (is_array($url))
 		{
 			foreach ($url as $value)
@@ -960,7 +960,7 @@ class SimplePie
 	{
 		// Append custom parameters to the URL to avoid cache pollution in case of multiple calls with different parameters.
 		$url .= $this->force_feed ? '#force_feed' : '';
-		$options = array();
+		$options = [];
 		if ($this->timeout != 10)
 		{
 			$options[CURLOPT_TIMEOUT] = $this->timeout;
@@ -1429,8 +1429,8 @@ class SimplePie
 		{
 			$i = 0;
 			$success = 0;
-			$this->multifeed_objects = array();
-			$this->error = array();
+			$this->multifeed_objects = [];
+			$this->error = [];
 			foreach ($this->multifeed_url as $url)
 			{
 				$this->multifeed_objects[$i] = clone $this;
@@ -1451,9 +1451,9 @@ class SimplePie
 		}
 
 		$this->error = null;
-		$this->data = array();
+		$this->data = [];
 		$this->check_modified = false;
-		$this->multifeed_objects = array();
+		$this->multifeed_objects = [];
 		$cache = false;
 
 		if ($this->feed_url !== null)
@@ -1487,7 +1487,7 @@ class SimplePie
 		}
 
 		// Set up array of possible encodings
-		$encodings = array();
+		$encodings = [];
 
 		// First check to see if input has been overridden.
 		if ($this->input_encoding !== false)
@@ -1581,7 +1581,7 @@ class SimplePie
 			if (!extension_loaded('mbstring') && !extension_loaded('iconv') && !class_exists('\UConverter')) {
 				$this->error .= ' You MUST have either the iconv, mbstring or intl (PHP 5.5+) extension installed and enabled.';
 			} else {
-				$missingExtensions = array();
+				$missingExtensions = [];
 				if (!extension_loaded('iconv')) {
 					$missingExtensions[] = 'iconv';
 				}
@@ -1620,13 +1620,13 @@ class SimplePie
 				if (!isset($this->data['build']) || $this->data['build'] !== SIMPLEPIE_BUILD)
 				{
 					$cache->unlink();
-					$this->data = array();
+					$this->data = [];
 				}
 				// If we've hit a collision just rerun it with caching disabled
 				elseif (isset($this->data['url']) && $this->data['url'] !== $this->feed_url)
 				{
 					$cache = false;
-					$this->data = array();
+					$this->data = [];
 				}
 				// If we've got a non feed_url stored (if the page isn't actually a feed, or is a redirect) use that URL.
 				elseif (isset($this->data['feed_url']))
@@ -1642,7 +1642,7 @@ class SimplePie
 						}
 
 						$cache->unlink();
-						$this->data = array();
+						$this->data = [];
 					}
 				}
 				// Check if the cache has been updated
@@ -1704,7 +1704,7 @@ class SimplePie
 			else
 			{
 				$cache->unlink();
-				$this->data = array();
+				$this->data = [];
 			}
 		}
 		// If we don't already have the file (it'll only exist if we've opened it to check if the cache has been modified), open it.
@@ -2346,7 +2346,7 @@ class SimplePie
 	 */
 	public function get_categories()
 	{
-		$categories = array();
+		$categories = [];
 
 		foreach ((array) $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'category') as $category)
 		{
@@ -2427,7 +2427,7 @@ class SimplePie
 	 */
 	public function get_authors()
 	{
-		$authors = array();
+		$authors = [];
 		foreach ((array) $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'author') as $author)
 		{
 			$name = null;
@@ -2521,7 +2521,7 @@ class SimplePie
 	 */
 	public function get_contributors()
 	{
-		$contributors = array();
+		$contributors = [];
 		foreach ((array) $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'contributor') as $contributor)
 		{
 			$name = null;
@@ -2623,7 +2623,7 @@ class SimplePie
 	{
 		if (!isset($this->data['links']))
 		{
-			$this->data['links'] = array();
+			$this->data['links'] = [];
 			if ($links = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'link'))
 			{
 				foreach ($links as $link)
@@ -3112,11 +3112,11 @@ class SimplePie
 				$this->data['items'] = SimplePie::merge_items($this->multifeed_objects, $start, $end, $this->item_limit);
 				if (empty($this->data['items']))
 				{
-					return array();
+					return [];
 				}
 				return $this->data['items'];
 			}
-			$this->data['items'] = array();
+			$this->data['items'] = [];
 			if ($items = $this->get_feed_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'entry'))
 			{
 				$keys = array_keys($items);
@@ -3161,7 +3161,7 @@ class SimplePie
 
 		if (empty($this->data['items']))
 		{
-			return array();
+			return [];
 		}
 
 		if ($this->order_by_date)
@@ -3287,7 +3287,7 @@ class SimplePie
 	{
 		if (is_array($urls) && sizeof($urls) > 0)
 		{
-			$items = array();
+			$items = [];
 			foreach ($urls as $arg)
 			{
 				if ($arg instanceof SimplePie)
@@ -3311,7 +3311,7 @@ class SimplePie
 		}
 
 		trigger_error('Cannot merge zero SimplePie objects', E_USER_WARNING);
-		return array();
+		return [];
 	}
 
 	/**

@@ -404,7 +404,7 @@ class WP_Site_Query {
 		}
 
 		// Fetch full site objects from the primed cache.
-		$_sites = array();
+		$_sites = [];
 		foreach ( $site_ids as $site_id ) {
 			$_site = get_site( $site_id );
 			if ( $_site ) {
@@ -450,7 +450,7 @@ class WP_Site_Query {
 				$this->query_vars['orderby'] :
 				preg_split( '/[,\s]/', $this->query_vars['orderby'] );
 
-			$orderby_array = array();
+			$orderby_array = [];
 			foreach ( $ordersby as $_key => $_value ) {
 				if ( ! $_value ) {
 					continue;
@@ -603,7 +603,7 @@ class WP_Site_Query {
 
 		// Falsey search strings are ignored.
 		if ( strlen( $this->query_vars['search'] ) ) {
-			$search_columns = array();
+			$search_columns = [];
 
 			if ( $this->query_vars['search_columns'] ) {
 				$search_columns = array_intersect( $this->query_vars['search_columns'], array( 'domain', 'path' ) );
@@ -759,7 +759,7 @@ class WP_Site_Query {
 			$like = '%' . $wpdb->esc_like( $search ) . '%';
 		}
 
-		$searches = array();
+		$searches = [];
 		foreach ( $columns as $column ) {
 			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 		}

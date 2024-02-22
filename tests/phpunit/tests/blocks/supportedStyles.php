@@ -28,7 +28,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	private $registered_block_names = array();
+	private $registered_block_names = [];
 
 	/**
 	 * Tear down each test method.
@@ -705,7 +705,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 		$wp_block = new WP_Block( $block );
 
 		// Custom error handler's see Warnings even if they are suppressed by the @ symbol.
-		$errors = array();
+		$errors = [];
 		set_error_handler(
 			static function ( $errno = 0, $errstr = '' ) use ( &$errors ) {
 				$errors[] = $errstr;

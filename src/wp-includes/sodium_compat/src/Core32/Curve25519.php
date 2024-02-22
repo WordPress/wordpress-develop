@@ -86,7 +86,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
         ParagonIE_Sodium_Core32_Curve25519_Fe $f,
         ParagonIE_Sodium_Core32_Curve25519_Fe $g
     ) {
-        $arr = array();
+        $arr = [];
         for ($i = 0; $i < 10; ++$i) {
             $arr[$i] = $f[$i]->addInt32($g[$i]);
         }
@@ -114,7 +114,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
         $b = 0
     ) {
         /** @var array<int, ParagonIE_Sodium_Core32_Int32> $h */
-        $h = array();
+        $h = [];
         for ($i = 0; $i < 10; ++$i) {
             if (!($f[$i] instanceof ParagonIE_Sodium_Core32_Int32)) {
                 throw new TypeError('Expected Int32');
@@ -266,7 +266,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
          * @var ParagonIE_Sodium_Core32_Int64[] $f
          * @var ParagonIE_Sodium_Core32_Int64 $q
          */
-        $f = array();
+        $f = [];
 
         for ($i = 0; $i < 10; ++$i) {
             $f[$i] = $h[$i]->toInt64();
@@ -1393,7 +1393,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
             }
         }
         /** @var array<int, int> $r */
-        $r = array();
+        $r = [];
         for ($i = 0; $i < 256; ++$i) {
             $r[$i] = (int) (1 &
                 (
@@ -1867,7 +1867,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
     {
         static $base = null;
         if ($base === null) {
-            $base = array();
+            $base = [];
             foreach (self::$base as $i => $bas) {
                 for ($j = 0; $j < 8; ++$j) {
                     $base[$i][$j] = new ParagonIE_Sodium_Core32_Curve25519_Ge_Precomp(
@@ -2014,9 +2014,9 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
         $b
     ) {
         /** @var array<int, ParagonIE_Sodium_Core32_Curve25519_Ge_Cached> $Ai */
-        $Ai = array();
+        $Ai = [];
 
-        static $Bi = array();
+        static $Bi = [];
         /** @var array<int, ParagonIE_Sodium_Core32_Curve25519_Ge_Precomp> $Bi */
         if (!$Bi) {
             for ($i = 0; $i < 8; ++$i) {
@@ -2184,7 +2184,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
     public static function ge_scalarmult_base($a)
     {
         /** @var array<int, int> $e */
-        $e = array();
+        $e = [];
         $r = new ParagonIE_Sodium_Core32_Curve25519_Ge_P1p1();
 
         for ($i = 0; $i < 32; ++$i) {
@@ -3122,7 +3122,7 @@ abstract class ParagonIE_Sodium_Core32_Curve25519 extends ParagonIE_Sodium_Core3
         );
 
         /** @var array<int, ParagonIE_Sodium_Core32_Curve25519_Ge_Cached> $Ai size 8 */
-        $Ai = array();
+        $Ai = [];
 
         # ge_p3_to_cached(&Ai[0], A);
         $Ai[0] = self::ge_p3_to_cached($A);

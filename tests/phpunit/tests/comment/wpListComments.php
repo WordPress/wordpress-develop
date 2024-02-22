@@ -21,7 +21,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 	public function test_should_respect_page_param() {
 		$p = self::factory()->post->create();
 
-		$comments = array();
+		$comments = [];
 		$now      = time();
 		for ( $i = 0; $i <= 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
@@ -59,7 +59,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 	public function test_should_respect_per_page_param() {
 		$p = self::factory()->post->create();
 
-		$comments = array();
+		$comments = [];
 		$now      = time();
 		for ( $i = 0; $i <= 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
@@ -97,7 +97,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 	public function test_should_respect_reverse_top_level_param() {
 		$p = self::factory()->post->create();
 
-		$comments = array();
+		$comments = [];
 		$now      = time();
 		for ( $i = 0; $i <= 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
@@ -143,7 +143,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 	public function test_comments_param_should_be_respected_when_custom_pagination_params_are_passed() {
 		$p = self::factory()->post->create();
 
-		$comments = array();
+		$comments = [];
 		$now      = time();
 		for ( $i = 0; $i <= 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
@@ -183,7 +183,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 	public function test_custom_pagination_should_not_result_in_unapproved_comments_being_shown() {
 		$p = self::factory()->post->create();
 
-		$comments = array();
+		$comments = [];
 		$now      = time();
 		for ( $i = 0; $i <= 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
@@ -228,7 +228,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 		$u = self::factory()->user->create();
 
-		$comments = array();
+		$comments = [];
 		$now      = time();
 		for ( $i = 0; $i <= 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(

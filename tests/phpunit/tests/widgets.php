@@ -12,11 +12,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 	public function clean_up_global_scope() {
 		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
 
-		$wp_registered_sidebars        = array();
-		$wp_registered_widgets         = array();
-		$wp_registered_widget_controls = array();
-		$wp_registered_widget_updates  = array();
-		$wp_widget_factory->widgets    = array();
+		$wp_registered_sidebars        = [];
+		$wp_registered_widgets         = [];
+		$wp_registered_widget_controls = [];
+		$wp_registered_widget_updates  = [];
+		$wp_widget_factory->widgets    = [];
 
 		parent::clean_up_global_scope();
 	}
@@ -143,7 +143,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	public function test_register_sidebars_multiple() {
 		global $wp_registered_sidebars;
 
-		$result  = array();
+		$result  = [];
 		$num     = 3;
 		$id_base = 'WP Unit Test';
 		register_sidebars( $num, array( 'name' => $id_base . ' %d' ) );
@@ -1048,7 +1048,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		// Theme changed.
 		$result = retrieve_widgets( true );
 
-		$_wp_sidebars_widgets = array();
+		$_wp_sidebars_widgets = [];
 		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
@@ -1090,7 +1090,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		// Theme did not change.
 		$result = retrieve_widgets();
 
-		$_wp_sidebars_widgets = array();
+		$_wp_sidebars_widgets = [];
 		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
@@ -1141,7 +1141,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$result = retrieve_widgets( 'customize' );
 
-		$_wp_sidebars_widgets = array();
+		$_wp_sidebars_widgets = [];
 		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 

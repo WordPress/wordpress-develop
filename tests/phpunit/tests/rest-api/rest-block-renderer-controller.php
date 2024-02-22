@@ -365,7 +365,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		wp_set_current_user( self::$user_id );
 
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( self::$block_name );
-		$defaults   = array();
+		$defaults   = [];
 		foreach ( $block_type->attributes as $key => $attribute ) {
 			if ( isset( $attribute['default'] ) ) {
 				$defaults[ $key ] = $attribute['default'];

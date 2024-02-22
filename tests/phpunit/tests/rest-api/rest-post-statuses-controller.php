@@ -195,7 +195,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function additional_field_get_callback( $response_data ) {

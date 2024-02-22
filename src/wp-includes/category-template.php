@@ -77,7 +77,7 @@ function get_category_parents( $category_id, $link = false, $separator = '/', $n
 function get_the_category( $post_id = false ) {
 	$categories = get_the_terms( $post_id, 'category' );
 	if ( ! $categories || is_wp_error( $categories ) ) {
-		$categories = array();
+		$categories = [];
 	}
 
 	$categories = array_values( $categories );
@@ -569,7 +569,7 @@ function wp_list_categories( $args = '' ) {
 
 	// Descendants of exclusions should be excluded too.
 	if ( $parsed_args['hierarchical'] ) {
-		$exclude_tree = array();
+		$exclude_tree = [];
 
 		if ( $parsed_args['exclude_tree'] ) {
 			$exclude_tree = array_merge( $exclude_tree, wp_parse_id_list( $parsed_args['exclude_tree'] ) );
@@ -926,8 +926,8 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		$tags = array_slice( $tags, 0, $args['number'] );
 	}
 
-	$counts      = array();
-	$real_counts = array(); // For the alt tag.
+	$counts      = [];
+	$real_counts = []; // For the alt tag.
 	foreach ( (array) $tags as $key => $tag ) {
 		$real_counts[ $key ] = $tag->count;
 		$counts[ $key ]      = call_user_func( $args['topic_count_scale_callback'], $tag->count );
@@ -961,7 +961,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	}
 
 	// Assemble the data that will be used to generate the tag cloud markup.
-	$tags_data = array();
+	$tags_data = [];
 	foreach ( $tags as $key => $tag ) {
 		$tag_id = isset( $tag->id ) ? $tag->id : $key;
 
@@ -998,7 +998,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	 */
 	$tags_data = apply_filters( 'wp_generate_tag_cloud_data', $tags_data );
 
-	$a = array();
+	$a = [];
 
 	// Generate the output links array.
 	foreach ( $tags_data as $key => $tag_data ) {
@@ -1346,7 +1346,7 @@ function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after
 		return false;
 	}
 
-	$links = array();
+	$links = [];
 
 	foreach ( $terms as $term ) {
 		$link = get_term_link( $term, $taxonomy );

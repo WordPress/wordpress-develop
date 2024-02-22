@@ -101,7 +101,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		wp_cache_delete( 'alloptions', 'options' );
 
-		$results = array();
+		$results = [];
 		foreach ( $expected as $option => $value ) {
 			$results[ $option ] = get_option( $option );
 		}
@@ -232,7 +232,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		populate_site_meta( 42, $meta );
 
-		$results = array();
+		$results = [];
 		foreach ( $expected as $meta_key => $value ) {
 			$results[ $meta_key ] = get_site_meta( 42, $meta_key, true );
 		}
@@ -276,7 +276,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		populate_network_meta( 42, $meta );
 
-		$results = array();
+		$results = [];
 		foreach ( $expected as $meta_key => $value ) {
 			if ( is_multisite() ) {
 				$results[ $meta_key ] = get_network_option( 42, $meta_key );

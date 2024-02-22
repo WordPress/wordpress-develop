@@ -893,7 +893,7 @@ function upgrade_100() {
 
 	$done_ids = $wpdb->get_results( "SELECT DISTINCT post_id FROM $wpdb->post2cat" );
 	if ( $done_ids ) :
-		$done_posts = array();
+		$done_posts = [];
 		foreach ( $done_ids as $done_id ) :
 			$done_posts[] = $done_id->post_id;
 		endforeach;
@@ -1281,7 +1281,7 @@ function upgrade_230() {
 	}
 
 	// Convert categories to terms.
-	$tt_ids     = array();
+	$tt_ids     = [];
 	$have_tags  = false;
 	$categories = $wpdb->get_results( "SELECT * FROM $wpdb->categories ORDER BY cat_ID" );
 	foreach ( $categories as $category ) {
@@ -1387,9 +1387,9 @@ function upgrade_230() {
 		 * Create link_category terms for link categories. Create a map of link
 		 * category IDs to link_category terms.
 		 */
-		$link_cat_id_map  = array();
+		$link_cat_id_map  = [];
 		$default_link_cat = 0;
-		$tt_ids           = array();
+		$tt_ids           = [];
 		$link_cats        = $wpdb->get_results( 'SELECT cat_id, cat_name FROM ' . $wpdb->prefix . 'linkcategories' );
 		foreach ( $link_cats as $category ) {
 			$cat_id     = (int) $category->cat_id;
@@ -1735,7 +1735,7 @@ function upgrade_330() {
 	}
 
 	$sidebars_widgets  = get_option( 'sidebars_widgets', array() );
-	$_sidebars_widgets = array();
+	$_sidebars_widgets = [];
 
 	if ( isset( $sidebars_widgets['wp_inactive_widgets'] ) || empty( $sidebars_widgets ) ) {
 		$sidebars_widgets['array_version'] = 3;
@@ -1850,7 +1850,7 @@ function upgrade_350() {
 	}
 
 	if ( $wp_current_db_version < 21811 && wp_should_upgrade_global_tables() ) {
-		$meta_keys = array();
+		$meta_keys = [];
 		foreach ( array_merge( get_post_types(), get_taxonomies() ) as $name ) {
 			if ( str_contains( $name, '-' ) ) {
 				$meta_keys[] = 'edit_' . str_replace( '-', '_', $name ) . '_per_page';
@@ -2449,7 +2449,7 @@ function upgrade_network() {
 		$allowedthemes  = get_site_option( 'allowedthemes' );
 		$allowed_themes = get_site_option( 'allowed_themes' );
 		if ( false === $allowedthemes && is_array( $allowed_themes ) && $allowed_themes ) {
-			$converted = array();
+			$converted = [];
 			$themes    = wp_get_themes();
 			foreach ( $themes as $stylesheet => $theme_data ) {
 				if ( isset( $allowed_themes[ $theme_data->get( 'Name' ) ] ) ) {
@@ -2827,9 +2827,9 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	 */
 	$queries = apply_filters( 'dbdelta_queries', $queries );
 
-	$cqueries   = array(); // Creation queries.
-	$iqueries   = array(); // Insertion queries.
-	$for_update = array();
+	$cqueries   = []; // Creation queries.
+	$iqueries   = []; // Insertion queries.
+	$for_update = [];
 
 	// Create a tablename index for an array ($cqueries) of recognized query types.
 	foreach ( $queries as $qry ) {
@@ -2902,9 +2902,9 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		}
 
 		// Clear the field and index arrays.
-		$cfields                  = array();
-		$indices                  = array();
-		$indices_without_subparts = array();
+		$cfields                  = [];
+		$indices                  = [];
+		$indices_without_subparts = [];
 
 		// Get all of the field names in the query from between the parentheses.
 		preg_match( '|\((.*)\)|ms', $qry, $match2 );
@@ -3141,7 +3141,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 		if ( $tableindices ) {
 			// Clear the index array.
-			$index_ary = array();
+			$index_ary = [];
 
 			// For every index in the table.
 			foreach ( $tableindices as $tableindex ) {

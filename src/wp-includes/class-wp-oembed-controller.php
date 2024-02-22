@@ -206,7 +206,7 @@ final class WP_oEmbed_Controller {
 
 			if ( $html ) {
 				// Check if any scripts were enqueued by the shortcode, and include them in the response.
-				$enqueued_scripts = array();
+				$enqueued_scripts = [];
 
 				foreach ( $wp_scripts->queue as $script ) {
 					$enqueued_scripts[] = $wp_scripts->registered[ $script ]->src;

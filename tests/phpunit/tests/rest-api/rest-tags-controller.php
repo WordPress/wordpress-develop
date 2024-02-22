@@ -14,7 +14,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $contributor;
 	protected static $subscriber;
 
-	protected static $tag_ids    = array();
+	protected static $tag_ids    = [];
 	protected static $total_tags = 30;
 	protected static $per_page   = 50;
 
@@ -1281,7 +1281,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function test_additional_field_update_errors() {
@@ -1319,7 +1319,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 	}
 
 	public function additional_field_get_callback( $response_data, $field_name ) {

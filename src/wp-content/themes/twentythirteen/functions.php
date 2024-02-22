@@ -284,7 +284,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 		$bitter = _x( 'on', 'Bitter font: on or off', 'twentythirteen' );
 
 		if ( 'off' !== $source_sans_pro || 'off' !== $bitter ) {
-			$font_families = array();
+			$font_families = [];
 
 			if ( 'off' !== $source_sans_pro ) {
 				$font_families[] = 'source-sans-pro';

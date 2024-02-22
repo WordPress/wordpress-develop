@@ -109,7 +109,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$data  = array();
+		$data  = [];
 		$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 
 		foreach ( $types as $type ) {
@@ -185,7 +185,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$supports   = get_all_post_type_supports( $post_type->name );
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'capabilities', $fields ) ) {
 			$data['capabilities'] = $post_type->cap;

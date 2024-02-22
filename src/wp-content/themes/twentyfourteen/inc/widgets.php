@@ -157,7 +157,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 						if ( post_password_required() ) :
 							the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyfourteen' ) );
 							else :
-								$images = array();
+								$images = [];
 
 								$galleries = get_post_galleries( get_the_ID(), false );
 								if ( isset( $galleries[0]['ids'] ) ) {

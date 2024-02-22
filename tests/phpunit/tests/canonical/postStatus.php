@@ -251,7 +251,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 * @return array[]
 	 */
 	public function data_canonical_redirects_to_plain_permalinks() {
-		$data              = array();
+		$data              = [];
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
 		$select_block_list = array( 'anon', 'subscriber' );
@@ -882,7 +882,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 * }
 	 */
 	public function data_canonical_redirects_to_pretty_permalinks() {
-		$data              = array();
+		$data              = [];
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
 		$select_block_list = array( 'anon', 'subscriber' );

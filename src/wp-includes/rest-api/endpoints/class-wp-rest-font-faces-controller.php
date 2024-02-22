@@ -348,8 +348,8 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$srcs           = is_string( $settings['src'] ) ? array( $settings['src'] ) : $settings['src'];
-		$processed_srcs = array();
-		$font_file_meta = array();
+		$processed_srcs = [];
+		$font_file_meta = [];
 
 		foreach ( $srcs as $src ) {
 			// If src not a file reference, use it as is.
@@ -443,7 +443,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $item->ID;

@@ -11,7 +11,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	 *
 	 * @var array[]
 	 */
-	public static $shared_terms = array();
+	public static $shared_terms = [];
 
 	/**
 	 * Test taxonomy term object.

@@ -328,7 +328,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$mime_types[] = 'image/webp';
 		}
 
-		$data = array();
+		$data = [];
 
 		foreach ( $classes as $class ) {
 			foreach ( $mime_types as $mime_type ) {
@@ -548,7 +548,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'unk'  => 'image/jpeg', // Default, unknown.
 		);
 
-		$data = array();
+		$data = [];
 
 		foreach ( $classes as $class ) {
 			foreach ( $mime_types as $ext => $mime_type ) {
@@ -723,7 +723,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 		$this->assertInstanceOf( 'WP_Error', $file );
 
-		WP_Image_Editor_Mock::$save_return = array();
+		WP_Image_Editor_Mock::$save_return = [];
 	}
 
 	/**

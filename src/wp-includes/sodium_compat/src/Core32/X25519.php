@@ -103,7 +103,7 @@ abstract class ParagonIE_Sodium_Core32_X25519 extends ParagonIE_Sodium_Core32_Cu
     public static function fe_mul121666(ParagonIE_Sodium_Core32_Curve25519_Fe $f)
     {
         /** @var array<int, ParagonIE_Sodium_Core32_Int64> $h */
-        $h = array();
+        $h = [];
         for ($i = 0; $i < 10; ++$i) {
             $h[$i] = $f[$i]->toInt64()->mulInt(121666, 17);
         }

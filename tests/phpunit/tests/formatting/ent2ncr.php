@@ -21,7 +21,7 @@ class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 	 */
 	public function data_entities() {
 		$entities      = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$data_provided = array();
+		$data_provided = [];
 		foreach ( $entities as $line ) {
 			// Comment.
 			$commentpos = strpos( $line, '###' );

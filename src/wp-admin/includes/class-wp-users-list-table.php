@@ -184,8 +184,8 @@ class WP_Users_List_Table extends WP_List_Table {
 			$url = 'users.php';
 		}
 
-		$role_links  = array();
-		$avail_roles = array();
+		$role_links  = [];
+		$avail_roles = [];
 		$all_text    = __( 'All' );
 
 		if ( $count_users ) {
@@ -269,7 +269,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @return array Array of bulk action labels keyed by their action.
 	 */
 	protected function get_bulk_actions() {
-		$actions = array();
+		$actions = [];
 
 		if ( is_multisite() ) {
 			if ( current_user_can( 'remove_users' ) ) {
@@ -446,7 +446,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		$user_roles = $this->get_role_list( $user_object );
 
 		// Set up the hover actions for this user.
-		$actions     = array();
+		$actions     = [];
 		$checkbox    = '';
 		$super_admin = '';
 
@@ -658,7 +658,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	protected function get_role_list( $user_object ) {
 		$wp_roles = wp_roles();
 
-		$role_list = array();
+		$role_list = [];
 
 		foreach ( $user_object->roles as $role ) {
 			if ( isset( $wp_roles->role_names[ $role ] ) ) {

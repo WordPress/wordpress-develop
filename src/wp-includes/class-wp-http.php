@@ -305,7 +305,7 @@ class WP_Http {
 		}
 
 		if ( is_null( $parsed_args['headers'] ) ) {
-			$parsed_args['headers'] = array();
+			$parsed_args['headers'] = [];
 		}
 
 		// WP allows passing in headers as a string, weirdly.
@@ -576,7 +576,7 @@ class WP_Http {
 	 *                        A WP_Error instance upon error.
 	 */
 	private function _dispatch_request( $url, $args ) {
-		static $transports = array();
+		static $transports = [];
 
 		$class = $this->_get_first_available_transport( $args, $url );
 		if ( ! $class ) {
@@ -730,8 +730,8 @@ class WP_Http {
 			}
 		}
 
-		$cookies    = array();
-		$newheaders = array();
+		$cookies    = [];
+		$newheaders = [];
 		foreach ( (array) $headers as $tempheader ) {
 			if ( empty( $tempheader ) ) {
 				continue;
@@ -904,12 +904,12 @@ class WP_Http {
 		}
 
 		static $accessible_hosts = null;
-		static $wildcard_regex   = array();
+		static $wildcard_regex   = [];
 		if ( null === $accessible_hosts ) {
 			$accessible_hosts = preg_split( '|,\s*|', WP_ACCESSIBLE_HOSTS );
 
 			if ( str_contains( WP_ACCESSIBLE_HOSTS, '*' ) ) {
-				$wildcard_regex = array();
+				$wildcard_regex = [];
 				foreach ( $accessible_hosts as $host ) {
 					$wildcard_regex[] = str_replace( '\*', '.+', preg_quote( $host, '/' ) );
 				}

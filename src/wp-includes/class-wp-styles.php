@@ -311,7 +311,7 @@ class WP_Styles extends WP_Dependencies {
 
 		$after = $this->get_data( $handle, 'after' );
 		if ( ! $after ) {
-			$after = array();
+			$after = [];
 		}
 
 		$after[] = $code;

@@ -224,11 +224,11 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
-	static $template_path_list = array();
+	static $template_path_list = [];
 	if ( isset( $template_path_list[ $base_directory ] ) ) {
 		return $template_path_list[ $base_directory ];
 	}
-	$path_list = array();
+	$path_list = [];
 	try {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
@@ -323,8 +323,8 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	}
 
 	// Prepare metadata from $query.
-	$slugs_to_include = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
-	$slugs_to_skip    = isset( $query['slug__not_in'] ) ? $query['slug__not_in'] : array();
+	$slugs_to_include = isset( $query['slug__in'] ) ? $query['slug__in'] : [];
+	$slugs_to_skip    = isset( $query['slug__not_in'] ) ? $query['slug__not_in'] : [];
 	$area             = isset( $query['area'] ) ? $query['area'] : null;
 	$post_type        = isset( $query['post_type'] ) ? $query['post_type'] : '';
 
@@ -337,7 +337,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( $stylesheet !== $template ) {
 		$themes[ $template ] = get_template_directory();
 	}
-	$template_files = array();
+	$template_files = [];
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths  = get_block_theme_folders( $theme_slug );
 		$theme_template_files = _get_block_templates_paths( $theme_dir . '/' . $template_base_paths[ $template_type ] );
@@ -456,8 +456,8 @@ function _add_block_template_part_area_info( $template_info ) {
  * @return array block references to the passed blocks and their inner blocks.
  */
 function _flatten_blocks( &$blocks ) {
-	$all_blocks = array();
-	$queue      = array();
+	$all_blocks = [];
+	$queue      = [];
 	foreach ( $blocks as &$block ) {
 		$queue[] = &$block;
 	}
@@ -795,7 +795,7 @@ function _build_block_template_result_from_post( $post ) {
 
 	// Check for a block template without a description and title or with a title equal to the slug.
 	if ( 'wp_template' === $parent_post->post_type && empty( $template->description ) && ( empty( $template->title ) || $template->title === $template->slug ) ) {
-		$matches = array();
+		$matches = [];
 
 		// Check for a block template for a single author, page, post, tag, category, custom post type, or custom taxonomy.
 		if ( preg_match( '/(author|page|single|tag|category|taxonomy)-(.+)/', $template->slug, $matches ) ) {
@@ -991,7 +991,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	}
 
 	$template_query = new WP_Query( $wp_query_args );
-	$query_result   = array();
+	$query_result   = [];
 	foreach ( $template_query->posts as $post ) {
 		$template = _build_block_template_result_from_post( $post );
 
@@ -1367,7 +1367,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 		return array( 'front-page', 'home', 'index' );
 	}
 
-	$matches = array();
+	$matches = [];
 
 	$template_hierarchy = array( $slug );
 	// Most default templates don't have `$template_prefix` assigned.

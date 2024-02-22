@@ -89,7 +89,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 
 		$collections_page = array_slice( $collections_all, ( $page - 1 ) * $per_page, $per_page );
 
-		$items = array();
+		$items = [];
 		foreach ( $collections_page as $collection ) {
 			$item = $this->prepare_item_for_response( $collection, $request );
 
@@ -160,7 +160,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	*/
 	public function prepare_item_for_response( $item, $request ) {
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'slug', $fields ) ) {
 			$data['slug'] = $item->slug;

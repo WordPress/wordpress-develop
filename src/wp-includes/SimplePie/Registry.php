@@ -85,7 +85,7 @@ class SimplePie_Registry
 	 * @see register()
 	 * @var array
 	 */
-	protected $classes = array();
+	protected $classes = [];
 
 	/**
 	 * Legacy classes
@@ -93,7 +93,7 @@ class SimplePie_Registry
 	 * @see register()
 	 * @var array
 	 */
-	protected $legacy = array();
+	protected $legacy = [];
 
 	/**
 	 * Constructor

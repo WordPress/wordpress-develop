@@ -36,7 +36,7 @@ class Custom_Image_Header {
 	 * @var array
 	 * @since 3.0.0
 	 */
-	public $default_headers = array();
+	public $default_headers = [];
 
 	/**
 	 * Used to trigger a success message when settings updated and set to true.
@@ -1247,7 +1247,7 @@ endif;
 
 		$default = sprintf( $default, get_template_directory_uri(), get_stylesheet_directory_uri() );
 
-		$default_data = array();
+		$default_data = [];
 		foreach ( $this->default_headers as $header => $details ) {
 			if ( $details['url'] === $default ) {
 				$default_data = $details;
@@ -1557,7 +1557,7 @@ endif;
 		}
 
 		// If the one true image isn't included in the default set, prepend it.
-		$header_images            = array();
+		$header_images            = [];
 		$header_images['default'] = array(
 			'url'           => $default,
 			'thumbnail_url' => $default,

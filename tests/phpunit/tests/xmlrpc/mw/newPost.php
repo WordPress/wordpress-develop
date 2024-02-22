@@ -6,7 +6,7 @@
 class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 
 	public function test_invalid_username_password() {
-		$post   = array();
+		$post   = [];
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'username', 'password', $post ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
@@ -15,7 +15,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
-		$post   = array();
+		$post   = [];
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'subscriber', 'subscriber', $post ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 401, $result->code );
@@ -24,7 +24,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 	public function test_no_content() {
 		$this->make_user_by_role( 'author' );
 
-		$post   = array();
+		$post   = [];
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 500, $result->code );

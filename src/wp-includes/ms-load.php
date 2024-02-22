@@ -37,10 +37,10 @@ function is_subdomain_install() {
 function wp_get_active_network_plugins() {
 	$active_plugins = (array) get_site_option( 'active_sitewide_plugins', array() );
 	if ( empty( $active_plugins ) ) {
-		return array();
+		return [];
 	}
 
-	$plugins        = array();
+	$plugins        = [];
 	$active_plugins = array_keys( $active_plugins );
 	sort( $active_plugins );
 
@@ -180,7 +180,7 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 		$path_segments = array_slice( $path_segments, 0, $segments );
 	}
 
-	$paths = array();
+	$paths = [];
 
 	while ( count( $path_segments ) ) {
 		$paths[] = '/' . implode( '/', $path_segments ) . '/';

@@ -79,7 +79,7 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
 
 	$fields = _wp_post_revision_fields( $post );
 
-	$revision_data = array();
+	$revision_data = [];
 
 	foreach ( array_intersect( array_keys( $post ), array_keys( $fields ) ) as $field ) {
 		$revision_data[ $field ] = $post[ $field ];
@@ -478,7 +478,7 @@ function wp_restore_post_revision( $revision, $fields = null ) {
 		$fields = array_keys( _wp_post_revision_fields( $revision ) );
 	}
 
-	$update = array();
+	$update = [];
 	foreach ( array_intersect( array_keys( $revision ), $fields ) as $field ) {
 		$update[ $field ] = $revision[ $field ];
 	}
@@ -571,7 +571,7 @@ function wp_post_revision_meta_keys( $post_type ) {
 		get_registered_meta_keys( 'post', $post_type )
 	);
 
-	$wp_revisioned_meta_keys = array();
+	$wp_revisioned_meta_keys = [];
 
 	foreach ( $registered_meta as $name => $args ) {
 		if ( $args['revisions_enabled'] ) {
@@ -661,7 +661,7 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
 	$post = get_post( $post );
 
 	if ( ! $post || empty( $post->ID ) ) {
-		return array();
+		return [];
 	}
 
 	$defaults = array(
@@ -672,7 +672,7 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
 	$args     = wp_parse_args( $args, $defaults );
 
 	if ( $args['check_enabled'] && ! wp_revisions_enabled( $post ) ) {
-		return array();
+		return [];
 	}
 
 	$args = array_merge(
@@ -687,7 +687,7 @@ function wp_get_post_revisions( $post = 0, $args = null ) {
 	$revisions = get_children( $args );
 
 	if ( ! $revisions ) {
-		return array();
+		return [];
 	}
 
 	return $revisions;
@@ -925,7 +925,7 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 	}
 
 	if ( 'standard' === $_REQUEST['post_format'] ) {
-		$terms = array();
+		$terms = [];
 	} else {
 		$term = get_term_by( 'slug', 'post-format-' . sanitize_key( $_REQUEST['post_format'] ), 'post_format' );
 

@@ -554,9 +554,9 @@ BLOB;
 	 * @group block
 	 */
 	public function test_respects_post_id_with_block_gallery() {
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 3 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -823,9 +823,9 @@ BLOB;
 		 * Test the get_post_galleries() function in `$html = false` mode,
 		 * with both shortcode and block galleries.
 		 */
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",
@@ -886,9 +886,9 @@ BLOB;
 		 * Test attributes returned by get_post_galleries() function in `$html = false` mode,
 		 * with both shortcode and block galleries.
 		 */
-		$ids      = array();
-		$imgs     = array();
-		$ids_srcs = array();
+		$ids      = [];
+		$imgs     = [];
+		$ids_srcs = [];
 		foreach ( range( 1, 6 ) as $i ) {
 			$attachment_id = self::factory()->attachment->create_object(
 				"image$i.jpg",

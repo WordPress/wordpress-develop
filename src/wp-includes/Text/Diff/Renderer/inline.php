@@ -183,7 +183,7 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         // Ignore \0; otherwise the while loop will never finish.
         $string = str_replace("\0", '', $string);
 
-        $words = array();
+        $words = [];
         $length = strlen($string);
         $pos = 0;
 

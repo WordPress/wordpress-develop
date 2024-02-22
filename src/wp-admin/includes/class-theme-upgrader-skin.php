@@ -58,7 +58,7 @@ class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 	public function after() {
 		$this->decrement_update_count( 'theme' );
 
-		$update_actions = array();
+		$update_actions = [];
 		$theme_info     = $this->upgrader->theme_info();
 		if ( $theme_info ) {
 			$name       = $theme_info->display( 'Name' );

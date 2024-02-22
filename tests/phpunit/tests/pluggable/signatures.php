@@ -92,7 +92,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			$test_files[] = 'wp-includes/cache.php';
 		}
 
-		$data = array();
+		$data = [];
 
 		foreach ( $test_functions as $function ) {
 			$data[] = array(

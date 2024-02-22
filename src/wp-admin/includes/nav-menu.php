@@ -21,7 +21,7 @@ require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-checklist.php';
  * @param array $request The unsanitized request values.
  */
 function _wp_ajax_menu_quick_search( $request = array() ) {
-	$args            = array();
+	$args            = [];
 	$type            = isset( $request['type'] ) ? $request['type'] : '';
 	$object_type     = isset( $request['object_type'] ) ? $request['object_type'] : '';
 	$query           = isset( $request['q'] ) ? $request['q'] : '';
@@ -214,7 +214,7 @@ function wp_initial_nav_menu_meta_boxes() {
 	}
 
 	$initial_meta_boxes = array( 'add-post-type-page', 'add-post-type-post', 'add-custom-links', 'add-category' );
-	$hidden_meta_boxes  = array();
+	$hidden_meta_boxes  = [];
 
 	foreach ( array_keys( $wp_meta_boxes['nav-menus'] ) as $context ) {
 		foreach ( array_keys( $wp_meta_boxes['nav-menus'][ $context ] ) as $priority ) {
@@ -424,9 +424,9 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 	 * If we're dealing with pages, let's prioritize the Front Page,
 	 * Posts Page and Privacy Policy Page at the top of the list.
 	 */
-	$important_pages = array();
+	$important_pages = [];
 	if ( 'page' === $post_type_name ) {
-		$suppress_page_ids = array();
+		$suppress_page_ids = [];
 
 		// Insert Front Page or custom Home link.
 		$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
@@ -674,7 +674,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				);
 			} else {
 				$searched       = '';
-				$search_results = array();
+				$search_results = [];
 			}
 			?>
 			<p class="quick-search-wrap">
@@ -1050,7 +1050,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 				);
 			} else {
 				$searched       = '';
-				$search_results = array();
+				$search_results = [];
 			}
 			?>
 			<p class="quick-search-wrap">
@@ -1130,7 +1130,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
  */
 function wp_save_nav_menu_items( $menu_id = 0, $menu_data = array() ) {
 	$menu_id     = (int) $menu_id;
-	$items_saved = array();
+	$items_saved = [];
 
 	if ( 0 === $menu_id || is_nav_menu( $menu_id ) ) {
 
@@ -1390,8 +1390,8 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 		)
 	);
 
-	$messages   = array();
-	$menu_items = array();
+	$messages   = [];
+	$menu_items = [];
 
 	// Index menu items by DB ID.
 	foreach ( $unsorted_menu_items as $_item ) {
@@ -1425,7 +1425,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 				continue;
 			}
 
-			$args = array();
+			$args = [];
 			foreach ( $post_fields as $field ) {
 				$args[ $field ] = isset( $_POST[ $field ][ $_key ] ) ? $_POST[ $field ][ $_key ] : '';
 			}
@@ -1464,7 +1464,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	$nav_menu_option = (array) get_option( 'nav_menu_options' );
 
 	if ( ! isset( $nav_menu_option['auto_add'] ) ) {
-		$nav_menu_option['auto_add'] = array();
+		$nav_menu_option['auto_add'] = [];
 	}
 
 	if ( $auto_add ) {
@@ -1535,7 +1535,7 @@ function _wp_expand_nav_menu_post_data() {
 				$array_bits = array_merge( $array_bits, explode( '][', $matches[3] ) );
 			}
 
-			$new_post_data = array();
+			$new_post_data = [];
 
 			// Build the new array value from leaf to trunk.
 			for ( $i = count( $array_bits ) - 1; $i >= 0; $i-- ) {

@@ -21,7 +21,7 @@ class WP_Style_Engine_Processor {
 	 * @since 6.1.0
 	 * @var WP_Style_Engine_CSS_Rules_Store[]
 	 */
-	protected $stores = array();
+	protected $stores = [];
 
 	/**
 	 * The set of CSS rules that this processor will work on.
@@ -29,7 +29,7 @@ class WP_Style_Engine_Processor {
 	 * @since 6.1.0
 	 * @var WP_Style_Engine_CSS_Rule[]
 	 */
-	protected $css_rules = array();
+	protected $css_rules = [];
 
 	/**
 	 * Adds a store to the processor.
@@ -130,7 +130,7 @@ class WP_Style_Engine_Processor {
 	 */
 	private function combine_rules_selectors() {
 		// Build an array of selectors along with the JSON-ified styles to make comparisons easier.
-		$selectors_json = array();
+		$selectors_json = [];
 		foreach ( $this->css_rules as $rule ) {
 			$declarations = $rule->get_declarations()->get_declarations();
 			ksort( $declarations );

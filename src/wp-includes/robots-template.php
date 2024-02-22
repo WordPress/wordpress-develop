@@ -31,7 +31,7 @@ function wp_robots() {
 	 */
 	$robots = apply_filters( 'wp_robots', array() );
 
-	$robots_strings = array();
+	$robots_strings = [];
 	foreach ( $robots as $directive => $value ) {
 		if ( is_string( $value ) ) {
 			// If a string value, include it as value for the directive.

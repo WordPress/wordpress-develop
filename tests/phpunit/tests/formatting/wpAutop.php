@@ -389,7 +389,7 @@ Paragraph two.';
 		);
 
 		// Check whitespace normalization.
-		$content = array();
+		$content = [];
 
 		foreach ( $blocks as $block ) {
 			$content[] = "<$block>foo</$block>";
@@ -405,7 +405,7 @@ Paragraph two.';
 		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
 		// Check whitespace addition.
-		$content = array();
+		$content = [];
 
 		foreach ( $blocks as $block ) {
 			$content[] = "<$block/>";
@@ -417,7 +417,7 @@ Paragraph two.';
 		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
 		// Check whitespace addition with attributes.
-		$content = array();
+		$content = [];
 
 		foreach ( $blocks as $block ) {
 			$content[] = "<$block attr='value'>foo</$block>";
@@ -476,8 +476,8 @@ Paragraph two.';
 			'select',
 		);
 
-		$content  = array();
-		$expected = array();
+		$content  = [];
+		$expected = [];
 
 		foreach ( $inlines as $inline ) {
 			$content[]  = "<$inline>foo</$inline>";

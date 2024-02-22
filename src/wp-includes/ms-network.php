@@ -111,7 +111,7 @@ function clean_network_cache( $ids ) {
  * @param array $networks Array of network row objects.
  */
 function update_network_cache( $networks ) {
-	$data = array();
+	$data = [];
 	foreach ( (array) $networks as $network ) {
 		$data[ $network->id ] = $network;
 	}

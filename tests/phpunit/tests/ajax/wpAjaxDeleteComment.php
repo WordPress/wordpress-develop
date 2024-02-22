@@ -23,7 +23,7 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected static $comments = array();
+	protected static $comments = [];
 
 	/**
 	 * ID of a post.

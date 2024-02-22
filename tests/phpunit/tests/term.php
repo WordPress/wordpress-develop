@@ -6,7 +6,7 @@
  */
 class Tests_Term extends WP_UnitTestCase {
 	protected $taxonomy        = 'category';
-	protected static $post_ids = array();
+	protected static $post_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many( 5 );

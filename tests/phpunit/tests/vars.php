@@ -11,7 +11,7 @@ class Tests_Vars extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $server_vars = array();
+	protected $server_vars = [];
 
 	/**
 	 * Set up.

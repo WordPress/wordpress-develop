@@ -185,7 +185,7 @@ if ( is_multisite() ) :
 				$get_all
 			);
 
-			$result = array();
+			$result = [];
 			foreach ( $site as $key => $value ) {
 				$result[] = $key;
 			}

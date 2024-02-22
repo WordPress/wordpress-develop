@@ -110,7 +110,7 @@ function update_post_thumbnail_cache( $wp_query = null ) {
 		return;
 	}
 
-	$thumb_ids = array();
+	$thumb_ids = [];
 
 	foreach ( $wp_query->posts as $post ) {
 		$id = get_post_thumbnail_id( $post->ID );

@@ -15,7 +15,7 @@ abstract class WP_Test_Adjacent_Image_Link_TestCase extends WP_UnitTestCase {
 	 *
 	 * @var int[]|WP_Error[] Array of attachment IDs.
 	 */
-	protected $default_args = array();
+	protected $default_args = [];
 
 	/**
 	 * Setup the tests after the data provider but before the tests start.

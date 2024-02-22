@@ -15,7 +15,7 @@
  * @return string[] The column header labels keyed by column ID.
  */
 function get_column_headers( $screen ) {
-	static $column_headers = array();
+	static $column_headers = [];
 
 	if ( is_string( $screen ) ) {
 		$screen = convert_to_screen( $screen );
@@ -58,7 +58,7 @@ function get_hidden_columns( $screen ) {
 	$use_defaults = ! is_array( $hidden );
 
 	if ( $use_defaults ) {
-		$hidden = array();
+		$hidden = [];
 
 		/**
 		 * Filters the default list of hidden columns.
@@ -160,7 +160,7 @@ function get_hidden_meta_boxes( $screen ) {
 
 	// Hide slug boxes by default.
 	if ( $use_defaults ) {
-		$hidden = array();
+		$hidden = [];
 
 		if ( 'post' === $screen->base ) {
 			if ( in_array( $screen->post_type, array( 'post', 'page', 'attachment' ), true ) ) {

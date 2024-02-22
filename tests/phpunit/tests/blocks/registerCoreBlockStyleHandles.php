@@ -173,7 +173,7 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 		unset( $core_blocks_meta['archives'] );
 		unset( $core_blocks_meta['widget-group'] );
 
-		$data = array();
+		$data = [];
 		foreach ( $core_blocks_meta as $name => $schema ) {
 			if ( ! isset( $schema['style'] ) ) {
 				$schema['style'] = "wp-block-$name";

@@ -281,7 +281,7 @@ function install_dashboard() {
 		echo $api_tags->get_error_message();
 	} else {
 		// Set up the tags in a way which can be interpreted by wp_generate_tag_cloud().
-		$tags = array();
+		$tags = [];
 		foreach ( (array) $api_tags as $tag ) {
 			$url                  = self_admin_url( 'plugin-install.php?tab=search&type=tag&s=' . urlencode( $tag['name'] ) );
 			$data                 = array(
@@ -923,7 +923,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 	$button           = '';
 	$data             = (object) $data;
 	$status           = install_plugin_install_status( $data );
-	$requires_plugins = $data->requires_plugins ?? array();
+	$requires_plugins = $data->requires_plugins ?? [];
 
 	// Determine the status of plugin dependencies.
 	$installed_plugins                   = get_plugins();

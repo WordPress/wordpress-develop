@@ -78,7 +78,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 		$options  = $this->get_registered_options();
-		$response = array();
+		$response = [];
 
 		foreach ( $options as $name => $args ) {
 			/**
@@ -215,14 +215,14 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return array Array of registered options.
 	 */
 	protected function get_registered_options() {
-		$rest_options = array();
+		$rest_options = [];
 
 		foreach ( get_registered_settings() as $name => $args ) {
 			if ( empty( $args['show_in_rest'] ) ) {
 				continue;
 			}
 
-			$rest_args = array();
+			$rest_args = [];
 
 			if ( is_array( $args['show_in_rest'] ) ) {
 				$rest_args = $args['show_in_rest'];

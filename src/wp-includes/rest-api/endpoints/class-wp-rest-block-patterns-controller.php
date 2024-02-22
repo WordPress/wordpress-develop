@@ -111,7 +111,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 			$this->remote_patterns_loaded = true;
 		}
 
-		$response = array();
+		$response = [];
 		$patterns = WP_Block_Patterns_Registry::get_instance()->get_all_registered();
 		foreach ( $patterns as $pattern ) {
 			$migrated_pattern = $this->migrate_pattern_categories( $pattern );
@@ -177,7 +177,7 @@ class WP_REST_Block_Patterns_Controller extends WP_REST_Controller {
 			'templateTypes' => 'template_types',
 			'source'        => 'source',
 		);
-		$data   = array();
+		$data   = [];
 		foreach ( $keys as $item_key => $rest_key ) {
 			if ( isset( $item[ $item_key ] ) && rest_is_field_included( $rest_key, $fields ) ) {
 				$data[ $rest_key ] = $item[ $item_key ];

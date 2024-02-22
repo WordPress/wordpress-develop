@@ -123,7 +123,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	public function prepare_item( $id, array $fields ) {
 		$post = get_post( $id );
 
-		$data = array();
+		$data = [];
 
 		if ( in_array( WP_REST_Search_Controller::PROP_ID, $fields, true ) ) {
 			$data[ WP_REST_Search_Controller::PROP_ID ] = (int) $post->ID;
@@ -165,7 +165,7 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 	public function prepare_item_links( $id ) {
 		$post = get_post( $id );
 
-		$links = array();
+		$links = [];
 
 		$item_route = rest_get_route_for_post( $post );
 		if ( ! empty( $item_route ) ) {

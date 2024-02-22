@@ -39,7 +39,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		$this->type      = $args['type'];
 		$this->url       = $args['url'];
-		$this->api       = isset( $args['api'] ) ? $args['api'] : array();
+		$this->api       = isset( $args['api'] ) ? $args['api'] : [];
 		$this->overwrite = $args['overwrite'];
 
 		parent::__construct( $args );
@@ -113,7 +113,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 		$activate_link = wp_nonce_url( $activate_link, 'switch-theme_' . $stylesheet );
 
-		$install_actions = array();
+		$install_actions = [];
 
 		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) && ! $theme_info->is_block_theme() ) {
 			$customize_url = add_query_arg(
@@ -288,7 +288,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		 */
 		echo apply_filters( 'install_theme_overwrite_comparison', $table, $current_theme_data, $new_theme_data );
 
-		$install_actions = array();
+		$install_actions = [];
 		$can_update      = true;
 
 		$blocked_message  = '<p>' . esc_html__( 'The theme cannot be updated due to the following:' ) . '</p>';

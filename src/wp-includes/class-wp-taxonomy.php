@@ -49,7 +49,7 @@ final class WP_Taxonomy {
 	 * @since 6.0.0
 	 * @var (string|null)[][] $default_labels
 	 */
-	protected static $default_labels = array();
+	protected static $default_labels = [];
 
 	/**
 	 * A short descriptive summary of what the taxonomy is for.
@@ -656,6 +656,6 @@ final class WP_Taxonomy {
 	 * @since 6.0.0
 	 */
 	public static function reset_default_labels() {
-		self::$default_labels = array();
+		self::$default_labels = [];
 	}
 }

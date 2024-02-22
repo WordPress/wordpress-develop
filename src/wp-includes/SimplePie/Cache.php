@@ -124,7 +124,7 @@ class SimplePie_Cache
 	public static function parse_URL($url)
 	{
 		$params = parse_url($url);
-		$params['extras'] = array();
+		$params['extras'] = [];
 		if (isset($params['query']))
 		{
 			parse_str($params['query'], $params['extras']);

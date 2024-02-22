@@ -36,7 +36,7 @@ class Tests_Post_UpdatePostAuthorCaches extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
 	public static function wpSetupBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$user_ids = array();
+		self::$user_ids = [];
 
 		for ( $i = 0; $i < self::$post_author_count; $i++ ) {
 			self::$user_ids[ $i ] = $factory->user->create();

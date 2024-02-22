@@ -273,7 +273,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'slug'         => 'nicename__in',
 		);
 
-		$prepared_args = array();
+		$prepared_args = [];
 
 		/*
 		 * For each known parameter which is both registered and present in the request,
@@ -337,7 +337,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query = new WP_User_Query( $prepared_args );
 
-		$users = array();
+		$users = [];
 
 		foreach ( $query->results as $user ) {
 			$data    = $this->prepare_item_for_response( $user, $request );
@@ -990,7 +990,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$user = $item;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( in_array( 'id', $fields, true ) ) {
 			$data['id'] = $user->ID;
@@ -1469,7 +1469,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 
 		if ( get_option( 'show_avatars' ) ) {
-			$avatar_properties = array();
+			$avatar_properties = [];
 
 			$avatar_sizes = rest_get_avatar_sizes();
 

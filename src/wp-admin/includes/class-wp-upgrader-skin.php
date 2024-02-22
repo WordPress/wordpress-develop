@@ -59,7 +59,7 @@ class WP_Upgrader_Skin {
 	 *
 	 * @var array
 	 */
-	public $options = array();
+	public $options = [];
 
 	/**
 	 * Constructor.
@@ -135,7 +135,7 @@ class WP_Upgrader_Skin {
 			$url = wp_nonce_url( $url, $this->options['nonce'] );
 		}
 
-		$extra_fields = array();
+		$extra_fields = [];
 
 		return request_filesystem_credentials( $url, '', $error, $context, $extra_fields, $allow_relaxed_file_ownership );
 	}

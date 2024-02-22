@@ -86,7 +86,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @var array
 	 * @since 5.0.0
 	 */
-	protected $count_cache = array();
+	protected $count_cache = [];
 
 	/**
 	 * Caches the difference calculation in compute_string_distance()
@@ -94,7 +94,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @var array
 	 * @since 5.0.0
 	 */
-	protected $difference_cache = array();
+	protected $difference_cache = [];
 
 	/**
 	 * Constructor - Call parent constructor with params array.
@@ -294,8 +294,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		list($orig_matches, $final_matches, $orig_rows, $final_rows) = $this->interleave_changed_lines( $orig, $final );
 
 		// These will hold the word changes as determined by an inline diff.
-		$orig_diffs  = array();
-		$final_diffs = array();
+		$orig_diffs  = [];
+		$final_diffs = [];
 
 		// Compute word diffs for each matched pair using the inline diff.
 		foreach ( $orig_matches as $o => $f ) {
@@ -395,7 +395,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	public function interleave_changed_lines( $orig, $final ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.finalFound
 
 		// Contains all pairwise string comparisons. Keys are such that this need only be a one dimensional array.
-		$matches = array();
+		$matches = [];
 		foreach ( array_keys( $orig ) as $o ) {
 			foreach ( array_keys( $final ) as $f ) {
 				$matches[ "$o,$f" ] = $this->compute_string_distance( $orig[ $o ], $final[ $f ] );
@@ -403,8 +403,8 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		}
 		asort( $matches ); // Order by string distance.
 
-		$orig_matches  = array();
-		$final_matches = array();
+		$orig_matches  = [];
+		$final_matches = [];
 
 		foreach ( $matches as $keys => $difference ) {
 			list($o, $f) = explode( ',', $keys );

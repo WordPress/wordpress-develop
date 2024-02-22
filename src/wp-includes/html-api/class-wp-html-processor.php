@@ -595,7 +595,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
-		$breadcrumbs = array();
+		$breadcrumbs = [];
 		foreach ( $this->state->stack_of_open_elements->walk_down() as $stack_item ) {
 			$breadcrumbs[] = $stack_item->node_name;
 		}

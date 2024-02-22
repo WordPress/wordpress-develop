@@ -383,7 +383,7 @@ function get_the_category_rss( $type = null ) {
 	$categories = get_the_category();
 	$tags       = get_the_tags();
 	$the_list   = '';
-	$cat_names  = array();
+	$cat_names  = [];
 
 	$filter = 'rss';
 	if ( 'atom' === $type ) {

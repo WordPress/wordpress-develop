@@ -64,7 +64,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
 		$compare_to->post_title = __( '(no title)' );
 	}
 
-	$return = array();
+	$return = [];
 
 	foreach ( _wp_post_revision_fields( $post ) as $field => $name ) {
 		/**
@@ -175,7 +175,7 @@ function wp_get_revision_ui_diff( $post, $compare_from, $compare_to ) {
  */
 function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null ) {
 	$post    = get_post( $post );
-	$authors = array();
+	$authors = [];
 	$now_gmt = time();
 
 	$revisions = wp_get_post_revisions(

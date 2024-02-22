@@ -304,18 +304,18 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		$changes->ID = $request['id'];
 
 		$post            = get_post( $request['id'] );
-		$existing_config = array();
+		$existing_config = [];
 		if ( $post ) {
 			$existing_config     = json_decode( $post->post_content, true );
 			$json_decoding_error = json_last_error();
 			if ( JSON_ERROR_NONE !== $json_decoding_error || ! isset( $existing_config['isGlobalStylesUserThemeJSON'] ) ||
 				! $existing_config['isGlobalStylesUserThemeJSON'] ) {
-				$existing_config = array();
+				$existing_config = [];
 			}
 		}
 
 		if ( isset( $request['styles'] ) || isset( $request['settings'] ) ) {
-			$config = array();
+			$config = [];
 			if ( isset( $request['styles'] ) ) {
 				if ( isset( $request['styles']['css'] ) ) {
 					$css_validation_result = $this->validate_custom_css( $request['styles']['css'] );
@@ -361,21 +361,21 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $post, $request ) {
 		$raw_config                       = json_decode( $post->post_content, true );
 		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && true === $raw_config['isGlobalStylesUserThemeJSON'];
-		$config                           = array();
+		$config                           = [];
 		if ( $is_global_styles_user_theme_json ) {
 			$config = ( new WP_Theme_JSON( $raw_config, 'custom' ) )->get_raw_data();
 		}
 
 		// Base fields for every post.
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $post->ID;
 		}
 
 		if ( rest_is_field_included( 'title', $fields ) ) {
-			$data['title'] = array();
+			$data['title'] = [];
 		}
 		if ( rest_is_field_included( 'title.raw', $fields ) ) {
 			$data['title']['raw'] = $post->post_title;
@@ -458,7 +458,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return array List of link relations.
 	 */
 	protected function get_available_actions() {
-		$rels = array();
+		$rels = [];
 
 		$post_type = get_post_type_object( $this->post_type );
 		if ( current_user_can( $post_type->cap->publish_posts ) ) {
@@ -495,7 +495,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		return array();
+		return [];
 	}
 
 	/**
@@ -604,7 +604,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 
 		$theme  = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
 			$data['settings'] = $theme->get_settings();
@@ -612,7 +612,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 
 		if ( rest_is_field_included( 'styles', $fields ) ) {
 			$raw_data       = $theme->get_raw_data();
-			$data['styles'] = isset( $raw_data['styles'] ) ? $raw_data['styles'] : array();
+			$data['styles'] = isset( $raw_data['styles'] ) ? $raw_data['styles'] : [];
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';

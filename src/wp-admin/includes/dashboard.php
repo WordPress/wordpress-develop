@@ -23,7 +23,7 @@ function wp_dashboard_setup() {
 	$screen = get_current_screen();
 
 	/* Register Widgets and Controls */
-	$wp_dashboard_control_callbacks = array();
+	$wp_dashboard_control_callbacks = [];
 
 	// Browser version
 	$check_browser = wp_check_browser_version();
@@ -445,7 +445,7 @@ function wp_dashboard_right_now() {
  * @since 3.1.0
  */
 function wp_network_dashboard_right_now() {
-	$actions = array();
+	$actions = [];
 
 	if ( current_user_can( 'create_sites' ) ) {
 		$actions['create-site'] = '<a href="' . network_admin_url( 'site-new.php' ) . '">' . __( 'Create a New Site' ) . '</a>';
@@ -1071,7 +1071,7 @@ function wp_dashboard_recent_posts( $args ) {
  */
 function wp_dashboard_recent_comments( $total_items = 5 ) {
 	// Select all comment types and filter out spam later for better query performance.
-	$comments = array();
+	$comments = [];
 
 	$comments_query = array(
 		'number' => $total_items * 5,
@@ -1259,11 +1259,11 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 	$widget_options = get_option( 'dashboard_widget_options' );
 
 	if ( ! $widget_options ) {
-		$widget_options = array();
+		$widget_options = [];
 	}
 
 	if ( ! isset( $widget_options[ $widget_id ] ) ) {
-		$widget_options[ $widget_id ] = array();
+		$widget_options[ $widget_id ] = [];
 	}
 
 	$number = 1; // Hack to use wp_widget_rss_form().
@@ -1969,7 +1969,7 @@ function dashboard_php_nag_class( $classes ) {
 function wp_dashboard_site_health() {
 	$get_issues = get_transient( 'health-check-site-status-result' );
 
-	$issue_counts = array();
+	$issue_counts = [];
 
 	if ( false !== $get_issues ) {
 		$issue_counts = json_decode( $get_issues, true );

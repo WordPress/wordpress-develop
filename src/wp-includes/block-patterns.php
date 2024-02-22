@@ -357,7 +357,7 @@ function _register_theme_block_patterns() {
 	 * Register patterns for the active theme. If the theme is a child theme,
 	 * let it override any patterns from the parent theme that shares the same slug.
 	 */
-	$themes   = array();
+	$themes   = [];
 	$theme    = wp_get_theme();
 	$themes[] = $theme;
 	if ( $theme->parent() ) {

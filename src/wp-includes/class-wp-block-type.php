@@ -99,7 +99,7 @@ class WP_Block_Type {
 	 * @since 5.5.0
 	 * @var string[]
 	 */
-	public $keywords = array();
+	public $keywords = [];
 
 	/**
 	 * The translation textdomain.
@@ -115,7 +115,7 @@ class WP_Block_Type {
 	 * @since 5.5.0
 	 * @var array
 	 */
-	public $styles = array();
+	public $styles = [];
 
 	/**
 	 * Block variations.
@@ -140,7 +140,7 @@ class WP_Block_Type {
 	 * @since 6.3.0
 	 * @var array
 	 */
-	public $selectors = array();
+	public $selectors = [];
 
 	/**
 	 * Supported features.
@@ -180,7 +180,7 @@ class WP_Block_Type {
 	 * @since 5.5.0
 	 * @var string[]
 	 */
-	private $uses_context = array();
+	private $uses_context = [];
 
 	/**
 	 * Context provided by blocks of this type.
@@ -200,7 +200,7 @@ class WP_Block_Type {
 	 * @since 6.4.0
 	 * @var string[]
 	 */
-	public $block_hooks = array();
+	public $block_hooks = [];
 
 	/**
 	 * Block type editor only script handles.
@@ -208,7 +208,7 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 * @var string[]
 	 */
-	public $editor_script_handles = array();
+	public $editor_script_handles = [];
 
 	/**
 	 * Block type front end and editor script handles.
@@ -216,7 +216,7 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 * @var string[]
 	 */
-	public $script_handles = array();
+	public $script_handles = [];
 
 	/**
 	 * Block type front end only script handles.
@@ -224,7 +224,7 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 * @var string[]
 	 */
-	public $view_script_handles = array();
+	public $view_script_handles = [];
 
 	/**
 	 * Block type front end only script module IDs.
@@ -232,7 +232,7 @@ class WP_Block_Type {
 	 * @since 6.5.0
 	 * @var string[]
 	 */
-	public $view_script_module_ids = array();
+	public $view_script_module_ids = [];
 
 	/**
 	 * Block type editor only style handles.
@@ -240,7 +240,7 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 * @var string[]
 	 */
-	public $editor_style_handles = array();
+	public $editor_style_handles = [];
 
 	/**
 	 * Block type front end and editor style handles.
@@ -248,7 +248,7 @@ class WP_Block_Type {
 	 * @since 6.1.0
 	 * @var string[]
 	 */
-	public $style_handles = array();
+	public $style_handles = [];
 
 	/**
 	 * Block type front end only style handles.
@@ -256,7 +256,7 @@ class WP_Block_Type {
 	 * @since 6.5.0
 	 * @var string[]
 	 */
-	public $view_style_handles = array();
+	public $view_style_handles = [];
 
 	/**
 	 * Deprecated block type properties for script and style handles.
@@ -552,7 +552,7 @@ class WP_Block_Type {
 
 		// Setup attributes if needed.
 		if ( ! isset( $args['attributes'] ) || ! is_array( $args['attributes'] ) ) {
-			$args['attributes'] = array();
+			$args['attributes'] = [];
 		}
 
 		// Register core attributes.
@@ -599,7 +599,7 @@ class WP_Block_Type {
 	 */
 	public function get_variations() {
 		if ( ! isset( $this->variations ) ) {
-			$this->variations = array();
+			$this->variations = [];
 			if ( is_callable( $this->variation_callback ) ) {
 				$this->variations = call_user_func( $this->variation_callback );
 			}

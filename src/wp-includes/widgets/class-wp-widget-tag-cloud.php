@@ -129,7 +129,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
 	public function update( $new_instance, $old_instance ) {
-		$instance             = array();
+		$instance             = [];
 		$instance['title']    = sanitize_text_field( $new_instance['title'] );
 		$instance['count']    = ! empty( $new_instance['count'] ) ? 1 : 0;
 		$instance['taxonomy'] = stripslashes( $new_instance['taxonomy'] );

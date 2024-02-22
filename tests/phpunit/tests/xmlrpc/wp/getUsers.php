@@ -89,7 +89,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 
 		$user_ids = get_users( array( 'fields' => 'ID' ) );
 
-		$users_found = array();
+		$users_found = [];
 		$page_size   = 2;
 
 		$filter = array(

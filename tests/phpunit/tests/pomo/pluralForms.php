@@ -49,8 +49,8 @@ class PluralFormsTest extends WP_UnitTestCase {
 		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
 		$plural_forms  = new Plural_Forms( $expression );
 
-		$generated_old = array();
-		$generated_new = array();
+		$generated_old = [];
+		$generated_new = [];
 
 		foreach ( range( 0, 200 ) as $i ) {
 			$generated_old[] = $old_style( $i );
@@ -74,13 +74,13 @@ class PluralFormsTest extends WP_UnitTestCase {
 		if ( ! class_exists( 'GP_Locales' ) ) {
 			$filename = download_url( 'https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php' );
 			if ( is_wp_error( $filename ) ) {
-				return array();
+				return [];
 			}
 			require_once $filename;
 		}
 
 		$locales            = GP_Locales::locales();
-		$plural_expressions = array();
+		$plural_expressions = [];
 		foreach ( $locales as $slug => $locale ) {
 			$plural_expression = $locale->plural_expression;
 			if ( 'n != 1' !== $plural_expression ) {
@@ -97,7 +97,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 */
 	public function test_simple( $expression, $expected ) {
 		$plural_forms = new Plural_Forms( $expression );
-		$actual       = array();
+		$actual       = [];
 		foreach ( array_keys( $expected ) as $num ) {
 			$actual[ $num ] = $plural_forms->get( $num );
 		}

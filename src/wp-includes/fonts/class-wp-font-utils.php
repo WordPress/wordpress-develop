@@ -63,7 +63,7 @@ class WP_Font_Utils {
 		}
 
 		$output          = sanitize_text_field( $font_family );
-		$formatted_items = array();
+		$formatted_items = [];
 		if ( str_contains( $output, ',' ) ) {
 			$items = explode( ',', $output );
 			foreach ( $items as $item ) {
@@ -171,7 +171,7 @@ class WP_Font_Utils {
 	 */
 	public static function sanitize_from_schema( $tree, $schema ) {
 		if ( ! is_array( $tree ) || ! is_array( $schema ) ) {
-			return array();
+			return [];
 		}
 
 		foreach ( $tree as $key => $value ) {

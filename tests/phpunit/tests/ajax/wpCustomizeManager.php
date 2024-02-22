@@ -60,7 +60,7 @@ class Tests_Ajax_wpCustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tear_down() {
-		$_REQUEST = array();
+		$_REQUEST = [];
 		parent::tear_down();
 	}
 
@@ -87,7 +87,7 @@ class Tests_Ajax_wpCustomizeManager extends WP_Ajax_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	protected $overridden_caps = array();
+	protected $overridden_caps = [];
 
 	/**
 	 * Dynamically filter a user's capabilities.
@@ -618,7 +618,7 @@ class Tests_Ajax_wpCustomizeManager extends WP_Ajax_UnitTestCase {
 		$other_user_id = self::factory()->user->create();
 
 		// Create auto-drafts.
-		$user_auto_draft_ids = array();
+		$user_auto_draft_ids = [];
 		for ( $i = 0; $i < 3; $i++ ) {
 			$user_auto_draft_ids[] = self::factory()->post->create(
 				array(
@@ -630,7 +630,7 @@ class Tests_Ajax_wpCustomizeManager extends WP_Ajax_UnitTestCase {
 				)
 			);
 		}
-		$other_user_auto_draft_ids = array();
+		$other_user_auto_draft_ids = [];
 		for ( $i = 0; $i < 3; $i++ ) {
 			$other_user_auto_draft_ids[] = self::factory()->post->create(
 				array(

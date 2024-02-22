@@ -86,7 +86,7 @@ function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $s
  */
 function wp_get_missing_image_subsizes( $attachment_id ) {
 	if ( ! wp_attachment_is_image( $attachment_id ) ) {
-		return array();
+		return [];
 	}
 
 	$registered_sizes = wp_get_registered_image_subsizes();
@@ -111,7 +111,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 		$full_height = (int) $image_meta['height'];
 	}
 
-	$possible_sizes = array();
+	$possible_sizes = [];
 
 	// Skip registered sizes that are too large for the uploaded image.
 	foreach ( $registered_sizes as $size_name => $size_data ) {
@@ -121,7 +121,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	}
 
 	if ( empty( $image_meta['sizes'] ) ) {
-		$image_meta['sizes'] = array();
+		$image_meta['sizes'] = [];
 	}
 
 	/*
@@ -242,7 +242,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 
 	if ( empty( $imagesize ) ) {
 		// File is not an image.
-		return array();
+		return [];
 	}
 
 	// Default image meta.
@@ -403,7 +403,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	if ( empty( $image_meta ) || ! is_array( $image_meta ) ) {
 		// Not an image attachment.
-		return array();
+		return [];
 	}
 
 	// Check if any of the new sizes already exist.
@@ -419,7 +419,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			}
 		}
 	} else {
-		$image_meta['sizes'] = array();
+		$image_meta['sizes'] = [];
 	}
 
 	if ( empty( $new_sizes ) ) {
@@ -495,7 +495,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	$attachment = get_post( $attachment_id );
 
-	$metadata  = array();
+	$metadata  = [];
 	$support   = false;
 	$mime_type = get_post_mime_type( $attachment );
 
@@ -516,7 +516,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 	 * so make sure to convert the value to an array.
 	 */
 	if ( ! is_array( $metadata ) ) {
-		$metadata = array();
+		$metadata = [];
 	}
 
 	if ( $support && ! empty( $metadata['image']['data'] ) ) {
@@ -766,8 +766,8 @@ function wp_read_image_metadata( $file ) {
 		'keywords'          => array(),
 	);
 
-	$iptc = array();
-	$info = array();
+	$iptc = [];
+	$info = [];
 	/*
 	 * Read IPTC first, since it might contain data not available in exif such
 	 * as caption, description etc.
@@ -787,7 +787,7 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! is_array( $iptc ) ) {
-				$iptc = array();
+				$iptc = [];
 			}
 
 			// Headline, "A brief synopsis of the caption".
@@ -836,7 +836,7 @@ function wp_read_image_metadata( $file ) {
 		}
 	}
 
-	$exif = array();
+	$exif = [];
 
 	/**
 	 * Filters the image types to check for exif data.
@@ -860,7 +860,7 @@ function wp_read_image_metadata( $file ) {
 		}
 
 		if ( ! is_array( $exif ) ) {
-			$exif = array();
+			$exif = [];
 		}
 
 		$exif_description = '';

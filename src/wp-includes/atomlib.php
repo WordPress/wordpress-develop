@@ -21,20 +21,20 @@ class AtomFeed {
 	 * @var array
 	 * @access public
 	 */
-    var $links = array();
+    var $links = [];
     /**
      * Stores Categories
      * @var array
      * @access public
      */
-    var $categories = array();
+    var $categories = [];
 	/**
 	 * Stores Entries
 	 *
 	 * @var array
 	 * @access public
 	 */
-    var $entries = array();
+    var $entries = [];
 }
 
 /**
@@ -48,13 +48,13 @@ class AtomEntry {
 	 * @var array
 	 * @access public
 	 */
-    var $links = array();
+    var $links = [];
     /**
      * Stores Categories
      * @var array
 	 * @access public
      */
-    var $categories = array();
+    var $categories = [];
 }
 
 /**
@@ -73,10 +73,10 @@ class AtomParser {
     var $depth = 0;
     var $indent = 2;
     var $in_content;
-    var $ns_contexts = array();
-    var $ns_decls = array();
-    var $content_ns_decls = array();
-    var $content_ns_contexts = array();
+    var $ns_contexts = [];
+    var $ns_decls = [];
+    var $content_ns_decls = [];
+    var $content_ns_contexts = [];
     var $is_xhtml = false;
     var $is_html = false;
     var $is_text = true;
@@ -213,12 +213,12 @@ class AtomParser {
 
         if(!empty($this->in_content)) {
 
-            $this->content_ns_decls = array();
+            $this->content_ns_decls = [];
 
             if($this->is_html || $this->is_text)
                 trigger_error("Invalid content in element found. Content must not be of type text or html if it contains markup.");
 
-            $attrs_prefix = array();
+            $attrs_prefix = [];
 
             // resolve prefixes for attributes
             foreach($attrs as $key => $value) {
@@ -249,7 +249,7 @@ class AtomParser {
             array_push($this->in_content, array($tag, $this->depth, "<". $with_prefix[1] ."{$xmlns_str}{$attrs_str}" . ">"));
 
         } else if(in_array($tag, $this->ATOM_CONTENT_ELEMENTS) || in_array($tag, $this->ATOM_SIMPLE_ELEMENTS)) {
-            $this->in_content = array();
+            $this->in_content = [];
             $this->is_xhtml = $attrs['type'] == 'xhtml';
             $this->is_html = $attrs['type'] == 'html' || $attrs['type'] == 'text/html';
             $this->is_text = !in_array('type',array_keys($attrs)) || $attrs['type'] == 'text';
@@ -266,7 +266,7 @@ class AtomParser {
             array_push($this->current->categories, $attrs);
         }
 
-        $this->ns_decls = array();
+        $this->ns_decls = [];
     }
 
     function end_element($parser, $name) {
@@ -284,7 +284,7 @@ class AtomParser {
                 $this->in_content[0][1] == $this->depth) {
                 $origtype = $this->in_content[0][2];
                 array_shift($this->in_content);
-                $newcontent = array();
+                $newcontent = [];
                 foreach($this->in_content as $c) {
                     if(count($c) == 3) {
                         array_push($newcontent, $c[2]);
@@ -301,7 +301,7 @@ class AtomParser {
                 } else {
                     $this->current->$tag = join('',$newcontent);
                 }
-                $this->in_content = array();
+                $this->in_content = [];
             } else if($this->in_content[$ccount-1][0] == $tag &&
                 $this->in_content[$ccount-1][1] == $this->depth) {
                 $this->in_content[$ccount-1][2] = substr($this->in_content[$ccount-1][2],0,-1) . "/>";

@@ -17,7 +17,7 @@
  */
 class Tests_Comment_DateQuery extends WP_UnitTestCase {
 
-	public $posts = array();
+	public $posts = [];
 
 	public function set_up() {
 		parent::set_up();

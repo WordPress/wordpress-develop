@@ -370,8 +370,8 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	public function test_create_item_change_position() {
 		wp_set_current_user( self::$admin_id );
 		$new_menu_id = wp_create_nav_menu( rand_str() );
-		$expected    = array();
-		$actual      = array();
+		$expected    = [];
+		$actual      = [];
 		for ( $i = 1; $i < 5; $i++ ) {
 			$request = new WP_REST_Request( 'POST', '/wp/v2/menu-items' );
 			$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );

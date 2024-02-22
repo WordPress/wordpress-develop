@@ -10,7 +10,7 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 	 *
 	 * @var array
 	 */
-	public static $parent_post_ids = array();
+	public static $parent_post_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$post_statuses = array( 'publish', 'private', 'future', 'trash', 'delete' );

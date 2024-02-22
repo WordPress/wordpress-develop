@@ -109,7 +109,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$data              = array();
+		$data              = [];
 		$statuses          = get_post_stati( array( 'internal' => false ), 'object' );
 		$statuses['trash'] = get_post_status_object( 'trash' );
 
@@ -224,7 +224,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		$status = $item;
 
 		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+		$data   = [];
 
 		if ( in_array( 'name', $fields, true ) ) {
 			$data['name'] = $status->label;

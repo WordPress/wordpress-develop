@@ -118,7 +118,7 @@ class Tests_Widgets_wpWidgetMediaAudio extends WP_UnitTestCase {
 	 */
 	public function test_update() {
 		$widget   = new WP_Widget_Media_Audio();
-		$instance = array();
+		$instance = [];
 
 		// Should return valid attachment ID.
 		$expected = array(

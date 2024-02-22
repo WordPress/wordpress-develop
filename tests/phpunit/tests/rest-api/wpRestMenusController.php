@@ -606,7 +606,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 
 		$locations = get_nav_menu_locations();
 		if ( ! empty( $locations ) ) {
-			$menu_locations = array();
+			$menu_locations = [];
 			foreach ( $locations as $location => $menu_id ) {
 				if ( $menu_id === $term->term_id ) {
 					$menu_locations[] = $location;

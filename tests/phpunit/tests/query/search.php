@@ -70,7 +70,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	public function filter_wp_search_stopwords() {
-		return array();
+		return [];
 	}
 
 	/**

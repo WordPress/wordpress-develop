@@ -10,7 +10,7 @@
 #[AllowDynamicProperties]
 final class WP_Privacy_Policy_Content {
 
-	private static $policy_content = array();
+	private static $policy_content = [];
 
 	/**
 	 * Constructor
@@ -171,7 +171,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Remove updated|removed status.
 		$old          = (array) get_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
-		$done         = array();
+		$done         = [];
 		$update_cache = false;
 
 		foreach ( $old as $old_key => $old_data ) {
@@ -214,11 +214,11 @@ final class WP_Privacy_Policy_Content {
 	 */
 	public static function get_suggested_policy_text() {
 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
-		$checked        = array();
+		$checked        = [];
 		$time           = time();
 		$update_cache   = false;
 		$new            = self::$policy_content;
-		$old            = array();
+		$old            = [];
 
 		if ( $policy_page_id ) {
 			$old = (array) get_post_meta( $policy_page_id, '_wp_suggested_privacy_policy_content' );
@@ -458,7 +458,7 @@ final class WP_Privacy_Policy_Content {
 	public static function get_default_content( $description = false, $blocks = true ) {
 		$suggested_text = '<strong class="privacy-policy-tutorial">' . __( 'Suggested text:' ) . ' </strong>';
 		$content        = '';
-		$strings        = array();
+		$strings        = [];
 
 		// Start of the suggested privacy policy text.
 		if ( $description ) {

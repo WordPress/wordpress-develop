@@ -688,7 +688,7 @@ function get_metadata_default( $meta_type, $object_id, $meta_key, $single = fals
 	if ( $single ) {
 		$value = '';
 	} else {
-		$value = array();
+		$value = [];
 	}
 
 	/**
@@ -934,7 +934,7 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		);
 
 		// Format the where query arguments.
-		$where               = array();
+		$where               = [];
 		$where[ $id_column ] = $meta_id;
 
 		/** This action is documented in wp-includes/meta.php */
@@ -1154,8 +1154,8 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	}
 
 	$cache_key      = $meta_type . '_meta';
-	$non_cached_ids = array();
-	$cache          = array();
+	$non_cached_ids = [];
+	$cache          = [];
 	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
 
 	foreach ( $cache_values as $id => $cached_object ) {
@@ -1184,10 +1184,10 @@ function update_meta_cache( $meta_type, $object_ids ) {
 
 			// Force subkeys to be array type.
 			if ( ! isset( $cache[ $mpid ] ) || ! is_array( $cache[ $mpid ] ) ) {
-				$cache[ $mpid ] = array();
+				$cache[ $mpid ] = [];
 			}
 			if ( ! isset( $cache[ $mpid ][ $mkey ] ) || ! is_array( $cache[ $mpid ][ $mkey ] ) ) {
-				$cache[ $mpid ][ $mkey ] = array();
+				$cache[ $mpid ][ $mkey ] = [];
 			}
 
 			// Add a value to the current pid/key.
@@ -1195,10 +1195,10 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 	}
 
-	$data = array();
+	$data = [];
 	foreach ( $non_cached_ids as $id ) {
 		if ( ! isset( $cache[ $id ] ) ) {
-			$cache[ $id ] = array();
+			$cache[ $id ] = [];
 		}
 		$data[ $id ] = $cache[ $id ];
 	}
@@ -1405,7 +1405,7 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	global $wp_meta_keys;
 
 	if ( ! is_array( $wp_meta_keys ) ) {
-		$wp_meta_keys = array();
+		$wp_meta_keys = [];
 	}
 
 	$defaults = array(
@@ -1558,7 +1558,7 @@ function filter_default_metadata( $value, $object_id, $meta_key, $single, $meta_
 		return $value;
 	}
 
-	$defaults = array();
+	$defaults = [];
 	foreach ( $wp_meta_keys[ $meta_type ] as $sub_type => $meta_data ) {
 		foreach ( $meta_data as $_meta_key => $args ) {
 			if ( $_meta_key === $meta_key && array_key_exists( 'default', $args ) ) {
@@ -1675,7 +1675,7 @@ function get_registered_meta_keys( $object_type, $object_subtype = '' ) {
 	global $wp_meta_keys;
 
 	if ( ! is_array( $wp_meta_keys ) || ! isset( $wp_meta_keys[ $object_type ] ) || ! isset( $wp_meta_keys[ $object_type ][ $object_subtype ] ) ) {
-		return array();
+		return [];
 	}
 
 	return $wp_meta_keys[ $object_type ][ $object_subtype ];
@@ -1719,7 +1719,7 @@ function get_registered_metadata( $object_type, $object_id, $meta_key = '' ) {
 
 	$data = get_metadata( $object_type, $object_id );
 	if ( ! $data ) {
-		return array();
+		return [];
 	}
 
 	$meta_keys = get_registered_meta_keys( $object_type );

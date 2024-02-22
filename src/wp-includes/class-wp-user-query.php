@@ -23,7 +23,7 @@ class WP_User_Query {
 	 * @since 3.5.0
 	 * @var array
 	 */
-	public $query_vars = array();
+	public $query_vars = [];
 
 	/**
 	 * List of found user IDs.
@@ -309,7 +309,7 @@ class WP_User_Query {
 				$qv['fields'] = array( 'id' );
 			}
 
-			$this->query_fields = array();
+			$this->query_fields = [];
 			foreach ( $qv['fields'] as $field ) {
 				$field                = 'id' === $field ? 'ID' : sanitize_key( $field );
 				$this->query_fields[] = "$wpdb->users.$field";
@@ -430,7 +430,7 @@ class WP_User_Query {
 		}
 
 		// Roles.
-		$roles = array();
+		$roles = [];
 		if ( isset( $qv['role'] ) ) {
 			if ( is_array( $qv['role'] ) ) {
 				$roles = $qv['role'];
@@ -439,25 +439,25 @@ class WP_User_Query {
 			}
 		}
 
-		$role__in = array();
+		$role__in = [];
 		if ( isset( $qv['role__in'] ) ) {
 			$role__in = (array) $qv['role__in'];
 		}
 
-		$role__not_in = array();
+		$role__not_in = [];
 		if ( isset( $qv['role__not_in'] ) ) {
 			$role__not_in = (array) $qv['role__not_in'];
 		}
 
 		// Capabilities.
-		$available_roles = array();
+		$available_roles = [];
 
 		if ( ! empty( $qv['capability'] ) || ! empty( $qv['capability__in'] ) || ! empty( $qv['capability__not_in'] ) ) {
 			$wp_roles->for_site( $blog_id );
 			$available_roles = $wp_roles->roles;
 		}
 
-		$capabilities = array();
+		$capabilities = [];
 		if ( ! empty( $qv['capability'] ) ) {
 			if ( is_array( $qv['capability'] ) ) {
 				$capabilities = $qv['capability'];
@@ -466,18 +466,18 @@ class WP_User_Query {
 			}
 		}
 
-		$capability__in = array();
+		$capability__in = [];
 		if ( ! empty( $qv['capability__in'] ) ) {
 			$capability__in = (array) $qv['capability__in'];
 		}
 
-		$capability__not_in = array();
+		$capability__not_in = [];
 		if ( ! empty( $qv['capability__not_in'] ) ) {
 			$capability__not_in = (array) $qv['capability__not_in'];
 		}
 
 		// Keep track of all capabilities and the roles they're added on.
-		$caps_with_roles = array();
+		$caps_with_roles = [];
 
 		foreach ( $available_roles as $role => $role_data ) {
 			$role_caps = array_keys( array_filter( $role_data['capabilities'] ) );
@@ -553,7 +553,7 @@ class WP_User_Query {
 		}
 
 		if ( $blog_id && ( ! empty( $roles ) || ! empty( $role__in ) || ! empty( $role__not_in ) || is_multisite() ) ) {
-			$role_queries = array();
+			$role_queries = [];
 
 			$roles_clauses = array( 'relation' => 'AND' );
 			if ( ! empty( $roles ) ) {
@@ -642,7 +642,7 @@ class WP_User_Query {
 			$ordersby = preg_split( '/[,\s]+/', $qv['orderby'] );
 		}
 
-		$orderby_array = array();
+		$orderby_array = [];
 		foreach ( $ordersby as $_key => $_value ) {
 			if ( ! $_value ) {
 				continue;
@@ -708,7 +708,7 @@ class WP_User_Query {
 				$search = trim( $search, '*' );
 			}
 
-			$search_columns = array();
+			$search_columns = [];
 			if ( $qv['search_columns'] ) {
 				$search_columns = array_intersect( $qv['search_columns'], array( 'ID', 'user_login', 'user_email', 'user_url', 'user_nicename', 'display_name' ) );
 			}
@@ -884,7 +884,7 @@ class WP_User_Query {
 				cache_users( $this->results );
 			}
 
-			$r = array();
+			$r = [];
 			foreach ( $this->results as $userid ) {
 				if ( 'all_with_meta' === $qv['fields'] ) {
 					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
@@ -941,7 +941,7 @@ class WP_User_Query {
 	protected function get_search_sql( $search, $columns, $wild = false ) {
 		global $wpdb;
 
-		$searches      = array();
+		$searches      = [];
 		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
 		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
 		$like          = $leading_wild . $wpdb->esc_like( $search ) . $trailing_wild;

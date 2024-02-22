@@ -76,7 +76,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	protected $settings = array();
+	protected $settings = [];
 
 	/**
 	 * Sorted top-level instances of WP_Customize_Panel and WP_Customize_Section.
@@ -84,7 +84,7 @@ final class WP_Customize_Manager {
 	 * @since 4.0.0
 	 * @var array
 	 */
-	protected $containers = array();
+	protected $containers = [];
 
 	/**
 	 * Registered instances of WP_Customize_Panel.
@@ -92,7 +92,7 @@ final class WP_Customize_Manager {
 	 * @since 4.0.0
 	 * @var array
 	 */
-	protected $panels = array();
+	protected $panels = [];
 
 	/**
 	 * List of core components.
@@ -108,7 +108,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	protected $sections = array();
+	protected $sections = [];
 
 	/**
 	 * Registered instances of WP_Customize_Control.
@@ -116,7 +116,7 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	protected $controls = array();
+	protected $controls = [];
 
 	/**
 	 * Panel types that may be rendered from JS templates.
@@ -124,7 +124,7 @@ final class WP_Customize_Manager {
 	 * @since 4.3.0
 	 * @var array
 	 */
-	protected $registered_panel_types = array();
+	protected $registered_panel_types = [];
 
 	/**
 	 * Section types that may be rendered from JS templates.
@@ -132,7 +132,7 @@ final class WP_Customize_Manager {
 	 * @since 4.3.0
 	 * @var array
 	 */
-	protected $registered_section_types = array();
+	protected $registered_section_types = [];
 
 	/**
 	 * Control types that may be rendered from JS templates.
@@ -140,7 +140,7 @@ final class WP_Customize_Manager {
 	 * @since 4.1.0
 	 * @var array
 	 */
-	protected $registered_control_types = array();
+	protected $registered_control_types = [];
 
 	/**
 	 * Initial URL being previewed.
@@ -164,7 +164,7 @@ final class WP_Customize_Manager {
 	 * @since 4.4.0
 	 * @var string[]
 	 */
-	protected $autofocus = array();
+	protected $autofocus = [];
 
 	/**
 	 * Messenger channel.
@@ -1154,7 +1154,7 @@ final class WP_Customize_Manager {
 		}
 		$changeset_post_id = $this->changeset_post_id();
 		if ( ! $changeset_post_id ) {
-			$this->_changeset_data = array();
+			$this->_changeset_data = [];
 		} else {
 			if ( $this->autosaved() && is_user_logged_in() ) {
 				$autosave_post = wp_get_post_autosave( $changeset_post_id, get_current_user_id() );
@@ -1172,7 +1172,7 @@ final class WP_Customize_Manager {
 				if ( ! is_wp_error( $data ) ) {
 					$this->_changeset_data = $data;
 				} else {
-					$this->_changeset_data = array();
+					$this->_changeset_data = [];
 				}
 			}
 		}
@@ -1185,7 +1185,7 @@ final class WP_Customize_Manager {
 	 * @since 4.7.0
 	 * @var array
 	 */
-	protected $pending_starter_content_settings_ids = array();
+	protected $pending_starter_content_settings_ids = [];
 
 	/**
 	 * Imports theme starter content into the customized state.
@@ -1199,7 +1199,7 @@ final class WP_Customize_Manager {
 			$starter_content = get_theme_starter_content();
 		}
 
-		$changeset_data = array();
+		$changeset_data = [];
 		if ( $this->changeset_post_id() ) {
 			/*
 			 * Don't re-import starter content into a changeset saved persistently.
@@ -1218,17 +1218,17 @@ final class WP_Customize_Manager {
 			$changeset_data = $this->get_changeset_post_data( $this->changeset_post_id() );
 		}
 
-		$sidebars_widgets = isset( $starter_content['widgets'] ) && ! empty( $this->widgets ) ? $starter_content['widgets'] : array();
-		$attachments      = isset( $starter_content['attachments'] ) && ! empty( $this->nav_menus ) ? $starter_content['attachments'] : array();
-		$posts            = isset( $starter_content['posts'] ) && ! empty( $this->nav_menus ) ? $starter_content['posts'] : array();
-		$options          = isset( $starter_content['options'] ) ? $starter_content['options'] : array();
-		$nav_menus        = isset( $starter_content['nav_menus'] ) && ! empty( $this->nav_menus ) ? $starter_content['nav_menus'] : array();
-		$theme_mods       = isset( $starter_content['theme_mods'] ) ? $starter_content['theme_mods'] : array();
+		$sidebars_widgets = isset( $starter_content['widgets'] ) && ! empty( $this->widgets ) ? $starter_content['widgets'] : [];
+		$attachments      = isset( $starter_content['attachments'] ) && ! empty( $this->nav_menus ) ? $starter_content['attachments'] : [];
+		$posts            = isset( $starter_content['posts'] ) && ! empty( $this->nav_menus ) ? $starter_content['posts'] : [];
+		$options          = isset( $starter_content['options'] ) ? $starter_content['options'] : [];
+		$nav_menus        = isset( $starter_content['nav_menus'] ) && ! empty( $this->nav_menus ) ? $starter_content['nav_menus'] : [];
+		$theme_mods       = isset( $starter_content['theme_mods'] ) ? $starter_content['theme_mods'] : [];
 
 		// Widgets.
-		$max_widget_numbers = array();
+		$max_widget_numbers = [];
 		foreach ( $sidebars_widgets as $sidebar_id => $widgets ) {
-			$sidebar_widget_ids = array();
+			$sidebar_widget_ids = [];
 			foreach ( $widgets as $widget ) {
 				list( $id_base, $instance ) = $widget;
 
@@ -1271,13 +1271,13 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		$starter_content_auto_draft_post_ids = array();
+		$starter_content_auto_draft_post_ids = [];
 		if ( ! empty( $changeset_data['nav_menus_created_posts']['value'] ) ) {
 			$starter_content_auto_draft_post_ids = array_merge( $starter_content_auto_draft_post_ids, $changeset_data['nav_menus_created_posts']['value'] );
 		}
 
 		// Make an index of all the posts needed and what their slugs are.
-		$needed_posts = array();
+		$needed_posts = [];
 		$attachments  = $this->prepare_starter_content_attachments( $attachments );
 		foreach ( $attachments as $attachment ) {
 			$key                  = 'attachment:' . $attachment['post_name'];
@@ -1308,7 +1308,7 @@ final class WP_Customize_Manager {
 		$post_types = array_filter( array_merge( array( 'attachment' ), wp_list_pluck( $posts, 'post_type' ) ) );
 
 		// Re-use auto-draft starter content posts referenced in the current customized state.
-		$existing_starter_content_posts = array();
+		$existing_starter_content_posts = [];
 		if ( ! empty( $starter_content_auto_draft_post_ids ) ) {
 			$existing_posts_query = new WP_Query(
 				array(
@@ -1348,7 +1348,7 @@ final class WP_Customize_Manager {
 		// Attachments are technically posts but handled differently.
 		if ( ! empty( $attachments ) ) {
 
-			$attachment_ids = array();
+			$attachment_ids = [];
 
 			foreach ( $attachments as $symbol => $attachment ) {
 				$file_array    = array(
@@ -1455,12 +1455,12 @@ final class WP_Customize_Manager {
 
 		// Nav menus.
 		$placeholder_id              = -1;
-		$reused_nav_menu_setting_ids = array();
+		$reused_nav_menu_setting_ids = [];
 		foreach ( $nav_menus as $nav_menu_location => $nav_menu ) {
 
 			$nav_menu_term_id    = null;
 			$nav_menu_setting_id = null;
-			$matches             = array();
+			$matches             = [];
 
 			// Look for an existing placeholder menu with starter content to re-use.
 			foreach ( $changeset_data as $setting_id => $setting_params ) {
@@ -1651,7 +1651,7 @@ final class WP_Customize_Manager {
 	 * @return array Prepared attachments.
 	 */
 	protected function prepare_starter_content_attachments( $attachments ) {
-		$prepared_attachments = array();
+		$prepared_attachments = [];
 		if ( empty( $attachments ) ) {
 			return $prepared_attachments;
 		}
@@ -1721,7 +1721,7 @@ final class WP_Customize_Manager {
 		);
 		$this->saved_starter_content_changeset = true;
 
-		$this->pending_starter_content_settings_ids = array();
+		$this->pending_starter_content_settings_ids = [];
 	}
 
 	/**
@@ -1760,7 +1760,7 @@ final class WP_Customize_Manager {
 			$args
 		);
 
-		$values = array();
+		$values = [];
 
 		// Let default values be from the stashed theme mods if doing a theme switch and if no changeset is present.
 		if ( ! $this->is_theme_active() ) {
@@ -1794,12 +1794,12 @@ final class WP_Customize_Manager {
 				if ( isset( $_POST['customized'] ) ) {
 					$post_values = json_decode( wp_unslash( $_POST['customized'] ), true );
 				} else {
-					$post_values = array();
+					$post_values = [];
 				}
 				if ( is_array( $post_values ) ) {
 					$this->_post_values = $post_values;
 				} else {
-					$this->_post_values = array();
+					$this->_post_values = [];
 				}
 			}
 			$values = array_merge( $values, $this->_post_values );
@@ -2123,7 +2123,7 @@ final class WP_Customize_Manager {
 		$self_url           = remove_query_arg( $state_query_params, $self_url );
 
 		$allowed_urls  = $this->get_allowed_urls();
-		$allowed_hosts = array();
+		$allowed_hosts = [];
 		foreach ( $allowed_urls as $allowed_url ) {
 			$parsed = wp_parse_url( $allowed_url );
 			if ( empty( $parsed['host'] ) ) {
@@ -2348,7 +2348,7 @@ final class WP_Customize_Manager {
 			)
 		);
 
-		$validities = array();
+		$validities = [];
 		foreach ( $setting_values as $setting_id => $unsanitized_value ) {
 			$setting = $this->get_setting( $setting_id );
 			if ( ! $setting ) {
@@ -2403,7 +2403,7 @@ final class WP_Customize_Manager {
 	 */
 	public function prepare_setting_validity_for_js( $validity ) {
 		if ( is_wp_error( $validity ) ) {
-			$notification = array();
+			$notification = [];
 			foreach ( $validity->errors as $error_code => $error_messages ) {
 				$notification[ $error_code ] = array(
 					'message' => implode( ' ', $error_messages ),
@@ -2454,7 +2454,7 @@ final class WP_Customize_Manager {
 				wp_send_json_error( 'invalid_customize_changeset_data' );
 			}
 		} else {
-			$input_changeset_data = array();
+			$input_changeset_data = [];
 		}
 
 		// Validate title.
@@ -2647,7 +2647,7 @@ final class WP_Customize_Manager {
 		);
 
 		$changeset_post_id       = $this->changeset_post_id();
-		$existing_changeset_data = array();
+		$existing_changeset_data = [];
 		if ( $changeset_post_id ) {
 			$existing_status = get_post_status( $changeset_post_id );
 			if ( 'publish' === $existing_status || 'trash' === $existing_status ) {
@@ -2738,7 +2738,7 @@ final class WP_Customize_Manager {
 		 * from being blocked from saving. This also prevents a user from touching of the
 		 * previous saved settings and overriding the associated user_id if they made no change.
 		 */
-		$changed_setting_ids = array();
+		$changed_setting_ids = [];
 		foreach ( $post_values as $setting_id => $setting_value ) {
 			$setting = $this->get_setting( $setting_id );
 
@@ -2804,13 +2804,13 @@ final class WP_Customize_Manager {
 		$original_changeset_data = $this->get_changeset_post_data( $changeset_post_id );
 		$data                    = $original_changeset_data;
 		if ( is_wp_error( $data ) ) {
-			$data = array();
+			$data = [];
 		}
 
 		// Ensure that all post values are included in the changeset data.
 		foreach ( $post_values as $setting_id => $post_value ) {
 			if ( ! isset( $args['data'][ $setting_id ] ) ) {
-				$args['data'][ $setting_id ] = array();
+				$args['data'][ $setting_id ] = [];
 			}
 			if ( ! isset( $args['data'][ $setting_id ]['value'] ) ) {
 				$args['data'][ $setting_id ]['value'] = $post_value;
@@ -2839,7 +2839,7 @@ final class WP_Customize_Manager {
 			} else {
 
 				if ( ! isset( $data[ $changeset_setting_id ] ) ) {
-					$data[ $changeset_setting_id ] = array();
+					$data[ $changeset_setting_id ] = [];
 				}
 
 				// Merge any additional setting params that have been supplied with the existing params.
@@ -3489,10 +3489,10 @@ final class WP_Customize_Manager {
 		$this->_changeset_data      = $publishing_changeset_data;
 
 		// Parse changeset data to identify theme mod settings and user IDs associated with settings to be saved.
-		$setting_user_ids   = array();
-		$theme_mod_settings = array();
+		$setting_user_ids   = [];
+		$theme_mod_settings = [];
 		$namespace_pattern  = '/^(?P<stylesheet>.+?)::(?P<setting_id>.+)$/';
-		$matches            = array();
+		$matches            = [];
 		foreach ( $this->_changeset_data as $raw_setting_id => $setting_params ) {
 			$actual_setting_id    = null;
 			$is_theme_mod_setting = (
@@ -3506,7 +3506,7 @@ final class WP_Customize_Manager {
 			);
 			if ( $is_theme_mod_setting ) {
 				if ( ! isset( $theme_mod_settings[ $matches['stylesheet'] ] ) ) {
-					$theme_mod_settings[ $matches['stylesheet'] ] = array();
+					$theme_mod_settings[ $matches['stylesheet'] ] = [];
 				}
 				$theme_mod_settings[ $matches['stylesheet'] ][ $matches['setting_id'] ] = $setting_params;
 
@@ -3548,7 +3548,7 @@ final class WP_Customize_Manager {
 		 * when the setting value was written into the changeset. So this is why
 		 * an additional capability check is not required here.
 		 */
-		$original_setting_capabilities = array();
+		$original_setting_capabilities = [];
 		foreach ( $changeset_setting_ids as $setting_id ) {
 			$setting = $this->get_setting( $setting_id );
 			if ( $setting && ! isset( $setting_user_ids[ $setting_id ] ) ) {
@@ -3646,7 +3646,7 @@ final class WP_Customize_Manager {
 	protected function update_stashed_theme_mod_settings( $inactive_theme_mod_settings ) {
 		$stashed_theme_mod_settings = get_option( 'customize_stashed_theme_mods' );
 		if ( empty( $stashed_theme_mod_settings ) ) {
-			$stashed_theme_mod_settings = array();
+			$stashed_theme_mod_settings = [];
 		}
 
 		// Delete any stashed theme mods for the active theme since they would have been loaded and saved upon activation.
@@ -3655,7 +3655,7 @@ final class WP_Customize_Manager {
 		// Merge inactive theme mods with the stashed theme mod settings.
 		foreach ( $inactive_theme_mod_settings as $stylesheet => $theme_mod_settings ) {
 			if ( ! isset( $stashed_theme_mod_settings[ $stylesheet ] ) ) {
-				$stashed_theme_mod_settings[ $stylesheet ] = array();
+				$stashed_theme_mod_settings[ $stylesheet ] = [];
 			}
 
 			$stashed_theme_mod_settings[ $stylesheet ] = array_merge(
@@ -3802,7 +3802,7 @@ final class WP_Customize_Manager {
 	 * @return array The WP_Customize_Setting objects added.
 	 */
 	public function add_dynamic_settings( $setting_ids ) {
-		$new_settings = array();
+		$new_settings = [];
 		foreach ( $setting_ids as $setting_id ) {
 			// Skip settings already created.
 			if ( $this->get_setting( $setting_id ) ) {
@@ -4432,7 +4432,7 @@ final class WP_Customize_Manager {
 	 */
 	public function prepare_controls() {
 
-		$controls       = array();
+		$controls       = [];
 		$this->controls = wp_list_sort(
 			$this->controls,
 			array(
@@ -4463,7 +4463,7 @@ final class WP_Customize_Manager {
 			'ASC',
 			true
 		);
-		$sections       = array();
+		$sections       = [];
 
 		foreach ( $this->sections as $section ) {
 			if ( ! $section->check_capabilities() ) {
@@ -4500,7 +4500,7 @@ final class WP_Customize_Manager {
 			'ASC',
 			true
 		);
-		$panels       = array();
+		$panels       = [];
 
 		foreach ( $this->panels as $panel ) {
 			if ( ! $panel->check_capabilities() ) {
@@ -4845,7 +4845,7 @@ final class WP_Customize_Manager {
 		$current_user_can_publish = current_user_can( get_post_type_object( 'customize_changeset' )->cap->publish_posts );
 
 		// @todo Include all of the status labels here from script-loader.php, and then allow it to be filtered.
-		$status_choices = array();
+		$status_choices = [];
 		if ( $current_user_can_publish ) {
 			$status_choices[] = array(
 				'status' => 'publish',
@@ -5825,8 +5825,8 @@ final class WP_Customize_Manager {
 			wp_send_json_error( 'missing_theme_action' );
 		}
 		$theme_action = sanitize_key( $_POST['theme_action'] );
-		$themes       = array();
-		$args         = array();
+		$themes       = [];
+		$args         = [];
 
 		// Define query filters based on user input.
 		if ( ! array_key_exists( 'search', $_POST ) ) {
@@ -5896,7 +5896,7 @@ final class WP_Customize_Manager {
 			$themes_allowedtags['img']              = array_fill_keys( array( 'src', 'class', 'alt' ), true );
 
 			// Prepare a list of installed themes to check against before the loop.
-			$installed_themes = array();
+			$installed_themes = [];
 			$wp_themes        = wp_get_themes();
 			foreach ( $wp_themes as $theme ) {
 				$installed_themes[] = $theme->get_stylesheet();

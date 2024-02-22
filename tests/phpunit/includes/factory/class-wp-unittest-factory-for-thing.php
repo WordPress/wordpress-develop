@@ -134,7 +134,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return array
 	 */
 	public function create_many( $count, $args = array(), $generation_definitions = null ) {
-		$results = array();
+		$results = [];
 
 		for ( $i = 0; $i < $count; $i++ ) {
 			$results[] = $this->create( $args, $generation_definitions );
@@ -158,7 +158,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return array|WP_Error Combined array on success. WP_Error when default value is incorrent.
 	 */
 	public function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
-		$callbacks = array();
+		$callbacks = [];
 		if ( is_null( $generation_definitions ) ) {
 			$generation_definitions = $this->default_generation_definitions;
 		}
@@ -201,7 +201,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @return array The altered fields.
 	 */
 	public function apply_callbacks( $callbacks, $object_id ) {
-		$updated_fields = array();
+		$updated_fields = [];
 
 		foreach ( $callbacks as $field_name => $generator ) {
 			$updated_fields[ $field_name ] = $generator->call( $object_id );

@@ -70,7 +70,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 	public function tear_down() {
 		global $wp_rest_additional_fields;
-		$wp_rest_additional_fields = array();
+		$wp_rest_additional_fields = [];
 
 		parent::tear_down();
 	}
@@ -582,7 +582,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$item = array();
+		$item = [];
 
 		$controller->prepare_item_for_response( $item, $request );
 

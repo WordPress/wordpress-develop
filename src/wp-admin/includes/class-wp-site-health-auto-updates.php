@@ -207,7 +207,7 @@ class WP_Site_Health_Auto_Updates {
 	public function test_vcs_abspath() {
 		$context_dirs = array( ABSPATH );
 		$vcs_dirs     = array( '.svn', '.git', '.hg', '.bzr' );
-		$check_dirs   = array();
+		$check_dirs   = [];
 
 		foreach ( $context_dirs as $context_dir ) {
 			// Walk up from $context_dir to the root.
@@ -356,7 +356,7 @@ class WP_Site_Health_Auto_Updates {
 			);
 		}
 
-		$unwritable_files = array();
+		$unwritable_files = [];
 		foreach ( array_keys( $checksums ) as $file ) {
 			if ( str_starts_with( $file, 'wp-content' ) ) {
 				continue;

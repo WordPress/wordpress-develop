@@ -19,7 +19,7 @@
  * @since 3.6.0
  */
 function wp_ajax_nopriv_heartbeat() {
-	$response = array();
+	$response = [];
 
 	// 'screen_id' is the same as $current_screen->id and the JS global 'pagenow'.
 	if ( ! empty( $_POST['screen_id'] ) ) {
@@ -296,7 +296,7 @@ function wp_ajax_autocomplete_user() {
 		wp_die( -1 );
 	}
 
-	$return = array();
+	$return = [];
 
 	/*
 	 * Check the type of request.
@@ -604,9 +604,9 @@ function _wp_ajax_add_hierarchical_term() {
 	}
 
 	if ( 'category' === $taxonomy->name ) {
-		$post_category = isset( $_POST['post_category'] ) ? (array) $_POST['post_category'] : array();
+		$post_category = isset( $_POST['post_category'] ) ? (array) $_POST['post_category'] : [];
 	} else {
-		$post_category = ( isset( $_POST['tax_input'] ) && isset( $_POST['tax_input'][ $taxonomy->name ] ) ) ? (array) $_POST['tax_input'][ $taxonomy->name ] : array();
+		$post_category = ( isset( $_POST['tax_input'] ) && isset( $_POST['tax_input'][ $taxonomy->name ] ) ) ? (array) $_POST['tax_input'][ $taxonomy->name ] : [];
 	}
 
 	$checked_categories = array_map( 'absint', (array) $post_category );
@@ -1528,7 +1528,7 @@ function wp_ajax_add_menu_item() {
 	 * For performance reasons, we omit some object properties from the checklist.
 	 * The following is a hacky way to restore them when adding non-custom items.
 	 */
-	$menu_items_data = array();
+	$menu_items_data = [];
 
 	foreach ( (array) $_POST['menu-item'] as $menu_item_data ) {
 		if (
@@ -1565,7 +1565,7 @@ function wp_ajax_add_menu_item() {
 		wp_die( 0 );
 	}
 
-	$menu_items = array();
+	$menu_items = [];
 
 	foreach ( (array) $item_ids as $menu_item_id ) {
 		$menu_obj = get_post( $menu_item_id );
@@ -1622,7 +1622,7 @@ function wp_ajax_add_meta() {
 
 		// If the post is an autodraft, save the post as a draft and then attempt to save the meta.
 		if ( 'auto-draft' === $post->post_status ) {
-			$post_data                = array();
+			$post_data                = [];
 			$post_data['action']      = 'draft'; // Warning fix.
 			$post_data['post_ID']     = $pid;
 			$post_data['post_type']   = $post->post_type;
@@ -1789,10 +1789,10 @@ function wp_ajax_add_user( $action ) {
  */
 function wp_ajax_closed_postboxes() {
 	check_ajax_referer( 'closedpostboxes', 'closedpostboxesnonce' );
-	$closed = isset( $_POST['closed'] ) ? explode( ',', $_POST['closed'] ) : array();
+	$closed = isset( $_POST['closed'] ) ? explode( ',', $_POST['closed'] ) : [];
 	$closed = array_filter( $closed );
 
-	$hidden = isset( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
+	$hidden = isset( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : [];
 	$hidden = array_filter( $hidden );
 
 	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
@@ -1837,7 +1837,7 @@ function wp_ajax_hidden_columns() {
 		wp_die( -1 );
 	}
 
-	$hidden = ! empty( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
+	$hidden = ! empty( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : [];
 	update_user_meta( $user->ID, "manage{$page}columnshidden", $hidden );
 
 	wp_die( 1 );
@@ -1919,7 +1919,7 @@ function wp_ajax_menu_get_metabox() {
 function wp_ajax_wp_link_ajax() {
 	check_ajax_referer( 'internal-linking', '_ajax_linking_nonce' );
 
-	$args = array();
+	$args = [];
 
 	if ( isset( $_POST['search'] ) ) {
 		$args['s'] = wp_unslash( $_POST['search'] );
@@ -2308,10 +2308,10 @@ function wp_ajax_widgets_order() {
 
 	// Save widgets order for all sidebars.
 	if ( is_array( $_POST['sidebars'] ) ) {
-		$sidebars = array();
+		$sidebars = [];
 
 		foreach ( wp_unslash( $_POST['sidebars'] ) as $key => $val ) {
-			$sb = array();
+			$sb = [];
 
 			if ( ! empty( $val ) ) {
 				$val = explode( ',', $val );
@@ -2379,7 +2379,7 @@ function wp_ajax_save_widget() {
 	$error        = '<p>' . __( 'An error has occurred. Please reload the page and try again.' ) . '</p>';
 
 	$sidebars = wp_get_sidebars_widgets();
-	$sidebar  = isset( $sidebars[ $sidebar_id ] ) ? $sidebars[ $sidebar_id ] : array();
+	$sidebar  = isset( $sidebars[ $sidebar_id ] ) ? $sidebars[ $sidebar_id ] : [];
 
 	// Delete.
 	if ( isset( $_POST['delete_widget'] ) && $_POST['delete_widget'] ) {
@@ -2600,7 +2600,7 @@ function wp_ajax_upload_attachment() {
 		$post_id = null;
 	}
 
-	$post_data = ! empty( $_REQUEST['post_data'] ) ? _wp_get_allowed_postdata( _wp_translate_postdata( false, (array) $_REQUEST['post_data'] ) ) : array();
+	$post_data = ! empty( $_REQUEST['post_data'] ) ? _wp_get_allowed_postdata( _wp_translate_postdata( false, (array) $_REQUEST['post_data'] ) ) : [];
 
 	if ( is_wp_error( $post_data ) ) {
 		wp_die( $post_data->get_error_message() );
@@ -2805,7 +2805,7 @@ function wp_ajax_set_attachment_thumbnail() {
 		wp_send_json_error();
 	}
 
-	$post_ids = array();
+	$post_ids = [];
 	// For each URL, try to find its corresponding post ID.
 	foreach ( $_POST['urls'] as $url ) {
 		$post_id = attachment_url_to_postid( $url );
@@ -3016,7 +3016,7 @@ function wp_ajax_query_attachments() {
 		wp_send_json_error();
 	}
 
-	$query = isset( $_REQUEST['query'] ) ? (array) $_REQUEST['query'] : array();
+	$query = isset( $_REQUEST['query'] ) ? (array) $_REQUEST['query'] : [];
 	$keys  = array(
 		's',
 		'order',
@@ -3159,7 +3159,7 @@ function wp_ajax_save_attachment() {
 
 		if ( ! is_array( $id3data ) ) {
 			$changed = true;
-			$id3data = array();
+			$id3data = [];
 		}
 
 		foreach ( wp_get_attachment_id3_keys( (object) $post, 'edit' ) as $key => $label ) {
@@ -3452,8 +3452,8 @@ function wp_ajax_heartbeat() {
 		wp_send_json_error();
 	}
 
-	$response    = array();
-	$data        = array();
+	$response    = [];
+	$data        = [];
 	$nonce_state = wp_verify_nonce( $_POST['_nonce'], 'heartbeat-nonce' );
 
 	// 'screen_id' is the same as $current_screen->id and the JS global 'pagenow'.
@@ -3550,7 +3550,7 @@ function wp_ajax_get_revision_diffs() {
 		wp_send_json_error();
 	}
 
-	$return = array();
+	$return = [];
 
 	if ( function_exists( 'set_time_limit' ) ) {
 		set_time_limit( 0 );
@@ -3648,7 +3648,7 @@ function wp_ajax_query_themes() {
 	$installed_themes = search_theme_directories();
 
 	if ( false === $installed_themes ) {
-		$installed_themes = array();
+		$installed_themes = [];
 	}
 
 	foreach ( $installed_themes as $theme_slug => $theme_data ) {
@@ -3832,7 +3832,7 @@ function wp_ajax_parse_embed() {
 		global $wp_scripts;
 
 		if ( ! empty( $wp_scripts ) ) {
-			$wp_scripts->done = array();
+			$wp_scripts->done = [];
 		}
 
 		ob_start();
@@ -3935,7 +3935,7 @@ function wp_ajax_parse_media_shortcode() {
 	}
 
 	if ( ! empty( $wp_scripts ) ) {
-		$wp_scripts->done = array();
+		$wp_scripts->done = [];
 	}
 
 	ob_start();
@@ -4839,7 +4839,7 @@ function wp_ajax_search_plugins() {
 		)
 	);
 
-	$status = array();
+	$status = [];
 
 	if ( ! $wp_list_table->ajax_user_can() ) {
 		$status['errorMessage'] = __( 'Sorry, you are not allowed to manage plugins for this site.' );
@@ -4891,7 +4891,7 @@ function wp_ajax_search_install_plugins() {
 		)
 	);
 
-	$status = array();
+	$status = [];
 
 	if ( ! $wp_list_table->ajax_user_can() ) {
 		$status['errorMessage'] = __( 'Sorry, you are not allowed to manage plugins for this site.' );
@@ -5525,7 +5525,7 @@ function wp_ajax_health_check_get_sizes() {
 
 	foreach ( $sizes_data as $name => $value ) {
 		$name = sanitize_text_field( $name );
-		$data = array();
+		$data = [];
 
 		if ( isset( $value['size'] ) ) {
 			if ( is_string( $value['size'] ) ) {

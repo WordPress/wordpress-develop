@@ -370,7 +370,7 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 	 */
 	function twentyfifteen_fonts_url() {
 		$fonts_url = '';
-		$fonts     = array();
+		$fonts     = [];
 
 		/*
 		 * translators: If there are characters in your language that are not supported

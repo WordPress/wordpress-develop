@@ -37,7 +37,7 @@ class WP_Sitemaps_Test_Provider extends WP_Sitemaps_Provider {
 	 * @return array[] Array of URL information for a sitemap.
 	 */
 	public function get_url_list( $page_num, $object_subtype = '' ) {
-		return array();
+		return [];
 	}
 
 	/**

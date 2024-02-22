@@ -41,7 +41,7 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
-		$data = array();
+		$data = [];
 
 		foreach ( $attributes as $name => $values ) {
 			foreach ( (array) $values as $value ) {
@@ -90,7 +90,7 @@ class Tests_Kses extends WP_UnitTestCase {
 			'download' => '',
 		);
 
-		$data = array();
+		$data = [];
 
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
@@ -190,7 +190,7 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
-		$data = array();
+		$data = [];
 
 		foreach ( $attributes as $name => $value ) {
 			$content  = "<abbr $name='$value'>WP</abbr>";
@@ -2028,7 +2028,7 @@ HTML;
 			),
 		);
 
-		$return_data = array();
+		$return_data = [];
 
 		foreach ( $data as $description => $datum ) {
 			// Test that the required flag defaults to false.

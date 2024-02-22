@@ -348,7 +348,7 @@ $site_health_count = '';
 if ( ! is_multisite() && current_user_can( 'view_site_health_checks' ) ) {
 	$get_issues = get_transient( 'health-check-site-status-result' );
 
-	$issue_counts = array();
+	$issue_counts = [];
 
 	if ( false !== $get_issues ) {
 		$issue_counts = json_decode( $get_issues, true );

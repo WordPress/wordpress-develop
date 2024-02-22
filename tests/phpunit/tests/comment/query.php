@@ -1324,7 +1324,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::__construct
 	 */
 	public function test_multiple_post_fields_should_all_be_respected() {
-		$posts = array();
+		$posts = [];
 
 		$posts[] = self::factory()->post->create(
 			array(
@@ -1347,7 +1347,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$comments = array();
+		$comments = [];
 		foreach ( $posts as $post ) {
 			$comments[] = self::factory()->comment->create(
 				array(

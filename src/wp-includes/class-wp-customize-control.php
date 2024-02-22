@@ -114,7 +114,7 @@ class WP_Customize_Control {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	public $choices = array();
+	public $choices = [];
 
 	/**
 	 * List of custom input attributes for control output, where attribute names are the keys and values are the values.
@@ -124,7 +124,7 @@ class WP_Customize_Control {
 	 * @since 4.0.0
 	 * @var array
 	 */
-	public $input_attrs = array();
+	public $input_attrs = [];
 
 	/**
 	 * Show UI for adding new content, currently only used for the dropdown-pages control.
@@ -139,7 +139,7 @@ class WP_Customize_Control {
 	 * @since 3.4.0
 	 * @var array
 	 */
-	public $json = array();
+	public $json = [];
 
 	/**
 	 * Control's Type.
@@ -229,7 +229,7 @@ class WP_Customize_Control {
 			$this->settings = $id;
 		}
 
-		$settings = array();
+		$settings = [];
 		if ( is_array( $this->settings ) ) {
 			foreach ( $this->settings as $key => $setting ) {
 				$settings[ $key ] = $this->manager->get_setting( $setting );
@@ -307,7 +307,7 @@ class WP_Customize_Control {
 	 * @since 3.4.0
 	 */
 	public function to_json() {
-		$this->json['settings'] = array();
+		$this->json['settings'] = [];
 		foreach ( $this->settings as $key => $setting ) {
 			$this->json['settings'][ $key ] = $setting->id;
 		}

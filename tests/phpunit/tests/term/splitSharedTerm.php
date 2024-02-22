@@ -4,7 +4,7 @@
  * @group taxonomy
  */
 class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
-	protected $terms = array();
+	protected $terms = [];
 
 	/**
 	 * Sets up a number of split terms for testing. Terms are as follows.

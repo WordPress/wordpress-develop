@@ -23,7 +23,7 @@ class getid3_ac3 extends getid3_handler
 	/**
 	 * @var array
 	 */
-	private $AC3header = array();
+	private $AC3header = [];
 
 	/**
 	 * @var int
@@ -39,7 +39,7 @@ class getid3_ac3 extends getid3_handler
 		$info = &$this->getid3->info;
 
 		///AH
-		$info['ac3']['raw']['bsi'] = array();
+		$info['ac3']['raw']['bsi'] = [];
 		$thisfile_ac3              = &$info['ac3'];
 		$thisfile_ac3_raw          = &$thisfile_ac3['raw'];
 		$thisfile_ac3_raw_bsi      = &$thisfile_ac3_raw['bsi'];
@@ -534,7 +534,7 @@ class getid3_ac3 extends getid3_handler
 	 * @return string|false
 	 */
 	public static function serviceTypeLookup($bsmod, $acmod) {
-		static $serviceTypeLookup = array();
+		static $serviceTypeLookup = [];
 		if (empty($serviceTypeLookup)) {
 			for ($i = 0; $i <= 7; $i++) {
 				$serviceTypeLookup[0][$i] = 'main audio service: complete main (CM)';
@@ -737,7 +737,7 @@ class getid3_ac3 extends getid3_handler
 		$padding     = (bool) ($frmsizecod & 0x01);
 		$framesizeid =        ($frmsizecod & 0x3E) >> 1;
 
-		static $frameSizeLookup = array();
+		static $frameSizeLookup = [];
 		if (empty($frameSizeLookup)) {
 			$frameSizeLookup = array (
 				0  => array( 128,  138,  192),  //  32 kbps

@@ -13,7 +13,7 @@ class WP_Ajax_Response {
 	 * @since 2.1.0
 	 * @var array
 	 */
-	public $responses = array();
+	public $responses = [];
 
 	/**
 	 * Constructor - Passes args to WP_Ajax_Response::add().

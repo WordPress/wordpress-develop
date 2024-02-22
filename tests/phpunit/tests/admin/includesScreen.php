@@ -164,9 +164,9 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 		global $current_screen;
 
 		foreach ( $this->core_screens as $hook_name => $screen ) {
-			$_GET               = array();
-			$_POST              = array();
-			$_REQUEST           = array();
+			$_GET               = [];
+			$_POST              = [];
+			$_REQUEST           = [];
 			$GLOBALS['taxnow']  = '';
 			$GLOBALS['typenow'] = '';
 			$screen             = (object) $screen;

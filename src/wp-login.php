@@ -231,7 +231,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	}
 
 	if ( $wp_error->has_errors() ) {
-		$error_list = array();
+		$error_list = [];
 		$messages   = '';
 
 		foreach ( $wp_error->get_error_codes() as $code ) {
@@ -1440,7 +1440,7 @@ switch ( $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
 			} elseif ( isset( $_GET['redirect_to'] ) && str_contains( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
 				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
-				$query           = array();
+				$query           = [];
 				if ( $query_component ) {
 					parse_str( $query_component, $query );
 				}

@@ -44,12 +44,12 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 	 * @return string Email column markup.
 	 */
 	public function column_email( $item ) {
-		$row_actions = array();
+		$row_actions = [];
 
 		// Allow the administrator to "force remove" the personal data even if confirmation has not yet been received.
 		$status      = $item->status;
 		$request_id  = $item->ID;
-		$row_actions = array();
+		$row_actions = [];
 		if ( 'request-confirmed' !== $status ) {
 			/** This filter is documented in wp-admin/includes/ajax-actions.php */
 			$erasers       = apply_filters( 'wp_privacy_personal_data_erasers', array() );

@@ -38,7 +38,7 @@ function wp_register_colors_support( $block_type ) {
 		$has_heading_colors_support;
 
 	if ( ! $block_type->attributes ) {
-		$block_type->attributes = array();
+		$block_type->attributes = [];
 	}
 
 	if ( $has_color_support && ! array_key_exists( 'style', $block_type->attributes ) ) {
@@ -87,7 +87,7 @@ function wp_apply_colors_support( $block_type, $block_attributes ) {
 		is_array( $color_support ) &&
 		wp_should_skip_block_supports_serialization( $block_type, 'color' )
 	) {
-		return array();
+		return [];
 	}
 
 	$has_text_colors_support       = true === $color_support ||
@@ -97,7 +97,7 @@ function wp_apply_colors_support( $block_type, $block_attributes ) {
 		( isset( $color_support['background'] ) && $color_support['background'] ) ||
 		( is_array( $color_support ) && ! isset( $color_support['background'] ) );
 	$has_gradients_support         = isset( $color_support['gradients'] ) ? $color_support['gradients'] : false;
-	$color_block_styles            = array();
+	$color_block_styles            = [];
 
 	// Text colors.
 	if ( $has_text_colors_support && ! wp_should_skip_block_supports_serialization( $block_type, 'color', 'text' ) ) {
@@ -120,7 +120,7 @@ function wp_apply_colors_support( $block_type, $block_attributes ) {
 		$color_block_styles['gradient'] = $preset_gradient_color ? $preset_gradient_color : $custom_gradient_color;
 	}
 
-	$attributes = array();
+	$attributes = [];
 	$styles     = wp_style_engine_get_styles( array( 'color' => $color_block_styles ), array( 'convert_vars_to_classnames' => true ) );
 
 	if ( ! empty( $styles['classnames'] ) ) {

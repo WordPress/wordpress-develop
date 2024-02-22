@@ -33,7 +33,7 @@ class WP {
 	 * @since 2.1.0
 	 * @var array
 	 */
-	public $extra_query_vars = array();
+	public $extra_query_vars = [];
 
 	/**
 	 * Query variables for setting up the WordPress Query Loop.
@@ -41,7 +41,7 @@ class WP {
 	 * @since 2.0.0
 	 * @var array
 	 */
-	public $query_vars = array();
+	public $query_vars = [];
 
 	/**
 	 * String parsed to set the query variables.
@@ -149,8 +149,8 @@ class WP {
 			return false;
 		}
 
-		$this->query_vars     = array();
-		$post_type_query_vars = array();
+		$this->query_vars     = [];
+		$post_type_query_vars = [];
 
 		if ( is_array( $extra_query_vars ) ) {
 			$this->extra_query_vars = & $extra_query_vars;
@@ -435,7 +435,7 @@ class WP {
 	public function send_headers() {
 		global $wp_query;
 
-		$headers       = array();
+		$headers       = [];
 		$status        = null;
 		$exit_required = false;
 		$date_format   = 'D, d M Y H:i:s';

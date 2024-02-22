@@ -7,8 +7,8 @@
  */
 class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	protected static $taxonomy = 'category';
-	protected static $post_ids = array();
-	protected static $term_ids = array();
+	protected static $post_ids = [];
+	protected static $term_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_ids = $factory->post->create_many( 5 );
@@ -106,7 +106,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 	public function test_set_object_terms_by_id() {
 		$ids = self::$post_ids;
 
-		$terms = array();
+		$terms = [];
 		for ( $i = 0; $i < 3; $i++ ) {
 			$term   = "term_{$i}";
 			$result = wp_insert_term( $term, self::$taxonomy );
@@ -254,7 +254,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		$post_id = self::$post_ids[0];
 
 		// First set: 3 terms.
-		$terms_1 = array();
+		$terms_1 = [];
 		for ( $i = 0; $i < 3; $i++ ) {
 			$term   = "term_{$i}";
 			$result = wp_insert_term( $term, self::$taxonomy );
@@ -263,7 +263,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		}
 
 		// Second set: one of the original terms, plus one new term.
-		$terms_2    = array();
+		$terms_2    = [];
 		$terms_2[0] = $terms_1[1];
 
 		$term       = 'term';

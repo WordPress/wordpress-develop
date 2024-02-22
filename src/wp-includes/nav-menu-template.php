@@ -55,7 +55,7 @@ require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
  *                           False if there are no items or no menu was found.
  */
 function wp_nav_menu( $args = array() ) {
-	static $menu_id_slugs = array();
+	static $menu_id_slugs = [];
 
 	$defaults = array(
 		'menu'                 => '',
@@ -195,8 +195,8 @@ function wp_nav_menu( $args = array() ) {
 	// Set up the $menu_item variables.
 	_wp_menu_item_classes_by_context( $menu_items );
 
-	$sorted_menu_items        = array();
-	$menu_items_with_children = array();
+	$sorted_menu_items        = [];
+	$menu_items_with_children = [];
 	foreach ( (array) $menu_items as $menu_item ) {
 		/*
 		 * Fix invalid `menu_item_parent`. See: https://core.trac.wordpress.org/ticket/56926.
@@ -326,11 +326,11 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 	$queried_object_id = (int) $wp_query->queried_object_id;
 
 	$active_object               = '';
-	$active_ancestor_item_ids    = array();
-	$active_parent_item_ids      = array();
-	$active_parent_object_ids    = array();
-	$possible_taxonomy_ancestors = array();
-	$possible_object_parents     = array();
+	$active_ancestor_item_ids    = [];
+	$active_parent_item_ids      = [];
+	$active_parent_object_ids    = [];
+	$possible_taxonomy_ancestors = [];
+	$possible_object_parents     = [];
 	$home_page_id                = (int) get_option( 'page_for_posts' );
 
 	if ( $wp_query->is_singular && ! empty( $queried_object->post_type ) && ! is_post_type_hierarchical( $queried_object->post_type ) ) {
@@ -340,7 +340,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 				$terms          = wp_get_object_terms( $queried_object_id, $taxonomy, array( 'fields' => 'ids' ) );
 				if ( is_array( $terms ) ) {
 					$possible_object_parents = array_merge( $possible_object_parents, $terms );
-					$term_to_ancestor        = array();
+					$term_to_ancestor        = [];
 					foreach ( (array) $term_hierarchy as $anc => $descs ) {
 						foreach ( (array) $descs as $desc ) {
 							$term_to_ancestor[ $desc ] = $anc;
@@ -364,7 +364,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 		}
 	} elseif ( ! empty( $queried_object->taxonomy ) && is_taxonomy_hierarchical( $queried_object->taxonomy ) ) {
 		$term_hierarchy   = _get_term_hierarchy( $queried_object->taxonomy );
-		$term_to_ancestor = array();
+		$term_to_ancestor = [];
 		foreach ( (array) $term_hierarchy as $anc => $descs ) {
 			foreach ( (array) $descs as $desc ) {
 				$term_to_ancestor[ $desc ] = $anc;
@@ -627,7 +627,7 @@ function walk_nav_menu_tree( $items, $depth, $args ) {
  * @return string
  */
 function _nav_menu_item_id_use_once( $id, $item ) {
-	static $_used_ids = array();
+	static $_used_ids = [];
 
 	if ( in_array( $item->ID, $_used_ids, true ) ) {
 		return '';

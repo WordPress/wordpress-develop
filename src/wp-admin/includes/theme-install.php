@@ -73,7 +73,7 @@ function install_themes_feature_list() {
 
 	$feature_list = themes_api( 'feature_list', array() );
 	if ( is_wp_error( $feature_list ) ) {
-		return array();
+		return [];
 	}
 
 	set_transient( 'wporg_theme_feature_list', $feature_list, 3 * HOUR_IN_SECONDS );

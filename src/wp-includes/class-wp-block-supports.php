@@ -23,7 +23,7 @@ class WP_Block_Supports {
 	 * @since 5.6.0
 	 * @var array
 	 */
-	private $block_supports = array();
+	private $block_supports = [];
 
 	/**
 	 * Tracks the current block to be rendered.
@@ -100,14 +100,14 @@ class WP_Block_Supports {
 
 		// If no render_callback, assume styles have been previously handled.
 		if ( ! $block_type || empty( $block_type ) ) {
-			return array();
+			return [];
 		}
 
 		$block_attributes = array_key_exists( 'attrs', self::$block_to_render )
 			? self::$block_to_render['attrs']
-			: array();
+			: [];
 
-		$output = array();
+		$output = [];
 		foreach ( $this->block_supports as $block_support_config ) {
 			if ( ! isset( $block_support_config['apply'] ) ) {
 				continue;
@@ -146,7 +146,7 @@ class WP_Block_Supports {
 				continue;
 			}
 			if ( ! $block_type->attributes ) {
-				$block_type->attributes = array();
+				$block_type->attributes = [];
 			}
 
 			foreach ( $this->block_supports as $block_support_config ) {
@@ -182,7 +182,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	// This is hardcoded on purpose.
 	// We only support a fixed list of attributes.
 	$attributes_to_merge = array( 'style', 'class', 'id' );
-	$attributes          = array();
+	$attributes          = [];
 	foreach ( $attributes_to_merge as $attribute_name ) {
 		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {
 			continue;
@@ -211,7 +211,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 		return '';
 	}
 
-	$normalized_attributes = array();
+	$normalized_attributes = [];
 	foreach ( $attributes as $key => $value ) {
 		$normalized_attributes[] = $key . '="' . esc_attr( $value ) . '"';
 	}

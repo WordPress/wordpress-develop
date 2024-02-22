@@ -300,17 +300,17 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->wp_customize );
 
 		// Create posts.
-		$post_ids   = array();
+		$post_ids   = [];
 		$post_ids[] = self::factory()->post->create( array( 'post_title' => 'Search & Test' ) );
 		$post_ids[] = self::factory()->post->create( array( 'post_title' => 'Some Other Title' ) );
 
 		// Create terms.
-		$term_ids   = array();
+		$term_ids   = [];
 		$term_ids[] = self::factory()->category->create( array( 'name' => 'Dogs Are Cool' ) );
 		$term_ids[] = self::factory()->category->create( array( 'name' => 'Cats Drool' ) );
 
 		// Test empty results.
-		$expected = array();
+		$expected = [];
 		$results  = $menus->search_available_items_query(
 			array(
 				'pagenum' => 1,
@@ -926,7 +926,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
 		do_action( 'customize_register', $this->wp_customize );
 
-		$post_ids = array();
+		$post_ids = [];
 
 		// Auto-draft.
 		$r = $menus->insert_auto_draft_post(

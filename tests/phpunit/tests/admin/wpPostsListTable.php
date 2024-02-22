@@ -4,10 +4,10 @@
  * @group admin
  */
 class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
-	protected static $top           = array();
-	protected static $children      = array();
-	protected static $grandchildren = array();
-	protected static $post_ids      = array();
+	protected static $top           = [];
+	protected static $children      = [];
+	protected static $grandchildren = [];
+	protected static $post_ids      = [];
 
 	/**
 	 * @var WP_Posts_List_Table
@@ -203,7 +203,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * @param array $expected_ids Expected IDs of pages returned.
 	 */
 	protected function _test_list_hierarchical_page( array $args, array $expected_ids ) {
-		$matches = array();
+		$matches = [];
 
 		$_REQUEST['paged']   = $args['paged'];
 		$GLOBALS['per_page'] = $args['posts_per_page'];

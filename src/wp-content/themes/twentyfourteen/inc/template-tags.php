@@ -26,7 +26,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 
 		$paged        = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 		$pagenum_link = html_entity_decode( get_pagenum_link() );
-		$query_args   = array();
+		$query_args   = [];
 		$url_parts    = explode( '?', $pagenum_link );
 
 		if ( isset( $url_parts[1] ) ) {

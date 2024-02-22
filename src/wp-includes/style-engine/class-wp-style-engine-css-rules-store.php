@@ -25,7 +25,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 * @var WP_Style_Engine_CSS_Rules_Store[]
 	 */
-	protected static $stores = array();
+	protected static $stores = [];
 
 	/**
 	 * The store name.
@@ -41,7 +41,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 * @var WP_Style_Engine_CSS_Rule[]
 	 */
-	protected $rules = array();
+	protected $rules = [];
 
 	/**
 	 * Gets an instance of the store.
@@ -80,7 +80,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * @since 6.1.0
 	 */
 	public static function remove_all_stores() {
-		static::$stores = array();
+		static::$stores = [];
 	}
 
 	/**

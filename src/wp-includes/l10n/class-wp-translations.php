@@ -57,7 +57,7 @@ class WP_Translations {
 		if ( 'entries' === $name ) {
 			$entries = $this->controller->get_entries( $this->textdomain );
 
-			$result = array();
+			$result = [];
 
 			foreach ( $entries as $original => $translations ) {
 				$result[] = $this->make_entry( $original, $translations );

@@ -16,7 +16,7 @@
  */
 class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
-	public $features = array();
+	public $features = [];
 
 	/**
 	 * @return bool
@@ -38,7 +38,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		global $tabs, $tab, $paged, $type, $theme_field_defaults;
 		wp_reset_vars( array( 'tab' ) );
 
-		$search_terms  = array();
+		$search_terms  = [];
 		$search_string = '';
 		if ( ! empty( $_REQUEST['s'] ) ) {
 			$search_string = strtolower( wp_unslash( $_REQUEST['s'] ) );
@@ -54,7 +54,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$per_page = 36;
 
 		// These are the tabs which are shown on the page,
-		$tabs              = array();
+		$tabs              = [];
 		$tabs['dashboard'] = __( 'Search' );
 		if ( 'search' === $tab ) {
 			$tabs['search'] = __( 'Search Results' );
@@ -183,7 +183,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	protected function get_views() {
 		global $tabs, $tab;
 
-		$display_tabs = array();
+		$display_tabs = [];
 		foreach ( (array) $tabs as $action => $text ) {
 			$display_tabs[ 'theme-install-' . $action ] = array(
 				'url'     => self_admin_url( 'theme-install.php?tab=' . $action ),
@@ -288,7 +288,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 			self_admin_url( 'theme-install.php' )
 		);
 
-		$actions = array();
+		$actions = [];
 
 		$install_url = add_query_arg(
 			array(

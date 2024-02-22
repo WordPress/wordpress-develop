@@ -122,7 +122,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 			$palette = get_theme_support( 'editor-color-palette' );
 
 			// Build the colors array from theme-support.
-			$colors = array();
+			$colors = [];
 			if ( isset( $palette[0] ) && is_array( $palette[0] ) ) {
 				foreach ( $palette[0] as $palette_color ) {
 					$colors[] = $palette_color['color'];

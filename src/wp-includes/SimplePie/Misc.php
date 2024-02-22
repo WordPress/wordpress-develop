@@ -96,7 +96,7 @@ class SimplePie_Misc
 	 */
 	public static function get_element($realname, $string)
 	{
-		$return = array();
+		$return = [];
 		$name = preg_quote($realname, '/');
 		if (preg_match_all("/<($name)" . SIMPLEPIE_PCRE_HTML_ATTRIBUTE . "(>(.*)<\/$name>|(\/)?>)/siU", $string, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE))
 		{
@@ -114,7 +114,7 @@ class SimplePie_Misc
 					$return[$i]['self_closing'] = false;
 					$return[$i]['content'] = $matches[$i][4][0];
 				}
-				$return[$i]['attribs'] = array();
+				$return[$i]['attribs'] = [];
 				if (isset($matches[$i][2][0]) && preg_match_all('/[\x09\x0A\x0B\x0C\x0D\x20]+([^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3E][^\x09\x0A\x0B\x0C\x0D\x20\x2F\x3D\x3E]*)(?:[\x09\x0A\x0B\x0C\x0D\x20]*=[\x09\x0A\x0B\x0C\x0D\x20]*(?:"([^"]*)"|\'([^\']*)\'|([^\x09\x0A\x0B\x0C\x0D\x20\x22\x27\x3E][^\x09\x0A\x0B\x0C\x0D\x20\x3E]*)?))?/', ' ' . $matches[$i][2][0] . ' ', $attribs, PREG_SET_ORDER))
 				{
 					for ($j = 0, $total_attribs = count($attribs); $j < $total_attribs; $j++)
@@ -1953,7 +1953,7 @@ class SimplePie_Misc
 		$string_length = strlen($string);
 
 		$position = strspn($string, $space_characters);
-		$tokens = array();
+		$tokens = [];
 
 		while ($position < $string_length)
 		{
@@ -2013,7 +2013,7 @@ class SimplePie_Misc
 	 */
 	public static function parse_str($str)
 	{
-		$return = array();
+		$return = [];
 		$str = explode('&', $str);
 
 		foreach ($str as $section)

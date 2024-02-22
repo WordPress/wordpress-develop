@@ -701,7 +701,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	public function test_doing_filter() {
 		global $wp_current_filter;
 
-		$wp_current_filter = array(); // Set to an empty array first.
+		$wp_current_filter = []; // Set to an empty array first.
 
 		$this->assertFalse( doing_filter() );            // No filter is passed in, and no filter is being processed.
 		$this->assertFalse( doing_filter( 'testing' ) ); // Filter is passed in but not being processed.
@@ -712,7 +712,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertTrue( doing_filter( 'testing' ) );         // Filter is passed in and is being processed.
 		$this->assertFalse( doing_filter( 'something_else' ) ); // Filter is passed in but not being processed.
 
-		$wp_current_filter = array();
+		$wp_current_filter = [];
 	}
 
 	/**
@@ -723,7 +723,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	public function test_doing_action() {
 		global $wp_current_filter;
 
-		$wp_current_filter = array(); // Set to an empty array first.
+		$wp_current_filter = []; // Set to an empty array first.
 
 		$this->assertFalse( doing_action() );            // No action is passed in, and no filter is being processed.
 		$this->assertFalse( doing_action( 'testing' ) ); // Action is passed in but not being processed.
@@ -734,7 +734,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertTrue( doing_action( 'testing' ) );         // Action is passed in and is being processed.
 		$this->assertFalse( doing_action( 'something_else' ) ); // Action is passed in but not being processed.
 
-		$wp_current_filter = array();
+		$wp_current_filter = [];
 	}
 
 	/**

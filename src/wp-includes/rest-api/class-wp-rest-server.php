@@ -61,7 +61,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @var array
 	 */
-	protected $namespaces = array();
+	protected $namespaces = [];
 
 	/**
 	 * Endpoints registered to the server.
@@ -69,7 +69,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @var array
 	 */
-	protected $endpoints = array();
+	protected $endpoints = [];
 
 	/**
 	 * Options defined for the routes.
@@ -77,7 +77,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @var array
 	 */
-	protected $route_options = array();
+	protected $route_options = [];
 
 	/**
 	 * Caches embedded requests.
@@ -85,7 +85,7 @@ class WP_REST_Server {
 	 * @since 5.4.0
 	 * @var array
 	 */
-	protected $embed_cache = array();
+	protected $embed_cache = [];
 
 	/**
 	 * Stores request objects that are currently being handled.
@@ -93,7 +93,7 @@ class WP_REST_Server {
 	 * @since 6.5.0
 	 * @var array
 	 */
-	protected $dispatching_requests = array();
+	protected $dispatching_requests = [];
 
 	/**
 	 * Instantiates the REST server.
@@ -595,7 +595,7 @@ class WP_REST_Server {
 		}
 
 		if ( $embed ) {
-			$this->embed_cache = array();
+			$this->embed_cache = [];
 			// Determine if this is a numeric array.
 			if ( wp_is_numeric_array( $data ) ) {
 				foreach ( $data as $key => $item ) {
@@ -604,7 +604,7 @@ class WP_REST_Server {
 			} else {
 				$data = $this->embed_links( $data, $embed );
 			}
-			$this->embed_cache = array();
+			$this->embed_cache = [];
 		}
 
 		return $data;
@@ -625,13 +625,13 @@ class WP_REST_Server {
 		$links = $response->get_links();
 
 		if ( empty( $links ) ) {
-			return array();
+			return [];
 		}
 
 		// Convert links to part of the data.
-		$data = array();
+		$data = [];
 		foreach ( $links as $rel => $items ) {
-			$data[ $rel ] = array();
+			$data[ $rel ] = [];
 
 			foreach ( $items as $item ) {
 				$attributes         = $item['attributes'];
@@ -658,11 +658,11 @@ class WP_REST_Server {
 		$links = self::get_response_links( $response );
 
 		if ( empty( $links ) ) {
-			return array();
+			return [];
 		}
 
 		$curies      = $response->get_curies();
-		$used_curies = array();
+		$used_curies = [];
 
 		foreach ( $links as $rel => $items ) {
 
@@ -714,7 +714,7 @@ class WP_REST_Server {
 			return $data;
 		}
 
-		$embedded = array();
+		$embedded = [];
 
 		foreach ( $data['_links'] as $rel => $links ) {
 			/*
@@ -725,13 +725,13 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$embeds = array();
+			$embeds = [];
 
 			foreach ( $links as $item ) {
 				// Determine if the link is embeddable.
 				if ( empty( $item['embeddable'] ) ) {
 					// Ensure we keep the same order.
-					$embeds[] = array();
+					$embeds[] = [];
 					continue;
 				}
 
@@ -739,7 +739,7 @@ class WP_REST_Server {
 					// Run through our internal routing and serve.
 					$request = WP_REST_Request::from_url( $item['href'] );
 					if ( ! $request ) {
-						$embeds[] = array();
+						$embeds[] = [];
 						continue;
 					}
 
@@ -835,7 +835,7 @@ class WP_REST_Server {
 	 */
 	public function register_route( $route_namespace, $route, $route_args, $override = false ) {
 		if ( ! isset( $this->namespaces[ $route_namespace ] ) ) {
-			$this->namespaces[ $route_namespace ] = array();
+			$this->namespaces[ $route_namespace ] = [];
 
 			$this->register_route(
 				$route_namespace,
@@ -927,7 +927,7 @@ class WP_REST_Server {
 			}
 
 			if ( ! isset( $this->route_options[ $route ] ) ) {
-				$this->route_options[ $route ] = array();
+				$this->route_options[ $route ] = [];
 			}
 
 			foreach ( $handlers as $key => &$handler ) {
@@ -947,10 +947,10 @@ class WP_REST_Server {
 				} elseif ( is_array( $handler['methods'] ) ) {
 					$methods = $handler['methods'];
 				} else {
-					$methods = array();
+					$methods = [];
 				}
 
-				$handler['methods'] = array();
+				$handler['methods'] = [];
 
 				foreach ( $methods as $method ) {
 					$method                        = strtoupper( trim( $method ) );
@@ -1091,7 +1091,7 @@ class WP_REST_Server {
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
-		$with_namespace = array();
+		$with_namespace = [];
 
 		foreach ( $this->get_namespaces() as $namespace ) {
 			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
@@ -1112,7 +1112,7 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$args = array();
+			$args = [];
 
 			foreach ( $matches as $param => $value ) {
 				if ( ! is_int( $param ) ) {
@@ -1139,7 +1139,7 @@ class WP_REST_Server {
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
 
-				$defaults = array();
+				$defaults = [];
 
 				foreach ( $handler['args'] as $arg => $options ) {
 					if ( isset( $options['default'] ) ) {
@@ -1500,7 +1500,7 @@ class WP_REST_Server {
 	 * @return array[] Route data to expose in indexes, keyed by route.
 	 */
 	public function get_data_for_routes( $routes, $context = 'view' ) {
-		$available = array();
+		$available = [];
 
 		// Find the available routes.
 		foreach ( $routes as $route => $callbacks ) {
@@ -1589,13 +1589,13 @@ class WP_REST_Server {
 			}
 
 			if ( isset( $callback['args'] ) ) {
-				$endpoint_data['args'] = array();
+				$endpoint_data['args'] = [];
 
 				foreach ( $callback['args'] as $key => $opts ) {
 					if ( is_string( $opts ) ) {
 						$opts = array( $opts => 0 );
 					} elseif ( ! is_array( $opts ) ) {
-						$opts = array();
+						$opts = [];
 					}
 					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
 					$arg_data['required'] = ! empty( $opts['required'] );
@@ -1653,7 +1653,7 @@ class WP_REST_Server {
 	 * @return WP_REST_Response The generated response object.
 	 */
 	public function serve_batch_request_v1( WP_REST_Request $batch_request ) {
-		$requests = array();
+		$requests = [];
 
 		foreach ( $batch_request['requests'] as $args ) {
 			$parsed_url = wp_parse_url( $args['path'] );
@@ -1683,8 +1683,8 @@ class WP_REST_Server {
 			$requests[] = $single_request;
 		}
 
-		$matches    = array();
-		$validation = array();
+		$matches    = [];
+		$validation = [];
 		$has_error  = false;
 
 		foreach ( $requests as $single_request ) {
@@ -1737,7 +1737,7 @@ class WP_REST_Server {
 			}
 		}
 
-		$responses = array();
+		$responses = [];
 
 		if ( $has_error && 'require-all-validate' === $batch_request['validation'] ) {
 			foreach ( $validation as $valid ) {
@@ -1886,7 +1886,7 @@ class WP_REST_Server {
 	 * @return array Headers extracted from the input.
 	 */
 	public function get_headers( $server ) {
-		$headers = array();
+		$headers = [];
 
 		// CONTENT_* headers are not prefixed with HTTP_.
 		$additional = array(

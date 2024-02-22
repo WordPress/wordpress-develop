@@ -331,7 +331,7 @@ if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 	 */
 	function twentysixteen_fonts_url() {
 		$fonts_url = '';
-		$fonts     = array();
+		$fonts     = [];
 
 		/*
 		 * translators: If there are characters in your language that are not supported
@@ -513,7 +513,7 @@ function twentysixteen_hex2rgb( $color ) {
 		$g = hexdec( substr( $color, 2, 2 ) );
 		$b = hexdec( substr( $color, 4, 2 ) );
 	} else {
-		return array();
+		return [];
 	}
 
 	return array(

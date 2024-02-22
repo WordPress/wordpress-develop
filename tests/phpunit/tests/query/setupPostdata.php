@@ -7,7 +7,7 @@
 class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	protected $global_keys = array( 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
 
-	protected $global_data = array();
+	protected $global_data = [];
 
 	protected $pages_global;
 

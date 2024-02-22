@@ -46,7 +46,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 *
 	 * @see check_package()
 	 */
-	public $new_plugin_data = array();
+	public $new_plugin_data = [];
 
 	/**
 	 * Initializes the upgrade strings.
@@ -325,7 +325,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			$this->maintenance_mode( true );
 		}
 
-		$results = array();
+		$results = [];
 
 		$this->update_count   = count( $plugins );
 		$this->update_current = 0;
@@ -465,7 +465,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public function check_package( $source ) {
 		global $wp_filesystem, $wp_version;
 
-		$this->new_plugin_data = array();
+		$this->new_plugin_data = [];
 
 		if ( is_wp_error( $source ) ) {
 			return $source;

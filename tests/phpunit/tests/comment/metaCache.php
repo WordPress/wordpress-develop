@@ -121,7 +121,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 	 */
 	public function test_update_comment_meta_cache_true_multiple() {
 		$posts           = self::factory()->post->create_many( 3 );
-		$all_comment_ids = array();
+		$all_comment_ids = [];
 		foreach ( $posts as $p ) {
 			$comment_ids = self::factory()->comment->create_post_comments( $p, 3 );
 
@@ -225,7 +225,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		$posts = self::factory()->post->create_many( 2, array( 'post_status' => 'publish' ) );
 
 		$now      = time();
-		$comments = array();
+		$comments = [];
 		for ( $i = 0; $i < 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
 				array(
@@ -274,7 +274,7 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 		$posts = self::factory()->post->create_many( 2, array( 'post_status' => 'publish' ) );
 
 		$now      = time();
-		$comments = array();
+		$comments = [];
 		for ( $i = 0; $i < 5; $i++ ) {
 			$comments[] = self::factory()->comment->create(
 				array(

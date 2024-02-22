@@ -178,7 +178,7 @@ class WP_Application_Passwords {
 		$passwords = get_user_meta( $user_id, static::USERMETA_KEY_APPLICATION_PASSWORDS, true );
 
 		if ( ! is_array( $passwords ) ) {
-			return array();
+			return [];
 		}
 
 		$save = false;

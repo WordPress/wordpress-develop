@@ -167,7 +167,7 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 }
 
 if ( isset( $_GET['update'] ) ) {
-	$messages = array();
+	$messages = [];
 	if ( 'added' === $_GET['update'] ) {
 		$messages[] = sprintf(
 			/* translators: 1: Dashboard URL, 2: Network admin edit URL. */

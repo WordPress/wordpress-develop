@@ -46,9 +46,9 @@ class Text_Diff_Engine_native {
         $n_from = count($from_lines);
         $n_to = count($to_lines);
 
-        $this->xchanged = $this->ychanged = array();
-        $this->xv = $this->yv = array();
-        $this->xind = $this->yind = array();
+        $this->xchanged = $this->ychanged = [];
+        $this->xv = $this->yv = [];
+        $this->xind = $this->yind = [];
         unset($this->seq);
         unset($this->in_seq);
         unset($this->lcs);
@@ -100,14 +100,14 @@ class Text_Diff_Engine_native {
         $this->_shiftBoundaries($to_lines, $this->ychanged, $this->xchanged);
 
         // Compute the edit operations.
-        $edits = array();
+        $edits = [];
         $xi = $yi = 0;
         while ($xi < $n_from || $yi < $n_to) {
             assert($yi < $n_to || $this->xchanged[$xi]);
             assert($xi < $n_from || $this->ychanged[$yi]);
 
             // Skip matching "snake".
-            $copy = array();
+            $copy = [];
             while ($xi < $n_from && $yi < $n_to
                    && !$this->xchanged[$xi] && !$this->ychanged[$yi]) {
                 $copy[] = $from_lines[$xi++];
@@ -118,12 +118,12 @@ class Text_Diff_Engine_native {
             }
 
             // Find deletes & adds.
-            $delete = array();
+            $delete = [];
             while ($xi < $n_from && $this->xchanged[$xi]) {
                 $delete[] = $from_lines[$xi++];
             }
 
-            $add = array();
+            $add = [];
             while ($yi < $n_to && $this->ychanged[$yi]) {
                 $add[] = $to_lines[$yi++];
             }
@@ -180,8 +180,8 @@ class Text_Diff_Engine_native {
 
         $this->lcs = 0;
         $this->seq[0]= $yoff - 1;
-        $this->in_seq = array();
-        $ymids[0] = array();
+        $this->in_seq = [];
+        $ymids[0] = [];
 
         $numer = $xlim - $xoff + $nchunks - 1;
         $x = $xoff;

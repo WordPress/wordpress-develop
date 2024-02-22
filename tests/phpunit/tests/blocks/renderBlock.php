@@ -53,7 +53,7 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 	 * @covers ::render_block
 	 */
 	public function test_provides_block_context() {
-		$provided_context = array();
+		$provided_context = [];
 
 		register_block_type(
 			'tests/context-provider',
@@ -127,7 +127,7 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 	public function test_provides_default_context() {
 		global $post;
 
-		$provided_context = array();
+		$provided_context = [];
 
 		register_block_type(
 			'tests/context-consumer',
@@ -163,7 +163,7 @@ class Tests_Blocks_RenderBlock extends WP_UnitTestCase {
 	 * @covers ::render_block
 	 */
 	public function test_default_context_is_filterable() {
-		$provided_context = array();
+		$provided_context = [];
 
 		register_block_type(
 			'tests/context-consumer',

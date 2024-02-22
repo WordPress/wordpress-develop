@@ -40,7 +40,7 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 	public function test_edit_post() {
 		$post_id = self::$post_id;
 
-		$_POST               = array();
+		$_POST               = [];
 		$_POST['post_ID']    = $post_id;
 		$_POST['post_title'] = self::SLASH_1;
 		$_POST['content']    = self::SLASH_5;
@@ -55,7 +55,7 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 		$this->assertSame( self::SLASH_5, $post->post_content );
 		$this->assertSame( self::SLASH_7, $post->post_excerpt );
 
-		$_POST               = array();
+		$_POST               = [];
 		$_POST['post_ID']    = $post_id;
 		$_POST['post_title'] = self::SLASH_2;
 		$_POST['content']    = self::SLASH_4;

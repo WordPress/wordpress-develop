@@ -60,7 +60,7 @@ abstract class SimplePie_Cache_DB implements SimplePie_Cache_Base
 	protected static function prepare_simplepie_object_for_cache($data)
 	{
 		$items = $data->get_items();
-		$items_by_id = array();
+		$items_by_id = [];
 
 		if (!empty($items))
 		{
@@ -71,7 +71,7 @@ abstract class SimplePie_Cache_DB implements SimplePie_Cache_Base
 
 			if (count($items_by_id) !== count($items))
 			{
-				$items_by_id = array();
+				$items_by_id = [];
 				foreach ($items as $item)
 				{
 					$items_by_id[$item->get_id(true)] = $item;

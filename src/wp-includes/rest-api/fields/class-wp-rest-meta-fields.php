@@ -78,7 +78,7 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	public function get_value( $object_id, $request ) {
 		$fields   = $this->get_registered_fields();
-		$response = array();
+		$response = [];
 
 		foreach ( $fields as $meta_key => $args ) {
 			$name       = $args['name'];
@@ -93,7 +93,7 @@ abstract class WP_REST_Meta_Fields {
 
 				$value = $this->prepare_value_for_response( $value, $request, $args );
 			} else {
-				$value = array();
+				$value = [];
 
 				if ( is_array( $all_values ) ) {
 					foreach ( $all_values as $row ) {
@@ -294,7 +294,7 @@ abstract class WP_REST_Meta_Fields {
 		$subtype        = get_object_subtype( $meta_type, $object_id );
 
 		if ( ! is_array( $current_values ) ) {
-			$current_values = array();
+			$current_values = [];
 		}
 
 		$to_remove = $current_values;
@@ -445,7 +445,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @return array Registered fields.
 	 */
 	protected function get_registered_fields() {
-		$registered = array();
+		$registered = [];
 
 		$meta_type    = $this->get_meta_type();
 		$meta_subtype = $this->get_meta_subtype();
@@ -460,7 +460,7 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
-			$rest_args = array();
+			$rest_args = [];
 
 			if ( is_array( $args['show_in_rest'] ) ) {
 				$rest_args = $args['show_in_rest'];
@@ -626,7 +626,7 @@ abstract class WP_REST_Meta_Fields {
 				return 0.0;
 			case 'array':
 			case 'object':
-				return array();
+				return [];
 			default:
 				return null;
 		}

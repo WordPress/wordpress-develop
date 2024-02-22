@@ -30,7 +30,7 @@ class TwentyNineteen_SVG_Icons {
 		} elseif ( 'social' === $group ) {
 			$arr = self::$social_icons;
 		} else {
-			$arr = array();
+			$arr = [];
 		}
 		if ( array_key_exists( $icon, $arr ) ) {
 			$repl = sprintf( '<svg class="svg-icon" width="%d" height="%d" aria-hidden="true" role="img" focusable="false" ', $size, $size );
@@ -48,7 +48,7 @@ class TwentyNineteen_SVG_Icons {
 	public static function get_social_link_svg( $uri, $size ) {
 		static $regex_map; // Only compute regex map once, for performance.
 		if ( ! isset( $regex_map ) ) {
-			$regex_map = array();
+			$regex_map = [];
 			$map       = &self::$social_icons_map; // Use reference instead of copy, to save memory.
 			foreach ( array_keys( self::$social_icons ) as $icon ) {
 				$domains            = array_key_exists( $icon, $map ) ? $map[ $icon ] : array( sprintf( '%s.com', $icon ) );

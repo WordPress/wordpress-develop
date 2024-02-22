@@ -5,10 +5,10 @@
  * @covers ::wp_list_authors
  */
 class Tests_User_wpListAuthors extends WP_UnitTestCase {
-	public static $user_ids = array();
+	public static $user_ids = [];
 	public static $fred_id;
-	public static $posts     = array();
-	public static $user_urls = array();
+	public static $posts     = [];
+	public static $user_urls = [];
 
 	/*
 	 * Defaults:

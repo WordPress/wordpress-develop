@@ -54,7 +54,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	 *
 	 * @var array
 	 */
-	protected $request_args = array();
+	protected $request_args = [];
 
 	/**
 	 * Set up class test fixtures.
@@ -91,7 +91,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	public function tear_down() {
-		$this->request_args = array();
+		$this->request_args = [];
 		parent::tear_down();
 	}
 

@@ -500,7 +500,7 @@ switch ( $action ) {
 						<td>
 							<select name="display_name" id="display_name">
 								<?php
-									$public_display                     = array();
+									$public_display                     = [];
 									$public_display['display_nickname'] = $profile_user->nickname;
 									$public_display['display_username'] = $profile_user->user_login;
 

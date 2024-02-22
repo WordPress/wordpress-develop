@@ -66,7 +66,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 
 		// Bail early if the queried taxonomy is not supported.
 		if ( ! isset( $supported_types[ $taxonomy ] ) ) {
-			return array();
+			return [];
 		}
 
 		/**
@@ -92,7 +92,7 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 			return $url_list;
 		}
 
-		$url_list = array();
+		$url_list = [];
 
 		// Offset by how many terms should be included in previous pages.
 		$offset = ( $page_num - 1 ) * wp_sitemaps_get_max_urls( $this->object_type );

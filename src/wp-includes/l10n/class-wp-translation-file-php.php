@@ -66,7 +66,7 @@ class WP_Translation_File_PHP extends WP_Translation_File {
 			return var_export( $value, true );
 		}
 
-		$entries = array();
+		$entries = [];
 
 		$is_list = array_is_list( $value );
 

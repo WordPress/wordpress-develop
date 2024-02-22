@@ -358,7 +358,7 @@ switch ( $step ) {
 			}
 
 			if ( $no_api || is_wp_error( $secret_keys ) ) {
-				$secret_keys = array();
+				$secret_keys = [];
 				for ( $i = 0; $i < 8; $i++ ) {
 					$secret_keys[] = wp_generate_password( 64, true, true );
 				}

@@ -86,7 +86,7 @@ wp_add_inline_script(
  * Assign initial edits, if applicable. These are not initially assigned to the persisted post,
  * but should be included in its save payload.
  */
-$initial_edits = array();
+$initial_edits = [];
 $is_new_post   = false;
 if ( 'auto-draft' === $post->post_status ) {
 	$is_new_post = true;

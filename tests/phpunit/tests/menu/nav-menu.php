@@ -38,7 +38,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 		$prev_theme_nav_menu_locations     = array(
 			'unique-slug' => 1,
 		);
-		$old_next_theme_nav_menu_locations = array(); // It was not active before.
+		$old_next_theme_nav_menu_locations = []; // It was not active before.
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(
@@ -81,7 +81,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 			'secondary' => 2,
 		);
 
-		$old_next_theme_nav_menu_locations = array(); // It was not active before.
+		$old_next_theme_nav_menu_locations = []; // It was not active before.
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = $prev_theme_nav_menu_locations;
@@ -125,7 +125,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 			'footer' => 2,
 		);
 
-		$old_next_theme_nav_menu_locations = array();
+		$old_next_theme_nav_menu_locations = [];
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(
@@ -147,7 +147,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 			'secondary' => 2,
 		);
 
-		$old_next_theme_nav_menu_locations = array();
+		$old_next_theme_nav_menu_locations = [];
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(
@@ -169,7 +169,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 			'top-menu'        => 2,
 		);
 
-		$old_next_theme_nav_menu_locations = array();
+		$old_next_theme_nav_menu_locations = [];
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(
@@ -195,7 +195,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 			'tertiary'  => 3,
 		);
 
-		$old_next_theme_nav_menu_locations = array();
+		$old_next_theme_nav_menu_locations = [];
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(
@@ -220,7 +220,7 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 			0          => 3,
 		);
 
-		$next_theme_nav_menu_locations     = array();
+		$next_theme_nav_menu_locations     = [];
 		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $next_theme_nav_menu_locations, $old_nav_menu_locations );
 
 		$expected_nav_menu_locations = array(

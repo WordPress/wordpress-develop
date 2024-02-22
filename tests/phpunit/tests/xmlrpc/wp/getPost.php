@@ -80,7 +80,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	}
 
 	public function test_no_fields() {
-		$fields = array();
+		$fields = [];
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
 

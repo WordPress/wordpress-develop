@@ -63,7 +63,7 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 
 		$query    = new WP_User_Query( $args );
 		$users    = $query->get_results();
-		$url_list = array();
+		$url_list = [];
 
 		foreach ( $users as $user ) {
 			$sitemap_entry = array(

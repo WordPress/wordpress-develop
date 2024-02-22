@@ -107,7 +107,7 @@ function wp_insert_site( array $data ) {
 	// Only compute extra hook parameters if the deprecated hook is actually in use.
 	if ( has_action( 'wpmu_new_blog' ) ) {
 		$user_id = ! empty( $args['user_id'] ) ? $args['user_id'] : 0;
-		$meta    = ! empty( $args['options'] ) ? $args['options'] : array();
+		$meta    = ! empty( $args['options'] ) ? $args['options'] : [];
 
 		// WPLANG was passed with `$meta` to the `wpmu_new_blog` hook prior to 5.1.0.
 		if ( ! array_key_exists( 'WPLANG', $meta ) ) {
@@ -393,9 +393,9 @@ function update_site_cache( $sites, $update_meta_cache = true ) {
 	if ( ! $sites ) {
 		return;
 	}
-	$site_ids          = array();
-	$site_data         = array();
-	$blog_details_data = array();
+	$site_ids          = [];
+	$site_data         = [];
+	$blog_details_data = [];
 	foreach ( $sites as $site ) {
 		$site_ids[]                                    = $site->blog_id;
 		$site_data[ $site->blog_id ]                   = $site;

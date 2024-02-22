@@ -22,7 +22,7 @@ final class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 * @var WP_Block_Bindings_Source[]
 	 */
-	private $sources = array();
+	private $sources = [];
 
 	/**
 	 * Container for the main instance of the class.

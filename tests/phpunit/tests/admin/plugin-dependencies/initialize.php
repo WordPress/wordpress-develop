@@ -278,7 +278,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	public function test_should_slugify_dependent_files() {
 		$plugins = get_plugins();
 
-		$expected_slugs = array();
+		$expected_slugs = [];
 		foreach ( $plugins as $plugin_file => &$headers ) {
 			// Create the expected slugs.
 			if ( 'hello.php' === $plugin_file ) {

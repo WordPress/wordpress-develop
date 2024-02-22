@@ -1122,7 +1122,7 @@ function update_core( $from, $to ) {
 	 * We also copy version.php last so failed updates report their old version.
 	 */
 	$skip              = array( 'wp-content', 'wp-includes/version.php' );
-	$check_is_writable = array();
+	$check_is_writable = [];
 
 	// Check to see which files don't really need updating - only available for 3.7 and higher.
 	if ( function_exists( 'get_core_checksums' ) ) {
@@ -1245,7 +1245,7 @@ function update_core( $from, $to ) {
 
 	// Check to make sure everything copied correctly, ignoring the contents of wp-content.
 	$skip   = array( 'wp-content' );
-	$failed = array();
+	$failed = [];
 
 	if ( isset( $checksums ) && is_array( $checksums ) ) {
 		foreach ( $checksums as $file => $checksum ) {
@@ -1633,7 +1633,7 @@ function _upgrade_422_remove_genericons() {
 	global $wp_theme_directories, $wp_filesystem;
 
 	// A list of the affected files using the filesystem absolute paths.
-	$affected_files = array();
+	$affected_files = [];
 
 	// Themes.
 	foreach ( $wp_theme_directories as $directory ) {
@@ -1676,7 +1676,7 @@ function _upgrade_422_remove_genericons() {
  */
 function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$directory = trailingslashit( $directory );
-	$files     = array();
+	$files     = [];
 
 	if ( file_exists( "{$directory}example.html" )
 		/*

@@ -74,7 +74,7 @@ class Walker_Nav_Menu extends Walker {
 		 */
 		$class_names = implode( ' ', apply_filters( 'nav_menu_submenu_css_class', $classes, $args, $depth ) );
 
-		$atts          = array();
+		$atts          = [];
 		$atts['class'] = ! empty( $class_names ) ? $class_names : '';
 
 		/**
@@ -188,7 +188,7 @@ class Walker_Nav_Menu extends Walker {
 		 */
 		$id = apply_filters( 'nav_menu_item_id', 'menu-item-' . $menu_item->ID, $menu_item, $args, $depth );
 
-		$li_atts          = array();
+		$li_atts          = [];
 		$li_atts['id']    = ! empty( $id ) ? $id : '';
 		$li_atts['class'] = ! empty( $class_names ) ? $class_names : '';
 
@@ -212,7 +212,7 @@ class Walker_Nav_Menu extends Walker {
 
 		$output .= $indent . '<li' . $li_attributes . '>';
 
-		$atts           = array();
+		$atts           = [];
 		$atts['title']  = ! empty( $menu_item->attr_title ) ? $menu_item->attr_title : '';
 		$atts['target'] = ! empty( $menu_item->target ) ? $menu_item->target : '';
 		if ( '_blank' === $menu_item->target && empty( $menu_item->xfn ) ) {

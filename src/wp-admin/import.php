@@ -37,7 +37,7 @@ if ( current_user_can( 'install_plugins' ) ) {
 	// List of popular importer plugins from the WordPress.org API.
 	$popular_importers = wp_get_popular_importers();
 } else {
-	$popular_importers = array();
+	$popular_importers = [];
 }
 
 // Detect and redirect invalid importers like 'movabletype', which is registered as 'mt'.

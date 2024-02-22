@@ -450,7 +450,7 @@ class getid3_lib
 			trigger_error('TypeError: Dec2Bin(): Argument #1 ($number) must be numeric, '.gettype($number).' given', E_USER_WARNING);
 			return '';
 		}
-		$bytes = array();
+		$bytes = [];
 		while ($number >= 256) {
 			$bytes[] = (int) (($number / 256) - (floor($number / 256))) * 256;
 			$number = floor($number / 256);
@@ -689,7 +689,7 @@ class getid3_lib
 		// or
 		//   $foo['path']['to']['my'] = 'file.txt';
 		$ArrayPath = ltrim($ArrayPath, $Separator);
-		$ReturnedArray = array();
+		$ReturnedArray = [];
 		if (($pos = strpos($ArrayPath, $Separator)) !== false) {
 			$ReturnedArray[substr($ArrayPath, 0, $pos)] = self::CreateDeepArray(substr($ArrayPath, $pos + 1), $Separator, $Value);
 		} else {
@@ -1268,7 +1268,7 @@ class getid3_lib
 
 
 		// neither mb_convert_encoding or iconv() is available
-		static $ConversionFunctionList = array();
+		static $ConversionFunctionList = [];
 		if (empty($ConversionFunctionList)) {
 			$ConversionFunctionList['ISO-8859-1']['UTF-8']    = 'iconv_fallback_iso88591_utf8';
 			$ConversionFunctionList['ISO-8859-1']['UTF-16']   = 'iconv_fallback_iso88591_utf16';
@@ -1302,7 +1302,7 @@ class getid3_lib
 		if (is_string($data)) {
 			return self::MultiByteCharString2HTML($data, $charset);
 		} elseif (is_array($data)) {
-			$return_data = array();
+			$return_data = [];
 			foreach ($data as $key => $value) {
 				$return_data[$key] = self::recursiveMultiByteCharString2HTML($value, $charset);
 			}
@@ -1416,7 +1416,7 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function RGADnameLookup($namecode) {
-		static $RGADname = array();
+		static $RGADname = [];
 		if (empty($RGADname)) {
 			$RGADname[0] = 'not set';
 			$RGADname[1] = 'Track Gain Adjustment';
@@ -1432,7 +1432,7 @@ class getid3_lib
 	 * @return string
 	 */
 	public static function RGADoriginatorLookup($originatorcode) {
-		static $RGADoriginator = array();
+		static $RGADoriginator = [];
 		if (empty($RGADoriginator)) {
 			$RGADoriginator[0] = 'unspecified';
 			$RGADoriginator[1] = 'pre-set by artist/producer/mastering engineer';
@@ -1805,7 +1805,7 @@ class getid3_lib
 		// 2017-11-08: this could use some improvement, patches welcome
 		if (preg_match('#^(\\\\\\\\|//)[a-z0-9]#i', $filename, $matches)) {
 			// PHP's built-in realpath function does not work on UNC Windows shares
-			$goodpath = array();
+			$goodpath = [];
 			foreach (explode('/', str_replace('\\', '/', $filename)) as $part) {
 				if ($part == '.') {
 					continue;

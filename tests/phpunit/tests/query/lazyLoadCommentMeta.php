@@ -14,7 +14,7 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 	/**
 	 * @var array
 	 */
-	protected static $comment_ids = array();
+	protected static $comment_ids = [];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 

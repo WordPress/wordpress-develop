@@ -3,7 +3,7 @@
  * @group query
  */
 class Tests_Query_CommentCount extends WP_UnitTestCase {
-	public static $post_ids = array();
+	public static $post_ids = [];
 	public $q;
 	public static $post_type = 'page'; // Can be anything.
 
@@ -115,7 +115,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
@@ -132,7 +132,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids[1] as $expected_id ) {
 			$expected[] = $expected_id;
 		}
@@ -159,7 +159,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
@@ -178,7 +178,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids[1] as $expected_id ) {
 			$expected[] = $expected_id;
 		}
@@ -204,7 +204,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids[4] as $expected_id ) {
 			$expected[] = $expected_id;
 		}
@@ -228,7 +228,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
@@ -246,7 +246,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids[1] as $expected_id ) {
 			$expected[] = $expected_id;
 		}
@@ -270,7 +270,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
@@ -288,7 +288,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids[5] as $expected_id ) {
 			$expected[] = $expected_id;
 		}
@@ -309,7 +309,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 
 		$this->assertSameSets( $expected, $found_post_ids );
 	}
@@ -341,7 +341,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 
 		$found_post_ids = $this->helper_get_found_post_ids();
 
-		$expected = array();
+		$expected = [];
 		foreach ( self::$post_ids[1] as $expected_id ) {
 			$expected[] = $expected_id;
 		}

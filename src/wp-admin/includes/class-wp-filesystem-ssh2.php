@@ -779,7 +779,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return false;
 		}
 
-		$ret = array();
+		$ret = [];
 		$dir = dir( $this->sftp_path( $path ) );
 
 		if ( ! $dir ) {
@@ -789,7 +789,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 		$path = trailingslashit( $path );
 
 		while ( false !== ( $entry = $dir->read() ) ) {
-			$struc         = array();
+			$struc         = [];
 			$struc['name'] = $entry;
 
 			if ( '.' === $struc['name'] || '..' === $struc['name'] ) {
@@ -819,7 +819,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
-					$struc['files'] = array();
+					$struc['files'] = [];
 				}
 			}
 

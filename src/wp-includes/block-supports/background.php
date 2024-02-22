@@ -17,7 +17,7 @@
 function wp_register_background_support( $block_type ) {
 	// Setup attributes and styles within that if needed.
 	if ( ! $block_type->attributes ) {
-		$block_type->attributes = array();
+		$block_type->attributes = [];
 	}
 
 	// Check for existing style attribute definition e.g. from block.json.
@@ -49,7 +49,7 @@ function wp_register_background_support( $block_type ) {
  */
 function wp_render_background_support( $block_content, $block ) {
 	$block_type                   = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
-	$block_attributes             = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
+	$block_attributes             = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : [];
 	$has_background_image_support = block_has_support( $block_type, array( 'background', 'backgroundImage' ), false );
 
 	if (
@@ -80,7 +80,7 @@ function wp_render_background_support( $block_content, $block ) {
 		? $block_attributes['style']['background']['backgroundRepeat']
 		: null;
 
-	$background_block_styles = array();
+	$background_block_styles = [];
 
 	if (
 		'file' === $background_image_source &&

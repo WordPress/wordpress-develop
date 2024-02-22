@@ -6,7 +6,7 @@ class TracTickets {
 	 *
 	 * @var array
 	 */
-	protected static $trac_ticket_cache = array();
+	protected static $trac_ticket_cache = [];
 
 	/**
 	 * Checks if Trac ticket #$ticket_id is resolved.
@@ -30,7 +30,7 @@ class TracTickets {
 					$tickets = file_get_contents( $file );
 				} else {
 					register_shutdown_function( array( 'TracTickets', 'forcingKnownBugs' ) );
-					self::$trac_ticket_cache[ $trac_url ] = array();
+					self::$trac_ticket_cache[ $trac_url ] = [];
 					return true; // Assume the ticket is closed, which means it gets run.
 				}
 			} else {

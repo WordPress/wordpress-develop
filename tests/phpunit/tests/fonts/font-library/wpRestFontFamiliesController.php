@@ -22,7 +22,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	protected static $font_face_id1;
 	protected static $font_face_id2;
 
-	private static $post_ids_to_cleanup = array();
+	private static $post_ids_to_cleanup = [];
 
 	protected static $default_settings = array(
 		'name'       => 'Open Sans',
@@ -77,7 +77,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 			)
 		);
 
-		static::$post_ids_to_cleanup = array();
+		static::$post_ids_to_cleanup = [];
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -94,7 +94,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		foreach ( static::$post_ids_to_cleanup as $post_id ) {
 			wp_delete_post( $post_id, true );
 		}
-		static::$post_ids_to_cleanup = array();
+		static::$post_ids_to_cleanup = [];
 
 		parent::tear_down();
 	}
