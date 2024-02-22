@@ -21,6 +21,15 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	private $registry = null;
 
 	/**
+	 * Original registered patterns.
+	 * This is the value from the internal private property.
+	 *
+	 * @since 6.5.0
+	 * @var array
+	 */
+	private $original_registered_patterns = null;
+
+	/**
 	 * Set up each test method.
 	 *
 	 * @since 6.4.0
@@ -28,7 +37,8 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->registry = new WP_Block_Patterns_Registry();
+		$this->registry                     = new WP_Block_Patterns_Registry();
+		$this->original_registered_patterns = $this->get_registered_patterns_variable_value();
 	}
 
 	/**
@@ -45,6 +55,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			$registry->unregister( 'tests/my-block' );
 		}
 
+		$this->set_registered_patterns_variable_value( $this->original_registered_patterns );
 		parent::tear_down();
 	}
 
@@ -569,13 +580,8 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// This helper is fired on the init hook.
 		_register_theme_block_patterns();
 
-		// Use Reflection to access private property.
-		$reflection = new ReflectionClass( $registry );
-		$property   = $reflection->getProperty( 'registered_patterns' );
-		$property->setAccessible( true );
-
 		// Get the value of the private property.
-		$registered_patterns = $property->getValue( $registry );
+		$registered_patterns = $this->get_registered_patterns_variable_value();
 
 		$this->assertTrue(
 			isset( $registered_patterns[ $pattern_name ]['file_path'] ) &&
@@ -600,12 +606,12 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		);
 
 		// Check if the original property was updated.
-		$registered_patterns = $property->getValue( $registry );
+		$registered_patterns = $this->get_registered_patterns_variable_value();
+
 		$this->assertTrue(
 			! empty( $registered_patterns[ $pattern_name ]['content'] ),
 			'Content not updated.'
 		);
-		$property->setAccessible( false );
 	}
 
 	/**
@@ -633,13 +639,8 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// This helper is fired on the init hook.
 		_register_theme_block_patterns();
 
-		// Use Reflection to access private property.
-		$reflection = new ReflectionClass( $registry );
-		$property   = $reflection->getProperty( 'registered_patterns' );
-		$property->setAccessible( true );
-
 		// Get the value of the private property.
-		$registered_patterns = $property->getValue( $registry );
+		$registered_patterns = $this->get_registered_patterns_variable_value();
 
 		$this->assertTrue(
 			isset( $registered_patterns[ $pattern_name ]['file_path'] ) &&
@@ -655,11 +656,62 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		);
 
 		// Check if the original property was updated.
-		$registered_patterns = $property->getValue( $registry );
+		$registered_patterns = $this->get_registered_patterns_variable_value();
+
 		$this->assertTrue(
 			! empty( $registered_patterns[ $pattern_name ]['content'] ),
 			'Content not updated.'
 		);
+	}
+
+	/**
+	 * Clears the `$registered_patterns` private property.
+	 */
+	private function clear_regsited_patterns() {
+		$registry = WP_Block_Patterns_Registry::get_instance();
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Reset the property to null.
+		$property->setValue( $registry, null );
+		$property->setAccessible( false );
+	}
+
+	/**
+	 * Get the value of the `$registered_patterns` private property.
+	 *
+	 * @return array
+	 */
+	private function get_registered_patterns_variable_value() {
+		$registry = WP_Block_Patterns_Registry::get_instance();
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Get the value of the private property.
+		$registered_patterns = $property->getValue( $registry );
+		$property->setAccessible( false );
+
+		return $registered_patterns;
+	}
+
+	/**
+	 * Set the value of the `$registered_patterns` private property.
+	 *
+	 * @param array $value The value to set.
+	 */
+	private function set_registered_patterns_variable_value( $value ) {
+		$registry = WP_Block_Patterns_Registry::get_instance();
+		// Use Reflection to access private property.
+		$reflection = new ReflectionClass( $registry );
+		$property   = $reflection->getProperty( 'registered_patterns' );
+		$property->setAccessible( true );
+
+		// Set the value of the private property.
+		$property->setValue( $registry, $value );
 		$property->setAccessible( false );
 	}
 }
