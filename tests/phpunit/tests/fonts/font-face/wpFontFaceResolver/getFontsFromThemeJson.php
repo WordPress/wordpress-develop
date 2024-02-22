@@ -49,16 +49,19 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 		switch_theme( static::FONTS_THEME );
 
 		$fonts = WP_Font_Face_Resolver::get_fonts_from_theme_json();
-		$fonts = array_merge( [], ...array_map( 'array_values', $fonts ) );
+		$fonts = array_merge( array(), ...array_map( 'array_values', $fonts ) );
 
-		$font = array_filter($fonts, function ($font) use ($font_name, $font_weight, $font_style) {
-			return $font['font-family'] === $font_name
+		$font = array_filter(
+			$fonts,
+			function ( $font ) use ( $font_name, $font_weight, $font_style ) {
+				return $font['font-family'] === $font_name
 				&& $font['font-weight'] === $font_weight
 				&& $font['font-style'] === $font_style;
-		});
+			}
+		);
 
-		$font = reset($font);
-	
+		$font = reset( $font );
+
 		$expected = get_stylesheet_directory_uri() . $expected;
 		$actual   = $font['src'][0];
 
@@ -75,40 +78,40 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 		return array(
 			// Theme's theme.json.
 			'DM Sans: 400 normal'              => array(
-				'font_name'  => 'DM Sans',
+				'font_name'   => 'DM Sans',
 				'font_weight' => '400',
-				'font_style' => 'normal',
-				'expected'   => '/assets/fonts/dm-sans/DMSans-Regular.woff2',
+				'font_style'  => 'normal',
+				'expected'    => '/assets/fonts/dm-sans/DMSans-Regular.woff2',
 			),
 			'DM Sans: 400 italic'              => array(
-				'font_name'  => 'DM Sans',
+				'font_name'   => 'DM Sans',
 				'font_weight' => '400',
-				'font_style' => 'italic',
-				'expected'   => '/assets/fonts/dm-sans/DMSans-Regular-Italic.woff2',
+				'font_style'  => 'italic',
+				'expected'    => '/assets/fonts/dm-sans/DMSans-Regular-Italic.woff2',
 			),
 			'DM Sans: 700 normal'              => array(
-				'font_name'  => 'DM Sans',
+				'font_name'   => 'DM Sans',
 				'font_weight' => '700',
-				'font_style' => 'normal',
-				'expected'   => '/assets/fonts/dm-sans/DMSans-Bold.woff2',
+				'font_style'  => 'normal',
+				'expected'    => '/assets/fonts/dm-sans/DMSans-Bold.woff2',
 			),
 			'DM Sans: 700 italic'              => array(
-				'font_name'  => 'DM Sans',
+				'font_name'   => 'DM Sans',
 				'font_weight' => '700',
-				'font_style' => 'italic',
-				'expected'   => '/assets/fonts/dm-sans/DMSans-Bold-Italic.woff2',
+				'font_style'  => 'italic',
+				'expected'    => '/assets/fonts/dm-sans/DMSans-Bold-Italic.woff2',
 			),
 			'Source Serif Pro: 200-900 normal' => array(
-				'font_name'  => 'Source Serif Pro',
+				'font_name'   => 'Source Serif Pro',
 				'font_weight' => '200 900',
-				'font_style' => 'normal',
-				'expected'   => '/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
+				'font_style'  => 'normal',
+				'expected'    => '/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
 			),
 			'Source Serif Pro: 200-900 italic' => array(
-				'font_name'  => 'Source Serif Pro',
+				'font_name'   => 'Source Serif Pro',
 				'font_weight' => '200 900',
-				'font_style' => 'italic',
-				'expected'   => '/assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2',
+				'font_style'  => 'italic',
+				'expected'    => '/assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2',
 			),
 		);
 	}
@@ -135,12 +138,15 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 		remove_filter( 'wp_theme_json_data_theme', $replace_fonts );
 
 		// flatten the array to make it easier to test.
-		$fonts = array_merge( [], ...array_map( 'array_values', $fonts ) );
+		$fonts = array_merge( array(), ...array_map( 'array_values', $fonts ) );
 
-		$fonts_found = array_filter( $fonts, function ($font) use ( $expected_name ) {
-			return $font['font-family'] === $expected_name;
-		});
-		
+		$fonts_found = array_filter(
+			$fonts,
+			function ( $font ) use ( $expected_name ) {
+				return $font['font-family'] === $expected_name;
+			}
+		);
+
 		$this->assertNotEmpty( $fonts_found, 'Expected font-family name not found in the array' );
 	}
 
