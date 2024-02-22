@@ -45,19 +45,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			$registry->unregister( 'tests/my-block' );
 		}
 
-		/**
-		 * Clear the registered patterns.
-		 */
-		$registry = WP_Block_Patterns_Registry::get_instance();
-		// Use Reflection to access private property.
-		$reflection = new ReflectionClass( $registry );
-		$property   = $reflection->getProperty( 'registered_patterns' );
-		$property->setAccessible( true );
-
-		// Reset the property to null.
-		$property->setValue( $registry, null );
-		$property->setAccessible( false );
-
 		parent::tear_down();
 	}
 
@@ -568,6 +555,14 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// This test needs to use access static class properties.
 		$registry = WP_Block_Patterns_Registry::get_instance();
 
+		// Testing only the first pattern loaded from the theme.
+		$pattern_name = 'twentytwentythree/footer-default';
+
+		if ( $registry->is_registered( $pattern_name ) ) {
+			// Ensure the pattern is not already registered.
+			$registry->unregister( $pattern_name );
+		}
+
 		// Ensure we're using a theme with patterns.
 		switch_theme( 'twentytwentythree' );
 
@@ -581,9 +576,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 
 		// Get the value of the private property.
 		$registered_patterns = $property->getValue( $registry );
-
-		// Testing only the first pattern loaded from the theme.
-		$pattern_name = 'twentytwentythree/footer-default';
 
 		$this->assertTrue(
 			isset( $registered_patterns[ $pattern_name ]['file_path'] ) &&
@@ -627,6 +619,14 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// This test needs to use access static class properties.
 		$registry = WP_Block_Patterns_Registry::get_instance();
 
+		// Testing only the first pattern loaded from the theme.
+		$pattern_name = 'twentytwentythree/footer-default';
+
+		if ( $registry->is_registered( $pattern_name ) ) {
+			// Ensure the pattern is not already registered.
+			$registry->unregister( $pattern_name );
+		}
+
 		// Ensure we're using a theme with patterns.
 		switch_theme( 'twentytwentythree' );
 
@@ -640,9 +640,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 
 		// Get the value of the private property.
 		$registered_patterns = $property->getValue( $registry );
-
-		// Testing only the first pattern loaded from the theme.
-		$pattern_name = 'twentytwentythree/footer-default';
 
 		$this->assertTrue(
 			isset( $registered_patterns[ $pattern_name ]['file_path'] ) &&
