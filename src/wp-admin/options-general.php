@@ -162,7 +162,7 @@ $tagline_description = sprintf(
 			<div class="favicon">
 				<img id="browser-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $browser_icon_alt_value ); ?>">
 			</div>
-			<span id="site-icon-preview-site-title" class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
+			<span id="site-icon-preview-site-title" class="browser-title" aria-hidden="true"><?php bloginfo( 'name' ); ?></span>
 		</div>
 		<img id="app-icon-preview" class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>">
 	</div>
