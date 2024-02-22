@@ -16,7 +16,7 @@
  *     Optional. The font-families and their font faces. Default empty array.
  *
  *     @type array {
- *         Optional. An indexed array of font variations for this font-family.
+ *         An indexed or associative (keyed by font-family) array of font variations for this font-family.
  *         Each font face has the following structure.
  *
  *         @type array {
