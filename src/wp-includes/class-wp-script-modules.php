@@ -261,7 +261,7 @@ class WP_Script_Modules {
 	 * @return array Array with an `imports` key mapping to an array of script module identifiers and their respective
 	 *               URLs, including the version query.
 	 */
-	private function get_import_map(): array {
+	public function get_import_map(): array {
 		$imports = array();
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $id => $script_module ) {
 			$imports[ $id ] = $this->get_versioned_src( $script_module );
@@ -276,7 +276,7 @@ class WP_Script_Modules {
 	 *
 	 * @return array Script modules marked for enqueue, keyed by script module identifier.
 	 */
-	private function get_marked_for_enqueue(): array {
+	public function get_marked_for_enqueue(): array {
 		$enqueued = array();
 		foreach ( $this->registered as $id => $script_module ) {
 			if ( true === $script_module['enqueue'] ) {
@@ -302,7 +302,7 @@ class WP_Script_Modules {
 	 *                               Default is both.
 	 * @return array List of dependencies, keyed by script module identifier.
 	 */
-	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ) {
+	public function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ) {
 		return array_reduce(
 			$ids,
 			function ( $dependency_script_modules, $id ) use ( $import_types ) {
@@ -334,7 +334,7 @@ class WP_Script_Modules {
 	 * @param array $script_module The script module.
 	 * @return string The script module src with a version if relevant.
 	 */
-	private function get_versioned_src( array $script_module ): string {
+	public function get_versioned_src( array $script_module ): string {
 		$args = array();
 		if ( false === $script_module['version'] ) {
 			$args['ver'] = get_bloginfo( 'version' );
