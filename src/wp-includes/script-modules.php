@@ -121,5 +121,5 @@ function wp_dequeue_script_module( string $id ) {
  * @param string $id The identifier of the script module.
  */
 function wp_deregister_script_module( string $id ) {
-	wp_script_modules()->deregister( $id );
+	wp_script_modules()->remove( $id );
 }

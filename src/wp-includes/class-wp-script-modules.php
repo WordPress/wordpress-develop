@@ -158,7 +158,7 @@ class WP_Script_Modules {
 	 *
 	 * @param string $id The identifier of the script module.
 	 */
-	public function deregister( string $id ) {
+	public function remove( string $id ) {
 		unset( $this->registered[ $id ] );
 		unset( $this->enqueued_before_registered[ $id ] );
 	}
