@@ -566,7 +566,7 @@ class SimplePie
 	* @see SimplePie::set_error_cache_duration()
 	* @access private
 	*/
-    public $error_cache_duration = 3600;
+	public $error_cache_duration = 3600;
 
 	/**
 	 * @var int Auto-discovery cache duration (in seconds)
