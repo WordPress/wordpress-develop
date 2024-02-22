@@ -442,7 +442,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_filter_response_fields_single_filter_scalar_response() {
 		$response = new WP_REST_Response();
 		$response->set_data( 200 );
-		$request = array(
+		$request  = array(
 			'_fields' => 'b',
 		);
 		$response = rest_filter_response_fields( $response, null, $request );
