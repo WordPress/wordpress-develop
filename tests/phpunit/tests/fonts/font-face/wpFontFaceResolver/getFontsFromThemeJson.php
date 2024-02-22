@@ -46,7 +46,7 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 		// Add a filter to add fonts to the theme.json custom origin.
 		add_filter(
 			'wp_theme_json_data_theme',
-			function ( $theme_json_data ) {
+			static function ( $theme_json_data ) {
 				$data = $theme_json_data->get_data();
 
 				// Add font families to the custom origin of theme json.
