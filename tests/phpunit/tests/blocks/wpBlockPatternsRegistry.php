@@ -654,7 +654,7 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			'Content not loaded.'
 		);
 
-		// check if original property was updated.
+		// Check if the original property was updated.
 		$registered_patterns = $property->getValue( $registry );
 		$this->assertTrue(
 			! empty( $registered_patterns[ $pattern_name ]['content'] ),
