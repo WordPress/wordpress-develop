@@ -569,11 +569,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// Testing only the first pattern loaded from the theme.
 		$pattern_name = 'twentytwentythree/footer-default';
 
-		if ( $registry->is_registered( $pattern_name ) ) {
-			// Ensure the pattern is not already registered.
-			$registry->unregister( $pattern_name );
-		}
-
 		// Ensure we're using a theme with patterns.
 		switch_theme( 'twentytwentythree' );
 
@@ -628,11 +623,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 		// Testing only the first pattern loaded from the theme.
 		$pattern_name = 'twentytwentythree/footer-default';
 
-		if ( $registry->is_registered( $pattern_name ) ) {
-			// Ensure the pattern is not already registered.
-			$registry->unregister( $pattern_name );
-		}
-
 		// Ensure we're using a theme with patterns.
 		switch_theme( 'twentytwentythree' );
 
@@ -662,21 +652,6 @@ class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
 			! empty( $registered_patterns[ $pattern_name ]['content'] ),
 			'Content not updated.'
 		);
-	}
-
-	/**
-	 * Clears the `$registered_patterns` private property.
-	 */
-	private function clear_regsited_patterns() {
-		$registry = WP_Block_Patterns_Registry::get_instance();
-		// Use Reflection to access private property.
-		$reflection = new ReflectionClass( $registry );
-		$property   = $reflection->getProperty( 'registered_patterns' );
-		$property->setAccessible( true );
-
-		// Reset the property to null.
-		$property->setValue( $registry, null );
-		$property->setAccessible( false );
 	}
 
 	/**
