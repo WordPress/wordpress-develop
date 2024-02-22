@@ -271,4 +271,93 @@ CSS
 
 		return $data;
 	}
+
+	public function get_custom_font_families( $key = '' ) {
+		static $data = null;
+
+		$custom_theme_json_fonts = array(
+			array(
+				'fontFamily' => 'Piazzolla, serif',
+				'name'       => 'Piazzolla',
+				'slug'       => 'piazzolla',
+				'fontFace'   => array(
+					array(
+						'fontFamily' => 'Piazzolla',
+						'src'        => array( 'https://example.org/fonts/piazzolla400.ttf' ),
+						'fontStyle'  => 'normal',
+						'fontWeight' => '400',
+					),
+					array(
+						'fontFamily' => 'Piazzolla',
+						'src'        => array( 'https://example.org/fonts/piazzolla500.ttf' ),
+						'fontStyle'  => 'normal',
+						'fontWeight' => '400',
+					),
+				),
+			),
+			array(
+				'fontFamily' => 'Lobster, sans-serif',
+				'name'       => 'Lobster',
+				'slug'       => 'lobster',
+				'fontFace'   => array(
+					array(
+						'fontFamily' => 'Lobster',
+						'src'        => array( 'https://example.org/fonts/lobster400.ttf' ),
+						'fontStyle'  => 'normal',
+						'fontWeight' => '400',
+					),
+					array(
+						'fontFamily' => 'Lobster',
+						'src'        => array( 'https://example.org/fonts/lobster500.ttf' ),
+						'fontStyle'  => 'normal',
+						'fontWeight' => '500',
+					),
+				),
+			),
+		);
+
+		$expected_font_faces = array(
+			array(
+				array(
+					'src'         => array( 'https://example.org/fonts/piazzolla400.ttf' ),
+					'font-family' => 'Piazzolla',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
+				),
+				array(
+					'src'         => array( 'https://example.org/fonts/piazzolla500.ttf' ),
+					'font-family' => 'Piazzolla',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
+				),
+			),
+			array(
+				array(
+					'src'         => array( 'https://example.org/fonts/lobster400.ttf' ),
+					'font-family' => 'Lobster',
+					'font-style'  => 'normal',
+					'font-weight' => '400',
+				),
+				array(
+					'src'         => array( 'https://example.org/fonts/lobster500.ttf' ),
+					'font-family' => 'Lobster',
+					'font-style'  => 'normal',
+					'font-weight' => '500',
+				),
+			),
+		);
+
+		if ( null === $data ) {
+			$data = array(
+				'input'    => $custom_theme_json_fonts,
+				'expected' => $expected_font_faces,
+			);
+		}
+
+		if ( isset( $data[ $key ] ) ) {
+			return $data[ $key ];
+		}
+
+		return $data;
+	}
 }

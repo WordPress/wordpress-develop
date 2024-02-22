@@ -37,6 +37,32 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 		$this->assertSame( $expected, $actual );
 	}
 
+	public function test_should_return_all_fonts_from_all_theme_origins() {
+		switch_theme( static::FONTS_THEME );
+
+		// Add a filter to add fonts to the theme.json custom origin.
+		add_filter(
+			'wp_theme_json_data_theme',
+			function ( $theme_json_data ) {
+				$data = $theme_json_data->get_data();
+
+				// Add font families to the custom origin of theme json.
+				$data['settings']['typography']['fontFamilies']['custom'] = $this->get_custom_font_families( 'input' );
+
+				return new WP_Theme_JSON_Data( $data );
+			}
+		);
+
+		$actual = WP_Font_Face_Resolver::get_fonts_from_theme_json();
+
+		$expected = array_merge(
+			$this->get_expected_fonts_for_fonts_block_theme( 'fonts' ),
+			$this->get_custom_font_families( 'expected' )
+		);
+
+		$this->assertSame( $expected, $actual, 'Both the fonts from the theme and the custom origin should be returned.' );
+	}
+
 	/**
 	 * @dataProvider data_should_replace_src_file_placeholder
 	 *
