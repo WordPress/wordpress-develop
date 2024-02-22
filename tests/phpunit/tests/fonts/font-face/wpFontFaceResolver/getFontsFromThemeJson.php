@@ -41,16 +41,26 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 	 * @dataProvider data_should_replace_src_file_placeholder
 	 *
 	 * @param string $font_name  Font's name.
-	 * @param string $font_index Font's index in the $fonts array.
+	 * @param string $font_weight Font's weight.
+	 * @param string $font_style  Font's style.
 	 * @param string $expected   Expected src.
 	 */
-	public function test_should_replace_src_file_placeholder( $font_name, $font_index, $expected ) {
+	public function test_should_replace_src_file_placeholder( $font_name, $font_weight, $font_style, $expected ) {
 		switch_theme( static::FONTS_THEME );
 
 		$fonts = WP_Font_Face_Resolver::get_fonts_from_theme_json();
+		$fonts = array_merge( [], ...array_map( 'array_values', $fonts ) );
 
-		$actual   = $fonts[ $font_name ][ $font_index ]['src'][0];
+		$font = array_filter($fonts, function ($font) use ($font_name, $font_weight, $font_style) {
+			return $font['font-family'] === $font_name
+				&& $font['font-weight'] === $font_weight
+				&& $font['font-style'] === $font_style;
+		});
+
+		$font = reset($font);
+	
 		$expected = get_stylesheet_directory_uri() . $expected;
+		$actual   = $font['src'][0];
 
 		$this->assertStringNotContainsString( 'file:./', $actual, 'Font src should not contain the "file:./" placeholder' );
 		$this->assertSame( $expected, $actual, 'Font src should be an URL to its file' );
@@ -66,32 +76,38 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 			// Theme's theme.json.
 			'DM Sans: 400 normal'              => array(
 				'font_name'  => 'DM Sans',
-				'font_index' => 0,
+				'font_weight' => '400',
+				'font_style' => 'normal',
 				'expected'   => '/assets/fonts/dm-sans/DMSans-Regular.woff2',
 			),
 			'DM Sans: 400 italic'              => array(
 				'font_name'  => 'DM Sans',
-				'font_index' => 1,
+				'font_weight' => '400',
+				'font_style' => 'italic',
 				'expected'   => '/assets/fonts/dm-sans/DMSans-Regular-Italic.woff2',
 			),
 			'DM Sans: 700 normal'              => array(
 				'font_name'  => 'DM Sans',
-				'font_index' => 2,
+				'font_weight' => '700',
+				'font_style' => 'normal',
 				'expected'   => '/assets/fonts/dm-sans/DMSans-Bold.woff2',
 			),
 			'DM Sans: 700 italic'              => array(
 				'font_name'  => 'DM Sans',
-				'font_index' => 3,
+				'font_weight' => '700',
+				'font_style' => 'italic',
 				'expected'   => '/assets/fonts/dm-sans/DMSans-Bold-Italic.woff2',
 			),
 			'Source Serif Pro: 200-900 normal' => array(
 				'font_name'  => 'Source Serif Pro',
-				'font_index' => 0,
+				'font_weight' => '200 900',
+				'font_style' => 'normal',
 				'expected'   => '/assets/fonts/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2',
 			),
 			'Source Serif Pro: 200-900 italic' => array(
 				'font_name'  => 'Source Serif Pro',
-				'font_index' => 1,
+				'font_weight' => '200 900',
+				'font_style' => 'italic',
 				'expected'   => '/assets/fonts/source-serif-pro/SourceSerif4Variable-Italic.ttf.woff2',
 			),
 		);
@@ -118,7 +134,14 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 		$fonts = WP_Font_Face_Resolver::get_fonts_from_theme_json();
 		remove_filter( 'wp_theme_json_data_theme', $replace_fonts );
 
-		$this->assertArrayHasKey( $expected_name, $fonts );
+		// flatten the array to make it easier to test.
+		$fonts = array_merge( [], ...array_map( 'array_values', $fonts ) );
+
+		$fonts_found = array_filter( $fonts, function ($font) use ( $expected_name ) {
+			return $font['font-family'] === $expected_name;
+		});
+		
+		$this->assertNotEmpty( $fonts_found, 'Expected font-family name not found in the array' );
 	}
 
 	/**

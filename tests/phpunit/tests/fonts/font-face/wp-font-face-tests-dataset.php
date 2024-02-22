@@ -206,7 +206,7 @@ CSS
 			$uri  = get_stylesheet_directory_uri() . '/assets/fonts/';
 			$data = array(
 				'fonts'            => array(
-					'DM Sans'          => array(
+					array(
 						array(
 							'src'          => array( $uri . 'dm-sans/DMSans-Regular.woff2' ),
 							'font-family'  => 'DM Sans',
@@ -236,7 +236,7 @@ CSS
 							'font-weight'  => '700',
 						),
 					),
-					'Source Serif Pro' => array(
+					array(
 						array(
 							'src'          => array( $uri . 'source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2' ),
 							'font-family'  => 'Source Serif Pro',
