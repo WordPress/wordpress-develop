@@ -82,7 +82,7 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 
 		$font = array_filter(
 			$fonts,
-			function ( $font ) use ( $font_name, $font_weight, $font_style ) {
+			static function ( $font ) use ( $font_name, $font_weight, $font_style ) {
 				return $font['font-family'] === $font_name
 				&& $font['font-weight'] === $font_weight
 				&& $font['font-style'] === $font_style;
