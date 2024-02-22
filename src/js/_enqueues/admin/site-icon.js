@@ -234,12 +234,4 @@
 			.trigger( 'focus' );
 	} );
 
-	/**
-	 * Update the site icon preview when the site title changes.
-	 *
-	 * @since 6.5.0
-	 */
-	$( '#blogname' ).on( 'input', function () {
-		$( '#site-icon-preview-site-title' ).text( $( this ).val() );
-	} );
 } )( jQuery );
