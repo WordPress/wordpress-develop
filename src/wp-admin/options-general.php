@@ -155,11 +155,6 @@ $tagline_description = sprintf(
 	}
 	?>
 
-<style>
-:root{
-	--site-icon-url: url( '<?php site_icon_url(); ?>' );
-}
-</style>
 
 	<div id="site-icon-preview" class="site-icon-preview wp-clearfix settings-page-preview <?php echo esc_attr( $classes_for_wrapper ); ?>">
 		<div class="favicon-preview">
