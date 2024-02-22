@@ -818,6 +818,7 @@ function fetch_feed( $url ) {
 	$feed->set_feed_url( $url );
 	/** This filter is documented in wp-includes/class-wp-feed-cache-transient.php */
 	$feed->set_cache_duration( apply_filters( 'wp_feed_cache_transient_lifetime', 12 * HOUR_IN_SECONDS, $url ) );
+	$feed->set_error_cache_duration( apply_filters( 'wp_feed_error_cache_transient_lifetime', 15 * MINUTE_IN_SECONDS, $url ) );
 
 	/**
 	 * Fires just before processing the SimplePie feed object.
