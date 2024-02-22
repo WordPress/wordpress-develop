@@ -315,7 +315,7 @@ CSS
 		return $data;
 	}
 
-	public function get_custom_font_families( $key = '' ) {
+	public static function get_custom_font_families( $key = '' ) {
 		static $data = null;
 
 		$custom_theme_json_fonts = array(
