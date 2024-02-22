@@ -92,7 +92,7 @@ CSS
 			,
 			),
 			'multiple woff2 format fonts'    => array(
-				'fonts'    => array(
+				'fonts'                  => array(
 					'DM Sans'       =>
 						array(
 							array(
@@ -184,7 +184,7 @@ CSS
 							),
 						),
 				),
-				'expected' => <<<CSS
+				'expected'               => <<<CSS
 @font-face{font-family:"DM Sans";font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/dm-sans/DMSans-Regular.woff2') format('woff2');font-stretch:normal;}
 @font-face{font-family:"DM Sans";font-style:italic;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/dm-sans/DMSans-Regular-Italic.woff2') format('woff2');font-stretch:normal;}
 @font-face{font-family:"DM Sans";font-style:normal;font-weight:700;font-display:fallback;src:url('https://example.org/assets/fonts/dm-sans/DMSans-Bold.woff2') format('woff2');font-stretch:normal;}
@@ -195,6 +195,49 @@ CSS
 @font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:700;font-display:block;src:url('https://example.org/assets/fonts/ibm-plex-mono/IBMPlexMono-Bold.woff2') format('woff2');font-stretch:normal;}
 CSS
 			,
+				'indexed array as input' => array(
+					'fonts'    => array(
+						array(
+							array(
+								'font-family'  => 'Piazzolla',
+								'src'          => array( 'https://example.org/fonts/piazzolla400.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+								'font-stretch' => 'normal',
+							),
+							array(
+								'font-family'  => 'Piazzolla',
+								'src'          => array( 'https://example.org/fonts/piazzolla500.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+								'font-stretch' => 'normal',
+							),
+						),
+						array(
+							array(
+								'font-family'  => 'Lobster',
+								'src'          => array( 'https://example.org/fonts/lobster400.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+								'font-stretch' => 'normal',
+							),
+							array(
+								'font-family'  => 'Lobster',
+								'src'          => array( 'https://example.org/fonts/lobster500.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '500',
+								'font-stretch' => 'normal',
+							),
+						),
+					),
+					'expected' => <<<CSS
+@font-face{font-family:Piazzolla;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/piazzolla400.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:Piazzolla;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/piazzolla500.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:Lobster;font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/lobster400.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:Lobster;font-style:normal;font-weight:500;font-display:fallback;src:url('https://example.org/fonts/lobster500.ttf') format('truetype');font-stretch:normal;}
+CSS
+					,
+				),
 			),
 		);
 	}
