@@ -310,7 +310,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 				array(
 					1 => 'bar',
 					2 => 'value',
-				)
+				),
 			),
 			'objects'                        => array(
 				array(
