@@ -5276,8 +5276,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		 * As with wp_get_global_styles(), WP_Theme_JSON::resolve_variables may be called with merged data from
 		 * WP_Theme_JSON_Resolver. WP_Theme_JSON_Resolver::get_block_data() sets blockGap for supported blocks to `null` if the value is not defined.
 		 */
-		$this->assertNull( $styles['blocks']['core/post-template']['spacing']['blockGap'], 'core/post-template block: blockGap' );
-		$this->assertEquals( $spacing, $styles['blocks']['core/columns']['spacing']['blockGap'], 'core/columns block: blockGap' );
+		$this->assertNull(
+			$styles['blocks']['core/post-template']['spacing']['blockGap'],
+			'Blocks: Post Template spacing.blockGap should be null'
+		);
+		$this->assertEquals(
+			$spacing,
+			$styles['blocks']['core/columns']['spacing']['blockGap'],
+			'Blocks: Columns spacing.blockGap should match'
+		);
 	}
 
 	/**
