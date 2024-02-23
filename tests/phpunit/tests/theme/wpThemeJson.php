@@ -5092,10 +5092,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Style variations: Assert the internal variables are convert to CSS custom variables.' );
 	}
 
-	/*
+	/**
 	 * Tests that the theme.json file is correctly parsed and the variables are resolved.
 	 *
 	 * @ticket 58588
+	 * @ticket 60613
 	 *
 	 * @covers WP_Theme_JSON_Gutenberg::resolve_variables
 	 * @covers WP_Theme_JSON_Gutenberg::convert_variables_to_value
