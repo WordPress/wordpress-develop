@@ -119,7 +119,7 @@ function get_home_path() {
 
 	$home_path = str_replace( '\\', '/', $home_path );
 
-	return apply_filters('get_home_path',$home_path);
+	return apply_filters( 'get_home_path', $home_path );
 }
 
 /**
