@@ -60,7 +60,7 @@
 			x1: x1,
 			y1: y1,
 			x2: xInit + x1,
-			y2: yInit + y1
+			y2: yInit + y1,
 		};
 
 		return imgSelectOptions;
@@ -81,7 +81,7 @@
 				text: $el.data( 'update' ),
 
 				// Don't close, we might need to crop.
-				close: false
+				close: false,
 			},
 			states: [
 				new wp.media.controller.Library( {
@@ -89,18 +89,18 @@
 					library: wp.media.query( { type: 'image' } ),
 					date: false,
 					suggestedWidth: $el.data( 'size' ),
-					suggestedHeight: $el.data( 'size' )
+					suggestedHeight: $el.data( 'size' ),
 				} ),
 				new wp.media.controller.SiteIconCropper( {
 					control: {
 						params: {
 							width: $el.data( 'size' ),
-							height: $el.data( 'size' )
-						}
+							height: $el.data( 'size' ),
+						},
 					},
-					imgSelectOptions: calculateImageSelectOptions
-				} )
-			]
+					imgSelectOptions: calculateImageSelectOptions,
+				} ),
+			],
 		} );
 
 		frame.on( 'cropped', function ( attachment ) {
@@ -175,13 +175,13 @@
 		// Set site-icon-img src and alternative text to app icon preview.
 		$appIconPreview.attr( {
 			src: attributes.url,
-			alt: i18nAppAlternativeString
+			alt: i18nAppAlternativeString,
 		} );
 
 		// Set site-icon-img src and alternative text to browser preview.
 		$browserIconPreview.attr( {
 			src: attributes.url,
-			alt: i18nBrowserAlternativeString
+			alt: i18nBrowserAlternativeString,
 		} );
 
 		// Remove hidden class from icon preview div and remove button.
@@ -191,9 +191,9 @@
 		// If the choose button is not in the update state, swap the classes.
 		if ( $chooseButton.attr( 'data-state' ) !== '1' ) {
 			$chooseButton.attr( {
-				'class': $chooseButton.attr( 'data-alt-classes' ),
+				class: $chooseButton.attr( 'data-alt-classes' ),
 				'data-alt-classes': $chooseButton.attr( 'class' ),
-				'data-state': '1'
+				'data-state': '1',
 			} );
 		}
 
@@ -212,11 +212,11 @@
 		$iconPreview.toggleClass( 'hidden' );
 		$browserIconPreview.attr( {
 			src: '',
-			alt: ''
+			alt: '',
 		} );
 		$appIconPreview.attr( {
 			src: '',
-			alt: ''
+			alt: '',
 		} );
 
 		/**
@@ -226,12 +226,11 @@
 		 */
 		$chooseButton
 			.attr( {
-				'class': $chooseButton.attr( 'data-alt-classes' ),
+				class: $chooseButton.attr( 'data-alt-classes' ),
 				'data-alt-classes': $chooseButton.attr( 'class' ),
-				'data-state': ''
+				'data-state': '',
 			} )
 			.text( $chooseButton.attr( 'data-choose-text' ) )
 			.trigger( 'focus' );
 	} );
-
 } )( jQuery );
