@@ -5388,4 +5388,30 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		return $schema;
 	}
+
+	/**
+	 * @ticket 43502
+	 */
+	public function test_postdata_reset_by_prepare_item_for_response() {
+		wp_set_current_user( self::$editor_id );
+
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+
+		global $post;
+		$post = get_post(self::$post_id);
+
+		$original_content = $post->post_content;
+
+		if ( have_posts() ) {
+			while ( have_posts() ) {
+				the_post();
+
+				$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+				$response = $endpoint->prepare_item_for_response( $post, $request );
+			}
+		}
+
+		$this->assertSame(get_post(self::$post_id), $post);
+		$this->assertSame($original_content, $post->post_content);
+	}
 }
