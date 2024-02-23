@@ -117,7 +117,9 @@ function get_home_path() {
 		$home_path = ABSPATH;
 	}
 
-	return str_replace( '\\', '/', $home_path );
+	$home_path = str_replace( '\\', '/', $home_path );
+
+	return apply_filters('get_home_path',$home_path);
 }
 
 /**
