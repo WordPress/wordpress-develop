@@ -5092,6 +5092,14 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEquals( 'var(--wp--preset--color--s)', $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Style variations: Assert the internal variables are convert to CSS custom variables.' );
 	}
 
+	/*
+	 * Tests that the theme.json file is correctly parsed and the variables are resolved.
+	 *
+	 * @ticket 58588
+	 *
+	 * @covers WP_Theme_JSON_Gutenberg::resolve_variables
+	 * @covers WP_Theme_JSON_Gutenberg::convert_variables_to_value
+	 */
 	public function test_resolve_variables() {
 		$primary_color   = '#9DFF20';
 		$secondary_color = '#9DFF21';
@@ -5099,6 +5107,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$raw_color_value = '#efefef';
 		$large_font      = '18px';
 		$small_font      = '12px';
+		$spacing         = 'clamp(1.5rem, 5vw, 2rem)';
 		$theme_json      = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -5135,6 +5144,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'size' => $large_font,
 								'name' => 'Font size large',
 								'slug' => 'large',
+							),
+						),
+					),
+					'spacing'    => array(
+						'spacingSizes' => array(
+							array(
+								'size' => $spacing,
+								'name' => '100',
+								'slug' => '100',
 							),
 						),
 					),
@@ -5200,6 +5218,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								),
 							),
 						),
+						'core/post-template'   => array(
+							'spacing' => array(
+								'blockGap' => null,
+							),
+						),
+						'core/columns'         => array(
+							'spacing' => array(
+								'blockGap' => 'var(--wp--preset--spacing--100)',
+							),
+						),
 					),
 				),
 			)
@@ -5243,6 +5271,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$this->assertEquals( $small_font, $styles['blocks']['core/quote']['variations']['plain']['typography']['fontSize'], 'Block variations: font-size' );
 		$this->assertEquals( $secondary_color, $styles['blocks']['core/quote']['variations']['plain']['color']['background'], 'Block variations: color' );
+		/*
+		 * As with wp_get_global_styles(), WP_Theme_JSON::resolve_variables may be called with merged data from
+		 * WP_Theme_JSON_Resolver. WP_Theme_JSON_Resolver::get_block_data() sets blockGap for supported blocks to `null` if the value is not defined.
+		 */
+		$this->assertNull( $styles['blocks']['core/post-template']['spacing']['blockGap'], 'core/post-template block: blockGap' );
+		$this->assertEquals( $spacing, $styles['blocks']['core/columns']['spacing']['blockGap'], 'core/columns block: blockGap' );
 	}
 
 	/**
