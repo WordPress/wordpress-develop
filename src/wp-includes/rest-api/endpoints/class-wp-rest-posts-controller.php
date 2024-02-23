@@ -373,7 +373,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		update_post_author_caches( $query_result );
 		update_post_parent_caches( $query_result );
 
-		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+		$fields = $this->get_fields_for_response( $request );
+
+		if ( rest_is_field_included( 'featured_media', $fields ) || rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			update_post_thumbnail_cache( $posts_query );
 		}
 
