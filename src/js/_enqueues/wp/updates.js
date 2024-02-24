@@ -551,7 +551,7 @@
 	wp.updates.updatePluginSuccess = function( response ) {
 		var $pluginRow, $updateMessage, newText,
 			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
-			buttonText = _x( 'Updated!', 'plugin' ),
+			buttonText = __( 'Updated' ),
 			ariaLabel = sprintf(
 				/* translators: %s: Plugin name and version. */
 				_x( '%s updated!', 'plugin' ),
@@ -798,7 +798,7 @@
 	 */
 	wp.updates.installPluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
-			buttonText = _x( 'Installed!', 'plugin' ),
+			buttonText = __( 'Installed!' ),
 			ariaLabel = sprintf(
 				/* translators: %s: Plugin name and version. */
 				_x( '%s installed!', 'plugin' ),
@@ -810,6 +810,10 @@
 			.addClass( 'updated-message installed button-disabled' )
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
+
+		console.log('installPluginSuccess', buttonText);
+
+		debugger;
 
 		wp.a11y.speak( __( 'Installation completed successfully.' ) );
 
@@ -957,7 +961,7 @@
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
 		if ( 'plugins-network' === pagenow ) {
-			buttonText = _x( 'Network Activate' );
+			buttonText = __( 'Network Activate' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
 				_x( 'Network Activate %s', 'plugin' ),
@@ -968,7 +972,7 @@
 				.attr( 'aria-label', ariaLabel )
 				.text( buttonText );
 		} else {
-			buttonText = _x( 'Activate', 'plugin' );
+			buttonText = __( 'Activate' );
 			ariaLabel = sprintf(
 				/* translators: %s: Plugin name. */
 				_x( 'Activate %s', 'plugin' ),
@@ -1087,7 +1091,7 @@
 					slug: args.slug,
 					removeClasses: 'installed updated-message button-primary',
 					addClasses: 'activating-message',
-					text: _x( 'Activating...', 'plugin' ),
+					text: __( 'Activating...' ),
 					ariaLabel: sprintf(
 						/* translators: %s: Plugin name. */
 						_x( 'Activating %s', 'plugin' ),
@@ -1112,7 +1116,7 @@
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
-			buttonText = _x( 'Activated!', 'plugin' ),
+			buttonText = __( 'Activated!' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
 				'%s activated successfully.',
@@ -1454,14 +1458,14 @@
 				$itemsCount.text(
 					sprintf(
 						/* translators: %s: The remaining number of plugins. */
-						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
+						_nx( '%s item', '%s items', remainingCount, 'plugin/plugins'  ),
 						remainingCount
 					)
 				);
 			}
 		} );
 
-		wp.a11y.speak( _x( 'Deleted!', 'plugin' ) );
+		wp.a11y.speak( __( 'Deleted' ) );
 
 		$document.trigger( 'wp-plugin-delete-success', response );
 	};
@@ -1595,7 +1599,7 @@
 			$theme         = $( '[data-slug="' + response.slug + '"]' ),
 			updatedMessage = {
 				className: 'updated-message notice-success notice-alt',
-				message:   _x( 'Updated!', 'theme' )
+				message:   __( 'Updated' )
 			},
 			$notice, newText;
 
@@ -1768,7 +1772,7 @@
 					response.themeName
 				)
 			)
-			.text( _x( 'Installed!', 'theme' ) );
+			.text( _x( 'Installed', 'theme' ) );
 
 		wp.a11y.speak( __( 'Installation completed successfully.' ) );
 
@@ -2009,7 +2013,7 @@
 		    }
 		}
 
-		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
+		wp.a11y.speak( __( 'Deleted' ) );
 
 		$document.trigger( 'wp-theme-delete-success', response );
 	};
@@ -2663,7 +2667,7 @@
 						$activateButton.data( 'name' )
 					)
 				)
-				.text( _x( 'Activating...', 'plugin' ) );
+				.text( __( 'Activating...' ) );
 
 			wp.updates.activatePlugin(
 				{

@@ -1533,10 +1533,17 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		$dependency_note = __( 'Note: this plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+
+		$comma       = wp_get_list_item_separator();
+		$required_by = sprintf(
+			/* translators: %s: List of dependencies. */
+			__( '<strong>Required by:</strong> %s' ),
+			implode( $comma, $dependent_names )
+		);
+
 		printf(
-			'<div class="required-by"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
-			__( 'Required by:' ),
-			esc_html( implode( ' | ', $dependent_names ) ),
+			'<div class="required-by"><p>%1$s</p><p>%2$s</p></div>',
+			$required_by,
 			$dependency_note
 		);
 	}
@@ -1562,10 +1569,16 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$dependency_note = __( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
 
+		$comma    = wp_get_list_item_separator();
+		$requires = sprintf(
+			/* translators: %s: List of dependency names. */
+			__( '<strong>Requires:</strong> %s' ),
+			implode( $comma, $links )
+		);
+
 		printf(
-			'<div class="requires"><p><strong>%1$s</strong> %2$s</p><p>%3$s</p></div>',
-			__( 'Requires:' ),
-			implode( ' | ', $links ),
+			'<div class="requires"><p>%1$s</p><p>%2$s</p></div>',
+			$requires,
 			$dependency_note
 		);
 	}

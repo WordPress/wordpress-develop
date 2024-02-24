@@ -1042,7 +1042,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 					} else {
 						$button = sprintf(
 							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-							is_network_admin() ? _x( 'Network Activate %s', 'plugin' ) : _x( 'Activate', 'plugin' )
+							is_network_admin() ? __( 'Network Activate', 'plugin' ) : __( 'Activate' )
 						);
 					}
 				} else {
