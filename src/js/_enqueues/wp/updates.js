@@ -811,10 +811,6 @@
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
 
-		console.log('installPluginSuccess', buttonText);
-
-		debugger;
-
 		wp.a11y.speak( __( 'Installation completed successfully.' ) );
 
 		$document.trigger( 'wp-plugin-install-success', response );
