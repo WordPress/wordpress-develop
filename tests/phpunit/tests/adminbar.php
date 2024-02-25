@@ -119,9 +119,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 
-		$node_site_name    = $wp_admin_bar->get_node( 'site-name' );
-		$node_my_account   = $wp_admin_bar->get_node( 'my-account' );
-		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
+		$node_site_name  = $wp_admin_bar->get_node( 'site-name' );
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
 
 		// Site menu points to the admin URL.
 		$this->assertSame( admin_url( '/' ), $node_site_name->href );
