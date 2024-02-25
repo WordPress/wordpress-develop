@@ -97,7 +97,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_site_name    = $wp_admin_bar->get_node( 'site-name' );
 		$node_my_account   = $wp_admin_bar->get_node( 'my-account' );
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
-		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Site menu points to the home page instead of the admin URL.
 		$this->assertSame( home_url( '/' ), $node_site_name->href );
@@ -105,7 +104,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		// No profile links as the user doesn't have any permissions on the site.
 		$this->assertFalse( $node_my_account->href );
 		$this->assertFalse( $node_user_info->href );
-		$this->assertNull( $node_edit_profile );
 	}
 
 	/**
@@ -160,7 +158,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_site_name    = $wp_admin_bar->get_node( 'site-name' );
 		$node_my_account   = $wp_admin_bar->get_node( 'my-account' );
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
-		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$editor_id );
@@ -177,7 +174,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $primary_profile_url, $node_my_account->href );
 		$this->assertSame( $primary_profile_url, $node_user_info->href );
-		$this->assertSame( $primary_profile_url, $node_edit_profile->href );
 
 		restore_current_blog();
 	}
@@ -216,7 +212,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_site_name    = $wp_admin_bar->get_node( 'site-name' );
 		$node_my_account   = $wp_admin_bar->get_node( 'my-account' );
 		$node_user_info    = $wp_admin_bar->get_node( 'user-info' );
-		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$no_role_id );
@@ -232,7 +227,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		// Profile URLs should go to the user's primary blog.
 		$this->assertSame( $user_profile_url, $node_my_account->href );
 		$this->assertSame( $user_profile_url, $node_user_info->href );
-		$this->assertSame( $user_profile_url, $node_edit_profile->href );
 
 		restore_current_blog();
 	}
