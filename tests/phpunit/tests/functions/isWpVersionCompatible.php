@@ -99,7 +99,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that is_wp_version_compatible() throws a notice for incorrect version numbering.
+	 * Tests that is_wp_version_compatible() gracefully handles incorrect version numbering.
 	 *
 	 * @dataProvider data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers
 	 *
