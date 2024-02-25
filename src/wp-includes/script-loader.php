@@ -3353,7 +3353,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  * This is a helper meant to be used for literal script tag construction
  * within `wp_get_inline_script_tag()` or `wp_print_inline_script_tag()`.
  * It removes the literal values of "<script>" and "</script>" from
- * around an inline script after trimming whitespace. Typlically this
+ * around an inline script after trimming whitespace. Typically this
  * is used in conjunction with output buffering, where `ob_get_clean()`
  * is passed as the `$contents` argument.
  *
@@ -3391,6 +3391,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 	} else {
 		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
 		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
-		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
+		return sprintf(
+			'console.error(%s)',
+			wp_json_encode(
+				sprintf(
+					/* translators: %s: wp_remove_surrounding_empty_script_tags() */
+					__( 'Function %s used incorrectly in PHP.' ),
+					'wp_remove_surrounding_empty_script_tags()'
+				) . ' ' . $error_message
+			)
+		);
 	}
 }
