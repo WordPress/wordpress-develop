@@ -284,7 +284,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 				array(
 					'id' => 'test-node',
 				),
-				'<div class="ab-item ab-empty-item">',
+				'<div class="ab-item ab-empty-item" role="menuitem">',
 			),
 			array(
 				// Empty string.
@@ -292,7 +292,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => '' ),
 				),
-				'<div class="ab-item ab-empty-item">',
+				'<div class="ab-item ab-empty-item" role="menuitem">',
 			),
 			array(
 				// Integer 1 as string.
@@ -300,7 +300,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => '1' ),
 				),
-				'<div class="ab-item ab-empty-item" tabindex="1">',
+				'<div class="ab-item ab-empty-item" tabindex="1" role="menuitem">',
 			),
 			array(
 				// Integer -1 as string.
@@ -308,7 +308,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => '-1' ),
 				),
-				'<div class="ab-item ab-empty-item" tabindex="-1">',
+				'<div class="ab-item ab-empty-item" tabindex="-1" role="menuitem">',
 			),
 			array(
 				// Integer 0 as string.
@@ -316,7 +316,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => '0' ),
 				),
-				'<div class="ab-item ab-empty-item" tabindex="0">',
+				'<div class="ab-item ab-empty-item" tabindex="0" role="menuitem">',
 			),
 			array(
 				// Integer, 0.
@@ -324,7 +324,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => 0 ),
 				),
-				'<div class="ab-item ab-empty-item" tabindex="0">',
+				'<div class="ab-item ab-empty-item" tabindex="0" role="menuitem">',
 			),
 			array(
 				// Integer, 2.
@@ -332,7 +332,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => 2 ),
 				),
-				'<div class="ab-item ab-empty-item" tabindex="2">',
+				'<div class="ab-item ab-empty-item" tabindex="2" role="menuitem">',
 			),
 			array(
 				// Boolean, false.
@@ -340,7 +340,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 					'id'   => 'test-node',
 					'meta' => array( 'tabindex' => false ),
 				),
-				'<div class="ab-item ab-empty-item">',
+				'<div class="ab-item ab-empty-item" role="menuitem">',
 			),
 		);
 	}
