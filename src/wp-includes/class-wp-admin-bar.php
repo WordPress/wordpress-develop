@@ -608,10 +608,10 @@ class WP_Admin_Bar {
 		if ( $is_parent ) {
 			echo '<div class="ab-sub-wrapper">';
 			foreach ( $node->children as $group ) {
-				if ( empty( $node->meta[ 'menu_title' ] ) ) {
+				if ( empty( $node->meta['menu_title'] ) ) {
 					$this->_render_group( $group, false );
 				} else {
-					$this->_render_group( $group, $node->meta[ 'menu_title' ] );
+					$this->_render_group( $group, $node->meta['menu_title'] );
 				}
 			}
 			echo '</div>';
