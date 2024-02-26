@@ -3360,7 +3360,8 @@ function convert_smilies( $text ) {
 		$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
 
 		if ( preg_last_error() != PREG_NO_ERROR ) {
-			trigger_error( preg_last_error_msg(), E_USER_WARNING );
+			$message = sprintf( '<code>convert_smilies</code> could not split text. Error Message: %s', preg_last_error_message() );
+			wp_trigger_error( 'convert_smilies', $message, E_USER_WARNING );
 			return $text;
 		}
 
