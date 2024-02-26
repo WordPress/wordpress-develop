@@ -1228,7 +1228,7 @@ function validate_plugin_requirements( $plugin ) {
 				count( $unmet_dependency_names )
 			),
 			$plugin_headers['Name'],
-			count( $unmet_dependency_names )
+			count( $unmet_dependency_names ),
 			implode( ', ', $unmet_dependency_names ),
 			esc_url( $plugins_page )
 		);
