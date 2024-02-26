@@ -1221,16 +1221,16 @@ function validate_plugin_requirements( $plugin ) {
 
 		$plugins_page  = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
 		$error_message = sprintf(
-			/* translators: 1: Plugin name, 2: A comma-separated list of plugin names, 3: The start of a link to the plugins page, 4: The end of the link. */
+			/* translators: 1: Plugin name, 2: Number of plugins, 3: A comma-separated list of plugin names, 4: Link to the plugins page. */
 			_n(
-				'<strong>Error:</strong> %1$s requires the following plugin to be installed and activated: %2$s. %3$sManage plugins%4$s',
-				'<strong>Error:</strong> %1$s requires the following plugins to be installed and activated: %2$s. %3$sManage plugins%4$s',
+				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s. <a href="%4$s>"Manage plugins</a>',
+				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s. <a href="%4$s>"Manage plugins</a>',
 				count( $unmet_dependency_names )
 			),
 			$plugin_headers['Name'],
+			count( $unmet_dependency_names )
 			implode( ', ', $unmet_dependency_names ),
-			'<a href="' . esc_url( $plugins_page ) . '">',
-			'</a>'
+			esc_url( $plugins_page )
 		);
 
 		return new WP_Error(
