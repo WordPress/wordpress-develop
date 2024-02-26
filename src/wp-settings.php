@@ -608,8 +608,9 @@ $GLOBALS['wp_roles'] = new WP_Roles();
  */
 do_action( 'setup_theme' );
 
-// Define the template related constants.
+// Define the template related constants and globals.
 wp_templating_constants();
+wp_set_template_globals();
 
 // Load the default text localization domain.
 load_default_textdomain();
@@ -639,8 +640,6 @@ $GLOBALS['wp_locale'] = new WP_Locale();
  */
 $GLOBALS['wp_locale_switcher'] = new WP_Locale_Switcher();
 $GLOBALS['wp_locale_switcher']->init();
-
-WP_Translation_Controller::get_instance()->set_locale( $locale );
 
 // Load the functions for the active theme, for both parent and child theme if applicable.
 foreach ( wp_get_active_and_valid_themes() as $theme ) {

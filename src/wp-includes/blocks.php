@@ -106,7 +106,7 @@ function get_block_asset_url( $path ) {
 
 	$template = get_template();
 	if ( ! isset( $template_paths_norm[ $template ] ) ) {
-		$template_paths_norm[ $template ] = wp_normalize_path( get_template_directory() );
+		$template_paths_norm[ $template ] = wp_normalize_path( realpath( get_template_directory() ) );
 	}
 
 	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
@@ -116,7 +116,7 @@ function get_block_asset_url( $path ) {
 	if ( is_child_theme() ) {
 		$stylesheet = get_stylesheet();
 		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
-			$template_paths_norm[ $stylesheet ] = wp_normalize_path( get_stylesheet_directory() );
+			$template_paths_norm[ $stylesheet ] = wp_normalize_path( realpath( get_stylesheet_directory() ) );
 		}
 
 		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
@@ -172,12 +172,14 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 
 	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
+	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
 	wp_register_script_module(
 		$module_id,
 		$module_uri,
 		$module_dependencies,
-		isset( $module_asset['version'] ) ? $module_asset['version'] : false
+		$module_version
 	);
 
 	return $module_id;
@@ -225,7 +227,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	);
 
 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
-	$script_asset = ! empty( $script_asset_path ) ? require $script_asset_path : array();
+	$script_asset  = ! empty( $script_asset_path ) ? require $script_asset_path : array();
 	$script_handle = isset( $script_asset['handle'] ) ?
 		$script_asset['handle'] :
 		generate_block_asset_handle( $metadata['name'], $field_name, $index );
