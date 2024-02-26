@@ -592,7 +592,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 
 	if ( preg_match( '/[^a-z0-9-]+/', $blogname ) ) {
 		$errors->add( 'blogname', __( 'Site names can only contain lowercase letters (a-z), numbers, and hyphens.' ) );
-	} elseif ( trim( $blogname, '-' ) !== $blogname  ) {
+	} elseif ( trim( $blogname, '-' ) !== $blogname ) {
 		$errors->add( 'blogname', __( 'Site names can not begin or end with a hyphen.' ) );
 	}
 
