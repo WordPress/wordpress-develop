@@ -1300,7 +1300,7 @@
 					pluginName
 				)
 			)
-			.text( __( 'Install Now' ) );
+			.text( _x( 'Install Now', 'plugin' ) );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -2625,7 +2625,7 @@
 
 					$message
 						.removeClass( 'updating-message' )
-						.text( __( 'Install Now' ) );
+						.text( _x( 'Install Now', 'plugin' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );
@@ -2706,7 +2706,7 @@
 								pluginName
 							)
 						)
-						.text( __( 'Install Now' ) );
+						.text( _x( 'Install Now', 'plugin' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );

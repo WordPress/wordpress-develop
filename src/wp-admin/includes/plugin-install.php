@@ -361,7 +361,7 @@ function install_plugins_upload() {
 			?>
 		</label>
 		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
-		<?php submit_button( __( 'Install Now' ), '', 'install-plugin-submit', false ); ?>
+		<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
 	</form>
 </div>
 	<?php
@@ -954,7 +954,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 		/* translators: %s: Plugin name and version. */
 		esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
 		esc_attr( $name ),
-		__( 'Install Now' )
+		_x( 'Install Now', 'plugin' )
 	);
 
 	if ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) {
@@ -969,7 +969,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 							/* translators: %s: Plugin name and version. */
 							esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
 							esc_attr( $name ),
-							__( 'Install Now' )
+							_x( 'Install Now', 'plugin' )
 						);
 					} else {
 						$button = sprintf(
@@ -991,7 +991,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 							/* translators: %s: Plugin name and version. */
 							esc_attr( sprintf( _x( 'Update %s now', 'plugin' ), $name ) ),
 							esc_attr( $name ),
-							__( 'Update Now' )
+							_x( 'Update Now', 'plugin' )
 						);
 					} else {
 						$button = sprintf(
