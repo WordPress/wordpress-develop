@@ -883,7 +883,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			} else {
 				if ( $restrict_network_active ) {
 					$actions = array(
-						'network_active' => _x( 'Network Activate', 'plugin' ),
+						'network_active' => __( 'Network Active' ),
 					);
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
