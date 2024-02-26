@@ -1532,7 +1532,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$dependency_note = __( 'Note: this plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
+		$dependency_note = __( 'Note: This plugin cannot be deactivated or deleted until the plugins that require it are deactivated or deleted.' );
 
 		$comma       = wp_get_list_item_separator();
 		$required_by = sprintf(
@@ -1567,7 +1567,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$links[] = $this->get_dependency_view_details_link( $name, $slug );
 		}
 
-		$dependency_note = __( 'Note: this plugin cannot be activated until the plugins that are required by it are activated.' );
+		$dependency_note = __( 'Note: This plugin cannot be activated until the plugins that are required by it are activated.' );
 
 		$comma    = wp_get_list_item_separator();
 		$requires = sprintf(
