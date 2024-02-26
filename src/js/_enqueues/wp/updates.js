@@ -1803,7 +1803,7 @@
 								response.themeName
 							)
 						)
-						.text( _x( 'Activate', 'theme' ), );
+						.text( _x( 'Activate', 'theme' ) );
 				}
 			}
 
