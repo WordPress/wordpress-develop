@@ -521,7 +521,7 @@ foreach ( $time_formats as $format ) {
 global $wp_locale;
 
 for ( $day_index = 0; $day_index <= 6; $day_index++ ) :
-	$selected = ( get_option( 'start_of_week' ) == $day_index ) ? 'selected="selected"' : '';
+	$selected = selected( (int) get_option( 'start_of_week' ), $day_index );
 	echo "\n\t<option value='" . esc_attr( $day_index ) . "' $selected>" . $wp_locale->get_weekday( $day_index ) . '</option>';
 endfor;
 ?>
