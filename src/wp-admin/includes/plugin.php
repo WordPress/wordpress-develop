@@ -1229,7 +1229,7 @@ function validate_plugin_requirements( $plugin ) {
 			),
 			$plugin_headers['Name'],
 			count( $unmet_dependency_names ),
-			implode( ', ', $unmet_dependency_names ),
+			implode( wp_get_list_item_separator(), $unmet_dependency_names ),
 			esc_url( $plugins_page )
 		);
 
