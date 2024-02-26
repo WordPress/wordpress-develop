@@ -372,10 +372,9 @@ class WP_Plugin_Dependencies {
 			$plugins_url = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
 			wp_admin_notice(
 				sprintf(
-					/* translators: 1: The start of a link to the plugins page, 2: The end of the link. */
-					__( 'Some required plugins are missing. Please %1$sreview your plugins%2$s for those that cannot be activated.' ),
-					'<a href="' . esc_url( $plugins_url ) . '">',
-					'</a>'
+					/* translators: %s: Link to the plugins page. */
+					__( 'Some required plugins are missing. Please <a href="%s">review your plugins</a> for those that cannot be activated.' ),
+					esc_url( $plugins_url ),
 				),
 				array(
 					'type' => 'warning',
