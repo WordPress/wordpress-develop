@@ -2642,6 +2642,7 @@ function get_theme_starter_content() {
  * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
+ * @since 6.6.0 The 'html5 feature now accepts `picture`.
  *
  * @global array $_wp_theme_features
  *
