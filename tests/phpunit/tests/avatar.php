@@ -80,7 +80,7 @@ class Tests_Avatar extends WP_UnitTestCase {
 		$url2 = get_avatar_url( WP_TESTS_EMAIL );
 		$this->assertSame( $url, $url2 );
 
-		$url2 = get_avatar_url( md5( WP_TESTS_EMAIL ) . '@md5.gravatar.com' );
+		$url2 = get_avatar_url( hash( 'sha256', WP_TESTS_EMAIL ) . '@md5.gravatar.com' );
 		$this->assertSame( $url, $url2 );
 
 		$user = get_user_by( 'id', 1 );
