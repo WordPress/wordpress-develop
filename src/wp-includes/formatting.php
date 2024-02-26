@@ -6188,7 +6188,7 @@ function _wp_emoji_list( $type = 'entities' ) {
 /**
  * Shortens a URL, to be used as link text.
  *
- * @since 1.2.0
+ * @since 1.2.1
  * @since 4.4.0 Moved to wp-includes/formatting.php from wp-admin/includes/misc.php and added $length param.
  *
  * @param string $url    URL to shorten.
