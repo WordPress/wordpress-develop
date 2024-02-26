@@ -1223,8 +1223,8 @@ function validate_plugin_requirements( $plugin ) {
 		$error_message = sprintf(
 			/* translators: 1: Plugin name, 2: Number of plugins, 3: A comma-separated list of plugin names, 4: Link to the plugins page. */
 			_n(
-				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s. <a href="%4$s>"Manage plugins</a>',
-				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s. <a href="%4$s>"Manage plugins</a>',
+				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s. <a href="%4$s">Manage plugins</a>',
+				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s. <a href="%4$s">Manage plugins</a>',
 				count( $unmet_dependency_names )
 			),
 			$plugin_headers['Name'],
