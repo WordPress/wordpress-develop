@@ -887,7 +887,7 @@ function install_plugin_information() {
 		$button = wp_get_plugin_action_button( $api->name, $api, $compatible_php, $compatible_wp );
 		$button = str_replace( 'class="', 'class="right ', $button );
 
-		if ( ! str_contains( $button, __( 'Activate' ) ) ) {
+		if ( ! str_contains( $button, _x( 'Activate', 'plugin' ) ) ) {
 			$button = str_replace( 'class="', 'id="plugin_install_from_iframe" class="', $button );
 		}
 
@@ -1011,7 +1011,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 					);
 				} elseif ( current_user_can( 'activate_plugin', $status['file'] ) ) {
 					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_active ) {
-						$button_text = __( 'Activate' );
+						$button_text = _x( 'Activate', 'plugin' );
 						/* translators: %s: Plugin name. */
 						$button_label = _x( 'Activate %s', 'plugin' );
 						$activate_url = add_query_arg(
@@ -1024,7 +1024,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						);
 
 						if ( is_network_admin() ) {
-							$button_text = __( 'Network Activate' );
+							$button_text = _x( 'Network Activate', 'plugin' );
 							/* translators: %s: Plugin name. */
 							$button_label = _x( 'Network Activate %s', 'plugin' );
 							$activate_url = add_query_arg( array( 'networkwide' => 1 ), $activate_url );
@@ -1042,7 +1042,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 					} else {
 						$button = sprintf(
 							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-							is_network_admin() ? __( 'Network Activate', 'plugin' ) : __( 'Activate' )
+							is_network_admin() ? _x( 'Network Activate', 'plugin' ) : _x( 'Activate', 'plugin' )
 						);
 					}
 				} else {

@@ -607,11 +607,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$actions = array();
 
 		if ( 'active' !== $status ) {
-			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Activate' ) : __( 'Activate' );
+			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network Activate', 'plugin' ) : _x( 'Activate', 'plugin' );
 		}
 
 		if ( 'inactive' !== $status && 'recent' !== $status ) {
-			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Deactivate' ) : __( 'Deactivate' );
+			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network Deactivate', 'plugin' ) : _x( 'Deactivate', 'plugin' );
 		}
 
 		if ( ! is_multisite() || $this->screen->in_admin( 'network' ) ) {
@@ -820,7 +820,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 								esc_attr( $plugin_id_attr ),
 								/* translators: %s: Plugin name. */
 								esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
-								__( 'Network Deactivate' )
+								_x( 'Network Deactivate', 'plugin' )
 							);
 						}
 					}
@@ -828,7 +828,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate'] = __( 'Network Activate' ) .
+								$actions['activate'] = _x( 'Network Activate', 'plugin' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
@@ -845,7 +845,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-									__( 'Network Activate' )
+									_x( 'Network Activate', 'plugin' )
 								);
 							}
 						} else {
@@ -883,7 +883,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			} else {
 				if ( $restrict_network_active ) {
 					$actions = array(
-						'network_active' => __( 'Network Active' ),
+						'network_active' => _x( 'Network Activate', 'plugin' ),
 					);
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
@@ -934,7 +934,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'activate_plugin', $plugin_file ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate'] = __( 'Activate' ) .
+								$actions['activate'] = _x( 'Activate', 'plugin' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
@@ -951,7 +951,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
 									esc_attr( sprintf( _x( 'Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-									__( 'Activate' )
+									_x( 'Activate', 'plugin' )
 								);
 							}
 						} else {

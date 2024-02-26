@@ -551,7 +551,7 @@
 	wp.updates.updatePluginSuccess = function( response ) {
 		var $pluginRow, $updateMessage, newText,
 			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
-			buttonText = __( 'Updated' ),
+			buttonText = _x( 'Updated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: Plugin name and version. */
 				_x( '%s updated!', 'plugin' ),
@@ -798,7 +798,7 @@
 	 */
 	wp.updates.installPluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
-			buttonText = __( 'Installed!' ),
+			buttonText = _x( 'Installed!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: Plugin name and version. */
 				_x( '%s installed!', 'plugin' ),
@@ -957,7 +957,7 @@
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
 		if ( 'plugins-network' === pagenow ) {
-			buttonText = __( 'Network Activate' );
+			buttonText = _x( 'Network Activate', 'plugin' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
 				_x( 'Network Activate %s', 'plugin' ),
@@ -968,7 +968,7 @@
 				.attr( 'aria-label', ariaLabel )
 				.text( buttonText );
 		} else {
-			buttonText = __( 'Activate' );
+			buttonText = _x( 'Activate', 'plugin' );
 			ariaLabel = sprintf(
 				/* translators: %s: Plugin name. */
 				_x( 'Activate %s', 'plugin' ),
@@ -1013,7 +1013,7 @@
 	 */
 	wp.updates.checkPluginDependenciesError = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
-			buttonText = __( 'Activate' ),
+			buttonText = _x( 'Activate', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
 				_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
@@ -1112,7 +1112,7 @@
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
-			buttonText = __( 'Activated!' ),
+			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
 				'%s activated successfully.',
@@ -1461,7 +1461,7 @@
 			}
 		} );
 
-		wp.a11y.speak( __( 'Deleted' ) );
+		wp.a11y.speak( _x( 'Deleted!', 'plugin' ) );
 
 		$document.trigger( 'wp-plugin-delete-success', response );
 	};
@@ -1595,7 +1595,7 @@
 			$theme         = $( '[data-slug="' + response.slug + '"]' ),
 			updatedMessage = {
 				className: 'updated-message notice-success notice-alt',
-				message:   __( 'Updated' )
+				message:   _x( 'Updated!', 'theme' )
 			},
 			$notice, newText;
 
@@ -1768,7 +1768,7 @@
 					response.themeName
 				)
 			)
-			.text( _x( 'Installed', 'theme' ) );
+			.text( _x( 'Installed!', 'theme' ) );
 
 		wp.a11y.speak( __( 'Installation completed successfully.' ) );
 
@@ -1803,7 +1803,7 @@
 								response.themeName
 							)
 						)
-						.text( __( 'Activate' ) );
+						.text( _x( 'Activate', 'theme' ), );
 				}
 			}
 
@@ -2009,7 +2009,7 @@
 		    }
 		}
 
-		wp.a11y.speak( __( 'Deleted' ) );
+		wp.a11y.speak( _x( 'Deleted!', 'theme' ) );
 
 		$document.trigger( 'wp-theme-delete-success', response );
 	};
