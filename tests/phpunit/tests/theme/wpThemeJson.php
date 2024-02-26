@@ -293,6 +293,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'typography' => array(
 				'lineHeight' => true,
 			),
+			'shadow'     => array(
+				'defaultPresets' => true,
+			),
 			'blocks'     => array(
 				'core/paragraph' => array(
 					'typography' => array(
@@ -330,6 +333,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 					'typography' => array(
 						'lineHeight' => false,
+					),
+					'shadow'     => array(
+						'defaultPresets' => true,
 					),
 				),
 			),
