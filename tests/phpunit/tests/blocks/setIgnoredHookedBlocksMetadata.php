@@ -163,16 +163,20 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		);
 
 		$filter = function ( $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block ) {
-			if ( 'tests/anchor-block' === $parsed_anchor_block['blockName'] && 'after' === $relative_position ) {
+			if (
+				'tests/hooked-block-suppressed-by-filter' === $hooked_block_type &&
+				'after' === $relative_position &&
+				'tests/anchor-block' === $parsed_anchor_block['blockName']
+			) {
 				return null;
 			}
 
 			return $parsed_hooked_block;
 		};
 
-		add_filter( 'hooked_block_tests/hooked-block-suppressed-by-filter', $filter, 10, 4 );
+		add_filter( 'hooked_block', $filter, 10, 4 );
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
-		remove_filter( 'hooked_block_tests/hooked-block-suppressed-by-filter', $filter );
+		remove_filter( 'hooked_block', $filter );
 
 		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 	}
