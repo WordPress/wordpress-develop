@@ -106,7 +106,7 @@ function get_block_asset_url( $path ) {
 
 	$template = get_template();
 	if ( ! isset( $template_paths_norm[ $template ] ) ) {
-		$template_paths_norm[ $template ] = wp_normalize_path( get_template_directory() );
+		$template_paths_norm[ $template ] = wp_normalize_path( realpath( get_template_directory() ) );
 	}
 
 	if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $template ] ) ) ) {
@@ -116,7 +116,7 @@ function get_block_asset_url( $path ) {
 	if ( is_child_theme() ) {
 		$stylesheet = get_stylesheet();
 		if ( ! isset( $template_paths_norm[ $stylesheet ] ) ) {
-			$template_paths_norm[ $stylesheet ] = wp_normalize_path( get_stylesheet_directory() );
+			$template_paths_norm[ $stylesheet ] = wp_normalize_path( realpath( get_stylesheet_directory() ) );
 		}
 
 		if ( str_starts_with( $path, trailingslashit( $template_paths_norm[ $stylesheet ] ) ) ) {
@@ -172,12 +172,14 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 
 	$module_asset        = ! empty( $module_asset_path ) ? require $module_asset_path : array();
 	$module_dependencies = isset( $module_asset['dependencies'] ) ? $module_asset['dependencies'] : array();
+	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
 	wp_register_script_module(
 		$module_id,
 		$module_uri,
 		$module_dependencies,
-		isset( $module_asset['version'] ) ? $module_asset['version'] : false
+		$module_version
 	);
 
 	return $module_id;
@@ -225,7 +227,7 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	);
 
 	// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
-	$script_asset = ! empty( $script_asset_path ) ? require $script_asset_path : array();
+	$script_asset  = ! empty( $script_asset_path ) ? require $script_asset_path : array();
 	$script_handle = isset( $script_asset['handle'] ) ?
 		$script_asset['handle'] :
 		generate_block_asset_handle( $metadata['name'], $field_name, $index );
@@ -895,20 +897,39 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 		/**
 		 * Filters the parsed block array for a given hooked block.
 		 *
-		 * The dynamic portion of the hook name, `$hooked_block_type`, refers to the block type name of the specific hooked block.
-		 *
 		 * @since 6.5.0
 		 *
-		 * @param array                           $parsed_hooked_block The parsed block array for the given hooked block type.
+		 * @param array|null                      $parsed_hooked_block The parsed block array for the given hooked block type, or null to suppress the block.
+		 * @param string                          $hooked_block_type   The hooked block type name.
 		 * @param string                          $relative_position   The relative position of the hooked block.
 		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
 		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
 		 *                                                             or pattern that the anchor block belongs to.
 		 */
-		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $relative_position, $parsed_anchor_block, $context );
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
 
-		// It's possible that the `hooked_block_{$hooked_block_type}` filter returned a block of a different type,
-		// so we explicitly look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
+		/**
+		 * Filters the parsed block array for a given hooked block.
+		 *
+		 * The dynamic portion of the hook name, `$hooked_block_type`, refers to the block type name of the specific hooked block.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param array|null                      $parsed_hooked_block The parsed block array for the given hooked block type, or null to suppress the block.
+		 * @param string                          $hooked_block_type   The hooked block type name.
+		 * @param string                          $relative_position   The relative position of the hooked block.
+		 * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+		 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
+		 *                                                             or pattern that the anchor block belongs to.
+		 */
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		if ( null === $parsed_hooked_block ) {
+			continue;
+		}
+
+		// It's possible that the filter returned a block of a different type, so we explicitly
+		// look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
 		if (
 			! isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
 			! in_array( $hooked_block_type, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
@@ -945,6 +966,25 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 	if ( empty( $hooked_block_types ) ) {
 		return '';
+	}
+
+	foreach ( $hooked_block_types as $index => $hooked_block_type ) {
+		$parsed_hooked_block = array(
+			'blockName'    => $hooked_block_type,
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
+		);
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
+
+		if ( null === $parsed_hooked_block ) {
+			unset( $hooked_block_types[ $index ] );
+		}
 	}
 
 	$previously_ignored_hooked_blocks = isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] )

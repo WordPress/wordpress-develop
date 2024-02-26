@@ -49,7 +49,7 @@ function strip_ws( $txt ) {
 	return trim( implode( "\n", $result ) );
 }
 
-/*
+/**
  * Helper class for testing code that involves actions and filters.
  *
  * Typical use:
