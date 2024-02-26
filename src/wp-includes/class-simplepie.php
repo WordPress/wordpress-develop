@@ -1662,7 +1662,7 @@ class SimplePie
 						$this->data = array();
 					}
 				}
-				// Check if the error cache has been updated
+				// Check if the error cache has been updated.
 				elseif ( $cache->mtime() + $this->error_cache_duration < time() && isset( $this->data['error'] ) ) {
 					$cache->unlink();
 					$this->data = array();
