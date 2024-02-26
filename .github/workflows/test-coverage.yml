@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload single site report to Codecov
         if: ${{ ! matrix.multisite && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044 # v4.0.1
+        uses: codecov/codecov-action@0cfda1dd0a4ad9efc75517f399d859cd1ea4ced1 # v4.0.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Upload multisite report to Codecov
         if: ${{ matrix.multisite && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044 # v4.0.1
+        uses: codecov/codecov-action@0cfda1dd0a4ad9efc75517f399d859cd1ea4ced1 # v4.0.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
