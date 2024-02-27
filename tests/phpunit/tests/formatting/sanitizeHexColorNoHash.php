@@ -7,12 +7,15 @@
  *
  * @covers ::sanitize_hex_color_no_hash
  */
-class Tests_formating_sanitizeHexColorNoHash extends WP_UnitTestCase {
+class Tests_Formatting_sanitizeHexColorNoHash extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60271
 	 *
 	 * @dataProvider date_sanitize_hex_color_no_hash
+	 *
+	 * @param string $color    Color.
+	 * @param string $expected Expected.
 	 */
 	public function test_sanitize_hex_color_no_hash( $color, $expected ) {
 		$this->assertSame( $expected, sanitize_hex_color_no_hash( $color ) );

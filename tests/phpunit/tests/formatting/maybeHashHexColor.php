@@ -7,12 +7,15 @@
  *
  * @covers ::maybe_hash_hex_color
  */
-class Tests_formating_maybeHashHexColor extends WP_UnitTestCase {
+class Tests_Formatting_maybeHashHexColor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60272
 	 *
 	 * @dataProvider date_sanitize_hex_color_no_hash
+	 *
+	 * @param string $color    Color.
+	 * @param string $expected Expected.
 	 */
 	public function test_maybe_hash_hex_color( $color, $expected ) {
 		$this->assertSame( $expected, maybe_hash_hex_color( $color ) );

@@ -7,12 +7,15 @@
  *
  * @covers ::sanitize_hex_color
  */
-class Tests_formating_sanitizeHexColor extends WP_UnitTestCase {
+class Tests_Formatting_sanitizeHexColor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60270
 	 *
 	 * @dataProvider date_sanitize_hex_color
+	 *
+	 * @param string $color    Color.
+	 * @param string $expected Expected.
 	 */
 	public function test_sanitize_hex_color( $color, $expected ) {
 		$this->assertSame( $expected, sanitize_hex_color( $color ) );
