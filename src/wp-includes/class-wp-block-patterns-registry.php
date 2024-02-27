@@ -79,6 +79,7 @@ final class WP_Block_Patterns_Registry {
 	 *                                   of the post types passed on the array. For all the other post types
 	 *                                   not part of the array the pattern is not available at all.
 	 *     @type string[] $templateTypes Optional. An array of template types where the pattern fits.
+	 *     @type string   $file_path     Optional. The path to the file containing the block pattern content.
 	 * }
 	 * @return bool True if the pattern was registered with success and false otherwise.
 	 */
