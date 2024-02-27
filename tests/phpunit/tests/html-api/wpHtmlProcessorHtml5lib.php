@@ -83,7 +83,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
-			$this->markTestIncomplete( 'Test includes unsupported markup.' );
+			$this->markTestSkipped( 'Test includes unsupported markup.' );
 		}
 
 		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly:\n{$html}" );
