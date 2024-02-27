@@ -165,11 +165,15 @@ class WP_List_Util {
 			 */
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
-					if ( property_exists( $value, $field ) ) {
+					if ( isset( $GLOBALS['before_r57698'] ) ) {
+						$newlist[ $key ] = $value->$field;
+					} elseif ( property_exists( $value, $field ) ) {
 						$newlist[ $key ] = $value->$field;
 					}
 				} elseif ( is_array( $value ) ) {
-					if ( array_key_exists( $field, $value ) ) {
+					if ( isset( $GLOBALS['before_r57698'] ) ) {
+						$newlist[ $key ] = $value[ $field ];
+					} elseif ( array_key_exists( $field, $value ) ) {
 						$newlist[ $key ] = $value[ $field ];
 					}
 				} else {
@@ -192,7 +196,13 @@ class WP_List_Util {
 		 */
 		foreach ( $this->output as $value ) {
 			if ( is_object( $value ) ) {
-				if ( property_exists( $value, $field ) ) {
+				if ( isset( $GLOBALS['before_r57698'] ) ) {
+					if ( isset( $value->$index_key ) ) {
+						$newlist[ $value->$index_key ] = $value->$field;
+					} else {
+						$newlist[] = $value->$field;
+					}
+				} elseif ( property_exists( $value, $field ) ) {
 					if ( property_exists( $value, $index_key ) ) {
 						$newlist[ $value->$index_key ] = $value->$field;
 					} else {
@@ -200,7 +210,13 @@ class WP_List_Util {
 					}
 				}
 			} elseif ( is_array( $value ) ) {
-				if ( array_key_exists( $field, $value ) ) {
+				if ( isset( $GLOBALS['before_r57698'] ) ) {
+					if ( isset( $value->$index_key ) ) {
+						$newlist[ $value[ $index_key ] ] = $value[ $field ];
+					} else {
+						$newlist[] = $value[ $field ];
+					}
+				} elseif ( array_key_exists( $field, $value ) ) {
 					if ( array_key_exists( $index_key, $value ) ) {
 						$newlist[ $value[ $index_key ] ] = $value[ $field ];
 					} else {

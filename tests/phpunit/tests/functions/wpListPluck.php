@@ -408,4 +408,241 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider data_class_with_get_and_isset_magic_methods
+	 *
+	 * @ticket 59774
+	 */
+	public function test_class_with_get_and_isset_magic_methods( $which_test, $before_r57698 ) {
+		if ( $before_r57698 ) {
+			$GLOBALS['before_r57698'] = true;
+		}
+
+		switch ( $which_test ) {
+			case 'WP_User':
+				$user_email = $before_r57698 ? 'before_r57698@test.com' : 'after_r57698@test.com';
+				$user       = self::factory()->user->create_and_get(
+					array(
+						'user_email' => $user_email,
+					)
+				);
+				$input_list = array( $user );
+				$field      = 'user_email';
+				$expected   = array( $user_email );
+				$message    = 'Should pluck the user_email';
+				break;
+
+			case 'WP_Post':
+			case 'WP_Comment':
+				$post_title = sprintf( 'Test %s r57698', $before_r57698 ? 'before' : 'after' );
+				$post_id    = self::factory()->post->create(
+					array(
+						'post_title' => $post_title,
+					)
+				);
+
+				if ( 'WP_Post' === $which_test ) {
+					$post       = get_post( $post_id );
+					$input_list = array( $post );
+					$field      = 'post_title';
+					$message    = 'Should pluck the post_title';
+
+				} else {
+					// Test WP_Comment to access a field through the `post_fields` property and magic methods.
+					$comment_id = self::factory()->comment->create(
+						array(
+							'comment_post_ID'  => $post_id,
+							'comment_approved' => '1',
+						)
+					);
+					$comment    = get_comment( $comment_id );
+					$input_list = array( $comment );
+					$field      = 'post_title';
+					$message    = 'Should pluck the comment\'s post post_title';
+				}
+
+				$expected = array( $post_title );
+				break;
+		}
+
+		$actual = wp_list_pluck( $input_list, $field );
+
+		if ( $before_r57698 ) {
+			unset( $GLOBALS['before_r57698'] );
+		}
+
+		$this->assertSameSetsWithIndex( $expected, $actual, $message );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_class_with_get_and_isset_magic_methods() {
+		return array(
+			'before r57698: WP_User non-declared "data" property' => array(
+				'which_test'    => 'WP_User',
+				'before_r57698' => true,
+			),
+			'after r57698: WP_User non-declared "data" property'  => array(
+				'which_test'    => 'WP_User',
+				'before_r57698' => false,
+			),
+			'before r57698: WP_Post'                              => array(
+				'which_test'    => 'WP_Post',
+				'before_r57698' => true,
+			),
+			'after r57698: WP_Post'                               => array(
+				'which_test'    => 'WP_Post',
+				'before_r57698' => false,
+			),
+			'before r57698: WP_Comment access via `post_fields`'  => array(
+				'which_test'    => 'WP_Comment',
+				'before_r57698' => true,
+			),
+			'after r57698: WP_Comment access via `post_fields`'   => array(
+				'which_test'    => 'WP_Comment',
+				'before_r57698' => false,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_class_with_get_but_no_isset_magic_method
+	 *
+	 * @ticket 59774
+	 */
+	public function test_class_with_get_but_no_isset_magic_method( $which_test, $before_r57698 = false ) {
+		if ( $before_r57698 ) {
+			$GLOBALS['before_r57698'] = true;
+		}
+
+		switch ( $which_test ) {
+			case 'WP_Term':
+				// Pluck WP_Term::$data for the testcat term.
+				$term_id = self::factory()->category->create(
+					array(
+						'slug'        => $before_r57698 ? 'before_r57698' : 'after_r57698',
+						'name'        => $before_r57698 ? 'before_r57698' : 'after_r57698',
+						'description' => sprintf( 'Description for %s r57698', $before_r57698 ? 'Before' : 'After' ),
+					)
+				);
+				$term    = get_term( $term_id, 'category' );
+				$actual  = wp_list_pluck( array( $term ), 'data' );
+
+				if ( $before_r57698 ) {
+					unset( $GLOBALS['before_r57698'] );
+				}
+
+				$this->assertIsArray( $actual, 'The plucked list should be an array' );
+				$this->assertCount( 1, $actual, 'The plucked list should contain one element' );
+				$this->assertSame( $term_id, $actual[0]->term_id, 'The plucked data should be for "testcat" with ID of ' . $term_id );
+				break;
+
+			case 'WP_Block':
+				// WP_Block's dynamic property 'attributes'.
+				$block      = new WP_Block(
+					array(
+						'blockName' => 'core/image',
+						'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'var:preset|duotone|blue-orange' ) ) ),
+					)
+				);
+				$actual     = wp_list_pluck( array( $block ), 'attributes' );
+				$expected   = array(
+					array(
+						'style' => array(
+							'color' => array(
+								'duotone' => 'var:preset|duotone|blue-orange',
+							),
+						),
+						'alt'   => '',
+					),
+				);
+
+				if ( $before_r57698 ) {
+					unset( $GLOBALS['before_r57698'] );
+				}
+
+				$this->assertSameSetsWithIndex( $expected, $actual, 'The plucked WP_Block::$attributes should match' );
+				break;
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_class_with_get_but_no_isset_magic_method() {
+		return array(
+			'before r57698: WP_Term via the `data` property'       => array(
+				'which_test'    => 'WP_Term',
+				'before_r57698' => true,
+			),
+			'after r57698: WP_Term via the `data` property'        => array(
+				'which_test'    => 'WP_Term',
+				'before_r57698' => false,
+			),
+			'before r57698: WP_Block `attribute` dynamic property' => array(
+				'which_test'    => 'WP_Block',
+				'before_r57698' => true,
+			),
+			'after r57698: WP_Block `attribute` dynamic property'  => array(
+				'which_test'    => 'WP_Block',
+				'before_r57698' => false,
+			),
+		);
+	}
+
+	/**
+	 * @dataProvider data_dynamic_property_in_class_without_magic_methods
+	 *
+	 * @ticket 59774
+	 */
+	public function test_dynamic_property_in_class_without_magic_methods( $which_test, $before_r57698 = false ) {
+		if ( $before_r57698 ) {
+			$GLOBALS['before_r57698'] = true;
+		}
+
+		switch ( $which_test ) {
+			case 'WP_Meta_Query':
+				$meta                   = new WP_Meta_Query();
+				$meta->dynamic_property = 'I am a dynamic property';
+
+				$input_list = array( $meta );
+				$field      = 'dynamic_property';
+				$expected   = array( 'I am a dynamic property' );
+				$message    = 'The plucked value should be for WP_Meta_Query::$dynamic_property';
+				break;
+		}
+
+
+		$actual = wp_list_pluck( $input_list, $field );
+
+		if ( $before_r57698 ) {
+			unset( $GLOBALS['before_r57698'] );
+		}
+
+		$this->assertSameSetsWithIndex( $expected, $actual, $message );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_dynamic_property_in_class_without_magic_methods() {
+		return array(
+			'before r57698: WP_Meta_Query' => array(
+				'which_test'    => 'WP_Meta_Query',
+				'before_r57698' => true,
+			),
+			'after r57698: WP_Meta_Query'  => array(
+				'which_test'    => 'WP_Meta_Query',
+				'before_r57698' => false,
+			),
+		);
+	}
 }
