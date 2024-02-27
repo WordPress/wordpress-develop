@@ -72,14 +72,16 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 											<?php
 											/* translators: %s: The selected image alt text. */
 											echo wp_json_encode( __( 'Browser icon preview: Current image: %s' ) );
-											?>,
+											?>
+											,
 											data.attachment.alt
 										) :
 										wp.i18n.sprintf(
 											<?php
 											/* translators: %s: The selected image filename. */
 											echo wp_json_encode( __( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ) );
-											?>,
+											?>
+											,
 											data.attachment.filename
 										)
 								}}" />
@@ -92,14 +94,16 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 									<?php
 									/* translators: %s: The selected image alt text. */
 									echo wp_json_encode( __( 'App icon preview: Current image: %s' ) )
-									?>,
+									?>
+									,
 									data.attachment.alt
 								) :
 								wp.i18n.sprintf(
 									<?php
 									/* translators: %s: The selected image filename. */
 									echo wp_json_encode( __( 'App icon preview: The current image has no alternative text. The file name is: %s' ) );
-									?>,
+									?>
+									,
 									data.attachment.filename
 								)
 						}}"/>
