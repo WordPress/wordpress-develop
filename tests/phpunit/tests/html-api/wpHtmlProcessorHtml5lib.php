@@ -18,6 +18,7 @@
  * @since 6.5.0
  *
  * @group html-api
+ * @group html-api-html5lib-tests
  */
 class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
