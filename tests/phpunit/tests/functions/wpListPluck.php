@@ -408,4 +408,133 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @dataProvider data_should_pluck_from_magic_methods_and_dynamic_properties
+	 *
+	 * @ticket 59774
+	 */
+	public function test_should_pluck_from_magic_methods_and_dynamic_properties( $which_test, $args, $field, $expected, $assertion_message ) {
+		$input_list = array();
+
+		switch ( $which_test ) {
+			case 'WP_User':
+				$post = self::factory()->user->create_and_get( $args );
+				update_post_meta( $post->ID, $field, $expected[0] );
+				$input_list[] = $post;
+				break;
+
+			case 'WP_Post':
+				$input_list[] = self::factory()->post->create_and_get( $args );
+				break;
+
+			case 'WP_Comment':
+				$input_list[] = self::factory()->comment->create_and_get(
+					array(
+						'comment_post_ID'  => self::factory()->post->create( $args ),
+						'comment_approved' => '1',
+					)
+				);
+				break;
+
+			case 'WP_Term':
+				$term         = self::factory()->category->create_and_get( $args );
+				$expected     = array( $term->term_id );
+				$input_list[] = $term;
+				break;
+
+			case 'WP_Block':
+				$block        = new WP_Block( $args );
+				$input_list[] = $block;
+				$this->assertTrue( isset( $block->attributes ), 'isset() should return true as the WP_Block::$attributes dynamic property is magically set in __get()' );
+				break;
+
+			case 'WP_Meta_Query':
+				$meta         = new WP_Meta_Query();
+				$meta->$field = $expected[0];
+				$input_list[] = $meta;
+				break;
+		}
+
+		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $input_list, $field ), $assertion_message );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_should_pluck_from_magic_methods_and_dynamic_properties() {
+		return array(
+			// Classes with both __get() and __isset() magic methods.
+			'WP_User non-declared "data" property'  => array(
+				'which_test'        => 'WP_User',
+				'args'              => array(
+					'user_email' => 'test@test.com',
+				),
+				'field'             => 'user_email',
+				'expected'          => array( 'test@test.com' ),
+				'assertion_message' => 'Should pluck the user_email',
+			),
+			'WP_Post magically get metadata'       => array(
+				'which_test'        => 'WP_Post',
+				'args'              => array(
+					'post_title' => 'Test plucking the _testmagic metadata',
+				),
+				'field'             => '_testmagic',
+				'expected'          => array( 'test plucking _testmagic metadata' ),
+				'assertion_message' => 'Should pluck the _testmagic metadata',
+			),
+			'WP_Comment access via `post_fields`'   => array(
+				'which_test'    => 'WP_Comment',
+				'args'              => array(
+					'post_title' => 'Test plucking comment post post_title through the magic `post_fields` property',
+				),
+				'field'             => 'post_title',
+				'expected'          => array( 'Test plucking comment post post_title through the magic `post_fields` property' ),
+				'assertion_message' => 'Should pluck the comment post post_title',
+			),
+
+			// Classes with __get() but not an __isset().
+			'WP_Term::$data dynamic property only set in __get()'       => array(
+				'which_test'        => 'WP_Term',
+				'args'              => array(
+					'slug'        => 'wptermdata',
+					'name'        => 'WP_Term data',
+					'description' => 'Description for WP_Term data',
+				),
+				'field'             => 'term_id',
+				'expected'          => array( 'test@test.com' ),
+				'assertion_message' => 'The plucked term_id should should match the wptermdata term.',
+			),
+			'WP_Block::$attribute dynamic property only set in __get()'  => array(
+				'which_test'        => 'WP_Block',
+				'args'              => array(
+					'blockName' => 'core/image',
+					'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'var:preset|duotone|blue-orange' ) ) ),
+				),
+				'field'             => 'attributes',
+				'expected'          => array(
+					array(
+						'style' => array(
+							'color' => array(
+								'duotone' => 'var:preset|duotone|blue-orange',
+							),
+						),
+						'alt'   => '',
+					),
+				),
+				'assertion_message' => 'The plucked WP_Block::$attributes should match',
+			),
+
+			// Classes with no magic methods.
+			'WP_Meta_Query dynamic property when there are no magic methods' => array(
+				'which_test'        => 'WP_Meta_Query',
+				'args'              => array(),
+				'field'             => 'dynamic_property',
+				'expected'          => array( 'I am a dynamic property' ),
+				'assertion_message' => 'The plucked value should be for WP_Meta_Query::$dynamic_property',
+			),
+		);
+	}
 }
