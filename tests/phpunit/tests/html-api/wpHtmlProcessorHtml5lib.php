@@ -77,16 +77,16 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 *
 	 * @param string $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string $html             Given test HTML.
-	 * @param string $result           Tree structure of parsed HTML.
+	 * @param string $expected_tree    Tree structure of parsed HTML.
 	 */
-	public function test_parse( $fragment_context, $html, $result ) {
+	public function test_parse( $fragment_context, $html, $expected_tree ) {
 		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
 			$this->markTestIncomplete( 'Test includes unsupported markup.' );
 		}
 
-		$this->assertSame( $result, $processed_tree, "HTML was not processed correctly:\n{$html}" );
+		$this->assertSame( $expected_tree, $processed_tree, "HTML was not processed correctly:\n{$html}" );
 	}
 
 	/**
