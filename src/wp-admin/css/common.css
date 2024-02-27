@@ -279,11 +279,9 @@ a:focus .media-icon img,
 a:focus .plugin-icon,
 .wp-person a:focus .gravatar {
 	color: #043959;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
-		/* Only visible in Windows High Contrast mode */
-		outline: 1px solid transparent;
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 #adminmenu a:focus {
@@ -844,9 +842,9 @@ img.emoji {
 }
 
 .tagchecklist .ntdelbutton:focus .remove-tag-icon:before {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .key-labels label {
@@ -1118,7 +1116,8 @@ th.action-links {
 }
 
 .wp-filter .search-form.search-plugins select,
-.wp-filter .search-form.search-plugins .wp-filter-search {
+.wp-filter .search-form.search-plugins .wp-filter-search,
+.no-js .wp-filter .search-form.search-plugins .button {
 	display: inline-block;
 	margin-top: 10px;
 	vertical-align: top;
@@ -1459,10 +1458,9 @@ div.error p,
 }
 
 .notice-dismiss:focus {
-	outline: none;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .notice-success,
@@ -1499,6 +1497,22 @@ div.error {
 	background-color: #f0f6fc;
 }
 
+#plugin-information-footer .update-now:not(.button-disabled):before {
+	color: #d63638;
+	content: "\f463";
+	display: inline-block;
+	font: normal 20px/1 dashicons;
+	margin: -3px 5px 0 -2px;
+	speak: never;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	vertical-align: middle;
+}
+
+#plugin-information-footer .notice {
+    margin-top: -5px;
+}
+
 .update-message p:before,
 .updating-message p:before,
 .updated-message p:before,
@@ -1506,7 +1520,9 @@ div.error {
 .button.updating-message:before,
 .button.updated-message:before,
 .button.installed:before,
-.button.installing:before {
+.button.installing:before,
+.button.activating-message:before,
+.button.activated-message:before {
 	display: inline-block;
 	font: normal 20px/1 'dashicons';
 	-webkit-font-smoothing: antialiased;
@@ -1543,7 +1559,8 @@ div.error {
 .updating-message p:before,
 .import-php .updating-message:before,
 .button.updating-message:before,
-.button.installing:before {
+.button.installing:before,
+.button.activating-message:before {
 	color: #d63638;
 	content: "\f463";
 }
@@ -1553,6 +1570,7 @@ div.error {
 .import-php .updating-message:before,
 .button.updating-message:before,
 .button.installing:before,
+.button.activating-message:before,
 .plugins .column-auto-updates .dashicons-update.spin,
 .theme-overlay .theme-autoupdate .dashicons-update.spin {
 	animation: rotation 2s infinite linear;
@@ -1563,6 +1581,7 @@ div.error {
 	.import-php .updating-message:before,
 	.button.updating-message:before,
 	.button.installing:before,
+	.button.activating-message:before,
 	.plugins .column-auto-updates .dashicons-update.spin,
 	.theme-overlay .theme-autoupdate .dashicons-update.spin {
 		animation: none;
@@ -1576,7 +1595,8 @@ div.error {
 /* Updated icon (check mark). */
 .updated-message p:before,
 .installed p:before,
-.button.updated-message:before {
+.button.updated-message:before,
+.button.activated-message:before {
 	color: #68de7c;
 	content: "\f147";
 }
@@ -1661,19 +1681,46 @@ p.auto-update-status {
 .button.updating-message:before,
 .button.updated-message:before,
 .button.installed:before,
-.button.installing:before {
+.button.installing:before,
+.button.activated-message:before,
+.button.activating-message:before {
 	margin: 3px 5px 0 -2px;
 }
 
-.button-primary.updating-message:before {
+#plugin-information-footer .button {
+	padding: 0 14px;
+	line-height: 2.71428571; /* 38px */
+	font-size: 14px;
+	vertical-align: middle;
+	min-height: 40px;
+	margin-bottom: 4px;
+}
+
+#plugin-information-footer .button.installed:before,
+#plugin-information-footer .button.installing:before,
+#plugin-information-footer .button.updating-message:before,
+#plugin-information-footer .button.updated-message:before,
+#plugin-information-footer .button.activated-message:before,
+#plugin-information-footer .button.activating-message:before {
+	margin: 9px 5px 0 -2px;
+}
+
+#plugin-information-footer .button.update-now.updating-message:before {
+	margin: -3px 5px 0 -2px;
+}
+
+.button-primary.updating-message:before,
+.button-primary.activating-message:before {
 	color: #fff;
 }
 
-.button-primary.updated-message:before {
+.button-primary.updated-message:before,
+.button-primary.activated-message:before {
 	color: #9ec2e6;
 }
 
-.button.updated-message {
+.button.updated-message,
+.button.activated-message {
 	transition-property: border, background, color;
 	transition-duration: .05s;
 	transition-timing-function: ease-in-out;
@@ -1763,8 +1810,10 @@ p.auto-update-status {
 }
 
 #screen-meta-links .show-settings:focus {
-	border-color: #4f94d4;
-	box-shadow: 0 0 3px rgba(34, 113, 177, 0.8);
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 #screen-meta-links .show-settings:active {
@@ -2102,8 +2151,8 @@ html.wp-toolbar {
 .postbox .handle-order-higher,
 .postbox .handle-order-lower,
 .postbox .handlediv {
-	width: 36px;
-	height: 36px;
+	width: 1.62rem;
+	height: 1.62rem;
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -3020,7 +3069,6 @@ div.action-links {
 }
 
 @media print,
-	(-webkit-min-device-pixel-ratio: 1.25),
 	(min-resolution: 120dpi) {
 
 	#TB_window.plugin-details-modal.thickbox-loading:before {
@@ -3146,11 +3194,10 @@ img {
 .postbox .handle-order-higher:focus,
 .postbox .handle-order-lower:focus,
 .postbox .handlediv:focus {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: inset 0 0 0 2px #2271b1;
+	border-radius: 50%;
 	/* Only visible in Windows High Contrast mode */
-	outline: 1px solid transparent;
+	outline: 2px solid transparent;
 }
 
 .postbox .handle-order-higher:focus .order-higher-indicator::before,
@@ -3175,7 +3222,6 @@ img {
 	font-family: Consolas, Monaco, monospace;
 	font-size: 13px;
 	background: #f6f7f7;
-	-o-tab-size: 4;
 	tab-size: 4;
 }
 
@@ -3250,12 +3296,17 @@ img {
 [role="treeitem"] {
 	outline: 0;
 }
+
+[role="treeitem"] a:focus,
 [role="treeitem"] .folder-label.focus {
 	color: #043959;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	/* Reset default focus style. */
+	box-shadow: none;
+	/* Use an inset outline instead, so it's visible also over the current file item. */
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
 }
+
 [role="treeitem"].hover,
 [role="treeitem"] .folder-label.hover {
 	background-color: #f0f0f1;
@@ -3397,6 +3448,10 @@ img {
 	text-decoration: none;
 }
 
+#templateside li.current-file > a {
+	padding-bottom: 0;
+}
+
 #templateside li:not(.howto) > a:first-of-type {
 	padding-top: 0;
 }
@@ -3482,13 +3537,13 @@ img {
 .accordion-section-title:hover:after {
 	color: #1d2327;
 	/* Only visible in Windows High Contrast mode */
-	outline: 1px solid transparent;
+	outline: 2px solid transparent;
 }
 
 .widget-top .widget-action:focus .toggle-indicator:before {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .control-section .accordion-section-title:after,
@@ -3764,7 +3819,6 @@ img {
  * HiDPI Displays
  */
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 	/* Back-compat for pre-3.8 */
 	div.star-holder,
