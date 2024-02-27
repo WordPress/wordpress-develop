@@ -374,7 +374,7 @@ class WP_Plugin_Dependencies {
 				sprintf(
 					/* translators: %s: Link to the plugins page. */
 					__( 'Some required plugins are missing. Please <a href="%s">review your plugins</a>.' ),
-					esc_url( $plugins_url ),
+					esc_url( $plugins_url )
 				),
 				array(
 					'type' => 'warning',
