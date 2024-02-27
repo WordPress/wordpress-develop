@@ -369,7 +369,7 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
-			$plugins_url = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
+			$plugins_url = is_multisite() ? network_admin_url( 'plugins.php' ) : admin_url( 'plugins.php' );
 			wp_admin_notice(
 				sprintf(
 					/* translators: %s: Link to the plugins page. */
