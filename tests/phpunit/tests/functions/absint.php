@@ -3,7 +3,7 @@
 /**
  * Tests for the absint function.
  *
- * @group Functions
+ * @group functions
  *
  * @covers ::absint
  */
