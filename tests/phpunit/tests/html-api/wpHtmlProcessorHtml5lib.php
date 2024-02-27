@@ -80,20 +80,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @param string $result           Tree structure of parsed HTML.
 	 */
 	public function test_parse( $fragment_context, $html, $result ) {
-		if ( self::SKIP_HEAD_TESTS ) {
-			$html_start = "<html>\n  <head>\n  <body>\n";
-			if (
-				strlen( $result ) < strlen( $html_start ) ||
-				substr( $result, 0, strlen( $html_start ) ) !== $html_start
-			) {
-				$this->markTestSkipped( 'Skip test with expected content in <head> (unsupported).' );
-			}
-		}
-
-		if ( array_key_exists( $this->dataName(), self::SKIP_TESTS ) ) {
-			$this->markTestSkipped( self::SKIP_TESTS[ $this->dataName() ] );
-		}
-
 		$processed_tree = self::build_tree_representation( $fragment_context, $html );
 
 		if ( null === $processed_tree ) {
@@ -127,11 +113,42 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 				// strip .dat extension from filename
 				$test_suite = substr( $entry, 0, -4 );
 				$line       = str_pad( strval( $test[0] ), 4, '0', STR_PAD_LEFT );
+				$test_name  = "{$test_suite}/line{$line}";
 
-				yield "{$test_suite}/line{$line}" => array_slice( $test, 1 );
+				if ( self::should_skip_test( $test_name, $test[3] ) ) {
+					continue;
+				}
+
+				yield $test_name => array_slice( $test, 1 );
 			}
 		}
 		closedir( $handle );
+	}
+
+	/**
+	 * Determines whether a test case should be skipped.
+	 *
+	 * @param string $test_name     Test name.
+	 * @param string $expected_tree Expected HTML tree structure.
+	 *
+	 * @return bool True if the test case should be skipped. False otherwise.
+	 */
+	private static function should_skip_test( $test_name, $expected_tree ): bool {
+		if ( self::SKIP_HEAD_TESTS ) {
+			$html_start = "<html>\n  <head>\n  <body>\n";
+			if (
+				strlen( $expected_tree ) < strlen( $html_start ) ||
+				substr( $expected_tree, 0, strlen( $html_start ) ) !== $html_start
+			) {
+				return true;
+			}
+		}
+
+		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
