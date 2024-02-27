@@ -100,7 +100,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			$this->markTestIncomplete( 'Test includes unsupported markup.' );
 		}
 
-		$this->assertEquals( $result, $processed_tree, "HTML was not processed correctly:\n{$html}" );
+		$this->assertSame( $result, $processed_tree, "HTML was not processed correctly:\n{$html}" );
 	}
 
 	/**
