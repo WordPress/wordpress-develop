@@ -1061,7 +1061,7 @@ module.exports = function(grunt) {
 								}
 
 								// Fetch a list of the files that Twemoji supplies.
-								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "main:assets/svg") {... on Tree {entries {name}}}}}';
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v15.0.3:assets/svg") {... on Tree {entries {name}}}}}';
 								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
 
 								if ( 0 !== files.status ) {
