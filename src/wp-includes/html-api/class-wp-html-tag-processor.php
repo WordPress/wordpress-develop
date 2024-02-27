@@ -2810,7 +2810,7 @@ class WP_HTML_Tag_Processor {
 
 		$decoded = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5 | ENT_SUBSTITUTE );
 
-		if ( empty( $decoded ) ) {
+		if ( 0 === strlen( $decoded ) ) {
 			return '';
 		}
 
