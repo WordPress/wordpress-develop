@@ -7,12 +7,12 @@
  *
  * @covers ::sanitize_hex_color
  */
-class Tests_Formatting_sanitizeHexColor extends WP_UnitTestCase {
+class Tests_Formatting_SanitizeHexColor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60270
 	 *
-	 * @dataProvider date_sanitize_hex_color
+	 * @dataProvider data_sanitize_hex_color
 	 *
 	 * @param string $color    Color.
 	 * @param string $expected Expected.
@@ -22,9 +22,11 @@ class Tests_Formatting_sanitizeHexColor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array
+	 * Data provider for test_sanitize_hex_color().
+	 *
+	 * @return array[]
 	 */
-	public function date_sanitize_hex_color() {
+	public function data_sanitize_hex_color() {
 		return array(
 			'$maybe_alpha = false, 3 digit'               => array(
 				'color'    => '#123',
