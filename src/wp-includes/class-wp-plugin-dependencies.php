@@ -373,7 +373,7 @@ class WP_Plugin_Dependencies {
 			wp_admin_notice(
 				sprintf(
 					/* translators: %s: Link to the plugins page. */
-					__( 'Some required plugins are missing. Please <a href="%s">review your plugins</a> for those that cannot be activated.' ),
+					__( 'Some required plugins are missing. Please <a href="%s">review your plugins</a>.' ),
 					esc_url( $plugins_url ),
 				),
 				array(
