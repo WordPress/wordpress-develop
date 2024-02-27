@@ -491,4 +491,24 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $found );
 	}
+
+
+	public function test_meta_cache_update() {
+
+		add_filter( 'meta_cache_batch_size', array( $this, 'set_meta_cache_batch_size' ) );
+
+		$post_ids       = array( '1', '2', '3', '4' );
+		$cache_results = array(
+			'1' => array(),
+			'2' => array(),
+			'3' => array(),
+			'4' => array(),
+		);
+
+		$this->assertEquals( $cache_results, update_meta_cache( 'post', $post_ids ) );
+	}
+
+	public function set_meta_cache_batch_size( $size ) {
+		return 2;
+	}
 }
