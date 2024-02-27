@@ -7,7 +7,7 @@
  *
  * @covers ::maybe_hash_hex_color
  */
-class Tests_formating_maybeHashHexColor extends WP_UnitTestCase {
+class Tests_Formatting_maybeHashHexColor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60272

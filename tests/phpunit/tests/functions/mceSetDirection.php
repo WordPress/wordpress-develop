@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Tests for the _mce_set_direction function.
+ * Tests for the _mce_set_direction() function.
  *
  * @group functions
  *
  * @covers ::_mce_set_direction
  */
-class Tests_functions_mceSetDirection extends WP_UnitTestCase {
+class Tests_Functions_mceSetDirection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60219

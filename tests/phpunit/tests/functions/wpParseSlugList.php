@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Tests for the wp_parse_slug_list function.
+ * Tests for the wp_parse_slug_list() function.
  *
  * @group functions
  *
  * @covers ::wp_parse_slug_list
  */
-class Tests_functions_wpParseSlugList extends WP_UnitTestCase {
+class Tests_Functions_wpParseSlugList extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60217
@@ -20,9 +20,7 @@ class Tests_functions_wpParseSlugList extends WP_UnitTestCase {
 	}
 
 	/**
-	 * data for test_wp_parse_slug_list
-	 *
-	 * @ticket 60217
+	 * Data provider for test_wp_parse_slug_list().
 	 *
 	 * @return array[]
 	 */

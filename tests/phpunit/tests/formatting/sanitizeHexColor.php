@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Tests for the sanitize_hex_color function.
+ * Tests for the sanitize_hex_color() function.
  *
  * @group formatting
  *
  * @covers ::sanitize_hex_color
  */
-class Tests_formating_sanitizeHexColor extends WP_UnitTestCase {
+class Tests_Formatting_sanitizeHexColor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60270
