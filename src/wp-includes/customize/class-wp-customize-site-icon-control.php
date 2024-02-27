@@ -69,15 +69,17 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 								<img src="{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}" alt="{{
 									data.attachment.alt ?
 										wp.i18n.sprintf(
+											<?php
 											/* translators: %s: The selected image alt text. */
-											wp.i18n.__( 'Browser icon preview: Current image: %s' ),
+											echo wp_json_encode( __( 'Browser icon preview: Current image: %s' ) );
+											?>,
 											data.attachment.alt
 										) :
 										wp.i18n.sprintf(
+											<?php
 											/* translators: %s: The selected image filename. */
-											wp.i18n.__(
-												'Browser icon preview: The current image has no alternative text. The file name is: %s'
-											),
+											echo wp_json_encode( __( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ) );
+											?>,
 											data.attachment.filename
 										)
 								}}" />
@@ -87,15 +89,17 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 						<img class="app-icon-preview" src="{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}" alt="{{
 							data.attachment.alt ?
 								wp.i18n.sprintf(
+									<?php
 									/* translators: %s: The selected image alt text. */
-									wp.i18n.__( 'App icon preview: Current image: %s' ),
+									echo wp_json_encode( __( 'App icon preview: Current image: %s' ) )
+									?>,
 									data.attachment.alt
 								) :
 								wp.i18n.sprintf(
+									<?php
 									/* translators: %s: The selected image filename. */
-									wp.i18n.__(
-										'App icon preview: The current image has no alternative text. The file name is: %s'
-									),
+									echo wp_json_encode( __( 'App icon preview: The current image has no alternative text. The file name is: %s' ) );
+									?>,
 									data.attachment.filename
 								)
 						}}"/>
