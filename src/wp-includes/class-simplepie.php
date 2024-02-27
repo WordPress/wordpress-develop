@@ -941,6 +941,8 @@ class SimplePie
 	 * Set the length of time (in seconds) that the errors for failed feed loads
 	 * will be cached
 	 *
+	 * @since 6.5
+	 *
 	 * @param int $seconds The feed error cache duration
 	 */
 	public function set_error_cache_duration( $seconds = 3600 ) {
@@ -1843,6 +1845,8 @@ class SimplePie
 
 	/**
 	 * Cache the results of the feed request.
+	 *
+	 * @since 6.5
 	 *
 	 * @param SimplePie_Cache|false $cache Cache handler, or false to not load from the cache
 	 * @param string $feedurl
