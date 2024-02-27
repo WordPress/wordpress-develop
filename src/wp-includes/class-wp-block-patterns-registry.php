@@ -51,7 +51,9 @@ final class WP_Block_Patterns_Registry {
 	 *     List of properties for the block pattern.
 	 *
 	 *     @type string   $title         Required. A human-readable title for the pattern.
-	 *     @type string   $content       Required. Block HTML markup for the pattern.
+	 *     @type string   $content       Optional. Block HTML markup for the pattern.
+	 *                                   If not provided, the content will be retrieved from the `file_path` if set.
+	 *                                   If both `content` and `file_path` are not set, the pattern will not be registered.
 	 *     @type string   $description   Optional. Visually hidden text used to describe the pattern
 	 *                                   in the inserter. A description is optional, but is strongly
 	 *                                   encouraged when the title does not fully describe what the
@@ -79,7 +81,7 @@ final class WP_Block_Patterns_Registry {
 	 *                                   of the post types passed on the array. For all the other post types
 	 *                                   not part of the array the pattern is not available at all.
 	 *     @type string[] $templateTypes Optional. An array of template types where the pattern fits.
-	 *     @type string   $file_path     Optional. The path to the file containing the block pattern content.
+	 *     @type string   $file_path     Optional. The full path to the file containing the block pattern content.
 	 * }
 	 * @return bool True if the pattern was registered with success and false otherwise.
 	 */
