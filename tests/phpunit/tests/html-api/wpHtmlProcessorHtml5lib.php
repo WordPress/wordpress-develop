@@ -71,6 +71,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * Verify the parsing results of the HTML Processor against the
 	 * test cases in the Html5lib tests project.
 	 *
+	 * @ticket 60227
+	 *
 	 * @dataProvider data_external_html5lib_tests
 	 *
 	 * @param string $fragment_context Context element in which to parse HTML, such as BODY or SVG.
