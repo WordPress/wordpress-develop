@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the _mce_set_direction function.
+ * Tests for the _mce_set_direction() function.
  *
  * @group functions
  *

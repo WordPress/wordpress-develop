@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the sanitize_hex_color function.
+ * Tests for the sanitize_hex_color() function.
  *
  * @group formatting
  *

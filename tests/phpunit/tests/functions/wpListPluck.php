@@ -276,6 +276,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 						'abc' => 'xyz',
 					),
 					array(
+						'foo'   => 'foo',
 						'123'   => '456',
 						'lorem' => 'ipsum',
 						'key'   => 'bar',
@@ -289,32 +290,8 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 				'key',
 				array(
 					'bar',
+					'bar'   => 'foo',
 					'value' => 'baz',
-				),
-			),
-			'arrays with key missing'        => array(
-				array(
-					array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-						'abc' => 'xyz',
-					),
-					array(
-						'foo'   => 'foo',
-						'123'   => '456',
-						'lorem' => 'ipsum',
-						'key'   => 'bar',
-					),
-					array(
-						'foo' => 'baz',
-						'key' => 'value',
-					),
-				),
-				'key',
-				null,
-				array(
-					1 => 'bar',
-					2 => 'value',
 				),
 			),
 			'objects'                        => array(
@@ -370,6 +347,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 						'abc' => 'xyz',
 					),
 					(object) array(
+						'foo'   => 'foo',
 						'123'   => '456',
 						'lorem' => 'ipsum',
 						'key'   => 'bar',
@@ -383,32 +361,8 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 				'key',
 				array(
 					'bar',
+					'bar'   => 'foo',
 					'value' => 'baz',
-				),
-			),
-			'objects with field missing'     => array(
-				array(
-					(object) array(
-						'foo' => 'bar',
-						'bar' => 'baz',
-						'abc' => 'xyz',
-					),
-					(object) array(
-						'foo'   => 'foo',
-						'123'   => '456',
-						'lorem' => 'ipsum',
-						'key'   => 'bar',
-					),
-					(object) array(
-						'foo' => 'baz',
-						'key' => 'value',
-					),
-				),
-				'key',
-				null,
-				array(
-					1 => 'bar',
-					2 => 'value',
 				),
 			),
 		);

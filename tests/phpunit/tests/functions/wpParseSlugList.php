@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the wp_parse_slug_list function.
+ * Tests for the wp_parse_slug_list() function.
  *
  * @group functions
  *
