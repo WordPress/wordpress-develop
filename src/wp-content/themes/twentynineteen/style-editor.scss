@@ -379,13 +379,10 @@ figcaption,
 
 /** === Button === */
 
-.wp-block-buttons {
-	line-height: $font__line-height-heading;
-}
-
 .wp-block-button {
 
 	.wp-block-button__link {
+		line-height:inherit;
 		@include font-family( $font__heading );
 		font-size: $font__size-sm;
 		font-weight: bold;
@@ -419,24 +416,6 @@ figcaption,
 		}
 	}
 }
-
-.wp-block-search {
-	.wp-block-search__button {
-		@include font-family( $font__heading );
-		font-size: $font__size-sm;
-		font-weight: bold;
-		border-radius: 5px;
-	
-		&:not(.has-text-color) {
-			color: #fff;
-		}
-
-		&:not(.has-background-color) {
-			background: $color__background-button;
-		}
-	}
-}
-
 
 /** === Blockquote === */
 

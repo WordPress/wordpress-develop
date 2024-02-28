@@ -67,7 +67,12 @@ class WP_Font_Face_Resolver {
 					continue;
 				}
 
-				$fonts[] = static::convert_font_face_properties( $definition['fontFace'], $font_family_name );
+				// Prepare the fonts array structure for this font-family.
+				if ( ! array_key_exists( $font_family_name, $fonts ) ) {
+					$fonts[ $font_family_name ] = array();
+				}
+
+				$fonts[ $font_family_name ] = static::convert_font_face_properties( $definition['fontFace'], $font_family_name );
 			}
 		}
 

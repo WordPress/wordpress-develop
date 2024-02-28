@@ -107,7 +107,6 @@ class WP_Admin_Bar {
 	 *
 	 * @since 3.1.0
 	 * @since 4.5.0 Added the ability to pass 'lang' and 'dir' meta data.
-	 * @since 6.5.0 Added the ability to pass 'menu_title' for an ARIA menu name.
 	 *
 	 * @param array $args {
 	 *     Arguments for adding a node.
@@ -118,7 +117,7 @@ class WP_Admin_Bar {
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
 	 *     @type array  $meta   Meta data including the following keys: 'html', 'class', 'rel', 'lang', 'dir',
-	 *                          'onclick', 'target', 'title', 'tabindex', 'menu_title'. Default empty.
+	 *                          'onclick', 'target', 'title', 'tabindex'. Default empty.
 	 * }
 	 */
 	public function add_node( $args ) {
@@ -479,6 +478,9 @@ class WP_Admin_Bar {
 				}
 				?>
 			</div>
+			<?php if ( is_user_logged_in() ) : ?>
+			<a class="screen-reader-shortcut" href="<?php echo esc_url( wp_logout_url() ); ?>"><?php _e( 'Log Out' ); ?></a>
+			<?php endif; ?>
 		</div>
 
 		<?php
@@ -503,12 +505,10 @@ class WP_Admin_Bar {
 
 	/**
 	 * @since 3.3.0
-	 * @since 6.5.0 Added `$menu_title` parameter to allow an ARIA menu name.
 	 *
 	 * @param object $node
-	 * @param string|bool $menu_title The accessible name of this aria menu or false if not provided.
 	 */
-	final protected function _render_group( $node, $menu_title = false ) {
+	final protected function _render_group( $node ) {
 		if ( 'container' === $node->type ) {
 			$this->_render_container( $node );
 			return;
@@ -523,11 +523,7 @@ class WP_Admin_Bar {
 			$class = '';
 		}
 
-		if ( empty( $menu_title ) ) {
-			echo "<ul role='menu' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$class>";
-		} else {
-			echo "<ul role='menu' aria-label='" . esc_attr( $menu_title ) . "' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$class>";
-		}
+		echo "<ul id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$class>";
 		foreach ( $node->children as $item ) {
 			$this->_render_item( $item );
 		}
@@ -550,16 +546,15 @@ class WP_Admin_Bar {
 		$is_top_secondary_item = 'top-secondary' === $node->parent;
 
 		// Allow only numeric values, then casted to integers, and allow a tabindex value of `0` for a11y.
-		$tabindex         = ( isset( $node->meta['tabindex'] ) && is_numeric( $node->meta['tabindex'] ) ) ? (int) $node->meta['tabindex'] : '';
-		$aria_attributes  = ( '' !== $tabindex ) ? ' tabindex="' . $tabindex . '"' : '';
-		$aria_attributes .= ' role="menuitem"';
+		$tabindex        = ( isset( $node->meta['tabindex'] ) && is_numeric( $node->meta['tabindex'] ) ) ? (int) $node->meta['tabindex'] : '';
+		$aria_attributes = ( '' !== $tabindex ) ? ' tabindex="' . $tabindex . '"' : '';
 
 		$menuclass = '';
 		$arrow     = '';
 
 		if ( $is_parent ) {
 			$menuclass        = 'menupop ';
-			$aria_attributes .= ' aria-expanded="false"';
+			$aria_attributes .= ' aria-haspopup="true"';
 		}
 
 		if ( ! empty( $node->meta['class'] ) ) {
@@ -608,11 +603,7 @@ class WP_Admin_Bar {
 		if ( $is_parent ) {
 			echo '<div class="ab-sub-wrapper">';
 			foreach ( $node->children as $group ) {
-				if ( empty( $node->meta['menu_title'] ) ) {
-					$this->_render_group( $group, false );
-				} else {
-					$this->_render_group( $group, $node->meta['menu_title'] );
-				}
+				$this->_render_group( $group );
 			}
 			echo '</div>';
 		}

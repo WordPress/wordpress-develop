@@ -141,7 +141,6 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	public function update_value( $meta, $object_id ) {
 		$fields = $this->get_registered_fields();
-		$error  = new WP_Error();
 
 		foreach ( $fields as $meta_key => $args ) {
 			$name = $args['name'];
@@ -164,38 +163,35 @@ abstract class WP_REST_Meta_Fields {
 					$current = get_metadata( $this->get_meta_type(), $object_id, $meta_key, true );
 
 					if ( is_wp_error( rest_validate_value_from_schema( $current, $args['schema'] ) ) ) {
-						$error->add(
+						return new WP_Error(
 							'rest_invalid_stored_value',
 							/* translators: %s: Custom field key. */
 							sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 							array( 'status' => 500 )
 						);
-						continue;
 					}
 				}
 
 				$result = $this->delete_meta_value( $object_id, $meta_key, $name );
 				if ( is_wp_error( $result ) ) {
-					$error->merge_from( $result );
+					return $result;
 				}
 				continue;
 			}
 
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
-				$error->add(
+				return new WP_Error(
 					'rest_invalid_stored_value',
 					/* translators: %s: Custom field key. */
 					sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 					array( 'status' => 500 )
 				);
-				continue;
 			}
 
 			$is_valid = rest_validate_value_from_schema( $value, $args['schema'], 'meta.' . $name );
 			if ( is_wp_error( $is_valid ) ) {
 				$is_valid->add_data( array( 'status' => 400 ) );
-				$error->merge_from( $is_valid );
-				continue;
+				return $is_valid;
 			}
 
 			$value = rest_sanitize_value_from_schema( $value, $args['schema'] );
@@ -207,13 +203,8 @@ abstract class WP_REST_Meta_Fields {
 			}
 
 			if ( is_wp_error( $result ) ) {
-				$error->merge_from( $result );
-				continue;
+				return $result;
 			}
-		}
-
-		if ( $error->has_errors() ) {
-			return $error;
 		}
 
 		return null;

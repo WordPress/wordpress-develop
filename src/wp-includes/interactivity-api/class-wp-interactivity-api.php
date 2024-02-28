@@ -235,14 +235,9 @@ final class WP_Interactivity_API {
 		while ( $p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			$tag_name = $p->get_tag();
 
-			/*
-			 * Directives inside SVG and MATH tags are not processed,
-			 * as they are not compatible with the Tag Processor yet.
-			 * We still process the rest of the HTML.
-			 */
 			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
-				$p->skip_to_tag_closer();
-				continue;
+				$unbalanced = true;
+				break;
 			}
 
 			if ( $p->is_tag_closer() ) {
@@ -804,14 +799,14 @@ CSS;
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
-				data-wp-interactive="core/router"
+				data-wp-interactive='{"namespace":"core/router"}'
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
 			></div>
 			<div
 				class="screen-reader-text"
 				aria-live="polite"
-				data-wp-interactive="core/router"
+				data-wp-interactive='{"namespace":"core/router"}'
 				data-wp-text="state.navigation.message"
 			></div>
 HTML;

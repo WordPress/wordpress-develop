@@ -22,11 +22,6 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, wp_list_filter( $input_list, $args, $operator ) );
 	}
 
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
 	public function data_wp_list_filter() {
 		return array(
 			'string instead of array'  => array(

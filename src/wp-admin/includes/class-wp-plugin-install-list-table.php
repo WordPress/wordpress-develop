@@ -525,6 +525,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
 
+			$description .= $this->get_dependencies_notice( $plugin );
+
 			/**
 			 * Filters the plugin card description on the Add Plugins screen.
 			 *
@@ -673,7 +675,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<p><?php echo $description; ?></p>
 					<p class="authors"><?php echo $author; ?></p>
 				</div>
-				<?php echo $this->get_dependencies_notice( $plugin ); ?>
 			</div>
 			<div class="plugin-card-bottom">
 				<div class="vers column-rating">

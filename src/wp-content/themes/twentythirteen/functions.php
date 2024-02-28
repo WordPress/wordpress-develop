@@ -93,7 +93,7 @@ function twentythirteen_setup() {
 	$font_stylesheet = str_replace(
 		array( get_template_directory_uri() . '/', get_stylesheet_directory_uri() . '/' ),
 		'',
-		(string) twentythirteen_fonts_url()
+		twentythirteen_fonts_url()
 	);
 	add_editor_style( array( 'css/editor-style.css', 'genericons/genericons.css', $font_stylesheet ) );
 

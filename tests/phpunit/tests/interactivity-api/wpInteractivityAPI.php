@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Interactivity_API
  */
-class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
+class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *
@@ -508,131 +508,50 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `process_directives` process the HTML outside a SVG tag.
+	 * Tests that the `process_directives` returns the same HTML if it finds an
+	 * SVG tag.
 	 *
-	 * @ticket 60517
-	 *
-	 * @covers ::process_directives
-	 */
-	public function test_process_directives_changes_html_if_contains_svgs() {
-		$this->interactivity->state(
-			'myPlugin',
-			array(
-				'id'    => 'some-id',
-				'width' => '100',
-			)
-		);
-		$html           = '
-			<header>
-				<svg height="100" data-wp-bind--width="myPlugin::state.width">
-					<title>Red Circle</title>
-					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-				</svg>
-				<div data-wp-bind--id="myPlugin::state.id"></div>
-				<div data-wp-bind--id="myPlugin::state.width"></div>
-			</header>
-		';
-		$processed_html = $this->interactivity->process_directives( $html );
-		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag( 'svg' );
-		$this->assertNull( $p->get_attribute( 'width' ) );
-		$p->next_tag( 'div' );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
-		$p->next_tag( 'div' );
-		$this->assertEquals( '100', $p->get_attribute( 'id' ) );
-	}
-
-	/**
-	 * Tests that the `process_directives` does not process the HTML
-	 * inside SVG tags.
-	 *
-	 * @ticket 60517
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_does_not_change_inner_html_in_svgs() {
-		$this->interactivity->state(
-			'myPlugin',
-			array(
-				'id' => 'some-id',
-			)
-		);
+	public function test_process_directives_doesnt_change_html_if_contains_svgs() {
+		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 		$html           = '
-			<header>
-				<svg height="100">
+			<div data-wp-bind--id="myPlugin::state.id">
+				<svg height="100" width="100">
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-					<g data-wp-bind--id="myPlugin::state.id" />
-				</svg>
-			</header>
+				</svg> 
+			</div>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag( 'div' );
+		$p->next_tag();
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
 
 	/**
-	 * Tests that the `process_directives` process the HTML outside the
+	 * Tests that the `process_directives` returns the same HTML if it finds an
 	 * MathML tag.
 	 *
-	 * @ticket 60517
+	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_change_html_if_contains_math() {
-		$this->interactivity->state(
-			'myPlugin',
-			array(
-				'id'   => 'some-id',
-				'math' => 'ml-id',
-			)
-		);
+	public function test_process_directives_doesnt_change_html_if_contains_math() {
+		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 		$html           = '
-			<header>
-				<math data-wp-bind--id="myPlugin::state.math">
+			<div data-wp-bind--id="myPlugin::state.id">
+				<math>
 					<mi>x</mi>
 					<mo>=</mo>
 					<mi>1</mi>
 				</math>
-				<div data-wp-bind--id="myPlugin::state.id"></div>
-			</header>
+			</div>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag( 'math' );
-		$this->assertNull( $p->get_attribute( 'id' ) );
-		$p->next_tag( 'div' );
-		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
-	}
-
-	/**
-	 * Tests that the `process_directives` does not process the HTML
-	 * inside MathML tags.
-	 *
-	 * @ticket 60517
-	 *
-	 * @covers ::process_directives
-	 */
-	public function test_process_directives_does_not_change_inner_html_in_math() {
-		$this->interactivity->state(
-			'myPlugin',
-			array(
-				'id' => 'some-id',
-			)
-		);
-		$html           = '
-			<header>
-				<math data-wp-bind--id="myPlugin::state.math">
-					<mrow data-wp-bind--id="myPlugin::state.id" />
-					<mi>x</mi>
-					<mo>=</mo>
-					<mi>1</mi>
-				</math>
-			</header>
-		';
-		$processed_html = $this->interactivity->process_directives( $html );
-		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag( 'div' );
+		$p->next_tag();
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
 

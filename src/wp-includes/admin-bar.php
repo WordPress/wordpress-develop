@@ -139,9 +139,6 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 				__( 'About WordPress' ) .
 			'</span>',
 		'href'  => $about_url,
-		'meta' => array(
-			'menu_title' => __( 'About WordPress' ),
-		),
 	);
 
 	// Set tabindex="0" to make sub menus accessible when no URL is available.
@@ -285,8 +282,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 			'title'  => $howdy . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
-				'class'      => $class,
-				'menu_title' => sprintf( __( 'Howdy, %s' ), $current_user->display_name ),
+				'class' => $class,
 			),
 		)
 	);
@@ -329,16 +325,28 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
 	}
 
-	$user_info .= "<span class='edit-profile'>" . __( 'Edit Profile' ) . '</span>';
-
 	$wp_admin_bar->add_node(
 		array(
 			'parent' => 'user-actions',
 			'id'     => 'user-info',
 			'title'  => $user_info,
 			'href'   => $profile_url,
+			'meta'   => array(
+				'tabindex' => -1,
+			),
 		)
 	);
+
+	if ( false !== $profile_url ) {
+		$wp_admin_bar->add_node(
+			array(
+				'parent' => 'user-actions',
+				'id'     => 'edit-profile',
+				'title'  => __( 'Edit Profile' ),
+				'href'   => $profile_url,
+			)
+		);
+	}
 
 	$wp_admin_bar->add_node(
 		array(
@@ -389,9 +397,6 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 			'id'    => 'site-name',
 			'title' => $title,
 			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
-			'meta' => array(
-				'menu_title' => $title,
-			),
 		)
 	);
 
@@ -933,7 +938,6 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
  * Adds "Add New" menu.
  *
  * @since 3.1.0
- * @since 6.5.0 Added a New Site link for network installations.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -989,9 +993,6 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 			'id'    => 'new-content',
 			'title' => $title,
 			'href'  => admin_url( current( array_keys( $actions ) ) ),
-			'meta' => array(
-				'menu_title' => _x( 'New', 'admin bar menu group label' ),
-			),
 		)
 	);
 
@@ -1004,17 +1005,6 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 				'id'     => $id,
 				'title'  => $title,
 				'href'   => admin_url( $link ),
-			)
-		);
-	}
-
-	if ( is_multisite() && current_user_can( 'create_sites' ) ) {
-		$wp_admin_bar->add_node(
-			array(
-				'parent' => 'new-content',
-				'id'     => 'add-new-site',
-				'title'  => _x( 'Site', 'add new from admin bar' ),
-				'href'   => network_admin_url( 'site-new.php' ),
 			)
 		);
 	}

@@ -478,8 +478,7 @@
 	wp.updates.updatePlugin = function( args ) {
 		var $updateRow, $card, $message, message,
 			$adminBarUpdates = $( '#wp-admin-bar-updates' ),
-			buttonText = __( 'Updating...' ),
-			isPluginInstall = 'plugin-install' === pagenow || 'plugin-install-network' === pagenow;
+			buttonText = __( 'Updating...' );
 
 		args = _.extend( {
 			success: wp.updates.updatePluginSuccess,
@@ -494,7 +493,7 @@
  				_x( 'Updating %s...', 'plugin' ),
 				$updateRow.find( '.plugin-title strong' ).text()
 			);
-		} else if ( isPluginInstall ) {
+		} else if ( 'plugin-install' === pagenow || 'plugin-install-network' === pagenow ) {
 			$card    = $( '.plugin-card-' + args.slug + ', #plugin-information-footer' );
 			$message = $card.find( '.update-now' ).addClass( 'updating-message' );
 			message    = sprintf(
@@ -519,7 +518,7 @@
 
 		$document.trigger( 'wp-plugin-updating', args );
 
-		if ( isPluginInstall && 'plugin-information-footer' === $card.attr( 'id' ) ) {
+		if ( 'plugin-information-footer' === $card.attr('id' ) ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'updating-plugin',
@@ -957,7 +956,7 @@
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
 		if ( 'plugins-network' === pagenow ) {
-			buttonText = _x( 'Network Activate', 'plugin' );
+			buttonText = _x( 'Network Activate' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
 				_x( 'Network Activate %s', 'plugin' ),
@@ -1013,7 +1012,7 @@
 	 */
 	wp.updates.checkPluginDependenciesError = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
-			buttonText = _x( 'Activate', 'plugin' ),
+			buttonText = __( 'Activate' ),
 			ariaLabel = sprintf(
 				/* translators: 1: Plugin name, 2. The reason the plugin cannot be activated. */
 				_x( 'Cannot activate %1$s. %2$s', 'plugin' ),
@@ -1087,7 +1086,7 @@
 					slug: args.slug,
 					removeClasses: 'installed updated-message button-primary',
 					addClasses: 'activating-message',
-					text: __( 'Activating...' ),
+					text: _x( 'Activating...', 'plugin' ),
 					ariaLabel: sprintf(
 						/* translators: %s: Plugin name. */
 						_x( 'Activating %s', 'plugin' ),
@@ -1300,7 +1299,7 @@
 					pluginName
 				)
 			)
-			.text( _x( 'Install Now', 'plugin' ) );
+			.text( __( 'Install Now' ) );
 
 		wp.a11y.speak( errorMessage, 'assertive' );
 
@@ -1454,7 +1453,7 @@
 				$itemsCount.text(
 					sprintf(
 						/* translators: %s: The remaining number of plugins. */
-						_nx( '%s item', '%s items', remainingCount, 'plugin/plugins'  ),
+						_nx( '%s item', '%s items', 'plugin/plugins', remainingCount ),
 						remainingCount
 					)
 				);
@@ -1803,7 +1802,7 @@
 								response.themeName
 							)
 						)
-						.text( _x( 'Activate', 'theme' ) );
+						.text( __( 'Activate' ) );
 				}
 			}
 
@@ -2625,7 +2624,7 @@
 
 					$message
 						.removeClass( 'updating-message' )
-						.text( _x( 'Install Now', 'plugin' ) );
+						.text( __( 'Install Now' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );
@@ -2663,7 +2662,7 @@
 						$activateButton.data( 'name' )
 					)
 				)
-				.text( __( 'Activating...' ) );
+				.text( _x( 'Activating...', 'plugin' ) );
 
 			wp.updates.activatePlugin(
 				{
@@ -2706,7 +2705,7 @@
 								pluginName
 							)
 						)
-						.text( _x( 'Install Now', 'plugin' ) );
+						.text( __( 'Install Now' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );
@@ -3260,7 +3259,7 @@
 				$message.text( message.text );
 			}
 
-			if ( 'undefined' === typeof message.action ) {
+			if ( 'undefined' === typeof message.action || 'undefined' === typeof message.data.slug ) {
 				return;
 			}
 
@@ -3274,10 +3273,6 @@
 
 				case 'install-plugin':
 				case 'update-plugin':
-					if ( 'undefined' === typeof message.data || 'undefined' === typeof message.data.slug ) {
-						return;
-					}
-
 					message.data = wp.updates._addCallbacks( message.data, message.action );
 
 					wp.updates.queue.push( message );

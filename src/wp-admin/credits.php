@@ -28,9 +28,7 @@ $credits = wp_credits();
 			</h1>
 		</div>
 
-		<div class="about__header-text">
-			<?php _e( 'Created by a worldwide team of passionate individuals' ); ?>
-		</div>
+		<div class="about__header-text"></div>
 	</div>
 
 	<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">

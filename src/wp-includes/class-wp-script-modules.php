@@ -44,7 +44,7 @@ class WP_Script_Modules {
 	 * @param array             $deps     {
 	 *                                        Optional. List of dependencies.
 	 *
-	 *                                        @type string|array ...$0 {
+	 *                                        @type string|array $0... {
 	 *                                            An array of script module identifiers of the dependencies of this script
 	 *                                            module. The dependencies can be strings or arrays. If they are arrays,
 	 *                                            they need an `id` key with the script module identifier, and can contain
@@ -109,7 +109,7 @@ class WP_Script_Modules {
 	 * @param array             $deps     {
 	 *                                        Optional. List of dependencies.
 	 *
-	 *                                        @type string|array ...$0 {
+	 *                                        @type string|array $0... {
 	 *                                            An array of script module identifiers of the dependencies of this script
 	 *                                            module. The dependencies can be strings or arrays. If they are arrays,
 	 *                                            they need an `id` key with the script module identifier, and can contain
@@ -148,18 +148,6 @@ class WP_Script_Modules {
 		if ( isset( $this->registered[ $id ] ) ) {
 			$this->registered[ $id ]['enqueue'] = false;
 		}
-		unset( $this->enqueued_before_registered[ $id ] );
-	}
-
-	/**
-	 * Removes a registered script module.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param string $id The identifier of the script module.
-	 */
-	public function deregister( string $id ) {
-		unset( $this->registered[ $id ] );
 		unset( $this->enqueued_before_registered[ $id ] );
 	}
 

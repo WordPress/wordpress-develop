@@ -40,8 +40,6 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( $query_args_to_remove, $_SERVER['REQ
 
 wp_enqueue_script( 'updates' );
 
-WP_Plugin_Dependencies::initialize();
-
 if ( $action ) {
 
 	switch ( $action ) {
@@ -743,6 +741,7 @@ if ( isset( $_GET['error'] ) ) {
 ?>
 
 <?php WP_Plugin_Dependencies::display_admin_notice_for_unmet_dependencies(); ?>
+<?php WP_Plugin_Dependencies::display_admin_notice_for_deactivated_dependents(); ?>
 <?php WP_Plugin_Dependencies::display_admin_notice_for_circular_dependencies(); ?>
 <div class="wrap">
 <h1 class="wp-heading-inline">

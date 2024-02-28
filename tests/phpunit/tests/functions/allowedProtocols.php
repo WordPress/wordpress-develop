@@ -36,11 +36,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
-	 *
 	 * @link http://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
-	 *
-	 * @return array[]
 	 */
 	public function data_example_urls() {
 		return array(

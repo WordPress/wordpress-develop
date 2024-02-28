@@ -391,7 +391,13 @@ function _register_theme_block_patterns() {
 				continue;
 			}
 
-			$pattern_data['filePath'] = $file_path;
+			// The actual pattern content is the output of the file.
+			ob_start();
+			include $file_path;
+			$pattern_data['content'] = ob_get_clean();
+			if ( ! $pattern_data['content'] ) {
+				continue;
+			}
 
 			// Translate the pattern metadata.
 			// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain,WordPress.WP.I18n.LowLevelTranslationFunction

@@ -504,18 +504,6 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
 
-		if ( function_exists( 'imageinterlace' ) ) {
-			/**
-			 * Filters whether to output progressive images (if available).
-			 *
-			 * @since 6.5.0
-			 *
-			 * @param bool   $interlace Whether to use progressive images for output if available. Default false.
-			 * @param string $mime_type The mime type being saved.
-			 */
-			imageinterlace( $image, apply_filters( 'image_save_progressive', false, $mime_type ) );
-		}
-
 		if ( 'image/gif' === $mime_type ) {
 			if ( ! $this->make_image( $filename, 'imagegif', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );

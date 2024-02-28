@@ -46,11 +46,12 @@ final class WP_Font_Collection {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $slug Font collection slug. May only contain alphanumeric characters, dashes,
-	 *                     and underscores. See sanitize_title().
-	 * @param array  $args Font collection data. See wp_register_font_collection() for information on accepted arguments.
+	 * @param string       $slug         Font collection slug.
+	 * @param array|string $data_or_file Font collection data array or a path/URL to a JSON file
+	 *                                   containing the font collection.
+	 *                                   See {@see wp_register_font_collection()} for the supported fields.
 	 */
-	public function __construct( string $slug, array $args ) {
+	public function __construct( $slug, $data_or_file ) {
 		$this->slug = sanitize_title( $slug );
 		if ( $this->slug !== $slug ) {
 			_doing_it_wrong(
@@ -61,17 +62,12 @@ final class WP_Font_Collection {
 			);
 		}
 
-		$required_properties = array( 'name', 'font_families' );
-
-		if ( isset( $args['font_families'] ) && is_string( $args['font_families'] ) ) {
+		if ( is_array( $data_or_file ) ) {
+			$this->data = $this->sanitize_and_validate_data( $data_or_file );
+		} else {
 			// JSON data is lazy loaded by ::get_data().
-			$this->src = $args['font_families'];
-			unset( $args['font_families'] );
-
-			$required_properties = array( 'name' );
+			$this->src = $data_or_file;
 		}
-
-		$this->data = $this->sanitize_and_validate_data( $args, $required_properties );
 	}
 
 	/**
@@ -82,12 +78,8 @@ final class WP_Font_Collection {
 	 * @return array|WP_Error An array containing the font collection data, or a WP_Error on failure.
 	 */
 	public function get_data() {
-		if ( is_wp_error( $this->data ) ) {
-			return $this->data;
-		}
-
 		// If the collection uses JSON data, load it and cache the data/error.
-		if ( isset( $this->src ) ) {
+		if ( $this->src && empty( $this->data ) ) {
 			$this->data = $this->load_from_json( $this->src );
 		}
 
@@ -124,26 +116,7 @@ final class WP_Font_Collection {
 			return new WP_Error( 'font_collection_json_missing', $message );
 		}
 
-		$data = $url ? $this->load_from_url( $url ) : $this->load_from_file( $file );
-
-		if ( is_wp_error( $data ) ) {
-			return $data;
-		}
-
-		$data = array(
-			'name'          => $this->data['name'],
-			'font_families' => $data['font_families'],
-		);
-
-		if ( isset( $this->data['description'] ) ) {
-			$data['description'] = $this->data['description'];
-		}
-
-		if ( isset( $this->data['categories'] ) ) {
-			$data['categories'] = $this->data['categories'];
-		}
-
-		return $data;
+		return $url ? $this->load_from_url( $url ) : $this->load_from_file( $file );
 	}
 
 	/**
@@ -161,7 +134,7 @@ final class WP_Font_Collection {
 			return new WP_Error( 'font_collection_decode_error', __( 'Error decoding the font collection JSON file contents.' ) );
 		}
 
-		return $this->sanitize_and_validate_data( $data, array( 'font_families' ) );
+		return $this->sanitize_and_validate_data( $data );
 	}
 
 	/**
@@ -181,14 +154,8 @@ final class WP_Font_Collection {
 		if ( false === $data ) {
 			$response = wp_safe_remote_get( $url );
 			if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-				return new WP_Error(
-					'font_collection_request_error',
-					sprintf(
-						// translators: %s: Font collection URL.
-						__( 'Error fetching the font collection data from "%s".' ),
-						$url
-					)
-				);
+				// translators: %s: Font collection URL.
+				return new WP_Error( 'font_collection_request_error', sprintf( __( 'Error fetching the font collection data from "%s".' ), $url ) );
 			}
 
 			$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -197,7 +164,7 @@ final class WP_Font_Collection {
 			}
 
 			// Make sure the data is valid before storing it in a transient.
-			$data = $this->sanitize_and_validate_data( $data, array( 'font_families' ) );
+			$data = $this->sanitize_and_validate_data( $data );
 			if ( is_wp_error( $data ) ) {
 				return $data;
 			}
@@ -213,14 +180,14 @@ final class WP_Font_Collection {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $data                Font collection data to sanitize and validate.
-	 * @param array $required_properties Required properties that must exist in the passed data.
+	 * @param array $data Font collection data to sanitize and validate.
 	 * @return array|WP_Error Sanitized data if valid, otherwise a WP_Error instance.
 	 */
-	private function sanitize_and_validate_data( $data, $required_properties = array() ) {
+	private function sanitize_and_validate_data( $data ) {
 		$schema = self::get_sanitization_schema();
 		$data   = WP_Font_Utils::sanitize_from_schema( $data, $schema );
 
+		$required_properties = array( 'name', 'font_families' );
 		foreach ( $required_properties as $property ) {
 			if ( empty( $data[ $property ] ) ) {
 				$message = sprintf(
@@ -252,10 +219,8 @@ final class WP_Font_Collection {
 				array(
 					'font_family_settings' => array(
 						'name'       => 'sanitize_text_field',
-						'slug'       => static function ( $value ) {
-							return _wp_to_kebab_case( sanitize_title( $value ) );
-						},
-						'fontFamily' => 'WP_Font_Utils::sanitize_font_family',
+						'slug'       => 'sanitize_title',
+						'fontFamily' => 'sanitize_text_field',
 						'preview'    => 'sanitize_url',
 						'fontFace'   => array(
 							array(

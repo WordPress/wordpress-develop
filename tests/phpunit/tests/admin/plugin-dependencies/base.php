@@ -32,7 +32,6 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 		'dependency_filepaths'        => null,
 		'circular_dependencies_pairs' => null,
 		'circular_dependencies_slugs' => null,
-		'initialized'                 => false,
 	);
 
 	/**
@@ -63,12 +62,12 @@ abstract class WP_PluginDependencies_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Resets all static properties to a default value after each test.
 	 */
-	public function tear_down() {
+	public function set_up() {
+		parent::set_up();
+
 		foreach ( self::$static_properties as $name => $default_value ) {
 			$this->set_property_value( $name, $default_value );
 		}
-
-		parent::tear_down();
 	}
 
 	/**

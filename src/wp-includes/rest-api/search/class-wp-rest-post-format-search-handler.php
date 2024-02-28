@@ -26,17 +26,14 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Searches the post formats for a given search request.
+	 * Searches the object type content for a given search request.
 	 *
 	 * @since 5.6.0
 	 *
 	 * @param WP_REST_Request $request Full REST request.
-	 * @return array {
-	 *     Associative array containing found IDs and total count for the matching search results.
-	 *
-	 *     @type string[] $ids   Array containing slugs for the matching post formats.
-	 *     @type int      $total Total count for the matching search results.
-	 * }
+	 * @return array Associative array containing an `WP_REST_Search_Handler::RESULT_IDS` containing
+	 *               an array of found IDs and `WP_REST_Search_Handler::RESULT_TOTAL` containing the
+	 *               total count for the matching search results.
 	 */
 	public function search_items( WP_REST_Request $request ) {
 		$format_strings = get_post_format_strings();
@@ -49,7 +46,7 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 		}
 
 		/**
-		 * Filters the query arguments for a REST API post format search request.
+		 * Filters the query arguments for a REST API search request.
 		 *
 		 * Enables adding extra arguments or setting defaults for a post format search request.
 		 *
@@ -87,20 +84,13 @@ class WP_REST_Post_Format_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Prepares the search result for a given post format.
+	 * Prepares the search result for a given ID.
 	 *
 	 * @since 5.6.0
 	 *
 	 * @param string $id     Item ID, the post format slug.
 	 * @param array  $fields Fields to include for the item.
-	 * @return array {
-	 *     Associative array containing fields for the post format based on the `$fields` parameter.
-	 *
-	 *     @type string $id    Optional. Post format slug.
-	 *     @type string $title Optional. Post format name.
-	 *     @type string $url   Optional. Post format permalink URL.
-	 *     @type string $type  Optional. String 'post-format'.
-	 *}
+	 * @return array Associative array containing all fields for the item.
 	 */
 	public function prepare_item( $id, array $fields ) {
 		$data = array();

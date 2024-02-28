@@ -163,7 +163,7 @@ if ( empty( $importers ) ) {
 						esc_attr( $data[0] ),
 						/* translators: %s: Importer name. */
 						esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $data[0] ) ),
-						_x( 'Install Now', 'plugin' )
+						__( 'Install Now' )
 					);
 				} else {
 					$action = sprintf(

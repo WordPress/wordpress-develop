@@ -13,11 +13,6 @@
  */
 class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
 	public function data_size_format() {
 		return array(
 			// Invalid values.
