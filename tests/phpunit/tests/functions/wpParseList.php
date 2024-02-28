@@ -17,6 +17,11 @@ class Tests_Functions_wpParseList extends WP_UnitTestCase {
 		$this->assertSame( $expected, array_values( wp_parse_list( $actual ) ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_wp_parse_list() {
 		return array(
 			array( array( '1', '2', '3', '4' ), '1,2,3,4' ),

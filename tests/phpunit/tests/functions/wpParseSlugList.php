@@ -7,7 +7,7 @@
  *
  * @covers ::wp_parse_slug_list
  */
-class Tests_Functions_wpParseSlugList extends WP_UnitTestCase {
+class Tests_Functions_WpParseSlugList extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 60217

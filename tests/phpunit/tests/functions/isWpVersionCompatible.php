@@ -25,7 +25,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible() {
 		global $wp_version;
@@ -125,7 +125,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible_should_gracefully_handle_trailing_point_zero_version_numbers() {
 		return array(
@@ -204,7 +204,7 @@ class Tests_Functions_IsWpVersionCompatible extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_wp_version_compatible_with_development_versions() {
 		global $wp_version;

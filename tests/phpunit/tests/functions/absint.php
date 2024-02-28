@@ -3,7 +3,7 @@
 /**
  * Tests for the absint function.
  *
- * @group Functions
+ * @group functions
  *
  * @covers ::absint
  */
@@ -24,7 +24,7 @@ class Tests_Functions_absint extends WP_UnitTestCase {
 	 *
 	 * Returns an array of test data for the `data_absint` method.
 	 *
-	 * @return array An array of test data.
+	 * @return array[] An array of test data.
 	 */
 	public function data_absint() {
 		return array(
