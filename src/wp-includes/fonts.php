@@ -119,11 +119,11 @@ function wp_unregister_font_collection( string $slug ) {
  */
 function wp_get_font_dir( $defaults = array() ) {
 	/*
-	* Bail if the 'font_dir' filter is already running.
-	*
-	* This avoids an infinite loop that can occur
-	* if wp_upload_dir() is called inside a 'font_dir' callback.
-	*/
+	 * Bail if the 'font_dir' filter is already running.
+	 *
+	 * This avoids an infinite loop that can occur
+	 * if wp_upload_dir() is called inside a 'font_dir' callback.
+	 */
 	if ( doing_filter( 'font_dir' ) ) {
 		return $defaults;
 	}
