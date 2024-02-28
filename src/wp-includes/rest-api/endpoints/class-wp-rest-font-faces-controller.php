@@ -856,7 +856,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function handle_font_file_upload( $file ) {
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		
+
 		/*
 			* Set the upload directory to the fonts directory.
 			*
@@ -916,16 +916,16 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	* Returns relative path to an uploaded font file.
-	*
-	* The path is relative to the current fonts directory.
-	*
-	* @since 6.5.0
-	* @access private
-	*
-	* @param string $path Full path to the file.
-	* @return string Relative path on success, unchanged path on failure.
-	*/
+	 * Returns relative path to an uploaded font file.
+	 *
+	 * The path is relative to the current fonts directory.
+	 *
+	 * @since 6.5.0
+	 * @access private
+	 *
+	 * @param string $path Full path to the file.
+	 * @return string Relative path on success, unchanged path on failure.
+	 */
 	protected function relative_fonts_path( $path ) {
 		$new_path = $path;
 
