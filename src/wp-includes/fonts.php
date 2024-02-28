@@ -118,6 +118,16 @@ function wp_unregister_font_collection( string $slug ) {
  * }
  */
 function wp_get_font_dir( $defaults = array() ) {
+	/*
+	* Bail if the 'font_dir' filter is already running.
+	*
+	* This avoids an infinite loop that can occur
+	* if wp_upload_dir() is called inside a 'font_dir' callback.
+	*/
+	if ( doing_filter( 'font_dir' ) ) {
+		return $defaults;
+	}
+	
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
@@ -140,7 +150,7 @@ function wp_get_font_dir( $defaults = array() ) {
 	 *
 	 * @param array $defaults The original fonts directory data.
 	 */
-	return apply_filters( 'font_dir', $defaults );
+	return doing_filter( 'font_dir' ) ? $defaults : apply_filters( 'font_dir', $defaults );
 }
 
 /**
