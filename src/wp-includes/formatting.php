@@ -5551,7 +5551,7 @@ function wp_strip_all_tags( $html, $remove_breaks = false ) {
 		return '';
 	}
 
-	$processor    = new WP_HTML_Tag_Processor( (string) $html );
+	$processor    = new WP_Unsafe_Internal_Tag_Processor( (string) $html );
 	$text_content = '';
 
 	while ( $processor->next_token() ) {
@@ -5560,7 +5560,7 @@ function wp_strip_all_tags( $html, $remove_breaks = false ) {
 			case 'TEXTAREA':
 			case 'TITLE':
 			case 'XMP':
-				$text_content .= $processor->get_modifiable_text();
+				$text_content .= $processor->unsafe_get_raw_modifiable_text();
 				break;
 		}
 	}

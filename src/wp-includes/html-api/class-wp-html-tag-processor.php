@@ -2835,6 +2835,40 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Returns the span covering the current token, or null if none matched.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @access private
+	 *
+	 * @return WP_HTML_Span|null Span of the current token if matched, otherwise `null`.
+	 */
+	protected function unsafe_get_token_extents() {
+		if ( null === $this->token_starts_at ) {
+			return null;
+		}
+
+		return new WP_HTML_Span( $this->token_starts_at, $this->token_length );
+	}
+
+	/**
+	 * Returns the span covering the current modifiable text, or null if none matched.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @access private
+	 *
+	 * @return WP_HTML_Span|null Span of the current modifiable text if any, otherwise `null`.
+	 */
+	protected function unsafe_get_modifiable_text_extents() {
+		if ( null === $this->text_starts_at ) {
+			return null;
+		}
+
+		return new WP_HTML_Span( $this->text_starts_at, $this->text_length );
+	}
+
+	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
 	 * For boolean attributes special handling is provided:
