@@ -5517,17 +5517,19 @@ function normalize_whitespace( $str ) {
  * will return 'something'. wp_strip_all_tags will return ''
  *
  * @since 2.9.0
+ * @since 6.5.0 Relies on the HTML API for processing.
  *
- * @param string $text          String containing HTML tags
- * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars
+ * @param string $html          String potentially containing HTML tags, comments, etc...
+ * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars.
+ *
  * @return string The processed string.
  */
-function wp_strip_all_tags( $text, $remove_breaks = false ) {
-	if ( is_null( $text ) ) {
+function wp_strip_all_tags( $html, $remove_breaks = false ) {
+	if ( ! isset( $html ) ) {
 		return '';
 	}
 
-	if ( ! is_scalar( $text ) ) {
+	if ( ! is_scalar( $html ) ) {
 		/*
 		 * To maintain consistency with pre-PHP 8 error levels,
 		 * trigger_error() is used to trigger an E_USER_WARNING,
@@ -5541,7 +5543,7 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 				'#1',
 				'$text',
 				'string',
-				gettype( $text )
+				gettype( $html )
 			),
 			E_USER_WARNING
 		);
@@ -5549,14 +5551,25 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		return '';
 	}
 
-	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
-	$text = strip_tags( $text );
+	$processor    = new WP_Unsafe_Internal_Tag_Processor( (string) $html );
+	$text_content = '';
 
-	if ( $remove_breaks ) {
-		$text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+	while ( $processor->next_token() ) {
+		switch ( $processor->get_token_name() ) {
+			case '#text':
+			case 'TEXTAREA':
+			case 'TITLE':
+			case 'XMP':
+				$text_content .= $processor->unsafe_get_raw_modifiable_text();
+				break;
+		}
 	}
 
-	return trim( $text );
+	if ( $remove_breaks ) {
+		$text_content = preg_replace( '/[\f\r\n\t ]+/', ' ', $text_content );
+	}
+
+	return trim( $text_content );
 }
 
 /**
