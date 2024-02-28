@@ -30,7 +30,9 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		// Removes custom fields registered by test cases.
 		$meta_keys = get_registered_meta_keys( 'post', '' );
 		foreach ( $meta_keys as $meta_key_name => $meta_key_value ) {
-			unregister_meta_key( 'post', $meta_key_name );
+			if ( str_contains( $meta_key_name, 'tests' ) ) {
+				unregister_meta_key( 'post', $meta_key_name );
+			}
 		}
 
 		parent::tear_down();
@@ -44,7 +46,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	public function test_custom_field_value_is_rendered() {
 		register_meta(
 			'post',
-			'custom_field',
+			'tests_custom_field',
 			array(
 				'show_in_rest' => true,
 				'single'       => true,
@@ -53,7 +55,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Custom field value</p>',
@@ -85,7 +87,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	public function test_protected_field_value_is_not_shown() {
 		register_meta(
 			'post',
-			'_protected_field',
+			'_tests_protected_field',
 			array(
 				'show_in_rest' => true,
 				'single'       => true,
@@ -94,7 +96,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_tests_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
@@ -111,7 +113,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	public function test_custom_field_not_exposed_in_rest_api_is_not_shown() {
 		register_meta(
 			'post',
-			'show_in_rest_false_field',
+			'tests_show_in_rest_false_field',
 			array(
 				'show_in_rest' => false,
 				'single'       => true,
@@ -120,7 +122,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
