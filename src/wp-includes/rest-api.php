@@ -391,6 +391,10 @@ function create_initial_rest_routes() {
 	// Navigation Fallback.
 	$controller = new WP_REST_Navigation_Fallback_Controller();
 	$controller->register_routes();
+
+	// Font Collections.
+	$font_collections_controller = new WP_REST_Font_Collections_Controller();
+	$font_collections_controller->register_routes();
 }
 
 /**
@@ -876,7 +880,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 }
 
 /**
- * Filters the REST API response to include only a white-listed set of response object fields.
+ * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
  *

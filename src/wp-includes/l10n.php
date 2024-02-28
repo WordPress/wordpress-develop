@@ -789,32 +789,71 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 */
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
-	if ( ! is_readable( $mofile ) ) {
-		return false;
-	}
-
 	if ( ! $locale ) {
 		$locale = determine_locale();
 	}
 
-	$mo = new MO();
-	if ( ! $mo->import_from_file( $mofile ) ) {
-		$wp_textdomain_registry->set( $domain, $locale, false );
+	$i18n_controller = WP_Translation_Controller::get_instance();
 
-		return false;
+	// Ensures the correct locale is set as the current one, in case it was filtered.
+	$i18n_controller->set_locale( $locale );
+
+	/**
+	 * Filters the preferred file format for translation files.
+	 *
+	 * Can be used to disable the use of PHP files for translations.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $preferred_format Preferred file format. Possible values: 'php', 'mo'. Default: 'php'.
+	 * @param string $domain           The text domain.
+	 */
+	$preferred_format = apply_filters( 'translation_file_format', 'php', $domain );
+	if ( ! in_array( $preferred_format, array( 'php', 'mo' ), true ) ) {
+		$preferred_format = 'php';
 	}
 
-	if ( isset( $l10n[ $domain ] ) ) {
-		$mo->merge_with( $l10n[ $domain ] );
+	$translation_files = array();
+
+	if ( 'mo' !== $preferred_format ) {
+		$translation_files[] = substr_replace( $mofile, ".l10n.$preferred_format", - strlen( '.mo' ) );
 	}
 
-	unset( $l10n_unloaded[ $domain ] );
+	$translation_files[] = $mofile;
 
-	$l10n[ $domain ] = &$mo;
+	foreach ( $translation_files as $file ) {
+		/**
+		 * Filters the file path for loading translations for the given text domain.
+		 *
+		 * Similar to the {@see 'load_textdomain_mofile'} filter with the difference that
+		 * the file path could be for an MO or PHP file.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string $file   Path to the translation file to load.
+		 * @param string $domain The text domain.
+		 */
+		$file = (string) apply_filters( 'load_translation_file', $file, $domain );
 
-	$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
+		$success = $i18n_controller->load_file( $file, $domain, $locale );
 
-	return true;
+		if ( $success ) {
+			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
+				$i18n_controller->load_file( $l10n[ $domain ]->get_filename(), $domain, $locale );
+			}
+
+			// Unset NOOP_Translations reference in get_translations_for_domain().
+			unset( $l10n[ $domain ] );
+
+			$l10n[ $domain ] = new WP_Translations( $i18n_controller, $domain );
+
+			$wp_textdomain_registry->set( $domain, $locale, dirname( $file ) );
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -866,6 +905,11 @@ function unload_textdomain( $domain, $reloadable = false ) {
 	 */
 	do_action( 'unload_textdomain', $domain, $reloadable );
 
+	// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
+	if ( ! $reloadable ) {
+		WP_Translation_Controller::get_instance()->unload_textdomain( $domain );
+	}
+
 	if ( isset( $l10n[ $domain ] ) ) {
 		if ( $l10n[ $domain ] instanceof NOOP_Translations ) {
 			unset( $l10n[ $domain ] );
@@ -904,7 +948,7 @@ function load_default_textdomain( $locale = null ) {
 	}
 
 	// Unload previously loaded strings so we can switch translations.
-	unload_textdomain( 'default' );
+	unload_textdomain( 'default', true );
 
 	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo", $locale );
 
@@ -1391,19 +1435,20 @@ function translate_user_role( $name, $domain = 'default' ) {
 }
 
 /**
- * Gets all available languages based on the presence of *.mo files in a given directory.
+ * Gets all available languages based on the presence of *.mo and *.l10n.php files in a given directory.
  *
  * The default directory is WP_LANG_DIR.
  *
  * @since 3.0.0
  * @since 4.7.0 The results are now filterable with the {@see 'get_available_languages'} filter.
+ * @since 6.5.0 The initial file list is now cached and also takes into account *.l10n.php files.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $dir A directory to search for language files.
  *                    Default WP_LANG_DIR.
  * @return string[] An array of language codes or an empty array if no languages are present.
- *                  Language codes are formed by stripping the .mo extension from the language file names.
+ *                  Language codes are formed by stripping the file extension from the language file names.
  */
 function get_available_languages( $dir = null ) {
 	global $wp_textdomain_registry;
@@ -1416,6 +1461,8 @@ function get_available_languages( $dir = null ) {
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
+			$lang_file = basename( $lang_file, '.l10n.php' );
+
 			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
 				! str_starts_with( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
@@ -1431,7 +1478,7 @@ function get_available_languages( $dir = null ) {
 	 * @param string[] $languages An array of available language codes.
 	 * @param string   $dir       The directory where the language files were found.
 	 */
-	return apply_filters( 'get_available_languages', $languages, $dir );
+	return apply_filters( 'get_available_languages', array_unique( $languages ), $dir );
 }
 
 /**
