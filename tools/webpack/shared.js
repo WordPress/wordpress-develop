@@ -20,7 +20,7 @@ const getBaseConfig = ( env ) => {
 				new TerserPlugin( {
 					extractComments: false,
 				} ),
-			]
+			],
 		},
 		module: {
 			rules: [
@@ -32,10 +32,7 @@ const getBaseConfig = ( env ) => {
 			],
 		},
 		resolve: {
-			modules: [
-				baseDir,
-				'node_modules',
-			],
+			modules: [ baseDir, 'node_modules' ],
 			alias: {
 				'lodash-es': 'lodash',
 			},
@@ -70,15 +67,20 @@ const getBaseConfig = ( env ) => {
 const stylesTransform = ( mode ) => ( content ) => {
 	return postcss( [
 		require( 'cssnano' )( {
-			preset: mode === 'production' ? 'default' : [
-				'default',
-				{
-					discardComments: {
-						removeAll: ! content.includes( 'Copyright' ) && ! content.includes( 'License' ),
-					},
-					normalizeWhitespace: false,
-				},
-			],
+			preset:
+				mode === 'production'
+					? 'default'
+					: [
+							'default',
+							{
+								discardComments: {
+									removeAll:
+										! content.includes( 'Copyright' ) &&
+										! content.includes( 'License' ),
+								},
+								normalizeWhitespace: false,
+							},
+					  ],
 		} ),
 	] )
 		.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
@@ -87,10 +89,25 @@ const stylesTransform = ( mode ) => ( content ) => {
 
 const normalizeJoin = ( ...paths ) => join( ...paths ).replace( /\\/g, '/' );
 
+const BUNDLED_PACKAGES = [
+	'@wordpress/dataviews',
+	'@wordpress/icons',
+	'@wordpress/interface',
+	'@wordpress/interactivity',
+	'@wordpress/sync',
+];
+const MODULES = [
+	'@wordpress/interactivity',
+	'@wordpress/interactivity-router',
+];
+const WORDPRESS_NAMESPACE = '@wordpress/';
 
 module.exports = {
 	baseDir,
 	getBaseConfig,
 	normalizeJoin,
 	stylesTransform,
+	BUNDLED_PACKAGES,
+	MODULES,
+	WORDPRESS_NAMESPACE,
 };
