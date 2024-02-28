@@ -3905,21 +3905,16 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			font-size: 14px ;
 		}
 		a {
-			color: #0073aa;
+			color: #2271b1;
 		}
 		a:hover,
 		a:active {
-			color: #006799;
+			color: #135e96;
 		}
 		a:focus {
-			color: #124964;
-			-webkit-box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			box-shadow:
-				0 0 0 1px #5b9dd9,
-				0 0 2px 1px rgba(30, 140, 190, 0.8);
-			outline: none;
+			color: #043959;
+			box-shadow: 0 0 0 2px #2271b1;
+			outline: 2px solid transparent;
 		}
 		.button {
 			background: #f3f5f6;
@@ -4056,6 +4051,10 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 		'additional_errors' => $parsed_args['additional_errors'],
 	);
 
+	if ( isset( $parsed_args['error_data'] ) ) {
+		$data['data']['error'] = $parsed_args['error_data'];
+	}
+
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/json; charset={$parsed_args['charset']}" );
 		if ( null !== $parsed_args['response'] ) {
@@ -4093,6 +4092,10 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 		),
 		'additional_errors' => $parsed_args['additional_errors'],
 	);
+
+	if ( isset( $parsed_args['error_data'] ) ) {
+		$data['data']['error'] = $parsed_args['error_data'];
+	}
 
 	if ( ! headers_sent() ) {
 		header( "Content-Type: application/javascript; charset={$parsed_args['charset']}" );
@@ -4270,6 +4273,9 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
 			}
 			if ( empty( $title ) && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['title'] ) ) {
 				$title = $errors[0]['data']['title'];
+			}
+			if ( WP_DEBUG_DISPLAY && is_array( $errors[0]['data'] ) && ! empty( $errors[0]['data']['error'] ) ) {
+				$args['error_data'] = $errors[0]['data']['error'];
 			}
 
 			unset( $errors[0] );
@@ -8756,6 +8762,14 @@ function is_wp_version_compatible( $required ) {
 
 	// Strip off any -alpha, -RC, -beta, -src suffixes.
 	list( $version ) = explode( '-', $wp_version );
+
+	if ( is_string( $required ) ) {
+		$trimmed = trim( $required );
+
+		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
+			$required = substr( $trimmed, 0, -2 );
+		}
+	}
 
 	return empty( $required ) || version_compare( $version, $required, '>=' );
 }
