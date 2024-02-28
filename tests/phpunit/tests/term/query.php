@@ -861,6 +861,64 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44279
+	 */
+	public function test_childless_with_child_of() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$childless_parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		$child_with_children = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		$other_parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$grand_child = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $child_with_children,
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'childless'  => true,
+				'child_of'   => $parent,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEqualSets( array( $childless_parent, $grand_child ), $q->terms );
+	}
+
+	/**
 	 * @ticket 42691
 	 */
 	public function test_error_term_object_should_be_discarded() {
