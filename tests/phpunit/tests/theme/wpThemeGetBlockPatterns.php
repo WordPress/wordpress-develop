@@ -86,6 +86,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59490
+	 * @group ms-excluded
 	 */
 	public function test_should_clear_cache_after_switching_theme() {
 		switch_theme( 'block-theme' );
