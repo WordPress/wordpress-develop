@@ -362,7 +362,7 @@ function get_shortcode_regex( $tagnames = null ) {
 		.         '\\[\\/\\2\\]'             // Closing shortcode tag.
 		.     ')?'
 		. ')'
-		. '(\\]?)';                          // 6: Optional second closing brocket for escaping shortcodes: [[tag]].
+		. '(\\]?)';                          // 6: Optional second closing bracket for escaping shortcodes: [[tag]].
 	// phpcs:enable
 }
 
@@ -385,7 +385,7 @@ function get_shortcode_regex( $tagnames = null ) {
  *     @type string $3 Shortcode arguments list.
  *     @type string $4 Optional self closing slash.
  *     @type string $5 Content of a shortcode when it wraps some content.
- *     @type string $6 Optional second closing brocket for escaping shortcodes.
+ *     @type string $6 Optional second closing bracket for escaping shortcodes.
  * }
  * @return string Shortcode output.
  */
@@ -600,11 +600,13 @@ function get_shortcode_atts_regex() {
  * retrieval of the attributes, since all attributes have to be known.
  *
  * @since 2.5.0
+ * @since 6.5.0 The function now always returns an empty array,
+ *              even if the original arguments string cannot be parsed or is empty.
  *
  * @param string $text Shortcode arguments list.
- * @return array|string Array of attribute values keyed by attribute name.
- *                      Returns empty array if there are no attributes.
- *                      Returns the original arguments string if it cannot be parsed.
+ * @return array Array of attribute values keyed by attribute name.
+ *               Returns empty array if there are no attributes
+ *               or if the original arguments string cannot be parsed.
  */
 function shortcode_parse_atts( $text ) {
 	$atts    = array();
@@ -635,8 +637,6 @@ function shortcode_parse_atts( $text ) {
 				}
 			}
 		}
-	} else {
-		$atts = ltrim( $text );
 	}
 
 	return $atts;

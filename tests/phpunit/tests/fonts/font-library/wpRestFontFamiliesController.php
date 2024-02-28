@@ -681,7 +681,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 
 		$settings = array(
 			'name'       => 'Open Sans',
-			'fontFamily' => '"Open Sans, "Noto Sans", sans-serif',
+			'fontFamily' => 'Open Sans, "Noto Sans", sans-serif',
 			'preview'    => 'https://s.w.org/images/fonts/16.9/previews/open-sans/open-sans-400-normal.svg',
 		);
 
@@ -700,7 +700,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$expected_settings = array(
 			'name'       => $settings['name'],
 			'slug'       => 'open-sans-2',
-			'fontFamily' => $settings['fontFamily'],
+			'fontFamily' => '"Open Sans", "Noto Sans", sans-serif',
 			'preview'    => $settings['preview'],
 		);
 		$this->assertSame( $expected_settings, $data['font_family_settings'], 'The response font_family_settings should match expected settings.' );

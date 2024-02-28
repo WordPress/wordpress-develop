@@ -115,6 +115,49 @@ HTML;
 	}
 
 	/**
+	 * Tests passing `uses_context` as argument to the source.
+	 *
+	 * @ticket 60525
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_passing_uses_context_to_source() {
+		$get_value_callback = function ( $source_args, $block_instance, $attribute_name ) {
+			$value = $block_instance->context['sourceContext'];
+			return "Value: $value";
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+				'uses_context'       => array( 'sourceContext' ),
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source", "args": {"key": "test"}}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0], array( 'sourceContext' => 'source context value' ) );
+		$result        = $block->render();
+
+		$this->assertSame(
+			'Value: source context value',
+			$block->attributes['content'],
+			"The 'content' should be updated with the value of the source context."
+		);
+		$this->assertSame(
+			'<p>Value: source context value</p>',
+			trim( $result ),
+			'The block content should be updated with the value of the source context.'
+		);
+	}
+
+	/**
 	 * Tests if the block content is updated with the value returned by the source
 	 * for the Image block in the placeholder state.
 	 *
