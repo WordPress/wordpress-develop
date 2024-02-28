@@ -65,6 +65,39 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a blocks connected in a password protected post don't render the value.
+	 *
+	 * @ticket 60651
+	 */
+	public function test_custom_field_value_is_not_shown_in_password_protected_posts() {
+		register_meta(
+			'post',
+			'tests_custom_field',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'Custom field value',
+			)
+		);
+
+		add_filter(
+			'post_password_required',
+			function () {
+				return true;
+			}
+		);
+
+		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+
+		$this->assertSame(
+			'<p>Fallback value</p>',
+			trim( $content ),
+			'The post content should show the fallback value instead of the custom field value.'
+		);
+	}
+
+	/**
 	 * Tests that a block connected without specifying the custom field renders the fallback.
 	 *
 	 * @ticket 60651
