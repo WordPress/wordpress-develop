@@ -69,6 +69,13 @@ class File_Upload_Upgrader {
 				wp_die( $file['error'] );
 			}
 
+			if ( 'pluginzip' === $form || 'themezip' === $form ) {
+				if ( ! wp_zip_file_is_valid( $file['file'] ) ) {
+					wp_delete_file( $file['file'] );
+					wp_die( __( 'Incompatible Archive.' ) );
+				}
+			}
+
 			$this->filename = $_FILES[ $form ]['name'];
 			$this->package  = $file['file'];
 

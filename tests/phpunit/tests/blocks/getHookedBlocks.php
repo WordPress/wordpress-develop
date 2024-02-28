@@ -135,6 +135,8 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59313
+	 * @ticket 60008
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
@@ -165,6 +167,8 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59313
+	 * @ticket 60008
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers ::get_block_file_template
@@ -195,6 +199,8 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 59313
+	 * @ticket 60008
+	 * @ticket 60506
 	 *
 	 * @covers ::get_hooked_blocks
 	 * @covers WP_Block_Patterns_Registry::get_registered
