@@ -34,6 +34,11 @@ function _block_bindings_post_meta_get_value( array $source_args, $block_instanc
 		return null;
 	}
 
+	// Check if the meta field is protected.
+	if ( is_protected_meta( $source_attrs['key'], 'post' ) ) {
+		return null;
+	}
+
 	return get_post_meta( $post_id, $source_args['key'], true );
 }
 
