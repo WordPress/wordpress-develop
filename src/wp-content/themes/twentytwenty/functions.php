@@ -611,7 +611,7 @@ function twentytwenty_block_editor_settings() {
 	if ( '#ffffff' === strtolower( twentytwenty_get_color_for_area( 'content', 'text' ) ) ) {
 		add_theme_support( 'dark-editor-style' );
 	}
-	
+
 	// Add support for block border controls.
 	add_theme_support( 'border' );
 }
