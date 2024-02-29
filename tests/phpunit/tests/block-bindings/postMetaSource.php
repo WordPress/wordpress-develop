@@ -121,6 +121,21 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a block connected to a meta key that doesn't exist renders the fallback.
+	 *
+	 * @ticket 60651
+	 */
+	public function test_binding_to_non_existing_meta_key() {
+		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_non_existing_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+
+		$this->assertSame(
+			'<p>Fallback value</p>',
+			trim( $content ),
+			'The post content should show the fallback value.'
+		);
+	}
+
+	/**
 	 * Tests that a block connected without specifying the custom field renders the fallback.
 	 *
 	 * @ticket 60651
