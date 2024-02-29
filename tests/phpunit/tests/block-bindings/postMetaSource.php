@@ -100,15 +100,16 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		);
 
 		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
-		$this->assertSame(
-			'<p>Fallback value</p>',
-			$content,
-			'The post content should show the fallback value instead of the custom field value.'
-		);
 
 		remove_filter(
 			'post_password_required',
 			'wp_tests_post_password_required'
+		);
+
+		$this->assertSame(
+			'<p>Fallback value</p>',
+			$content,
+			'The post content should show the fallback value instead of the custom field value.'
 		);
 	}
 
@@ -139,15 +140,16 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 		);
 
 		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
-		$this->assertSame(
-			'<p>Fallback value</p>',
-			$content,
-			'The post content should show the fallback value instead of the custom field value.'
-		);
 
 		remove_filter(
 			'is_post_status_viewable',
 			'wp_tests_make_post_status_not_viewable'
+		);
+
+		$this->assertSame(
+			'<p>Fallback value</p>',
+			$content,
+			'The post content should show the fallback value instead of the custom field value.'
 		);
 	}
 
@@ -230,6 +232,32 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'<p>Fallback value</p>',
 			$content,
 			'The post content should show the fallback value instead of the protected value.'
+		);
+	}
+
+	/**
+	 * Tests that meta key with unsafe HTML is sanitized.
+	 *
+	 * @ticket 60651
+	 */
+	public function test_custom_field_with_unsafe_html_is_sanitized() {
+		register_meta(
+			'post',
+			'tests_unsafe_html_field',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => '<script>alert("Unsafe HTML")</script>',
+			)
+		);
+
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_unsafe_html_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+
+		$this->assertSame(
+			'<p>alert(&#8220;Unsafe HTML&#8221;)</p>',
+			$content,
+			'The post content should not include the script tag.'
 		);
 	}
 }
