@@ -858,14 +858,14 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		/*
-			* Set the upload directory to the fonts directory.
-			*
-			* wp_get_font_dir() contains the 'font_dir' hook, whose callbacks are
-			* likely to call wp_get_upload_dir().
-			*
-			* To avoid an infinite loop, don't hook wp_get_font_dir() to 'upload_dir'.
-			* Instead, just pass its return value to the 'upload_dir' callback.
-			*/
+		 * Set the upload directory to the fonts directory.
+		 *
+		 * wp_get_font_dir() contains the 'font_dir' hook, whose callbacks are
+		 * likely to call wp_get_upload_dir().
+		 *
+		 * To avoid an infinite loop, don't hook wp_get_font_dir() to 'upload_dir'.
+		 * Instead, just pass its return value to the 'upload_dir' callback.
+		 */
 		$font_dir       = wp_get_font_dir();
 		$set_upload_dir = function () use ( $font_dir ) {
 			return $font_dir;
