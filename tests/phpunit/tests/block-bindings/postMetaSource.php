@@ -91,21 +91,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		function wp_tests_require_post_password() {
-			return true;
-		}
-
-		add_filter(
-			'post_password_required',
-			'wp_tests_require_post_password'
-		);
+		add_filter( 'post_password_required', '__return_true' );
 
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
-		remove_filter(
-			'post_password_required',
-			'wp_tests_post_password_required'
-		);
+		remove_filter( 'post_password_required', '__return_true' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
@@ -135,17 +125,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			return false;
 		}
 
-		add_filter(
-			'is_post_status_viewable',
-			'wp_tests_make_post_status_not_viewable'
-		);
+		add_filter( 'is_post_status_viewable', '__return_false' );
 
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
-		remove_filter(
-			'is_post_status_viewable',
-			'wp_tests_make_post_status_not_viewable'
-		);
+		remove_filter( 'is_post_status_viewable', '__return_false' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
