@@ -430,8 +430,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	public function next_token() {
 		$found_a_token = parent::next_token();
 
-		if ( '#tag' === $this->get_token_type() ) {
-			$this->step( self::PROCESS_CURRENT_NODE );
+		switch ( $this->get_token_type() ) {
+			case '#tag':
+			case '#text':
+				$this->step( self::PROCESS_CURRENT_NODE );
+				break;
 		}
 
 		return $found_a_token;
@@ -536,6 +539,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
 			while ( parent::next_token() && '#tag' !== $this->get_token_type() ) {
+				if ( '#text' === $this->get_token_type() && $this->has_active_formats_needing_reconstruction() ) {
+					$this->last_error = self::ERROR_UNSUPPORTED;
+					return false;
+				}
+
 				continue;
 			}
 		}
@@ -1496,6 +1504,44 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		$this->last_error = self::ERROR_UNSUPPORTED;
 		throw new WP_HTML_Unsupported_Exception( 'Cannot reconstruct active formatting elements when advancing and rewinding is required.' );
+	}
+
+	/**
+	 * Indicates if there are active formatting elements needing reconstruction.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return bool False if reconstruction would definitely not create any new elements.
+	 */
+	private function has_active_formats_needing_reconstruction() {
+		/*
+		 * > If there are no entries in the list of active formatting elements, then there is nothing
+		 * > to reconstruct; stop this algorithm.
+		 */
+		if ( 0 === $this->state->active_formatting_elements->count() ) {
+			return false;
+		}
+
+		$last_entry = $this->state->active_formatting_elements->current_node();
+		if (
+
+			/*
+			 * > If the last (most recently added) entry in the list of active formatting elements is a marker;
+			 * > stop this algorithm.
+			 */
+			'marker' === $last_entry->node_name ||
+
+			/*
+			 * > If the last (most recently added) entry in the list of active formatting elements is an
+			 * > element that is in the stack of open elements, then there is nothing to reconstruct;
+			 * > stop this algorithm.
+			 */
+			$this->state->stack_of_open_elements->contains_node( $last_entry )
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
