@@ -697,7 +697,8 @@ class WP_Site_Query {
 
 		$this->request =
 			"{$this->sql_clauses['select']}
-			 {$this->sql_clauses['from']} {$where}
+			 {$this->sql_clauses['from']}
+			 {$where}
 			 {$this->sql_clauses['groupby']}
 			 {$this->sql_clauses['orderby']}
 			 {$this->sql_clauses['limits']}";
