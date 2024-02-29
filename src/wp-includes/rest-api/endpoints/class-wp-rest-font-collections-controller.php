@@ -77,7 +77,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		$page        = $request['page'];
 		$per_page    = $request['per_page'];
 		$total_items = count( $collections_all );
-		$max_pages   = ceil( $total_items / $per_page );
+		$max_pages   = (int) ceil( $total_items / $per_page );
 
 		if ( $page > $max_pages && $total_items > 0 ) {
 			return new WP_Error(
@@ -104,7 +104,7 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $items );
 
 		$response->header( 'X-WP-Total', (int) $total_items );
-		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$request_params = $request->get_query_params();
 		$collection_url = rest_url( $this->namespace . '/' . $this->rest_base );

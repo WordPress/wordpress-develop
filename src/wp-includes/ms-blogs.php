@@ -480,8 +480,7 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  * This function is useful if you need to pull posts, or other information,
  * from other blogs. You can switch back afterwards using restore_current_blog().
  *
- * Things that aren't switched:
- *  - plugins. See #14941
+ * PHP code loaded with the originally requested site, such as code from a plugin or theme, does not switch. See #14941.
  *
  * @see restore_current_blog()
  * @since MU (3.0.0)
@@ -566,6 +565,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 						'site-options',
 						'site-queries',
 						'site-transient',
+						'theme_files',
 						'rss',
 						'users',
 						'user-queries',
@@ -659,6 +659,7 @@ function restore_current_blog() {
 						'site-options',
 						'site-queries',
 						'site-transient',
+						'theme_files',
 						'rss',
 						'users',
 						'user-queries',

@@ -19,6 +19,33 @@ require_once __DIR__ . '/base.php';
 class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDependencies_UnitTestCase {
 
 	/**
+	 * Mocks an API response.
+	 *
+	 * @param string $type The type of response. Accepts 'success' or 'failure'.
+	 */
+	private function mock_api_response( $type ) {
+		add_filter(
+			'plugins_api',
+			function ( $bypass, $action, $args ) use ( $type ) {
+				if ( 'plugin_information' === $action && isset( $args->slug ) && str_starts_with( $args->slug, 'dependency' ) ) {
+					if ( 'success' === $type ) {
+						return (object) array(
+							'slug' => $args->slug,
+							'name' => 'Dependency ' . str_replace( 'dependency', '', $args->slug ),
+						);
+					} elseif ( 'failure' === $type ) {
+						return new WP_Error( 'plugin_not_found', 'Plugin not found.' );
+					}
+				}
+
+				return $bypass;
+			},
+			10,
+			3
+		);
+	}
+
+	/**
 	 * Tests that dependency names are retrieved.
 	 *
 	 * @ticket 22316
@@ -40,6 +67,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 			array( 'dependent/dependent.php' => array( 'RequiresPlugins' => 'dependency, dependency2' ) )
 		);
 
+		$this->mock_api_response( 'success' );
 		self::$instance::initialize();
 
 		$this->set_property_value(
@@ -108,6 +136,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 			)
 		);
 
+		$this->mock_api_response( 'failure' );
 		self::$instance::initialize();
 
 		$this->set_property_value(
@@ -157,6 +186,7 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 			array( 'dependent/dependent.php' => array( 'RequiresPlugins' => 'dependency, dependency2' ) )
 		);
 
+		$this->mock_api_response( 'failure' );
 		self::$instance::initialize();
 
 		// The plugins are not in the Plugins repository.
@@ -211,6 +241,8 @@ class Tests_Admin_WPPluginDependencies_GetDependencyNames extends WP_PluginDepen
 
 		set_site_transient( 'wp_plugin_dependencies_plugin_data', array( 'dependency' => false ) );
 		set_site_transient( 'wp_plugin_dependencies_plugin_timeout_dependency', true, 12 * HOUR_IN_SECONDS );
+
+		$this->mock_api_response( 'success' );
 		self::$instance::get_dependency_names( 'dependent' );
 
 		// Restore $pagenow.

@@ -875,6 +875,7 @@ function wp_start_object_cache() {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -986,7 +987,6 @@ function wp_get_active_and_valid_plugins() {
 
 	$network_plugins = is_multisite() ? wp_get_active_network_plugins() : false;
 
-	$invalid_plugins = array();
 	foreach ( $active_plugins as $plugin ) {
 		if ( ! validate_file( $plugin )                     // $plugin must validate as file.
 			&& str_ends_with( $plugin, '.php' )             // $plugin must end with '.php'.
@@ -995,20 +995,6 @@ function wp_get_active_and_valid_plugins() {
 			&& ( ! $network_plugins || ! in_array( WP_PLUGIN_DIR . '/' . $plugin, $network_plugins, true ) )
 		) {
 			$plugins[] = WP_PLUGIN_DIR . '/' . $plugin;
-		} else {
-			$invalid_plugins[] = $plugin;
-		}
-	}
-
-	if ( ! empty( $invalid_plugins ) ) {
-		$all_plugin_data = get_option( 'plugin_data', array() );
-
-		if ( ! empty( $all_plugin_data ) ) {
-			foreach ( $invalid_plugins as $invalid_plugin ) {
-				unset( $all_plugin_data[ $invalid_plugin ] );
-			}
-
-			update_option( 'plugin_data', $all_plugin_data );
 		}
 	}
 
@@ -1060,12 +1046,14 @@ function wp_skip_paused_plugins( array $plugins ) {
  * @since 5.1.0
  * @access private
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow            The filename of the current screen.
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return string[] Array of absolute paths to theme directories.
  */
 function wp_get_active_and_valid_themes() {
-	global $pagenow;
+	global $pagenow, $wp_stylesheet_path, $wp_template_path;
 
 	$themes = array();
 
@@ -1073,14 +1061,11 @@ function wp_get_active_and_valid_themes() {
 		return $themes;
 	}
 
-	$stylesheet_path = get_stylesheet_directory();
-	$template_path   = get_template_directory();
-
-	if ( $template_path !== $stylesheet_path ) {
-		$themes[] = $stylesheet_path;
+	if ( is_child_theme() ) {
+		$themes[] = $wp_stylesheet_path;
 	}
 
-	$themes[] = $template_path;
+	$themes[] = $wp_template_path;
 
 	/*
 	 * Remove themes from the list of active themes when we're on an endpoint
