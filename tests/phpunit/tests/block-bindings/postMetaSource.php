@@ -121,10 +121,6 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		function wp_tests_make_post_status_not_viewable() {
-			return false;
-		}
-
 		add_filter( 'is_post_status_viewable', '__return_false' );
 
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
