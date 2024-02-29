@@ -65,8 +65,22 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 
 	$title = $blog['title'];
 
-	$meta = array(
-		'public' => 1,
+	$blog_meta = array();
+	if ( isset( $blog['meta'] ) ) {
+		foreach ( $blog['meta'] as $blog_meta_key => $blog_meta_value ) {
+			if ( 'blog_public' === $blog_meta_key ) {
+				$blog_meta['public'] = intval( wp_unslash( $blog_meta_value ) );
+			} else {
+				$blog_meta[ $blog_meta_key ] = sanitize_text_field( wp_unslash( $blog_meta_value ) );
+			}
+		}
+	}
+
+	$meta = wp_parse_args(
+		$blog_meta,
+		array(
+			'public' => 1,
+		)
 	);
 
 	// Handle translation installation for the new site.
@@ -272,6 +286,25 @@ if ( ! empty( $messages ) ) {
 				</td>
 			</tr>
 		<?php endif; // Languages. ?>
+		<tr class="form-field">
+			<th scope="row">
+				<label>
+					<?php esc_html_e( 'Allow search engines to index this site' ); ?>
+				</label>
+			</th>
+			<td>
+				<fieldset>
+					<legend class="screen-reader-text"><?php esc_html_e( 'Site Privacy' ); ?></legend>
+					<label for="site-privacy-public-on">
+						<input name="blog[meta][blog_public]" type="radio" id="site-privacy-public-on" value="1"<?php checked( true ); ?> /> <?php echo esc_html_x( 'Yes', 'Multisite new site public privacy on' ); ?>
+					</label>
+					<br />
+					<label for="site-privacy-public-off">
+						<input name="blog[meta][blog_public]" type="radio" id="site-privacy-public-off" value="0" /> <?php echo esc_html_x( 'No', 'Multisite new site public privacy off' ); ?>
+					</label>
+				</fieldset>
+			</td>
+		</tr>
 		<tr class="form-field form-required">
 			<th scope="row">
 				<label for="admin-email">
