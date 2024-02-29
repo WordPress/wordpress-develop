@@ -42,7 +42,7 @@ window.wp = window.wp || {};
 	init : function(){
 		var t = this, qeRow = $('#inline-edit'), bulkRow = $('#bulk-edit');
 
-		t.type = $('table.widefat').hasClass('pages') ? 'page' : 'post';
+		t.type = $('table.wp-list-table').hasClass('pages') ? 'page' : 'post';
 		// Post ID prefix.
 		t.what = '#post-';
 
@@ -182,10 +182,10 @@ window.wp = window.wp || {};
 		var categories = {};
 		this.revert();
 
-		$( '#bulk-edit td' ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
+		$( '#bulk-edit td' ).attr( 'colspan', $( 'th:visible, td:visible', 'table.wp-list-table:first thead' ).length );
 
 		// Insert the editor at the top of the table with an empty row above to maintain zebra striping.
-		$('table.widefat tbody').prepend( $('#bulk-edit') ).prepend('<tr class="hidden"></tr>');
+		$('table.wp-list-table tbody').prepend( $('#bulk-edit') ).prepend('<tr class="hidden"></tr>');
 		$('#bulk-edit').addClass('inline-editor').show();
 
 		/**
@@ -268,7 +268,7 @@ window.wp = window.wp || {};
 				$prev = $this.parent().prev().children( '.ntdelbutton' ),
 				$next = $this.parent().next().children( '.ntdelbutton' );
 
-			$( 'table.widefat input[value="' + id + '"]' ).prop( 'checked', false );
+				$('table.wp-list-table input[value="' + id + '"]').prop('checked', false);
 			$( '#_' + id ).parent().remove();
 			wp.a11y.speak( wp.i18n.__( 'Item removed.' ), 'assertive' );
 
@@ -332,7 +332,7 @@ window.wp = window.wp || {};
 
 		// Add the new edit row with an extra blank row underneath to maintain zebra striping.
 		editRow = $('#inline-edit').clone(true);
-		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
+		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', 'table.wp-list-table:first thead' ).length );
 
 		// Remove the ID from the copied row and let the `for` attribute reference the hidden ID.
 		$( 'td', editRow ).find('#quick-edit-legend').removeAttr('id');
@@ -478,7 +478,7 @@ window.wp = window.wp || {};
 			id = this.getId(id);
 		}
 
-		$( 'table.widefat .spinner' ).addClass( 'is-active' );
+		$( 'table.wp-list-table .spinner' ).addClass( 'is-active' );
 
 		params = {
 			action: 'inline-save',
@@ -497,7 +497,7 @@ window.wp = window.wp || {};
 				var $errorNotice = $( '#edit-' + id + ' .inline-edit-save .notice-error' ),
 					$error = $errorNotice.find( '.error' );
 
-				$( 'table.widefat .spinner' ).removeClass( 'is-active' );
+				$( 'table.wp-list-table .spinner' ).removeClass( 'is-active' );
 
 				if (r) {
 					if ( -1 !== r.indexOf( '<tr' ) ) {
@@ -538,7 +538,7 @@ window.wp = window.wp || {};
 	 * @return {boolean} Always returns false.
 	 */
 	revert : function(){
-		var $tableWideFat = $( '.widefat' ),
+		var $tableWideFat = $( 'table.wp-list-table' ),
 			id = $( '.inline-editor', $tableWideFat ).attr( 'id' );
 
 		if ( id ) {

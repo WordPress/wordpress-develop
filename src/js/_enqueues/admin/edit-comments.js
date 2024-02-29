@@ -1150,7 +1150,7 @@ window.commentReply = {
 
 		id = $(id);
 		t.addEvents(id);
-		bg = id.hasClass('unapproved') ? '#FFFFE0' : id.closest('.widefat, .postbox').css('backgroundColor');
+		bg = id.hasClass('unapproved') ? '#FFFFE0' : id.closest('table.wp-list-table, .postbox').css('backgroundColor');
 
 		id.animate( { 'backgroundColor':'#CCEEBB' }, 300 )
 			.animate( { 'backgroundColor': bg }, 300, function() {
@@ -1311,7 +1311,7 @@ $( function(){
 		};
 
 		$.table_hotkeys(
-			$('table.widefat'),
+			$('table.wp-list-table'),
 			[
 				'a', 'u', 's', 'd', 'r', 'q', 'z',
 				['e', edit_comment],

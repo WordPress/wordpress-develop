@@ -128,7 +128,7 @@ window.inlineEditTax = {
 		}
 
 		editRow = $('#inline-edit').clone(true), rowData = $('#inline_'+id);
-		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.wp-list-table.widefat:first thead' ).length );
+		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.wp-list-table:first thead' ).length );
 
 		$(t.what+id).hide().after(editRow).after('<tr class="hidden"></tr>');
 
@@ -172,7 +172,7 @@ window.inlineEditTax = {
 			id = this.getId(id);
 		}
 
-		$( 'table.widefat .spinner' ).addClass( 'is-active' );
+		$( 'table.wp-list-table .spinner' ).addClass( 'is-active' );
 
 		params = {
 			action: 'inline-save-tax',
@@ -199,7 +199,7 @@ window.inlineEditTax = {
 					$errorNotice = $( '#edit-' + id + ' .inline-edit-save .notice-error' ),
 					$error = $errorNotice.find( '.error' );
 
-				$( 'table.widefat .spinner' ).removeClass( 'is-active' );
+					$( 'table.wp-list-table .spinner' ).removeClass( 'is-active' );
 
 				if (r) {
 					if ( -1 !== r.indexOf( '<tr' ) ) {
@@ -258,10 +258,10 @@ window.inlineEditTax = {
 	 * @return {void}
 	 */
 	revert : function() {
-		var id = $('table.widefat tr.inline-editor').attr('id');
+		var id = $('table.wp-list-table tr.inline-editor').attr('id');
 
 		if ( id ) {
-			$( 'table.widefat .spinner' ).removeClass( 'is-active' );
+			$( 'table.wp-list-table .spinner' ).removeClass( 'is-active' );
 			$('#'+id).siblings('tr.hidden').addBack().remove();
 			id = id.substr( id.lastIndexOf('-') + 1 );
 
