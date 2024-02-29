@@ -10,32 +10,22 @@
  * @group block-bindings
  */
 class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
+	protected static $wp_meta_keys_saved;
 
 	/**
-	 * Sets up each test method.
+	 * Set up for every method.
 	 */
-	public function set_up() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $post;
-
-		parent::set_up();
-
-		$post = self::factory()->post->create_and_get( array() );
-		setup_postdata( $post );
+		$post                     = $factory->post->create_and_get();
+		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
 	}
 
 	/**
-	 * Tear down each test method.
+	 * Tear down for every method.
 	 */
-	public function tear_down() {
-		// Removes custom fields registered by test cases.
-		$meta_keys = get_registered_meta_keys( 'post', '' );
-		foreach ( $meta_keys as $meta_key_name => $meta_key_value ) {
-			if ( str_contains( $meta_key_name, 'tests' ) ) {
-				unregister_meta_key( 'post', $meta_key_name );
-			}
-		}
-
-		parent::tear_down();
+	public static function wpTearDownAfterClass() {
+		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 	}
 
 	/**
