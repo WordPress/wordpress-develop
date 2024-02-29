@@ -492,7 +492,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
  * @param string $context              Control calling the function.
  * @return array Properties of attachment.
  */
-function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, $context ) {
+function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, $context = '' ) {
 	$parent          = get_post( $parent_attachment_id );
 	$parent_url      = wp_get_attachment_url( $parent->ID );
 	$parent_basename = wp_basename( $parent_url );
