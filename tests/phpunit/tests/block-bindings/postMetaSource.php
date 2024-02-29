@@ -18,7 +18,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 *
 	 * @param string $content The new content.
 	 */
-	private function getModifiedPostContent( $content ) {
+	private function get_modified_post_content( $content ) {
 		$GLOBALS['post']->post_content = $content;
 		return apply_filters( 'the_content', $GLOBALS['post']->post_content );
 	}
@@ -66,7 +66,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 		$this->assertSame(
 			'<p>Custom field value</p>',
 			$content,
@@ -100,7 +100,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'wp_tests_require_post_password'
 		);
 
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		remove_filter(
 			'post_password_required',
@@ -140,7 +140,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'wp_tests_make_post_status_not_viewable'
 		);
 
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		remove_filter(
 			'is_post_status_viewable',
@@ -160,7 +160,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 * @ticket 60651
 	 */
 	public function test_binding_to_non_existing_meta_key() {
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_non_existing_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_non_existing_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
@@ -175,7 +175,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 * @ticket 60651
 	 */
 	public function test_binding_without_key_renders_the_fallback() {
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta"}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta"}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
@@ -201,7 +201,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_tests_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_tests_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
@@ -227,7 +227,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
@@ -253,7 +253,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_unsafe_html_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_unsafe_html_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>alert(&#8220;Unsafe HTML&#8221;)</p>',
