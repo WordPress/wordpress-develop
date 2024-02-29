@@ -19,18 +19,8 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 * @param string $content The new content.
 	 */
 	private function getModifiedPostContent( $content ) {
-		self::$post->post_content = $content;
-		// Update the global $post variable to ensure all tests get the correct $post context.
-		$this->updateGlobalPost();
-		return apply_filters( 'the_content', self::$post->post_content );
-	}
-
-	/**
-	 * Update the global $post variable.
-	 */
-	private function updateGlobalPost() {
-		global $post;
-		$post = self::$post;
+		$GLOBALS['post']->post_content = $content;
+		return apply_filters( 'the_content', $GLOBALS['post']->post_content );
 	}
 
 	/**
@@ -46,6 +36,17 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 */
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
+	}
+
+	/**
+	 * Set up before each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function set_up() {
+		parent::set_up();
+		// This seems to be needed to ensure that $GLOBALS['post'] is not null in all the tests.
+		$GLOBALS['post'] = self::$post;
 	}
 
 	/**
