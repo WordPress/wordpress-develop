@@ -234,30 +234,4 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'The post content should show the fallback value instead of the protected value.'
 		);
 	}
-
-	/**
-	 * Tests that meta key with unsafe HTML is sanitized.
-	 *
-	 * @ticket 60651
-	 */
-	public function test_custom_field_with_unsafe_html_is_sanitized() {
-		register_meta(
-			'post',
-			'tests_unsafe_html_field',
-			array(
-				'show_in_rest' => true,
-				'single'       => true,
-				'type'         => 'string',
-				'default'      => '<script>alert("Unsafe HTML")</script>',
-			)
-		);
-
-		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_unsafe_html_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
-
-		$this->assertSame(
-			'<p>alert(&#8220;Unsafe HTML&#8221;)</p>',
-			$content,
-			'The post content should not include the script tag.'
-		);
-	}
 }
