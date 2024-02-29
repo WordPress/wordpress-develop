@@ -76,6 +76,31 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an html attribute connected to a custom field renders its value.
+	 *
+	 * @ticket 60651
+	 */
+	public function test_html_attribute_connected_to_custom_field_value_is_rendered() {
+		register_meta(
+			'post',
+			'tests_url_custom_field',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'string',
+				'default'      => 'https://example.com/foo.png',
+			)
+		);
+
+		$content = $this->get_modified_post_content( '<!-- wp:image {"metadata":{"bindings":{"url":{"source":"core/post-meta","args":{"key":"tests_url_custom_field"}}}}} --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image -->' );
+		$this->assertSame(
+			'<figure class="wp-block-image"><img decoding="async" src="https://example.com/foo.png" alt=""/></figure>',
+			$content,
+			'The image src should point to the value of the custom field . '
+		);
+	}
+
+	/**
 	 * Tests that a blocks connected in a password protected post don't render the value.
 	 *
 	 * @ticket 60651
