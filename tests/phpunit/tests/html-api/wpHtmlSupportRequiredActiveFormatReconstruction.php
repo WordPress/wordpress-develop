@@ -20,18 +20,18 @@ class Tests_HtmlApi_WpHtmlSupportRequiredActiveFormatReconstruction extends WP_U
 	 * @ticket 60455
 	 */
 	public function test_reconstructs_active_formats_on_text_nodes() {
-		$processor = WP_HTML_Processor::create_fragment( '<p><b>One<span><p>Two<an-element>' );
+		$processor = WP_HTML_Processor::create_fragment( '<p><b>One<p><source>Two<source>' );
 
-		$processor->next_tag( 'span' );
-		$this->assertSame(
-			array( 'HTML', 'BODY', 'P', 'B', 'SPAN' ),
-			$processor->get_breadcrumbs(),
-			'Should have identified the stack of open elements for the first text node.'
+		// The SOURCE element doesn't trigger reconstruction, and this test asserts that.
+		$this->assertTrue(
+			$processor->next_tag( 'SOURCE' ),
+			'Should have found the first custom element.'
 		);
 
-		$this->assertTrue(
-			$processor->next_tag( 'p' ),
-			'Should have found second P element.'
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'P', 'SOURCE' ),
+			$processor->get_breadcrumbs(),
+			'Should have closed formatting element at first P element.'
 		);
 
 		/*
@@ -45,11 +45,18 @@ class Tests_HtmlApi_WpHtmlSupportRequiredActiveFormatReconstruction extends WP_U
 		 * To ensure that this test properly works once that support is expanded,
 		 * it's written to verify both circumstances. Once support is added, this
 		 * can be simplified to only contain the first clause of the conditional.
+		 *
+		 * The use of the SOURCE element is important here because most elements
+		 * will also trigger reconstruction, which would conflate the test results
+		 * with the text node triggering reconstruction. The SOURCE element won't
+		 * do this, making it neutral. Therefore, the implicitly-closed B element
+		 * will only be reconstructed by the text node.
 		 */
 
-		if ( $processor->next_tag( 'AN-ELEMENT' ) ) {
+		if ( $processor->next_tag( 'SOURCE' ) ) {
+			echo "\e[32mSOURCE\e[m\n";
 			$this->assertSame(
-				array( 'HTML', 'BODY', 'P', 'B', 'AN-ELEMENT' ),
+				array( 'HTML', 'BODY', 'P', 'B', 'SOURCE' ),
 				$processor->get_breadcrumbs(),
 				'Should have reconstructed the implicitly-closed B element.'
 			);

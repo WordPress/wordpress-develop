@@ -361,7 +361,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	public function next_tag( $query = null ) {
 		if ( null === $query ) {
 			while ( $this->step() ) {
-				if ( ! $this->is_tag_closer() ) {
+				if ( '#tag' === $this->get_token_type() && ! $this->is_tag_closer() ) {
 					return true;
 				}
 			}
@@ -384,7 +384,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 		if ( ! ( array_key_exists( 'breadcrumbs', $query ) && is_array( $query['breadcrumbs'] ) ) ) {
 			while ( $this->step() ) {
-				if ( ! $this->is_tag_closer() ) {
+				if ( '#tag' === $this->get_token_type() && ! $this->is_tag_closer() ) {
 					return true;
 				}
 			}
@@ -428,13 +428,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool
 	 */
 	public function next_token() {
-		$found_a_token = parent::next_token();
-
-		if ( '#tag' === $this->get_token_type() ) {
-			$this->step( self::PROCESS_CURRENT_NODE );
-		}
-
-		return $found_a_token;
+		return $this->step();
 	}
 
 	/**
@@ -535,13 +529,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		if ( self::PROCESS_NEXT_NODE === $node_to_process ) {
-			while ( parent::next_token() && '#tag' !== $this->get_token_type() ) {
-				continue;
+			/*
+			 * Currently tag and text nodes must be processed. Text nodes may
+			 * trigger active format reconstruction, otherwise they could be
+			 * skipped until the HTML Processor supports visiting text nodes.
+			 */
+			while ( parent::next_token() ) {
+				$token_type = $this->get_token_type();
+
+				if ( '#tag' === $token_type || '#text' === $token_type ) {
+					break;
+				}
 			}
 		}
 
 		// Finish stepping when there are no more tokens in the document.
-		if ( null === $this->get_tag() ) {
+		if (
+			WP_HTML_Tag_Processor::STATE_COMPLETE === $this->parser_state ||
+			WP_HTML_Tag_Processor::STATE_INCOMPLETE_INPUT === $this->parser_state
+		) {
 			return false;
 		}
 
@@ -1194,10 +1200,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|false Name of created bookmark, or false if unable to create.
 	 */
 	private function bookmark_tag() {
-		if ( ! $this->get_tag() ) {
-			return false;
-		}
-
 		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
 			throw new Exception( 'could not allocate bookmark' );
