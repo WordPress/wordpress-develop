@@ -10,14 +10,34 @@
  * @group block-bindings
  */
 class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
+	protected static $post;
 	protected static $wp_meta_keys_saved;
+
+	/**
+	 * Modify the post content.
+	 *
+	 * @param string $content The new content.
+	 */
+	private function getModifiedPostContent( $content ) {
+		self::$post->post_content = $content;
+		// Update the global $post variable to ensure all tests get the correct $post context.
+		$this->updateGlobalPost();
+		return apply_filters( 'the_content', self::$post->post_content );
+	}
+
+	/**
+	 * Update the global $post variable.
+	 */
+	private function updateGlobalPost() {
+		global $post;
+		$post = self::$post;
+	}
 
 	/**
 	 * Set up for every method.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		global $post;
-		$post                     = $factory->post->create_and_get();
+		self::$post               = $factory->post->create_and_get();
 		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
 	}
 
@@ -45,12 +65,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
-
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 		$this->assertSame(
 			'<p>Custom field value</p>',
-			trim( $content ),
-			'The post content should show the value of the custom field.'
+			$content,
+			'The post content should show the value of the custom field . '
 		);
 	}
 
@@ -80,11 +99,10 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'wp_tests_require_post_password'
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
-
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 		$this->assertSame(
 			'<p>Fallback value</p>',
-			trim( $content ),
+			$content,
 			'The post content should show the fallback value instead of the custom field value.'
 		);
 
@@ -120,11 +138,10 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'wp_tests_make_post_status_not_viewable'
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
-
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 		$this->assertSame(
 			'<p>Fallback value</p>',
-			trim( $content ),
+			$content,
 			'The post content should show the fallback value instead of the custom field value.'
 		);
 
@@ -140,11 +157,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 * @ticket 60651
 	 */
 	public function test_binding_to_non_existing_meta_key() {
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_non_existing_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_non_existing_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
-			trim( $content ),
+			$content,
 			'The post content should show the fallback value.'
 		);
 	}
@@ -155,11 +172,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 * @ticket 60651
 	 */
 	public function test_binding_without_key_renders_the_fallback() {
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta"}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta"}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
-			trim( $content ),
+			$content,
 			'The post content should show the fallback value.'
 		);
 	}
@@ -181,11 +198,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_tests_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"_tests_protected_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
-			trim( $content ),
+			$content,
 			'The post content should show the fallback value instead of the protected value.'
 		);
 	}
@@ -207,11 +224,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
+		$content = $this->getModifiedPostContent( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_show_in_rest_false_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
 		$this->assertSame(
 			'<p>Fallback value</p>',
-			trim( $content ),
+			$content,
 			'The post content should show the fallback value instead of the protected value.'
 		);
 	}
