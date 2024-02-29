@@ -314,12 +314,12 @@ class Tests_Interactivity_API_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_interactivity_wp_interactivity_data_wp_context function correctly converts different array
+	 * Tests that wp_interactivity_data_wp_context function correctly converts different array
 	 * structures to a JSON string.
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_wp_interactivity_data_wp_context
+	 * @covers ::wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_different_arrays() {
 		$this->assertEquals( 'data-wp-context=\'{}\'', wp_interactivity_data_wp_context( array() ) );
