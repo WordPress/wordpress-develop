@@ -36,6 +36,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 */
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
+		unset( $GLOBALS['post'] );
 	}
 
 	/**
