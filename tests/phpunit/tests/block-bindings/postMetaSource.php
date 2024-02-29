@@ -71,11 +71,13 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
+		function wp_tests_require_post_password() {
+			return true;
+		}
+
 		add_filter(
 			'post_password_required',
-			function () {
-				return true;
-			}
+			'wp_tests_require_post_password'
 		);
 
 		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
@@ -84,6 +86,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'<p>Fallback value</p>',
 			trim( $content ),
 			'The post content should show the fallback value instead of the custom field value.'
+		);
+
+		remove_filter(
+			'post_password_required',
+			'wp_tests_post_password_required'
 		);
 	}
 
@@ -104,11 +111,13 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
+		function wp_tests_make_post_status_not_viewable() {
+			return false;
+		}
+
 		add_filter(
 			'is_post_status_viewable',
-			function () {
-				return false;
-			}
+			'wp_tests_make_post_status_not_viewable'
 		);
 
 		$content = apply_filters( 'the_content', '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_custom_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
@@ -117,6 +126,11 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			'<p>Fallback value</p>',
 			trim( $content ),
 			'The post content should show the fallback value instead of the custom field value.'
+		);
+
+		remove_filter(
+			'is_post_status_viewable',
+			'wp_tests_make_post_status_not_viewable'
 		);
 	}
 
