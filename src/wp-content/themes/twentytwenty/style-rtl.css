@@ -3028,6 +3028,17 @@ ol.wp-block-latest-comments {
 	width: 100%;
 }
 
+/* Block: Avatar ------------------------------ */
+
+/*
+* Set a default border style so that borders show on the front when
+* the avatar only has a border color or border width set.
+*/
+.wp-block-avatar:where([style*=border-width]),
+.wp-block-avatar:where(.has-border-color) {
+	border-style: solid;
+}
+
 /* Block: Button ----------------------------- */
 
 .wp-block-button {
