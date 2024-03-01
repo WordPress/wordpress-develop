@@ -189,6 +189,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1/directory-sizes',
 			'/wp/v2/wp_pattern_category',
 			'/wp/v2/wp_pattern_category/(?P<id>[\d]+)',
+			'/wp/v2/font-collections',
+			'/wp/v2/font-collections/(?P<slug>[\/\w-]+)',
+			'/wp/v2/font-families',
+			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces/(?P<id>[\d]+)',
+			'/wp/v2/font-families/(?P<id>[\d]+)',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );

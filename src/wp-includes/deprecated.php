@@ -1910,7 +1910,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 
 		$src = wp_get_attachment_url( $post->ID );
 		$src_file = & $file;
-	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
+	} elseif ( $src = wp_mime_type_icon( $post->ID, '.svg' ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
 		/** This filter is documented in wp-includes/post.php */
@@ -3336,7 +3336,9 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_GIF) != 0;
 			case 'image/webp':
 				return (imagetypes() & IMG_WEBP) != 0;
-		}
+			case 'image/avif':
+				return (imagetypes() & IMG_AVIF) != 0;
+			}
 	} else {
 		switch( $mime_type ) {
 			case 'image/jpeg':
@@ -3347,6 +3349,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefromgif');
 			case 'image/webp':
 				return function_exists('imagecreatefromwebp');
+			case 'image/avif':
+				return function_exists('imagecreatefromavif');
 		}
 	}
 	return false;

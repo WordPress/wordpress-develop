@@ -145,7 +145,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct()
+	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct() for accepted arguments.
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -269,7 +269,7 @@ class WP_Network_Query {
 		}
 
 		if ( $this->found_networks && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_networks / $this->query_vars['number'] );
+			$this->max_num_pages = (int) ceil( $this->found_networks / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.

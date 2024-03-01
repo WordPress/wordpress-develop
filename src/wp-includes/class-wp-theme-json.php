@@ -658,7 +658,7 @@ class WP_Theme_JSON {
 	 * @since 6.0.0
 	 * @since 6.2.0 Added `dimensions.minHeight` and `position.sticky`.
 	 * @since 6.4.0 Added `background.backgroundImage`.
-	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
+	 * @since 6.5.0 Added `background.backgroundSize`, `dimensions.aspectRatio`, and `shadow.defaultPresets`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
@@ -679,6 +679,7 @@ class WP_Theme_JSON {
 		array( 'spacing', 'margin' ),
 		array( 'spacing', 'padding' ),
 		array( 'typography', 'lineHeight' ),
+		array( 'shadow', 'defaultPresets' ),
 	);
 
 	/**
@@ -1032,7 +1033,7 @@ class WP_Theme_JSON {
 			if ( ! empty( $block_type->styles ) ) {
 				$style_selectors = array();
 				foreach ( $block_type->styles as $style ) {
-					$style_selectors[ $style['name'] ] = static::append_to_selector( '.is-style-' . $style['name'], static::$blocks_metadata[ $block_name ]['selector'] );
+					$style_selectors[ $style['name'] ] = static::get_block_style_variation_selector( $style['name'], static::$blocks_metadata[ $block_name ]['selector'] );
 				}
 				static::$blocks_metadata[ $block_name ]['styleVariations'] = $style_selectors;
 			}
@@ -3844,12 +3845,18 @@ class WP_Theme_JSON {
 	 * Replaces CSS variables with their values in place.
 	 *
 	 * @since 6.3.0
+	 * @since 6.5.0 Check for empty style before processing its value.
+	 *
 	 * @param array $styles CSS declarations to convert.
 	 * @param array $values key => value pairs to use for replacement.
 	 * @return array
 	 */
 	private static function convert_variables_to_value( $styles, $values ) {
 		foreach ( $styles as $key => $style ) {
+			if ( empty( $style ) ) {
+				continue;
+			}
+
 			if ( is_array( $style ) ) {
 				$styles[ $key ] = self::convert_variables_to_value( $style, $values );
 				continue;
@@ -3911,5 +3918,39 @@ class WP_Theme_JSON {
 
 		$theme_json->theme_json['styles'] = self::convert_variables_to_value( $styles, $vars );
 		return $theme_json;
+	}
+
+	/**
+	 * Generates a selector for a block style variation.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $variation_name Name of the block style variation.
+	 * @param string $block_selector CSS selector for the block.
+	 * @return string Block selector with block style variation selector added to it.
+	 */
+	protected static function get_block_style_variation_selector( $variation_name, $block_selector ) {
+		$variation_class = ".is-style-$variation_name";
+
+		if ( ! $block_selector ) {
+			return $variation_class;
+		}
+
+		$limit          = 1;
+		$selector_parts = explode( ',', $block_selector );
+		$result         = array();
+
+		foreach ( $selector_parts as $part ) {
+			$result[] = preg_replace_callback(
+				'/((?::\([^)]+\))?\s*)([^\s:]+)/',
+				function ( $matches ) use ( $variation_class ) {
+					return $matches[1] . $matches[2] . $variation_class;
+				},
+				$part,
+				$limit
+			);
+		}
+
+		return implode( ',', $result );
 	}
 }
