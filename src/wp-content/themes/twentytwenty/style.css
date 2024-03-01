@@ -3111,6 +3111,36 @@ ol.wp-block-latest-comments {
 	text-transform: inherit;
 }
 
+/*
+* Set a default border style so that borders show on the front when
+* the button only has a border color or border width set.
+* Supported from WordPress 6.3.
+*/
+.wp-block-button__link:where([style*=border-width]),
+.wp-block-button__link:where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-top-width"]),
+.wp-block-button__link:where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-right-width"]),
+.wp-block-button__link:where([style*="border-right-color"]) {
+	border-left-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-bottom-width"]),
+.wp-block-button__link:where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-left-width"]),
+.wp-block-button__link:where([style*="border-left-color"]) {
+	border-right-style: solid;
+}
+
 /* Block: Columns ---------------------------- */
 
 .wp-block-columns.alignfull,
