@@ -103,7 +103,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$parent_url    = get_post( $attachment_id )->guid;
 		$cropped       = str_replace( wp_basename( $parent_url ), 'cropped-test-image.jpg', $parent_url );
 
-		$object     = wp_copy_parent_attachment_properties( $cropped, $attachment_id );
+		$object     = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'site-icon' );
 		$cropped_id = $this->wp_site_icon->insert_attachment( $object, $cropped );
 
 		$this->assertIsInt( $cropped_id );

@@ -36,7 +36,7 @@ class Tests_Media_wpCopyParentAttachmentProperties extends WP_UnitTestCase {
 			100
 		);
 
-		$object  = wp_copy_parent_attachment_properties( $cropped, $attachment );
+		$object  = wp_copy_parent_attachment_properties( $file, $attachment );
 		$cropped = str_replace( wp_basename( $parent_url ), 'cropped-canola.jpg', $parent_url );
 
 		$this->assertSame( $object['post_title'], 'cropped-canola.jpg', 'Attachment title is not identical' );

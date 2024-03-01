@@ -119,7 +119,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 
 		$cropped = 'foo-cropped.png';
-		$object  = wp_copy_parent_attachment_properties( $cropped, $id );
+		$object  = wp_copy_parent_attachment_properties( $cropped, $id, 'custom-header' );
 
 		$cropped_id = $this->custom_image_header->insert_attachment( $object, $cropped );
 
@@ -142,7 +142,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 		// Create inital crop object.
 		$cropped_1 = 'foo-cropped-1.png';
-		$object    = wp_copy_parent_attachment_properties( $cropped_1, $id );
+		$object    = wp_copy_parent_attachment_properties( $cropped_1, $id, 'custom-header' );
 
 		// Ensure no previous crop exists.
 		$previous = $this->custom_image_header->get_previous_crop( $object );
