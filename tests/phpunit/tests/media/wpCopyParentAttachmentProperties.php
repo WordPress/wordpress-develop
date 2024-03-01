@@ -26,7 +26,7 @@ class Tests_Media_wpCopyParentAttachmentProperties extends WP_UnitTestCase {
 				'post_excerpt' => 'Image description',
 			)
 		);
-		$cropped = wp_crop_image(
+		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
 			0,
 			0,
@@ -47,6 +47,6 @@ class Tests_Media_wpCopyParentAttachmentProperties extends WP_UnitTestCase {
 		$this->assertSame( $object['meta_input']['_wp_attachment_image_alt'], 'Alt text', 'Attachment alt text is not identical' );
 		$this->assertSame( $object['post_excerpt'], 'Image description', 'Attachment description is not identical' );
 
-		unlink( $cropped );
+		unlink( $file );
 	}
 }
