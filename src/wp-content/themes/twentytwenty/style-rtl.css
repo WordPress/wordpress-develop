@@ -3040,6 +3040,7 @@ ol.wp-block-latest-comments {
 /*
 * Set a default border style so that borders show on the front when
 * the avatar only has a border color or border width set.
+* Supported from WordPress 6.3.
 */
 .wp-block-avatar :where([style*=border-width]),
 .wp-block-avatar :where(.has-border-color) {
@@ -3088,6 +3089,36 @@ ol.wp-block-latest-comments {
 .wp-block-buttons[style*="text-transform"] .wp-block-button__link,
 .wp-block-button[style*="text-transform"] .wp-block-button__link {
 	text-transform: inherit;
+}
+
+/*
+* Set a default border style so that borders show on the front when
+* the button only has a border color or border width set.
+* Supported from WordPress 6.3.
+*/
+.wp-block-button__link:where([style*=border-width]),
+.wp-block-button__link:where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-top-width"]),
+.wp-block-button__link:where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-right-width"]),
+.wp-block-button__link:where([style*="border-right-color"]) {
+	border-right-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-bottom-width"]),
+.wp-block-button__link:where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-left-width"]),
+.wp-block-button__link:where([style*="border-left-color"]) {
+	border-left-style: solid;
 }
 
 /* Block: Columns ---------------------------- */
@@ -3253,6 +3284,7 @@ figure.wp-block-gallery.alignfull {
 /*
 * Set a default border style so that borders show on the front when
 * the image only has a border color or border width set.
+* Supported from WordPress 6.3.
 */
 .wp-block-post-featured-image :where([style*=border-width]),
 .wp-block-post-featured-image :where(.has-border-color) {
@@ -3285,6 +3317,7 @@ figure.wp-block-gallery.alignfull {
 /*
 * Set a default border style so that borders show on the front when
 * the footnote only has a border color or border width set.
+* Supported from WordPress 6.3.
 */
 .wp-block-footnotes:where([style*=border-width]),
 .wp-block-footnotes:where(.has-border-color) {
