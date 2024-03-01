@@ -499,7 +499,7 @@ function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, 
 	$url             = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
 	$size       = wp_getimagesize( $cropped );
-	$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
+	$image_type = $size ? $size['mime'] : 'image/jpeg';
 
 	$sanitized_post_title = sanitize_file_name( $parent->post_title );
 	$use_original_title   = (
