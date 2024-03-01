@@ -1065,12 +1065,10 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			$is_value_array  = is_array( $value );
-			$is_schema_array = is_array( $schema[ $key ] );
-
-			// Check if the value is an array and requires further processing.
-			if ( $is_value_array && $is_schema_array ) {
-				if ( wp_is_numeric_array( $value ) ) {
+			if ( is_array( $schema[ $key ] ) ) {
+				if ( ! is_array( $value ) ) {
+					unset( $tree[ $key ] );
+				} elseif ( wp_is_numeric_array( $value ) ) {
 					// If indexed, process each item in the array.
 					foreach ( $value as $item_key => $item_value ) {
 						if ( isset( $schema[ $key ][0] ) && is_array( $schema[ $key ][0] ) ) {
@@ -1088,10 +1086,6 @@ class WP_Theme_JSON {
 						unset( $tree[ $key ] );
 					}
 				}
-			}
-
-			if ( $is_schema_array && ! $is_value_array ) {
-				unset( $tree[ $key ] );
 			}
 		}
 		return $tree;
