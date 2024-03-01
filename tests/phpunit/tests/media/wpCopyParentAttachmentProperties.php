@@ -35,7 +35,7 @@ class Tests_Media_wpCopyParentAttachmentProperties extends WP_UnitTestCase {
 			100
 		);
 
-		$object  = wp_copy_parent_attachment_properties( $cropped, $attachment );
+		$object = wp_copy_parent_attachment_properties( $cropped, $attachment );
 
 		$this->assertSame( $object['post_title'], 'cropped-canola.jpg' );
 		$this->assertSame( $object['context'], '' );
