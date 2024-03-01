@@ -3060,6 +3060,7 @@ ol.wp-block-latest-comments {
 /*
 * Set a default border style so that borders show on the front when
 * the avatar only has a border color or border width set.
+* Supported from WordPress 6.3.
 */
 .wp-block-avatar :where([style*=border-width]),
 .wp-block-avatar :where(.has-border-color) {
@@ -3273,6 +3274,7 @@ figure.wp-block-gallery.alignfull {
 /*
 * Set a default border style so that borders show on the front when
 * the image only has a border color or border width set.
+* Supported from WordPress 6.3.
 */
 .wp-block-post-featured-image :where([style*=border-width]),
 .wp-block-post-featured-image :where(.has-border-color) {
@@ -3305,6 +3307,7 @@ figure.wp-block-gallery.alignfull {
 /*
 * Set a default border style so that borders show on the front when
 * the footnote only has a border color or border width set.
+* Supported from WordPress 6.3.
 */
 .wp-block-footnotes:where([style*=border-width]),
 .wp-block-footnotes:where(.has-border-color) {
