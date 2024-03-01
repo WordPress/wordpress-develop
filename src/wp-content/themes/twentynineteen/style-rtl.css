@@ -5533,6 +5533,26 @@ body.page .main-navigation {
   color: white;
 }
 
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*=border-width]), .entry .entry-content .wp-block-button .wp-block-button__link:where(.has-border-color) {
+  border-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-top-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-top-color"]) {
+  border-top-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-right-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-right-color"]) {
+  border-right-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-bottom-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-bottom-color"]) {
+  border-bottom-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-left-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-left-color"]) {
+  border-left-style: solid;
+}
+
 .entry .entry-content .wp-block-button .wp-block-button__link:hover {
   color: white;
   background: #111;
