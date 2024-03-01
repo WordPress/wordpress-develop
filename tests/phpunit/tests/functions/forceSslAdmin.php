@@ -2,7 +2,7 @@
 /**
  * Tests for the force_ssl_admin function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::force_ssl_admin
  */
