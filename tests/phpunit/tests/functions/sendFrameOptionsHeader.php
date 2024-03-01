@@ -3,7 +3,7 @@
 /**
  * Tests for the send_frame_options_header function.
  *
- * @group functions.php
+ * @group functions
  *
  * @covers ::send_frame_options_header
  */
