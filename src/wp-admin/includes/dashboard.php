@@ -1088,7 +1088,11 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		}
 
 		foreach ( $possible as $comment ) {
-			if ( ! current_user_can( 'read_post', $comment->comment_post_ID ) ) {
+			if ( ! current_user_can( 'edit_post', $comment->comment_post_ID )
+				&& ( post_password_required( $comment->comment_post_ID )
+					|| ! current_user_can( 'read_post', $comment->comment_post_ID ) )
+			) {
+				// The user has no access to the post and thus cannot see the comments.
 				continue;
 			}
 
@@ -1109,16 +1113,7 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 
 		echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
 		foreach ( $comments as $comment ) {
-			$comment_post = get_post( $comment->comment_post_ID );
-			if (
-				current_user_can( 'edit_post', $comment->comment_post_ID ) ||
-				(
-					empty( $comment_post->post_password ) &&
-					current_user_can( 'read_post', $comment->comment_post_ID )
-				)
-			) {
-				_wp_dashboard_recent_comments_row( $comment );
-			}
+			_wp_dashboard_recent_comments_row( $comment );
 		}
 		echo '</ul>';
 
@@ -1577,7 +1572,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $link The widget's secondary link URL.
 			 */
-			'link'         => apply_filters( 'dashboard_secondary_link', __( 'https://planet.wordpress.org/' ) ),
+			'link'         => apply_filters(
+				'dashboard_secondary_link',
+				/* translators: Link to the Planet website of the locale. */
+				__( 'https://planet.wordpress.org/' )
+			),
 
 			/**
 			 * Filters the secondary feed URL for the 'WordPress Events and News' dashboard widget.
@@ -1586,7 +1585,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $url The widget's secondary feed URL.
 			 */
-			'url'          => apply_filters( 'dashboard_secondary_feed', __( 'https://planet.wordpress.org/feed/' ) ),
+			'url'          => apply_filters(
+				'dashboard_secondary_feed',
+				/* translators: Link to the Planet feed of the locale. */
+				__( 'https://planet.wordpress.org/feed/' )
+			),
 
 			/**
 			 * Filters the secondary link title for the 'WordPress Events and News' dashboard widget.

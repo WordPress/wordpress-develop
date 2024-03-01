@@ -3988,7 +3988,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 3, $q->found_comments );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -4017,7 +4017,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 3, $q->found_comments );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
