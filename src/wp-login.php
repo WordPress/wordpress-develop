@@ -47,8 +47,8 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 
 	add_action( 'login_head', 'wp_login_viewport_meta' );
 
-	if ( $title === null ) {
-        $title = __( 'Log In' );
+	if ( null === $title ) {
+		$title = __( 'Log In' );
 	}
 
 	if ( ! is_wp_error( $wp_error ) ) {
