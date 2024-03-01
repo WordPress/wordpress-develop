@@ -804,6 +804,13 @@
 		td {
 			border-color: $color__text-light;
 		}
+
+		:where(.has-border-color) {
+			th,
+			td {
+				border-color: inherit;
+			};
+		}
 	}
 
 	//! File
