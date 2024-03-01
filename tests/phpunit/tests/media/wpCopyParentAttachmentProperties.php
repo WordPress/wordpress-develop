@@ -48,5 +48,4 @@ class Tests_Media_wpCopyParentAttachmentProperties extends WP_UnitTestCase {
 
 		unlink( $cropped );
 	}
-
 }
