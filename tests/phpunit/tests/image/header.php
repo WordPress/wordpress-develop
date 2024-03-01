@@ -156,7 +156,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 		// Create second crop.
 		$cropped_2 = 'foo-cropped-2.png';
-		$object    = $this->custom_image_header->create_attachment_object( $cropped_2, $id );
+		$object    = wp_copy_parent_attachment_properties( $cropped_2, $id );
 
 		// Test that a previous crop is found.
 		$previous = $this->custom_image_header->get_previous_crop( $object );
