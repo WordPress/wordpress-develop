@@ -1316,12 +1316,23 @@ endif;
 	 * Creates an attachment 'object'.
 	 *
 	 * @since 3.9.0
+	 * @deprecated 6.5.0
 	 *
 	 * @param string $cropped              Cropped image URL.
 	 * @param int    $parent_attachment_id Attachment ID of parent image.
 	 * @return array An array with attachment object data.
 	 */
 	final public function create_attachment_object( $cropped, $parent_attachment_id ) {
+		_doing_it_wrong(
+			'custom_image_header_create_attachment_object',
+			sprintf(
+			// translators: 1: The Custom_Image_Header method that is no longer used by core. 2: The new function that replaces it.
+				__( 'The %1$s method has been replaced with %2$s.' ),
+				'Custom_Image_Header::create_attachment_object',
+				'wp_copy_parent_attachment_properties'
+			),
+			'6.5.0'
+		);
 		$parent     = get_post( $parent_attachment_id );
 		$parent_url = wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
