@@ -792,4 +792,38 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertSame( (bool) wp_using_ext_object_cache(), $filter->get_args()[0][0] );
 	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		add_filter( 'split_the_query', '__return_false' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		remove_filter( 'split_the_query', '__return_false' );
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace_split_the_query() {
+		add_filter( 'split_the_query', '__return_true' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		remove_filter( 'split_the_query', '__return_true' );
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
 }
