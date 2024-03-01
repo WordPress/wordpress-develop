@@ -40,7 +40,7 @@ class Tests_Functions_SendFrameOptionsHeader extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'send_frame_options_header' ) );
 
 		ob_start();
-
+		send_frame_options_header();
 		// Check the header.
 		$headers = xdebug_get_headers();
 		ob_end_clean();
