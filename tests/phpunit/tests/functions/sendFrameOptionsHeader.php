@@ -7,7 +7,7 @@
  *
  * @covers ::send_frame_options_header
  */
-class Tests_functions_sendFrameOptionsHeader extends WP_UnitTestCase{
+class Tests_Functions_SendFrameOptionsHeader extends WP_UnitTestCase {
 
 
 	/**
