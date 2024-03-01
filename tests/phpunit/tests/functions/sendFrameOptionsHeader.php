@@ -44,7 +44,7 @@ class Tests_Functions_SendFrameOptionsHeader extends WP_UnitTestCase {
 		// Check the header.
 		$headers = xdebug_get_headers();
 		ob_end_clean();
-
+var_dump( $headers );
 		$this->assertContains( 'X-Frame-Options: SAMEORIGIN', $headers );
 	}
 }
