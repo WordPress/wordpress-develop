@@ -3279,6 +3279,38 @@ figure.wp-block-gallery.alignfull {
 	border-right-style: solid;
 }
 
+
+/* Block: Footnotes ------------------------------ */
+
+/*
+* Set a default border style so that borders show on the front when
+* the footnote only has a border color or border width set.
+*/
+.wp-block-footnotes:where([style*=border-width]),
+.wp-block-footnotes:where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-top-width"]),
+.wp-block-footnotes:where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-right-width"]),
+.wp-block-footnotes:where([style*="border-right-color"]) {
+	border-left-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-bottom-width"]),
+.wp-block-footnotes:where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-left-width"]),
+.wp-block-footnotes:where([style*="border-left-color"]) {
+	border-right-style: solid;
+}
+
 /* Block: Pullquote -------------------------- */
 
 /* STYLE: DEFAULT */
