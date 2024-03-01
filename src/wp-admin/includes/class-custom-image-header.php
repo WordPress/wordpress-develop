@@ -1079,8 +1079,6 @@ endif;
 
 		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'custom-header' );
 
-		$attachment['post_parent'] = $attachment_id;
-
 		if ( ! empty( $_POST['create-new-attachment'] ) ) {
 			unset( $attachment['ID'] );
 		}
@@ -1435,8 +1433,6 @@ endif;
 		$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
 		$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, 'custom-header' );
-
-		$attachment['post_parent'] = $attachment_id;
 
 		$previous = $this->get_previous_crop( $attachment );
 

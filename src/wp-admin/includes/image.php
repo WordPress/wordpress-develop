@@ -533,6 +533,8 @@ function wp_copy_parent_attachment_properties( $cropped, $parent_attachment_id, 
 		);
 	}
 
+	$attachment['post_parent'] = $parent_attachment_id;
+
 	return $attachment;
 }
 
