@@ -18,3 +18,19 @@ msgstr "Puerto Moresby"
 #: wp-admin/includes/continents-cities.php:248
 msgid "Arctic"
 msgstr "Ártico"
+
+#: wp-admin/includes/continents-cities.php:149
+msgid "Iqaluit"
+msgstr "Iqaluit"
+
+#: wp-admin/includes/continents-cities.php:148
+msgid "Inuvik"
+msgstr "Inuvik"
+
+#: wp-admin/includes/continents-cities.php:146
+msgid "Vincennes"
+msgstr "Vincennes"
+
+#: wp-admin/includes/continents-cities.php:147
+msgid "Winamac"
+msgstr "Winamac"
