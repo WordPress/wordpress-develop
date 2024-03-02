@@ -36,7 +36,6 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 */
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
-		unset( $GLOBALS['post'] );
 	}
 
 	/**
@@ -46,7 +45,7 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		// This seems to be needed to ensure that $GLOBALS['post'] is not null in all the tests.
+		// Needed because tear_down() will reset it between tests.
 		$GLOBALS['post'] = self::$post;
 	}
 
