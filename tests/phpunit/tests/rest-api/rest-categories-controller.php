@@ -223,7 +223,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'parent'     => 0,
 		);
 		$categories = get_terms( 'category', $args );
-		$this->assertSame( count( $categories ), count( $data ) );
+		$this->assertCount( count( $categories ), $data );
 	}
 
 	public function test_get_items_parent_zero_arg_string() {
@@ -255,7 +255,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'parent'     => 0,
 		);
 		$categories = get_terms( 'category', $args );
-		$this->assertSame( count( $categories ), count( $data ) );
+		$this->assertCount( count( $categories ), $data );
 	}
 
 	public function test_get_items_by_parent_non_found() {
@@ -1189,7 +1189,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'hide_empty' => false,
 		);
 		$categories = get_terms( 'category', $args );
-		$this->assertSame( count( $categories ), count( $data ) );
+		$this->assertCount( count( $categories ), $data );
 		$this->assertSame( $categories[0]->term_id, $data[0]['id'] );
 		$this->assertSame( $categories[0]->name, $data[0]['name'] );
 		$this->assertSame( $categories[0]->slug, $data[0]['slug'] );

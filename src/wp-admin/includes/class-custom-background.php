@@ -42,8 +42,11 @@ class Custom_Background {
 	 * Constructor - Registers administration header callback.
 	 *
 	 * @since 3.0.0
-	 * @param callable $admin_header_callback
-	 * @param callable $admin_image_div_callback Optional custom image div output callback.
+	 *
+	 * @param callable $admin_header_callback    Optional. Administration header callback.
+	 *                                           Default empty string.
+	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                           Default empty string.
 	 */
 	public function __construct( $admin_header_callback = '', $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -571,8 +574,9 @@ class Custom_Background {
 		$thumbnail = wp_get_attachment_image_src( $id, 'thumbnail' );
 		set_theme_mod( 'background_image_thumb', sanitize_url( $thumbnail[0] ) );
 
-		/** This action is documented in wp-admin/includes/class-custom-image-header.php */
-		do_action( 'wp_create_file_in_uploads', $file, $id ); // For replication.
+		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
+		$file = apply_filters( 'wp_create_file_in_uploads', $file, $id ); // For replication.
+
 		$this->updated = true;
 	}
 

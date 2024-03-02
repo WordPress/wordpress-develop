@@ -838,10 +838,74 @@ class Tests_Auth extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @ticket 52529
+	 */
+	public function test_reset_password_with_apostrophe_in_email() {
+		$user_args = array(
+			'user_email' => "jo'hn@example.com",
+			'user_pass'  => 'password',
+		);
+
+		$user_id = self::factory()->user->create( $user_args );
+
+		$user = get_userdata( $user_id );
+		$key  = get_password_reset_key( $user );
+
+		// A correctly saved key should be accepted.
+		$check = check_password_reset_key( $key, $user->user_login );
+
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $user_id, $check->ID );
+	}
+
 	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {
 		return array(
 			'allowed'     => array( 'editor', true ),
 			'not allowed' => array( 'subscriber', false ),
 		);
+	}
+
+	/*
+	 * @ticket 57512
+	 * @covers ::wp_populate_basic_auth_from_authorization_header
+	 */
+	public function tests_basic_http_authentication_with_username_and_password() {
+		// Header passed as "username:password".
+		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ=';
+
+		wp_populate_basic_auth_from_authorization_header();
+
+		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
+		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'password' );
+	}
+
+	/*
+	 * @ticket 57512
+	 * @covers ::wp_populate_basic_auth_from_authorization_header
+	 */
+	public function tests_basic_http_authentication_with_username_only() {
+		// Malformed header passed as "username" with no password.
+		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU=';
+
+		wp_populate_basic_auth_from_authorization_header();
+
+		$this->assertArrayNotHasKey( 'PHP_AUTH_USER', $_SERVER );
+		$this->assertArrayNotHasKey( 'PHP_AUTH_PW', $_SERVER );
+	}
+
+	/*
+	 * @ticket 57512
+	 * @covers ::wp_populate_basic_auth_from_authorization_header
+	 */
+	public function tests_basic_http_authentication_with_colon_in_password() {
+		// Header passed as "username:pass:word" where password contains colon.
+		$_SERVER['HTTP_AUTHORIZATION'] = 'Basic dXNlcm5hbWU6cGFzczp3b3Jk';
+
+		wp_populate_basic_auth_from_authorization_header();
+
+		$this->assertSame( $_SERVER['PHP_AUTH_USER'], 'username' );
+		$this->assertSame( $_SERVER['PHP_AUTH_PW'], 'pass:word' );
 	}
 }

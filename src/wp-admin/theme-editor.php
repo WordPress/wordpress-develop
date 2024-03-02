@@ -195,7 +195,7 @@ if ( isset( $_GET['a'] ) ) {
 		__( 'File edited successfully.' ),
 		array(
 			'id'                 => 'message',
-			'is-dismissible'     => true,
+			'dismissible'        => true,
 			'additional_classes' => array( 'updated' ),
 		)
 	);
@@ -262,7 +262,12 @@ if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_ca
 
 <?php
 if ( $theme->errors() ) {
-	echo '<div class="error"><p><strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme->errors()->get_error_message() . '</p></div>';
+	wp_admin_notice(
+		'<strong>' . __( 'This theme is broken.' ) . '</strong> ' . $theme->errors()->get_error_message(),
+		array(
+			'additional_classes' => array( 'error' ),
+		)
+	);
 }
 ?>
 
@@ -294,7 +299,12 @@ if ( $theme->errors() ) {
 
 <?php
 if ( $error ) :
-	echo '<div class="error"><p>' . __( 'File does not exist! Please double check the name and try again.' ) . '</p></div>';
+	wp_admin_notice(
+		__( 'File does not exist! Please double check the name and try again.' ),
+		array(
+			'additional_classes' => array( 'error' ),
+		)
+	);
 else :
 	?>
 	<form name="template" id="template" action="theme-editor.php" method="post">
@@ -311,7 +321,7 @@ else :
 			<div id="documentation" class="hide-if-no-js">
 				<label for="docs-list"><?php _e( 'Documentation:' ); ?></label>
 				<?php echo $docs_select; ?>
-				<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
+				<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' !== jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
 			</div>
 		<?php endif; ?>
 

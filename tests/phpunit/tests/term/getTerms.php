@@ -3172,7 +3172,7 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 		$num_queries_1 = get_num_queries();
 		$query2        = get_terms( $args_2 );
 		$this->assertSame( $num_queries_1, get_num_queries() );
-		$this->assertSame( count( $query1 ), count( $query2 ) );
+		$this->assertCount( count( $query1 ), $query2 );
 	}
 
 	/**

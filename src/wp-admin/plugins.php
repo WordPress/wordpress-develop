@@ -40,6 +40,8 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( $query_args_to_remove, $_SERVER['REQ
 
 wp_enqueue_script( 'updates' );
 
+WP_Plugin_Dependencies::initialize();
+
 if ( $action ) {
 
 	switch ( $action ) {
@@ -339,15 +341,31 @@ if ( $action ) {
 				?>
 				<?php if ( 1 === $plugins_to_delete ) : ?>
 					<h1><?php _e( 'Delete Plugin' ); ?></h1>
-					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
-						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'This plugin may be active on other sites in the network.' ); ?></p></div>
-					<?php endif; ?>
+					<?php
+					if ( $have_non_network_plugins && is_network_admin() ) :
+						$maybe_active_plugin = '<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'This plugin may be active on other sites in the network.' );
+						wp_admin_notice(
+							$maybe_active_plugin,
+							array(
+								'additional_classes' => array( 'error' ),
+							)
+						);
+					endif;
+					?>
 					<p><?php _e( 'You are about to remove the following plugin:' ); ?></p>
 				<?php else : ?>
 					<h1><?php _e( 'Delete Plugins' ); ?></h1>
-					<?php if ( $have_non_network_plugins && is_network_admin() ) : ?>
-						<div class="error"><p><strong><?php _e( 'Caution:' ); ?></strong> <?php _e( 'These plugins may be active on other sites in the network.' ); ?></p></div>
-					<?php endif; ?>
+					<?php
+					if ( $have_non_network_plugins && is_network_admin() ) :
+						$maybe_active_plugins = '<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'These plugins may be active on other sites in the network.' );
+						wp_admin_notice(
+							$maybe_active_plugins,
+							array(
+								'additional_classes' => array( 'error' ),
+							)
+						);
+					endif;
+					?>
 					<p><?php _e( 'You are about to remove the following plugins:' ); ?></p>
 				<?php endif; ?>
 					<ul class="ul-disc">
@@ -411,8 +429,9 @@ if ( $action ) {
 
 			$delete_result = delete_plugins( $plugins );
 
-			// Store the result in a cache rather than a URL param due to object type & length.
-			set_transient( 'plugins_delete_result_' . $user_ID, $delete_result );
+			// Store the result in an option rather than a URL param due to object type & length.
+			// Cannot use transient/cache, as that could get flushed if any plugin flushes data on uninstall/delete.
+			update_option( 'plugins_delete_result_' . $user_ID, $delete_result, false );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
 		case 'clear-recent-list':
@@ -495,7 +514,7 @@ if ( $action ) {
 
 				// Return early if all selected plugins already have auto-updates enabled or disabled.
 				// Must use non-strict comparison, so that array order is not treated as significant.
-				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+				if ( $new_auto_updates == $auto_updates ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 					wp_redirect( $redirect );
 					exit;
 				}
@@ -607,14 +626,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 $invalid = validate_active_plugins();
 if ( ! empty( $invalid ) ) {
 	foreach ( $invalid as $plugin_file => $error ) {
-		echo '<div id="message" class="error"><p>';
-		printf(
+		$deactivated_message = sprintf(
 			/* translators: 1: Plugin file, 2: Error message. */
 			__( 'The plugin %1$s has been deactivated due to an error: %2$s' ),
 			'<code>' . esc_html( $plugin_file ) . '</code>',
 			esc_html( $error->get_error_message() )
 		);
-		echo '</p></div>';
+		wp_admin_notice(
+			$deactivated_message,
+			array(
+				'id'                 => 'message',
+				'additional_classes' => array( 'error' ),
+			)
+		);
 	}
 }
 
@@ -669,9 +693,9 @@ if ( isset( $_GET['error'] ) ) {
 	);
 
 } elseif ( isset( $_GET['deleted'] ) ) {
-	$delete_result       = get_transient( 'plugins_delete_result_' . $user_ID );
+	$delete_result = get_option( 'plugins_delete_result_' . $user_ID );
 	// Delete it once we're done.
-	delete_transient( 'plugins_delete_result_' . $user_ID );
+	delete_option( 'plugins_delete_result_' . $user_ID );
 
 	if ( is_wp_error( $delete_result ) ) {
 		$plugin_not_deleted_message = sprintf(
@@ -718,6 +742,8 @@ if ( isset( $_GET['error'] ) ) {
 }
 ?>
 
+<?php WP_Plugin_Dependencies::display_admin_notice_for_unmet_dependencies(); ?>
+<?php WP_Plugin_Dependencies::display_admin_notice_for_circular_dependencies(); ?>
 <div class="wrap">
 <h1 class="wp-heading-inline">
 <?php

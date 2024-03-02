@@ -176,12 +176,14 @@ body.js .theme-browser.search-loading {
 }
 
 .theme-browser .theme .more-details:focus {
-	box-shadow: 0 0 0 1px #fff, 0 0 0 3px #2271b1;
+	box-shadow: 0 0 0 2px #2271b1;
 }
 
 .theme-browser .theme.focus {
-	border-color: #4f94d4;
-	box-shadow: 0 0 2px rgba(79, 148, 212, 0.8);
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .theme-browser .theme.focus .more-details {
@@ -506,10 +508,12 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	z-index: 30;
 	box-sizing: border-box;
 	border-top: 1px solid #f0f0f1;
+	display: flex;
+	justify-content: center;
+	gap: 5px;
 }
 
-.theme-overlay .theme-actions a {
-	margin-right: 5px;
+.theme-overlay .theme-actions .button {
 	margin-bottom: 5px;
 }
 
@@ -521,26 +525,21 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 
 .broken-themes a.delete-theme,
 .theme-overlay .theme-actions .delete-theme {
-	color: #d63638;
+	color: #b32d2e;
 	text-decoration: none;
 	border-color: transparent;
 	box-shadow: none;
 	background: transparent;
 }
 
-.theme-overlay .theme-actions .delete-theme {
-	position: absolute;
-	right: 10px;
-	bottom: 5px;
-}
-
 .broken-themes a.delete-theme:hover,
 .broken-themes a.delete-theme:focus,
 .theme-overlay .theme-actions .delete-theme:hover,
 .theme-overlay .theme-actions .delete-theme:focus {
-	background: #d63638;
+	background: #b32d2e;
 	color: #fff;
-	border-color: #d63638;
+	border-color: #b32d2e;
+	box-shadow: 0 0 0 1px #b32d2e;
 }
 
 .theme-overlay .theme-actions .active-theme,
@@ -1589,9 +1588,9 @@ body.full-overlay-active {
 
 .wp-full-overlay .collapse-sidebar:hover .collapse-sidebar-arrow,
 .wp-full-overlay .collapse-sidebar:focus .collapse-sidebar-arrow {
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .wp-full-overlay .collapse-sidebar-label {

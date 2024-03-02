@@ -73,7 +73,7 @@ function wp_embed_defaults( $url = '' ) {
 		$width = 500;
 	}
 
-	$height = min( ceil( $width * 1.5 ), 1000 );
+	$height = min( (int) ceil( $width * 1.5 ), 1000 );
 
 	/**
 	 * Filters the default array of embed dimensions.
@@ -577,7 +577,7 @@ function get_oembed_response_data( $post, $width ) {
 	);
 
 	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
-	$height = max( ceil( $width / 16 * 9 ), 200 );
+	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(
 		'version'       => '1.0',
@@ -1059,18 +1059,22 @@ function enqueue_embed_scripts() {
 }
 
 /**
- * Prints the CSS in the embed iframe header.
+ * Enqueues the CSS in the embed iframe header.
  *
- * @since 4.4.0
+ * @since 6.4.0
  */
-function print_embed_styles() {
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
-	?>
-	<style<?php echo $type_attr; ?>>
-		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
-	</style>
-	<?php
+function wp_enqueue_embed_styles() {
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'embed_head', 'print_embed_styles' ) ) {
+		return;
+	}
+	remove_action( 'embed_head', 'print_embed_styles' );
+
+	$suffix = wp_scripts_get_suffix();
+	$handle = 'wp-embed-template';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ) );
+	wp_enqueue_style( $handle );
 }
 
 /**

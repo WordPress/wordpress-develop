@@ -42,7 +42,7 @@ function list_core_update( $update ) {
 
 	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
 		$version_string = $update->current;
-	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version == $update->partial_version ) {
+	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version === $update->partial_version ) {
 		$updates = get_core_updates();
 		if ( $updates && 1 === count( $updates ) ) {
 			// If the only available update is a partial builds, it doesn't need a language-specific version string.
@@ -179,9 +179,9 @@ function list_core_update( $update ) {
 	}
 	echo '</p>';
 
-	if ( 'en_US' !== $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package != $update->locale ) ) {
+	if ( 'en_US' !== $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package !== $update->locale ) ) {
 		echo '<p class="hint">' . __( 'This localized version contains both the translation and various other localization fixes.' ) . '</p>';
-	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() && ( ! $update->packages->partial && $wp_version == $update->partial_version ) ) {
+	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() && ( ! $update->packages->partial && $wp_version === $update->partial_version ) ) {
 		// Partial builds don't need language-specific warnings.
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
@@ -582,7 +582,8 @@ function list_plugin_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_php ) : ?>
-				<label for="<?php echo $checkbox_id; ?>" class="label-covers-full-cell">
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
+				<label for="<?php echo $checkbox_id; ?>">
 					<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. %s: Plugin name. */
@@ -590,7 +591,6 @@ function list_plugin_updates() {
 					?>
 					</span>
 				</label>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
@@ -760,7 +760,8 @@ function list_theme_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
-				<label for="<?php echo $checkbox_id; ?>" class="label-covers-full-cell">
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
+				<label for="<?php echo $checkbox_id; ?>">
 					<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. %s: Theme name. */
@@ -768,7 +769,6 @@ function list_theme_updates() {
 					?>
 					</span>
 				</label>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
@@ -1072,16 +1072,22 @@ if ( 'upgrade-core' === $action ) {
 		if ( 'themes' === $upgrade_error ) {
 			$theme_updates = get_theme_updates();
 			if ( ! empty( $theme_updates ) ) {
-				echo '<div class="error"><p>';
-				_e( 'Please select one or more themes to update.' );
-				echo '</p></div>';
+				wp_admin_notice(
+					__( 'Please select one or more themes to update.' ),
+					array(
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			}
 		} else {
 			$plugin_updates = get_plugin_updates();
 			if ( ! empty( $plugin_updates ) ) {
-				echo '<div class="error"><p>';
-				_e( 'Please select one or more plugins to update.' );
-				echo '</p></div>';
+				wp_admin_notice(
+					__( 'Please select one or more plugins to update.' ),
+					array(
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			}
 		}
 	}
@@ -1099,8 +1105,15 @@ if ( 'upgrade-core' === $action ) {
 	echo '</h2>';
 
 	echo '<p class="update-last-checked">';
-	/* translators: 1: Date, 2: Time. */
-	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ), $last_update_check ), date_i18n( __( 'g:i a T' ), $last_update_check ) );
+
+	printf(
+		/* translators: 1: Date, 2: Time. */
+		__( 'Last checked on %1$s at %2$s.' ),
+		/* translators: Last update date format. See https://www.php.net/manual/datetime.format.php */
+		date_i18n( __( 'F j, Y' ), $last_update_check ),
+		/* translators: Last update time format. See https://www.php.net/manual/datetime.format.php */
+		date_i18n( __( 'g:i a T' ), $last_update_check )
+	);
 	echo ' <a href="' . esc_url( self_admin_url( 'update-core.php?force-check=1' ) ) . '">' . __( 'Check again.' ) . '</a>';
 	echo '</p>';
 

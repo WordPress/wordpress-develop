@@ -216,13 +216,13 @@ class WP_Filesystem_Base {
 				}
 			}
 		} elseif ( 'direct' === $this->method ) {
-			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitisation.
+			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
 
 			return trailingslashit( $folder );
 		}
 
 		$folder = preg_replace( '|^([a-z]{1}):|i', '', $folder ); // Strip out Windows drive letter if it's there.
-		$folder = str_replace( '\\', '/', $folder ); // Windows path sanitisation.
+		$folder = str_replace( '\\', '/', $folder ); // Windows path sanitization.
 
 		if ( isset( $this->cache[ $folder ] ) ) {
 			return $this->cache[ $folder ];
@@ -836,7 +836,7 @@ class WP_Filesystem_Base {
 	 * @return array|false {
 	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         Array of file information. Note that some elements may not be available on all filesystems.
 	 *
 	 *         @type string           $name        Name of the file or directory.

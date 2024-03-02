@@ -278,7 +278,7 @@ function get_comment_statuses() {
  *
  * @param string $post_type    Optional. Post type. Default 'post'.
  * @param string $comment_type Optional. Comment type. Default 'comment'.
- * @return string Expected return value is 'open' or 'closed'.
+ * @return string Either 'open' or 'closed'.
  */
 function get_default_comment_status( $post_type = 'post', $comment_type = 'comment' ) {
 	switch ( $comment_type ) {
@@ -396,6 +396,7 @@ function get_comment_count( $post_id = 0 ) {
 	$args = array(
 		'count'                     => true,
 		'update_comment_meta_cache' => false,
+		'orderby'                   => 'none',
 	);
 	if ( $post_id > 0 ) {
 		$args['post_id'] = $post_id;
@@ -1030,7 +1031,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 		$count = ceil( count( $comments ) / $per_page );
 	}
 
-	return $count;
+	return (int) $count;
 }
 
 /**
@@ -1114,6 +1115,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 			'fields'     => 'ids',
 			'count'      => true,
 			'status'     => 'approve',
+			'orderby'    => 'none',
 			'parent'     => 0,
 			'date_query' => array(
 				array(
@@ -1168,7 +1170,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 
 			// Divide comments older than this one by comments per page to get this comment's page number.
 		} else {
-			$page = ceil( ( $older_comment_count + 1 ) / $args['per_page'] );
+			$page = (int) ceil( ( $older_comment_count + 1 ) / $args['per_page'] );
 		}
 	}
 
@@ -3172,10 +3174,10 @@ function privacy_ping_filter( $sites ) {
  * @param string $trackback_url URL to send trackbacks.
  * @param string $title         Title of post.
  * @param string $excerpt       Excerpt of post.
- * @param int    $ID            Post ID.
+ * @param int    $post_id       Post ID.
  * @return int|false|void Database query from update.
  */
-function trackback( $trackback_url, $title, $excerpt, $ID ) {
+function trackback( $trackback_url, $title, $excerpt, $post_id ) {
 	global $wpdb;
 
 	if ( empty( $trackback_url ) ) {
@@ -3186,7 +3188,7 @@ function trackback( $trackback_url, $title, $excerpt, $ID ) {
 	$options['timeout'] = 10;
 	$options['body']    = array(
 		'title'     => $title,
-		'url'       => get_permalink( $ID ),
+		'url'       => get_permalink( $post_id ),
 		'blog_name' => get_option( 'blogname' ),
 		'excerpt'   => $excerpt,
 	);
@@ -3197,8 +3199,8 @@ function trackback( $trackback_url, $title, $excerpt, $ID ) {
 		return;
 	}
 
-	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET pinged = CONCAT(pinged, '\n', %s) WHERE ID = %d", $trackback_url, $ID ) );
-	return $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d", $trackback_url, $ID ) );
+	$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET pinged = CONCAT(pinged, '\n', %s) WHERE ID = %d", $trackback_url, $post_id ) );
+	return $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d", $trackback_url, $post_id ) );
 }
 
 /**
