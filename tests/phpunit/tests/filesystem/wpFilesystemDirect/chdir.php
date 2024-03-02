@@ -92,5 +92,4 @@ class Tests_Filesystem_WpFilesystemDirect_Chdir extends WP_Filesystem_Direct_Uni
 			'The current working directory was incorrect.'
 		);
 	}
-
 }

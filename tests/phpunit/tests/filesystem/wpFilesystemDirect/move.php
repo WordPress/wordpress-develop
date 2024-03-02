@@ -147,5 +147,4 @@ class Tests_Filesystem_WpFilesystemDirect_Move extends WP_Filesystem_Direct_Unit
 
 		$this->assertTrue( $actual );
 	}
-
 }

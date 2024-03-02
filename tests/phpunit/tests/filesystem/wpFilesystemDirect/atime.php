@@ -47,5 +47,4 @@ class Tests_Filesystem_WpFilesystemDirect_Atime extends WP_Filesystem_Direct_Uni
 
 		$this->assertFalse( self::$filesystem->atime( $path ) );
 	}
-
 }

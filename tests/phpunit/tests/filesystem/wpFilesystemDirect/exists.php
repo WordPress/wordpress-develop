@@ -41,5 +41,4 @@ class Tests_Filesystem_WpFilesystemDirect_Exists extends WP_Filesystem_Direct_Un
 	public function test_should_determine_that_a_path_does_not_exist( $path ) {
 		$this->assertFalse( self::$filesystem->exists( self::$file_structure['test_dir']['path'] . $path ) );
 	}
-
 }

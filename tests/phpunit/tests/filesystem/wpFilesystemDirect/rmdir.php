@@ -197,5 +197,4 @@ class Tests_Filesystem_WpFilesystemDirect_Rmdir extends WP_Filesystem_Direct_Uni
 
 		$this->assertFalse( $actual );
 	}
-
 }

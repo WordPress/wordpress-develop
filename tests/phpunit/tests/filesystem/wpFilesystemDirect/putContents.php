@@ -39,5 +39,4 @@ class Tests_Filesystem_WpFilesystemDirect_PutContents extends WP_Filesystem_Dire
 
 		$this->assertTrue( $actual, 'The contents were not inserted.' );
 	}
-
 }

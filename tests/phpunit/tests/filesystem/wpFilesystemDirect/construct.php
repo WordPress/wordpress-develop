@@ -36,5 +36,4 @@ class Tests_Filesystem_WpFilesystemDirect_Construct extends WP_Filesystem_Direct
 			'The "$errors" property is not set to a WP_Error object.'
 		);
 	}
-
 }

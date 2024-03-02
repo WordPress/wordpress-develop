@@ -127,5 +127,4 @@ class Tests_Filesystem_WpFilesystemDirect_Dirlist extends WP_Filesystem_Direct_U
 		$this->assertIsArray( $actual['subdir']['files'], 'The "files" key was not set to an array.' );
 		$this->assertEmpty( $actual['subdir']['files'], 'The "files" array was not empty.' );
 	}
-
 }

@@ -208,5 +208,4 @@ class Tests_Filesystem_WpFilesystemDirect_Mkdir extends WP_Filesystem_Direct_Uni
 		$this->assertTrue( $created, 'The directory was not created.' );
 		$this->assertSame( $expected_group, $group, 'The group is incorrect.' );
 	}
-
 }

@@ -90,5 +90,4 @@ class Tests_Filesystem_WpFilesystemDirect_Touch extends WP_Filesystem_Direct_Uni
 			),
 		);
 	}
-
 }

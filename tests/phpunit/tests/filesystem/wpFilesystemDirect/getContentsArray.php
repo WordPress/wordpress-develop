@@ -54,5 +54,4 @@ class Tests_Filesystem_WpFilesystemDirect_GetContentsArray extends WP_Filesystem
 	public function test_should_return_false( $path ) {
 		$this->assertFalse( self::$filesystem->get_contents_array( self::$file_structure['test_dir']['path'] . $path ) );
 	}
-
 }

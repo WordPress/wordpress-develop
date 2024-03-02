@@ -194,5 +194,4 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

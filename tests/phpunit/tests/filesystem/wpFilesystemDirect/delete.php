@@ -201,5 +201,4 @@ class Tests_Filesystem_WpFilesystemDirect_Delete extends WP_Filesystem_Direct_Un
 
 		$this->assertFalse( $actual );
 	}
-
 }

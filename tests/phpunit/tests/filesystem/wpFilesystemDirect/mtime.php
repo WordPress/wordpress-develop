@@ -65,5 +65,4 @@ class Tests_Filesystem_WpFilesystemDirect_Mtime extends WP_Filesystem_Direct_Uni
 			'The mtime is an integer.'
 		);
 	}
-
 }

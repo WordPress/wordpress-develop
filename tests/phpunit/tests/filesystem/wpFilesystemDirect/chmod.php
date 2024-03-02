@@ -74,5 +74,4 @@ class Tests_Filesystem_WpFilesystemDirect_Chmod extends WP_Filesystem_Direct_Uni
 			),
 		);
 	}
-
 }

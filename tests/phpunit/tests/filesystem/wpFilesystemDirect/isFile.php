@@ -58,5 +58,4 @@ class Tests_Filesystem_WpFilesystemDirect_IsFile extends WP_Filesystem_Direct_Un
 			),
 		);
 	}
-
 }

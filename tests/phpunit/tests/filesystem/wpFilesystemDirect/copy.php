@@ -69,5 +69,4 @@ class Tests_Filesystem_WpFilesystemDirect_Copy extends WP_Filesystem_Direct_Unit
 		$source = self::$file_structure['test_dir']['path'] . 'a_file_that_exists.txt';
 		$this->assertFalse( self::$filesystem->copy( $source, $source, true ) );
 	}
-
 }

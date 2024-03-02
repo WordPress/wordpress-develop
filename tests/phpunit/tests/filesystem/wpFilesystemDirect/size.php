@@ -60,5 +60,4 @@ class Tests_Filesystem_WpFilesystemDirect_Size extends WP_Filesystem_Direct_Unit
 			'A file size was determined.'
 		);
 	}
-
 }

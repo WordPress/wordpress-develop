@@ -43,5 +43,4 @@ class Tests_Filesystem_WpFilesystemDirect_IsReadable extends WP_Filesystem_Direc
 	public function test_should_determine_that_a_path_is_not_readable( $path ) {
 		$this->assertFalse( self::$filesystem->is_readable( self::$file_structure['test_dir']['path'] . $path ) );
 	}
-
 }
