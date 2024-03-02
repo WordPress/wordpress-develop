@@ -85,16 +85,8 @@ class WP_Site_Icon {
 	 * @return array An array with attachment object data.
 	 */
 	public function create_attachment_object( $cropped, $parent_attachment_id ) {
-		_doing_it_wrong(
-			'wp_site_icon_create_attachment_object',
-			sprintf(
-			// translators: 1: The Custom_Site_Icon method that is no longer used by core. 2: The new function that replaces it.
-				__( 'The %1$s method has been replaced with %2$s.' ),
-				'WP_Site_Icon::create_attachment_object',
-				'wp_copy_parent_attachment_properties'
-			),
-			'6.5.0'
-		);
+		_deprecated_function( __METHOD__, '6.5.0', 'wp_copy_parent_attachment_properties()' );
+
 		$parent     = get_post( $parent_attachment_id );
 		$parent_url = wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
