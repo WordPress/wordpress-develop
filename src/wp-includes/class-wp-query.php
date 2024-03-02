@@ -3104,6 +3104,7 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
 		$old_request =
 			"SELECT $found_rows $distinct $fields
 			 FROM {$wpdb->posts} $join
@@ -3306,6 +3307,7 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
+				// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
 				$this->request =
 					"SELECT $found_rows $distinct {$wpdb->posts}.ID
 					 FROM {$wpdb->posts} $join
