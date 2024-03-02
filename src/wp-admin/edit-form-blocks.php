@@ -14,13 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @global string       $hook_suffix
  * @global string       $post_type
  * @global WP_Post_Type $post_type_object
  * @global WP_Post      $post             Global post object.
  * @global string       $title
  * @global array        $wp_meta_boxes
  */
-global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
+global $hook_suffix, $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 
@@ -268,8 +269,11 @@ wp_enqueue_style( 'wp-edit-post' );
  * `wp_enqueue_style` to add your functionality to the block editor.
  *
  * @since 5.0.0
+ * @since 6.2.0 Added the $hook_suffix parameter.
+ *
+ * @param string $hook_suffix The current admin page.
  */
-do_action( 'enqueue_block_editor_assets' );
+do_action( 'enqueue_block_editor_assets', $hook_suffix );
 
 // In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
