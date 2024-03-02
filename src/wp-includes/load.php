@@ -529,7 +529,7 @@ function timer_stop( $display = 0, $precision = 3 ) {
  * from changing the global configuration setting. Defining `WP_DEBUG_DISPLAY`
  * as false will force errors to be hidden.
  *
- * When `WP_DEBUG_LOG` is true, errors will be logged to `wp-content/debug.log`.
+ * When `WP_DEBUG_LOG` is true, errors will be logged to `wp-content/debug/debug-[random-string].log`.
  * When `WP_DEBUG_LOG` is a valid path, errors will be logged to the specified file.
  *
  * Errors are never displayed for XML-RPC, REST, `ms-files.php`, and Ajax requests.
@@ -583,7 +583,7 @@ function wp_debug_mode() {
 		}
 
 		if ( in_array( strtolower( (string) WP_DEBUG_LOG ), array( 'true', '1' ), true ) ) {
-			$log_path = WP_CONTENT_DIR . '/debug.log';
+			$log_path = WP_CONTENT_DIR . '/debug/debug-' . bin2hex( random_bytes( 5 ) ) . '.log';
 		} elseif ( is_string( WP_DEBUG_LOG ) ) {
 			$log_path = WP_DEBUG_LOG;
 		} else {

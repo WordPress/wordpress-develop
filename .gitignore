@@ -70,7 +70,7 @@ wp-tests-config.php
 /src/wp-content/blog-suspended.php
 /src/wp-content/db.php
 /src/wp-content/db-error.php
-/src/wp-content/debug.log
+/src/wp-content/debug/*.log
 /src/wp-content/fatal-error-handler.php
 /src/wp-content/install.php
 /src/wp-content/maintenance.php
