@@ -96,8 +96,11 @@ function wp_unregister_font_collection( string $slug ) {
  *
  * @since 6.5.0
  *
- * @return array $defaults {
- *     Array of information about the upload directory.
+ * @param array|null $font_dir Optional. Array of unfiltered uploads directory.
+ *                             This is used when the function is called from
+ *                             the upload_dir filter. Default null.
+ * @return array {
+ *     Array of information about the font upload directory.
  *
  *     @type string       $path    Base directory and subdirectory or full path to the fonts upload directory.
  *     @type string       $url     Base URL and subdirectory or absolute URL to the fonts upload directory.
@@ -107,13 +110,23 @@ function wp_unregister_font_collection( string $slug ) {
  *     @type string|false $error   False or error message.
  * }
  */
-function wp_get_font_dir() {
+function wp_get_font_dir( $font_dir = null ) {
+	if ( doing_filter( 'font_dir' ) ) {
+		/*
+		 * The font_dir filter is being run, avoid an infinite loop.
+		 *
+		 * This indicates that a plugin is calling wp_upload_dir() while filtering
+		 * the font directory and avoids an infinite loop.
+		 */
+		return $font_dir;
+	}
+
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
-	$defaults = array(
+	$font_dir = array(
 		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
 		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'subdir'  => '',
@@ -129,9 +142,9 @@ function wp_get_font_dir() {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array $defaults The original fonts directory data.
+	 * @param array $font_dir The original fonts directory data.
 	 */
-	return apply_filters( 'font_dir', $defaults );
+	return apply_filters( 'font_dir', $font_dir );
 }
 
 /**
