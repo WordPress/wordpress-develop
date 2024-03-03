@@ -32,7 +32,6 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 		update_option( 'comment_previously_approved', 1 );
 		$results = check_comment( $author, $author_email, $author_url, $comment, $author_ip, $user_agent, $comment_type );
 		$this->assertFalse( $results );
-
 	}
 
 	public function test_should_return_true_when_comment_previously_approved_is_enabled_and_author_has_approved_comment() {

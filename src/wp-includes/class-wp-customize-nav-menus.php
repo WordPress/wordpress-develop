@@ -937,10 +937,10 @@ final class WP_Customize_Nav_Menus {
 	 * @param array $postarr {
 	 *     Post array. Note that post_status is overridden to be `auto-draft`.
 	 *
-	 * @var string $post_title   Post title. Required.
-	 * @var string $post_type    Post type. Required.
-	 * @var string $post_name    Post name.
-	 * @var string $post_content Post content.
+	 *     @type string $post_title   Post title. Required.
+	 *     @type string $post_type    Post type. Required.
+	 *     @type string $post_name    Post name.
+	 *     @type string $post_content Post content.
 	 * }
 	 * @return WP_Post|WP_Error Inserted auto-draft post object or error.
 	 */
@@ -1472,7 +1472,7 @@ final class WP_Customize_Nav_Menus {
 			(
 				! empty( $args['container'] )
 				||
-				( isset( $args['items_wrap'] ) && '<' === substr( $args['items_wrap'], 0, 1 ) )
+				( isset( $args['items_wrap'] ) && str_starts_with( $args['items_wrap'], '<' ) )
 			)
 		);
 		$args['can_partial_refresh'] = $can_partial_refresh;
@@ -1559,7 +1559,7 @@ final class WP_Customize_Nav_Menus {
 		$exports = array(
 			'navMenuInstanceArgs' => $this->preview_nav_menu_instance_args,
 		);
-		printf( '<script>var _wpCustomizePreviewNavMenusExports = %s;</script>', wp_json_encode( $exports ) );
+		wp_print_inline_script_tag( sprintf( 'var _wpCustomizePreviewNavMenusExports = %s;', wp_json_encode( $exports ) ) );
 	}
 
 	/**

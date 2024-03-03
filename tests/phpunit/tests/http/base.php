@@ -8,7 +8,7 @@
  * You may also need `-d safe_mode_gid=1` to relax the safe_mode checks to allow
  * inclusion of PEAR.
  *
- * The WP_HTTP tests require a class-http.php file of r17550 or later.
+ * The WP_Http tests require a class-http.php file of r17550 or later.
  */
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
@@ -314,7 +314,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
 		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
-
 	}
 
 	/**
@@ -408,7 +407,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
-
 	}
 
 	/**
@@ -487,6 +485,4 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
 	}
-
-
 }

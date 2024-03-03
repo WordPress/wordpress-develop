@@ -7,7 +7,7 @@
  */
 define( 'WP_REPAIRING', true );
 
-require_once dirname( dirname( __DIR__ ) ) . '/wp-load.php';
+require_once dirname( __DIR__, 2 ) . '/wp-load.php';
 
 header( 'Content-Type: text/html; charset=utf-8' );
 ?>
@@ -91,7 +91,7 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 		__( 'Database repair results' ) .
 	'</h1>';
 
-	$optimize = 2 == $_GET['repair'];
+	$optimize = '2' === $_GET['repair'];
 	$okay     = true;
 	$problems = array();
 

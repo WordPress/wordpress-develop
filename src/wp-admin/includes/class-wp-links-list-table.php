@@ -124,7 +124,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		return array(
@@ -143,15 +143,15 @@ class WP_Links_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'name'    => 'name',
-			'url'     => 'url',
-			'visible' => 'visible',
-			'rating'  => 'rating',
+			'name'    => array( 'name', false, _x( 'Name', 'link name' ), __( 'Table ordered by Name.' ), 'asc' ),
+			'url'     => array( 'url', false, __( 'URL' ), __( 'Table ordered by URL.' ) ),
+			'visible' => array( 'visible', false, __( 'Visible' ), __( 'Table ordered by Visibility.' ) ),
+			'rating'  => array( 'rating', false, __( 'Rating' ), __( 'Table ordered by Rating.' ) ),
 		);
 	}
 
 	/**
-	 * Get the name of the default primary column.
+	 * Gets the name of the default primary column.
 	 *
 	 * @since 4.3.0
 	 *
@@ -174,13 +174,15 @@ class WP_Links_List_Table extends WP_List_Table {
 		$link = $item;
 
 		?>
-		<label class="screen-reader-text" for="cb-select-<?php echo $link->link_id; ?>">
+		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>" />
+		<label for="cb-select-<?php echo $link->link_id; ?>">
+			<span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. %s: Link name. */
 			printf( __( 'Select %s' ), $link->link_name );
 			?>
+			</span>
 		</label>
-		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>" />
 		<?php
 	}
 
@@ -288,6 +290,9 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @param string $column_name Current column name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$link = $item;
+
 		/**
 		 * Fires for each registered custom link column.
 		 *
@@ -296,7 +301,7 @@ class WP_Links_List_Table extends WP_List_Table {
 		 * @param string $column_name Name of the custom column.
 		 * @param int    $link_id     Link ID.
 		 */
-		do_action( 'manage_link_custom_column', $column_name, $item->link_id );
+		do_action( 'manage_link_custom_column', $column_name, $link->link_id );
 	}
 
 	public function display_rows() {
@@ -330,7 +335,8 @@ class WP_Links_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$link      = $item;
+		$link = $item;
+
 		$edit_link = get_edit_bookmark_link( $link );
 
 		$actions           = array();

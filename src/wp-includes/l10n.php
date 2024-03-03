@@ -132,30 +132,37 @@ function determine_locale() {
 	 */
 	$determined_locale = apply_filters( 'pre_determine_locale', null );
 
-	if ( ! empty( $determined_locale ) && is_string( $determined_locale ) ) {
+	if ( $determined_locale && is_string( $determined_locale ) ) {
 		return $determined_locale;
 	}
 
-	$determined_locale = get_locale();
-
-	if ( is_admin() ) {
+	if (
+		isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] &&
+		( ! empty( $_GET['wp_lang'] ) || ! empty( $_COOKIE['wp_lang'] ) )
+	) {
+		if ( ! empty( $_GET['wp_lang'] ) ) {
+			$determined_locale = sanitize_locale_name( $_GET['wp_lang'] );
+		} else {
+			$determined_locale = sanitize_locale_name( $_COOKIE['wp_lang'] );
+		}
+	} elseif (
+		is_admin() ||
+		( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() )
+	) {
 		$determined_locale = get_user_locale();
+	} elseif (
+		( ! empty( $_REQUEST['language'] ) || isset( $GLOBALS['wp_local_package'] ) )
+		&& wp_installing()
+	) {
+		if ( ! empty( $_REQUEST['language'] ) ) {
+			$determined_locale = sanitize_locale_name( $_REQUEST['language'] );
+		} else {
+			$determined_locale = $GLOBALS['wp_local_package'];
+		}
 	}
 
-	if ( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() ) {
-		$determined_locale = get_user_locale();
-	}
-
-	$wp_lang = '';
-
-	if ( ! empty( $_GET['wp_lang'] ) ) {
-		$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
-	} elseif ( ! empty( $_COOKIE['wp_lang'] ) ) {
-		$wp_lang = sanitize_text_field( $_COOKIE['wp_lang'] );
-	}
-
-	if ( ! empty( $wp_lang ) && ! empty( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
-		$determined_locale = $wp_lang;
+	if ( ! $determined_locale ) {
+		$determined_locale = get_locale();
 	}
 
 	/**
@@ -163,7 +170,7 @@ function determine_locale() {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $locale The locale.
+	 * @param string $determined_locale The locale.
 	 */
 	return apply_filters( 'determine_locale', $determined_locale );
 }
@@ -722,6 +729,28 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	$l10n_unloaded = (array) $l10n_unloaded;
 
 	/**
+	 * Filters whether to short-circuit loading .mo file.
+	 *
+	 * Returning a non-null value from the filter will effectively short-circuit
+	 * the loading, returning the passed value instead.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param bool|null   $loaded The result of loading a .mo file. Default null.
+	 * @param string      $domain Text domain. Unique identifier for retrieving translated strings.
+	 * @param string      $mofile Path to the MO file.
+	 * @param string|null $locale Locale.
+	 */
+	$loaded = apply_filters( 'pre_load_textdomain', null, $domain, $mofile, $locale );
+	if ( null !== $loaded ) {
+		if ( true === $loaded ) {
+			unset( $l10n_unloaded[ $domain ] );
+		}
+
+		return $loaded;
+	}
+
+	/**
 	 * Filters whether to override the .mo file loading.
 	 *
 	 * @since 2.9.0
@@ -760,32 +789,71 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 */
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
-	if ( ! is_readable( $mofile ) ) {
-		return false;
-	}
-
 	if ( ! $locale ) {
 		$locale = determine_locale();
 	}
 
-	$mo = new MO();
-	if ( ! $mo->import_from_file( $mofile ) ) {
-		$wp_textdomain_registry->set( $domain, $locale, false );
+	$i18n_controller = WP_Translation_Controller::get_instance();
 
-		return false;
+	// Ensures the correct locale is set as the current one, in case it was filtered.
+	$i18n_controller->set_locale( $locale );
+
+	/**
+	 * Filters the preferred file format for translation files.
+	 *
+	 * Can be used to disable the use of PHP files for translations.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $preferred_format Preferred file format. Possible values: 'php', 'mo'. Default: 'php'.
+	 * @param string $domain           The text domain.
+	 */
+	$preferred_format = apply_filters( 'translation_file_format', 'php', $domain );
+	if ( ! in_array( $preferred_format, array( 'php', 'mo' ), true ) ) {
+		$preferred_format = 'php';
 	}
 
-	if ( isset( $l10n[ $domain ] ) ) {
-		$mo->merge_with( $l10n[ $domain ] );
+	$translation_files = array();
+
+	if ( 'mo' !== $preferred_format ) {
+		$translation_files[] = substr_replace( $mofile, ".l10n.$preferred_format", - strlen( '.mo' ) );
 	}
 
-	unset( $l10n_unloaded[ $domain ] );
+	$translation_files[] = $mofile;
 
-	$l10n[ $domain ] = &$mo;
+	foreach ( $translation_files as $file ) {
+		/**
+		 * Filters the file path for loading translations for the given text domain.
+		 *
+		 * Similar to the {@see 'load_textdomain_mofile'} filter with the difference that
+		 * the file path could be for an MO or PHP file.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string $file   Path to the translation file to load.
+		 * @param string $domain The text domain.
+		 */
+		$file = (string) apply_filters( 'load_translation_file', $file, $domain );
 
-	$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
+		$success = $i18n_controller->load_file( $file, $domain, $locale );
 
-	return true;
+		if ( $success ) {
+			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
+				$i18n_controller->load_file( $l10n[ $domain ]->get_filename(), $domain, $locale );
+			}
+
+			// Unset NOOP_Translations reference in get_translations_for_domain().
+			unset( $l10n[ $domain ] );
+
+			$l10n[ $domain ] = new WP_Translations( $i18n_controller, $domain );
+
+			$wp_textdomain_registry->set( $domain, $locale, dirname( $file ) );
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -837,7 +905,18 @@ function unload_textdomain( $domain, $reloadable = false ) {
 	 */
 	do_action( 'unload_textdomain', $domain, $reloadable );
 
+	// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
+	if ( ! $reloadable ) {
+		WP_Translation_Controller::get_instance()->unload_textdomain( $domain );
+	}
+
 	if ( isset( $l10n[ $domain ] ) ) {
+		if ( $l10n[ $domain ] instanceof NOOP_Translations ) {
+			unset( $l10n[ $domain ] );
+
+			return false;
+		}
+
 		unset( $l10n[ $domain ] );
 
 		if ( ! $reloadable ) {
@@ -869,7 +948,7 @@ function load_default_textdomain( $locale = null ) {
 	}
 
 	// Unload previously loaded strings so we can switch translations.
-	unload_textdomain( 'default' );
+	unload_textdomain( 'default', true );
 
 	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo", $locale );
 
@@ -1084,7 +1163,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 
 	$src = $wp_scripts->registered[ $handle ]->src;
 
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && 0 === strpos( $src, $wp_scripts->content_url ) ) ) {
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
 		$src = $wp_scripts->base_url . $src;
 	}
 
@@ -1098,7 +1177,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 
 	// If the host is the same or it's a relative URL.
 	if (
-		( ! isset( $content_url['path'] ) || strpos( $src_url['path'], $content_url['path'] ) === 0 ) &&
+		( ! isset( $content_url['path'] ) || str_starts_with( $src_url['path'], $content_url['path'] ) ) &&
 		( ! isset( $src_url['host'] ) || ! isset( $content_url['host'] ) || $src_url['host'] === $content_url['host'] )
 	) {
 		// Make the src relative the specific plugin or theme.
@@ -1115,7 +1194,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );
 	} elseif (
-		( ! isset( $plugins_url['path'] ) || strpos( $src_url['path'], $plugins_url['path'] ) === 0 ) &&
+		( ! isset( $plugins_url['path'] ) || str_starts_with( $src_url['path'], $plugins_url['path'] ) ) &&
 		( ! isset( $src_url['host'] ) || ! isset( $plugins_url['host'] ) || $src_url['host'] === $plugins_url['host'] )
 	) {
 		// Make the src relative the specific plugin.
@@ -1134,7 +1213,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	} elseif ( ! isset( $src_url['host'] ) || ! isset( $site_url['host'] ) || $src_url['host'] === $site_url['host'] ) {
 		if ( ! isset( $site_url['path'] ) ) {
 			$relative = trim( $src_url['path'], '/' );
-		} elseif ( ( strpos( $src_url['path'], trailingslashit( $site_url['path'] ) ) === 0 ) ) {
+		} elseif ( str_starts_with( $src_url['path'], trailingslashit( $site_url['path'] ) ) ) {
 			// Make the src relative to the WP root.
 			$relative = substr( $src_url['path'], strlen( $site_url['path'] ) );
 			$relative = trim( $relative, '/' );
@@ -1157,7 +1236,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	}
 
 	// Translations are always based on the unminified filename.
-	if ( substr( $relative, -7 ) === '.min.js' ) {
+	if ( str_ends_with( $relative, '.min.js' ) ) {
 		$relative = substr( $relative, 0, -7 ) . '.js';
 	}
 
@@ -1311,6 +1390,8 @@ function get_translations_for_domain( $domain ) {
 		$noop_translations = new NOOP_Translations();
 	}
 
+	$l10n[ $domain ] = &$noop_translations;
+
 	return $noop_translations;
 }
 
@@ -1326,7 +1407,7 @@ function get_translations_for_domain( $domain ) {
  */
 function is_textdomain_loaded( $domain ) {
 	global $l10n;
-	return isset( $l10n[ $domain ] );
+	return isset( $l10n[ $domain ] ) && ! $l10n[ $domain ] instanceof NOOP_Translations;
 }
 
 /**
@@ -1354,27 +1435,36 @@ function translate_user_role( $name, $domain = 'default' ) {
 }
 
 /**
- * Gets all available languages based on the presence of *.mo files in a given directory.
+ * Gets all available languages based on the presence of *.mo and *.l10n.php files in a given directory.
  *
  * The default directory is WP_LANG_DIR.
  *
  * @since 3.0.0
  * @since 4.7.0 The results are now filterable with the {@see 'get_available_languages'} filter.
+ * @since 6.5.0 The initial file list is now cached and also takes into account *.l10n.php files.
+ *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $dir A directory to search for language files.
  *                    Default WP_LANG_DIR.
  * @return string[] An array of language codes or an empty array if no languages are present.
- *                  Language codes are formed by stripping the .mo extension from the language file names.
+ *                  Language codes are formed by stripping the file extension from the language file names.
  */
 function get_available_languages( $dir = null ) {
+	global $wp_textdomain_registry;
+
 	$languages = array();
 
-	$lang_files = glob( ( is_null( $dir ) ? WP_LANG_DIR : $dir ) . '/*.mo' );
+	$path       = is_null( $dir ) ? WP_LANG_DIR : $dir;
+	$lang_files = $wp_textdomain_registry->get_language_files_from_path( $path );
+
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
-			if ( 0 !== strpos( $lang_file, 'continents-cities' ) && 0 !== strpos( $lang_file, 'ms-' ) &&
-				0 !== strpos( $lang_file, 'admin-' ) ) {
+			$lang_file = basename( $lang_file, '.l10n.php' );
+
+			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
+				! str_starts_with( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
 			}
 		}
@@ -1388,7 +1478,7 @@ function get_available_languages( $dir = null ) {
 	 * @param string[] $languages An array of available language codes.
 	 * @param string   $dir       The directory where the language files were found.
 	 */
-	return apply_filters( 'get_available_languages', $languages, $dir );
+	return apply_filters( 'get_available_languages', array_unique( $languages ), $dir );
 }
 
 /**
@@ -1428,7 +1518,7 @@ function wp_get_installed_translations( $type ) {
 		if ( '.' === $file[0] || is_dir( WP_LANG_DIR . "$dir/$file" ) ) {
 			continue;
 		}
-		if ( substr( $file, -3 ) !== '.po' ) {
+		if ( ! str_ends_with( $file, '.po' ) ) {
 			continue;
 		}
 		if ( ! preg_match( '/(?:(.+)-)?([a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?).po/', $file, $match ) ) {
@@ -1489,7 +1579,7 @@ function wp_get_pomo_file_data( $po_file ) {
  *
  *     @type string   $id                           ID attribute of the select element. Default 'locale'.
  *     @type string   $name                         Name attribute of the select element. Default 'locale'.
- *     @type array    $languages                    List of installed languages, contain only the locales.
+ *     @type string[] $languages                    List of installed languages, contain only the locales.
  *                                                  Default empty array.
  *     @type array    $translations                 List of available translations. Default result of
  *                                                  wp_get_available_translations().

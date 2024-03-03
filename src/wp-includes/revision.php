@@ -96,6 +96,27 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
 }
 
 /**
+ * Saves revisions for a post after all changes have been made.
+ *
+ * @since 6.4.0
+ *
+ * @param int     $post_id The post id that was inserted.
+ * @param WP_Post $post    The post object that was inserted.
+ * @param bool    $update  Whether this insert is updating an existing post.
+ */
+function wp_save_post_revision_on_insert( $post_id, $post, $update ) {
+	if ( ! $update ) {
+		return;
+	}
+
+	if ( ! has_action( 'post_updated', 'wp_save_post_revision' ) ) {
+		return;
+	}
+
+	wp_save_post_revision( $post_id );
+}
+
+/**
  * Creates a revision for the current version of a post.
  *
  * Typically used immediately after a post update, as every update is a revision,
@@ -108,6 +129,11 @@ function _wp_post_revision_data( $post = array(), $autosave = false ) {
  */
 function wp_save_post_revision( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Prevent saving post revisions if revisions should be saved on wp_after_insert_post.
+	if ( doing_action( 'post_updated' ) && has_action( 'wp_after_insert_post', 'wp_save_post_revision_on_insert' ) ) {
 		return;
 	}
 
@@ -138,7 +164,7 @@ function wp_save_post_revision( $post_id ) {
 	if ( $revisions ) {
 		// Grab the latest revision, but not an autosave.
 		foreach ( $revisions as $revision ) {
-			if ( false !== strpos( $revision->post_name, "{$revision->post_parent}-revision" ) ) {
+			if ( str_contains( $revision->post_name, "{$revision->post_parent}-revision" ) ) {
 				$latest_revision = $revision;
 				break;
 			}
@@ -190,8 +216,10 @@ function wp_save_post_revision( $post_id ) {
 
 	$return = _wp_put_post_revision( $post );
 
-	// If a limit for the number of revisions to keep has been set,
-	// delete the oldest ones.
+	/*
+	 * If a limit for the number of revisions to keep has been set,
+	 * delete the oldest ones.
+	 */
 	$revisions_to_keep = wp_revisions_to_keep( $post );
 
 	if ( $revisions_to_keep < 0 ) {
@@ -223,7 +251,7 @@ function wp_save_post_revision( $post_id ) {
 	$revisions = array_slice( $revisions, 0, $delete );
 
 	for ( $i = 0; isset( $revisions[ $i ] ); $i++ ) {
-		if ( false !== strpos( $revisions[ $i ]->post_name, 'autosave' ) ) {
+		if ( str_contains( $revisions[ $i ]->post_name, 'autosave' ) ) {
 			continue;
 		}
 
@@ -313,7 +341,7 @@ function wp_is_post_autosave( $post ) {
 		return false;
 	}
 
-	if ( false !== strpos( $post->post_name, "{$post->post_parent}-autosave" ) ) {
+	if ( str_contains( $post->post_name, "{$post->post_parent}-autosave" ) ) {
 		return (int) $post->post_parent;
 	}
 
@@ -359,13 +387,37 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
 		 * Fires once a revision has been saved.
 		 *
 		 * @since 2.6.0
+		 * @since 6.4.0 The post_id parameter was added.
 		 *
 		 * @param int $revision_id Post revision ID.
+		 * @param int $post_id     Post ID.
 		 */
-		do_action( '_wp_put_post_revision', $revision_id );
+		do_action( '_wp_put_post_revision', $revision_id, $post['post_parent'] );
 	}
 
 	return $revision_id;
+}
+
+
+/**
+ * Save the revisioned meta fields.
+ *
+ * @since 6.4.0
+ *
+ * @param int $revision_id The ID of the revision to save the meta to.
+ * @param int $post_id     The ID of the post the revision is associated with.
+ */
+function wp_save_revisioned_meta_fields( $revision_id, $post_id ) {
+	$post_type = get_post_type( $post_id );
+	if ( ! $post_type ) {
+		return;
+	}
+
+	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
+		if ( metadata_exists( 'post', $post_id, $meta_key ) ) {
+			_wp_copy_post_meta( $post_id, $revision_id, $meta_key );
+		}
+	}
 }
 
 /**
@@ -459,6 +511,105 @@ function wp_restore_post_revision( $revision, $fields = null ) {
 	do_action( 'wp_restore_post_revision', $post_id, $revision['ID'] );
 
 	return $post_id;
+}
+
+/**
+ * Restore the revisioned meta values for a post.
+ *
+ * @since 6.4.0
+ *
+ * @param int $post_id     The ID of the post to restore the meta to.
+ * @param int $revision_id The ID of the revision to restore the meta from.
+ */
+function wp_restore_post_revision_meta( $post_id, $revision_id ) {
+	$post_type = get_post_type( $post_id );
+	if ( ! $post_type ) {
+		return;
+	}
+
+	// Restore revisioned meta fields.
+	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
+
+		// Clear any existing meta.
+		delete_post_meta( $post_id, $meta_key );
+
+		_wp_copy_post_meta( $revision_id, $post_id, $meta_key );
+	}
+}
+
+/**
+ * Copy post meta for the given key from one post to another.
+ *
+ * @since 6.4.0
+ *
+ * @param int    $source_post_id Post ID to copy meta value(s) from.
+ * @param int    $target_post_id Post ID to copy meta value(s) to.
+ * @param string $meta_key       Meta key to copy.
+ */
+function _wp_copy_post_meta( $source_post_id, $target_post_id, $meta_key ) {
+
+	foreach ( get_post_meta( $source_post_id, $meta_key ) as $meta_value ) {
+		/**
+		 * We use add_metadata() function vs add_post_meta() here
+		 * to allow for a revision post target OR regular post.
+		 */
+		add_metadata( 'post', $target_post_id, $meta_key, wp_slash( $meta_value ) );
+	}
+}
+
+/**
+ * Determine which post meta fields should be revisioned.
+ *
+ * @since 6.4.0
+ *
+ * @param string $post_type The post type being revisioned.
+ * @return array An array of meta keys to be revisioned.
+ */
+function wp_post_revision_meta_keys( $post_type ) {
+	$registered_meta = array_merge(
+		get_registered_meta_keys( 'post' ),
+		get_registered_meta_keys( 'post', $post_type )
+	);
+
+	$wp_revisioned_meta_keys = array();
+
+	foreach ( $registered_meta as $name => $args ) {
+		if ( $args['revisions_enabled'] ) {
+			$wp_revisioned_meta_keys[ $name ] = true;
+		}
+	}
+
+	$wp_revisioned_meta_keys = array_keys( $wp_revisioned_meta_keys );
+
+	/**
+	 * Filter the list of post meta keys to be revisioned.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array  $keys      An array of meta fields to be revisioned.
+	 * @param string $post_type The post type being revisioned.
+	 */
+	return apply_filters( 'wp_post_revision_meta_keys', $wp_revisioned_meta_keys, $post_type );
+}
+
+/**
+ * Check whether revisioned post meta fields have changed.
+ *
+ * @since 6.4.0
+ *
+ * @param bool    $post_has_changed Whether the post has changed.
+ * @param WP_Post $last_revision    The last revision post object.
+ * @param WP_Post $post             The post object.
+ * @return bool Whether the post has changed.
+ */
+function wp_check_revisioned_meta_fields_have_changed( $post_has_changed, WP_Post $last_revision, WP_Post $post ) {
+	foreach ( wp_post_revision_meta_keys( $post->post_type ) as $meta_key ) {
+		if ( get_post_meta( $post->ID, $meta_key ) !== get_post_meta( $last_revision->ID, $meta_key ) ) {
+			$post_has_changed = true;
+			break;
+		}
+	}
+	return $post_has_changed;
 }
 
 /**
@@ -726,6 +877,7 @@ function _set_preview( $post ) {
 
 	add_filter( 'get_the_terms', '_wp_preview_terms_filter', 10, 3 );
 	add_filter( 'get_post_metadata', '_wp_preview_post_thumbnail_filter', 10, 3 );
+	add_filter( 'get_post_metadata', '_wp_preview_meta_filter', 10, 4 );
 
 	return $post;
 }
@@ -766,7 +918,7 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 		return $terms;
 	}
 
-	if ( empty( $_REQUEST['post_format'] ) || $post->ID != $post_id
+	if ( empty( $_REQUEST['post_format'] ) || $post->ID !== $post_id
 		|| 'post_format' !== $taxonomy || 'revision' === $post->post_type
 	) {
 		return $terms;
@@ -776,6 +928,7 @@ function _wp_preview_terms_filter( $terms, $post_id, $taxonomy ) {
 		$terms = array();
 	} else {
 		$term = get_term_by( 'slug', 'post-format-' . sanitize_key( $_REQUEST['post_format'] ), 'post_format' );
+
 		if ( $term ) {
 			$terms = array( $term ); // Can only have one post format.
 		}
@@ -802,13 +955,10 @@ function _wp_preview_post_thumbnail_filter( $value, $post_id, $meta_key ) {
 		return $value;
 	}
 
-	if ( empty( $_REQUEST['_thumbnail_id'] ) ||
-		empty( $_REQUEST['preview_id'] ) ||
-		$post->ID != $post_id ||
-		'_thumbnail_id' !== $meta_key ||
-		'revision' === $post->post_type ||
-		$post_id != $_REQUEST['preview_id'] ) {
-
+	if ( empty( $_REQUEST['_thumbnail_id'] ) || empty( $_REQUEST['preview_id'] )
+		|| $post->ID !== $post_id || $post_id !== (int) $_REQUEST['preview_id']
+		|| '_thumbnail_id' !== $meta_key || 'revision' === $post->post_type
+	) {
 		return $value;
 	}
 
@@ -869,8 +1019,10 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 		$locked = get_option( $lock );
 
 		if ( ! $locked ) {
-			// Can't write to the lock, and can't read the lock.
-			// Something broken has happened.
+			/*
+			 * Can't write to the lock, and can't read the lock.
+			 * Something broken has happened.
+			 */
 			return false;
 		}
 
@@ -899,8 +1051,10 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 			continue;
 		}
 
-		// 1 is the latest revision version, so we're already up to date.
-		// No need to add a copy of the post as latest revision.
+		/*
+		 * 1 is the latest revision version, so we're already up to date.
+		 * No need to add a copy of the post as latest revision.
+		 */
 		if ( 0 < $this_revision_version ) {
 			$add_last = false;
 			continue;
@@ -941,4 +1095,39 @@ function _wp_upgrade_revisions_of_post( $post, $revisions ) {
 	}
 
 	return true;
+}
+
+/**
+ * Filters preview post meta retrieval to get values from the autosave.
+ *
+ * Filters revisioned meta keys only.
+ *
+ * @since 6.4.0
+ *
+ * @param mixed  $value     Meta value to filter.
+ * @param int    $object_id Object ID.
+ * @param string $meta_key  Meta key to filter a value for.
+ * @param bool   $single    Whether to return a single value. Default false.
+ * @return mixed Original meta value if the meta key isn't revisioned, the object doesn't exist,
+ *               the post type is a revision or the post ID doesn't match the object ID.
+ *               Otherwise, the revisioned meta value is returned for the preview.
+ */
+function _wp_preview_meta_filter( $value, $object_id, $meta_key, $single ) {
+
+	$post = get_post();
+	if (
+		empty( $post ) ||
+		$post->ID !== $object_id ||
+		! in_array( $meta_key, wp_post_revision_meta_keys( $post->post_type ), true ) ||
+		'revision' === $post->post_type
+	) {
+		return $value;
+	}
+
+	$preview = wp_get_post_autosave( $post->ID );
+	if ( false === $preview ) {
+		return $value;
+	}
+
+	return get_post_meta( $preview->ID, $meta_key, $single );
 }

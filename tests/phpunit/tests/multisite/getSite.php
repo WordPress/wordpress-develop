@@ -47,7 +47,6 @@ if ( is_multisite() ) :
 
 			$this->assertSame( self::$site_ids['wordpress.org/foo/'], $site->id );
 		}
-
 	}
 
 endif;

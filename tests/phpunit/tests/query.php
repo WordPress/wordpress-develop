@@ -730,7 +730,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_posts_clauses_filter_should_receive_filtered_clauses() {
 		add_filter(
 			'posts_join_paged',
-			static function() {
+			static function () {
 				return '/* posts_join_paged */';
 			}
 		);
@@ -755,7 +755,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_posts_clauses_request_filter_should_receive_filtered_clauses() {
 		add_filter(
 			'posts_join_request',
-			static function() {
+			static function () {
 				return '/* posts_join_request */';
 			}
 		);
@@ -896,5 +896,72 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_tag() );
 		$this->assertFalse( $q->is_tax() );
 		$this->assertFalse( $q->is_tag( 'non-existent-tag' ) );
+	}
+
+	/**
+	 * Test if $before_loop is true before loop.
+	 *
+	 * @ticket 58211
+	 */
+	public function test_before_loop_value_set_true_before_the_loop() {
+		// Get a new query with 3 posts.
+		$query = $this->get_new_wp_query_with_posts( 3 );
+
+		$this->assertTrue( $query->before_loop );
+	}
+
+	/**
+	 * Test $before_loop value is set to false when the loop starts.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers WP_Query::the_post
+	 */
+	public function test_before_loop_value_set_to_false_in_loop_with_post() {
+		// Get a new query with 2 posts.
+		$query = $this->get_new_wp_query_with_posts( 2 );
+
+		while ( $query->have_posts() ) {
+			// $before_loop should be set false as soon as the_post is called for the first time.
+			$query->the_post();
+
+			$this->assertFalse( $query->before_loop );
+			break;
+		}
+	}
+
+	/**
+	 * Test $before_loop value is set to false when there is no post in the loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers WP_Query::have_posts
+	 */
+	public function test_before_loop_set_false_after_loop_with_no_post() {
+		// New query without any posts in the result.
+		$query = new WP_Query(
+			array(
+				'category_name' => 'non-existent-category',
+			)
+		);
+
+		// There will not be any posts, so the loop will never actually enter.
+		while ( $query->have_posts() ) {
+			$query->the_post();
+		}
+
+		// Still, this should be false as there are no results and entering the loop was attempted.
+		$this->assertFalse( $query->before_loop );
+	}
+
+	/**
+	 * Get a new query with a given number of posts.
+	 *
+	 * @param int $no_of_posts Number of posts to be added in the query.
+	 */
+	public function get_new_wp_query_with_posts( $no_of_posts ) {
+		$post_ids = self::factory()->post->create_many( $no_of_posts );
+		$query    = new WP_Query( array( 'post__in' => $post_ids ) );
+		return $query;
 	}
 }

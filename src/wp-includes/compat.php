@@ -203,7 +203,7 @@ function _mb_strlen( $str, $encoding = null ) {
 
 	do {
 		// We had some string left over from the last round, but we counted it in that last round.
-		$count--;
+		--$count;
 
 		/*
 		 * Split by UTF-8 character, limit to 1000 characters (last array element will contain
@@ -333,10 +333,6 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	}
 endif;
 
-// random_int() was introduced in PHP 7.0.
-if ( ! function_exists( 'random_int' ) ) {
-	require ABSPATH . WPINC . '/random_compat/random.php';
-}
 // sodium_crypto_box() was introduced in PHP 7.2.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
@@ -424,6 +420,38 @@ if ( ! function_exists( 'array_key_last' ) ) {
 	}
 }
 
+if ( ! function_exists( 'array_is_list' ) ) {
+	/**
+	 * Polyfill for `array_is_list()` function added in PHP 8.1.
+	 *
+	 * Determines if the given array is a list.
+	 *
+	 * An array is considered a list if its keys consist of consecutive numbers from 0 to count($array)-1.
+	 *
+	 * @see https://github.com/symfony/polyfill-php81/tree/main
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param array<mixed> $arr The array being evaluated.
+	 * @return bool True if array is a list, false otherwise.
+	 */
+	function array_is_list( $arr ) {
+		if ( ( array() === $arr ) || ( array_values( $arr ) === $arr ) ) {
+			return true;
+		}
+
+		$next_key = -1;
+
+		foreach ( $arr as $k => $v ) {
+			if ( ++$next_key !== $k ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+}
+
 if ( ! function_exists( 'str_contains' ) ) {
 	/**
 	 * Polyfill for `str_contains()` function added in PHP 8.0.
@@ -434,11 +462,15 @@ if ( ! function_exists( 'str_contains' ) ) {
 	 * @since 5.9.0
 	 *
 	 * @param string $haystack The string to search in.
-	 * @param string $needle   The substring to search for in the haystack.
+	 * @param string $needle   The substring to search for in the `$haystack`.
 	 * @return bool True if `$needle` is in `$haystack`, otherwise false.
 	 */
 	function str_contains( $haystack, $needle ) {
-		return ( '' === $needle || false !== strpos( $haystack, $needle ) );
+		if ( '' === $needle ) {
+			return true;
+		}
+
+		return false !== strpos( $haystack, $needle );
 	}
 }
 
@@ -478,13 +510,13 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 	 * @return bool True if `$haystack` ends with `$needle`, otherwise false.
 	 */
 	function str_ends_with( $haystack, $needle ) {
-		if ( '' === $haystack && '' !== $needle ) {
-			return false;
+		if ( '' === $haystack ) {
+			return '' === $needle;
 		}
 
 		$len = strlen( $needle );
 
-		return 0 === substr_compare( $haystack, $needle, -$len, $len );
+		return substr( $haystack, -$len, $len ) === $needle;
 	}
 }
 
@@ -496,4 +528,14 @@ if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
 // IMG_WEBP constant is only defined in PHP 7.0.10 or later.
 if ( ! defined( 'IMG_WEBP' ) ) {
 	define( 'IMG_WEBP', IMAGETYPE_WEBP );
+}
+
+// IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
+if ( ! defined( 'IMAGETYPE_AVIF' ) ) {
+	define( 'IMAGETYPE_AVIF', 19 );
+}
+
+// IMG_AVIF constant is only defined in PHP 8.x or later.
+if ( ! defined( 'IMG_AVIF' ) ) {
+	define( 'IMG_AVIF', IMAGETYPE_AVIF );
 }

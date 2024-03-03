@@ -19,7 +19,7 @@ $tabs = array(
 );
 
 /**
- * An associative array of extra tabs for the Site Health navigation bar.
+ * Filters the extra tabs for the Site Health navigation bar.
  *
  * Add a custom page to the Site Health screen, based on a tab slug and label.
  * The label you provide will also be used as part of the site title.
@@ -105,13 +105,23 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php
 	if ( isset( $_GET['https_updated'] ) ) {
 		if ( $_GET['https_updated'] ) {
-			?>
-			<div id="message" class="notice notice-success is-dismissible"><p><?php _e( 'Site URLs switched to HTTPS.' ); ?></p></div>
-			<?php
+			wp_admin_notice(
+				__( 'Site URLs switched to HTTPS.' ),
+				array(
+					'type'        => 'success',
+					'id'          => 'message',
+					'dismissible' => true,
+				)
+			);
 		} else {
-			?>
-			<div id="message" class="notice notice-error is-dismissible"><p><?php _e( 'Site URLs could not be switched to HTTPS.' ); ?></p></div>
-			<?php
+			wp_admin_notice(
+				__( 'Site URLs could not be switched to HTTPS.' ),
+				array(
+					'type'        => 'error',
+					'id'          => 'message',
+					'dismissible' => true,
+				)
+			);
 		}
 	}
 	?>
@@ -198,7 +208,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <?php
 if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	/**
-	 * Output content of a custom Site Health tab.
+	 * Fires when outputting the content of a custom Site Health tab.
 	 *
 	 * This action fires right after the Site Health header, and users are still subject to
 	 * the capability checks for the Site Health page to view any custom tabs and their contents.
@@ -212,11 +222,14 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 	return;
 } else {
+	wp_admin_notice(
+		__( 'The Site Health check requires JavaScript.' ),
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'hide-if-js' ),
+		)
+	);
 	?>
-
-<div class="notice notice-error hide-if-js">
-	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
-</div>
 
 <div class="health-check-body health-check-status-tab hide-if-no-js">
 	<div class="site-status-all-clear hide">

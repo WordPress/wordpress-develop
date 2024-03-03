@@ -1,11 +1,13 @@
-import { visitAdminPage } from '@wordpress/e2e-test-utils';
+/**
+ * WordPress dependencies
+ */
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-describe( 'Hello World', () => {
-	it( 'Should load properly', async () => {
-		await visitAdminPage( '/' );
-		const nodes = await page.$x(
-			'//h2[contains(text(), "Welcome to WordPress!")]'
-		);
-		expect( nodes.length ).not.toEqual( 0 );
+test.describe( 'Hello World', () => {
+	test( 'Should load properly', async ( { admin, page }) => {
+		await admin.visitAdminPage( '/' );
+		await expect(
+			page.getByRole('heading', { name: 'Welcome to WordPress', level: 2 })
+		).toBeVisible();
 	} );
 } );

@@ -310,7 +310,7 @@ class Walker {
 			$start  = ( (int) $page_num - 1 ) * (int) $per_page;
 			$end    = $start + $per_page;
 			if ( -1 == $max_depth ) {
-				$this->max_pages = ceil( $total_top / $per_page );
+				$this->max_pages = (int) ceil( $total_top / $per_page );
 			}
 		}
 
@@ -325,7 +325,7 @@ class Walker {
 
 			$empty_array = array();
 			foreach ( $elements as $e ) {
-				$count++;
+				++$count;
 				if ( $count < $start ) {
 					continue;
 				}
@@ -354,7 +354,7 @@ class Walker {
 
 		$total_top = count( $top_level_elements );
 		if ( $paging ) {
-			$this->max_pages = ceil( $total_top / $per_page );
+			$this->max_pages = (int) ceil( $total_top / $per_page );
 		} else {
 			$end = $total_top;
 		}
@@ -372,7 +372,7 @@ class Walker {
 		}
 
 		foreach ( $top_level_elements as $e ) {
-			$count++;
+			++$count;
 
 			// For the last page, need to unset earlier children in order to keep track of orphans.
 			if ( $end >= $total_top && $count < $start ) {
@@ -416,7 +416,7 @@ class Walker {
 
 		foreach ( $elements as $e ) {
 			if ( empty( $e->$parent_field ) ) {
-				$num++;
+				++$num;
 			}
 		}
 		return $num;
@@ -446,5 +446,4 @@ class Walker {
 
 		unset( $children_elements[ $id ] );
 	}
-
 }

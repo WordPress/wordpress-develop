@@ -14,7 +14,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 * @ticket 46387
 	 * @ticket 49145
 	 *
-	 * @dataProvider data_test_resolve_relative_path
+	 * @dataProvider data_resolve_relative_path
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
 		if ( ! empty( $filter ) ) {
@@ -26,7 +26,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 		$this->assertSame( $expected, load_script_textdomain( $handle, $textdomain, DIR_TESTDATA . '/languages' ) );
 	}
 
-	public function data_test_resolve_relative_path() {
+	public function data_resolve_relative_path() {
 		return array(
 			// @ticket 45528
 			array(

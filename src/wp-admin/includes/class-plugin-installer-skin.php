@@ -46,7 +46,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform before installing a plugin.
+	 * Performs an action before installing a plugin.
 	 *
 	 * @since 2.8.0
 	 */
@@ -66,7 +66,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 * @since 5.5.0
 	 *
 	 * @param WP_Error $wp_error WP_Error object.
-	 * @return bool
+	 * @return bool True if the error should be hidden, false otherwise.
 	 */
 	public function hide_process_failed( $wp_error ) {
 		if (
@@ -81,7 +81,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Action to perform following a plugin install.
+	 * Performs an action following a plugin install.
 	 *
 	 * @since 2.8.0
 	 */
@@ -121,7 +121,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['network_activate'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				__( 'Network Activate' )
+				_x( 'Network Activate', 'plugin' )
 			);
 			unset( $install_actions['activate_plugin'] );
 		}
@@ -177,7 +177,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * Check if the plugin can be overwritten and output the HTML for overwriting a plugin on upload.
+	 * Checks if the plugin can be overwritten and outputs the HTML for overwriting a plugin on upload.
 	 *
 	 * @since 5.5.0
 	 *

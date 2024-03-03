@@ -11,7 +11,8 @@
  *
  * @since 2.1.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global object $link Current link object.
+ * @global wpdb   $wpdb WordPress database abstraction object.
  *
  * @param int|stdClass $bookmark
  * @param string       $output   Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
@@ -404,8 +405,10 @@ function sanitize_bookmark_field( $field, $value, $bookmark_id, $context ) {
 	switch ( $field ) {
 		case 'link_category': // array( ints )
 			$value = array_map( 'absint', (array) $value );
-			// We return here so that the categories aren't filtered.
-			// The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
+			/*
+			 * We return here so that the categories aren't filtered.
+			 * The 'link_category' filter is for the name of a link category, not an array of a link's link categories.
+			 */
 			return $value;
 
 		case 'link_visible': // bool stored as Y|N

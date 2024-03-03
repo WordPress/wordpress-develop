@@ -322,7 +322,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$columns = array(
@@ -343,7 +343,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'name' => 'name',
+			'name' => array( 'name', false, __( 'Theme' ), __( 'Table ordered by Theme Name.' ), 'asc' ),
 		);
 	}
 
@@ -509,11 +509,13 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 */
 	public function column_cb( $item ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$theme       = $item;
+		$theme = $item;
+
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
 		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
-		<label class="screen-reader-text" for="<?php echo $checkbox_id; ?>" >
+		<label for="<?php echo $checkbox_id; ?>" >
+			<span class="screen-reader-text">
 			<?php
 			printf(
 				/* translators: Hidden accessibility text. %s: Theme name */
@@ -521,6 +523,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				$theme->display( 'Name' )
 			);
 			?>
+			</span>
 		</label>
 		<?php
 	}
@@ -857,7 +860,13 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 */
 		echo apply_filters( 'theme_auto_update_setting_html', $html, $stylesheet, $theme );
 
-		echo '<div class="notice notice-error notice-alt inline hidden"><p></p></div>';
+		wp_admin_notice(
+			'',
+			array(
+				'type'               => 'error',
+				'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
+			)
+		);
 	}
 
 	/**
@@ -870,6 +879,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @param string   $column_name The current column name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$theme = $item;
+
+		$stylesheet = $theme->get_stylesheet();
+
 		/**
 		 * Fires inside each custom column of the Multisite themes list table.
 		 *
@@ -879,12 +893,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * @param string   $stylesheet  Directory name of the theme.
 		 * @param WP_Theme $theme       Current WP_Theme object.
 		 */
-		do_action(
-			'manage_themes_custom_column',
-			$column_name,
-			$item->get_stylesheet(), // Directory name of the theme.
-			$item // Theme object.
-		);
+		do_action( 'manage_themes_custom_column', $column_name, $stylesheet, $theme );
 	}
 
 	/**

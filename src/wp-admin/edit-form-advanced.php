@@ -440,17 +440,43 @@ if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create
 
 <hr class="wp-header-end">
 
-<?php if ( $notice ) : ?>
-<div id="notice" class="notice notice-warning"><p id="has-newer-autosave"><?php echo $notice; ?></p></div>
-<?php endif; ?>
-<?php if ( $message ) : ?>
-<div id="message" class="updated notice notice-success is-dismissible"><p><?php echo $message; ?></p></div>
-<?php endif; ?>
-<div id="lost-connection-notice" class="error hidden">
-	<p><span class="spinner"></span> <?php _e( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ); ?>
-	<span class="hide-if-no-sessionstorage"><?php _e( 'This post is being backed up in your browser, just in case.' ); ?></span>
-	</p>
-</div>
+<?php
+if ( $notice ) :
+	wp_admin_notice(
+		'<p id="has-newer-autosave">' . $notice . '</p>',
+		array(
+			'type'           => 'warning',
+			'id'             => 'notice',
+			'paragraph_wrap' => false,
+		)
+	);
+endif;
+if ( $message ) :
+	wp_admin_notice(
+		$message,
+		array(
+			'type'               => 'success',
+			'dismissible'        => true,
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+		)
+	);
+endif;
+
+$connection_lost_message = sprintf(
+	'<span class="spinner"></span> %1$s <span class="hide-if-no-sessionstorage">%2$s</span>',
+	__( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ),
+	__( 'This post is being backed up in your browser, just in case.' )
+);
+
+wp_admin_notice(
+	$connection_lost_message,
+	array(
+		'id'                 => 'lost-connection-notice',
+		'additional_classes' => array( 'error', 'hidden' ),
+	)
+);
+?>
 <form name="post" action="post.php" method="post" id="post"
 <?php
 /**
@@ -623,11 +649,20 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		echo '<span id="last-edit">';
 		$last_user = get_userdata( get_post_meta( $post->ID, '_edit_last', true ) );
 		if ( $last_user ) {
-			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
-			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
+				__( 'Last edited by %1$s on %2$s at %3$s' ),
+				esc_html( $last_user->display_name ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		} else {
-			/* translators: 1: Post edited date, 2: Post edited time. */
-			printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Post edited date, 2: Post edited time. */
+				__( 'Last edited on %1$s at %2$s' ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		}
 		echo '</span>';
 	}

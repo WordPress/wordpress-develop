@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group admin
  * @group upgrade
  *
  * @covers WP_Automatic_Updater
@@ -54,7 +55,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function test_send_plugin_theme_email_should_append_plugin_urls( $urls, $successful, $failed ) {
 		add_filter(
 			'wp_mail',
-			function( $args ) use ( $urls ) {
+			function ( $args ) use ( $urls ) {
 				foreach ( $urls as $url ) {
 					$this->assertStringContainsString(
 						$url,
@@ -322,7 +323,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function test_send_plugin_theme_email_should_not_append_plugin_urls( $urls, $successful, $failed ) {
 		add_filter(
 			'wp_mail',
-			function( $args ) use ( $urls ) {
+			function ( $args ) use ( $urls ) {
 				foreach ( $urls as $url ) {
 					$this->assertStringNotContainsString(
 						$url,
@@ -610,7 +611,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		$open_basedir_backup = ini_get( 'open_basedir' );
 		// Allow access to the directory one level above the repository.
-		ini_set( 'open_basedir', wp_normalize_path( $abspath_grandparent ) );
+		ini_set( 'open_basedir', sys_get_temp_dir() . PATH_SEPARATOR . wp_normalize_path( $abspath_grandparent ) );
 
 		// Checking an allowed directory should succeed.
 		$actual = self::$updater->is_allowed_dir( wp_normalize_path( ABSPATH ) );
@@ -645,7 +646,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		$open_basedir_backup = ini_get( 'open_basedir' );
 		// Allow access to the directory one level above the repository.
-		ini_set( 'open_basedir', wp_normalize_path( $abspath_grandparent ) );
+		ini_set( 'open_basedir', sys_get_temp_dir() . PATH_SEPARATOR . wp_normalize_path( $abspath_grandparent ) );
 
 		// Checking a directory not within the allowed path should trigger an `open_basedir` warning.
 		$actual = self::$updater->is_allowed_dir( '/.git' );
@@ -705,5 +706,29 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 			'string with only newlines'         => array( 'dir' => "\n\n" ),
 			'string with only carriage returns' => array( 'dir' => "\r\r" ),
 		);
+	}
+
+	/**
+	 * Tests that `WP_Automatic_Updater::is_vcs_checkout()` returns `false`
+	 * when none of the checked directories are allowed.
+	 *
+	 * @ticket 58563
+	 *
+	 * @covers WP_Automatic_Updater::is_vcs_checkout
+	 */
+	public function test_is_vcs_checkout_should_return_false_when_no_directories_are_allowed() {
+		$updater_mock = $this->getMockBuilder( 'WP_Automatic_Updater' )
+			// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
+			->setMethods( array( 'is_allowed_dir' ) )
+			->getMock();
+
+		/*
+		 * As none of the directories should be allowed, simply mocking `WP_Automatic_Updater`
+		 * and forcing `::is_allowed_dir()` to return `false` removes the need to run the test
+		 * in a separate process due to setting the `open_basedir` PHP directive.
+		 */
+		$updater_mock->expects( $this->any() )->method( 'is_allowed_dir' )->willReturn( false );
+
+		$this->assertFalse( $updater_mock->is_vcs_checkout( get_temp_dir() ) );
 	}
 }
