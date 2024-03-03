@@ -49,7 +49,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_item' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -65,6 +65,46 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return bool True if the request has read access for the item, otherwise false.
 	 */
 	public function get_item_permissions_check( $request ) {
+		$options = $this->get_registered_options();
+
+		foreach ( $options as $name => $args ) {
+			$test = call_user_func_array( $args['read_permission_callback'], array( $name ) );
+			if ( $test ) {
+				return true;
+			}
+		}
+
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Checks if a request has access to update the specified settings.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to update the item, WP_Error object otherwise.
+	 */
+	public function update_item_permissions_check( $request ) {
+		$options = $this->get_registered_options();
+
+		foreach ( $options as $name => $args ) {
+			if ( isset( $request[ $name ] ) ) {
+				$has_permissions = call_user_func_array( $args['edit_permission_callback'], array( $name ) );
+				if ( ! $has_permissions ) {
+					return new WP_Error(
+						'rest_cannot_update',
+						/* translators: %s: Custom field key. */
+						sprintf( __( 'Sorry, you are not allowed to edit the %s option.' ), $name ),
+						array(
+							'key'    => $name,
+							'status' => rest_authorization_required_code(),
+						)
+					);
+				}
+			}
+		}
+
 		return current_user_can( 'manage_options' );
 	}
 
@@ -81,6 +121,11 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$response = array();
 
 		foreach ( $options as $name => $args ) {
+			$test = call_user_func_array( $args['read_permission_callback'], array( $name ) );
+			if ( ! $test ) {
+				continue;
+			}
+
 			/**
 			 * Filters the value of a setting recognized by the REST API.
 			 *
@@ -229,11 +274,21 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			}
 
 			$defaults = array(
-				'name'   => ! empty( $rest_args['name'] ) ? $rest_args['name'] : $name,
-				'schema' => array(),
+				'name'                     => ! empty( $rest_args['name'] ) ? $rest_args['name'] : $name,
+				'schema'                   => array(),
+				'edit_permission_callback' => array( $this, 'default_edit_permission_callback' ),
+				'read_permission_callback' => array( $this, 'default_read_permission_callback' ),
 			);
 
 			$rest_args = array_merge( $defaults, $rest_args );
+
+			if ( ! is_callable( $rest_args['edit_permission_callback'] ) ) {
+				$rest_args['edit_permission_callback'] = array( $this, 'default_edit_permission_callback' );
+			}
+
+			if ( ! is_callable( $rest_args['read_permission_callback'] ) ) {
+				$rest_args['read_permission_callback'] = array( $this, 'default_read_permission_callback' );
+			}
 
 			$default_schema = array(
 				'type'        => empty( $args['type'] ) ? null : $args['type'],
@@ -296,6 +351,28 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$this->schema = $schema;
 
 		return $this->add_additional_fields_schema( $this->schema );
+	}
+
+	/**
+	 * Default edit permission callback.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return bool
+	 */
+	public function default_edit_permission_callback() {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Default read permission callback.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @return bool
+	 */
+	public function default_read_permission_callback() {
+		return current_user_can( 'manage_options' );
 	}
 
 	/**
