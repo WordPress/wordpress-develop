@@ -16,7 +16,6 @@ class Tests_Functions_SendFrameOptionsHeader extends WP_UnitTestCase {
 		parent::set_up();
 
 		// Suppress warnings from "Cannot modify header information - headers already sent by".
-		$this->_error_level = error_reporting();
 		error_reporting( $this->_error_level & ~E_WARNING );
 	}
 
