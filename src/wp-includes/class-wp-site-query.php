@@ -158,11 +158,11 @@ class WP_Site_Query {
 	 *     @type string          $path                   Limit results to those affiliated with a given path. Default empty.
 	 *     @type string[]        $path__in               Array of paths to include affiliated sites for. Default empty.
 	 *     @type string[]        $path__not_in           Array of paths to exclude affiliated sites for. Default empty.
-	 *     @type int             $public                 Limit results to public sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $archived               Limit results to archived sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $mature                 Limit results to mature sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $spam                   Limit results to spam sites. Accepts '1' or '0'. Default empty.
-	 *     @type int             $deleted                Limit results to deleted sites. Accepts '1' or '0'. Default empty.
+	 *     @type int             $public                 Limit results to public sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $archived               Limit results to archived sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $mature                 Limit results to mature sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $spam                   Limit results to spam sites. Accepts 1 or 0. Default empty.
+	 *     @type int             $deleted                Limit results to deleted sites. Accepts 1 or 0. Default empty.
 	 *     @type int             $lang_id                Limit results to a language ID. Default empty.
 	 *     @type string[]        $lang__in               Array of language IDs to include affiliated sites for. Default empty.
 	 *     @type string[]        $lang__not_in           Array of language IDs to exclude affiliated sites for. Default empty.
@@ -377,7 +377,7 @@ class WP_Site_Query {
 		}
 
 		if ( $this->found_sites && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_sites / $this->query_vars['number'] );
+			$this->max_num_pages = (int) ceil( $this->found_sites / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.
@@ -695,14 +695,14 @@ class WP_Site_Query {
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
-		$this->request = "
-			{$this->sql_clauses['select']}
-			{$this->sql_clauses['from']}
-			{$where}
-			{$this->sql_clauses['groupby']}
-			{$this->sql_clauses['orderby']}
-			{$this->sql_clauses['limits']}
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$this->request =
+			"{$this->sql_clauses['select']}
+			 {$this->sql_clauses['from']}
+			 {$where}
+			 {$this->sql_clauses['groupby']}
+			 {$this->sql_clauses['orderby']}
+			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );

@@ -71,6 +71,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return ( $image_types & IMG_GIF ) != 0;
 			case 'image/webp':
 				return ( $image_types & IMG_WEBP ) != 0;
+			case 'image/avif':
+				return ( $image_types & IMG_AVIF ) != 0;
 		}
 
 		return false;
@@ -107,6 +109,16 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			( 'image/webp' === wp_get_image_mime( $this->file ) )
 		) {
 			$this->image = @imagecreatefromwebp( $this->file );
+		} else {
+			$this->image = @imagecreatefromstring( $file_contents );
+		}
+
+		// AVIF may not work with imagecreatefromstring().
+		if (
+			function_exists( 'imagecreatefromavif' ) &&
+			( 'image/avif' === wp_get_image_mime( $this->file ) )
+		) {
+			$this->image = @imagecreatefromavif( $this->file );
 		} else {
 			$this->image = @imagecreatefromstring( $file_contents );
 		}
@@ -492,6 +504,18 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
 
+		if ( function_exists( 'imageinterlace' ) ) {
+			/**
+			 * Filters whether to output progressive images (if available).
+			 *
+			 * @since 6.5.0
+			 *
+			 * @param bool   $interlace Whether to use progressive images for output if available. Default false.
+			 * @param string $mime_type The mime type being saved.
+			 */
+			imageinterlace( $image, apply_filters( 'image_save_progressive', false, $mime_type ) );
+		}
+
 		if ( 'image/gif' === $mime_type ) {
 			if ( ! $this->make_image( $filename, 'imagegif', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
@@ -511,6 +535,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			}
 		} elseif ( 'image/webp' == $mime_type ) {
 			if ( ! function_exists( 'imagewebp' ) || ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) ) ) {
+				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
+			}
+		} elseif ( 'image/avif' == $mime_type ) {
+			if ( ! function_exists( 'imageavif' ) || ! $this->make_image( $filename, 'imageavif', array( $image, $filename, $this->get_quality() ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} else {
@@ -561,8 +589,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				if ( function_exists( 'imagewebp' ) ) {
 					header( 'Content-Type: image/webp' );
 					return imagewebp( $this->image, null, $this->get_quality() );
+				} else {
+					// Fall back to JPEG.
+					header( 'Content-Type: image/jpeg' );
+					return imagejpeg( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to the default if webp isn't supported.
+			case 'image/avif':
+				if ( function_exists( 'imageavif' ) ) {
+					header( 'Content-Type: image/avif' );
+					return imageavif( $this->image, null, $this->get_quality() );
+				}
+				// Fall back to JPEG.
 			default:
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );

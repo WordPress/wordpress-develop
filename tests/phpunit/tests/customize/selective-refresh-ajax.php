@@ -9,6 +9,7 @@
  * @subpackage UnitTests
  * @since 4.5.0
  *
+ * @group customize
  * @group ajax
  */
 class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {

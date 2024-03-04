@@ -6,7 +6,8 @@
  * @subpackage UnitTests
  * @since 6.3.0
  *
- * @group load.php
+ * @group load
+ *
  * @covers ::wp_get_development_mode
  * @covers ::wp_is_development_mode
  */

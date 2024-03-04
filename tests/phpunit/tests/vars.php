@@ -2,7 +2,7 @@
 /**
  * Test functions in wp-includes/vars.php
  *
- * @group vars.php
+ * @group vars
  */
 class Tests_Vars extends WP_UnitTestCase {
 

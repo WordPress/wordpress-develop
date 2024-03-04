@@ -96,6 +96,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'lodash',
 		'wp-polyfill-fetch',
 		'wp-polyfill-formdata',
+		'wp-polyfill-importmap',
 		'wp-polyfill-node-contains',
 		'wp-polyfill-url',
 		'wp-polyfill-dom-rect',
@@ -110,7 +111,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom'                   => '18.2.0',
 		'regenerator-runtime'         => '0.14.0',
 		'moment'                      => '2.29.4',
-		'lodash'                      => '4.17.19',
+		'lodash'                      => '4.17.21',
 		'wp-polyfill-fetch'           => '3.6.17',
 		'wp-polyfill-formdata'        => '4.0.10',
 		'wp-polyfill-node-contains'   => '4.8.0',
@@ -120,6 +121,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill-inert'           => '3.1.2',
 		'wp-polyfill'                 => '3.15.0',
+		'wp-polyfill-importmap'       => '1.8.2',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -417,6 +419,8 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		$timezone_abbr = $timezone_date->format( 'T' );
 	}
 
+	$gmt_offset = get_option( 'gmt_offset', 0 );
+
 	$scripts->add_inline_script(
 		'wp-date',
 		sprintf(
@@ -437,27 +441,27 @@ function wp_default_packages_inline_scripts( $scripts ) {
 							'past'   => __( '%s ago' ),
 							/* translators: One second from or to a particular datetime, e.g., "a second ago" or "a second from now". */
 							's'      => __( 'a second' ),
-							/* translators: %s: Duration in seconds from or to a particular datetime, e.g., "4 seconds ago" or "4 seconds from now". */
+							/* translators: %d: Duration in seconds from or to a particular datetime, e.g., "4 seconds ago" or "4 seconds from now". */
 							'ss'     => __( '%d seconds' ),
 							/* translators: One minute from or to a particular datetime, e.g., "a minute ago" or "a minute from now". */
 							'm'      => __( 'a minute' ),
-							/* translators: %s: Duration in minutes from or to a particular datetime, e.g., "4 minutes ago" or "4 minutes from now". */
+							/* translators: %d: Duration in minutes from or to a particular datetime, e.g., "4 minutes ago" or "4 minutes from now". */
 							'mm'     => __( '%d minutes' ),
-							/* translators: %s: One hour from or to a particular datetime, e.g., "an hour ago" or "an hour from now". */
+							/* translators: One hour from or to a particular datetime, e.g., "an hour ago" or "an hour from now". */
 							'h'      => __( 'an hour' ),
-							/* translators: %s: Duration in hours from or to a particular datetime, e.g., "4 hours ago" or "4 hours from now". */
+							/* translators: %d: Duration in hours from or to a particular datetime, e.g., "4 hours ago" or "4 hours from now". */
 							'hh'     => __( '%d hours' ),
-							/* translators: %s: One day from or to a particular datetime, e.g., "a day ago" or "a day from now". */
+							/* translators: One day from or to a particular datetime, e.g., "a day ago" or "a day from now". */
 							'd'      => __( 'a day' ),
-							/* translators: %s: Duration in days from or to a particular datetime, e.g., "4 days ago" or "4 days from now". */
+							/* translators: %d: Duration in days from or to a particular datetime, e.g., "4 days ago" or "4 days from now". */
 							'dd'     => __( '%d days' ),
-							/* translators: %s: One month from or to a particular datetime, e.g., "a month ago" or "a month from now". */
+							/* translators: One month from or to a particular datetime, e.g., "a month ago" or "a month from now". */
 							'M'      => __( 'a month' ),
-							/* translators: %s: Duration in months from or to a particular datetime, e.g., "4 months ago" or "4 months from now". */
+							/* translators: %d: Duration in months from or to a particular datetime, e.g., "4 months ago" or "4 months from now". */
 							'MM'     => __( '%d months' ),
-							/* translators: %s: One year from or to a particular datetime, e.g., "a year ago" or "a year from now". */
+							/* translators: One year from or to a particular datetime, e.g., "a year ago" or "a year from now". */
 							'y'      => __( 'a year' ),
-							/* translators: %s: Duration in years from or to a particular datetime, e.g., "4 years ago" or "4 years from now". */
+							/* translators: %d: Duration in years from or to a particular datetime, e.g., "4 years ago" or "4 years from now". */
 							'yy'     => __( '%d years' ),
 						),
 						'startOfWeek'   => (int) get_option( 'start_of_week', 0 ),
@@ -473,9 +477,10 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'datetimeAbbreviated' => __( 'M j, Y g:i a' ),
 					),
 					'timezone' => array(
-						'offset' => (float) get_option( 'gmt_offset', 0 ),
-						'string' => $timezone_string,
-						'abbr'   => $timezone_abbr,
+						'offset'          => (float) $gmt_offset,
+						'offsetFormatted' => str_replace( array( '.25', '.5', '.75' ), array( ':15', ':30', ':45' ), (string) $gmt_offset ),
+						'string'          => $timezone_string,
+						'abbr'            => $timezone_abbr,
 					),
 				)
 			)
@@ -844,6 +849,9 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-lists', "/wp-includes/js/wp-lists$suffix.js", array( 'wp-ajax-response', 'jquery-color' ), false, 1 );
 
+	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery' ), false, 1 );
+	$scripts->set_translations( 'site-icon' );
+
 	// WordPress no longer uses or bundles Prototype or script.aculo.us. These are now pulled from an external source.
 	$scripts->add( 'prototype', 'https://ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js', array(), '1.7.1' );
 	$scripts->add( 'scriptaculous-root', 'https://ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js', array( 'prototype' ), '1.9.0' );
@@ -924,20 +932,6 @@ function wp_default_scripts( $scripts ) {
 	 */
 	$scripts->add( 'jquery-ui-position', false, array( 'jquery-ui-core' ), '1.13.2', 1 );
 	$scripts->add( 'jquery-ui-widget', false, array( 'jquery-ui-core' ), '1.13.2', 1 );
-
-	// Strings for 'jquery-ui-autocomplete' live region messages.
-	did_action( 'init' ) && $scripts->localize(
-		'jquery-ui-autocomplete',
-		'uiAutocompleteL10n',
-		array(
-			'noResults'    => __( 'No results found.' ),
-			/* translators: Number of results found when using jQuery UI Autocomplete. */
-			'oneResult'    => __( '1 result found. Use up and down arrow keys to navigate.' ),
-			/* translators: %d: Number of results found when using jQuery UI Autocomplete. */
-			'manyResults'  => __( '%d results found. Use up and down arrow keys to navigate.' ),
-			'itemSelected' => __( 'Item selected.' ),
-		)
-	);
 
 	// Deprecated, not used in core, most functionality is included in jQuery 1.3.
 	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
@@ -1240,7 +1234,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array( 'hoverintent-js' ), false, 1 );
 
-	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
+	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'common', 'jquery', 'wp-a11y', 'wp-i18n' ), false, 1 );
+	$scripts->set_translations( 'wplink' );
 	did_action( 'init' ) && $scripts->localize(
 		'wplink',
 		'wpLinkL10n',
@@ -1418,7 +1413,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'tags-box', "/wp-admin/js/tags-box$suffix.js", array( 'jquery', 'tags-suggest' ), false, 1 );
 		$scripts->set_translations( 'tags-box' );
 
-		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'jquery-ui-autocomplete', 'wp-a11y' ), false, 1 );
+		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'common', 'jquery-ui-autocomplete', 'wp-a11y', 'wp-i18n' ), false, 1 );
 		$scripts->set_translations( 'tags-suggest' );
 
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
@@ -1714,7 +1709,7 @@ function wp_default_styles( $styles ) {
 	);
 
 	$package_styles = array(
-		'block-editor'         => array( 'wp-components' ),
+		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
 		'components'           => array(),
@@ -1726,17 +1721,20 @@ function wp_default_styles( $styles ) {
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-commands',
+			'wp-preferences',
 		),
 		'editor'               => array(
 			'wp-components',
 			'wp-block-editor',
 			'wp-reusable-blocks',
 			'wp-patterns',
+			'wp-preferences',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'patterns'             => array( 'wp-components' ),
+		'preferences'          => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 		'widgets'              => array(
 			'wp-components',
@@ -1748,6 +1746,7 @@ function wp_default_styles( $styles ) {
 			'wp-block-library',
 			'wp-reusable-blocks',
 			'wp-patterns',
+			'wp-preferences',
 		),
 		'customize-widgets'    => array(
 			'wp-widgets',
@@ -1756,12 +1755,14 @@ function wp_default_styles( $styles ) {
 			'wp-block-library',
 			'wp-reusable-blocks',
 			'wp-patterns',
+			'wp-preferences',
 		),
 		'edit-site'            => array(
 			'wp-components',
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-commands',
+			'wp-preferences',
 		),
 	);
 
@@ -1881,6 +1882,8 @@ function wp_prototype_before_jquery( $js_array ) {
  * These localizations require information that may not be loaded even by init.
  *
  * @since 2.5.0
+ *
+ * @global array $shortcode_tags
  */
 function wp_just_in_time_script_localization() {
 
@@ -2584,7 +2587,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
 		return false;
 	}
 
@@ -2832,18 +2835,18 @@ function wp_print_script_tag( $attributes ) {
 }
 
 /**
- * Wraps inline JavaScript in `<script>` tag.
+ * Constructs an inline script tag.
  *
  * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
  *
- * @param string $javascript Inline JavaScript code.
+ * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
-function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
+function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
 	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
 		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
@@ -2877,7 +2880,17 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 *
 	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
 	 */
-	if ( ! $is_html5 ) {
+	if (
+		! $is_html5 &&
+		(
+			! isset( $attributes['type'] ) ||
+			'module' === $attributes['type'] ||
+			str_contains( $attributes['type'], 'javascript' ) ||
+			str_contains( $attributes['type'], 'ecmascript' ) ||
+			str_contains( $attributes['type'], 'jscript' ) ||
+			str_contains( $attributes['type'], 'livescript' )
+		)
+	) {
 		/*
 		 * If the string `]]>` exists within the JavaScript it would break
 		 * out of any wrapping CDATA section added here, so to start, it's
@@ -2887,13 +2900,13 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 		 * Note: it's only necessary to escape the closing `]]>` because
 		 * an additional `<![CDATA[` leaves the contents unchanged.
 		 */
-		$javascript = str_replace( ']]>', ']]]]><![CDATA[>', $javascript );
+		$data = str_replace( ']]>', ']]]]><![CDATA[>', $data );
 
 		// Wrap the entire escaped script inside a CDATA section.
-		$javascript = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $javascript );
+		$data = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $data );
 	}
 
-	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+	$data = "\n" . trim( $data, "\n\r " ) . "\n";
 
 	/**
 	 * Filters attributes to be added to a script tag.
@@ -2903,26 +2916,26 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
 	 *                           Only the attribute name is added to the `<script>` tag for
 	 *                           entries with a boolean value, and that are true.
-	 * @param string $javascript Inline JavaScript code.
+	 * @param string $data       Inline data.
 	 */
-	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
+	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
-	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
+	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $data );
 }
 
 /**
- * Prints inline JavaScript wrapped in `<script>` tag.
+ * Prints an inline script tag.
  *
  * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
  *
- * @param string $javascript Inline JavaScript code.
+ * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
-function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
-	echo wp_get_inline_script_tag( $javascript, $attributes );
+function wp_print_inline_script_tag( $data, $attributes = array() ) {
+	echo wp_get_inline_script_tag( $data, $attributes );
 }
 
 /**
@@ -3341,7 +3354,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  * This is a helper meant to be used for literal script tag construction
  * within `wp_get_inline_script_tag()` or `wp_print_inline_script_tag()`.
  * It removes the literal values of "<script>" and "</script>" from
- * around an inline script after trimming whitespace. Typlically this
+ * around an inline script after trimming whitespace. Typically this
  * is used in conjunction with output buffering, where `ob_get_clean()`
  * is passed as the `$contents` argument.
  *
@@ -3355,8 +3368,8 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  *     $js = '<script type="text/javascript">console.log( "hi" );</script>';
  *     'console.error( ... )' === wp_remove_surrounding_empty_script_tags( $js );
  *
- * @private
  * @since 6.4.0
+ * @access private
  *
  * @see wp_print_inline_script_tag()
  * @see wp_get_inline_script_tag()
@@ -3379,6 +3392,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 	} else {
 		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
 		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
-		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
+		return sprintf(
+			'console.error(%s)',
+			wp_json_encode(
+				sprintf(
+					/* translators: %s: wp_remove_surrounding_empty_script_tags() */
+					__( 'Function %s used incorrectly in PHP.' ),
+					'wp_remove_surrounding_empty_script_tags()'
+				) . ' ' . $error_message
+			)
+		);
 	}
 }

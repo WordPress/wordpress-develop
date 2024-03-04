@@ -1,5 +1,6 @@
 <?php
 /**
+ * @group blocks
  * @group block-templates
  *
  * @covers ::get_block_templates

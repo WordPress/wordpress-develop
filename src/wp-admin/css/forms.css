@@ -22,10 +22,6 @@ textarea {
 	resize: vertical;
 }
 
-label {
-	cursor: pointer;
-}
-
 input,
 select {
 	margin: 0 1px;
@@ -287,8 +283,10 @@ textarea.disabled {
 
 input[type="file"]:disabled,
 input[type="file"].disabled,
+input[type="file"][aria-disabled="true"],
 input[type="range"]:disabled,
-input[type="range"].disabled {
+input[type="range"].disabled,
+input[type="range"][aria-disabled="true"] {
 	background: none;
 	box-shadow: none;
 	cursor: default;
@@ -296,13 +294,16 @@ input[type="range"].disabled {
 
 input[type="checkbox"]:disabled,
 input[type="checkbox"].disabled,
+input[type="checkbox"][aria-disabled="true"],
 input[type="radio"]:disabled,
 input[type="radio"].disabled,
+input[type="radio"][aria-disabled="true"],
 input[type="checkbox"]:disabled:checked:before,
 input[type="checkbox"].disabled:checked:before,
 input[type="radio"]:disabled:checked:before,
 input[type="radio"].disabled:checked:before {
 	opacity: 0.7;
+	cursor: default;
 }
 
 /*------------------------------------------------------------------------------
@@ -354,6 +355,10 @@ input[type="radio"].disabled:checked:before {
 	text-shadow: 0 1px 0 #fff;
 	cursor: default;
 	transform: none;
+}
+
+.wp-core-ui select[aria-disabled="true"] {
+	cursor: default;
 }
 
 /* Reset Firefox inner outline that appears on :focus. */
@@ -674,6 +679,13 @@ fieldset label,
 	border-color: #68de7c;
 }
 
+#pass1:focus,
+#pass1-text:focus {
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+}
+
 .pw-weak {
 	display: none;
 }
@@ -774,6 +786,42 @@ ul#add-to-blog-users {
 	background-color: #2271b1;
 	color: #fff;
 	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+}
+
+.button-add-site-icon {
+	width: 100%;
+	cursor: pointer;
+	text-align: center;
+	border: 1px dashed #c3c4c7;
+	box-sizing: border-box;
+	padding: 9px 0;
+	line-height: 1.6;
+	max-width: 270px;
+}
+
+.button-add-site-icon:focus,
+.button-add-site-icon:hover {
+	background: #fff;
+}
+
+.site-icon-section .favicon-preview {
+	float: left;
+}
+.site-icon-section .app-icon-preview {
+	float: left;
+	margin: 0 20px;
+}
+
+.site-icon-section .site-icon-preview img {
+	max-width: 100%;
+}
+
+.button-add-site-icon:focus {
+	background-color: #fff;
+	border-color: #3582c4;
+	border-style: solid;
+	box-shadow: 0 0 0 1px #3582c4;
 	outline: 2px solid transparent;
 }
 
@@ -921,11 +969,14 @@ table.form-table td .updated p {
 }
 
 .color-palette {
+	display: table;
 	width: 100%;
 	border-spacing: 0;
 	border-collapse: collapse;
 }
+.color-palette .color-palette-shade,
 .color-palette td {
+	display: table-cell;
 	height: 20px;
 	padding: 0;
 	border: none;
@@ -1589,12 +1640,15 @@ table.form-table td .updated p {
 		margin-bottom: 0;
 	}
 
+	.form-table .color-palette .color-palette-shade,
 	.form-table .color-palette td {
 		display: table-cell;
 		width: 15px;
+		height: 30px;
+		padding: 0;
 	}
 
-	.form-table table.color-palette {
+	.form-table .color-palette {
 		margin-right: 10px;
 	}
 

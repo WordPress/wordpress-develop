@@ -232,6 +232,25 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Checks whether all dependents of a given handle are in the footer.
+	 *
+	 * If there are no dependents, this is considered the same as if all dependents were in the footer.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $handle Script handle.
+	 * @return bool Whether all dependents are in the footer.
+	 */
+	private function are_all_dependents_in_footer( $handle ) {
+		foreach ( $this->get_dependents( $handle ) as $dep ) {
+			if ( isset( $this->groups[ $dep ] ) && 0 === $this->groups[ $dep ] ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Processes a script dependency.
 	 *
 	 * @since 2.6.0
@@ -279,6 +298,25 @@ class WP_Scripts extends WP_Dependencies {
 
 		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
+		}
+
+		/*
+		 * Move this script to the footer if:
+		 * 1. The script is in the header group.
+		 * 2. The current output is the header.
+		 * 3. The intended strategy is delayed.
+		 * 4. The actual strategy is not delayed.
+		 * 5. All dependent scripts are in the footer.
+		 */
+		if (
+			0 === $group &&
+			0 === $this->groups[ $handle ] &&
+			$intended_strategy &&
+			! $this->is_delayed_strategy( $strategy ) &&
+			$this->are_all_dependents_in_footer( $handle )
+		) {
+			$this->in_footer[] = $handle;
+			return false;
 		}
 
 		if ( $conditional ) {
@@ -484,33 +522,6 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		return trim( implode( "\n", $data ), "\n" );
-	}
-
-	/**
-	 * Gets unaliased dependencies.
-	 *
-	 * An alias is a dependency whose src is false. It is used as a way to bundle multiple dependencies in a single
-	 * handle. This in effect flattens an alias dependency tree.
-	 *
-	 * @since 6.3.0
-	 *
-	 * @param string[] $deps Dependency handles.
-	 * @return string[] Unaliased handles.
-	 */
-	private function get_unaliased_deps( array $deps ) {
-		$flattened = array();
-		foreach ( $deps as $dep ) {
-			if ( ! isset( $this->registered[ $dep ] ) ) {
-				continue;
-			}
-
-			if ( $this->registered[ $dep ]->src ) {
-				$flattened[] = $dep;
-			} elseif ( $this->registered[ $dep ]->deps ) {
-				array_push( $flattened, ...$this->get_unaliased_deps( $this->registered[ $dep ]->deps ) );
-			}
-		}
-		return $flattened;
 	}
 
 	/**

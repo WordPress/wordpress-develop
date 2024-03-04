@@ -4,9 +4,9 @@
  *
  * To use this class you must follow these steps for PHP 5.2.6+
  *
- * @contrib http://kevin.vanzonneveld.net/techblog/article/make_ssh_connections_with_php/ - Installation Notes
+ * {@link http://kevin.vanzonneveld.net/techblog/article/make_ssh_connections_with_php/ - Installation Notes}
  *
- * Compile libssh2 (Note: Only 0.14 is officaly working with PHP 5.2.6+ right now, But many users have found the latest versions work)
+ * Compile libssh2 (Note: Only 0.14 is officially working with PHP 5.2.6+ right now, But many users have found the latest versions work)
  *
  * cd /usr/src
  * wget https://www.libssh2.org/download/libssh2-0.14.tar.gz
@@ -745,7 +745,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return array|false {
 	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         Array of file information. Note that some elements may not be available on all filesystems.
 	 *
 	 *         @type string           $name        Name of the file or directory.

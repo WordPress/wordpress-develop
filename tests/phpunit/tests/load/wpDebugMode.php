@@ -7,8 +7,9 @@
  * @subpackage UnitTests
  * @since 5.9.0
  *
- * @group load.php
+ * @group load
  * @group wp-debug-mode
+ *
  * @covers ::wp_debug_mode
  */
 class Test_WP_Debug_Mode extends WP_UnitTestCase {
