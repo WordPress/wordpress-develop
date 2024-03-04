@@ -2204,17 +2204,18 @@ class Tests_User extends WP_UnitTestCase {
 		// Existing signup username
 		$wpdb->insert(
 			$wpdb->signups,
-			[
+			array(
 				'user_login' => 'testsuser1',
-				'registered' => date( 'Y-m-d H:i:s', strtotime( 'now' ) )
-			],
-			[
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( 'now' ) ),
+			),
+			array(
 				'%s',
 				'%s',
-			]
+			)
 		);
 		$this->assertEquals(
-			true, is_username_reserved( 'testsuser1' ),
+			true,
+			is_username_reserved( 'testsuser1' ),
 			'assert username in signups for less than two days to not be available.'
 		);
 		$this->assertEquals(
@@ -2226,14 +2227,14 @@ class Tests_User extends WP_UnitTestCase {
 		// Expired signup username
 		$wpdb->insert(
 			$wpdb->signups,
-			[
+			array(
 				'user_login' => 'testsuser2',
-				'registered' => date( 'Y-m-d H:i:s', strtotime( '3 days ago' ) )
-			],
-			[
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( '3 days ago' ) ),
+			),
+			array(
 				'%s',
 				'%s',
-			]
+			)
 		);
 		$this->assertEquals( false, is_username_reserved( 'testsuser2' ), 'assert username in signups for more than two days to be available.' );
 		$this->assertEquals(
