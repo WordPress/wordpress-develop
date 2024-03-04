@@ -192,7 +192,7 @@ if ( ! empty( $messages ) ) {
 		if ( ! $is_main_site ) {
 			$attribute_fields['archived'] = __( 'Archived' );
 			$attribute_fields['spam']     = _x( 'Spam', 'site' );
-			$attribute_fields['deleted']  = __( 'Deleted' );
+			$attribute_fields['deleted']  = __( 'Deactivated' );
 		}
 		$attribute_fields['mature'] = __( 'Mature' );
 		?>

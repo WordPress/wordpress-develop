@@ -37,7 +37,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$this->status_list = array(
 			'archived' => array( 'site-archived', __( 'Archived' ) ),
 			'spam'     => array( 'site-spammed', _x( 'Spam', 'site' ) ),
-			'deleted'  => array( 'site-deleted', __( 'Deleted' ) ),
+			'deleted'  => array( 'site-deleted', __( 'Deactivated' ) ),
 			'mature'   => array( 'site-mature', __( 'Mature' ) ),
 		);
 
@@ -256,8 +256,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 			/* translators: %s: Number of sites. */
 			'deleted'  => _n_noop(
-				'Deleted <span class="count">(%s)</span>',
-				'Deleted <span class="count">(%s)</span>'
+				'Deactivated <span class="count">(%s)</span>',
+				'Deactivated <span class="count">(%s)</span>'
 			),
 		);
 
@@ -665,7 +665,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 * @since 5.3.0
 		 *
 		 * @param string[] $site_states An array of site states. Default 'Main',
-		 *                              'Archived', 'Mature', 'Spam', 'Deleted'.
+		 *                              'Archived', 'Mature', 'Spam', 'Deactivated'.
 		 * @param WP_Site  $site        The current site object.
 		 */
 		$site_states = apply_filters( 'display_site_states', $site_states, $_site );
