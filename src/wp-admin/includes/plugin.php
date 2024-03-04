@@ -1239,7 +1239,7 @@ function validate_plugin_requirements( $plugin ) {
 					esc_url( network_admin_url( 'plugins.php' ) )
 				);
 			} else {
-				$error_message .= __( 'Please contact your network administrator.' );
+				$error_message .= ' ' . __( 'Please contact your network administrator.' );
 			}
 		} else {
 			$error_message .= ' ' . sprintf(
