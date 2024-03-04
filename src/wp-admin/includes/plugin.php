@@ -1219,19 +1219,35 @@ function validate_plugin_requirements( $plugin ) {
 			}
 		}
 
-		$plugins_page  = is_multisite() ? network_admin_url( 'plugins' ) : admin_url( 'plugins' );
 		$error_message = sprintf(
-			/* translators: 1: Plugin name, 2: Number of plugins, 3: A comma-separated list of plugin names, 4: Link to the plugins page. */
+			/* translators: 1: Plugin name, 2: Number of plugins, 3: A comma-separated list of plugin names. */
 			_n(
-				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s. <a href="%4$s">Manage plugins</a>',
-				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s. <a href="%4$s">Manage plugins</a>',
+				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s.',
+				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s.',
 				count( $unmet_dependency_names )
 			),
 			$plugin_headers['Name'],
 			count( $unmet_dependency_names ),
-			implode( wp_get_list_item_separator(), $unmet_dependency_names ),
-			esc_url( $plugins_page )
+			implode( wp_get_list_item_separator(), $unmet_dependency_names )
 		);
+
+		if ( is_multisite() ) {
+			if ( current_user_can( 'manage_network_plugins' ) ) {
+				$error_message .= ' ' . sprintf(
+					/* translators: %s: Link to the plugins page. */
+					__( '<a href="%s">Manage plugins</a>' ),
+					esc_url( network_admin_url( 'plugins.php' ) )
+				);
+			} else {
+				$error_message .= __( 'Please contact your network administrator.' );
+			}
+		} else {
+			$error_message .= ' ' . sprintf(
+				/* translators: %s: Link to the plugins page. */
+				__( '<a href="%s">Manage plugins</a>' ),
+				esc_url( admin_url( 'plugins.php' ) )
+			);
+		}
 
 		return new WP_Error(
 			'plugin_missing_dependencies',
