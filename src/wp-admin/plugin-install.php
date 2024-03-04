@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage Administration
  */
-// TODO: Route this page via a specific iframe handler instead of the do_action below.
+// @todo Route this page via a specific iframe handler instead of the do_action below.
 if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-information' === $_GET['tab'] ) ) {
 	define( 'IFRAME_REQUEST', true );
 }

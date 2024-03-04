@@ -99,7 +99,7 @@ foreach ( $popular_importers as $pop_importer => $pop_data ) {
 }
 
 if ( empty( $importers ) ) {
-	echo '<p>' . __( 'No importers are available.' ) . '</p>'; // TODO: Make more helpful.
+	echo '<p>' . __( 'No importers are available.' ) . '</p>'; // @todo Make more helpful.
 } else {
 	uasort( $importers, '_usort_by_first_member' );
 	?>

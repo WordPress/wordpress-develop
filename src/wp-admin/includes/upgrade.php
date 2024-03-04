@@ -3492,12 +3492,12 @@ function make_site_theme() {
 
 	if ( file_exists( ABSPATH . 'wp-layout.css' ) ) {
 		if ( ! make_site_theme_from_oldschool( $theme_name, $template ) ) {
-			// TODO: rm -rf the site theme directory.
+			// @todo rm -rf the site theme directory.
 			return false;
 		}
 	} else {
 		if ( ! make_site_theme_from_default( $theme_name, $template ) ) {
-			// TODO: rm -rf the site theme directory.
+			// @todo rm -rf the site theme directory.
 			return false;
 		}
 	}

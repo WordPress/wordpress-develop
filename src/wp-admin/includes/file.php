@@ -1551,7 +1551,7 @@ function wp_trusted_keys() {
 		$trusted_keys[] = 'fRPyrxb/MvVLbdsYi+OOEv4xc+Eqpsj+kkAS6gNOkI0=';
 	}
 
-	// TODO: Add key #2 with longer expiration.
+	// @todo Add key #2 with longer expiration.
 
 	/**
 	 * Filters the valid signing keys used to verify the contents of files.
