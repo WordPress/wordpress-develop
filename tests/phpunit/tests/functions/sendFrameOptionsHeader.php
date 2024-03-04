@@ -12,7 +12,6 @@
  */
 class Tests_Functions_SendFrameOptionsHeader extends WP_UnitTestCase {
 
-
 	/**
 	 * Just test for function
 	 *
