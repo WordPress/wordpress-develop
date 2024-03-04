@@ -1579,7 +1579,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$error_message = '';
 		if ( WP_Plugin_Dependencies::has_unmet_dependencies( $dependent ) ) {
 			if ( $is_active ) {
-				$error_message = __( 'This plugin is active but will not function correctly because required plugins are missing or inactive.' );
+				$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
 			} else {
 				$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
 			}
