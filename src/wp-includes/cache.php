@@ -93,6 +93,7 @@ function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
  * Differs from wp_cache_add() and wp_cache_replace() in that it will always write data.
  *
  * @since 2.0.0
+ * @since 6.5.0 The method support transient caching.
  *
  * @see WP_Object_Cache::set()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
@@ -103,10 +104,23 @@ function wp_cache_replace( $key, $data, $group = '', $expire = 0 ) {
  *                           to be used across groups. Default empty.
  * @param int        $expire Optional. When to expire the cache contents, in seconds.
  *                           Default 0 (no expiration).
+ * @param bool       $transient_cache Optional. If the transient based cache is enabled or not. Default false.
  * @return bool True on success, false on failure.
  */
-function wp_cache_set( $key, $data, $group = '', $expire = 0 ) {
+function wp_cache_set( $key, $data, $group = '', $expire = 0, $transient_cache = false ) {
 	global $wp_object_cache;
+
+	if ( ! wp_using_ext_object_cache() && $transient_cache ) {
+		$transient_key = "transient_cache_{$group}_{$key}";
+		if ( ! $expire ) {
+			// It is better to have a default expiry for transisent as as it can't be easily flushed like object cache.
+			$expiry = apply_filters( 'transient_cache_default_expiry', 900 );  // 30 minutes.
+		}
+		$expiry = apply_filters( "{$transient_key}_expiry", $expiry );
+
+		// this has the same return signature as wp_cache_set.
+		return set_site_transient( $transient_key, $pattern_data, $expiry );
+	}
 
 	return $wp_object_cache->set( $key, $data, $group, (int) $expire );
 }
@@ -136,6 +150,7 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
  * Retrieves the cache contents from the cache by key and group.
  *
  * @since 2.0.0
+ * @since 6.5.0 The method support transient caching.
  *
  * @see WP_Object_Cache::get()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
@@ -146,10 +161,16 @@ function wp_cache_set_multiple( array $data, $group = '', $expire = 0 ) {
  *                          from the persistent cache. Default false.
  * @param bool       $found Optional. Whether the key was found in the cache (passed by reference).
  *                          Disambiguates a return of false, a storable value. Default null.
+ * @param bool       $transient_cache Optional. If the transient based cache is enabled or not. Default false.
  * @return mixed|false The cache contents on success, false on failure to retrieve contents.
  */
-function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
+function wp_cache_get( $key, $group = '', $force = false, &$found = null, $transient_cache = false ) {
 	global $wp_object_cache;
+
+	if ( ! wp_using_ext_object_cache() && $transient_cache ) {
+		$transient_key = "transient_cache_{$group}_{$key}";
+		return get_site_transient( $transient_key );
+	}
 
 	return $wp_object_cache->get( $key, $group, $force, $found );
 }
@@ -179,16 +200,23 @@ function wp_cache_get_multiple( $keys, $group = '', $force = false ) {
  * Removes the cache contents matching key and group.
  *
  * @since 2.0.0
+ * @since 6.5.0 The method support transient caching.
  *
  * @see WP_Object_Cache::delete()
  * @global WP_Object_Cache $wp_object_cache Object cache global instance.
  *
  * @param int|string $key   What the contents in the cache are called.
  * @param string     $group Optional. Where the cache contents are grouped. Default empty.
+ * @param bool       $transient_cache Optional. If the transient based cache is enabled or not. Default false.
  * @return bool True on successful removal, false on failure.
  */
-function wp_cache_delete( $key, $group = '' ) {
+function wp_cache_delete( $key, $group = '', $transient_cache = false ) {
 	global $wp_object_cache;
+
+	if ( ! wp_using_ext_object_cache() && $transient_cache ) {
+		$transient_key = "transient_cache_{$group}_{$key}";
+		return delete_site_transient( $transient_key );
+	}
 
 	return $wp_object_cache->delete( $key, $group );
 }
