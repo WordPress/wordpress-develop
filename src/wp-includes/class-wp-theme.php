@@ -1975,7 +1975,7 @@ final class WP_Theme implements ArrayAccess {
 			return false;
 		}
 
-		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files', false, $found = null, true );
+		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files', false, $found, true );
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}

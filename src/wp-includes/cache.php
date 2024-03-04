@@ -119,7 +119,7 @@ function wp_cache_set( $key, $data, $group = '', $expire = 0, $transient_cache =
 		$expiry = apply_filters( "{$transient_key}_expiry", $expiry );
 
 		// this has the same return signature as wp_cache_set.
-		return set_site_transient( $transient_key, $pattern_data, $expiry );
+		return set_site_transient( $transient_key, $data, $expiry );
 	}
 
 	return $wp_object_cache->set( $key, $data, $group, (int) $expire );
