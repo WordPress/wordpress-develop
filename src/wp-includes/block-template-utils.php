@@ -1436,13 +1436,15 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 /**
  * Inject ignoredHookedBlocks metadata attributes into a template or template part.
  *
- * Given a `wp_template` or `wp_template_part` post object, locate all blocks that have
+ * Given an object that represents a `wp_template` or `wp_template_part` post object
+ * prepared for inserting or updating the database, locate all blocks that have
  * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
  * blocks to reflect the latter.
  *
- * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
+ * @param stdClass        $post    An object representing a template or template part
+ *                                 prepared for inserting or updating the database.
  * @param WP_REST_Request $request Request object.
- * @return stdClass The updated post object.
+ * @return stdClass The updated object representing a template or template part.
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	$filter_name = current_filter();
