@@ -631,9 +631,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param stdClass        $prepared_post An object representing a single post prepared
-		 *                                       for inserting or updating the database.
-		 * @param WP_REST_Request $request       Request object.
+		 * @param stdClass        $changes An object representing a single post prepared
+		 *                                 for inserting or updating the database.
+		 * @param WP_REST_Request $request Request object.
 		 */
 		return apply_filters( "rest_pre_insert_{$this->post_type}", $changes, $request );
 	}
