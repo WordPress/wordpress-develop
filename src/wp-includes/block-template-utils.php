@@ -1441,9 +1441,11 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * blocks to reflect the latter.
  *
  * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
+ * @param WP_REST_Request $request Request object.
+ * @param string   $post_type The post type of the post object.
  * @return stdClass The updated post object.
  */
-function inject_ignored_hooked_blocks_metadata_attributes( $post ) {
+function inject_ignored_hooked_blocks_metadata_attributes( $post, $request, $post_type ) {
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
 		return;
@@ -1453,7 +1455,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post ) {
 	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
 	// To that end, we need to suppress hooked blocks from getting inserted into the template.
 	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
-	$template = _build_block_template_result_from_post( get_post( $post->ID ) );
+	$template = $request['id'] ? get_block_template( $request['id'], $post_type ) : null;
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
@@ -1464,4 +1466,34 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post ) {
 
 	$post->post_content = $content;
 	return $post;
+}
+
+/**
+ * Inject ignoredHookedBlocks metadata attributes into a wp_template_part.
+ *
+ * Given a `wp_template` or `wp_template_part` post object, locate all blocks that have
+ * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
+ * blocks to reflect the latter.
+ *
+ * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
+ * @param WP_REST_Request $request Request object.
+ * @return stdClass The updated post object.
+ */
+function inject_ignored_hooked_blocks_metadata_attributes_into_template_part( $post, $request ) {
+	return inject_ignored_hooked_blocks_metadata_attributes( $post, $request, 'wp_template_part' );
+}
+
+/**
+ * Inject ignoredHookedBlocks metadata attributes into a wp_template.
+ *
+ * Given a `wp_template` or `wp_template_part` post object, locate all blocks that have
+ * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
+ * blocks to reflect the latter.
+ *
+ * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
+ * @param WP_REST_Request $request Request object.
+ * @return stdClass The updated post object.
+ */
+function inject_ignored_hooked_blocks_metadata_attributes_into_template( $post, $request ) {
+	return inject_ignored_hooked_blocks_metadata_attributes( $post, $request, 'wp_template' );
 }
