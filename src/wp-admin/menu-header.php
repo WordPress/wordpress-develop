@@ -162,7 +162,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 			if ( ! empty( $menu_hook )
 				|| ( ( 'index.php' !== $submenu_items[0][2] )
-					&& file_exists( WP_PLUGIN_DIR . "/$menu_file" )
+					&& ( file_exists( WP_PLUGIN_DIR . "/$menu_file" ) || file_exists( WPMU_PLUGIN_DIR . "/$menu_file" ) )
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
 				$admin_is_parent = true;
@@ -181,7 +181,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 			if ( ! empty( $menu_hook )
 				|| ( ( 'index.php' !== $item[2] )
-					&& file_exists( WP_PLUGIN_DIR . "/$menu_file" )
+					&& ( file_exists( WP_PLUGIN_DIR . "/$menu_file" ) || file_exists( WPMU_PLUGIN_DIR . "/$menu_file" ) )
 					&& ! file_exists( ABSPATH . "/wp-admin/$menu_file" ) )
 			) {
 				$admin_is_parent = true;
@@ -256,11 +256,11 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 				if ( ! empty( $menu_hook )
 					|| ( ( 'index.php' !== $sub_item[2] )
-						&& file_exists( WP_PLUGIN_DIR . "/$sub_file" )
+						&& ( file_exists( WP_PLUGIN_DIR . "/$sub_file" ) || file_exists( WPMU_PLUGIN_DIR . "/$sub_file" ) )
 						&& ! file_exists( ABSPATH . "/wp-admin/$sub_file" ) )
 				) {
 					// If admin.php is the current page or if the parent exists as a file in the plugins or admin directory.
-					if ( ( ! $admin_is_parent && file_exists( WP_PLUGIN_DIR . "/$menu_file" ) && ! is_dir( WP_PLUGIN_DIR . "/{$item[2]}" ) ) || file_exists( $menu_file ) ) {
+					if ( ( ! $admin_is_parent && ( file_exists( WP_PLUGIN_DIR . "/$menu_file" ) || file_exists( WPMU_PLUGIN_DIR . "/$menu_file" ) ) && ! is_dir( WP_PLUGIN_DIR . "/{$item[2]}" ) && ! is_dir( WPMU_PLUGIN_DIR . "/{$item[2]}" ) ) || file_exists( $menu_file ) ) {
 						$sub_item_url = add_query_arg( array( 'page' => $sub_item[2] ), $item[2] );
 					} else {
 						$sub_item_url = add_query_arg( array( 'page' => $sub_item[2] ), 'admin.php' );
