@@ -270,6 +270,38 @@
 	};
 
 	/**
+	 * Helper function to insert an inline notice of success or failure.
+	 *
+	 * @param {jQuery Object} $this   The button element: the message will be inserted
+	 *                                above this button
+	 * @param {bool}          success Whether the message is a success message.
+	 * @param {string}        message The message to insert.
+	 * 
+	 * @since 6.4.0
+	 */
+	wp.updates.addInlineNotice = function( $this, success, message ) {
+		var resultDiv = $("<div />");
+
+		// Set up the notice div.
+		resultDiv.addClass("notice inline");
+
+		// Add a class indicating success or failure.
+		resultDiv.addClass("notice-" + (success ? "success" : "error"));
+
+		// Add the message, wrapping in a p tag, with a fadein to highlight each message.
+		resultDiv.text($($.parseHTML(message)).text()).wrapInner("<p />");
+
+		// Disable the button when the callback has succeeded.
+		$this.prop("disabled", success);
+
+		// Remove any previous notices.
+		$this.siblings(".notice").remove();
+
+		// Insert the notice.
+		$this.before(resultDiv);
+	}
+
+	/**
 	 * Handles Ajax requests to WordPress.
 	 *
 	 * @since 4.6.0
@@ -2422,6 +2454,7 @@
 	$( function() {
 		var $pluginFilter        = $( '#plugin-filter, #plugin-information-footer' ),
 			$bulkActionForm      = $( '#bulk-action-form' ),
+			$postFilterForm      = $( '#posts-filter' ),
 			$filesystemForm      = $( '#request-filesystem-credentials-form' ),
 			$filesystemModal     = $( '#request-filesystem-credentials-dialog' ),
 			$pluginSearch        = $( '.plugins-php .wp-filter-search' ),
@@ -2849,13 +2882,14 @@
 			// Bail if there were no items selected.
 			if ( ! itemsSelected.length ) {
 				event.preventDefault();
-				$( 'html, body' ).animate( { scrollTop: 0 } );
 
-				return wp.updates.addAdminNotice( {
-					id:        'no-items-selected',
-					className: 'notice-error is-dismissible',
-					message:   __( 'Please select at least one item to perform this action on.' )
-				} );
+				wp.a11y.speak( wp.i18n.__( 'Please select at least one item to perform this action on.' ) );
+
+				return wp.updates.addInlineNotice(
+					$(".bulkactions"),
+					false,
+					"Please select at least one item to perform this action on."
+				);
 			}
 
 			// Determine the type of request we're dealing with.
@@ -2968,6 +3002,32 @@
 
 			// Check the queue, now that the event handlers have been added.
 			wp.updates.queueChecker();
+		} );
+		
+		/**
+		 * Bulk action handler for posts/pages.
+		 *
+		 * Handles the scenario where no items are selected.
+		 *
+		 * @since 6.4.0
+		 *
+		 * @param {Event} event Event interface.
+		 */
+		$postFilterForm.on( 'click', '#doaction, #doaction2', function( event ) {
+			var itemsSelected = $postFilterForm.find( 'input[name="post[]"]:checked' );
+
+			// Bail if there were no items selected.
+			if ( ! itemsSelected.length ) {
+				event.preventDefault();
+
+				wp.a11y.speak( wp.i18n.__( 'Please select at least one item to perform this action on.' ) );
+
+				return wp.updates.addInlineNotice(
+					$(".bulkactions"),
+					false,
+					"Please select at least one item to perform this action on."
+				);
+			}
 		} );
 
 		if ( $pluginInstallSearch.length ) {
