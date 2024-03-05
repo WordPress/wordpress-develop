@@ -369,13 +369,27 @@ class WP_Plugin_Dependencies {
 	 */
 	public static function display_admin_notice_for_unmet_dependencies() {
 		if ( in_array( false, self::get_dependency_filepaths(), true ) ) {
-			$plugins_url = is_multisite() ? network_admin_url( 'plugins.php' ) : admin_url( 'plugins.php' );
-			wp_admin_notice(
-				sprintf(
+			$error_message = __( 'Some required plugins are missing or inactive.' );
+
+			if ( is_multisite() ) {
+				if ( current_user_can( 'manage_network_plugins' ) ) {
+					$error_message .= ' ' . sprintf(
+						/* translators: %s: Link to the network plugins page. */
+						esc_url( network_admin_url( 'plugins.php' ) )
+					);
+				} else {
+					$error_message .= ' ' . __( 'Please contact your network administrator.' );
+				}
+			} elseif ( 'plugins' !== get_current_screen()->base ) {
+				$error_message .= ' ' . sprintf(
 					/* translators: %s: Link to the plugins page. */
-					__( 'Some required plugins are missing or inactive. Please <a href="%s">review your plugins</a>.' ),
-					esc_url( $plugins_url )
-				),
+					__( '<a href="%s">Manage plugins</a>.' ),
+					esc_url( admin_url( 'plugins.php' ) )
+				);
+			}
+
+			wp_admin_notice(
+				$error_message,
 				array(
 					'type' => 'warning',
 				)
