@@ -54,7 +54,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredActiveFormatReconstruction extends WP_U
 		 */
 
 		if ( $processor->next_tag( 'SOURCE' ) ) {
-			echo "\e[32mSOURCE\e[m\n";
 			$this->assertSame(
 				array( 'HTML', 'BODY', 'P', 'B', 'SOURCE' ),
 				$processor->get_breadcrumbs(),
