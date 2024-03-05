@@ -1442,10 +1442,15 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  *
  * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
  * @param WP_REST_Request $request Request object.
- * @param string   $post_type The post type of the post object.
  * @return stdClass The updated post object.
  */
-function inject_ignored_hooked_blocks_metadata_attributes( $post, $request, $post_type ) {
+function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
+	$filter_name = current_filter();
+	if ( ! str_starts_with( $filter_name, 'rest_pre_insert_' ) ) {
+		return $post;
+	}
+	$post_type = str_replace( 'rest_pre_insert_', '', $filter_name );
+
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
 		return $post;
@@ -1466,34 +1471,4 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request, $pos
 
 	$post->post_content = $content;
 	return $post;
-}
-
-/**
- * Inject ignoredHookedBlocks metadata attributes into a wp_template_part.
- *
- * Given a `wp_template` or `wp_template_part` post object, locate all blocks that have
- * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
- * blocks to reflect the latter.
- *
- * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
- * @param WP_REST_Request $request Request object.
- * @return stdClass The updated post object.
- */
-function inject_ignored_hooked_blocks_metadata_attributes_into_template_part( $post, $request ) {
-	return inject_ignored_hooked_blocks_metadata_attributes( $post, $request, 'wp_template_part' );
-}
-
-/**
- * Inject ignoredHookedBlocks metadata attributes into a wp_template.
- *
- * Given a `wp_template` or `wp_template_part` post object, locate all blocks that have
- * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
- * blocks to reflect the latter.
- *
- * @param stdClass $post A post object with post type set to `wp_template` or `wp_template_part`.
- * @param WP_REST_Request $request Request object.
- * @return stdClass The updated post object.
- */
-function inject_ignored_hooked_blocks_metadata_attributes_into_template( $post, $request ) {
-	return inject_ignored_hooked_blocks_metadata_attributes( $post, $request, 'wp_template' );
 }
