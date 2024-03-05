@@ -2846,18 +2846,6 @@
 					return;
 			}
 
-			// Bail if there were no items selected.
-			if ( ! itemsSelected.length ) {
-				event.preventDefault();
-				$( 'html, body' ).animate( { scrollTop: 0 } );
-
-				return wp.updates.addAdminNotice( {
-					id:        'no-items-selected',
-					className: 'notice-error is-dismissible',
-					message:   __( 'Please select at least one item to perform this action on.' )
-				} );
-			}
-
 			// Determine the type of request we're dealing with.
 			switch ( bulkAction ) {
 				case 'update-selected':
