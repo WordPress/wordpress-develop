@@ -375,6 +375,7 @@ class WP_Plugin_Dependencies {
 				if ( current_user_can( 'manage_network_plugins' ) ) {
 					$error_message .= ' ' . sprintf(
 						/* translators: %s: Link to the network plugins page. */
+						__( '<a href="%s">Manage plugins</a>.' ),
 						esc_url( network_admin_url( 'plugins.php' ) )
 					);
 				} else {
