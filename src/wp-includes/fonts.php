@@ -92,41 +92,65 @@ function wp_unregister_font_collection( string $slug ) {
 }
 
 /**
- * Returns an array containing the current fonts upload directory's path and URL.
+ * Lightweight, don't create directory.
  *
- * @since 6.5.0
+ * @todo Get in a committable state if it's decided to do this.
  *
- * @param array|null $font_dir Optional. Array of unfiltered uploads directory.
- *                             This is used when the function is called from
- *                             the upload_dir filter. Default null.
- * @return array {
- *     Array of information about the font upload directory.
- *
- *     @type string       $path    Base directory and subdirectory or full path to the fonts upload directory.
- *     @type string       $url     Base URL and subdirectory or absolute URL to the fonts upload directory.
- *     @type string       $subdir  Subdirectory
- *     @type string       $basedir Path without subdir.
- *     @type string       $baseurl URL path without subdir.
- *     @type string|false $error   False or error message.
- * }
+ * @return array
  */
-function wp_get_font_dir( $font_dir = null ) {
+function wp_get_font_dir() {
+	return wp_font_dir( false );
+}
+
+/**
+ * Get and create the font directory.
+ *
+ * @todo Get in a committable state if it's decided to do this.
+ *
+ * @param bool $create_dir
+ * @param bool $refresh_cache
+ * @return array
+ */
+function wp_font_dir( $create_dir = true, $refresh_cache = false ) {
+	// Allow extenders to manipulate the font directory consistently.
+	add_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
+	$font_dir = wp_upload_dir( null, $create_dir, $refresh_cache );
+	remove_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
+	return $font_dir;
+}
+
+/**
+ * Apply the filter.
+ *
+ * @todo Get in a committable state if it's decided to do this.
+ *
+ * @param mixed $font_dir
+ * @return mixed
+ */
+function wp_apply_font_dir_filter( $font_dir ) {
 	if ( doing_filter( 'font_dir' ) ) {
-		/*
-		 * The font_dir filter is being run, avoid an infinite loop.
-		 *
-		 * This indicates that a plugin is calling wp_upload_dir() while filtering
-		 * the font directory and avoids an infinite loop.
-		 */
+		// Avoid an infinite loop.
 		return $font_dir;
 	}
 
+	return apply_filters( 'font_dir', $font_dir );
+}
+
+/**
+ * Default font filter.
+ *
+ * @todo Get in a committable state if it's decided to do this.
+ *
+ * @param mixed $font_dir
+ * @return void
+ */
+function wp_default_font_dir_filter() {
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
-	$font_dir = array(
+	return array(
 		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
 		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'subdir'  => '',
@@ -134,18 +158,14 @@ function wp_get_font_dir( $font_dir = null ) {
 		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'error'   => false,
 	);
-
-	/**
-	 * Filters the fonts directory data.
-	 *
-	 * This filter allows developers to modify the fonts directory data.
-	 *
-	 * @since 6.5.0
-	 *
-	 * @param array $font_dir The original fonts directory data.
-	 */
-	return apply_filters( 'font_dir', $font_dir );
 }
+
+/*
+ * Runs early to allow extenders to hook on to the filter.
+ *
+ * @todo Move to default filters so it's in a committable state if it's decided to do this.
+ */
+add_filter( 'font_dir', 'wp_default_font_dir_filter', 5 );
 
 /**
  * Deletes child font faces when a font family is deleted.
