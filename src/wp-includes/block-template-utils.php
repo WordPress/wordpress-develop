@@ -1448,7 +1448,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 function inject_ignored_hooked_blocks_metadata_attributes( $post, $request, $post_type ) {
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
-		return;
+		return $post;
 	}
 
 	// At this point, the post has already been created.
