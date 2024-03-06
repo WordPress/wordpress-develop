@@ -144,7 +144,7 @@ class Walker {
 			$args[0]['has_children'] = $this->has_children; // Back-compat.
 		}
 
-		$this->start_el( $output, $element, $depth, array_values( $args ), 0, $all_elements);
+		$this->start_el( $output, $element, $depth, ...array_values( $args ), ...[0], ...[$all_elements]);
 
 		// Descend only when the depth is right and there are children for this element.
 		if ( ( 0 == $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
