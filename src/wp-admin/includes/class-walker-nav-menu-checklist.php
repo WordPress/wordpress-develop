@@ -73,7 +73,7 @@ class Walker_Nav_Menu_Checklist extends Walker_Nav_Menu {
 	 * @param stdClass $args              Not used.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0, $all_elements = null ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0, $all_elements = array() ) {
 		global $_nav_menu_placeholder, $nav_menu_selected_id;
 
 		// Restores the more descriptive, specific name for use within this method.

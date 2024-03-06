@@ -93,7 +93,7 @@ class Walker {
 	 * @param array  $args              An array of additional arguments.
 	 * @param int    $current_object_id Optional. ID of the current item. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {}
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0, $all_elements = array() ) {}
 
 	/**
 	 * Ends the element output, if needed.
@@ -130,7 +130,7 @@ class Walker {
 	 * @param array  $args              An array of arguments.
 	 * @param string $output            Used to append additional content (passed by reference).
 	 */
-	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output, $all_elements = null  ) {
+	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output, $all_elements = array() ) {
 		if ( ! $element ) {
 			return;
 		}
@@ -144,7 +144,7 @@ class Walker {
 			$args[0]['has_children'] = $this->has_children; // Back-compat.
 		}
 
-		$this->start_el( $output, $element, $depth, array_values( $args ), '', $all_elements );
+		$this->start_el( $output, $element, $depth, array_values( $args ), 0, $all_elements);
 
 		// Descend only when the depth is right and there are children for this element.
 		if ( ( 0 == $max_depth || $max_depth > $depth + 1 ) && isset( $children_elements[ $id ] ) ) {
