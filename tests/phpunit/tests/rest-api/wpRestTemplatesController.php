@@ -912,6 +912,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertEmpty( $prepared->post_content, 'The content was not correct in the prepared template part.' );
 	}
 
+	/**
+	 * @ticket 60671
+	 *
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
 	public function test_prepare_item_for_database_injects_hooked_block() {
 		register_block_type(
 			'tests/hooked-block',
