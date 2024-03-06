@@ -435,7 +435,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$id      = self::TEST_THEME . '//' . 'my_template';
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
 
-		$changes = new stdClass();
+		$changes               = new stdClass();
 		$changes->post_name    = 'my_template';
 		$changes->post_type    = 'wp_template';
 		$changes->post_status  = 'publish';
