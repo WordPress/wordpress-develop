@@ -1440,7 +1440,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * prepared for inserting or updating the database, locate all blocks that have
  * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
  * blocks to reflect the latter.
- * 
+ *
  * @since 6.5.0
  * @access private
  *
