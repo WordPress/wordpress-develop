@@ -436,13 +436,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
 
 		$changes               = new stdClass();
-		$changes->post_name    = 'my_template';
-		$changes->post_type    = 'wp_template';
-		$changes->post_status  = 'publish';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
-		$changes->tax_input    = array(
-			'wp_theme' => self::TEST_THEME,
-		);
 
 		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 		$this->assertSame(
@@ -475,13 +469,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
 
 		$changes               = new stdClass();
-		$changes->post_name    = 'my_template_part';
-		$changes->post_type    = 'wp_template';
-		$changes->post_status  = 'publish';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
-		$changes->tax_input    = array(
-			'wp_theme' => self::TEST_THEME,
-		);
 
 		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 		$this->assertSame(
