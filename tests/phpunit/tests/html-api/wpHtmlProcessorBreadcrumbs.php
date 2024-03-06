@@ -545,4 +545,26 @@ HTML
 		$processor->seek( 'second' );
 		$this->assertTrue( $processor->get_attribute( 'two' ) );
 	}
+
+	/**
+	 * Ensures that breadcrumbs are properly reported after seeking backward to a location
+	 * inside an element which has been fully closed before the seek.
+	 *
+	 * @ticket 60687
+	 */
+	public function test_retains_proper_bookmarks_after_seeking_back_to_closed_element() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><img></div><div><hr></div>' );
+
+		$processor->next_tag( 'IMG' );
+		$processor->set_bookmark( 'first' );
+
+		$processor->next_tag( 'HR' );
+
+		$processor->seek( 'first' );
+		$this->assertSame(
+			array( 'HTML', 'BODY', 'DIV', 'IMG' ),
+			$processor->get_breadcrumbs(),
+			'Should have retained breadcrumbs from bookmarked location after seeking backwards to it.'
+		);
+	}
 }
