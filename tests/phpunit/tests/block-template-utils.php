@@ -451,4 +451,43 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
 		);
 	}
+
+	/**
+	 * @ticket 60671
+	 *
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part() {
+		global $wp_current_filter;
+		// Mock currently set filter.
+		$wp_current_filter[] = 'rest_pre_insert_wp_template_part';
+
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'tests/anchor-block' => 'after',
+				),
+			)
+		);
+
+		$id      = self::TEST_THEME . '//' . 'my_template_part';
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
+
+		$changes               = new stdClass();
+		$changes->post_name    = 'my_template_part';
+		$changes->post_type    = 'wp_template';
+		$changes->post_status  = 'publish';
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->tax_input    = array(
+			'wp_theme' => self::TEST_THEME,
+		);
+
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		$this->assertSame(
+			'<!-- wp:tests/anchor-block {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} -->Hello<!-- /wp:tests/anchor-block -->',
+			$post->post_content,
+			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
+		);
+	}
 }
