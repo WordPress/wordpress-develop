@@ -1621,7 +1621,7 @@ class getid3_lib
 							}
 							if (is_array($value) || empty($ThisFileInfo['comments'][$tagname]) || !in_array(trim($value), $ThisFileInfo['comments'][$tagname])) {
 								$value = (is_string($value) ? trim($value) : $value);
-								if (!is_int($key) && !ctype_digit($key)) {
+								if (!is_int($key) && !is_numeric($key)) {
 									$ThisFileInfo['comments'][$tagname][$key] = $value;
 								} else {
 									if (!isset($ThisFileInfo['comments'][$tagname])) {
@@ -1789,7 +1789,7 @@ class getid3_lib
 		}
 		if (isset($commandline)) {
 			$output = trim(`$commandline`);
-			if (ctype_digit($output)) {
+			if (is_numeric($output)) {
 				$filesize = (float) $output;
 			}
 		}
