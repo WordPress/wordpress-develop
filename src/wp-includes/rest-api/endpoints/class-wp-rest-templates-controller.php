@@ -619,22 +619,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_author = $post_author;
 		}
 
-		/**
-		 * Filters a post before it is inserted via the REST API.
-		 *
-		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
-		 *
-		 * Possible hook names include:
-		 *
-		 *  - `rest_pre_insert_wp_template`
-		 *  - `rest_pre_insert_wp_template_part`
-		 *
-		 * @since 6.5.0
-		 *
-		 * @param stdClass        $changes An object representing a single post prepared
-		 *                                 for inserting or updating the database.
-		 * @param WP_REST_Request $request Request object.
-		 */
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		return apply_filters( "rest_pre_insert_{$this->post_type}", $changes, $request );
 	}
 
