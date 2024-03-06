@@ -911,4 +911,42 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertEmpty( $prepared->post_content, 'The content was not correct in the prepared template part.' );
 	}
+
+	public function test_prepare_item_for_database_injects_hooked_block() {
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'tests/anchor-block' => 'after',
+				),
+			)
+		);
+
+		add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
+
+		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
+
+		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
+		$prepare_item_for_database->setAccessible( true );
+
+		$body_params = array(
+			'title'   => 'Untitled Template Part',
+			'slug'    => 'untitled-template-part',
+			'content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts' );
+		$request->set_body_params( $body_params );
+
+		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );
+		$this->assertSame(
+			'<!-- wp:tests/anchor-block {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} -->Hello<!-- /wp:tests/anchor-block -->',
+			$prepared->post_content,
+			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
+		);
+
+		remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10 );
+
+		unregister_block_type( 'tests/hooked-block' );
+	}
 }
