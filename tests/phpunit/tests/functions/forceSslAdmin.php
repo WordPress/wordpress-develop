@@ -12,9 +12,9 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 	 * @ticket 57261
 	 */
 	public function test_force_ssl_admin() {
-		$default = force_ssl_admin();
+		$default                = force_ssl_admin();
 		$before_setting_to_true = force_ssl_admin( true );
-		$after_setting_to_true = force_ssl_admin();
+		$after_setting_to_true  = force_ssl_admin();
 		// Reset to default.
 		$before_reset = force_ssl_admin( $default );
 
