@@ -96,6 +96,10 @@ jobs:
           - branch: '6.2'
             workflow: 'performance.yml'
 
+          # Build Process testing was introduced in 6.5.
+          - branch: '6.5'
+            workflow: 'test-build-processes.yml'
+
     # Run all branches monthly, but only the currently supported one twice per month.
     steps:
       - name: Dispatch workflow run
