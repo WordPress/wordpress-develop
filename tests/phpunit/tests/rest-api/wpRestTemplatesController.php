@@ -50,6 +50,22 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * Tear down after each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function tear_down() {
+		if ( has_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' ) ) {
+			remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10 );
+		}
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/block' ) ) {
+			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::register_routes
 	 * @ticket 54596
 	 * @ticket 56467
@@ -950,9 +966,5 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			$prepared->post_content,
 			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
 		);
-
-		remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10 );
-
-		unregister_block_type( 'tests/hooked-block' );
 	}
 }
