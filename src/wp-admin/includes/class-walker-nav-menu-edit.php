@@ -262,16 +262,33 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<button type="button" class="button-link menus-move menus-move-right" data-dir="right"></button>
 					<button type="button" class="button-link menus-move menus-move-top" data-dir="top"><?php _e( 'To the top' ); ?></button>
 				</fieldset>
+
+				<?php
+				/**
+				 * Update parent and order of menu item by changing it.
+				 * 
+				 * @since 6.6.0
+				 */
+				?>
 				<?php $parent_id = $menu_item->menu_item_parent; ?>
-				<fieldset class="field-move-combo">
-					<select name="nav-parent">
-						<option value="">Select Parent</option>
-						<option <?php if($parent_id == 0) { echo "selected"; } ?> value="no-parant">No Parent</option>
-						<?php foreach($menu_items as $mitem){ ?>
-							<option <?php if($parent_id == $mitem->ID) { echo "selected"; } ?> value="<?php echo $mitem->ID; ?>"><?php echo $mitem->title; ?></option>
-						<?php } ?>
-					</select>
-					<input type="number" name="nav-order" value="<?php echo $menu_item->menu_order; ?>">
+				<fieldset class="field-move-combo description description-wide">
+					<div class="" style="display: flex;">
+						<label style="flex-basis: 100%;" for="edit-menu-item-parent-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Parent' ); ?><br />
+							<select style="width: 100%;" class="edit-menu-item-parent" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
+								<option <?php if($parent_id == 0) { echo "selected"; } ?> value="0">No Parent</option>
+								<?php foreach($menu_items as $mitem){ 
+								if($mitem->ID == $item_id) continue;
+								?>
+								<option <?php if($parent_id == $mitem->ID) { echo "selected"; } ?> value="<?php echo $mitem->ID; ?>"><?php echo esc_attr($mitem->title); ?></option>
+								<?php } ?>
+							</select>
+						</label>
+						<label style="flex-basis: 100%;" for="edit-menu-item-order-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Order' ); ?><br />
+							<input style="width: 100%;" id="edit-menu-item-order-<?php echo $item_id; ?>" type="number" class="edit-menu-item-order" name="menu-item-order[<?php echo $item_id; ?>]" value="<?php echo $menu_item->menu_order; ?>" />
+						</label>
+					</div>
 				</fieldset>
 
 				<div class="menu-item-actions description-wide submitbox">

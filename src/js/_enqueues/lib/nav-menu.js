@@ -431,6 +431,39 @@
 					api.moveMenuItem( $( this ).parents( 'li.menu-item' ).find( 'a.item-edit' ), dir );
 				}
 			});
+
+			//Update Parent on changin values.
+			menu.on( 'change', '.edit-menu-item-parent', function() {
+				api.changeMenuParent( $( this ) );
+			});
+			
+		},
+
+		/**
+		 * changeMenuParent( [newparent] )
+		 *
+		 * @param {object} newparent The new parent of menu item
+		 */
+		changeMenuParent : function( newParent ) {
+			var parentItem, parentItemID, parentItemName,
+			menuItems = $( '#menu-to-edit li' ),
+			$this = $( newParent ),
+			newParentID = $this.val(),
+			menuItem = $this.closest('li.menu-item').first(),
+			oldDepth = menuItem.menuItemDepth(),
+			parentItem = $('#menu-item-'+newParentID),
+			newItemPosition = parseInt( parentItem.index(), 10 ),
+			parentDepth = parentItem.menuItemDepth(),
+			newDepth = parseInt(parentDepth) + 1;
+
+			if(newParentID == 0){
+				newDepth = 0;
+				newItemPosition = menuItems.length - 2;
+			}
+
+			menuItem.find('.menu-item-data-parent-id').val(newParentID);
+			menuItem.updateDepthClass(newDepth, oldDepth);
+			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId();
 		},
 
 		/**
