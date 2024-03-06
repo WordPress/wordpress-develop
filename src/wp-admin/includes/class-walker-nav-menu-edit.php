@@ -57,10 +57,11 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 * @param stdClass $args              Not used.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0, $all_elements = null ) {
 		global $_wp_nav_menu_max_depth;
 
 		// Restores the more descriptive, specific name for use within this method.
+		$menu_items = $all_elements;
 		$menu_item = $data_object;
 
 		$_wp_nav_menu_max_depth = $depth > $_wp_nav_menu_max_depth ? $depth : $_wp_nav_menu_max_depth;
@@ -260,6 +261,17 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<button type="button" class="button-link menus-move menus-move-left" data-dir="left"></button>
 					<button type="button" class="button-link menus-move menus-move-right" data-dir="right"></button>
 					<button type="button" class="button-link menus-move menus-move-top" data-dir="top"><?php _e( 'To the top' ); ?></button>
+				</fieldset>
+				<?php $parent_id = $menu_item->menu_item_parent; ?>
+				<fieldset class="field-move-combo">
+					<select name="nav-parent">
+						<option value="">Select Parent</option>
+						<option <?php if($parent_id == 0) { echo "selected"; } ?> value="no-parant">No Parent</option>
+						<?php foreach($menu_items as $mitem){ ?>
+							<option <?php if($parent_id == $mitem->ID) { echo "selected"; } ?> value="<?php echo $mitem->ID; ?>"><?php echo $mitem->title; ?></option>
+						<?php } ?>
+					</select>
+					<input type="number" name="nav-order" value="<?php echo $menu_item->menu_order; ?>">
 				</fieldset>
 
 				<div class="menu-item-actions description-wide submitbox">

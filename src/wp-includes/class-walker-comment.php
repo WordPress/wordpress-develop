@@ -128,7 +128,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args              An array of arguments.
 	 * @param string     $output            Used to append additional content. Passed by reference.
 	 */
-	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output ) {
+	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output, $all_elements = null ) {
 		if ( ! $element ) {
 			return;
 		}
