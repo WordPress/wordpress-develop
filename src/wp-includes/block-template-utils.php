@@ -1442,6 +1442,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * blocks to reflect the latter.
  * 
  * @since 6.5.0
+ * @access private
  *
  * @param stdClass        $post    An object representing a template or template part
  *                                 prepared for inserting or updating the database.
