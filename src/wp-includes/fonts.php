@@ -92,24 +92,38 @@ function wp_unregister_font_collection( string $slug ) {
 }
 
 /**
- * Lightweight, don't create directory.
+ * Retrieves uploads directory information.
  *
- * @todo Get in a committable state if it's decided to do this.
+ * Same as wp_font_dir() but "light weight" as it doesn't attempt to create the font uploads directory.
+ * Intended for use in themes, when only 'basedir' and 'baseurl' are needed, generally in all cases
+ * when not uploading files.
  *
- * @return array
+ * @since 6.5.0
+ *
+ * @see wp_font_dir()
+ *
+ * @return array See wp_font_dir() for description.
  */
 function wp_get_font_dir() {
 	return wp_font_dir( false );
 }
 
 /**
- * Get and create the font directory.
+ * Returns an array containing the current fonts upload directory's path and URL.
  *
- * @todo Get in a committable state if it's decided to do this.
+ * @since 6.5.0
  *
- * @param bool $create_dir
- * @param bool $refresh_cache
- * @return array
+ * @param bool $create_dir Optional. Whether to check and create the font uploads directory. Default true.
+ * @return array $defaults {
+ *     Array of information about the upload directory.
+ *
+ *     @type string       $path    Base directory and subdirectory or full path to the fonts upload directory.
+ *     @type string       $url     Base URL and subdirectory or absolute URL to the fonts upload directory.
+ *     @type string       $subdir  Subdirectory
+ *     @type string       $basedir Path without subdir.
+ *     @type string       $baseurl URL path without subdir.
+ *     @type string|false $error   False or error message.
+ * }
  */
 function wp_font_dir( $create_dir = true ) {
 	/*
