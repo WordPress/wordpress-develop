@@ -111,7 +111,7 @@ function wp_get_font_dir() {
  * @param bool $refresh_cache
  * @return array
  */
-function wp_font_dir( $create_dir = true, $refresh_cache = false ) {
+function wp_font_dir( $create_dir = true ) {
 	/*
 	 * Allow extenders to manipulate the font directory consistently.
 	 *
@@ -120,7 +120,7 @@ function wp_font_dir( $create_dir = true, $refresh_cache = false ) {
 	 * is filtered in the Font Face REST API endpoint.
 	 */
 	add_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
-	$font_dir = wp_upload_dir( null, $create_dir, $refresh_cache );
+	$font_dir = wp_upload_dir( null, $create_dir, false );
 	remove_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
 	return $font_dir;
 }
