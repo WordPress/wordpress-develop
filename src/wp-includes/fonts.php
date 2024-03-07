@@ -129,9 +129,9 @@ function wp_font_dir( $create_dir = true ) {
 	/*
 	 * Allow extenders to manipulate the font directory consistently.
 	 *
-	 * This ensures the upload_dir filter is fired both when using
-	 * this function directly and when using the upload directory
-	 * is filtered in the Font Face REST API endpoint.
+	 * Ensures the upload_dir filter is fired both when calling this function
+	 * directly and when the upload directory is filtered in the Font Face
+	 * REST API endpoint.
 	 */
 	add_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
