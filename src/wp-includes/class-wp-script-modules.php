@@ -195,6 +195,13 @@ class WP_Script_Modules {
 					'id'   => $id . '-js-module',
 				)
 			);
+
+			foreach ( $script_module['dependencies'] as $dependency ) {
+				if ( 'wp-script' !== $dependency['import'] ) {
+					continue;
+				}
+				wp_enqueue_script( $dependency['id'] );
+			}
 		}
 	}
 
@@ -250,6 +257,15 @@ class WP_Script_Modules {
 					'id'   => 'wp-importmap',
 				)
 			);
+
+			foreach ( $import_map['imports'] as $id => $_ ) {
+				foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
+					if ( 'wp-script' !== $dependency['import'] ) {
+						continue;
+					}
+					wp_enqueue_script( $dependency['id'] );
+				}
+			}
 		}
 	}
 
