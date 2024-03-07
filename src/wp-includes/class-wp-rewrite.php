@@ -1035,7 +1035,7 @@ class WP_Rewrite {
 
 			// ...and /page/xx ones.
 			if ( $paged ) {
-				$rewrite_chucks[] =  array( $pagematch => $pagequery );
+				$rewrite_chucks[] = array( $pagematch => $pagequery );
 			}
 
 
@@ -1043,7 +1043,7 @@ class WP_Rewrite {
 			if ( EP_PAGES & $ep_mask || EP_PERMALINK & $ep_mask ) {
 				$rewrite_chucks[] = array( $commentmatch => $commentquery );
 			} elseif ( EP_ROOT & $ep_mask && get_option( 'page_on_front' ) ) {
-				$rewrite_chucks[] =  array( $rootcommentmatch => $rootcommentquery );
+				$rewrite_chucks[] = array( $rootcommentmatch => $rootcommentquery );
 			}
 
 
@@ -1052,7 +1052,6 @@ class WP_Rewrite {
 				foreach ( (array) $ep_query_append as $regex => $ep ) {
 					// Add the endpoints on if the mask fits.
 					if ( $ep[0] & $ep_mask || $ep[0] & $ep_mask_specific ) {
-						$rewrite[ $match . $regex ] = $index . '?' . $query . $ep[1] . $this->preg_index( $num_toks + 2 );
 						$rewrite_chucks[][ $match . $regex ] = $index . '?' . $query . $ep[1] . $this->preg_index( $num_toks + 2 );
 					}
 				}
@@ -1164,8 +1163,6 @@ class WP_Rewrite {
 					if ( ! empty( $endpoints ) ) {
 						foreach ( (array) $ep_query_append as $regex => $ep ) {
 							if ( $ep[0] & EP_ATTACHMENT ) {
-								$rewrite[ $sub1 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
-								$rewrite[ $sub2 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
 								$rewrite_chucks[][ $sub1 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
 								$rewrite_chucks[][ $sub2 . $regex ] = $subquery . $ep[1] . $this->preg_index( 3 );
 							}
