@@ -87,6 +87,28 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function tear_down() {
+		global $wp_current_filter;
+
+		if (
+			'rest_pre_insert_wp_template' === current_filter() ||
+			'rest_pre_insert_wp_template_part' === current_filter()
+		) {
+			array_pop( $wp_current_filter );
+		}
+
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
+			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 59338
 	 *
 	 * @covers ::_inject_theme_attribute_in_template_part_block
@@ -389,5 +411,71 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			}
 		}
 		$this->assertTrue( $has_html_files, 'contains at least one html file' );
+	}
+
+	/**
+	 * @ticket 60671
+	 *
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template() {
+		global $wp_current_filter;
+		// Mock currently set filter.
+		$wp_current_filter[] = 'rest_pre_insert_wp_template';
+
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'tests/anchor-block' => 'after',
+				),
+			)
+		);
+
+		$id      = self::TEST_THEME . '//' . 'my_template';
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
+
+		$changes               = new stdClass();
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		$this->assertSame(
+			'<!-- wp:tests/anchor-block {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} -->Hello<!-- /wp:tests/anchor-block -->',
+			$post->post_content,
+			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
+		);
+	}
+
+	/**
+	 * @ticket 60671
+	 *
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part() {
+		global $wp_current_filter;
+		// Mock currently set filter.
+		$wp_current_filter[] = 'rest_pre_insert_wp_template_part';
+
+		register_block_type(
+			'tests/hooked-block',
+			array(
+				'block_hooks' => array(
+					'tests/anchor-block' => 'after',
+				),
+			)
+		);
+
+		$id      = self::TEST_THEME . '//' . 'my_template_part';
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
+
+		$changes               = new stdClass();
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		$this->assertSame(
+			'<!-- wp:tests/anchor-block {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} -->Hello<!-- /wp:tests/anchor-block -->',
+			$post->post_content,
+			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
+		);
 	}
 }
