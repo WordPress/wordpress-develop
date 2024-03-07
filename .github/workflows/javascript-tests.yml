@@ -46,7 +46,7 @@ jobs:
   # Runs the WordPress Core JavaScript tests.
   javascript-tests:
     name: JavaScript Tests
-    uses: desrosj/wordpress-develop/.github/workflows/callable-javascript-tests.yml@try/make-workflow-callable
+    uses: desrosj/wordpress-develop/.github/workflows/callable-javascript-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
