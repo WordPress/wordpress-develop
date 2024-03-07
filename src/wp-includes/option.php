@@ -1193,10 +1193,10 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param bool|null $default The default autoload value to set. Returning true will be set as 'auto-on' in the
-	 *                           database, false will be set as 'auto-off', and null will be set as 'auto'.
-	 * @param string    $option  The passed option name.
-	 * @param mixed     $value   The passed option value to be saved.
+	 * @param bool|null $autoload The default autoload value to set. Returning true will be set as 'auto-on' in the
+	 *                            database, false will be set as 'auto-off', and null will be set as 'auto'.
+	 * @param string    $option   The passed option name.
+	 * @param mixed     $value    The passed option value to be saved.
 	 */
 	$autoload = apply_filters( 'wp_default_autoload_value', null, $option, $value, $serialized_value );
 	if ( is_bool( $autoload ) ) {
