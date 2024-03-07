@@ -549,6 +549,26 @@ EOF;
 	}
 
 	/**
+	 * @ticket #58921
+	 */
+	public function test_tag_esi_colon_in_name() {
+		$content     = '<esi:include src="http://example.com/1.html" alt="http://bak.example.com/2.html" onerror="continue"/>';
+		$custom_tags = array(
+			'esi:include' => array(
+				'src'     => true,
+				'alt'     => true,
+				'onerror' => true,
+			),
+		);
+
+		$expect_stripped_content = '';
+		$expect_valid_content    = '<esi:include src="http://example.com/1.html" alt="http://bak.example.com/2.html" onerror="continue" />';
+
+		$this->assertSame( $expect_stripped_content, wp_kses_post( $content ) );
+		$this->assertSame( $expect_valid_content, wp_kses( $content, $custom_tags ) );
+	}
+
+	/**
 	 * @ticket 26290
 	 */
 	public function test_wp_kses_normalize_entities() {
