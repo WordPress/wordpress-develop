@@ -140,12 +140,15 @@ function wp_font_dir( $create_dir = true ) {
 }
 
 /**
- * Apply the filter.
+ * Wrapper for apply_filters( 'font_dir', $font_dir ).
  *
- * @todo Get in a committable state if it's decided to do this.
+ * Allows developers to manipulate the font directory used by the
+ * font library.
  *
- * @param mixed $font_dir
- * @return mixed
+ * @since 6.5.0
+ *
+ * @param string $font_dir The font directory.
+ * @return string The modified font directory.
  */
 function wp_apply_font_dir_filter( $font_dir ) {
 	if ( doing_filter( 'font_dir' ) ) {
@@ -157,12 +160,20 @@ function wp_apply_font_dir_filter( $font_dir ) {
 }
 
 /**
- * Default font filter.
+ * Modify the default font directory.
  *
- * @todo Get in a committable state if it's decided to do this.
+ * This function should not be called directly, use wp_get_font_dir() instead.
  *
- * @param mixed $font_dir
- * @return void
+ * Modifies the default font directory used by WordPress to the subdirectory fonts
+ * within the content directory. This function should not be called directly but
+ * rather applied to the {@see 'font_dir'} hook.
+ *
+ * @access private
+ * @since 6.5.0
+ *
+ * @see wp_get_font_dir()
+ *
+ * @return array See wp_font_dir() for description.
  */
 function wp_default_font_dir_filter() {
 	$site_path = '';
