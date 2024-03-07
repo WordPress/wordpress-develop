@@ -6,9 +6,6 @@ name: JavaScript tests
 on:
   workflow_call:
 
-env:
-  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
-
 jobs:
   # Runs the QUnit tests for WordPress.
   #

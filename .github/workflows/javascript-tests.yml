@@ -45,7 +45,7 @@ permissions: {}
 jobs:
   # Runs the WordPress Core JavaScript tests.
   test-js:
-    name: JavaScript Tests
+    name: QUnit Tests
     uses: desrosj/wordpress-develop/.github/workflows/callable-javascript-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
