@@ -409,6 +409,10 @@ if ( ! CUSTOM_TAGS ) {
 			'datetime' => true,
 		),
 		'em'         => array(),
+		'esi'        => array(
+			'src'           => true,
+			'cache-control' => true,
+		),
 		'i'          => array(),
 		'q'          => array(
 			'cite' => true,
