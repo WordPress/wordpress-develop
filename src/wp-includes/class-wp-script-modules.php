@@ -72,7 +72,10 @@ class WP_Script_Modules {
 					}
 					$dependencies[] = array(
 						'id'     => $dependency['id'],
-						'import' => isset( $dependency['import'] ) && 'dynamic' === $dependency['import'] ? 'dynamic' : 'static',
+						'import' => isset( $dependency['import'] ) &&
+							'dynamic' === $dependency['import'] ||
+							'wp-script' === $dependency['import']
+							? $dependency['import'] : 'static',
 					);
 				} elseif ( is_string( $dependency ) ) {
 					$dependencies[] = array(
