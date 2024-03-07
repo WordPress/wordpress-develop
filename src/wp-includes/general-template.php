@@ -3579,6 +3579,7 @@ function wp_preload_resources() {
 	 * Filters domains and URLs for resource preloads.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added the `$fetchpriority` attribute.
 	 *
 	 * @param array  $preload_resources {
 	 *     Array of resources and their attributes, or URLs to print for resource preloads.
