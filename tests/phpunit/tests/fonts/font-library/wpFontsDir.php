@@ -81,7 +81,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 		add_filter(
 			'upload_dir',
-			static function ( $upload_dir ) {
+			function ( $upload_dir ) {
 				static $count = 0;
 				++$count;
 				// It may be hit a couple of times, at five iterations assume an infinite loop.
