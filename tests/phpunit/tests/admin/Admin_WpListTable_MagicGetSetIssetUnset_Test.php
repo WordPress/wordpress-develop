@@ -5,15 +5,16 @@ require_once __DIR__ . '/Admin_WpListTable_TestCase.php';
 /**
  * @group admin
  *
- * @covers WP_List_Table
+ * @covers WP_List_Table::__get()
+ * @covers WP_List_Table::__set()
+ * @covers WP_List_Table::__isset()
+ * @covers WP_List_Table::__unset()
  */
-class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
+class Admin_WpListTable_MagicGetSetIssetUnset_Test extends Admin_WpListTable_TestCase {
 
 	/**
 	 * @dataProvider data_compat_fields
 	 * @ticket 58896
-	 *
-	 * @covers WP_List_Table::__get()
 	 *
 	 * @param string $property_name Property name to get.
 	 * @param mixed $expected       Expected value.
@@ -30,8 +31,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 
 	/**
 	 * @ticket 58896
-	 *
-	 * @covers WP_List_Table::__get()
 	 */
 	public function test_should_throw_deprecation_when_getting_dynamic_property() {
 		$this->expectDeprecation();
@@ -47,8 +46,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 	 * @dataProvider data_compat_fields
 	 * @ticket 58896
 	 *
-	 * @covers WP_List_Table::__set()
-	 *
 	 * @param string $property_name Property name to set.
 	 */
 	public function test_should_set_compat_fields_defined_property( $property_name ) {
@@ -60,8 +57,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 
 	/**
 	 * @ticket 58896
-	 *
-	 * @covers WP_List_Table::__set()
 	 */
 	public function test_should_throw_deprecation_when_setting_dynamic_property() {
 		$this->expectDeprecation();
@@ -77,8 +72,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 	 * @dataProvider data_compat_fields
 	 * @ticket 58896
 	 *
-	 * @covers WP_List_Table::__isset()
-	 *
 	 * @param string $property_name Property name to check.
 	 * @param mixed $expected       Expected value.
 	 */
@@ -93,8 +86,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 
 	/**
 	 * @ticket 58896
-	 *
-	 * @covers WP_List_Table::__isset()
 	 */
 	public function test_should_throw_deprecation_when_isset_of_dynamic_property() {
 		$this->expectDeprecation();
@@ -110,8 +101,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 	 * @dataProvider data_compat_fields
 	 * @ticket 58896
 	 *
-	 * @covers WP_List_Table::__unset()
-	 *
 	 * @param string $property_name Property name to unset.
 	 */
 	public function test_should_unset_compat_fields_defined_property( $property_name ) {
@@ -121,8 +110,6 @@ class Tests_Admin_WpListTable extends Admin_WpListTable_TestCase {
 
 	/**
 	 * @ticket 58896
-	 *
-	 * @covers WP_List_Table::__unset()
 	 */
 	public function test_should_throw_deprecation_when_unset_of_dynamic_property() {
 		$this->expectDeprecation();
