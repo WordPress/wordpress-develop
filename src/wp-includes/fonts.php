@@ -166,13 +166,6 @@ function wp_default_font_dir_filter() {
 	);
 }
 
-/*
- * Runs early to allow extenders to hook on to the filter.
- *
- * @todo Move to default filters so it's in a committable state if it's decided to do this.
- */
-add_filter( 'font_dir', 'wp_default_font_dir_filter', 5 );
-
 /**
  * Deletes child font faces when a font family is deleted.
  *

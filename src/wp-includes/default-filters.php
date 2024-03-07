@@ -751,6 +751,8 @@ add_action( 'wp_head', 'wp_print_font_faces', 50 );
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
+// Filter the font upload directory. Runs early to ensure the default directory is applied at priority 10 (default).
+add_filter( 'font_dir', 'wp_default_font_dir_filter', 5 );
 
 // It might be nice to use a filter instead of an action, but the `WP_REST_Templates_Controller` doesn't
 // provide one (unlike e.g. `WP_REST_Posts_Controller`, which has `rest_pre_insert_{$this->post_type}`).
