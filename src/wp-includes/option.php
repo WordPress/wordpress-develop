@@ -3031,27 +3031,12 @@ function filter_default_option( $default_value, $option, $passed_default ) {
 }
 
 /**
- * Converts the values that trigger autoloading from the options table to a string or an array.
+ * Returns the values that trigger autoloading from the options table.
  *
- * The values that trigger autoloading are filtered through the 'wp_autoload_values_to_autoload' hook, allowing customization.
+ * @since 6.6.0
  *
- * @since 5.6.0
- *
- * @param bool $as_string Optional. Whether to return the values as a string or an array. Default false.
- *
- * @return string|array The values that trigger autoloading.
+ * @return array The values that trigger autoloading.
  */
-function wp_autoload_values_to_autoload( $as_string = false ) {
-	/**
-	 * Filter: allows the values use to trigger a value to be autoloaded from the options table
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param array $default values to trigger autoloading option.
-	 *
-	 * @return array $values to trigger autoloading option.
-	 */
-	$values = apply_filters( 'wp_autoload_values_to_autoload', array( 'yes', 'on', 'auto-on', 'auto' ) );
-
-	return ( $as_string ) ? "'" . implode( "', '", $values ) . "'" : $values;
+function wp_autoload_values_to_autoload() {
+	return array( 'yes', 'on', 'auto-on', 'auto' );
 }
