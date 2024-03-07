@@ -1191,7 +1191,7 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 	/**
 	 * Allows to determine the default autoload value for an option where no explicit value is passed.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @param bool|null $default The default autoload value to set. Returning true will be set as 'auto-on' in the
 	 *                           database, false will be set as 'auto-off', and null will be set as 'auto'.
