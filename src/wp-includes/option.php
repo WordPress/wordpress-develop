@@ -398,7 +398,7 @@ function wp_set_option_autoload_values( array $options ) {
 	$results         = array();
 	foreach ( $options as $option => $autoload ) {
 		wp_protect_special_option( $option ); // Ensure only valid options can be passed.
-		if ( 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
+		if ( 'off' === $autoload || 'no' === $autoload || false === $autoload ) { // Sanitize autoload value and categorize accordingly.
 			$grouped_options['off'][] = $option;
 		} else {
 			$grouped_options['on'][] = $option;
