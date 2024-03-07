@@ -44,7 +44,7 @@ permissions: {}
 
 jobs:
   # Runs the WordPress Core JavaScript tests.
-  javascript-tests:
+  test-js:
     name: JavaScript Tests
     uses: desrosj/wordpress-develop/.github/workflows/callable-javascript-tests.yml@try/make-workflows-callable
     permissions:
