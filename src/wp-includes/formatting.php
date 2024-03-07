@@ -2127,7 +2127,7 @@ function sanitize_file_name( $filename ) {
  * Sanitizes a username, stripping out unsafe characters.
  *
  * Removes tags, percent-encoded characters, HTML entities, and if strict is enabled,
- * will only keep alphanumeric, _, space, ., -, @. After sanitizing, it passes the username,
+ * will only keep alphanumeric, _, space, ., -. After sanitizing, it passes the username,
  * raw username (the username in the parameter), and the value of $strict as parameters
  * for the {@see 'sanitize_user'} filter.
  *
@@ -2149,7 +2149,17 @@ function sanitize_user( $username, $strict = false ) {
 
 	// If strict, reduce to ASCII for max portability.
 	if ( $strict ) {
-		$username = preg_replace( '|[^a-z0-9 _.\-@]|i', '', $username );
+		// Removed @ to disallow email adresses as username for new users.
+		$allowed_chars = 'a-z0-9 _.\-';
+
+		/**
+		 * Filters the regexp of characters which are allowed in a username in strict mode.
+		 *
+		 * @param string   $allowed_chars Regexp pattern for matching allowed characters.
+		 * @param string   $raw_username  The original username to be sanitized.
+		 */
+		$allowed_chars = apply_filters( 'sanitize_user_allowed_chars_regexp', $allowed_chars, $raw_username );
+		$username = preg_replace( "|[^{$allowed_chars}]|i", '', $username );
 	}
 
 	$username = trim( $username );
