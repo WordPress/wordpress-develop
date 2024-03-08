@@ -2681,7 +2681,7 @@ function unregister_post_meta( $post_type, $meta_key ) {
  * @since 1.2.0
  *
  * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`. If is 
- * 					   negative value, it will be converted to its absolute value.
+ * 					   negative value, it will be converted to its absolute value. Default '0'.
  * @return mixed An array of values.
  *               False for an invalid `$post_id` (non-numeric value or zero).
  *               An empty string if a valid but non-existing post ID is passed.
