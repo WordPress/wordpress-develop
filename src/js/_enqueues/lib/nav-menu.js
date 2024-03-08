@@ -216,6 +216,7 @@
 							checkboxes.prop( 'checked', false );
 							t.find( '.button-controls .select-all' ).prop( 'checked', false );
 							t.find( '.button-controls .spinner' ).removeClass( 'is-active' );
+							t.updateParentDropdown();
 						});
 					});
 				},
@@ -288,7 +289,40 @@
 						});
 					});
 					return this;
-				}
+				},
+				updateParentDropdown : function() {
+					return this.each(function(){
+						var menuItems = $( '#menu-to-edit li' ),
+						parentDropdown = $( '.edit-menu-item-parent' );
+
+						$.each( parentDropdown, function( attr, val ) {
+							var parentDropdown = $(this),
+							$html = '',
+							$selected = '',
+							currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
+							currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val();
+
+							if(currentparentID == 0) $selected = 'selected';
+
+							$html = $html + '<option ' + $selected + ' value="0">No Parent</option>';
+
+							$.each( menuItems, function( attr, val ) {
+								var menuItem = $(this),
+								$selected = '',
+								menuID = menuItem.find('.menu-item-data-db-id').val(),
+								menuTitle = menuItem.find('.edit-menu-item-title').val();
+								
+								if(currentItemID != menuID) {
+									if(currentparentID == menuID) $selected = 'selected';
+									$html = $html + '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
+								}
+							});
+
+							parentDropdown.html( $html );
+						})
+						
+					});
+				},
 			});
 		},
 
@@ -432,6 +466,9 @@
 				}
 			});
 
+			//Set Parents data for all menu items.
+			menu.updateParentDropdown();
+
 			//Update Parent on changin values.
 			menu.on( 'change', '.edit-menu-item-parent', function() {
 				api.changeMenuParent( $( this ) );
@@ -463,7 +500,7 @@
 
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
 			menuItem.updateDepthClass(newDepth, oldDepth);
-			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId();
+			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown();
 		},
 
 		/**
