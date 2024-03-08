@@ -57,11 +57,10 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 * @param stdClass $args              Not used.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0, $all_elements = null ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		global $_wp_nav_menu_max_depth;
 
 		// Restores the more descriptive, specific name for use within this method.
-		$menu_items = $all_elements;
 		$menu_item = $data_object;
 
 		$_wp_nav_menu_max_depth = $depth > $_wp_nav_menu_max_depth ? $depth : $_wp_nav_menu_max_depth;
@@ -270,18 +269,13 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				 * @since 6.6.0
 				 */
 				?>
-				<?php $parent_id = $menu_item->menu_item_parent; ?>
+				
 				<fieldset class="field-move-combo description description-wide">
 					<div class="" style="display: flex;">
 						<label style="flex-basis: 100%;" for="edit-menu-item-parent-<?php echo $item_id; ?>">
 							<?php _e( 'Menu Parent' ); ?><br />
 							<select style="width: 100%;" class="edit-menu-item-parent" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
-								<option <?php if($parent_id == 0) { echo "selected"; } ?> value="0">No Parent</option>
-								<?php foreach($menu_items as $mitem){ 
-								if($mitem->ID == $item_id) continue;
-								?>
-								<option <?php if($parent_id == $mitem->ID) { echo "selected"; } ?> value="<?php echo $mitem->ID; ?>"><?php echo esc_attr($mitem->title); ?></option>
-								<?php } ?>
+								
 							</select>
 						</label>
 						<label style="flex-basis: 100%;" for="edit-menu-item-order-<?php echo $item_id; ?>">

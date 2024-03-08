@@ -128,7 +128,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args              An array of arguments.
 	 * @param string     $output            Used to append additional content. Passed by reference.
 	 */
-	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output, $all_elements = array() ) {
+	public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output ) {
 		if ( ! $element ) {
 			return;
 		}
@@ -170,7 +170,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args              Optional. An array of arguments. Default empty array.
 	 * @param int        $current_object_id Optional. ID of the current comment. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0, $all_elements = array() ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$comment = $data_object;
 

@@ -70,7 +70,7 @@ class Walker_Category_Checklist extends Walker {
 	 * @param array   $args              An array of arguments. See {@see wp_terms_checklist()}.
 	 * @param int     $current_object_id Optional. ID of the current term. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0, $all_elements = array() ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$category = $data_object;
 
