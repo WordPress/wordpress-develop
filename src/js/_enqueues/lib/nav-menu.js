@@ -481,10 +481,10 @@
 		 *
 		 * @param {object} newparent The new parent of menu item
 		 */
-		changeMenuParent : function( newParent ) {
+		changeMenuParent : function( selectParentDropdown ) {
 			var parentItem, parentItemID, parentItemName,
 			menuItems = $( '#menu-to-edit li' ),
-			$this = $( newParent ),
+			$this = $( selectParentDropdown ),
 			newParentID = $this.val(),
 			menuItem = $this.closest('li.menu-item').first(),
 			oldDepth = menuItem.menuItemDepth(),
@@ -503,6 +503,7 @@
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
 			menuItem.updateDepthClass(newDepth, oldDepth);
 			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown();
+			menuItem.find('.edit-menu-item-parent').focus();
 		},
 
 		/**

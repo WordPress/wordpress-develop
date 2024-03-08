@@ -280,7 +280,9 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						</label>
 						<label style="flex-basis: 100%;" for="edit-menu-item-order-<?php echo $item_id; ?>">
 							<?php _e( 'Menu Order' ); ?><br />
-							<input style="width: 100%;" id="edit-menu-item-order-<?php echo $item_id; ?>" type="number" class="edit-menu-item-order" name="menu-item-order[<?php echo $item_id; ?>]" value="<?php echo $menu_item->menu_order; ?>" />
+							<select style="width: 100%;" class="edit-menu-item-order" id="edit-menu-item-order-<?php echo $item_id; ?>" name="menu-item-order[<?php echo $item_id; ?>]">
+								
+							</select>
 						</label>
 					</div>
 				</fieldset>
