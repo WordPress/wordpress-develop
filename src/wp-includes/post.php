@@ -2579,8 +2579,8 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *
  * @since 1.5.0
  *
- * @param int    $post_id Post ID. If is negative value, it will be converted to its 
- * 					      absolute value.
+ * @param int    $post_id Post ID. If is negative value, it will be converted to its
+ *                        absolute value.
  * @param string $key     Optional. The meta key to retrieve. By default,
  *                        returns data for all keys. Default empty.
  * @param bool   $single  Optional. Whether to return a single value.
@@ -2680,8 +2680,8 @@ function unregister_post_meta( $post_type, $meta_key ) {
  *
  * @since 1.2.0
  *
- * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`. If is 
- * 					   negative value, it will be converted to its absolute value. Default '0'.
+ * @param int $post_id Optional. Post ID. Default is the ID of the global `$post`. If is
+ *                     negative value, it will be converted to its absolute value. Default '0'.
  * @return mixed An array of values.
  *               False for an invalid `$post_id` (non-numeric value or zero).
  *               An empty string if a valid but non-existing post ID is passed.
