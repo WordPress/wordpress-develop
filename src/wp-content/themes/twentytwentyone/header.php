@@ -26,8 +26,8 @@
 	data-wp-class--primary-navigation-open="state.isPrimaryMenuOpen"
 	data-wp-class--lock-scrolling="state.isPrimaryMenuOpen"
 	data-wp-class--is-dark-theme="state.isDarkMode"
-	data-wp-init--iframes="callbacks.updateWindowWidthOnResize"
-	data-wp-watch--iframes="callbacks.makeIframesResponsive"
+	data-wp-init--iframes="callbacks.makeIframesResponsive"
+	data-wp-on-window--resize="callbacks.makeIframesResponsive"
 	data-wp-init--darkmode="callbacks.initDarkMode"
 	data-wp-watch--darkmode="callbacks.refreshHtmlElementDarkMode"
 >

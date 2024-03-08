@@ -319,9 +319,10 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		// Extra attributes depending on whether or not the Interactivity API is being used.
 		if ( function_exists( 'wp_register_script_module' ) ) {
-			$defaults['data-wp-on--click']          = 'actions.toggleDarkMode';
-			$defaults['data-wp-bind--aria-pressed'] = 'state.isDarkMode';
-			$defaults['data-wp-class--hide']        = 'state.isDarkModeTogglerHidden';
+			$defaults['data-wp-on--click']           = 'actions.toggleDarkMode';
+			$defaults['data-wp-bind--aria-pressed']  = 'state.isDarkMode';
+			$defaults['data-wp-class--hide']         = 'state.isDarkModeTogglerHidden';
+			$defaults['data-wp-on-document--scroll'] = 'callbacks.refreshDarkModeToggler';
 		} else {
 			$defaults['onClick'] = 'toggleDarkMode()';
 		}

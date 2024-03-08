@@ -19,7 +19,6 @@ function checkClass( element, className ) {
 const { state, actions } = store( 'twentytwentyone', {
     state: {
         isPrimaryMenuOpen: false,
-        windowWidth: 0,
         prevScroll: 0,
         isDarkMode: false,
         isDarkModeTogglerHidden: false,
@@ -159,14 +158,6 @@ const { state, actions } = store( 'twentytwentyone', {
             } );
         },
 
-        updateWindowWidthOnResize: () => {
-            // The following may be needed here since we can't use `data-wp-on--resize`?
-            const refreshWidth = () => {
-                state.windowWidth = window.innerWidth;
-            }
-            window.onresize = refreshWidth;
-        },
-
         initDarkMode: () => {
             let isDarkMode = window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
 
@@ -177,21 +168,6 @@ const { state, actions } = store( 'twentytwentyone', {
             }
 
             state.isDarkMode = isDarkMode;
-
-            // The following may be needed here since we can't use `data-wp-on--scroll`?
-            const checkScroll = () => {
-                const currentScroll = window.scrollY || document.documentElement.scrollTop;
-                if (
-                    currentScroll + ( window.innerHeight * 1.5 ) > document.body.clientHeight ||
-                    currentScroll < state.prevScroll
-                ) {
-                    state.isDarkModeTogglerHidden = false;
-                } else if ( currentScroll > state.prevScroll && 250 < currentScroll ) {
-                    state.isDarkModeTogglerHidden = true;
-                }
-                state.prevScroll = currentScroll;
-            }
-            window.addEventListener( 'scroll', checkScroll );
         },
 
         refreshHtmlElementDarkMode: () => {
@@ -202,5 +178,18 @@ const { state, actions } = store( 'twentytwentyone', {
                 document.documentElement.classList.remove( 'is-dark-theme' );
             }
         },
+
+		refreshDarkModeToggler: () => {
+			const currentScroll = window.scrollY || document.documentElement.scrollTop;
+			if (
+				currentScroll + ( window.innerHeight * 1.5 ) > document.body.clientHeight ||
+				currentScroll < state.prevScroll
+			) {
+				state.isDarkModeTogglerHidden = false;
+			} else if ( currentScroll > state.prevScroll && 250 < currentScroll ) {
+				state.isDarkModeTogglerHidden = true;
+			}
+			state.prevScroll = currentScroll;
+		},
     },
 } );
