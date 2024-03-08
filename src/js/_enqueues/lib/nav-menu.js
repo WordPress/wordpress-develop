@@ -217,6 +217,7 @@
 							t.find( '.button-controls .select-all' ).prop( 'checked', false );
 							t.find( '.button-controls .spinner' ).removeClass( 'is-active' );
 							t.updateParentDropdown();
+							t.updateOrderDropdown();
 						});
 					});
 				},
@@ -1625,6 +1626,7 @@
 		 */
 		removeMenuItem : function(el) {
 			var children = el.childMenuItems();
+			var menu = $( '#menu-to-edit' );
 
 			$( document ).trigger( 'menu-removing-item', [ el ] );
 			el.addClass('deleting').animate({
@@ -1640,6 +1642,7 @@
 					}
 					api.refreshAdvancedAccessibility();
 					wp.a11y.speak( menus.itemRemoved );
+					menu.updateOrderDropdown();
 				});
 		},
 
