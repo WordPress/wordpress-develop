@@ -517,22 +517,31 @@
 			//Set Parents data for all menu items.
 			menu.updateParentDropdown();
 
+			//Set Order data for all menu items.
+			menu.updateOrderDropdown();
+
 			//Update Parent on changin values.
 			menu.on( 'change', '.edit-menu-item-parent', function() {
 				api.changeMenuParent( $( this ) );
 			});
 			
+			//Update Parent on changin values.
+			menu.on( 'change', '.edit-menu-item-order', function() {
+				api.changeMenuOrder( $( this ) );
+			});
 		},
 
 		/**
-		 * changeMenuParent( [newparent] )
+		 * changeMenuParent( [ParentDropdown] )
+		 * 
+		 * @since 6.6.0
 		 *
-		 * @param {object} newparent The new parent of menu item
+		 * @param {object} ParentDropdown select field
 		 */
-		changeMenuParent : function( selectParentDropdown ) {
+		changeMenuParent : function( ParentDropdown ) {
 			var parentItem, parentItemID, parentItemName,
 				menuItems = $( '#menu-to-edit li' ),
-				$this = $( selectParentDropdown ),
+				$this = $( ParentDropdown ),
 				newParentID = $this.val(),
 				menuItem = $this.closest('li.menu-item').first(),
 				oldDepth = menuItem.menuItemDepth(),
@@ -551,6 +560,50 @@
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
 			menuItem.updateDepthClass(newDepth, oldDepth);
 			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().find('.edit-menu-item-parent').focus();
+		},
+
+		/**
+		 * changeMenuOrder( [OrderDropdown] )
+		 * 
+		 * @since 6.6.0
+		 *
+		 * @param {object} OrderDropdown select field
+		 */
+		changeMenuOrder : function( OrderDropdown ) {
+			var menuItems = $( '#menu-to-edit li' ),
+				$this = $( OrderDropdown ),
+				newOrderID = parseInt( $this.val(), 10),
+				menuItem = $this.closest('li.menu-item').first(),
+				depth = menuItem.menuItemDepth(),
+				isPrimaryMenuItem = ( 0 === depth ),
+				currentItmePosition = parseInt( menuItem.index(), 10 ),
+				parentItemID = menuItem.find('.menu-item-data-parent-id').val(),
+				parentItem = $('#menu-item-'+ parentItemID),
+				parentPosition = parseInt( parentItem.index(), 10 ),
+				newItemPosition = parentPosition + newOrderID;
+
+			if ( isPrimaryMenuItem ) {
+				primaryItems = $( '.menu-item-depth-0' ),
+				currentItemAtPosition = $( primaryItems[newOrderID - 1] ),
+				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
+
+				if(currentItmePosition < newItemPosition) {
+					noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 )
+					if(noOfChild > 0){
+						newItemPosition = newItemPosition + noOfChild;
+						menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					} else {
+						newItemPosition = newItemPosition + 1;
+						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					}
+				} else {
+					menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+				}
+			
+			} else {
+				if(currentItmePosition > newItemPosition) newItemPosition = newItemPosition - 1;
+				menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+			}
 		},
 
 		/**
