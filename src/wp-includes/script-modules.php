@@ -124,21 +124,37 @@ function wp_deregister_script_module( string $id ) {
 	wp_script_modules()->deregister( $id );
 }
 
-add_action( 'init', function () {
-	$base   = includes_url( 'js/esm-proxy/' );
-	$suffix = '.esm.js';
+/**
+ * Registers all the WordPress packages scripts proxy modules.
+ *
+ * @since 6.6.0
+ *
+ * @param WP_Scripts $scripts WP_Scripts object.
+ */
+function wp_register_package_scripts_proxy_modules() {
+	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+	/*
+	 * Expects multidimensional array like:
+	 *
+	 *     'a11y-esm.js' => array('dependencies' => array(...), 'version' => '...'),
+	 *     'annotations-esm.js' => array('dependencies' => array(...), 'version' => '...'),
+	 *     'api-fetch-esm.js' => array(...
+	 */
+	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages-proxy-modules{$suffix}.php";
 
-	$script_script_modules = array(
-		'api-fetch',
-		'a11y',
-		'blob',
-	);
+	foreach ( $assets as $file_name => $package_data ) {
+		$basename = str_replace( $suffix . '-esm.js', '', basename( $file_name ) );
+		$id   = '@wordpress/' . $basename;
+		$path     = "/wp-includes/js/dist/{$file_name}";
 
-	foreach ( $script_script_modules as $handle ) {
-		wp_register_script_module(
-			'@wordpress/' . $handle,
-			$base . $handle . $suffix,
-			array( array( 'id' => 'wp-' . $handle, 'import' => 'wp-script' ) ),
-		);
+		if ( ! empty( $package_data['dependencies'] ) ) {
+			$dependencies = $package_data['dependencies'];
+		} else {
+			$dependencies = array();
+		}
+
+		wp_register_script_module( $id, $path, $dependencies, $package_data['version'] );
 	}
-} );
+}
+
+add_action( 'init', 'wp_register_package_scripts_proxy_modules' );
