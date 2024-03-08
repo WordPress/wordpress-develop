@@ -4,6 +4,7 @@
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const UglifyJS = require( 'uglify-js' );
+const WpScriptsPackageProxyModuleWebpackPlugin = require( './packages-proxy-module-gen-plugin' );
 
 /**
  * WordPress dependencies
@@ -93,7 +94,8 @@ module.exports = function (
 		'wp-polyfill-object-fit.js':
 			'objectFitPolyfill/src/objectFitPolyfill.js',
 		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
-		'wp-polyfill-importmap.js': 'es-module-shims/dist/es-module-shims.wasm.js',
+		'wp-polyfill-importmap.js':
+			'es-module-shims/dist/es-module-shims.wasm.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
@@ -122,7 +124,8 @@ module.exports = function (
 			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js':
 			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
-		'wp-polyfill-importmap.min.js': 'es-module-shims/dist/es-module-shims.wasm.js',
+		'wp-polyfill-importmap.min.js':
+			'es-module-shims/dist/es-module-shims.wasm.js',
 	};
 
 	const phpFiles = {
@@ -201,6 +204,9 @@ module.exports = function (
 				injectPolyfill: true,
 				combineAssets: true,
 				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
+			} ),
+			new WpScriptsPackageProxyModuleWebpackPlugin( {
+				combinedOutputFile: `../../assets/script-loader-packages-proxy-modules${ suffix }.php`,
 			} ),
 			new CopyWebpackPlugin( {
 				patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
