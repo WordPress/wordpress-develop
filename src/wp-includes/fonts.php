@@ -92,7 +92,7 @@ function wp_unregister_font_collection( string $slug ) {
 }
 
 /**
- * Retrieves uploads directory information.
+ * Retrieves font uploads directory information.
  *
  * Same as wp_font_dir() but "light weight" as it doesn't attempt to create the font uploads directory.
  * Intended for use in themes, when only 'basedir' and 'baseurl' are needed, generally in all cases
