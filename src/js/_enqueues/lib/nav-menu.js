@@ -489,13 +489,15 @@
 			menuItem = $this.closest('li.menu-item').first(),
 			oldDepth = menuItem.menuItemDepth(),
 			parentItem = $('#menu-item-'+newParentID),
-			newItemPosition = parseInt( parentItem.index(), 10 ),
+			parentPosition = parseInt( parentItem.index(), 10 ),
+			noOfChild = parseInt( parentItem.childMenuItems().length, 10 ),
+			newItemPosition = parentPosition + noOfChild,
 			parentDepth = parentItem.menuItemDepth(),
 			newDepth = parseInt(parentDepth) + 1;
 
 			if(newParentID == 0){
 				newDepth = 0;
-				newItemPosition = menuItems.length - 2;
+				newItemPosition = menuItems.length - 1;
 			}
 
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
