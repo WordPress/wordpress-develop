@@ -293,18 +293,18 @@
 				updateParentDropdown : function() {
 					return this.each(function(){
 						var menuItems = $( '#menu-to-edit li' ),
-						parentDropdown = $( '.edit-menu-item-parent' );
+							parentDropdowns = $( '.edit-menu-item-parent' );
 
-						$.each( parentDropdown, function( attr, val ) {
+						$.each( parentDropdowns, function( attr, val ) {
 							var parentDropdown = $(this),
-							$html = '',
-							$selected = '',
-							currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
-							currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val();
+								$html = '',
+								$selected = '',
+								currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
+								currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val();
 
 							if(currentparentID == 0) $selected = 'selected';
 
-							$html = $html + '<option ' + $selected + ' value="0">No Parent</option>';
+							$html += '<option ' + $selected + ' value="0">No Parent</option>';
 
 							$.each( menuItems, function( attr, val ) {
 								var menuItem = $(this),
@@ -314,7 +314,7 @@
 								
 								if(currentItemID != menuID) {
 									if(currentparentID == menuID) $selected = 'selected';
-									$html = $html + '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
+									$html += '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
 								}
 							});
 
@@ -323,6 +323,53 @@
 						
 					});
 				},
+				updateOrderDropdown : function() {
+					return this.each(function(){
+						var menuItems = $( '#menu-to-edit li' ),
+							orderDropdowns = $( '.edit-menu-item-order' );
+
+						$.each( orderDropdowns, function( attr, val ) {
+							var orderDropdown = $(this),
+								menuItem = orderDropdown.closest('li.menu-item').first(),
+								depth = menuItem.menuItemDepth(),
+								isPrimaryMenuItem = ( 0 === depth ),
+								position = parseInt( menuItem.index(), 10 ),
+								prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
+								totalMenuItems = $('#menu-to-edit li').length,
+								hasSameDepthSibling = menuItem.nextAll( '.menu-item-depth-' + depth ).length,
+								$html = '';
+
+							if ( isPrimaryMenuItem ) {
+								var primaryItems = $( '.menu-item-depth-0' ),
+									itemPosition = primaryItems.index( menuItem ) + 1,
+									totalMenuItems = primaryItems.length;
+
+								for(let i = 1; i < totalMenuItems + 1; i++){
+									$selected = '';
+									if(i == itemPosition) $selected = 'selected';
+									$html += '<option ' + $selected + ' value="' + i + '">' + i + ' of ' + totalMenuItems + '</option>';
+								}
+
+							} else {
+								var parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
+									parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
+									subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+									totalSubMenuItems = subItems.length,
+									itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
+
+								for(let i = 1; i < totalSubMenuItems + 1; i++){
+									$selected = '';
+									if(i == itemPosition) $selected = 'selected';
+									$html += '<option ' + $selected + ' value="' + i + '">' + i + ' of ' + totalSubMenuItems + '</option>';
+								}
+
+							}
+
+							orderDropdown.html( $html );
+						});
+						
+					});
+				}
 			});
 		},
 
@@ -483,17 +530,17 @@
 		 */
 		changeMenuParent : function( selectParentDropdown ) {
 			var parentItem, parentItemID, parentItemName,
-			menuItems = $( '#menu-to-edit li' ),
-			$this = $( selectParentDropdown ),
-			newParentID = $this.val(),
-			menuItem = $this.closest('li.menu-item').first(),
-			oldDepth = menuItem.menuItemDepth(),
-			parentItem = $('#menu-item-'+newParentID),
-			parentPosition = parseInt( parentItem.index(), 10 ),
-			noOfChild = parseInt( parentItem.childMenuItems().length, 10 ),
-			newItemPosition = parentPosition + noOfChild,
-			parentDepth = parentItem.menuItemDepth(),
-			newDepth = parseInt(parentDepth) + 1;
+				menuItems = $( '#menu-to-edit li' ),
+				$this = $( selectParentDropdown ),
+				newParentID = $this.val(),
+				menuItem = $this.closest('li.menu-item').first(),
+				oldDepth = menuItem.menuItemDepth(),
+				parentItem = $('#menu-item-'+newParentID),
+				parentPosition = parseInt( parentItem.index(), 10 ),
+				noOfChild = parseInt( parentItem.childMenuItems().length, 10 ),
+				newItemPosition = parentPosition + noOfChild,
+				parentDepth = parentItem.menuItemDepth(),
+				newDepth = parseInt(parentDepth) + 1;
 
 			if(newParentID == 0){
 				newDepth = 0;
@@ -502,8 +549,7 @@
 
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
 			menuItem.updateDepthClass(newDepth, oldDepth);
-			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown();
-			menuItem.find('.edit-menu-item-parent').focus();
+			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().find('.edit-menu-item-parent').focus();
 		},
 
 		/**
