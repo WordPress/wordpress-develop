@@ -28,7 +28,7 @@ function twenty_twenty_one_add_sub_menu_toggle( $output, $item, $depth, $args ) 
 	if ( 0 === $depth && in_array( 'menu-item-has-children', $item->classes, true ) ) {
 
 		// Extra attributes depending on whether or not the Interactivity API is being used.
-		if ( function_exists( 'gutenberg_register_module' ) ) {
+		if ( function_exists( 'wp_register_script_module' ) ) {
 			$extra_attr = '';
 		} else {
 			$extra_attr = ' onClick="twentytwentyoneExpandSubMenu(this)"';

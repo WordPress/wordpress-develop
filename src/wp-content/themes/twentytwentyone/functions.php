@@ -443,14 +443,14 @@ function twenty_twenty_one_scripts() {
 	);
 
 	// Use WordPress Interactivity API if available.
-	if ( function_exists( 'gutenberg_register_module' ) ) {
-		gutenberg_register_module(
+	if ( function_exists( 'wp_register_script_module' ) ) {
+		wp_register_script_module(
 			'@twentytwentyone/interactivity',
 			get_template_directory_uri() . '/assets/js/interactivity.js',
 			array( '@wordpress/interactivity' ),
 			wp_get_theme()->get( 'Version' )
 		);
-		gutenberg_enqueue_module( '@twentytwentyone/interactivity' );
+		wp_enqueue_script_module( '@twentytwentyone/interactivity' );
 		return;
 	}
 

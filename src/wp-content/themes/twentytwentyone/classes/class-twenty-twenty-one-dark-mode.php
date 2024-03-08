@@ -318,7 +318,7 @@ class Twenty_Twenty_One_Dark_Mode {
 		);
 
 		// Extra attributes depending on whether or not the Interactivity API is being used.
-		if ( function_exists( 'gutenberg_register_module' ) ) {
+		if ( function_exists( 'wp_register_script_module' ) ) {
 			$defaults['data-wp-on--click']          = 'actions.toggleDarkMode';
 			$defaults['data-wp-bind--aria-pressed'] = 'state.isDarkMode';
 			$defaults['data-wp-class--hide']        = 'state.isDarkModeTogglerHidden';
@@ -376,7 +376,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 */
 	public function the_script() {
 		// If the Interactivity API is being used, loading this JS code is not necessary.
-		if ( function_exists( 'gutenberg_register_module' ) ) {
+		if ( function_exists( 'wp_register_script_module' ) ) {
 			return;
 		}
 
