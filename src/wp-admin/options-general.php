@@ -97,7 +97,119 @@ $tagline_description = sprintf(
 <p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
-<?php
+<?php if ( current_user_can( 'upload_files' ) ) : ?>
+<tr class="hide-if-no-js site-icon-section">
+<th scope="row"><?php _e( 'Site Icon' ); ?></th>
+<td>
+	<?php
+	wp_enqueue_media();
+	wp_enqueue_script( 'site-icon' );
+
+	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
+	$classes_for_update_button = 'button';
+	$classes_for_wrapper       = '';
+
+	if ( has_site_icon() ) {
+		$classes_for_wrapper         .= ' has-site-icon';
+		$classes_for_button           = $classes_for_update_button;
+		$classes_for_button_on_change = $classes_for_upload_button;
+	} else {
+		$classes_for_wrapper         .= ' hidden';
+		$classes_for_button           = $classes_for_upload_button;
+		$classes_for_button_on_change = $classes_for_update_button;
+	}
+
+	// Handle alt text for site icon on page load.
+	$site_icon_id           = (int) get_option( 'site_icon' );
+	$app_icon_alt_value     = '';
+	$browser_icon_alt_value = '';
+
+	if ( $site_icon_id ) {
+		$img_alt            = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
+		$filename           = wp_basename( get_site_icon_url() );
+		$app_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		$browser_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		if ( $img_alt ) {
+			$app_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'App icon preview: Current image: %s' ),
+				$img_alt
+			);
+
+			$browser_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'Browser icon preview: Current image: %s' ),
+				$img_alt
+			);
+		}
+	}
+	?>
+
+
+	<div id="site-icon-preview" class="site-icon-preview wp-clearfix settings-page-preview <?php echo esc_attr( $classes_for_wrapper ); ?>">
+		<div class="favicon-preview">
+			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
+			<div class="favicon">
+				<img id="browser-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $browser_icon_alt_value ); ?>">
+			</div>
+			<span id="site-icon-preview-site-title" class="browser-title" aria-hidden="true"><?php bloginfo( 'name' ); ?></span>
+		</div>
+		<img id="app-icon-preview" class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>">
+	</div>
+
+	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
+	<div class="action-buttons">
+		<button type="button"
+			id="choose-from-library-button"
+			type="button"
+			class="<?php echo esc_attr( $classes_for_button ); ?>"
+			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
+			data-size="512"
+			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
+			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
+			data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
+			data-state="<?php echo esc_attr( has_site_icon() ); ?>"
+
+		>
+			<?php if ( has_site_icon() ) : ?>
+				<?php _e( 'Change Site Icon' ); ?>
+			<?php else : ?>
+				<?php _e( 'Choose a Site Icon' ); ?>
+			<?php endif; ?>
+		</button>
+		<button
+			id="js-remove-site-icon"
+			type="button"
+			<?php echo has_site_icon() ? 'class="button button-secondary reset"' : 'class="button button-secondary reset hidden"'; ?>
+		>
+			<?php _e( 'Remove Site Icon' ); ?>
+		</button>
+	</div>
+
+	<p class="description">
+		<?php
+			/* translators: %s: Site Icon size in pixels. */
+			printf( __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s pixels.' ), '<code>512 &times; 512</code>' );
+		?>
+	</p>
+
+</td>
+</tr>
+
+	<?php
+endif;
+	/* End Site Icon */
+
 if ( ! is_multisite() ) {
 	$wp_site_url_class = '';
 	$wp_home_class     = '';
