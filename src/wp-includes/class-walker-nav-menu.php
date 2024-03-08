@@ -135,7 +135,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @param stdClass $args              An object of wp_nav_menu() arguments.
 	 * @param int      $current_object_id Optional. ID of the current menu item. Default 0.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $current_object_id = 0 ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item = $data_object;
 
