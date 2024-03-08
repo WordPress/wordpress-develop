@@ -296,7 +296,7 @@
 						var menuItems = $( '#menu-to-edit li' ),
 							parentDropdowns = $( '.edit-menu-item-parent' );
 
-						$.each( parentDropdowns, function( attr, val ) {
+						$.each( parentDropdowns, function() {
 							var parentDropdown = $(this),
 								$html = '',
 								$selected = '',
@@ -307,7 +307,7 @@
 
 							$html += '<option ' + $selected + ' value="0">No Parent</option>';
 
-							$.each( menuItems, function( attr, val ) {
+							$.each( menuItems, function() {
 								var menuItem = $(this),
 								$selected = '',
 								menuID = menuItem.find('.menu-item-data-db-id').val(),
@@ -320,24 +320,19 @@
 							});
 
 							parentDropdown.html( $html );
-						})
+						});
 						
 					});
 				},
 				updateOrderDropdown : function() {
 					return this.each(function(){
-						var menuItems = $( '#menu-to-edit li' ),
-							orderDropdowns = $( '.edit-menu-item-order' );
+						var orderDropdowns = $( '.edit-menu-item-order' );
 
-						$.each( orderDropdowns, function( attr, val ) {
+						$.each( orderDropdowns, function() {
 							var orderDropdown = $(this),
 								menuItem = orderDropdown.closest('li.menu-item').first(),
 								depth = menuItem.menuItemDepth(),
 								isPrimaryMenuItem = ( 0 === depth ),
-								position = parseInt( menuItem.index(), 10 ),
-								prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
-								totalMenuItems = $('#menu-to-edit li').length,
-								hasSameDepthSibling = menuItem.nextAll( '.menu-item-depth-' + depth ).length,
 								$html = '';
 
 							if ( isPrimaryMenuItem ) {
@@ -539,8 +534,7 @@
 		 * @param {object} ParentDropdown select field
 		 */
 		changeMenuParent : function( ParentDropdown ) {
-			var parentItem, parentItemID, parentItemName,
-				menuItems = $( '#menu-to-edit li' ),
+			var menuItems = $( '#menu-to-edit li' ),
 				$this = $( ParentDropdown ),
 				newParentID = $this.val(),
 				menuItem = $this.closest('li.menu-item').first(),
@@ -588,7 +582,7 @@
 				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
 
 				if(currentItmePosition < newItemPosition) {
-					noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 )
+					noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
 					if(noOfChild > 0){
 						newItemPosition = newItemPosition + noOfChild;
 						menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
