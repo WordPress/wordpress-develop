@@ -123,3 +123,22 @@ function wp_dequeue_script_module( string $id ) {
 function wp_deregister_script_module( string $id ) {
 	wp_script_modules()->deregister( $id );
 }
+
+add_action( 'init', function () {
+	$base   = includes_url( 'js/esm-proxy/' );
+	$suffix = '.esm.js';
+
+	$script_script_modules = array(
+		'api-fetch',
+		'a11y',
+		'blob',
+	);
+
+	foreach ( $script_script_modules as $handle ) {
+		wp_register_script_module(
+			'@wordpress/' . $handle,
+			$base . $handle . $suffix,
+			array( array( 'id' => 'wp-' . $handle, 'import' => 'wp-script' ) ),
+		);
+	}
+} );
