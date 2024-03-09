@@ -1684,7 +1684,7 @@ Thanks! -- The WordPress Team"
 	 *
 	 * Fatal errors cannot be detected unless maintenance mode is enabled.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
 	 *
