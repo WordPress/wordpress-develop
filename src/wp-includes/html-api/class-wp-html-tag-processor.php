@@ -837,10 +837,28 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether a token was parsed.
 	 */
 	public function next_token() {
-		return $this->internal_next_token();
+		return $this->base_class_next_token();
 	}
 
-	private function internal_next_token() {
+	/**
+	 * Internal method which finds the next token in the HTML document.
+	 *
+	 * This method is a protected internal function which implements the logic for
+	 * finding the next token in a document. It's called after seeking in order to
+	 * properly update the parser state and recognize the token after the seek.
+	 *
+	 * It's important in the case of seeking to avoid calling `next_token()`, which
+	 * could call subclassed methods and introduce infinite loops or other problems.
+	 * For example, the HTML Processor might accidentally build the wrong stack of
+	 * open elements.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @access private
+	 *
+	 * @return bool Whether at token was parsed.
+	 */
+	private function base_class_next_token() {
 		$was_at = $this->bytes_already_parsed;
 		$this->after_tag();
 
@@ -3193,7 +3211,7 @@ class WP_HTML_Tag_Processor {
 		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->internal_next_token();
+		$this->base_class_next_token();
 
 		return $this->html;
 	}
