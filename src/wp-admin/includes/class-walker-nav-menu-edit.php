@@ -265,11 +265,11 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				<?php
 				/**
 				 * Update parent and order of menu item by changing it.
-				 * 
+				 *
 				 * @since 6.6.0
 				 */
 				?>
-				
+
 				<fieldset class="field-move-combo description description-wide">
 					<div class="" style="display: flex;">
 						<label style="flex-basis: 100%;" for="edit-menu-item-parent-<?php echo $item_id; ?>">
