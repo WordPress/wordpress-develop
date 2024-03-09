@@ -837,6 +837,10 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether a token was parsed.
 	 */
 	public function next_token() {
+		return $this->internal_next_token();
+	}
+
+	private function internal_next_token() {
 		$was_at = $this->bytes_already_parsed;
 		$this->after_tag();
 
@@ -3189,15 +3193,7 @@ class WP_HTML_Tag_Processor {
 		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->parse_next_tag();
-		// Reparse the attributes.
-		while ( $this->parse_next_attribute() ) {
-			continue;
-		}
-
-		$tag_ends_at                = strpos( $this->html, '>', $this->bytes_already_parsed );
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
-		$this->bytes_already_parsed = $tag_ends_at;
+		$this->internal_next_token();
 
 		return $this->html;
 	}
