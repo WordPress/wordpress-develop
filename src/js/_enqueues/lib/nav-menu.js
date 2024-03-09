@@ -538,11 +538,13 @@
 		 * @param {object} ParentDropdown select field
 		 */
 		changeMenuParent : function( ParentDropdown ) {
-			var menuItems = $( '#menu-to-edit li' ),
+			var menuItemWithChild,
+				menuItems = $( '#menu-to-edit li' ),
 				$this = $( ParentDropdown ),
 				newParentID = $this.val(),
 				menuItem = $this.closest('li.menu-item').first(),
 				oldDepth = menuItem.menuItemDepth(),
+				thisItemChildren = menuItem.childMenuItems(),
 				parentItem = $('#menu-item-'+newParentID),
 				parentPosition = parseInt( parentItem.index(), 10 ),
 				noOfChild = parseInt( parentItem.childMenuItems().length, 10 ),
@@ -556,8 +558,23 @@
 			}
 
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
-			menuItem.updateDepthClass(newDepth, oldDepth);
-			menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().find('.edit-menu-item-parent').focus();
+			menuItem.moveHorizontally(newDepth, oldDepth);
+			
+			if ( thisItemChildren ) {
+				menuItemWithChild = menuItem.add( thisItemChildren );
+
+				// Move the entire block.
+				menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+
+			} else {
+				
+				menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+
+			}
+
+			api.registerChange();
+			api.refreshKeyboardAccessibility();
+			api.refreshAdvancedAccessibility();
 		},
 
 		/**
@@ -568,11 +585,13 @@
 		 * @param {object} OrderDropdown select field
 		 */
 		changeMenuOrder : function( OrderDropdown ) {
-			var menuItems = $( '#menu-to-edit li' ),
+			var menuItemWithChild,
+				menuItems = $( '#menu-to-edit li' ),
 				$this = $( OrderDropdown ),
 				newOrderID = parseInt( $this.val(), 10),
 				menuItem = $this.closest('li.menu-item').first(),
 				depth = menuItem.menuItemDepth(),
+				thisItemChildren = menuItem.childMenuItems(),
 				isPrimaryMenuItem = ( 0 === depth ),
 				currentItmePosition = parseInt( menuItem.index(), 10 ),
 				parentItemID = menuItem.find('.menu-item-data-parent-id').val(),
@@ -590,19 +609,34 @@
 					var noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
 					if(noOfChild > 0){
 						newItemPosition = newItemPosition + noOfChild;
-						menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+						menuItemWithChild = menuItem.add( thisItemChildren );
+						menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
 					} else {
 						newItemPosition = newItemPosition + 1;
 						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
 					}
 				} else {
-					menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					if ( thisItemChildren ) {
+						menuItemWithChild = menuItem.add( thisItemChildren );
+						menuItemWithChild.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+					} else {
+						menuItem.detach().insertBefore( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
+					}
 				}
 			
 			} else {
 				if(currentItmePosition > newItemPosition) newItemPosition = newItemPosition - 1;
-				menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+				if ( thisItemChildren ) {
+					menuItemWithChild = menuItem.add( thisItemChildren );
+					menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();
+				} else {
+					menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateOrderDropdown();	
+				}
 			}
+
+			api.registerChange();
+			api.refreshKeyboardAccessibility();
+			api.refreshAdvancedAccessibility();
 		},
 
 		/**
