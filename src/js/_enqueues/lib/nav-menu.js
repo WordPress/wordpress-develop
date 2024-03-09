@@ -582,8 +582,9 @@
 
 			if ( isPrimaryMenuItem ) {
 				var primaryItems = $( '.menu-item-depth-0' ),
-					currentItemAtPosition = $( primaryItems[newOrderID - 1] ),
-					newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
+					currentItemAtPosition = $( primaryItems[newOrderID - 1] );
+
+				newItemPosition = parseInt( currentItemAtPosition.index(), 10 );
 
 				if(currentItmePosition < newItemPosition) {
 					var noOfChild = parseInt( currentItemAtPosition.childMenuItems().length, 10 );
