@@ -856,7 +856,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @access private
 	 *
-	 * @return bool Whether at token was parsed.
+	 * @return bool Whether a token was parsed.
 	 */
 	private function base_class_next_token() {
 		$was_at = $this->bytes_already_parsed;
