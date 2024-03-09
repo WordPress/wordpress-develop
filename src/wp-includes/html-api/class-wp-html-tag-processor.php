@@ -2054,7 +2054,7 @@ class WP_HTML_Tag_Processor {
 			 * before proceeding, otherwise they may be overlooked.
 			 */
 			if ( $update->start >= $this->bytes_already_parsed ) {
-				$this->apply_attributes_updates();
+				$this->get_updated_html();
 				break;
 			}
 
