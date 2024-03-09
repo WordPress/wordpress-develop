@@ -1682,18 +1682,29 @@ Thanks! -- The WordPress Team"
 	/**
 	 * Performs a loopback request to check for potential fatal errors.
 	 *
+	 * Fatal errors cannot be detected unless maintenance mode is enabled.
+	 *
 	 * @since 6.5.0
+	 *
+	 * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
 	 *
 	 * @return bool Whether a fatal error was detected.
 	 */
-	protected function has_fatal_error() {
-		$scrape_key   = md5( rand() );
-		$transient    = 'scrape_key_' . $scrape_key;
-		$scrape_nonce = (string) rand();
+	protected function has_fatal_error( $nonce ) {
+		global $upgrading;
 
-		set_transient( $transient, $scrape_nonce, 30 );
+		$maintenance_file = ABSPATH . '.maintenance';
+		if ( ! file_exists( $maintenance_file ) ) {
+			return false;
+		}
 
-		$cookies       = wp_unslash( $_COOKIE );
+		require_once $maintenance_file;
+		if ( ! is_int( $upgrading ) ) {
+			return false;
+		}
+
+		$scrape_key    = md5( $upgrading );
+		$scrape_nonce  = (string) $upgrading;
 		$scrape_params = array(
 			'wp_scrape_key'   => $scrape_key,
 			'wp_scrape_nonce' => $scrape_nonce,
@@ -1715,10 +1726,10 @@ Thanks! -- The WordPress Team"
 
 		error_log( '    Scraping home page...' );
 
-		$needle_start           = "###### wp_scraping_result_start:$scrape_key ######";
-		$needle_end             = "###### wp_scraping_result_end:$scrape_key ######";
-		$url                    = add_query_arg( $scrape_params, home_url( '/' ) );
-		$response               = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+		$needle_start = "###### wp_scraping_result_start:$scrape_key ######";
+		$needle_end   = "###### wp_scraping_result_end:$scrape_key ######";
+		$url          = add_query_arg( $scrape_params, home_url( '/' ) );
+		$response     = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
 		// If this outputs `true` in the log, it means there were no fatal errors detected.
 		error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
@@ -1732,8 +1743,6 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
 		}
-
-		delete_transient( $transient );
 
 		// Only fatal errors will result in a 'type' key.
 		return isset( $result['type'] );

@@ -409,16 +409,6 @@ function wp_maintenance() {
 function wp_is_maintenance_mode() {
 	global $upgrading;
 
-	// Do not enable maintenance mode while scraping for fatal errors.
-	if ( isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
-		$key   = substr( sanitize_key( wp_unslash( $_REQUEST['wp_scrape_key'] ) ), 0, 32 );
-		$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
-
-		if ( get_transient( 'scrape_key_' . $key ) === $nonce ) {
-			return false;
-		}
-	}
-
 	if ( ! file_exists( ABSPATH . '.maintenance' ) || wp_installing() ) {
 		return false;
 	}
@@ -428,6 +418,16 @@ function wp_is_maintenance_mode() {
 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
 	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
 		return false;
+	}
+
+	// Don't enable maintenance mode while scraping for fatal errors.
+	if ( is_int( $upgrading ) && isset( $_REQUEST['wp_scrape_key'], $_REQUEST['wp_scrape_nonce'] ) ) {
+		$key   = wp_unslash( $_REQUEST['wp_scrape_key'] );
+		$nonce = wp_unslash( $_REQUEST['wp_scrape_nonce'] );
+
+		if ( md5( $upgrading ) === $key && (int) $nonce === $upgrading ) {
+			return false;
+		}
 	}
 
 	/**
