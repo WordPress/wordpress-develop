@@ -115,7 +115,7 @@ function wp_get_font_dir() {
  *
  * @param bool $create_dir Optional. Whether to check and create the font uploads directory. Default true.
  * @return array $defaults {
- *     Array of information about the upload directory.
+ *     Array of information about the font upload directory.
  *
  *     @type string       $path    Base directory and subdirectory or full path to the fonts upload directory.
  *     @type string       $url     Base URL and subdirectory or absolute URL to the fonts upload directory.
