@@ -141,7 +141,7 @@ function wp_font_dir( $create_dir = true ) {
 
 /**
  * Applies filters to manipulate the font directory used by the font library.
- * 
+ *
  * Wrapper for apply_filters( 'font_dir', $font_dir ).
  * Does not apply filters if already doing the {@see 'font_dir'} filter.
  *
