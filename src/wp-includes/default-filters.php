@@ -754,9 +754,8 @@ add_action( 'init', '_wp_register_default_font_collections' );
 // Filter the font upload directory. Runs early to ensure the default directory is applied at priority 10 (default).
 add_filter( 'font_dir', 'wp_default_font_dir_filter', 5 );
 
-// It might be nice to use a filter instead of an action, but the `WP_REST_Templates_Controller` doesn't
-// provide one (unlike e.g. `WP_REST_Posts_Controller`, which has `rest_pre_insert_{$this->post_type}`).
-add_action( 'rest_after_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 3 );
-add_action( 'rest_after_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 3 );
+// Add ignoredHookedBlocks metadata attribute to the template and template part post types.
+add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
+add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
 
 unset( $filter, $action );
