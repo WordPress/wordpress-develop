@@ -84,8 +84,10 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			function ( $upload_dir ) {
 				static $count = 0;
 				++$count;
-				// It may be hit a couple of times, at five iterations assume an infinite loop.
-				$this->assertLessThan( 5, $count, 'Filtering uploads directory should not trigger infinite loop.' );
+				// The filter may be applied a couple of times, at five iterations assume an infinite loop.
+				if ( $count >= 5 ) {
+					$this->fail( 'Filtering the uploads directory triggered an infinite loop.' );
+				}
 				return $upload_dir;
 			},
 			5
