@@ -481,6 +481,8 @@
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
+			thisItem.updateParentDropdown();
+			thisItem.updateOrderDropdown();
 
 			if ( a11ySpeech ) {
 				wp.a11y.speak( a11ySpeech );
@@ -938,6 +940,8 @@
 
 					api.refreshKeyboardAccessibility();
 					api.refreshAdvancedAccessibility();
+					ui.item.updateParentDropdown();
+					ui.item.updateOrderDropdown();
 				},
 				change: function(e, ui) {
 					// Make sure the placeholder is inside the menu.
@@ -1188,6 +1192,8 @@
 					deletionSpeech = menus.itemsDeleted.replace( '%s', itemsPendingDeletion );
 					wp.a11y.speak( deletionSpeech, 'polite' );
 					that.disableBulkSelection();
+					menus.updateParentDropdown();
+					menus.updateOrderDropdown();
 				}
 			});
 		},
@@ -1728,7 +1734,8 @@
 					}
 					api.refreshAdvancedAccessibility();
 					wp.a11y.speak( menus.itemRemoved );
-					menu.updateOrderDropdown();
+					menus.updateParentDropdown();
+					menus.updateOrderDropdown();
 				});
 		},
 
