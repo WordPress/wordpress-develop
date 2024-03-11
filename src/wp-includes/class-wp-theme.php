@@ -2003,15 +2003,14 @@ final class WP_Theme implements ArrayAccess {
 		);
 
 		/**
-		 * Filters whether cache theme files persistently.
+		 * Filters whether to cache theme files persistently.
 		 *
 		 * @since 6.6.0
 		 *
 		 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
-		 * @param string $group            The caching group.
 		 * @param string $context          Additional context for better cache control.
 		 */
-		$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', self::$cache_expiration, 'theme_files', 'theme_block_patterns' );
+		$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', self::$cache_expiration, 'theme_block_patterns' );
 
 		if ( ! false === $cache_expiration ) {
 			if ( wp_using_ext_object_cache() ) {
