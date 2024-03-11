@@ -2281,5 +2281,4 @@ HTML;
 		$expected = '<picture><source srcset="//pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
 		$this->assertEquals( $expected, wp_kses( $original, $allowedposttags ) );
 	}
-
 }

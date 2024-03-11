@@ -1499,10 +1499,10 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols ) {
 	}
 
 	foreach ( (array) $thesevals as $key => $val ) {
-		$thesevals[$key] = wp_kses_bad_protocol( $val, $allowed_protocols );
+		$thesevals[ $key ] = wp_kses_bad_protocol( $val, $allowed_protocols );
 	}
 
-	return join(', ', $thesevals);
+	return join( ', ', $thesevals );
 }
 
 /**
