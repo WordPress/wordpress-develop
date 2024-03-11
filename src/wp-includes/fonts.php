@@ -95,14 +95,14 @@ function wp_unregister_font_collection( string $slug ) {
  * Returns the default font directory path and URL.
  *
  * @since 6.5.0
- * 
+ *
  * @param bool $refresh_cache Optional. Whether to refresh the cache and generate a new default font directory path and URL. Default is false.
  * @return array Default font directory path and URL.
  */
-function wp_default_font_dir (  $refresh_cache = false  ) {
+function wp_default_font_dir( $refresh_cache = false ) {
 	$defaults = get_option( 'font_dir' );
 
-	if ( !empty ( $defaults ) &&  ! $refresh_cache ) {
+	if ( ! empty( $defaults ) && ! $refresh_cache ) {
 		return $defaults;
 	}
 
@@ -123,9 +123,9 @@ function wp_default_font_dir (  $refresh_cache = false  ) {
 	@wp_mkdir_p( $defaults['path'] );
 
 	if ( ! wp_is_writable( $defaults['path'] ) ) {
-		$defaults = wp_upload_dir();
-		$defaults['path'] = path_join( $defaults['basedir'], 'fonts' );
-		$defaults['url'] = $defaults['baseurl'] . '/fonts';
+		$defaults           = wp_upload_dir();
+		$defaults['path']   = path_join( $defaults['basedir'], 'fonts' );
+		$defaults['url']    = $defaults['baseurl'] . '/fonts';
 		$defaults['subdir'] = '/fonts';
 	}
 
