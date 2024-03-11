@@ -133,9 +133,9 @@ function wp_font_dir( $create_dir = true ) {
 	 * directly and when the upload directory is filtered in the Font Face
 	 * REST API endpoint.
 	 */
-	add_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
+	add_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', 'wp_apply_font_dir_filter' );
+	remove_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
 	return $font_dir;
 }
 
