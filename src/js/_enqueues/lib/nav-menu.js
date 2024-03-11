@@ -1718,7 +1718,6 @@
 		 */
 		removeMenuItem : function(el) {
 			var children = el.childMenuItems();
-			var menu = $( '#menu-to-edit' );
 
 			$( document ).trigger( 'menu-removing-item', [ el ] );
 			el.addClass('deleting').animate({
