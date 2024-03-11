@@ -29,7 +29,8 @@
 	data-wp-init--iframes="callbacks.makeIframesResponsive"
 	data-wp-on-window--resize="callbacks.makeIframesResponsive"
 	data-wp-init--darkmode="callbacks.initDarkMode"
-	data-wp-watch--darkmode="callbacks.refreshHtmlElementDarkMode"
+	data-wp-watch--darkmode-cache="callbacks.storeDarkMode"
+	data-wp-watch--darkmode-class="callbacks.refreshHtmlElementDarkMode"
 >
 <?php wp_body_open(); ?>
 <div id="page" class="site">

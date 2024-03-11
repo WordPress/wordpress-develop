@@ -38,7 +38,6 @@ const { state, actions } = store( 'twentytwentyone', {
 
         toggleDarkMode: () => {
             state.isDarkMode = ! state.isDarkMode;
-            window.localStorage.setItem( 'twentytwentyoneDarkMode', state.isDarkMode ? 'yes' : 'no' );
         },
 
         trapFocusInModal: ( event ) => {
@@ -48,40 +47,40 @@ const { state, actions } = store( 'twentytwentyone', {
 
             const ctx = getContext();
 
-			const escKey = event.keyCode === 27;
+            const escKey = event.keyCode === 27;
             if ( escKey ) {
-				event.preventDefault();
+                event.preventDefault();
                 actions.closePrimaryMenu();
                 if ( ctx.firstFocusable ) {
                     ctx.firstFocusable.focus();
                 }
                 return;
-			}
+            }
 
             const tabKey = event.keyCode === 9;
-			const shiftKey = event.shiftKey;
-			const activeEl = document.activeElement; // eslint-disable-line @wordpress/no-global-active-element
+            const shiftKey = event.shiftKey;
+            const activeEl = document.activeElement; // eslint-disable-line @wordpress/no-global-active-element
 
             if ( ! shiftKey && tabKey && ctx.lastFocusable === activeEl ) {
-				event.preventDefault();
-				if ( ctx.firstFocusable ) {
+                event.preventDefault();
+                if ( ctx.firstFocusable ) {
                     ctx.firstFocusable.focus();
                 }
                 return;
-			}
+            }
 
-			if ( shiftKey && tabKey && ctx.firstFocusable === activeEl ) {
-				event.preventDefault();
-				if ( ctx.lastFocusable ) {
+            if ( shiftKey && tabKey && ctx.firstFocusable === activeEl ) {
+                event.preventDefault();
+                if ( ctx.lastFocusable ) {
                     ctx.lastFocusable.focus();
                 }
                 return;
-			}
+            }
 
-			// If there are no elements in the menu, don't move the focus
-			if ( tabKey && ctx.firstFocusable === ctx.lastFocusable ) {
-				event.preventDefault();
-			}
+            // If there are no elements in the menu, don't move the focus
+            if ( tabKey && ctx.firstFocusable === ctx.lastFocusable ) {
+                event.preventDefault();
+            }
         },
 
         listenToSpecialClicks: ( event ) => {
@@ -122,7 +121,7 @@ const { state, actions } = store( 'twentytwentyone', {
 
             const ctx = getContext();
             const { ref } = getElement();
-			const elements = ref.querySelectorAll( 'input, a, button' );
+            const elements = ref.querySelectorAll( 'input, a, button' );
 
             ctx.firstFocusable = elements[ 0 ];
             ctx.lastFocusable = elements[ elements.length - 1 ];
@@ -131,7 +130,7 @@ const { state, actions } = store( 'twentytwentyone', {
         refreshSubmenus: () => {
             const ctx = getContext();
             const { ref } = getElement();
-			const elements = ref.querySelectorAll( '.sub-menu-toggle' );
+            const elements = ref.querySelectorAll( '.sub-menu-toggle' );
             elements.forEach( ( subMenuToggle ) => {
                 if ( ctx.activeSubmenu === subMenuToggle ) {
                     subMenuToggle.setAttribute( 'aria-expanded', 'true' );
@@ -161,13 +160,18 @@ const { state, actions } = store( 'twentytwentyone', {
         initDarkMode: () => {
             let isDarkMode = window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
 
-            if ( 'yes' === window.localStorage.getItem( 'twentytwentyoneDarkMode' ) ) {
+            const cachedValue = window.localStorage.getItem( 'twentytwentyoneDarkMode' );
+            if ( 'yes' === cachedValue ) {
                 isDarkMode = true;
-            } else if ( 'no' === window.localStorage.getItem( 'twentytwentyoneDarkMode' ) ) {
+            } else if ( 'no' === cachedValue ) {
                 isDarkMode = false;
             }
 
             state.isDarkMode = isDarkMode;
+        },
+
+        storeDarkMode: () => {
+            window.localStorage.setItem( 'twentytwentyoneDarkMode', state.isDarkMode ? 'yes' : 'no' );
         },
 
         refreshHtmlElementDarkMode: () => {
@@ -179,17 +183,17 @@ const { state, actions } = store( 'twentytwentyone', {
             }
         },
 
-		refreshDarkModeToggler: () => {
-			const currentScroll = window.scrollY || document.documentElement.scrollTop;
-			if (
-				currentScroll + ( window.innerHeight * 1.5 ) > document.body.clientHeight ||
-				currentScroll < state.prevScroll
-			) {
-				state.isDarkModeTogglerHidden = false;
-			} else if ( currentScroll > state.prevScroll && 250 < currentScroll ) {
-				state.isDarkModeTogglerHidden = true;
-			}
-			state.prevScroll = currentScroll;
-		},
+        refreshDarkModeToggler: () => {
+            const currentScroll = window.scrollY || document.documentElement.scrollTop;
+            if (
+                currentScroll + ( window.innerHeight * 1.5 ) > document.body.clientHeight ||
+                currentScroll < state.prevScroll
+            ) {
+                state.isDarkModeTogglerHidden = false;
+            } else if ( currentScroll > state.prevScroll && 250 < currentScroll ) {
+                state.isDarkModeTogglerHidden = true;
+            }
+            state.prevScroll = currentScroll;
+        },
     },
 } );
