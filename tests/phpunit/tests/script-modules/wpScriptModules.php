@@ -534,7 +534,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertEquals( 'http://example.com/module.js?ver=1.0', $result );
 
 		$this->script_modules->register(
-			'$module_without_version',
+			'module_without_version',
 			'http://example.com/module.js',
 			array(),
 			null
