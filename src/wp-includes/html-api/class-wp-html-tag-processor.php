@@ -2067,9 +2067,20 @@ class WP_HTML_Tag_Processor {
 		 * need to be flushed to raw lexical updates.
 		 */
 		$this->class_name_updates_to_attributes_updates();
+
+		/*
+		 * Purge updates if there are too many. The actual count isn't
+		 * scientific, but a few values from 100 to a few thousand were
+		 * tests to find a practially-useful limit.
+		 *
+		 * If the update queue grows too big, then the Tag Processor
+		 * will spend more time iterating through them and lose the
+		 * efficiency gains of deferring applying them.
+		 */
 		if ( 1000 < count( $this->lexical_updates ) ) {
 			$this->get_updated_html();
 		}
+
 		foreach ( $this->lexical_updates as $name => $update ) {
 			/*
 			 * Any updates appearing after the cursor should be applied
