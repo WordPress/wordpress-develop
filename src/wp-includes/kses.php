@@ -206,7 +206,7 @@ if ( ! CUSTOM_TAGS ) {
 			'longdesc' => true,
 			'vspace'   => true,
 			'src'      => true,
- 			'srcset'   => true,
+			'srcset'   => true,
 			'usemap'   => true,
 			'width'    => true,
 		),
@@ -251,7 +251,7 @@ if ( ! CUSTOM_TAGS ) {
 		'p'          => array(
 			'align' => true,
 		),
-		'picture' 	=> array(),
+		'picture'    => array(),
 		'pre'        => array(
 			'width' => true,
 		),
@@ -272,12 +272,12 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 		),
 		'small'      => array(),
- 		'source' 	  => array(
- 			'srcset'  => true,
- 			'type'    => true,
- 			'media'   => true,
- 			'sizes'   => true,
- 		),
+		'source'     => array(
+			'srcset'  => true,
+			'type'    => true,
+			'media'   => true,
+			'sizes'   => true,
+		),
 		'strike'     => array(),
 		'strong'     => array(),
 		'sub'        => array(),
@@ -1494,7 +1494,7 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols ) {
 		if ( in_array( strtolower( $attrname ), $uri_candidates ) ) {
 			$thesevals = preg_split( '/\s*,\s+/', $attrvalue );
 		} else {
-	   		$thesevals = array( $attrvalue );
+			$thesevals = array( $attrvalue );
 		}
 	}
 

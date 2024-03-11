@@ -2192,8 +2192,8 @@ HTML;
 	/**
 	 * @ticket 29807
 	 */
-	function test_wp_filter_post_kses_img() {
-	global $allowedposttags;
+	public function test_wp_filter_post_kses_img() {
+		global $allowedposttags;
 
 		$attributes = array(
 			'class' => 'classname',
@@ -2233,13 +2233,13 @@ HTML;
 	 *
 	 * @dataProvider data_wp_kses_srcset
 	 */
-	function test_wp_kses_srcset( $unfiltered, $expected ) {
+	public function test_wp_kses_srcset( $unfiltered, $expected ) {
 		$unfiltered = "<img src='test.png' srcset='{$unfiltered}' />";
 		$expected = "<img src='test.png' srcset='{$expected}' />";
 		$this->assertEquals( $expected, wp_kses_post( $unfiltered ) );
 	}
 
-	function data_wp_kses_srcset() {
+	public function data_wp_kses_srcset() {
 		return array(
 			array(
 				'/test.png 1x, /test-2x.png 2x',
@@ -2267,7 +2267,7 @@ HTML;
 	/**
 	 * @ticket 29807
 	 */
-	function test_wp_filter_post_kses_picture() {
+	public function test_wp_filter_post_kses_picture() {
 		global $allowedposttags;
 
 		$html = '<picture><source srcset="pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
