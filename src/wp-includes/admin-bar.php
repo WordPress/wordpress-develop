@@ -963,7 +963,11 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		$actions['post-new.php?post_type=page'] = array( $cpts['page']->labels->name_admin_bar, 'new-page' );
 	}
 
-	unset( $cpts['post'], $cpts['page'], $cpts['attachment'] );
+	if ( isset( $cpts['wp_block'] ) && true === use_block_editor_for_post_type( $cpts['wp_block']->name ) && current_user_can( $cpts['wp_block']->cap->create_posts ) ) {
+		$actions['post-new.php?post_type=wp_block'] = array( $cpts['wp_block']->labels->name_admin_bar, 'new-wp_block' );
+	}
+
+	unset( $cpts['post'], $cpts['page'], $cpts['attachment'], $cpts['wp_block'] );
 
 	// Add any additional custom post types.
 	foreach ( $cpts as $cpt ) {
