@@ -814,18 +814,36 @@ class WP_Query {
 			$qv['p'] = (int) $qv['p'];
 		}
 
-		$qv['page_id']  = is_scalar( $qv['page_id'] ) ? absint( $qv['page_id'] ) : 0;
-		$qv['year']     = is_scalar( $qv['year'] ) ? absint( $qv['year'] ) : 0;
-		$qv['monthnum'] = is_scalar( $qv['monthnum'] ) ? absint( $qv['monthnum'] ) : 0;
-		$qv['day']      = is_scalar( $qv['day'] ) ? absint( $qv['day'] ) : 0;
-		$qv['w']        = is_scalar( $qv['w'] ) ? absint( $qv['w'] ) : 0;
-		$qv['m']        = is_scalar( $qv['m'] ) ? preg_replace( '|[^0-9]|', '', $qv['m'] ) : '';
-		$qv['paged']    = is_scalar( $qv['paged'] ) ? absint( $qv['paged'] ) : 0;
-		$qv['cat']      = preg_replace( '|[^0-9,-]|', '', $qv['cat'] ); // Array or comma-separated list of positive or negative integers.
-		$qv['author']   = is_scalar( $qv['author'] ) ? preg_replace( '|[^0-9,-]|', '', $qv['author'] ) : ''; // Comma-separated list of positive or negative integers.
-		$qv['pagename'] = is_scalar( $qv['pagename'] ) ? trim( $qv['pagename'] ) : '';
-		$qv['name']     = is_scalar( $qv['name'] ) ? trim( $qv['name'] ) : '';
-		$qv['title']    = is_scalar( $qv['title'] ) ? trim( $qv['title'] ) : '';
+		$qv['page_id']             = is_scalar( $qv['page_id'] ) ? absint( $qv['page_id'] ) : 0;
+		$qv['year']                = is_scalar( $qv['year'] ) ? absint( $qv['year'] ) : 0;
+		$qv['monthnum']            = is_scalar( $qv['monthnum'] ) ? absint( $qv['monthnum'] ) : 0;
+		$qv['day']                 = is_scalar( $qv['day'] ) ? absint( $qv['day'] ) : 0;
+		$qv['w']                   = is_scalar( $qv['w'] ) ? absint( $qv['w'] ) : 0;
+		$qv['m']                   = is_scalar( $qv['m'] ) ? preg_replace( '|[^0-9]|', '', $qv['m'] ) : '';
+		$qv['paged']               = is_scalar( $qv['paged'] ) ? absint( $qv['paged'] ) : 0;
+		$qv['cat']                 = preg_replace( '|[^0-9,-]|', '', $qv['cat'] ); // Array or comma-separated list of positive or negative integers.
+		$qv['author']              = is_scalar( $qv['author'] ) ? preg_replace( '|[^0-9,-]|', '', $qv['author'] ) : ''; // Comma-separated list of positive or negative integers.
+		$qv['pagename']            = is_scalar( $qv['pagename'] ) ? trim( $qv['pagename'] ) : '';
+		$qv['name']                = is_scalar( $qv['name'] ) ? trim( $qv['name'] ) : '';
+		$qv['title']               = is_scalar( $qv['title'] ) ? trim( $qv['title'] ) : '';
+		$qv['feed']                = is_scalar( $qv['feed'] ) ? trim( $qv['feed'] ) : '';
+		$qv['attachment']          = is_scalar( $qv['attachment'] ) ? $qv['attachment'] : '';
+		$qv['author_name']         = is_scalar( $qv['author_name'] ) ? $qv['author_name'] : '';
+		$qv['author__in']          = is_array( $qv['author__in'] ) ? $qv['author__in'] : array();
+		$qv['author__not_in']      = is_array( $qv['author__not_in'] ) ? $qv['author__not_in'] : array();
+		$qv['category__and']       = is_array( $qv['category__and'] ) ? $qv['category__and'] : array();
+		$qv['category__in']        = is_array( $qv['category__in'] ) ? $qv['category__in'] : array();
+		$qv['category__not_in']    = is_array( $qv['category__not_in'] ) ? $qv['category__not_in'] : array();
+		$qv['post__in']            = is_array( $qv['post__in'] ) ? $qv['post__in'] : array();
+		$qv['post__not_in']        = is_array( $qv['post__not_in'] ) ? $qv['post__not_in'] : array();
+		$qv['post_name__in']       = is_array( $qv['post_name__in'] ) ? $qv['post_name__in'] : array();
+		$qv['post_parent__in']     = is_array( $qv['post_parent__in'] ) ? $qv['post_parent__in'] : array();
+		$qv['post_parent__not_in'] = is_array( $qv['post_parent__not_in'] ) ? $qv['post_parent__not_in'] : array();
+		$qv['tag__and']            = is_array( $qv['tag__and'] ) ? $qv['tag__and'] : array();
+		$qv['tag__in']             = is_array( $qv['tag__in'] ) ? $qv['tag__in'] : array();
+		$qv['tag__not_in']         = is_array( $qv['tag__not_in'] ) ? $qv['tag__not_in'] : array();
+		$qv['tag_slug__and']       = is_array( $qv['tag_slug__and'] ) ? $qv['tag_slug__and'] : array();
+		$qv['tag_slug__in']        = is_array( $qv['tag_slug__in'] ) ? $qv['tag_slug__in'] : array();
 
 		if ( is_scalar( $qv['hour'] ) && '' !== $qv['hour'] ) {
 			$qv['hour'] = absint( $qv['hour'] );
