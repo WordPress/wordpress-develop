@@ -837,8 +837,27 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether a token was parsed.
 	 */
 	public function next_token() {
+		return $this->base_class_next_token();
+	}
+
+	/**
+	 * Internal method which finds the next token in the HTML document.
+	 *
+	 * This method is a protected internal function which implements the logic for
+	 * finding the next token in a document. It's called during `get_updated_html()`
+	 * so that the parser can update its state after applying updates, but without
+	 * affecting the location of the cursor in the document or erroneously triggering
+	 * higher-level logic in subclasses, such as in the HTML Processor.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @access private
+	 *
+	 * @return bool Whether a token was parsed.
+	 */
+	private function base_class_next_token() {
 		$was_at = $this->bytes_already_parsed;
-		$this->get_updated_html();
+		$this->after_tag();
 
 		// Don't proceed if there's nothing more to scan.
 		if (
@@ -2041,6 +2060,34 @@ class WP_HTML_Tag_Processor {
 	 * @since 6.2.0
 	 */
 	private function after_tag() {
+		/*
+		 * There could be lexical updates enqueued for an attribute that
+		 * also exists on the next tag. In order to avoid conflating the
+		 * attributes across the two tags, lexical updates with names
+		 * need to be flushed to raw lexical updates.
+		 */
+		$this->class_name_updates_to_attributes_updates();
+		if ( 1000 < count( $this->lexical_updates ) ) {
+			$this->get_updated_html();
+		}
+		foreach ( $this->lexical_updates as $name => $update ) {
+			/*
+			 * Any updates appearing after the cursor should be applied
+			 * before proceeding, otherwise they may be overlooked.
+			 */
+			if ( $update->start >= $this->bytes_already_parsed ) {
+				$this->get_updated_html();
+				break;
+			}
+
+			if ( is_int( $name ) ) {
+				continue;
+			}
+
+			$this->lexical_updates[] = $update;
+			unset( $this->lexical_updates[ $name ] );
+		}
+
 		$this->token_starts_at      = null;
 		$this->token_length         = null;
 		$this->tag_name_starts_at   = null;
@@ -2230,7 +2277,7 @@ class WP_HTML_Tag_Processor {
 			$shift = strlen( $diff->text ) - $diff->length;
 
 			// Adjust the cursor position by however much an update affects it.
-			if ( $diff->start <= $this->bytes_already_parsed ) {
+			if ( $diff->start < $this->bytes_already_parsed ) {
 				$this->bytes_already_parsed += $shift;
 			}
 
@@ -3164,15 +3211,7 @@ class WP_HTML_Tag_Processor {
 		 *                 └←─┘ back up by strlen("em") + 1 ==> 3
 		 */
 		$this->bytes_already_parsed = $before_current_tag;
-		$this->parse_next_tag();
-		// Reparse the attributes.
-		while ( $this->parse_next_attribute() ) {
-			continue;
-		}
-
-		$tag_ends_at                = strpos( $this->html, '>', $this->bytes_already_parsed );
-		$this->token_length         = $tag_ends_at - $this->token_starts_at;
-		$this->bytes_already_parsed = $tag_ends_at;
+		$this->base_class_next_token();
 
 		return $this->html;
 	}
