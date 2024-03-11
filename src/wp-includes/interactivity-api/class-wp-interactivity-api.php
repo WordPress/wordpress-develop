@@ -246,20 +246,22 @@ final class WP_Interactivity_API {
 			}
 
 			if ( $p->is_tag_closer() ) {
-				list( $opening_tag_name, $directives_prefixes ) = end( $tag_stack );
+				if ( $p->has_and_visits_its_closer_tag() ) {
+					list( $opening_tag_name, $directives_prefixes ) = end( $tag_stack );
 
-				if ( 0 === count( $tag_stack ) || $opening_tag_name !== $tag_name ) {
+					if ( 0 === count( $tag_stack ) || $opening_tag_name !== $tag_name ) {
 
-					/*
-					 * If the tag stack is empty or the matching opening tag is not the
-					 * same than the closing tag, it means the HTML is unbalanced and it
-					 * stops processing it.
-					 */
-					$unbalanced = true;
-					break;
-				} else {
-					// Remove the last tag from the stack.
-					array_pop( $tag_stack );
+						/*
+						 * If the tag stack is empty or the matching opening tag is not the
+						 * same than the closing tag, it means the HTML is unbalanced and it
+						 * stops processing it.
+						 */
+						$unbalanced = true;
+						break;
+					} else {
+						// Remove the last tag from the stack.
+						array_pop( $tag_stack );
+					}
 				}
 			} else {
 				if ( 0 !== count( $p->get_attribute_names_with_prefix( 'data-wp-each-child' ) ) ) {
@@ -281,9 +283,9 @@ final class WP_Interactivity_API {
 					}
 
 					/*
-					 * If this tag will visit its closer tag, it adds it to the tag stack
-					 * so it can process its closing tag and check for unbalanced tags.
-					 */
+					* If this tag will visit its closer tag, it adds it to the tag stack
+					* so it can process its closing tag and check for unbalanced tags.
+					*/
 					if ( $p->has_and_visits_its_closer_tag() ) {
 						$tag_stack[] = array( $tag_name, $directives_prefixes );
 					}
