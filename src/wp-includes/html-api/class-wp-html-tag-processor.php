@@ -2067,6 +2067,9 @@ class WP_HTML_Tag_Processor {
 		 * need to be flushed to raw lexical updates.
 		 */
 		$this->class_name_updates_to_attributes_updates();
+		if ( 1000 < count( $this->lexical_updates ) ) {
+			$this->get_updated_html();
+		}
 		foreach ( $this->lexical_updates as $name => $update ) {
 			/*
 			 * Any updates appearing after the cursor should be applied
