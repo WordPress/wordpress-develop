@@ -174,45 +174,96 @@ module.exports = function (
 	} ) );
 
 	const baseConfig = getBaseConfig( env );
-	const config = {
-		...baseConfig,
-		entry: packages.reduce( ( memo, packageName ) => {
-			memo[ packageName ] = {
-				import: normalizeJoin(
-					baseDir,
-					`node_modules/@wordpress/${ packageName }`
-				),
-				library: {
-					name: [ 'wp', camelCaseDash( packageName ) ],
-					type: 'window',
-					export: exportDefaultPackages.includes( packageName )
-						? 'default'
-						: undefined,
-				},
-			};
+	const config = [
+		{
+			...baseConfig,
+			entry: packages.reduce( ( memo, packageName ) => {
+				memo[ packageName ] = {
+					import: normalizeJoin(
+						baseDir,
+						`node_modules/@wordpress/${ packageName }`
+					),
+					library: {
+						name: [ 'wp', camelCaseDash( packageName ) ],
+						type: 'window',
+						export: exportDefaultPackages.includes( packageName )
+							? 'default'
+							: undefined,
+					},
+				};
 
-			return memo;
-		}, {} ),
-		output: {
-			devtoolNamespace: 'wp',
-			filename: `[name]${ suffix }.js`,
-			path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
+				return memo;
+			}, {} ),
+			output: {
+				devtoolNamespace: 'wp',
+				filename: `[name]${ suffix }.js`,
+				path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
+			},
+			plugins: [
+				...baseConfig?.plugins,
+				new DependencyExtractionPlugin( {
+					injectPolyfill: true,
+					combineAssets: true,
+					combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
+				} ),
+				new WpScriptsPackageProxyModuleWebpackPlugin( {
+					combinedOutputFile: `../../assets/script-loader-packages-proxy-modules${ suffix }.php`,
+				} ),
+				new CopyWebpackPlugin( {
+					patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
+				} ),
+			],
 		},
-		plugins: [
-			...baseConfig.plugins,
-			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
-				combineAssets: true,
-				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
-			} ),
-			new WpScriptsPackageProxyModuleWebpackPlugin( {
-				combinedOutputFile: `../../assets/script-loader-packages-proxy-modules${ suffix }.php`,
-			} ),
-			new CopyWebpackPlugin( {
-				patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
-			} ),
-		],
-	};
+		{
+			...baseConfig,
+			experiments: {
+				...baseConfig?.experiments,
+				outputModule: true,
+			},
+			entry: packages.reduce( ( memo, packageName ) => {
+				memo[ packageName ] = {
+					import: normalizeJoin(
+						baseDir,
+						`node_modules/@wordpress/${ packageName }`
+					),
+					library: {
+						type: 'module',
+						export: exportDefaultPackages.includes( packageName )
+							? 'default'
+							: undefined,
+					},
+				};
+
+				return memo;
+			}, {} ),
+			output: {
+				devtoolNamespace: '@wordpress',
+				filename: `[name]${ suffix }.js`,
+				path: normalizeJoin( baseDir, `${ buildTarget }/js/dist-esm` ),
+				module: true,
+				chunkFormat: 'module',
+				environment: {
+					...baseConfig?.output?.environment,
+					module: true,
+				},
+				library: {
+					...baseConfig?.output?.library,
+					type: 'module',
+				},
+			},
+			plugins: [
+				...baseConfig?.plugins,
+				new DependencyExtractionPlugin( {
+					injectPolyfill: true,
+					combineAssets: true,
+					combinedOutputFile: `../../assets/script-loader-packages-esm${ suffix }.php`,
+				} ),
+				new CopyWebpackPlugin( {
+					patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
+				} ),
+			],
+		},
+	];
 
 	if ( config.mode === 'development' ) {
 		config.plugins.push(
