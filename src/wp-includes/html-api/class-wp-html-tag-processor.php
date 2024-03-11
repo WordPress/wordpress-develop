@@ -844,10 +844,10 @@ class WP_HTML_Tag_Processor {
 	 * Internal method which finds the next token in the HTML document.
 	 *
 	 * This method is a protected internal function which implements the logic for
-	 * finding the next token in a document. It's called during `get_updated_html()`
-	 * so that the parser can update its state after applying updates, but without
-	 * affecting the location of the cursor in the document or erroneously triggering
-	 * higher-level logic in subclasses, such as in the HTML Processor.
+	 * finding the next token in a document. It exists so that the parser can update
+	 * its state without affecting the location of the cursor in the document and
+	 * without triggering subclass methods for things like `next_token()`, e.g. when
+	 * applying patches before searching for the next token.
 	 *
 	 * @since 6.5.0
 	 *

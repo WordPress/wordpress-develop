@@ -293,7 +293,7 @@ HTML;
 
 	/**
 	 * @ticket 56299
-	 * @ticket 60697 Added additional assertion to verify that a requested update was properly applied.
+	 * @ticket 60697
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek
 	 */
