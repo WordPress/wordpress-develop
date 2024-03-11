@@ -66,7 +66,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 
 	return $parsed_block;
 }
-/**
+/*
  * Uses a priority of 20 to ensure that other filters can add additional attributes to
  * $parsed_block before the processing starts.
  */
