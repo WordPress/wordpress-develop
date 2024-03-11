@@ -178,7 +178,7 @@ function wp_apply_font_dir_filter( $font_dir ) {
  *
  * @return array See wp_font_dir() for description.
  */
-function wp_default_font_dir_filter() {
+function wp_default_font_dir() {
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
