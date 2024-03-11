@@ -132,6 +132,10 @@ function wp_font_dir( $create_dir = true ) {
 	 * Ensures the upload_dir filter is fired both when calling this function
 	 * directly and when the upload directory is filtered in the Font Face
 	 * REST API endpoint.
+	 *
+	 * The filter runs at priority 20 to ensure it runs after any filters
+	 * added at the default priority by plugins modifying the upload path
+	 * or URL.
 	 */
 	add_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
