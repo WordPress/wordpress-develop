@@ -38,7 +38,7 @@ class WP_Query {
 	 * Taxonomy query, as passed to get_tax_sql().
 	 *
 	 * @since 3.1.0
-	 * @var WP_Tax_Query A taxonomy query instance.
+	 * @var WP_Tax_Query|null A taxonomy query instance.
 	 */
 	public $tax_query;
 
@@ -3104,14 +3104,14 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		$old_request = "
-			SELECT $found_rows $distinct $fields
-			FROM {$wpdb->posts} $join
-			WHERE 1=1 $where
-			$groupby
-			$orderby
-			$limits
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$old_request =
+			"SELECT $found_rows $distinct $fields
+			 FROM {$wpdb->posts} $join
+			 WHERE 1=1 $where
+			 $groupby
+			 $orderby
+			 $limits";
 
 		$this->request = $old_request;
 
@@ -3307,14 +3307,14 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
-					FROM {$wpdb->posts} $join
-					WHERE 1=1 $where
-					$groupby
-					$orderby
-					$limits
-				";
+				// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+				$this->request =
+					"SELECT $found_rows $distinct {$wpdb->posts}.ID
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where
+					 $groupby
+					 $orderby
+					 $limits";
 
 				/**
 				 * Filters the Post IDs SQL request before sending.
