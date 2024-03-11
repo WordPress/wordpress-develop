@@ -92,15 +92,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @since 6.5.0
 	 */
 	public function tear_down() {
-		global $wp_current_filter;
-
-		if (
-			'rest_pre_insert_wp_template' === current_filter() ||
-			'rest_pre_insert_wp_template_part' === current_filter()
-		) {
-			array_pop( $wp_current_filter );
-		}
-
 		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
 		}
@@ -420,7 +411,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template() {
 		global $wp_current_filter;
-		// Mock currently set filter.
+		// Mock currently set filter. The $wp_current_filter global is reset during teardown by
+		// WP_UnitTestCase_Base::_restore_hooks() in tests/phpunit/includes/abstract-testcase.php.
 		$wp_current_filter[] = 'rest_pre_insert_wp_template';
 
 		register_block_type(
@@ -453,7 +445,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part() {
 		global $wp_current_filter;
-		// Mock currently set filter.
+		// Mock currently set filter. The $wp_current_filter global is reset during teardown by
+		// WP_UnitTestCase_Base::_restore_hooks() in tests/phpunit/includes/abstract-testcase.php.
 		$wp_current_filter[] = 'rest_pre_insert_wp_template_part';
 
 		register_block_type(
