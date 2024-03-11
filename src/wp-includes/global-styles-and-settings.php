@@ -487,16 +487,11 @@ function wp_get_theme_data_custom_templates() {
 function wp_get_theme_data_template_parts() {
 	$cache_group    = 'theme_json';
 	$cache_key      = 'wp_get_theme_data_template_parts';
-	$transient_key  = "{$cache_group}_{$cache_key}";
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
 	$metadata = false;
 	if ( $can_use_cached ) {
-		if ( wp_using_ext_object_cache() ) {
-			$metadata = wp_cache_get( $cache_key, $cache_group );
-		} else {
-			$metadata = get_site_transient( $transient_key );
-		}
+		$metadata = wp_cache_get( $cache_key, $cache_group );
 
 		if ( false !== $metadata ) {
 			return $metadata;
@@ -506,23 +501,7 @@ function wp_get_theme_data_template_parts() {
 	if ( false === $metadata ) {
 		$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
 		if ( $can_use_cached ) {
-			/**
-			 * Filters whether to cache theme files persistently.
-			 *
-			 * @since 6.6.0
-			 *
-			 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
-			 * @param string $context          Additional context for better cache control.
-			 */
-			$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', 1800, 'theme_data_template_parts' );
-
-			if ( ! false === $cache_expiration ) {
-				if ( wp_using_ext_object_cache() ) {
-					wp_cache_set( $cache_key, $metadata, $cache_group, $cache_expiration );
-				} else {
-					set_site_transient( $transient_key, $metadata, $cache_expiration );
-				}
-			}
+			wp_cache_set( $cache_key, $metadata, $cache_group );
 		}
 	}
 
