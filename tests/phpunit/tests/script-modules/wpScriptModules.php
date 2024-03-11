@@ -562,8 +562,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
 		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
-
-		
 	}
 
 	/**
