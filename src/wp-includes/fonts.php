@@ -92,6 +92,46 @@ function wp_unregister_font_collection( string $slug ) {
 }
 
 /**
+ * Returns the default font directory path and URL.
+ *
+ * @since 6.5.0
+ * 
+ * @param bool $refresh_cache Optional. Whether to refresh the cache and generate a new default font directory path and URL. Default is false.
+ * @return array Default font directory path and URL.
+ */
+function wp_default_font_dir (  $refresh_cache = false  ) {
+	$defaults = get_option( 'font_dir' );
+
+	if ( !empty ( $defaults ) &&  ! $refresh_cache ) {
+		return $defaults;
+	}
+
+	$site_path = '';
+	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
+		$site_path = '/sites/' . get_current_blog_id();
+	}
+
+	$defaults = array(
+		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
+		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
+		'subdir'  => '',
+		'basedir' => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
+		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
+		'error'   => false,
+	);
+
+	if ( ! wp_mkdir_p( $defaults['path'] ) ) {
+		$defaults = wp_upload_dir();
+		$defaults['path'] = path_join( $defaults['basedir'], 'fonts' );
+		$defaults['url'] = $defaults['baseurl'] . '/fonts';
+		$defaults['subdir'] = '/fonts';
+	}
+
+	update_option( 'font_dir', $defaults );
+	return $defaults;
+}
+
+/**
  * Returns an array containing the current fonts upload directory's path and URL.
  *
  * @since 6.5.0
@@ -108,19 +148,11 @@ function wp_unregister_font_collection( string $slug ) {
  * }
  */
 function wp_get_font_dir() {
-	$site_path = '';
-	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
-		$site_path = '/sites/' . get_current_blog_id();
+	if ( doing_filter( 'font_dir' ) ) {
+		return;
 	}
 
-	$defaults = array(
-		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
-		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
-		'subdir'  => '',
-		'basedir' => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
-		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
-		'error'   => false,
-	);
+	$defaults = wp_default_font_dir( true );
 
 	/**
 	 * Filters the fonts directory data.
@@ -131,7 +163,8 @@ function wp_get_font_dir() {
 	 *
 	 * @param array $defaults The original fonts directory data.
 	 */
-	return apply_filters( 'font_dir', $defaults );
+	$defaults = apply_filters( 'font_dir', $defaults );
+	return $defaults;
 }
 
 /**
