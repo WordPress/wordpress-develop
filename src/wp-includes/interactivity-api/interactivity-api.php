@@ -66,7 +66,11 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 
 	return $parsed_block;
 }
-add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interactive_blocks' );
+/**
+ * Uses a priority of 20 to ensure that other filters can add additional attributes to
+ * $parsed_block before the processing starts.
+ */
+add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interactive_blocks', 20, 1 );
 
 /**
  * Retrieves the main WP_Interactivity_API instance.
