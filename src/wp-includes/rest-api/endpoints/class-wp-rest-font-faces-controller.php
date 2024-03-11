@@ -880,6 +880,11 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 			'mimes'                => WP_Font_Utils::get_allowed_font_mime_types(),
 		);
 
+		// Bypasses is_uploaded_file() when running unit tests.
+		if ( defined( 'DIR_TESTDATA' ) && DIR_TESTDATA ) {
+			$overrides['action'] = 'wp_handle_mock_upload';
+		}
+
 		$uploaded_file = wp_handle_upload( $file, $overrides );
 
 		remove_filter( 'upload_dir', $set_upload_dir );
