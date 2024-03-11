@@ -2260,3 +2260,92 @@ $( function( $ ) {
 	// Expose public methods.
 	return pub;
 })();
+
+/**
+ * Initializes tooltips for elements with the class 'tooltip-container'.
+ *
+ * Dynamically creates tooltip elements on DOM load and attaches event listeners.
+ *
+ * @since 6.5.0
+ */
+jQuery(function ($) {
+
+    /**
+     * Initializes tooltips for elements with the class 'tooltip-container'.
+     *
+     * @since 6.5.0
+     */
+    function initializeTooltips() {
+        // Select all tooltip containers on the page.
+        var tooltipContainers = document.querySelectorAll('.tooltip-container');
+
+        tooltipContainers.forEach(function (tooltipContainer) {
+            var tooltipText = tooltipContainer.getAttribute('data-tooltip-text');
+
+			// Create tooltip elements dynamically.
+			var tooltipButton = document.createElement('button');
+			tooltipButton.setAttribute('type', 'button');
+			tooltipButton.classList.add('tooltip-button');
+			tooltipButton.innerHTML =
+				'<span class="dashicons dashicons-editor-help"></span>';
+			tooltipContainer.appendChild(tooltipButton);
+
+			var tooltipContent = document.createElement('div');
+			tooltipContent.classList.add('tooltip-content');
+
+			tooltipContent.innerHTML =
+				'<div class="tooltip-arrow"></div>' + '<p>' + tooltipText + '</p>';
+			tooltipContainer.appendChild(tooltipContent);
+
+			// Change event from click to hover.
+			tooltipContainer.addEventListener('mouseenter', function () {
+				// Show the tooltip content on hover.
+				tooltipContent.style.display = 'block';
+			});
+
+			tooltipContainer.addEventListener('mouseleave', function () {
+				// Hide the tooltip content on mouse leave.
+				tooltipContent.style.display = 'none';
+			});
+
+			// Set cursor style to 'help' when hovering over the tooltip button.
+			tooltipButton.style.cursor = 'help';
+
+			// Add keydown event listener to the tooltip button.
+			tooltipButton.addEventListener('keydown', function (event) {
+				// Check if the Enter key is pressed.
+				if (event.key === 'Enter') {
+					// Toggle the display of the tooltip content.
+					tooltipContent.style.display =
+						tooltipContent.style.display === 'block' ? 'none' : 'block';
+				}
+			});
+
+			document.addEventListener('keydown', function (event) {
+				if (
+					event.key === 'Escape' &&
+					tooltipContent.style.display === 'block'
+				) {
+					// Hide the tooltip on Escape key press.
+					tooltipContent.style.display = 'none';
+					tooltipButton.focus();
+				}
+			});
+
+			document.body.addEventListener('click', function (event) {
+				// Check if the clicked element is not within the tooltip container.
+				if (
+					!tooltipContent.contains(event.target) &&
+					!tooltipButton.contains(event.target)
+				) {
+					tooltipContent.style.display = 'none';
+				}
+			});
+        });
+    }
+
+    // Initialize tooltips on DOMContentLoaded.
+    $(document).ready(function () {
+        initializeTooltips();
+    });
+});
