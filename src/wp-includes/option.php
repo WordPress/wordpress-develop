@@ -941,7 +941,6 @@ function update_option( $option, $value, $autoload = null ) {
  *                              For options which are accessed only on few specific URLs, it is recommended
  *                              to not autoload them, by using false.
  *                              Default is null, which means WordPress will determine the autoload value.
- *
  * @return bool True if the option was added, false otherwise.
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = null ) {
