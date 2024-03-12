@@ -719,7 +719,8 @@ function wp_load_core_site_options( $network_id = null ) {
  *                            in the frontend, it is recommended to autoload them, by using true.
  *                            For options which are accessed only on few specific URLs, it is recommended
  *                            to not autoload them, by using false.
- *                            For non-existent options, the default is 'null' and this will set to autoload if the value is too large.
+ *                            For non-existent options, the default is null, which means WordPress will determine
+ *                            the autoload value.
  *
  * @return bool True if the value was updated, false otherwise.
  */
@@ -1156,6 +1157,9 @@ function delete_option( $option ) {
  * It will return `auto-on` to indicate autoloading, `auto-off` to indicate not autoloading, or `auto` if no clear
  * decision could be made.
  *
+ * @since 6.6.0
+ * @access private
+ *
  * @param string $option          The name of the option.
  * @param mixed $value            The value of the option to check its autoload value.
  * @param mixed $serialized_value The serialized value of the option to check its autoload value.
@@ -1165,12 +1169,8 @@ function delete_option( $option ) {
  *                                Any other autoload value will be forced to either 'auto-on',
  *                                'auto-off', or 'auto'.
  *                                'yes' and 'no' are supported for backward compatibility.
- *
  * @return string Returns the original $autoload value if explicit, or 'auto-on', 'auto-off',
  *                or 'auto' depending on default heuristics.
- * @since 6.5.0
- * @access private
- *
  */
 function wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload ) {
 
