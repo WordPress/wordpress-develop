@@ -492,7 +492,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		//$this->assertSame( 'rest_pre_insert_wp_template', current_filter() );
 
-		$post    = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
 		$args              = $action->get_args();
 		$anchor_block_type = $args[0][2];
