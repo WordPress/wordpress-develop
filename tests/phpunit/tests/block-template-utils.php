@@ -412,7 +412,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template() {
 		global $wp_current_filter;
 		// Mock currently set filter. The $wp_current_filter global is reset during teardown by
-		// WP_UnitTestCase_Base::_restore_hooks() in tests/phpunit/includes/abstract-testcase.php.
+		// the unit test base class.
 		$wp_current_filter[] = 'rest_pre_insert_wp_template';
 
 		register_block_type(
@@ -446,7 +446,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part() {
 		global $wp_current_filter;
 		// Mock currently set filter. The $wp_current_filter global is reset during teardown by
-		// WP_UnitTestCase_Base::_restore_hooks() in tests/phpunit/includes/abstract-testcase.php.
+		// the unit test base class.
 		$wp_current_filter[] = 'rest_pre_insert_wp_template_part';
 
 		register_block_type(
