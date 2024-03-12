@@ -16,7 +16,6 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 		$font_dir = wp_default_font_dir();
 
 		$this->assertSame(
-			$font_dir,
 			array(
 				'path'    => WP_CONTENT_DIR . '/fonts',
 				'url'     => content_url( 'fonts' ),
@@ -25,6 +24,7 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 				'baseurl' => content_url( 'fonts' ),
 				'error'   => false,
 			),
+            $font_dir,
 			'The font directory should be a dir inside wp-content'
 		);
 	}
@@ -36,7 +36,6 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 		$upload_dir = wp_upload_dir();
 
 		$this->assertSame(
-			$font_dir,
 			array(
 				'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
 				'url'     => $upload_dir['baseurl'] . '/fonts',
@@ -45,6 +44,7 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 				'baseurl' => $upload_dir['baseurl'],
 				'error'   => false,
 			),
+            $font_dir,
 			'The font directory should be a subdir in the uploads directory.'
 		);
 	}
