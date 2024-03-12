@@ -898,7 +898,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$fields = wp_parse_list( $request['_fields'] );
 
-	if ( 0 === count( $fields ) ) {
+	if ( 0 === count( $fields ) || is_scalar( $data ) ) {
 		return $response;
 	}
 
