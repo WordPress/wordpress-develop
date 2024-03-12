@@ -239,7 +239,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Tests that empty state objects are pruned from printed state.
 	 *
-	 * @ticket X
+	 * @ticket 60761
 	 *
 	 * @covers ::print_client_interactivity_data
 	 */
@@ -260,7 +260,7 @@ SCRIPT_TAG;
 	/**
 	 * Tests that state consisting of only empty state objects is not printed.
 	 *
-	 * @ticket X
+	 * @ticket 60761
 	 *
 	 * @covers ::print_client_interactivity_data
 	 */
@@ -273,7 +273,7 @@ SCRIPT_TAG;
 	/**
 	 * Tests that nested empty state objects are serialized correctly.
 	 *
-	 * @ticket X
+	 * @ticket 60761
 	 *
 	 * @covers ::print_client_interactivity_data
 	 */
