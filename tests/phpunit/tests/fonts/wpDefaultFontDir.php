@@ -24,7 +24,7 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 				'baseurl' => content_url( 'fonts' ),
 				'error'   => false,
 			),
-            $font_dir,
+			$font_dir,
 			'The font directory should be a dir inside wp-content'
 		);
 	}
@@ -44,7 +44,7 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 				'baseurl' => $upload_dir['baseurl'],
 				'error'   => false,
 			),
-            $font_dir,
+			$font_dir,
 			'The font directory should be a subdir in the uploads directory.'
 		);
 	}
