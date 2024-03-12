@@ -161,8 +161,7 @@ function wp_get_font_dir() {
 	 *
 	 * @param array $defaults The original fonts directory data.
 	 */
-	$defaults = apply_filters( 'font_dir', $defaults );
-	return $defaults;
+	return apply_filters( 'font_dir', $defaults );
 }
 
 /**
