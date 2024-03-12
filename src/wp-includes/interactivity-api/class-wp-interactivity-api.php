@@ -577,8 +577,8 @@ final class WP_Interactivity_API {
 				$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
 
 				if ( null !== $result && (
-						false !== $result ||
-						( strlen( $bound_attribute ) > 5 && '-' === $bound_attribute[4] )
+					false !== $result ||
+					( strlen( $bound_attribute ) > 5 && '-' === $bound_attribute[4] )
 				) ) {
 					/*
 					 * If the result of the evaluation is a boolean and the attribute is
