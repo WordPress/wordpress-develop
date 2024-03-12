@@ -348,7 +348,14 @@ class WP_Script_Modules {
 			$src = add_query_arg( 'ver', $script_module['version'], $src );
 		}
 
-		/** This filter is documented in wp-includes/class-wp-scripts.php */
+		/**
+		 * Filters the script module source.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param string $src Module source url.
+		 * @param string $id  Module identifier.
+		 */
 		$src = apply_filters( 'script_module_loader_src', $src, $id );
 
 		return $src;
