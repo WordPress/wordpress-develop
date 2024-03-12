@@ -39,9 +39,9 @@ class Tests_Fonts_WpDefaultFontDir extends WP_UnitTestCase {
 			array(
 				'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
 				'url'     => $upload_dir['baseurl'] . '/fonts',
-				'subdir'  => '/fonts',
-				'basedir' => $upload_dir['basedir'],
-				'baseurl' => $upload_dir['baseurl'],
+				'subdir'  => '',
+				'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
+				'baseurl' => $upload_dir['baseurl'] . '/fonts',
 				'error'   => false,
 			),
 			$font_dir,

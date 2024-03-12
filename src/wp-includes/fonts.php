@@ -123,10 +123,12 @@ function wp_default_font_dir( $refresh_cache = false ) {
 	wp_mkdir_p( $defaults['path'] );
 
 	if ( ! wp_is_writable( $defaults['path'] ) ) {
-		$defaults           = wp_upload_dir();
-		$defaults['path']   = path_join( $defaults['basedir'], 'fonts' );
-		$defaults['url']    = $defaults['baseurl'] . '/fonts';
-		$defaults['subdir'] = '/fonts';
+		$defaults            = wp_upload_dir();
+		$defaults['path']    = path_join( $defaults['basedir'], 'fonts' );
+		$defaults['url']     = $defaults['baseurl'] . '/fonts';
+		$defaults['subdir']  = '';
+		$defaults['basedir'] = path_join( $defaults['basedir'], 'fonts' );
+		$defaults['baseurl'] = $defaults['baseurl'] . '/fonts';
 	}
 
 	update_option( 'font_dir', $defaults );
