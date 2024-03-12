@@ -491,7 +491,7 @@ final class WP_Interactivity_API {
 		 * independently of whether the previous `data-wp-interactive` definition
 		 * contained a valid namespace.
 		 */
-		$new_namespace = null;
+		$new_namespace = 'WP';
 		if ( is_string( $attribute_value ) && ! empty( $attribute_value ) ) {
 			$decoded_json = json_decode( $attribute_value, true );
 			if ( is_array( $decoded_json ) ) {

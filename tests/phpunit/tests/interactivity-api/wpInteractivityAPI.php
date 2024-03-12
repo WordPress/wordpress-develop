@@ -772,4 +772,56 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, 'my-item-' ) );
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, '-my-item-' ) );
 	}
+
+	/**
+	 * Tests that directives are processed if
+	 * data-wp-interactive has no value.
+	 *
+	 * @ticket
+	 *
+	 * @covers process_directives
+	 */
+	public function test_process_directives_process_the_directives_without_namespace() {
+		$html           = '
+			<input
+				id="some-id"
+				data-wp-interactive
+				' . wp_interactivity_data_wp_context(
+			array(
+				'id' => 'some-id',
+			)
+		) . '
+				data-wp-bind--value="context.id"
+			/>';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( array( 'id', 'some-id' ) );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'value' ) );
+	}
+
+	/**
+	 * Tests that directives are processed if
+	 * data-wp-interactive is an empty string.
+	 *
+	 * @ticket
+	 *
+	 * @covers process_directives
+	 */
+	public function test_process_directives_process_the_directives_with_empty_namespace() {
+		$html           = '
+			<input
+				id="some-id"
+				data-wp-interactive=""
+				' . wp_interactivity_data_wp_context(
+			array(
+				'id' => 'some-id',
+			)
+		) . '
+				data-wp-bind--value="context.id"
+			/>';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( array( 'id', 'some-id' ) );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'value' ) );
+	}
 }
