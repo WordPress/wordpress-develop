@@ -392,6 +392,14 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	public function data_option_autoloading_large_option() {
 		return array(
+			'on'   => array(
+				'autoload' => 'on',
+				'expected' => 'on',
+			),
+			'off'  => array(
+				'autoload' => 'off',
+				'expected' => 'off',
+			),
 			'yes'   => array(
 				'autoload' => 'yes',
 				'expected' => 'on',
@@ -412,6 +420,18 @@ class Tests_Option_Option extends WP_UnitTestCase {
 				'autoload' => null,
 				'expected' => 'auto-off',
 			),
+			'autoload_int'  => array(
+				'autoload' => '1223',
+				'expected' => 'on',
+			),
+			'autoload_array'  => array(
+				'autoload' => array(),
+				'expected' => 'on',
+			),
+			'stdClass'  => array(
+				'autoload' => new stdClass(),
+				'expected' => 'on',
+			),
 		);
 	}
 
@@ -425,17 +445,16 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @covers ::update_option
 	 */
-	public function test_update_option_autoloading_large_option_no() {
+	public function test_update_option_autoloading_small_option_auto() {
 		global $wpdb;
 		$name = 'foo';
-		add_option( $name, 'bar', '', 'no' );
-		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
-		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$added = update_option( $name, $value );
+		add_option( $name, 'bar', '', 'auto' );
+//		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
+		$added = update_option( $name, 'small_option_data' );
 		$this->assertTrue( $added );
 
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
-		$this->assertSame( 'off', $actual->autoload );
+		$this->assertSame( 'on', $actual->autoload );
 	}
 
 	/**
