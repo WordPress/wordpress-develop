@@ -361,9 +361,9 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			array( 'autoload_yes', 'yes', 'on' ),
 			array( 'autoload_true', true, 'on' ),
-			array( 'autoload_string', 'foo', 'auto' ),
-			array( 'autoload_int', 123456, 'auto' ),
-			array( 'autoload_array', array(), 'auto' ),
+			array( 'autoload_string', 'foo', 'on' ),
+			array( 'autoload_int', 123456, 'on' ),
+			array( 'autoload_array', array(), 'on' ),
 			array( 'autoload_no', 'no', 'off' ),
 			array( 'autoload_false', false, 'off' ),
 			array( 'autoload_null', null, 'auto' ),
