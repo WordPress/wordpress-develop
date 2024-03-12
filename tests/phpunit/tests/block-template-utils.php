@@ -471,4 +471,39 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
 		);
 	}
+
+	/**
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_applies_filter_correctly() {
+		$action = new MockAction();
+		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
+
+		global $wp_current_filter;
+		// Mock currently set filter. The $wp_current_filter global is reset during teardown by
+		// the unit test base class.
+		$wp_current_filter[] = 'rest_pre_insert_wp_template';
+
+		$id      = self::TEST_THEME . '//' . 'my_template';
+		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
+
+		$changes               = new stdClass();
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+
+		//$this->assertSame( 'rest_pre_insert_wp_template', current_filter() );
+
+		$post    = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+
+		$args              = $action->get_args();
+		$anchor_block_type = $args[0][2];
+		$context           = $args[0][3];
+
+		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+		$this->assertInstanceOf( 'WP_Block_Template', $context ); // FIXME: Currently failing :/
+		$this->assertSame(
+			$changes->post_content,
+			$context->post_content,
+			'The context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+	}
 }
