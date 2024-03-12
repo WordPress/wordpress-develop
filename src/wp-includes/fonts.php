@@ -150,10 +150,6 @@ function wp_default_font_dir( $refresh_cache = false ) {
  * }
  */
 function wp_get_font_dir() {
-	if ( doing_filter( 'font_dir' ) ) {
-		return;
-	}
-
 	$defaults = wp_default_font_dir( true );
 
 	/**
