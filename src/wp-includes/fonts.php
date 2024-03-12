@@ -96,16 +96,9 @@ function wp_unregister_font_collection( string $slug ) {
  *
  * @since 6.5.0
  *
- * @param bool $refresh_cache Optional. Whether to refresh the cache and generate a new default font directory path and URL. Default is false.
  * @return array Default font directory path and URL.
  */
-function wp_default_font_dir( $refresh_cache = false ) {
-	$defaults = get_option( 'font_dir' );
-
-	if ( ! empty( $defaults ) && ! $refresh_cache ) {
-		return $defaults;
-	}
-
+function wp_default_font_dir() {
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
@@ -131,7 +124,6 @@ function wp_default_font_dir( $refresh_cache = false ) {
 		$defaults['baseurl'] = $defaults['baseurl'] . '/fonts';
 	}
 
-	update_option( 'font_dir', $defaults );
 	return $defaults;
 }
 
