@@ -1216,11 +1216,11 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
  * @param mixed     $serialized_value The passed  option value to be saved, in serialized form.
  * @return bool|null Potentially modified $default.
  */
-function wp_filter_default_autoload_value_via_option_size( $default_setting, $option, $value, $serialized_value ) {
+function wp_filter_default_autoload_value_via_option_size( $autoload, $option, $value, $serialized_value ) {
 	/**
 	 * Filters the maximum size of option value in bytes.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @param int    $max_option_size The option-size threshold, in bytes. Default 150000.
 	 * @param string $option          The name of the option.
@@ -1232,7 +1232,7 @@ function wp_filter_default_autoload_value_via_option_size( $default_setting, $op
 		return false;
 	}
 
-	return $default_setting;
+	return $autoload;
 }
 
 /**
