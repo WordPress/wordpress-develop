@@ -6,6 +6,8 @@
  * @package WordPress
  * @subpackage Interactivity API
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @since 6.5.0
  *
  * @group interactivity-api
