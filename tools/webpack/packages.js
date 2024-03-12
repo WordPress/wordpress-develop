@@ -228,9 +228,9 @@ module.exports = function (
 					),
 					library: {
 						type: 'module',
-						export: exportDefaultPackages.includes( packageName )
-							? 'default'
-							: undefined,
+						// export: exportDefaultPackages.includes( packageName )
+						// 	? 'default'
+						// 	: undefined,
 					},
 				};
 
@@ -238,8 +238,8 @@ module.exports = function (
 			}, {} ),
 			output: {
 				devtoolNamespace: '@wordpress',
-				filename: `[name]${ suffix }.js`,
-				path: normalizeJoin( baseDir, `${ buildTarget }/js/dist-esm` ),
+				filename: `[name]-esm${ suffix }.js`,
+				path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
 				module: true,
 				chunkFormat: 'module',
 				environment: {

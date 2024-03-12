@@ -133,6 +133,7 @@ function wp_deregister_script_module( string $id ) {
  */
 function wp_register_package_scripts_proxy_modules() {
 	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+
 	/*
 	 * Expects multidimensional array like:
 	 *
@@ -143,8 +144,31 @@ function wp_register_package_scripts_proxy_modules() {
 	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages-proxy-modules{$suffix}.php";
 
 	foreach ( $assets as $file_name => $package_data ) {
-		$basename = str_replace( $suffix . '-esm.js', '', basename( $file_name ) );
+		$basename = str_replace( $suffix . '-esm-proxy.js', '', basename( $file_name ) );
 		$id   = '@wordpress/' . $basename;
+		$path     = "/wp-includes/js/dist/{$file_name}";
+
+		if ( ! empty( $package_data['dependencies'] ) ) {
+			$dependencies = $package_data['dependencies'];
+		} else {
+			$dependencies = array();
+		}
+
+		wp_register_script_module( $id, $path, $dependencies, $package_data['version'] );
+	}
+
+	/*
+	 * Expects multidimensional array like:
+	 *
+	 *     'a11y-esm.js' => array('dependencies' => array(...), 'version' => '...'),
+	 *     'annotations-esm.js' => array('dependencies' => array(...), 'version' => '...'),
+	 *     'api-fetch-esm.js' => array(...
+	 */
+	$assets = include ABSPATH . WPINC . "/assets/script-loader-packages-esm{$suffix}.php";
+
+	foreach ( $assets as $file_name => $package_data ) {
+		$basename = str_replace( $suffix . '-esm.js', '', basename( $file_name ) );
+		$id   = '@wordpress-esm/' . $basename;
 		$path     = "/wp-includes/js/dist/{$file_name}";
 
 		if ( ! empty( $package_data['dependencies'] ) ) {

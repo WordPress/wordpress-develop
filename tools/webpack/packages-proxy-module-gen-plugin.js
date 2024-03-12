@@ -133,33 +133,36 @@ class WpScriptsPackageProxyModuleWebpackPlugin {
 					.getPath( '[file]', {
 						filename: chunkJSFile,
 					} )
-					.replace( /\.m?js$/i, '-esm.js' );
+					.replace( /\.m?js$/i, '-esm-proxy.js' );
 				const libraryPath = libOpts.name.map(
 					( n ) => `[${ JSON.stringify( n ) }]`
 				);
-				let sourceString = `if ( 'undefined' === typeof ${
+
+				// let sourceString = `if ( 'undefined' === typeof ${
+				// 	libOpts.type
+				// }?.${ libraryPath.join(
+				// 	'?.'
+				// ) } ) {\n\tthrow new Error( 'Undefined dependency: ${
+				// 	libOpts.type
+				// }${ libraryPath.join( '' ) }' );\n}\n`;
+
+				let sourceString = `const __library__ = ${
 					libOpts.type
 				}?.${ libraryPath.join(
 					'?.'
-				) } ) {\n\tthrow new Error( 'Undefined dependency: ${
-					libOpts.type
-				}${ libraryPath.join( '' ) }' );\n}\n`;
+				) } ?? await import( '@wordpress-esm/${ chunk.name }' )${
+					'' //libOpts.export === 'default' ? '.default' : ''
+				};\n`;
 
-				if ( libOpts.exports === 'default' ) {
-					sourceString += `export default ${
-						libOpts.type
-					}${ libraryPath.join( '' ) };\n`;
-				} else {
-					for ( const exportName of exportsInfo.getProvidedExports() ) {
-						if ( exportName === 'default' ) {
-							sourceString += `export default ${
-								libOpts.type
-							}${ libraryPath.join( '' ) };\n`;
-						} else {
-							sourceString += `export const ${ exportName }=${
-								libOpts.type
-							}${ libraryPath.join( '' ) }.${ exportName };\n`;
-						}
+				console.log( {
+					n: chunk.name,
+					es: exportsInfo.getProvidedExports(),
+				} );
+				for ( const exportName of exportsInfo.getProvidedExports() ) {
+					if ( exportName === 'default' ) {
+						sourceString += `export default __library__.default;\n`;
+					} else {
+						sourceString += `export const ${ exportName } = __library__.${ exportName };\n`;
 					}
 				}
 
@@ -172,7 +175,13 @@ class WpScriptsPackageProxyModuleWebpackPlugin {
 				chunk.files.add( generatedProxyModuleFilename );
 
 				const assetData = {
-					dependencies: [ { id: `wp-${ chunk.name }`, import: 'wp-script' } ],
+					dependencies: [
+						// { id: `wp-${ chunk.name }`, import: 'wp-script' },
+						{
+							id: `@wordpress-esm/${ chunk.name }`,
+							import: 'dynamic',
+						},
+					],
 					version: contentHash
 						.digest( hashDigest )
 						.slice( 0, hashDigestLength ),
