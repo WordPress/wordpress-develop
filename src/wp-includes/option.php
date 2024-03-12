@@ -3035,5 +3035,19 @@ function filter_default_option( $default_value, $option, $passed_default ) {
  * @return array The values that trigger autoloading.
  */
 function wp_autoload_values_to_autoload() {
-	return array( 'yes', 'on', 'auto-on', 'auto' );
+	$autoload_values = array( 'yes', 'on', 'auto-on', 'auto' );
+
+	/**
+	 * Filters the autoload values that should be considered for autoloading from the options table.
+	 *
+	 * The filter can only be used to remove autoload values from the default list.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param array $autoload_values Autoload values used to autoload option.
+	 *                        Default list contains 'yes', 'on', 'auto-on', and 'auto'.
+	 */
+	$filtered_values = apply_filters( 'wp_autoload_values_to_autoload', $autoload_values );
+
+	return array_intersect( $filtered_values, $autoload_values );
 }
