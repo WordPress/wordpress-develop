@@ -1186,6 +1186,11 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 			return 'off';
 	}
 
+	// For backward compatibility, any formally unsupported value is interpreted as 'on' (formerly 'yes').
+	if ( null !== $autoload ) {
+		return 'on';
+	}
+
 	/**
 	 * Allows to determine the default autoload value for an option where no explicit value is passed.
 	 *
