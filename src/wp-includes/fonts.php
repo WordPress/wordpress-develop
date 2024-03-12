@@ -137,9 +137,9 @@ function wp_font_dir( $create_dir = true ) {
 	 * added at the default priority by plugins modifying the upload path
 	 * or URL.
 	 */
-	add_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
+	add_filter( 'upload_dir', 'wp_apply_font_dir_filters', 20 );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
+	remove_filter( 'upload_dir', 'wp_apply_font_dir_filters', 20 );
 	return $font_dir;
 }
 
@@ -157,7 +157,7 @@ function wp_font_dir( $create_dir = true ) {
  * @param string $font_dir The font directory.
  * @return string The modified font directory.
  */
-function wp_apply_font_dir_filter( $font_dir ) {
+function wp_apply_font_dir_filters( $font_dir ) {
 	if ( doing_filter( 'font_dir' ) ) {
 		// Avoid an infinite loop.
 		return $font_dir;

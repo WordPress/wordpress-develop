@@ -863,7 +863,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		 * added at the default priority by plugins modifying the upload path
 		 * or URL.
 		*/
-		add_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
+		add_filter( 'upload_dir', 'wp_apply_font_dir_filters', 20 );
 
 		$overrides = array(
 			'upload_error_handler' => array( $this, 'handle_font_file_upload_error' ),
@@ -880,7 +880,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 
 		$uploaded_file = wp_handle_upload( $file, $overrides );
 
-		remove_filter( 'upload_dir', 'wp_apply_font_dir_filter', 20 );
+		remove_filter( 'upload_dir', 'wp_apply_font_dir_filters', 20 );
 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		return $uploaded_file;
