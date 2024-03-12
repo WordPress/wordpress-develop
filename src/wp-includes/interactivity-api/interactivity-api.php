@@ -57,17 +57,17 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 			};
 
 			/*
-			 * Uses a priority of 20 to ensure that other filters can add additional
+			 * Uses a priority of 100 to ensure that other filters can add additional
 			 * directives before the processing starts.
 			 */
-			add_filter( 'render_block_' . $block_name, $process_interactive_blocks, 20, 2 );
+			add_filter( 'render_block_' . $block_name, $process_interactive_blocks, 100, 2 );
 		}
 	}
 
 	return $parsed_block;
 }
 /*
- * Uses a priority of 20 to ensure that other filters can add additional attributes to
+ * Uses a priority of 100 to ensure that other filters can add additional attributes to
  * $parsed_block before the processing starts.
  */
 add_filter( 'render_block_data', 'wp_interactivity_process_directives_of_interactive_blocks', 100, 1 );
