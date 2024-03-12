@@ -349,7 +349,7 @@ class WP_Script_Modules {
 		}
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
-		$src = apply_filters( 'script_loader_src', $src, $id );
+		$src = apply_filters( 'script_module_loader_src', $src, $id );
 
 		return $src;
 	}
