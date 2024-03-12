@@ -19,7 +19,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 	 * @param $autoload
 	 * @param $expected
 	 */
-	public function test_get_autoload_value_values( $autoload, $expected ) {
+	public function test_determine_option_autoload_value( $autoload, $expected ) {
 		$test = wp_determine_option_autoload_value( null, '', '', $autoload );
 		$this->assertSame( $expected, $test );
 	}
