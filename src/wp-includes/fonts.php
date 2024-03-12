@@ -120,7 +120,7 @@ function wp_default_font_dir( $refresh_cache = false ) {
 		'error'   => false,
 	);
 
-	@wp_mkdir_p( $defaults['path'] );
+	wp_mkdir_p( $defaults['path'] );
 
 	if ( ! wp_is_writable( $defaults['path'] ) ) {
 		$defaults           = wp_upload_dir();
