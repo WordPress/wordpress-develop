@@ -449,7 +449,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		global $wpdb;
 		$name = 'foo';
 		add_option( $name, 'bar', '', 'auto' );
-//		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
 		$added = update_option( $name, 'small_option_data' );
 		$this->assertTrue( $added );
 
