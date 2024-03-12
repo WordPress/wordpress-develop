@@ -721,7 +721,6 @@ function wp_load_core_site_options( $network_id = null ) {
  *                            to not autoload them, by using false.
  *                            For non-existent options, the default is null, which means WordPress will determine
  *                            the autoload value.
- *
  * @return bool True if the value was updated, false otherwise.
  */
 function update_option( $option, $value, $autoload = null ) {
