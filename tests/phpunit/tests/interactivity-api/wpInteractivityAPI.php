@@ -278,7 +278,7 @@ SCRIPT_TAG;
 	 * @covers ::print_client_interactivity_data
 	 */
 	public function test_state_printed_correctly_with_nested_empty_array() {
-		$this->interactivity->state( 'myPlugin', array('emptyArray' => array()) );
+		$this->interactivity->state( 'myPlugin', array( 'emptyArray' => array() ) );
 		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
 		$expected       = <<<'SCRIPT_TAG'
 <script type="application/json" id="wp-interactivity-data">
