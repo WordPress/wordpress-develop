@@ -491,7 +491,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
+		$changes->post_title   = 'My updated Template';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->post_excerpt = 'Displays a single post on your website unless a custom template...';
 
 		//$this->assertSame( 'rest_pre_insert_wp_template', current_filter() );
 
@@ -504,9 +506,19 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
 		$this->assertSame(
+			$changes->post_title,
+			$context->title,
+			'The title field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
 			$changes->post_content,
 			$context->content,
-			'The context passed to the hooked_block_types filter doesn\'t match the template changes.'
+			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_excerpt,
+			$context->description,
+			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
 	}
 }
