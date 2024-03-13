@@ -69,4 +69,23 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 		$this->assertSame( static::$dir_defaults, $font_dir, 'The wp_get_font_dir() method should return the default values.' );
 	}
+
+	public function test_fonts_dir_with_uploads_default() {
+		$font_dir = wp_get_font_dir();
+		chmod( $font_dir['path'], 0000 );
+		$upload_dir = wp_upload_dir();
+
+		$this->assertSame(
+			array(
+				'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
+				'url'     => $upload_dir['baseurl'] . '/fonts',
+				'subdir'  => '',
+				'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
+				'baseurl' => $upload_dir['baseurl'] . '/fonts',
+				'error'   => false,
+			),
+			$font_dir,
+			'The font directory should be a subdir in the uploads directory.'
+		);
+	}
 }
