@@ -219,7 +219,6 @@ require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/fonts.php';
 require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
-require ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 
 add_action( 'after_setup_theme', array( wp_script_modules(), 'add_hooks' ) );
 add_action( 'after_setup_theme', array( wp_interactivity(), 'add_hooks' ) );
