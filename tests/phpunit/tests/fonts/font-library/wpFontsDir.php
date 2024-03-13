@@ -39,7 +39,8 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			}
 
 			chmod( $dir, 0755 );
-			$this->delete_folders( $dir );
+			$this->rmdir( $dir );
+			rmdir( $dir );
 		}
 
 		parent::tear_down();
