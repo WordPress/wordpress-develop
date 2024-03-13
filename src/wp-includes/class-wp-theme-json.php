@@ -658,7 +658,7 @@ class WP_Theme_JSON {
 	 * @since 6.0.0
 	 * @since 6.2.0 Added `dimensions.minHeight` and `position.sticky`.
 	 * @since 6.4.0 Added `background.backgroundImage`.
-	 * @since 6.5.0 Added `background.backgroundSize` and `dimensions.aspectRatio`.
+	 * @since 6.5.0 Added `background.backgroundSize`, `dimensions.aspectRatio`, and `shadow.defaultPresets`.
 	 * @var array
 	 */
 	const APPEARANCE_TOOLS_OPT_INS = array(
@@ -679,6 +679,7 @@ class WP_Theme_JSON {
 		array( 'spacing', 'margin' ),
 		array( 'spacing', 'padding' ),
 		array( 'typography', 'lineHeight' ),
+		array( 'shadow', 'defaultPresets' ),
 	);
 
 	/**
@@ -3857,12 +3858,18 @@ class WP_Theme_JSON {
 	 * Replaces CSS variables with their values in place.
 	 *
 	 * @since 6.3.0
+	 * @since 6.5.0 Check for empty style before processing its value.
+	 *
 	 * @param array $styles CSS declarations to convert.
 	 * @param array $values key => value pairs to use for replacement.
 	 * @return array
 	 */
 	private static function convert_variables_to_value( $styles, $values ) {
 		foreach ( $styles as $key => $style ) {
+			if ( empty( $style ) ) {
+				continue;
+			}
+
 			if ( is_array( $style ) ) {
 				$styles[ $key ] = self::convert_variables_to_value( $style, $values );
 				continue;
