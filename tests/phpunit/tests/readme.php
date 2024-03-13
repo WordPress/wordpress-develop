@@ -69,19 +69,16 @@ class Tests_Readme extends WP_UnitTestCase {
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
-		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $recommended );
-		$this->assertCount( 2, $recommended, 'The recommended version was not matched.' );
+		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
+		$matches[1] = str_replace( '.', '', $matches[1] );
 
-		$all_releases       = $this->get_response_body( 'https://mariadb.org/mariadb/all-releases/' );
-		$recommended_regex  = str_replace( '.', '\.', $recommended[1] ) . '\.\d{1,2}'; // Examples: 10.4.1 or 10.4.22
-		$release_date_regex = '(\d{4}-\d{2}-\d{2})'; // Example: 2024-01-01
+		$response_body = $this->get_response_body( "https://mariadb.com/kb/en/release-notes-mariadb-{$matches[1]}-series/" );
 
 		// Retrieve the date of the first stable release for the recommended branch.
-		preg_match( "#{$recommended_regex}.*?{$release_date_regex}#", $all_releases, $release_date );
-		$this->assertCount( 2, $release_date, 'The release date was not matched.' );
+		preg_match( '#.*Stable.*?(\d{2} [A-Za-z]{3} \d{4})#s', $response_body, $mariadb_matches );
 
 		// Per https://mariadb.org/about/#maintenance-policy, MariaDB releases are supported for 5 years.
-		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $release_date[1] . ' +5 years' ) );
+		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $mariadb_matches[1] . ' +5 years' ) );
 		$current_date = gmdate( 'Y-m-d' );
 
 		$this->assertLessThan( $mariadb_eol, $current_date, "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );
