@@ -12,36 +12,28 @@
  */
 class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	private static $dir_defaults;
+	private static $fake_fonts_file;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		static::$dir_defaults = array(
-			'path'    => path_join( WP_CONTENT_DIR, 'fonts' ),
-			'url'     => content_url( 'fonts' ),
+		$path               = path_join( WP_CONTENT_DIR, 'fonts' );
+		$url                = content_url( 'fonts' );
+		self::$dir_defaults = array(
+			'path'    => $path,
+			'url'     => $url,
 			'subdir'  => '',
-			'basedir' => path_join( WP_CONTENT_DIR, 'fonts' ),
-			'baseurl' => content_url( 'fonts' ),
+			'basedir' => $path,
+			'baseurl' => $url,
 			'error'   => false,
 		);
+
+		static::$fake_fonts_file = $path;
 	}
 
 	public function tear_down() {
-		$directories = array(
-			path_join( WP_CONTENT_DIR, 'fonts' ),
-			path_join( WP_CONTENT_DIR, 'uploads/fonts' ),
-			'/custom-path/fonts/my-custom-subdir',
-		);
-
-		foreach ( $directories as $dir ) {
-			if ( ! is_dir( $dir ) ) {
-				continue;
-			}
-
-			chmod( $dir, 0755 );
-			$this->rmdir( $dir );
-			rmdir( $dir );
-		}
+		$this->remove_fonts_directory();
+		$this->remove_no_new_directories_in_wp_content_fake();
 
 		parent::tear_down();
 	}
@@ -90,28 +82,56 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		$this->assertSame( static::$dir_defaults, $font_dir, 'The wp_get_font_dir() method should return the default values.' );
 	}
 
-	public function test_fonts_dir_with_uploads_default() {
-		$font_dir_before = wp_get_font_dir();
-
-		$this->assertDirectoryExists( $font_dir_before['path'] );
-
-		chmod( $font_dir_before['path'], 0000 );
-		$font_dir_after = wp_get_font_dir();
-
+	public function test_should_created_fonts_dir_in_uploads_when_fails_in_wp_content() {
+		// Set the expected results.
 		$upload_dir = wp_upload_dir();
-
-		$this->assertSame( $font_dir_before, static::$dir_defaults );
-		$this->assertSame(
-			array(
-				'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
-				'url'     => $upload_dir['baseurl'] . '/fonts',
-				'subdir'  => '',
-				'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
-				'baseurl' => $upload_dir['baseurl'] . '/fonts',
-				'error'   => false,
-			),
-			$font_dir_after,
-			'The font directory should be a subdir in the uploads directory.'
+		$path       = path_join( $upload_dir['basedir'], 'fonts' );
+		$expected   = array(
+			'path'    => $path,
+			'url'     => $upload_dir['baseurl'] . '/fonts',
+			'subdir'  => '',
+			'basedir' => $path,
+			'baseurl' => $upload_dir['baseurl'] . '/fonts',
+			'error'   => false,
 		);
+
+		$this->fake_no_new_directories_in_wp_content();
+		$this->assertFileExists( self::$fake_fonts_file );
+
+		$font_dir = wp_get_font_dir();
+
+		$this->assertDirectoryDoesNotExist( path_join( WP_CONTENT_DIR, 'fonts' ), 'The `wp-content/fonts` directory should not exist' );
+		$this->assertDirectoryExists( $font_dir['path'], 'The `uploads/fonts` directory should exist' );
+		$this->assertSame( $expected, $font_dir, 'The font directory should be a subdir in the uploads directory.' );
+	}
+
+	private function remove_fonts_directory() {
+		$directories = array(
+			path_join( WP_CONTENT_DIR, 'fonts' ),
+			path_join( WP_CONTENT_DIR, 'uploads/fonts' ),
+			'/custom-path/fonts/my-custom-subdir',
+		);
+
+		foreach ( $directories as $dir ) {
+			if ( ! is_dir( $dir ) ) {
+				continue;
+			}
+
+			$this->rmdir( $dir );
+			@rmdir( $dir );
+		}
+	}
+
+	private function fake_no_new_directories_in_wp_content() {
+		file_put_contents(
+			self::$fake_fonts_file,
+			'fake file'
+		);
+	}
+
+	private function remove_no_new_directories_in_wp_content_fake() {
+		if ( file_exists( self::$fake_fonts_file ) ) {
+			@unlink( self::$fake_fonts_file );
+		}
 	}
 }
