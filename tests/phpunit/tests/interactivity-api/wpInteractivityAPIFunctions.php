@@ -423,4 +423,31 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		$this->assertEquals( 'data-wp-context=\'{"quot":"\u0022baz\u0022"}\'', wp_interactivity_data_wp_context( array( 'quot' => '"baz"' ) ) );
 		$this->assertEquals( 'data-wp-context=\'{"amp":"T\u0026T"}\'', wp_interactivity_data_wp_context( array( 'amp' => 'T&T' ) ) );
 	}
+
+	/**
+	 * Tests that directives processing of tags that don't visit closer tag work.
+	 *
+	 * @ticket 60746
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
+	public function test_process_directives_in_tags_that_dont_visit_closer_tag() {
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<iframe data-wp-interactive="nameSpace" ' . wp_interactivity_data_wp_context( array( 'text' => 'test' ) ) . ' data-wp-class--test="context.text" src="1"></iframe>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		$post_content      = '<!-- wp:test/custom-directive-block /-->';
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag( array( 'class_name' => 'test' ) );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertEquals( '1', $processor->get_attribute( 'src' ) );
+	}
 }
