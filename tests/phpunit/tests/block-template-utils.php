@@ -498,8 +498,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
 		$args              = $action->get_args();
-		$anchor_block_type = end($args)[2];
-		$context           = end($args)[3];
+		$anchor_block_type = end( $args )[2];
+		$context           = end( $args )[3];
 
 		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
