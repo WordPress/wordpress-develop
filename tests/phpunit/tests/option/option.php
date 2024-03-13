@@ -383,8 +383,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		add_option( $name, 'bar' );
 		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
 		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
-		$added = update_option( $name, $value, $autoload );
-		$this->assertTrue( $added );
+		$updated = update_option( $name, $value, $autoload );
+		$this->assertTrue( $updated );
 
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
 		$this->assertSame( $expected, $actual->autoload );
@@ -447,13 +447,14 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function test_update_option_autoloading_small_option_auto() {
 		global $wpdb;
+
 		$name = 'foo';
-		add_option( $name, 'bar', '', 'auto' );
-		$added = update_option( $name, 'small_option_data' );
-		$this->assertTrue( $added );
+		add_option( $name, 'bar' );
+		$updated = update_option( $name, 'small_option_data' );
+		$this->assertTrue( $updated );
 
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
-		$this->assertSame( 'on', $actual->autoload );
+		$this->assertSame( 'auto', $actual->autoload );
 	}
 
 	/**

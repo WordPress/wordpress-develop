@@ -1186,8 +1186,12 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 			return 'off';
 	}
 
-	// For backward compatibility, any formally unsupported value is interpreted as 'on' (formerly 'yes').
-	if ( null !== $autoload ) {
+	/*
+	 * For backward compatibility, any formally unsupported value is interpreted as 'on' (formerly 'yes').
+	 * The values assigned by WordPress core ("auto", "auto-on", "auto-off") may be overwritten as they
+	 * are recalculated using the filter below.
+	 */
+	if ( ! in_array( $autoload, array( null, 'auto', 'auto-on', 'auto-off' ), true ) {
 		return 'on';
 	}
 
@@ -3050,7 +3054,7 @@ function wp_autoload_values_to_autoload() {
 	 * @since 6.6.0
 	 *
 	 * @param array $autoload_values Autoload values used to autoload option.
-	 *                        Default list contains 'yes', 'on', 'auto-on', and 'auto'.
+	 *                               Default list contains 'yes', 'on', 'auto-on', and 'auto'.
 	 */
 	$filtered_values = apply_filters( 'wp_autoload_values_to_autoload', $autoload_values );
 

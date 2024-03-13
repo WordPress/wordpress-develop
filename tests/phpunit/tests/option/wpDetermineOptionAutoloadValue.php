@@ -26,24 +26,48 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 
 	public function data_values() {
 		return array(
-			'yes'   => array(
+			'yes'      => array(
 				'autoload' => 'yes',
 				'expected' => 'on',
 			),
-			'true'  => array(
+			'on'       => array(
+				'autoload' => 'on',
+				'expected' => 'on',
+			),
+			'true'     => array(
 				'autoload' => true,
 				'expected' => 'on',
 			),
-			'no'    => array(
+			'no'       => array(
 				'autoload' => 'no',
 				'expected' => 'off',
 			),
-			'false' => array(
+			'off'      => array(
+				'autoload' => 'off',
+				'expected' => 'off',
+			),
+			'false'    => array(
 				'autoload' => false,
 				'expected' => 'off',
 			),
-			'null'  => array(
+			'invalid'  => array(
+				'autoload' => 'foo',
+				'expected' => 'on',
+			),
+			'null'     => array(
 				'autoload' => null,
+				'expected' => 'auto',
+			),
+			'auto'     => array(
+				'autoload' => 'auto',
+				'expected' => 'auto',
+			),
+			'auto-on'  => array(
+				'autoload' => 'auto-on',
+				'expected' => 'auto',
+			),
+			'auto-off' => array(
+				'autoload' => 'auto-off',
 				'expected' => 'auto',
 			),
 		);
