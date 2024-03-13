@@ -423,7 +423,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60768
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_process_context_directive_in_void_tags() {
 		register_block_type(
