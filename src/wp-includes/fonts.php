@@ -134,6 +134,22 @@ function wp_get_font_dir() {
 			'baseurl' => $upload_dir['baseurl'] . '/fonts',
 			'error'   => false,
 		);
+
+		$made_dir = wp_mkdir_p( $defaults['path'] );
+
+		if ( ! $made_dir || ! wp_is_writable( $defaults['path'] ) ) {
+			if ( str_starts_with( $defaults['basedir'], ABSPATH ) ) {
+				$error_path = str_replace( ABSPATH, '', $defaults['basedir'] ) . $defaults['subdir'];
+			} else {
+				$error_path = wp_basename( $defaults['basedir'] ) . $defaults['subdir'];
+			}
+
+			$defaults['error'] = sprintf(
+				/* translators: %s: Directory path. */
+				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+				esc_html( $error_path )
+			);
+		}
 	}
 
 	/**
