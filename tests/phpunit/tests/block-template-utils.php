@@ -478,13 +478,13 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_applies_filter_correctly() {
-		$action = new MockAction();
-		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
-
 		global $wp_current_filter;
 		// Mock currently set filter. The $wp_current_filter global is reset during teardown by
 		// the unit test base class.
 		$wp_current_filter[] = 'rest_pre_insert_wp_template';
+
+		$action = new MockAction();
+		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
 		$id      = self::TEST_THEME . '//' . 'my_template';
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
