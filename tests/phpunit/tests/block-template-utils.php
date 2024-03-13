@@ -500,6 +500,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$changes->meta_input   = array(
 			'origin' => 'custom',
 		);
+		$changes->tax_input   = array(
+			'wp_theme' => self::TEST_THEME,
+		);
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
@@ -526,7 +529,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				$expected[ $template_key ] = $changes->$post_key;
 			}
 		}
+		$expected['id']     = self::TEST_THEME . '//' . 'my-updated-template';
 		$expected['origin'] = 'custom';
+		$expected['theme']  = self::TEST_THEME;
 
 		$this->assertEquals( $expected, (array) $context );
 	}

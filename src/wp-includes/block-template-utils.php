@@ -1491,6 +1491,12 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 		if ( isset( $post->meta_input['origin'] )  ) {
 			$template->origin = $post->meta_input['origin'];
 		}
+
+		if ( isset( $post->tax_input['wp_theme'] )  ) {
+			$template->theme = $post->tax_input['wp_theme'];
+		}
+
+		$template->id = $template->theme . '//' . $template->slug;
 	}
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
