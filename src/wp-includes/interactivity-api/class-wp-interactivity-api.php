@@ -204,7 +204,7 @@ final class WP_Interactivity_API {
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
 	 */
 	public function process_directives( string $html ): string {
-		if ( str_contains( $html, 'data-wp-' ) ) {
+		if ( ! str_contains( $html, 'data-wp-' ) ) {
 			return $html;
 		}
 
