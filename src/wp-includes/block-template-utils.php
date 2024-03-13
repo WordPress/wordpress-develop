@@ -1468,6 +1468,22 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	$template = $request['id'] ? get_block_template( $request['id'], $post_type ) : null;
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
 
+	$post_to_template_key_map = array(
+		'post_content' => 'content',
+		'post_title'   => 'title',
+		'post_excerpt' => 'description',
+		'post_type'    => 'type',
+		'post_status'  => 'status',
+	);
+
+	// We need to overwrite the built template object with the incoming one from the request.
+	// This is so we can provide the correct context to the Block Hooks API which expects the `WP_Block_Template` object.
+	foreach ( $post_to_template_key_map as $post_key => $template_key ) {
+		if ( isset( $post->$post_key ) ) {
+			$template->{$template_key} = $post->$post_key;
+		}
+	}
+
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 
