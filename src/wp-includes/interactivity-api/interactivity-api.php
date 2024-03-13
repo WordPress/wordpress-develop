@@ -48,9 +48,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
 				list($root_block_name, $root_parsed_block) = $root_interactive_block;
 				if ( $root_block_name === $parsed_block['blockName'] && $parsed_block === $root_parsed_block ) {
 					// The root interactive blocks has finished rendering, process it.
-					if ( $content && str_contains( $content, 'data-wp-' ) ) {
-						$content = wp_interactivity_process_directives( $content );
-					}
+					$content = wp_interactivity_process_directives( $content );
 					// Removes the filter and reset the root interactive block.
 					remove_filter( 'render_block_' . $parsed_block['blockName'], $process_interactive_blocks );
 					$root_interactive_block = null;
