@@ -12,6 +12,11 @@
  * Register block styles.
  */
 
+echo "<pre>";
+echo ( print_r( wp_get_font_dir(true), true) );
+echo "</pre>";
+
+
 if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 	/**
 	 * Register custom block styles
