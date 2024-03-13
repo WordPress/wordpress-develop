@@ -73,6 +73,8 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	public function test_fonts_dir_with_uploads_default() {
 		$font_dir = wp_get_font_dir();
 		chmod( $font_dir['path'], 0000 );
+		$font_dir = wp_get_font_dir();
+
 		$upload_dir = wp_upload_dir();
 
 		$this->assertSame(
