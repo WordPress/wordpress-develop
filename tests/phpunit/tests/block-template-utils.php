@@ -493,6 +493,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$changes               = new stdClass();
 		$changes->post_type   = 'wp_template';
 		$changes->post_author  = 123;
+		$changes->post_name    = 'my-updated-template';
 		$changes->post_title   = 'My updated Template';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 		$changes->post_excerpt = 'Displays a single post on your website unless a custom template...';
@@ -511,6 +512,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$post_to_template_key_map = array(
 			'post_author'  => 'author',
+			'post_name'    => 'slug',
 			'post_content' => 'content',
 			'post_title'   => 'title',
 			'post_excerpt' => 'description',
