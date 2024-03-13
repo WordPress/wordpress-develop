@@ -293,21 +293,30 @@ HTML;
 
 	/**
 	 * @ticket 56299
+	 * @ticket 60697
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_additions_after_both_sides() {
 		$processor = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
 		$processor->next_tag();
+		$processor->set_attribute( 'id', 'one' );
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag();
+		$processor->set_attribute( 'id', 'two' );
 		$processor->add_class( 'second' );
 
 		$processor->seek( 'first' );
 		$processor->add_class( 'first' );
 
 		$this->assertSame(
-			'<div class="first">First</div><div class="second">Second</div>',
+			'one',
+			$processor->get_attribute( 'id' ),
+			'Should have remembered attribute change from before the seek.'
+		);
+
+		$this->assertSame(
+			'<div class="first" id="one">First</div><div class="second" id="two">Second</div>',
 			$processor->get_updated_html(),
 			'The bookmark was updated incorrectly in response to HTML markup updates'
 		);
