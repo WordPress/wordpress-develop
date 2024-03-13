@@ -491,6 +491,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
+		$changes->post_author  = 123;
 		$changes->post_title   = 'My updated Template';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 		$changes->post_excerpt = 'Displays a single post on your website unless a custom template...';
