@@ -1076,22 +1076,37 @@ function wp_get_sidebar( $id ) {
  * Set the sidebar widget option to update sidebars.
  *
  * @since 2.2.0
+ * @since 6.2.0 Added the optional `$refresh_global_sidebars_widgets` parameter.
  * @access private
  *
  * @global array $_wp_sidebars_widgets
- * @param array $sidebars_widgets Sidebar widgets and their settings.
+ * @global array $sidebars_widgets
+ *
+ * @param array $new_sidebars_widgets            Sidebar widgets and their settings.
+ * @param bool  $refresh_global_sidebars_widgets Optional. Whether to update $sidebars_widgets
+ *                                               global. Default true.
  */
-function wp_set_sidebars_widgets( $sidebars_widgets ) {
-	global $_wp_sidebars_widgets;
+function wp_set_sidebars_widgets( $new_sidebars_widgets, $refresh_global_sidebars_widgets = true ) {
+	global $_wp_sidebars_widgets, $sidebars_widgets;
 
 	// Clear cached value used in wp_get_sidebars_widgets().
 	$_wp_sidebars_widgets = null;
 
-	if ( ! isset( $sidebars_widgets['array_version'] ) ) {
-		$sidebars_widgets['array_version'] = 3;
+	if ( ! isset( $new_sidebars_widgets['array_version'] ) ) {
+		$new_sidebars_widgets['array_version'] = 3;
 	}
 
-	update_option( 'sidebars_widgets', $sidebars_widgets );
+	update_option( 'sidebars_widgets', $new_sidebars_widgets );
+
+	// Refresh the $sidebars_widgets global.
+	if ( $refresh_global_sidebars_widgets ) {
+		$sidebars_widgets = wp_get_sidebars_widgets();
+		/*
+		 * The name retrieve_widgets() is somewhat misleading. It doesn't just "retrieve". It also
+		 * moves any "hidden" or "lost" widgets to the wp_inactive_widgets sidebar.
+		 */
+		retrieve_widgets( true );
+	}
 }
 
 /**
@@ -1357,8 +1372,11 @@ function retrieve_widgets( $theme_changed = false ) {
 	$sidebars_widgets['wp_inactive_widgets'] = array_merge( $lost_widgets, (array) $sidebars_widgets['wp_inactive_widgets'] );
 
 	if ( 'customize' !== $theme_changed ) {
-		// Update the widgets settings in the database.
-		wp_set_sidebars_widgets( $sidebars_widgets );
+		/*
+		 * The second parameter is false to avoid recursion: refreshing the global
+		 * $sidebars_widgets entails calling retrieve_widgets().
+		 */
+		wp_set_sidebars_widgets( $sidebars_widgets, false );
 	}
 
 	return $sidebars_widgets;
