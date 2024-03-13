@@ -122,7 +122,7 @@ function wp_get_font_dir() {
 		'error'   => false,
 	);
 
-	wp_mkdir_p( $defaults['path'] );
+	$made_dir = wp_mkdir_p( $defaults['path'] );
 
 	if ( ! wp_is_writable( $defaults['path'] ) ) {
 		$defaults            = wp_upload_dir();
