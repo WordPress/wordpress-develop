@@ -382,7 +382,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$name = 'foo';
 		add_option( $name, 'bar' );
 		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
-		$value = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$value   = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$updated = update_option( $name, $value, $autoload );
 		$this->assertTrue( $updated );
 
