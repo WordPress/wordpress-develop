@@ -96,7 +96,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		/*
 		 * Filter the font directory to return the uploads directory.
 		 *
-		 * This emulates a moving font files back to the uploads directory due
+		 * This emulates moving font files back to the uploads directory due
 		 * to file system structure.
 		 */
 		add_filter( 'font_dir', 'wp_get_upload_dir' );
