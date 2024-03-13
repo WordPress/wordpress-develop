@@ -54,7 +54,7 @@ class Tests_Option_wpAutoloadValuesToAutoload extends WP_UnitTestCase {
 		add_filter(
 			'wp_autoload_values_to_autoload',
 			static function () {
-				return  array( 'yes', 'on', 'auto-on', 'extra' );
+				return array( 'yes', 'on', 'auto-on', 'extra' );
 			}
 		);
 

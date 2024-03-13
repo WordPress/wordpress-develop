@@ -1191,7 +1191,7 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 	 * The values assigned by WordPress core ("auto", "auto-on", "auto-off") may be overwritten as they
 	 * are recalculated using the filter below.
 	 */
-	if ( ! in_array( $autoload, array( null, 'auto', 'auto-on', 'auto-off' ), true ) {
+	if ( ! in_array( $autoload, array( null, 'auto', 'auto-on', 'auto-off' ), true ) ) {
 		return 'on';
 	}
 
