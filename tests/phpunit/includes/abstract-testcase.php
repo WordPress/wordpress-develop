@@ -192,6 +192,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 */
 		$GLOBALS['wp_sitemaps'] = null;
 
+		// Reset template globals.
+		$GLOBALS['wp_stylesheet_path'] = null;
+		$GLOBALS['wp_template_path']   = null;
+
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
