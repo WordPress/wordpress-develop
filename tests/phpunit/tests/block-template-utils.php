@@ -495,8 +495,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 		$changes->post_excerpt = 'Displays a single post on your website unless a custom template...';
 
-		//$this->assertSame( 'rest_pre_insert_wp_template', current_filter() );
-
 		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
 		$args              = $action->get_args();
