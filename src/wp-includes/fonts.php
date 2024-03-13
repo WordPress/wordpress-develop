@@ -137,9 +137,9 @@ function wp_font_dir( $create_dir = true ) {
 	 * added at the default priority by plugins modifying the upload path
 	 * or URL.
 	 */
-	add_filter( 'upload_dir', 'wp_apply_font_dir_filters', 20 );
+	add_filter( 'upload_dir', 'wp_apply_font_dir_filters' );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', 'wp_apply_font_dir_filters', 20 );
+	remove_filter( 'upload_dir', 'wp_apply_font_dir_filters' );
 	return $font_dir;
 }
 
