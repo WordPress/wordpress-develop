@@ -319,6 +319,15 @@ final class WP_Interactivity_API {
 					array( $p, &$context_stack, &$namespace_stack, &$tag_stack )
 				);
 			}
+
+			// Remove context from stack if it is a void tag.
+			if ( WP_HTML_Processor::is_void( $tag_name ) ) {
+				foreach ( $directives_prefixes as $directive_prefix ) {
+					if ( 'data-wp-context' === $directive_prefix ) {
+						array_pop( $context_stack );
+					}
+				}
+			}
 		}
 
 		/*
