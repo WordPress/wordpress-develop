@@ -39,9 +39,21 @@ function wp_image_editor( $post_id, $msg = false ) {
 
 	if ( $msg ) {
 		if ( isset( $msg->error ) ) {
-			$note = "<div class='notice notice-error' role='alert'><p>$msg->error</p></div>";
+			$note = wp_get_admin_notice(
+				$msg->error,
+				array(
+					'type'       => 'error',
+					'attributes' => array( 'role' => 'alert' ),
+				)
+			);
 		} elseif ( isset( $msg->msg ) ) {
-			$note = "<div class='notice notice-success' role='alert'><p>$msg->msg</p></div>";
+			$note = wp_get_admin_notice(
+				$msg->msg,
+				array(
+					'type'       => 'success',
+					'attributes' => array( 'role' => 'alert' ),
+				)
+			);
 		}
 	}
 
