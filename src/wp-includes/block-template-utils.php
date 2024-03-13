@@ -1468,6 +1468,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	$template = $request['id'] ? get_block_template( $request['id'], $post_type ) : null;
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
 
+	// TODO: Should maybe make this static. E.g. in the Templates Controller?
 	$post_to_template_key_map = array(
 		'post_author'  => 'author',
 		'post_content' => 'content',
