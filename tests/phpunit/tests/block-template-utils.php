@@ -429,7 +429,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
-		$changes->post_content = 'Content';
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 
 		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 		$this->assertSame(
