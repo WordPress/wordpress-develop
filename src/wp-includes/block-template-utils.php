@@ -1468,21 +1468,23 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	$template = $request['id'] ? get_block_template( $request['id'], $post_type ) : null;
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
 
-	// TODO: Should maybe make this static. E.g. in the Templates Controller?
-	$post_to_template_key_map = array(
-		'post_author'  => 'author',
-		'post_content' => 'content',
-		'post_title'   => 'title',
-		'post_excerpt' => 'description',
-		'post_type'    => 'type',
-		'post_status'  => 'status',
-	);
+	if ( $template ) {
+		// TODO: Should maybe make this static. E.g. in the Templates Controller?
+		$post_to_template_key_map = array(
+			'post_author'  => 'author',
+			'post_content' => 'content',
+			'post_title'   => 'title',
+			'post_excerpt' => 'description',
+			'post_type'    => 'type',
+			'post_status'  => 'status',
+		);
 
-	// We need to overwrite the built template object with the incoming one from the request.
-	// This is so we can provide the correct context to the Block Hooks API which expects the `WP_Block_Template` object.
-	foreach ( $post_to_template_key_map as $post_key => $template_key ) {
-		if ( isset( $post->$post_key ) ) {
-			$template->{$template_key} = $post->$post_key;
+		// We need to overwrite the built template object with the incoming one from the request.
+		// This is so we can provide the correct context to the Block Hooks API which expects the `WP_Block_Template` object.
+		foreach ( $post_to_template_key_map as $post_key => $template_key ) {
+			if ( isset( $post->$post_key ) ) {
+				$template->{$template_key} = $post->$post_key;
+			}
 		}
 	}
 
