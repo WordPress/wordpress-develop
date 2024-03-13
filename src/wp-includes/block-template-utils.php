@@ -1472,6 +1472,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 		// TODO: Should maybe make this static. E.g. in the Templates Controller?
 		$post_to_template_key_map = array(
 			'post_author'  => 'author',
+			'post_name'    => 'slug',
 			'post_content' => 'content',
 			'post_title'   => 'title',
 			'post_excerpt' => 'description',
