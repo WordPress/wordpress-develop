@@ -278,7 +278,7 @@ function get_comment_statuses() {
  *
  * @param string $post_type    Optional. Post type. Default 'post'.
  * @param string $comment_type Optional. Comment type. Default 'comment'.
- * @return string Expected return value is 'open' or 'closed'.
+ * @return string Either 'open' or 'closed'.
  */
 function get_default_comment_status( $post_type = 'post', $comment_type = 'comment' ) {
 	switch ( $comment_type ) {
@@ -1031,7 +1031,7 @@ function get_comment_pages_count( $comments = null, $per_page = null, $threaded 
 		$count = ceil( count( $comments ) / $per_page );
 	}
 
-	return $count;
+	return (int) $count;
 }
 
 /**
@@ -1170,7 +1170,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 
 			// Divide comments older than this one by comments per page to get this comment's page number.
 		} else {
-			$page = ceil( ( $older_comment_count + 1 ) / $args['per_page'] );
+			$page = (int) ceil( ( $older_comment_count + 1 ) / $args['per_page'] );
 		}
 	}
 
