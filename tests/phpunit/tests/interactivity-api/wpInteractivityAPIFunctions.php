@@ -308,9 +308,42 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		';
 		$this->data_wp_test_processor_count = 0;
 		do_blocks( $post_content );
-		$this->assertEquals( 2, $this->data_wp_test_processor_count );
 		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertEquals( 2, $this->data_wp_test_processor_count );
 		$directive_processors->setValue( null, $old_directive_processors );
+	}
+
+	/**
+	 * Tests that directives are server side processing even if the $parsed_block variable is edited by a filter.
+	 *
+	 * @ticket 60743
+	 *
+	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 */
+	public function test_process_directives_when_block_is_filtered() {
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<input data-wp-interactive="nameSpace" ' . wp_interactivity_data_wp_context( array( 'text' => 'test' ) ) . ' data-wp-bind--value="context.text" />';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		function test_render_block_data( $parsed_block ) {
+			$parsed_block['testKey'] = true;
+			return $parsed_block;
+		}
+		add_filter( 'render_block_data', 'test_render_block_data' );
+		$post_content      = '<!-- wp:test/custom-directive-block /-->';
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag( array( 'data-wp-interactive' => 'nameSpace' ) );
+		remove_filter( 'render_block_data', 'test_render_block_data' );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertEquals( 'test', $processor->get_attribute( 'value' ) );
 	}
 
 	/**
