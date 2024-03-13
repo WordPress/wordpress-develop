@@ -1469,6 +1469,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
 
 	$post_to_template_key_map = array(
+		'post_author'  => 'author',
 		'post_content' => 'content',
 		'post_title'   => 'title',
 		'post_excerpt' => 'description',
