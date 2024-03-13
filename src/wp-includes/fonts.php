@@ -125,7 +125,7 @@ function wp_get_font_dir() {
 	$made_dir = wp_mkdir_p( $defaults['path'] );
 
 	if ( ! $made_dir || ! wp_is_writable( $defaults['path'] ) ) {
-		$upload_dir = wp_upload_dir();
+		$upload_dir = wp_get_upload_dir();
 		$defaults   = array(
 			'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
 			'url'     => $upload_dir['baseurl'] . '/fonts',
