@@ -1384,6 +1384,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that fluid typography values are generated according to settings.
+	 *
+	 * @ticket 60765
+	 */
 	public function test_get_stylesheet_generates_fluid_typography_values() {
 		register_block_type(
 			'test/clamp-me',
