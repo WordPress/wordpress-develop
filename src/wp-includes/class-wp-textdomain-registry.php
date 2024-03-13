@@ -197,7 +197,7 @@ class WP_Textdomain_Registry {
 				$files = array_merge( $files, $php_files );
 			}
 
-			wp_cache_set( $cache_key, $files, 'translation_files' );
+			wp_cache_set( $cache_key, $files, 'translation_files', HOUR_IN_SECONDS );
 		}
 
 		return $files;
