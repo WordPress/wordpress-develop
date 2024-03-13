@@ -314,14 +314,12 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	}
 
 	/**
-	 * Tests that directives are server side processing even if the $parsed_block variable is edited
-	 * by a filter.
+	 * Tests that directives are server side processing even if the $parsed_block variable is edited by a filter.
 	 *
 	 * @ticket 60743
 	 *
 	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
 	 */
-
 	public function test_process_directives_when_block_is_filtered() {
 		register_block_type(
 			'test/custom-directive-block',
