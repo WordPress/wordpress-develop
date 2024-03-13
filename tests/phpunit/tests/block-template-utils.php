@@ -504,20 +504,23 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
-		$this->assertSame(
-			$changes->post_title,
-			$context->title,
-			'The title field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+
+		$post_to_template_key_map = array(
+			'post_author'  => 'author',
+			'post_content' => 'content',
+			'post_title'   => 'title',
+			'post_excerpt' => 'description',
+			'post_type'    => 'type',
+			'post_status'  => 'status',
 		);
-		$this->assertSame(
-			$changes->post_content,
-			$context->content,
-			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
-		);
-		$this->assertSame(
-			$changes->post_excerpt,
-			$context->description,
-			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
-		);
+
+		$expected = array();
+		foreach ( $post_to_template_key_map as $post_key => $template_key ) {
+			if ( isset( $changes->$post_key ) ) {
+				$expected[ $template_key ] = $changes->$post_key;
+			}
+		}
+
+		$this->assertEquals( $expected, (array) $context );
 	}
 }
