@@ -24,7 +24,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'post_type'    => 'wp_template',
 				'post_name'    => 'my_template',
 				'post_title'   => 'My Template',
-				'post_content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
+				'post_content' => 'Content',
 				'post_excerpt' => 'Description of my template',
 				'tax_input'    => array(
 					'wp_theme' => array(
@@ -42,7 +42,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'post_type'    => 'wp_template',
 				'post_name'    => 'my_template',
 				'post_title'   => 'My Template',
-				'post_content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
+				'post_content' => 'Content',
 				'post_excerpt' => 'Description of my template',
 				'tax_input'    => array(
 					'wp_theme' => array(
@@ -60,7 +60,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'post_type'    => 'wp_template_part',
 				'post_name'    => 'my_template_part',
 				'post_title'   => 'My Template Part',
-				'post_content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
+				'post_content' => 'Content',
 				'post_excerpt' => 'Description of my template part',
 				'tax_input'    => array(
 					'wp_theme'              => array(
@@ -429,7 +429,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
-		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->post_content = 'Content';
 
 		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 		$this->assertSame(
@@ -498,8 +498,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
 		$args              = $action->get_args();
-		$anchor_block_type = $args[0][2];
-		$context           = $args[0][3];
+		$anchor_block_type = end($args)[2];
+		$context           = end($args)[3];
 
 		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
