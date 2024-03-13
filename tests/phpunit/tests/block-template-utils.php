@@ -24,7 +24,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'post_type'    => 'wp_template',
 				'post_name'    => 'my_template',
 				'post_title'   => 'My Template',
-				'post_content' => 'Content',
+				'post_content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 				'post_excerpt' => 'Description of my template',
 				'tax_input'    => array(
 					'wp_theme' => array(
@@ -42,7 +42,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'post_type'    => 'wp_template',
 				'post_name'    => 'my_template',
 				'post_title'   => 'My Template',
-				'post_content' => 'Content',
+				'post_content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 				'post_excerpt' => 'Description of my template',
 				'tax_input'    => array(
 					'wp_theme' => array(
@@ -60,7 +60,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				'post_type'    => 'wp_template_part',
 				'post_name'    => 'my_template_part',
 				'post_title'   => 'My Template Part',
-				'post_content' => 'Content',
+				'post_content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 				'post_excerpt' => 'Description of my template part',
 				'tax_input'    => array(
 					'wp_theme'              => array(
@@ -426,6 +426,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$id      = self::TEST_THEME . '//' . 'my_template';
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
+		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
@@ -460,6 +461,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$id      = self::TEST_THEME . '//' . 'my_template_part';
 		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
+		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
@@ -486,6 +488,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$id      = self::TEST_THEME . '//' . 'my_template';
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
+		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
@@ -499,10 +502,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$context           = $args[0][3];
 
 		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
-		$this->assertInstanceOf( 'WP_Block_Template', $context ); // FIXME: Currently failing :/
+		$this->assertInstanceOf( 'WP_Block_Template', $context );
 		$this->assertSame(
 			$changes->post_content,
-			$context->post_content,
+			$context->content,
 			'The context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
 	}
