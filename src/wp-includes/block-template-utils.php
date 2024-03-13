@@ -1486,6 +1486,10 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 				$template->{$template_key} = $post->$post_key;
 			}
 		}
+
+		if ( isset( $post->meta_input['origin'] )  ) {
+			$template->origin = $post->meta_input['origin'];
+		}
 	}
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
