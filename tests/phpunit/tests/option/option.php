@@ -392,43 +392,43 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	public function data_option_autoloading_large_option() {
 		return array(
-			'on'   => array(
+			'on'             => array(
 				'autoload' => 'on',
 				'expected' => 'on',
 			),
-			'off'  => array(
+			'off'            => array(
 				'autoload' => 'off',
 				'expected' => 'off',
 			),
-			'yes'   => array(
+			'yes'            => array(
 				'autoload' => 'yes',
 				'expected' => 'on',
 			),
-			'true'  => array(
+			'true'           => array(
 				'autoload' => true,
 				'expected' => 'on',
 			),
-			'no'    => array(
+			'no'             => array(
 				'autoload' => 'no',
 				'expected' => 'off',
 			),
-			'false' => array(
+			'false'          => array(
 				'autoload' => false,
 				'expected' => 'off',
 			),
-			'null'  => array(
+			'null'           => array(
 				'autoload' => null,
 				'expected' => 'auto-off',
 			),
-			'autoload_int'  => array(
+			'autoload_int'   => array(
 				'autoload' => '1223',
 				'expected' => 'on',
 			),
-			'autoload_array'  => array(
+			'autoload_array' => array(
 				'autoload' => array(),
 				'expected' => 'on',
 			),
-			'stdClass'  => array(
+			'stdClass'       => array(
 				'autoload' => new stdClass(),
 				'expected' => 'on',
 			),
