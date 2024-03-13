@@ -138,10 +138,10 @@ function wp_get_font_dir() {
 		$made_dir = wp_mkdir_p( $defaults['path'] );
 
 		if ( ! $made_dir || ! wp_is_writable( $defaults['path'] ) ) {
-			if ( str_starts_with( $defaults['basedir'], ABSPATH ) ) {
-				$error_path = str_replace( ABSPATH, '', $defaults['basedir'] ) . $defaults['subdir'];
+			if ( str_starts_with( $defaults['path'], ABSPATH ) ) {
+				$error_path = str_replace( ABSPATH, '', $defaults['path']  );
 			} else {
-				$error_path = wp_basename( $defaults['basedir'] ) . $defaults['subdir'];
+				$error_path = wp_basename( $defaults['path']  );
 			}
 
 			$defaults['error'] = sprintf(
