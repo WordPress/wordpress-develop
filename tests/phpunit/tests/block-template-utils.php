@@ -495,6 +495,9 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$changes->post_title   = 'My updated Template';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 		$changes->post_excerpt = 'Displays a single post on your website unless a custom template...';
+		$changes->meta_input   = array(
+			'origin' => 'custom',
+		);
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
@@ -520,6 +523,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				$expected[ $template_key ] = $changes->$post_key;
 			}
 		}
+		$expected['origin'] = 'custom';
 
 		$this->assertEquals( $expected, (array) $context );
 	}
