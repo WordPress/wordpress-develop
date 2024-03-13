@@ -125,12 +125,15 @@ function wp_get_font_dir() {
 	$made_dir = wp_mkdir_p( $defaults['path'] );
 
 	if ( ! $made_dir || ! wp_is_writable( $defaults['path'] ) ) {
-		$defaults            = wp_upload_dir();
-		$defaults['path']    = path_join( $defaults['basedir'], 'fonts' );
-		$defaults['url']     = $defaults['baseurl'] . '/fonts';
-		$defaults['subdir']  = '';
-		$defaults['basedir'] = path_join( $defaults['basedir'], 'fonts' );
-		$defaults['baseurl'] = $defaults['baseurl'] . '/fonts';
+		$upload_dir = wp_upload_dir();
+		$defaults   = array(
+			'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
+			'url'     => $upload_dir['baseurl'] . '/fonts',
+			'subdir'  => '',
+			'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
+			'baseurl' => $upload_dir['baseurl'] . '/fonts',
+			'error'   => false,
+		);
 	}
 
 	/**
