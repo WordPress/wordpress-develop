@@ -254,7 +254,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
  * block attributes, in the `render_block_data` filter gets applied to the
  * block's markup.
  *
- * @see gutenberg_render_elements_support_styles
+ * @see wp_render_elements_support_styles
  *
  * @param  string $block_content Rendered block content.
  * @param  array  $block         Block object.
