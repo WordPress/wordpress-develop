@@ -482,7 +482,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
 		// In closing tags, it removes the last namespace from the stack.
 		if ( 'exit' === $mode ) {
 			array_pop( $namespace_stack );
@@ -527,7 +527,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
 		// When exiting tags, it removes the last context from the stack.
 		if ( 'exit' === $mode ) {
 			array_pop( $context_stack );
@@ -574,7 +574,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
 		if ( 'enter' === $mode ) {
 			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
 
@@ -619,7 +619,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
 		if ( 'enter' === $mode ) {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
 
@@ -654,7 +654,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
 		if ( 'enter' === $mode ) {
 			$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
 
@@ -747,7 +747,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
 		if ( 'enter' === $mode ) {
 			$attribute_value = $p->get_attribute( 'data-wp-text' );
 			$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
@@ -844,7 +844,7 @@ HTML;
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 */
-	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, $mode ) {
+	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
@@ -886,7 +886,7 @@ HTML;
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 * @param array                                     $tag_stack       The reference to the tag stack.
 	 */
-	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, $mode, array &$context_stack, array &$namespace_stack, array &$tag_stack ) {
+	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack, array &$tag_stack ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
 			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
 			$extracted_suffix = $this->extract_prefix_and_suffix( $attribute_name );
