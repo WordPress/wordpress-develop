@@ -566,7 +566,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		// Filter the version to include the ID in the final URL, to test the filter, this should affect the tests below.
 		add_filter(
 			'script_module_loader_src',
-			function( src, $id ) {
+			function ( $src, $id ) {
 				return add_query_arg( 'script_module_id', urlencode( $id ), src );
 			},
 			10,
