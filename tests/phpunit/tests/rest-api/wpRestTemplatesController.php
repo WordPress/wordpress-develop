@@ -15,6 +15,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 */
 	protected static $admin_id;
 	private static $template_post;
+	private static $template_part_post;
 
 	/**
 	 * Create fake data before our tests run.
@@ -43,6 +44,26 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 		self::$template_post = self::factory()->post->create_and_get( $args );
 		wp_set_post_terms( self::$template_post->ID, get_stylesheet(), 'wp_theme' );
+
+		// Set up template part post.
+		$args                     = array(
+			'post_type'    => 'wp_template_part',
+			'post_name'    => 'my_template_part',
+			'post_title'   => 'My Template Part',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Description of my template part.',
+			'tax_input'    => array(
+				'wp_theme' => array(
+					get_stylesheet(),
+				),
+				'wp_template_part_area' => array(
+					WP_TEMPLATE_PART_AREA_HEADER,
+				),
+			),
+		);
+		self::$template_part_post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$template_part_post->ID, get_stylesheet(), 'wp_theme' );
+		wp_set_post_terms( self::$template_part_post->ID, WP_TEMPLATE_PART_AREA_HEADER, 'wp_template_part_area' );
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -951,13 +972,17 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
 		$prepare_item_for_database->setAccessible( true );
 
+		$id          = get_stylesheet() . '//' . 'my_template_part';
 		$body_params = array(
-			'title'   => 'Untitled Template Part',
-			'slug'    => 'untitled-template-part',
-			'content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
+			'id'          => $id,
+			'title'       => 'Untitled Template Part',
+			'slug'        => 'my_template_part',
+			'description' => 'Description of my template part.',
+			'author'      => 1,
+			'content'     => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
 		$request->set_body_params( $body_params );
 
 		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );

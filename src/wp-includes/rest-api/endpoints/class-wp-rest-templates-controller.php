@@ -555,6 +555,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			);
 		} else {
 			$changes->post_name   = $template->slug;
+			$changes->post_type   = $this->post_type;
 			$changes->ID          = $template->wp_id;
 			$changes->post_status = 'publish';
 		}
