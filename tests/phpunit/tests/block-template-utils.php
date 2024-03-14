@@ -537,11 +537,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				$expected[ $template_key ] = $changes->$post_key;
 			}
 		}
-		$expected['id']        = self::TEST_THEME . '//' . 'my-updated-template';
-		$expected['origin']    = 'custom';
-		$expected['source']    = 'custom';
-		$expected['theme']     = self::TEST_THEME;
-		$expected['is_custom'] = false;
+		$expected['id']             = self::TEST_THEME . '//' . 'my-updated-template';
+		$expected['origin']         = 'custom';
+		$expected['source']         = 'custom';
+		$expected['theme']          = self::TEST_THEME;
+		$expected['is_custom']      = false;
+		$expected['has_theme_file'] = false;
+		$expected['post_types']     = null;
+		$expected['area']           = null;
 
 		$this->assertEquals( $expected, (array) $context );
 	}
