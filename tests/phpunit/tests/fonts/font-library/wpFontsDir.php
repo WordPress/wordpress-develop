@@ -82,7 +82,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		$this->assertSame( static::$dir_defaults, $font_dir, 'The wp_get_font_dir() method should return the default values.' );
 	}
 
-	public function test_should_created_fonts_dir_in_uploads_when_fails_in_wp_content() {
+	public function test_should_create_fonts_dir_in_uploads_when_fails_in_wp_content() {
 		// Set the expected results.
 		$upload_dir = wp_upload_dir();
 		$path       = path_join( $upload_dir['basedir'], 'fonts' );
@@ -100,8 +100,8 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 		$font_dir = wp_get_font_dir();
 
-		$this->assertDirectoryDoesNotExist( path_join( WP_CONTENT_DIR, 'fonts' ), 'The `wp-content/fonts` directory should not exist' );
-		$this->assertDirectoryExists( $font_dir['path'], 'The `uploads/fonts` directory should exist' );
+		$this->assertDirectoryDoesNotExist( path_join( WP_CONTENT_DIR, 'fonts' ), 'The `wp-content/fonts` directory should not exist.' );
+		$this->assertDirectoryExists( $font_dir['path'], 'The `uploads/fonts` directory should exist.' );
 		$this->assertSame( $expected, $font_dir, 'The font directory should be a subdir in the uploads directory.' );
 	}
 
@@ -122,6 +122,10 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * A placeholder "fake" file at `wp-content/fonts` triggers `wp_mkdir_p()` to fail into the `file_exists()` bail out, causing `is_dir()` to  return `false`.
+	 * This effectively makes `wp-content/fonts` unwritable as the default `fonts` directory location.
+	 */
 	private function fake_no_new_directories_in_wp_content() {
 		file_put_contents(
 			self::$fake_fonts_file,
