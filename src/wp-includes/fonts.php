@@ -113,7 +113,7 @@ function wp_get_font_dir() {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
-	$defaults = array(
+	$default_dir = array(
 		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
 		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'subdir'  => '',
@@ -121,36 +121,6 @@ function wp_get_font_dir() {
 		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'error'   => false,
 	);
-
-	$made_dir = wp_mkdir_p( $defaults['path'] );
-
-	if ( ! $made_dir || ! wp_is_writable( $defaults['path'] ) ) {
-		$upload_dir = wp_get_upload_dir();
-		$defaults   = array(
-			'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
-			'url'     => $upload_dir['baseurl'] . '/fonts',
-			'subdir'  => '',
-			'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
-			'baseurl' => $upload_dir['baseurl'] . '/fonts',
-			'error'   => false,
-		);
-
-		$made_dir = wp_mkdir_p( $defaults['path'] );
-
-		if ( ! $made_dir || ! wp_is_writable( $defaults['path'] ) ) {
-			if ( str_starts_with( $defaults['path'], ABSPATH ) ) {
-				$error_path = str_replace( ABSPATH, '', $defaults['path'] );
-			} else {
-				$error_path = wp_basename( $defaults['path'] );
-			}
-
-			$defaults['error'] = sprintf(
-				/* translators: %s: Directory path. */
-				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
-				esc_html( $error_path )
-			);
-		}
-	}
 
 	/**
 	 * Filters the fonts directory data.
@@ -161,7 +131,44 @@ function wp_get_font_dir() {
 	 *
 	 * @param array $defaults The original fonts directory data.
 	 */
-	return apply_filters( 'font_dir', $defaults );
+	$font_dir = apply_filters( 'font_dir', $default_dir );
+
+	wp_mkdir_p( $font_dir['path'] );
+
+	if ( ! is_dir( $font_dir['path'] ) || ! wp_is_writable( $font_dir['path'] ) ) {
+
+		// If the default directory was filtered it uses the filtered values and doesnt fall back to the wp-content/uploads/fonts.
+		if ( $font_dir !== $default_dir ) {
+			$font_dir['error'] = sprintf(
+				/* translators: %s: Directory path. */
+				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+				esc_html( str_replace( ABSPATH, '', $font_dir['path'] ) )
+			);
+			return $font_dir;
+		}
+
+		$upload_dir = wp_get_upload_dir();
+		$font_dir   = array(
+			'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
+			'url'     => $upload_dir['baseurl'] . '/fonts',
+			'subdir'  => '',
+			'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
+			'baseurl' => $upload_dir['baseurl'] . '/fonts',
+			'error'   => false,
+		);
+
+		wp_mkdir_p( $font_dir['path'] );
+
+		if ( ! is_dir( $font_dir['path'] ) || ! wp_is_writable( $font_dir['path'] ) ) {
+			$font_dir['error'] = sprintf(
+				/* translators: %s: Directory path. */
+				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+				esc_html( str_replace( ABSPATH, '', $font_dir['path'] ) )
+			);
+		}
+	}
+
+	return $font_dir;
 }
 
 /**
