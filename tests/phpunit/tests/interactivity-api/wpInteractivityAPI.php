@@ -237,7 +237,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that empty state objects are pruned from printed state.
+	 * Tests that empty state objects are pruned from printed data.
 	 *
 	 * @ticket 60761
 	 *
@@ -258,7 +258,7 @@ SCRIPT_TAG;
 	}
 
 	/**
-	 * Tests that state consisting of only empty state objects is not printed.
+	 * Tests that data consisting of only empty state objects is not printed.
 	 *
 	 * @ticket 60761
 	 *
@@ -271,7 +271,7 @@ SCRIPT_TAG;
 	}
 
 	/**
-	 * Tests that nested empty state objects are serialized correctly.
+	 * Tests that nested empty state objects are printed correctly.
 	 *
 	 * @ticket 60761
 	 *
@@ -283,6 +283,60 @@ SCRIPT_TAG;
 		$expected       = <<<'SCRIPT_TAG'
 <script type="application/json" id="wp-interactivity-data">
 {"state":{"myPlugin":{"emptyArray":[]}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertEquals( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that empty config objects are pruned from printed data.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_not_printed_when_empty_array() {
+		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+		$this->interactivity->config( 'pluginWithConfig_include', array( 'value' => 'excellent' ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"config":{"pluginWithConfig_include":{"value":"excellent"}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertEquals( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that data consisting of only empty config objects is not printed.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_not_printed_when_only_empty_arrays() {
+		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$this->assertSame( '', $printed_script );
+	}
+
+	/**
+	 * Tests that nested empty config objects are printed correctly.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_printed_correctly_with_nested_empty_array() {
+		$this->interactivity->config( 'myPlugin', array( 'emptyArray' => array() ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"config":{"myPlugin":{"emptyArray":[]}}}
 </script>
 
 SCRIPT_TAG;
