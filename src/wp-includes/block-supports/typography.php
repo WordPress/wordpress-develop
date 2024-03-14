@@ -528,7 +528,7 @@ function wp_get_typography_font_size_value( $preset, $settings = array() ) {
 	 * As a bool (deprecated since 6.5), $settings acts as an override to switch fluid typography "on" (`true`) or "off" (`false`).
 	 */
 	if ( is_bool( $settings ) ) {
-		_deprecated_argument( __FUNCTION__, '6.6.0', __( '`boolean` type for second argument `$settings` is deprecated. Use `array()` instead.', 'gutenberg' ) );
+		_deprecated_argument( __FUNCTION__, '6.6.0', __( '`boolean` type for second argument `$settings` is deprecated. Use `array()` instead.' ) );
 		$settings = array(
 			'typography' => array(
 				'fluid' => $settings,
