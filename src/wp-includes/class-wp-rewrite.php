@@ -73,22 +73,6 @@ class WP_Rewrite {
 	public $page_structure;
 
 	/**
-	 * Base of the search permalink structure (example.com/$search_base/query).
-	 *
-	 * @since 1.5.0
-	 * @var string
-	 */
-	public $search_base = 'search';
-
-	/**
-	 * Permalink structure for searches.
-	 *
-	 * @since 1.5.0
-	 * @var string
-	 */
-	public $search_structure;
-
-	/**
 	 * Comments permalink base.
 	 *
 	 * @since 1.5.0
@@ -683,21 +667,12 @@ class WP_Rewrite {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return string|false Search permalink structure on success, false on failure.
+	 * @deprecated 6.6.0
+	 *
+	 * @return string Search permalink structure
 	 */
 	public function get_search_permastruct() {
-		if ( isset( $this->search_structure ) ) {
-			return $this->search_structure;
-		}
-
-		if ( empty( $this->permalink_structure ) ) {
-			$this->search_structure = '';
-			return false;
-		}
-
-		$this->search_structure = $this->root . $this->search_base . '/%search%';
-
-		return $this->search_structure;
+		return '';
 	}
 
 	/**
@@ -852,7 +827,6 @@ class WP_Rewrite {
 	 *                                    - `EP_PAGES`
 	 *                                    - `EP_PERMALINK`
 	 *                                    - `EP_ROOT`
-	 *                                    - `EP_SEARCH`
 	 *                                    - `EP_TAGS`
 	 *                                    - `EP_YEAR`
 	 *                                    Default `EP_NONE`.
@@ -1355,22 +1329,6 @@ class WP_Rewrite {
 		 */
 		$comments_rewrite = apply_filters( 'comments_rewrite_rules', $comments_rewrite );
 
-		// Search rewrite rules.
-		$search_structure = $this->get_search_permastruct();
-		$search_rewrite   = $this->generate_rewrite_rules( $search_structure, EP_SEARCH );
-
-		/**
-		 * Filters rewrite rules used for search archives.
-		 *
-		 * Likely search-related archives include `/search/search+query/` as well as
-		 * pagination and feed paths for a search.
-		 *
-		 * @since 1.5.0
-		 *
-		 * @param string[] $search_rewrite Array of rewrite rules for search queries, keyed by their regex pattern.
-		 */
-		$search_rewrite = apply_filters( 'search_rewrite_rules', $search_rewrite );
-
 		// Author rewrite rules.
 		$author_rewrite = $this->generate_rewrite_rules( $this->get_author_permastruct(), EP_AUTHORS );
 
@@ -1446,9 +1404,9 @@ class WP_Rewrite {
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
 		}
 
 		/**
@@ -1735,7 +1693,6 @@ class WP_Rewrite {
 	 *                               - `EP_PAGES`
 	 *                               - `EP_PERMALINK`
 	 *                               - `EP_ROOT`
-	 *                               - `EP_SEARCH`
 	 *                               - `EP_TAGS`
 	 *                               - `EP_YEAR`
 	 * @param string|bool $query_var Optional. Name of the corresponding query variable. Pass `false` to
@@ -1795,7 +1752,6 @@ class WP_Rewrite {
 	 *                             - `EP_PAGES`
 	 *                             - `EP_PERMALINK`
 	 *                             - `EP_ROOT`
-	 *                             - `EP_SEARCH`
 	 *                             - `EP_TAGS`
 	 *                             - `EP_YEAR`
 	 *                             Default `EP_NONE`.
@@ -1924,7 +1880,6 @@ class WP_Rewrite {
 		unset( $this->author_structure );
 		unset( $this->date_structure );
 		unset( $this->page_structure );
-		unset( $this->search_structure );
 		unset( $this->feed_structure );
 		unset( $this->comment_feed_structure );
 

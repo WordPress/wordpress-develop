@@ -70,16 +70,6 @@ define( 'EP_ROOT', 64 );
 define( 'EP_COMMENTS', 128 );
 
 /**
- * Endpoint mask that matches searches.
- *
- * Note that this only matches a search at a "pretty" URL such as
- * `/search/my-search-term`, not `?s=my-search-term`.
- *
- * @since 2.1.0
- */
-define( 'EP_SEARCH', 256 );
-
-/**
  * Endpoint mask that matches category archives.
  *
  * @since 2.1.0
@@ -119,7 +109,7 @@ define( 'EP_ALL_ARCHIVES', EP_DATE | EP_YEAR | EP_MONTH | EP_DAY | EP_CATEGORIES
  *
  * @since 2.1.0
  */
-define( 'EP_ALL', EP_PERMALINK | EP_ATTACHMENT | EP_ROOT | EP_COMMENTS | EP_SEARCH | EP_PAGES | EP_ALL_ARCHIVES );
+define( 'EP_ALL', EP_PERMALINK | EP_ATTACHMENT | EP_ROOT | EP_COMMENTS | EP_PAGES | EP_ALL_ARCHIVES );
 
 /**
  * Adds a rewrite rule that transforms a URL structure to a set of query vars.
@@ -326,7 +316,6 @@ function flush_rewrite_rules( $hard = true ) {
  *                               - `EP_PAGES`
  *                               - `EP_PERMALINK`
  *                               - `EP_ROOT`
- *                               - `EP_SEARCH`
  *                               - `EP_TAGS`
  *                               - `EP_YEAR`
  * @param string|bool $query_var Name of the corresponding query variable. Pass `false` to skip registering a query_var
