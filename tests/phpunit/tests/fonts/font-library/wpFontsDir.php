@@ -26,7 +26,6 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			'baseurl' => $url,
 			'error'   => false,
 		);
-
 	}
 
 	public function tear_down() {
