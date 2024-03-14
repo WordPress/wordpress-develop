@@ -33,6 +33,8 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 				'null'        => null,
 				'trueString'  => 'true',
 				'falseString' => 'false',
+				'trueValue'   => true,
+				'falseValue'  => false,
 			)
 		);
 	}
@@ -378,5 +380,18 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
 		$p->next_tag();
 		$this->assertEquals( '100', $p->get_attribute( 'width' ) );
+	}
+
+	/**
+	 * Tests handling of bindings within nested tags.
+	 *
+	 * @ticket 60758
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_bind_handles_true_value() {
+		$html    = '<div data-wp-bind--id="myPlugin::state.trueValue"></div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertEquals( 'true', $p->get_attribute( 'id' ) );
 	}
 }
