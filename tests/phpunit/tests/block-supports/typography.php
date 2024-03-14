@@ -323,56 +323,56 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	public function data_generate_font_size_preset_fixtures() {
 		return array(
 			'returns value when fluid typography is deactivated' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => '28px',
 				),
-				'settings'                    => null,
-				'expected_output'             => '28px',
+				'settings'         => null,
+				'expected_output'  => '28px',
 			),
 
 			'returns value where font size is 0'         => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => 0,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 0,
+				'expected_output'  => 0,
 			),
 
 			"returns value where font size is '0'"       => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => '0',
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => '0',
+				'expected_output'  => '0',
 			),
 
 			'returns value where `size` is `null`'       => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => null,
 				),
-				'settings'        => null,
-				'expected_output' => null,
+				'settings'         => null,
+				'expected_output'  => null,
 			),
 
 			'returns value when fluid is `false`'        => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '28px',
 					'fluid' => false,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => false,
 					),
 				),
-				'expected_output' => '28px',
+				'expected_output'  => '28px',
 			),
 
 			'returns value when fluid is empty array'    => array(
@@ -431,45 +431,45 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'returns already clamped value'              => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 2.524), 42px)',
 					'fluid' => false,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 2.524), 42px)',
+				'expected_output'  => 'clamp(21px, 1.313rem + ((1vw - 7.68px) * 2.524), 42px)',
 			),
 
 			'returns value with unsupported unit'        => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '1000%',
 					'fluid' => false,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => '1000%',
+				'expected_output'  => '1000%',
 			),
 
 			'returns clamp value with rem min and max units' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => '1.75rem',
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(1.119rem, 1.119rem + ((1vw - 0.2rem) * 0.789), 1.75rem)',
+				'expected_output'  => 'clamp(1.119rem, 1.119rem + ((1vw - 0.2rem) * 0.789), 1.75rem)',
 			),
 
 			'returns clamp value with em min and max units' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size' => '1.75em',
 				),
 				'settings'        => array(
@@ -481,7 +481,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'returns clamp value for floats'             => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size' => '70.175px',
 				),
 				'settings'        => array(
@@ -493,57 +493,57 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'coerces integer to `px` and returns clamp value' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => 33,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(20.515px, 1.282rem + ((1vw - 3.2px) * 0.975), 33px)',
+				'expected_output'  => 'clamp(20.515px, 1.282rem + ((1vw - 3.2px) * 0.975), 33px)',
 			),
 
 			'coerces float to `px` and returns clamp value' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => 70.175,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(37.897px, 2.369rem + ((1vw - 3.2px) * 2.522), 70.175px)',
+				'expected_output'  => 'clamp(37.897px, 2.369rem + ((1vw - 3.2px) * 2.522), 70.175px)',
 			),
 
 			'returns clamp value when `fluid` is empty array' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '28px',
 					'fluid' => array(),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.789), 28px)',
+				'expected_output'  => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.789), 28px)',
 			),
 
 			'returns clamp value when `fluid` is `null`' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '28px',
 					'fluid' => null,
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.789), 28px)',
+				'expected_output'  => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 0.789), 28px)',
 			),
 
 			'returns clamp value where min and max fluid values defined' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size'  => '80px',
 					'fluid' => array(
 						'min' => '70px',
@@ -559,7 +559,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'returns clamp value where max is equal to size' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size'  => '7.8125rem',
 					'fluid' => array(
 						'min' => '4.375rem',
@@ -575,51 +575,51 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'returns clamp value if min font size is greater than max' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '3rem',
 					'fluid' => array(
 						'min' => '5rem',
 						'max' => '32px',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(5rem, 5rem + ((1vw - 0.2rem) * -3.75), 32px)',
+				'expected_output'  => 'clamp(5rem, 5rem + ((1vw - 0.2rem) * -3.75), 32px)',
 			),
 
 			'returns value with invalid min/max fluid units' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '10em',
 					'fluid' => array(
 						'min' => '20vw',
 						'max' => '50%',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => '10em',
+				'expected_output'  => '10em',
 			),
 
 			'returns value when size is < lower bounds and no fluid min/max set' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size' => '3px',
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => '3px',
+				'expected_output'  => '3px',
 			),
 
 			'returns value when size is equal to lower bounds and no fluid min/max set' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size' => '14px',
 				),
 				'settings'        => array(
@@ -631,69 +631,69 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'returns clamp value with different min max units' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '28px',
 					'fluid' => array(
 						'min' => '20px',
 						'max' => '50rem',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(20px, 1.25rem + ((1vw - 3.2px) * 60.938), 50rem)',
+				'expected_output'  => 'clamp(20px, 1.25rem + ((1vw - 3.2px) * 60.938), 50rem)',
 			),
 
 			'returns clamp value where no fluid max size is set' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '50px',
 					'fluid' => array(
 						'min' => '2.6rem',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(2.6rem, 2.6rem + ((1vw - 0.2rem) * 0.656), 50px)',
+				'expected_output'  => 'clamp(2.6rem, 2.6rem + ((1vw - 0.2rem) * 0.656), 50px)',
 			),
 
 			'returns clamp value where no fluid min size is set' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '28px',
 					'fluid' => array(
 						'max' => '80px',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 4.851), 80px)',
+				'expected_output'  => 'clamp(17.905px, 1.119rem + ((1vw - 3.2px) * 4.851), 80px)',
 			),
 
 			'should not apply lower bound test when fluid values are set' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '1.5rem',
 					'fluid' => array(
 						'min' => '0.5rem',
 						'max' => '5rem',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(0.5rem, 0.5rem + ((1vw - 0.2rem) * 5.625), 5rem)',
+				'expected_output'  => 'clamp(0.5rem, 0.5rem + ((1vw - 0.2rem) * 5.625), 5rem)',
 			),
 
 			'should not apply lower bound test when only fluid min is set' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size'  => '20px',
 					'fluid' => array(
 						'min' => '12px',
@@ -708,7 +708,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'should not apply lower bound test when only fluid max is set' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size'  => '0.875rem',
 					'fluid' => array(
 						'max' => '20rem',
@@ -723,23 +723,23 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'returns clamp value when min and max font sizes are equal' => array(
-				'font_size_preset'            => array(
+				'font_size_preset' => array(
 					'size'  => '4rem',
 					'fluid' => array(
 						'min' => '30px',
 						'max' => '30px',
 					),
 				),
-				'settings'        => array(
+				'settings'         => array(
 					'typography' => array(
 						'fluid' => true,
 					),
 				),
-				'expected_output' => 'clamp(30px, 1.875rem + ((1vw - 3.2px) * 1), 30px)',
+				'expected_output'  => 'clamp(30px, 1.875rem + ((1vw - 3.2px) * 1), 30px)',
 			),
 
 			'should apply scaled min font size for em values when custom min font size is not set' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size' => '12rem',
 				),
 				'settings'        => array(
@@ -751,7 +751,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'should apply scaled min font size for px values when custom min font size is not set' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size' => '200px',
 				),
 				'settings'        => array(
@@ -763,7 +763,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			),
 
 			'should not apply scaled min font size for minimum font size when custom min font size is set' => array(
-				'font_size'                   => array(
+				'font_size'       => array(
 					'size'  => '200px',
 					'fluid' => array(
 						'min' => '100px',
