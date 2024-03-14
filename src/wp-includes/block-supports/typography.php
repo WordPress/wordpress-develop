@@ -507,7 +507,7 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  *     @type string           $slug Kebab-case, unique identifier for the font size preset.
  *     @type string|int|float $size CSS font-size value, including units if applicable.
  * }
- * @param bool|array $settings Optional Theme JSON settings array that overrides any global theme settings.Default is `array()`.
+ * @param bool|array $settings Optional Theme JSON settings array that overrides any global theme settings. Default empty array.
  * @return string|null Font-size value or null if a size is not passed in $preset.
  */
 function wp_get_typography_font_size_value( $preset, $settings = array() ) {
