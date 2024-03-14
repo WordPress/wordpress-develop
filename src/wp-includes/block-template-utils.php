@@ -1469,7 +1469,9 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
 
 	if ( $template ) {
-		// TODO: Should maybe make this static. E.g. in the Templates Controller?
+		// TODO: We might want to extract the mapping logic below into a separate function
+		// and reuse it in unit tests, and in `_build_block_template_result_from_post`.
+
 		$post_to_template_key_map = array(
 			'post_author'  => 'author',
 			'post_name'    => 'slug',
