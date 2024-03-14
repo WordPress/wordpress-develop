@@ -229,7 +229,8 @@ final class WP_Interactivity_API {
 		$tag_stack  = array();
 		$unbalanced = false;
 
-		$directive_processor_prefixes = array_keys( self::$directive_processors );
+		$directive_processor_prefixes          = array_keys( self::$directive_processors );
+		$directive_processor_prefixes_reversed = array_reverse( $directive_processor_prefixes );
 
 		while ( $p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			$tag_name = $p->get_tag();
@@ -296,34 +297,34 @@ final class WP_Interactivity_API {
 				continue;
 			}
 
+			/*
+			 * Sorts the attributes by the order of the `directives_processor` array
+			 * and checks what directives are present in this element. The processing
+			 * order is reversed for tag closers.
+			 */
+			$directives_prefixes = array_intersect(
+				$p->is_tag_closer()
+					? $directive_processor_prefixes_reversed
+					: $directive_processor_prefixes,
+				$directives_prefixes
+			);
+
 			// Executes the directive processors present in this element.
-			if ( ! $p->is_tag_closer() ) {
-				/*
-				 * Sorts the attributes by the order of the `directives_processor` array
-				 * and checks what directives are present in this element.
-				 */
-				$directives_prefixes = array_intersect( $directive_processor_prefixes, $directives_prefixes );
-				foreach ( $directives_prefixes as $directive_prefix ) {
-					$func = is_array( self::$directive_processors[ $directive_prefix ] )
-						? self::$directive_processors[ $directive_prefix ]
-						: array( $this, self::$directive_processors[ $directive_prefix ] );
-					call_user_func_array(
-						$func,
-						array( $p, &$context_stack, &$namespace_stack, &$tag_stack )
-					);
-				}
+			foreach ( $directives_prefixes as $directive_prefix ) {
+				$func = is_array( self::$directive_processors[ $directive_prefix ] )
+					? self::$directive_processors[ $directive_prefix ]
+					: array( $this, self::$directive_processors[ $directive_prefix ] );
+				call_user_func_array(
+					$func,
+					array( $p, &$context_stack, &$namespace_stack, &$tag_stack )
+				);
 			}
 
-			// Remove context and namespace from stack if needed at the end of processing of each element.
-			if ( $p->is_tag_closer() || ! $p->has_and_visits_its_closer_tag() ) {
+			// Remove context from stack if it is a void tag.
+			if ( WP_HTML_Processor::is_void( $tag_name ) ) {
 				foreach ( $directives_prefixes as $directive_prefix ) {
-					switch ( $directive_prefix ) {
-						case 'data-wp-interactive':
-							array_pop( $namespace_stack );
-							break;
-						case 'data-wp-context':
-							array_pop( $context_stack );
-							break;
+					if ( 'data-wp-context' === $directive_prefix ) {
+						array_pop( $context_stack );
 					}
 				}
 			}
@@ -482,6 +483,12 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
+		// In closing tags, it removes the last namespace from the stack.
+		if ( $p->is_tag_closer() ) {
+			array_pop( $namespace_stack );
+			return;
+		}
+
 		// Tries to decode the `data-wp-interactive` attribute value.
 		$attribute_value = $p->get_attribute( 'data-wp-interactive' );
 
@@ -520,6 +527,12 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
+		// In closing tags, it removes the last context from the stack.
+		if ( $p->is_tag_closer() ) {
+			array_pop( $context_stack );
+			return;
+		}
+
 		$attribute_value = $p->get_attribute( 'data-wp-context' );
 		$namespace_value = end( $namespace_stack );
 
@@ -560,31 +573,33 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
+		if ( ! $p->is_tag_closer() ) {
+			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
 
-		foreach ( $all_bind_directives as $attribute_name ) {
-			list( , $bound_attribute ) = $this->extract_prefix_and_suffix( $attribute_name );
-			if ( empty( $bound_attribute ) ) {
-				return;
-			}
-
-			$attribute_value = $p->get_attribute( $attribute_name );
-			$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
-
-			if ( null !== $result && ( false !== $result || '-' === $bound_attribute[4] ) ) {
-				/*
-				 * If the result of the evaluation is a boolean and the attribute is
-				 * `aria-` or `data-, convert it to a string "true" or "false". It
-				 * follows the exact same logic as Preact because it needs to
-				 * replicate what Preact will later do in the client:
-				 * https://github.com/preactjs/preact/blob/ea49f7a0f9d1ff2c98c0bdd66aa0cbc583055246/src/diff/props.js#L131C24-L136
-				 */
-				if ( is_bool( $result ) && '-' === $bound_attribute[4] ) {
-					$result = $result ? 'true' : 'false';
+			foreach ( $all_bind_directives as $attribute_name ) {
+				list( , $bound_attribute ) = $this->extract_prefix_and_suffix( $attribute_name );
+				if ( empty( $bound_attribute ) ) {
+					return;
 				}
-				$p->set_attribute( $bound_attribute, $result );
-			} else {
-				$p->remove_attribute( $bound_attribute );
+
+				$attribute_value = $p->get_attribute( $attribute_name );
+				$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+
+				if ( null !== $result && ( false !== $result || '-' === $bound_attribute[4] ) ) {
+					/*
+					 * If the result of the evaluation is a boolean and the attribute is
+					 * `aria-` or `data-, convert it to a string "true" or "false". It
+					 * follows the exact same logic as Preact because it needs to
+					 * replicate what Preact will later do in the client:
+					 * https://github.com/preactjs/preact/blob/ea49f7a0f9d1ff2c98c0bdd66aa0cbc583055246/src/diff/props.js#L131C24-L136
+					 */
+					if ( is_bool( $result ) && '-' === $bound_attribute[4] ) {
+						$result = $result ? 'true' : 'false';
+					}
+					$p->set_attribute( $bound_attribute, $result );
+				} else {
+					$p->remove_attribute( $bound_attribute );
+				}
 			}
 		}
 	}
@@ -602,21 +617,23 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
+		if ( ! $p->is_tag_closer() ) {
+			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
 
-		foreach ( $all_class_directives as $attribute_name ) {
-			list( , $class_name ) = $this->extract_prefix_and_suffix( $attribute_name );
-			if ( empty( $class_name ) ) {
-				return;
-			}
+			foreach ( $all_class_directives as $attribute_name ) {
+				list( , $class_name ) = $this->extract_prefix_and_suffix( $attribute_name );
+				if ( empty( $class_name ) ) {
+					return;
+				}
 
-			$attribute_value = $p->get_attribute( $attribute_name );
-			$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+				$attribute_value = $p->get_attribute( $attribute_name );
+				$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
 
-			if ( $result ) {
-				$p->add_class( $class_name );
-			} else {
-				$p->remove_class( $class_name );
+				if ( $result ) {
+					$p->add_class( $class_name );
+				} else {
+					$p->remove_class( $class_name );
+				}
 			}
 		}
 	}
@@ -634,34 +651,36 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
+		if ( ! $p->is_tag_closer() ) {
+			$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
 
-		foreach ( $all_style_attributes as $attribute_name ) {
-			list( , $style_property ) = $this->extract_prefix_and_suffix( $attribute_name );
-			if ( empty( $style_property ) ) {
-				continue;
-			}
+			foreach ( $all_style_attributes as $attribute_name ) {
+				list( , $style_property ) = $this->extract_prefix_and_suffix( $attribute_name );
+				if ( empty( $style_property ) ) {
+					continue;
+				}
 
-			$directive_attribute_value = $p->get_attribute( $attribute_name );
-			$style_property_value      = $this->evaluate( $directive_attribute_value, end( $namespace_stack ), end( $context_stack ) );
-			$style_attribute_value     = $p->get_attribute( 'style' );
-			$style_attribute_value     = ( $style_attribute_value && ! is_bool( $style_attribute_value ) ) ? $style_attribute_value : '';
+				$directive_attribute_value = $p->get_attribute( $attribute_name );
+				$style_property_value      = $this->evaluate( $directive_attribute_value, end( $namespace_stack ), end( $context_stack ) );
+				$style_attribute_value     = $p->get_attribute( 'style' );
+				$style_attribute_value     = ( $style_attribute_value && ! is_bool( $style_attribute_value ) ) ? $style_attribute_value : '';
 
-			/*
-			 * Checks first if the style property is not falsy and the style
-			 * attribute value is not empty because if it is, it doesn't need to
-			 * update the attribute value.
-			 */
-			if ( $style_property_value || $style_attribute_value ) {
-				$style_attribute_value = $this->merge_style_property( $style_attribute_value, $style_property, $style_property_value );
 				/*
-				 * If the style attribute value is not empty, it sets it. Otherwise,
-				 * it removes it.
+				 * Checks first if the style property is not falsy and the style
+				 * attribute value is not empty because if it is, it doesn't need to
+				 * update the attribute value.
 				 */
-				if ( ! empty( $style_attribute_value ) ) {
-					$p->set_attribute( 'style', $style_attribute_value );
-				} else {
-					$p->remove_attribute( 'style' );
+				if ( $style_property_value || $style_attribute_value ) {
+					$style_attribute_value = $this->merge_style_property( $style_attribute_value, $style_property, $style_property_value );
+					/*
+					 * If the style attribute value is not empty, it sets it. Otherwise,
+					 * it removes it.
+					 */
+					if ( ! empty( $style_attribute_value ) ) {
+						$p->set_attribute( 'style', $style_attribute_value );
+					} else {
+						$p->remove_attribute( 'style' );
+					}
 				}
 			}
 		}
@@ -724,18 +743,20 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		$attribute_value = $p->get_attribute( 'data-wp-text' );
-		$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+		if ( ! $p->is_tag_closer() ) {
+			$attribute_value = $p->get_attribute( 'data-wp-text' );
+			$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
 
-		/*
-		 * Follows the same logic as Preact in the client and only changes the
-		 * content if the value is a string or a number. Otherwise, it removes the
-		 * content.
-		 */
-		if ( is_string( $result ) || is_numeric( $result ) ) {
-			$p->set_content_between_balanced_tags( esc_html( $result ) );
-		} else {
-			$p->set_content_between_balanced_tags( '' );
+			/*
+			 * Follows the same logic as Preact in the client and only changes the
+			 * content if the value is a string or a number. Otherwise, it removes the
+			 * content.
+			 */
+			if ( is_string( $result ) || is_numeric( $result ) ) {
+				$p->set_content_between_balanced_tags( esc_html( $result ) );
+			} else {
+				$p->set_content_between_balanced_tags( '' );
+			}
 		}
 	}
 
@@ -818,7 +839,7 @@ HTML;
 	 * @param WP_Interactivity_API_Directives_Processor $p The directives processor instance.
 	 */
 	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p ) {
-		if ( ! $this->has_processed_router_region ) {
+		if ( ! $p->is_tag_closer() && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
 			// Initialize the `core/router` store.
@@ -859,7 +880,7 @@ HTML;
 	 * @param array                                     $tag_stack       The reference to the tag stack.
 	 */
 	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack, array &$tag_stack ) {
-		if ( 'TEMPLATE' === $p->get_tag() ) {
+		if ( ! $p->is_tag_closer() && 'TEMPLATE' === $p->get_tag() ) {
 			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
 			$extracted_suffix = $this->extract_prefix_and_suffix( $attribute_name );
 			$item_name        = isset( $extracted_suffix[1] ) ? $this->kebab_to_camel_case( $extracted_suffix[1] ) : 'item';
