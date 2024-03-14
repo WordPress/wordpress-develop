@@ -167,11 +167,11 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		foreach ( $paths as $path ) {
 			if ( ! is_dir( $path ) ) {
 				if ( file_exists( $path ) ) {
-					@unlink( $path );
+					unlink( $path );
 				}
 			} else {
 				$this->rmdir( $path );
-				@rmdir( $path );
+				rmdir( $path );
 			}
 		}
 	}
