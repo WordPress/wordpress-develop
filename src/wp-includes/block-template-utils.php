@@ -1461,45 +1461,45 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 		return $post;
 	}
 
-	// At this point, the post has already been created.
 	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
 	// To that end, we need to suppress hooked blocks from getting inserted into the template.
 	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
-	$template = $request['id'] ? get_block_template( $request['id'], $post_type ) : null;
+
+	// We also need to mimic terms and meta for the post based on the corresponding
+	// `terms_input` and `meta_input` properties in the changes object.
+
+	$terms_filter = function( $terms, $post_id, $taxonomy ) use ( $post ) {
+		if ( 'wp_theme' === $taxonomy && isset( $post->tax_input['wp_theme'] ) ) {
+			// TODO: Verify it's not an error object.
+			// TODO: Verify that $post_id matches (or isn't set).
+			$term       = new stdClass;
+			$term->name = $post->tax_input['wp_theme'];
+
+			$term = new WP_Term( $term );
+			return array( $term );
+		}
+		return $terms;
+	};
+
+	$meta_filter = function( $value, $post_id, $meta_key, $single ) use ( $post ) {
+		if ( 'origin' === $meta_key && isset( $post->meta_input['origin'] ) ) {
+			return $single ? $post->meta_input['origin'] : array( $post->meta_input['origin'] );
+		}
+
+		if ( 'is_wp_suggestion' === $meta_key && isset( $post->meta_input['is_wp_suggestion'] ) ) {
+			return $single ? $post->meta_input['is_wp_suggestion'] : array( $post->meta_input['is_wp_suggestion'] );
+		}
+
+		return $value;
+	};
+
+	add_filter( 'get_the_terms', $terms_filter, 10, 3 );
+	add_filter( 'get_post_metadata', $meta_filter, 10, 4 );
+	$template = _build_block_template_result_from_post( $post );
+	remove_filter( 'get_post_metadata', $meta_filter );
+	remove_filter( 'get_the_terms', $terms_filter );
+
 	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
-
-	if ( $template ) {
-		// TODO: We might want to extract the mapping logic below into a separate function
-		// and reuse it in unit tests, and in `_build_block_template_result_from_post`.
-
-		$post_to_template_key_map = array(
-			'post_author'  => 'author',
-			'post_name'    => 'slug',
-			'post_content' => 'content',
-			'post_title'   => 'title',
-			'post_excerpt' => 'description',
-			'post_type'    => 'type',
-			'post_status'  => 'status',
-		);
-
-		// We need to overwrite the built template object with the incoming one from the request.
-		// This is so we can provide the correct context to the Block Hooks API which expects the `WP_Block_Template` object.
-		foreach ( $post_to_template_key_map as $post_key => $template_key ) {
-			if ( isset( $post->$post_key ) ) {
-				$template->{$template_key} = $post->$post_key;
-			}
-		}
-
-		if ( isset( $post->meta_input['origin'] ) ) {
-			$template->origin = $post->meta_input['origin'];
-		}
-
-		if ( isset( $post->tax_input['wp_theme'] ) ) {
-			$template->theme = $post->tax_input['wp_theme'];
-		}
-
-		$template->id = $template->theme . '//' . $template->slug;
-	}
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );

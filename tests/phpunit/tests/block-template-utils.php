@@ -490,17 +490,21 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
 		$request->set_param( 'id', $id );
 
-		$changes               = new stdClass();
-		$changes->post_type    = 'wp_template';
-		$changes->post_author  = 123;
-		$changes->post_name    = 'my-updated-template';
-		$changes->post_title   = 'My updated Template';
-		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
-		$changes->post_excerpt = 'Displays a single post on your website unless a custom template...';
-		$changes->meta_input   = array(
-			'origin' => 'custom',
+		$changes                = new stdClass();
+		$changes->ID            = self::$template_post->ID;
+		$changes->post_type     = 'wp_template';
+		$changes->post_author   = 123;
+		$changes->post_name     = 'my-updated-template';
+		$changes->post_title    = 'My updated Template';
+		$changes->post_content  = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->post_excerpt  = 'Displays a single post on your website unless a custom template...';
+		$changes->post_status   = 'publish';
+		$changes->post_modified = '2021-07-01 12:00:00'; // FIXME
+		$changes->meta_input    = array(
+			'origin'           => 'custom',
+			'is_wp_suggestion' => true,
 		);
-		$changes->tax_input    = array(
+		$changes->tax_input     = array(
 			'wp_theme' => self::TEST_THEME,
 		);
 
@@ -514,13 +518,15 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
 
 		$post_to_template_key_map = array(
-			'post_author'  => 'author',
-			'post_name'    => 'slug',
-			'post_content' => 'content',
-			'post_title'   => 'title',
-			'post_excerpt' => 'description',
-			'post_type'    => 'type',
-			'post_status'  => 'status',
+			'ID'            => 'wp_id',
+			'post_author'   => 'author',
+			'post_name'     => 'slug',
+			'post_content'  => 'content',
+			'post_title'    => 'title',
+			'post_excerpt'  => 'description',
+			'post_type'     => 'type',
+			'post_status'   => 'status',
+			'post_modified' => 'modified',
 		);
 
 		$expected = array();
@@ -529,9 +535,11 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 				$expected[ $template_key ] = $changes->$post_key;
 			}
 		}
-		$expected['id']     = self::TEST_THEME . '//' . 'my-updated-template';
-		$expected['origin'] = 'custom';
-		$expected['theme']  = self::TEST_THEME;
+		$expected['id']        = self::TEST_THEME . '//' . 'my-updated-template';
+		$expected['origin']    = 'custom';
+		$expected['source']    = 'custom';
+		$expected['theme']     = self::TEST_THEME;
+		$expected['is_custom'] = false;
 
 		$this->assertEquals( $expected, (array) $context );
 	}
