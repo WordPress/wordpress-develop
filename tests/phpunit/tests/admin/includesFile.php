@@ -386,8 +386,12 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		return $response;
 	}
 
-	public function filter_get_home_path(){
+	/**
+	 * Filter callback for get_home_path hook used in function test_get_home_path.
+	 *
+	 * @return string
+	*/
+	public function filter_get_home_path() {
 		return 'D:/Users/foo/public_html/trunk';
 	}
-
 }
