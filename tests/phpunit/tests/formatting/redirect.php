@@ -203,7 +203,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_validate_redirect_relative_url.
+	 * Data provider for test_wp_validate_redirect_relative_url().
 	 *
 	 * @return array[] {
 	 *      string Current URI (i.e. path and query string only).

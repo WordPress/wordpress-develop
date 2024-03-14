@@ -204,6 +204,10 @@ final class WP_Interactivity_API {
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
 	 */
 	public function process_directives( string $html ): string {
+		if ( ! str_contains( $html, 'data-wp-' ) ) {
+			return $html;
+		}
+
 		$context_stack   = array();
 		$namespace_stack = array();
 		$result          = $this->process_directives_args( $html, $context_stack, $namespace_stack );
@@ -290,34 +294,42 @@ final class WP_Interactivity_API {
 				}
 			}
 			/*
-				* If the matching opener tag didn't have any directives, it can skip the
-				* processing.
-				*/
+			 * If the matching opener tag didn't have any directives, it can skip the
+			 * processing.
+			 */
 			if ( 0 === count( $directives_prefixes ) ) {
 				continue;
 			}
 
-			/*
-			 * Sorts the attributes by the order of the `directives_processor` array
-			 * and checks what directives are present in this element. The processing
-			 * order is reversed for tag closers.
-			 */
-			$directives_prefixes = array_intersect(
-				$p->is_tag_closer()
-					? $directive_processor_prefixes_reversed
-					: $directive_processor_prefixes,
-				$directives_prefixes
+			// Directive processing might be different depending on if it is entering the tag or exiting it.
+			$modes = array(
+				'enter' => ! $p->is_tag_closer(),
+				'exit'  => $p->is_tag_closer() || ! $p->has_and_visits_its_closer_tag(),
 			);
 
-			// Executes the directive processors present in this element.
-			foreach ( $directives_prefixes as $directive_prefix ) {
-				$func = is_array( self::$directive_processors[ $directive_prefix ] )
-					? self::$directive_processors[ $directive_prefix ]
-					: array( $this, self::$directive_processors[ $directive_prefix ] );
-				call_user_func_array(
-					$func,
-					array( $p, &$context_stack, &$namespace_stack, &$tag_stack )
+			foreach ( $modes as $mode => $should_run ) {
+				if ( ! $should_run ) {
+					continue;
+				}
+
+				/*
+				 * Sorts the attributes by the order of the `directives_processor` array
+				 * and checks what directives are present in this element.
+				 */
+				$existing_directives_prefixes = array_intersect(
+					'enter' === $mode ? $directive_processor_prefixes : $directive_processor_prefixes_reversed,
+					$directives_prefixes
 				);
+				foreach ( $existing_directives_prefixes as $directive_prefix ) {
+					$func = is_array( self::$directive_processors[ $directive_prefix ] )
+						? self::$directive_processors[ $directive_prefix ]
+						: array( $this, self::$directive_processors[ $directive_prefix ] );
+
+					call_user_func_array(
+						$func,
+						array( $p, $mode, &$context_stack, &$namespace_stack, &$tag_stack )
+					);
+				}
 			}
 		}
 
@@ -470,12 +482,13 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		// In closing tags, it removes the last namespace from the stack.
-		if ( $p->is_tag_closer() ) {
+	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+		// When exiting tags, it removes the last namespace from the stack.
+		if ( 'exit' === $mode ) {
 			array_pop( $namespace_stack );
 			return;
 		}
@@ -514,12 +527,13 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		// In closing tags, it removes the last context from the stack.
-		if ( $p->is_tag_closer() ) {
+	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+		// When exiting tags, it removes the last context from the stack.
+		if ( 'exit' === $mode ) {
 			array_pop( $context_stack );
 			return;
 		}
@@ -560,11 +574,12 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		if ( ! $p->is_tag_closer() ) {
+	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+		if ( 'enter' === $mode ) {
 			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
 
 			foreach ( $all_bind_directives as $attribute_name ) {
@@ -604,11 +619,12 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		if ( ! $p->is_tag_closer() ) {
+	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+		if ( 'enter' === $mode ) {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
 
 			foreach ( $all_class_directives as $attribute_name ) {
@@ -638,11 +654,12 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		if ( ! $p->is_tag_closer() ) {
+	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+		if ( 'enter' === $mode ) {
 			$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
 
 			foreach ( $all_style_attributes as $attribute_name ) {
@@ -730,11 +747,12 @@ final class WP_Interactivity_API {
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack ) {
-		if ( ! $p->is_tag_closer() ) {
+	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+		if ( 'enter' === $mode ) {
 			$attribute_value = $p->get_attribute( 'data-wp-text' );
 			$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
 
@@ -827,10 +845,11 @@ HTML;
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param WP_Interactivity_API_Directives_Processor $p The directives processor instance.
+	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 */
-	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p ) {
-		if ( ! $p->is_tag_closer() && ! $this->has_processed_router_region ) {
+	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
 			// Initialize the `core/router` store.
@@ -866,12 +885,13 @@ HTML;
 	 * @since 6.5.0
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $context_stack   The reference to the context stack.
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 * @param array                                     $tag_stack       The reference to the tag stack.
 	 */
-	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, array &$context_stack, array &$namespace_stack, array &$tag_stack ) {
-		if ( ! $p->is_tag_closer() && 'TEMPLATE' === $p->get_tag() ) {
+	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack, array &$tag_stack ) {
+		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
 			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
 			$extracted_suffix = $this->extract_prefix_and_suffix( $attribute_name );
 			$item_name        = isset( $extracted_suffix[1] ) ? $this->kebab_to_camel_case( $extracted_suffix[1] ) : 'item';
