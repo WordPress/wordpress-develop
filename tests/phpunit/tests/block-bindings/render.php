@@ -198,4 +198,40 @@ HTML;
 			'The block content should be updated with the value returned by the source.'
 		);
 	}
+
+	/**
+	 * Tests if the block content is sanitized when unsafe HTML is passed.
+	 *
+	 * @ticket 60651
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_source_value_with_unsafe_html_is_sanitized() {
+		$get_value_callback = function () {
+			return '<script>alert("Unsafe HTML")</script>';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$this->assertSame(
+			'<p>alert("Unsafe HTML")</p>',
+			trim( $result ),
+			'The block content should be updated with the value returned by the source.'
+		);
+	}
 }
