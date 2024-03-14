@@ -587,7 +587,10 @@ final class WP_Interactivity_API {
 					 * replicate what Preact will later do in the client:
 					 * https://github.com/preactjs/preact/blob/ea49f7a0f9d1ff2c98c0bdd66aa0cbc583055246/src/diff/props.js#L131C24-L136
 					 */
-					if ( is_bool( $result ) && '-' === $bound_attribute[4] ) {
+					if (
+						is_bool( $result ) &&
+						( strlen( $bound_attribute ) > 5 && '-' === $bound_attribute[4] )
+					) {
 						$result = $result ? 'true' : 'false';
 					}
 					$p->set_attribute( $bound_attribute, $result );
