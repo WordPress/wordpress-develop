@@ -31,6 +31,12 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 				'attrs' => null,
 				'expected' => '<a href="https://localhost/url" />',
 			),
+			'http' => array(
+				'content' => '<a href="url" />',
+				'base' => 'http://localhost',
+				'attrs' => null,
+				'expected' => '<a href="http://localhost/url" />',
+			),
 			'empty_array' => array(
 				'content' => '<a href="url" target="_blank" />',
 				'base' => 'https://localhost',
@@ -60,6 +66,18 @@ class Tests_formatting_linksAddBaseUrl extends WP_UnitTestCase {
 				'base' => 'https://localhost',
 				'attrs' => null,
 				'expected' => '<img src="https://localhost/url" />',
+			),
+			'ftp' => array(
+				'content' => '<a href="/url" >sss</a>',
+				'base' => 'ftp://localhost',
+				'attrs' => null,
+				'expected' => '<a href="ftp://localhost/url" >sss</a>',
+			),
+			'ftps' => array(
+				'content' => '<a href="/url" >sss</a>',
+				'base' => 'ftps://localhost',
+				'attrs' => null,
+				'expected' => '<a href="ftps://localhost/url" >sss</a>',
 			),
 		);
 
