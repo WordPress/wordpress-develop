@@ -491,7 +491,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request->set_param( 'id', $id );
 
 		$changes               = new stdClass();
-		$changes->post_type   = 'wp_template';
+		$changes->post_type    = 'wp_template';
 		$changes->post_author  = 123;
 		$changes->post_name    = 'my-updated-template';
 		$changes->post_title   = 'My updated Template';
@@ -500,7 +500,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$changes->meta_input   = array(
 			'origin' => 'custom',
 		);
-		$changes->tax_input   = array(
+		$changes->tax_input    = array(
 			'wp_theme' => self::TEST_THEME,
 		);
 
