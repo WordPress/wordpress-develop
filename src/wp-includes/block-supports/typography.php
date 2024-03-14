@@ -537,7 +537,7 @@ function wp_get_typography_font_size_value( $preset, $settings = array() ) {
 	}
 
 	// Fallback to global settings as default.
-	$global_settings             = gutenberg_get_global_settings();
+	$global_settings             = wp_get_global_settings();
 	$settings                    = wp_parse_args(
 		$settings,
 		$global_settings
