@@ -483,7 +483,7 @@ final class WP_Interactivity_API {
 	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
 	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
-		// In closing tags, it removes the last namespace from the stack.
+		// When exiting tags, it removes the last namespace from the stack.
 		if ( 'exit' === $mode ) {
 			array_pop( $namespace_stack );
 			return;
