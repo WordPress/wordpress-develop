@@ -567,7 +567,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		add_filter(
 			'script_module_loader_src',
 			function ( $src, $id ) {
-				return add_query_arg( 'script_module_id', urlencode( $id ), src );
+				return add_query_arg( 'script_module_id', urlencode( $id ), $src );
 			},
 			10,
 			2
