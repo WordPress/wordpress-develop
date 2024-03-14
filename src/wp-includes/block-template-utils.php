@@ -1488,11 +1488,11 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 			}
 		}
 
-		if ( isset( $post->meta_input['origin'] )  ) {
+		if ( isset( $post->meta_input['origin'] ) ) {
 			$template->origin = $post->meta_input['origin'];
 		}
 
-		if ( isset( $post->tax_input['wp_theme'] )  ) {
+		if ( isset( $post->tax_input['wp_theme'] ) ) {
 			$template->theme = $post->tax_input['wp_theme'];
 		}
 
