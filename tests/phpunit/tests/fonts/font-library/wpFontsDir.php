@@ -102,7 +102,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 		$this->assertDirectoryDoesNotExist( path_join( WP_CONTENT_DIR, 'fonts' ), 'The `wp-content/fonts` directory should not exist.' );
 		$this->assertDirectoryExists( $font_dir['path'], 'The `uploads/fonts` directory should exist.' );
-		$this->assertSame( $expected, $font_dir, 'The font directory should be a subdir in the uploads directory.' );
+		$this->assertSame( $expected, $font_dir, 'The `fonts` directory should be a subdir in the `uploads` directory.' );
 	}
 
 	private function remove_fonts_directory() {
