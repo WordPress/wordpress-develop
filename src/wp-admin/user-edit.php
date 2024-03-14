@@ -200,36 +200,58 @@ switch ( $action ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 
-		<?php if ( ! IS_PROFILE_PAGE && is_super_admin( $profile_user->ID ) && current_user_can( 'manage_network_options' ) ) : ?>
-			<div class="notice notice-info"><p><strong><?php _e( 'Important:' ); ?></strong> <?php _e( 'This user has super admin privileges.' ); ?></p></div>
-		<?php endif; ?>
+		<?php
+		if ( ! IS_PROFILE_PAGE && is_super_admin( $profile_user->ID ) && current_user_can( 'manage_network_options' ) ) :
+			$message = '<strong>' . __( 'Important:' ) . '</strong> ' . __( 'This user has super admin privileges.' );
+			wp_admin_notice(
+				$message,
+				array(
+					'type' => 'info',
+				)
+			);
+		endif;
 
-		<?php if ( isset( $_GET['updated'] ) ) : ?>
-			<div id="message" class="updated notice is-dismissible">
-				<?php if ( IS_PROFILE_PAGE ) : ?>
-					<p><strong><?php _e( 'Profile updated.' ); ?></strong></p>
-				<?php else : ?>
-					<p><strong><?php _e( 'User updated.' ); ?></strong></p>
-				<?php endif; ?>
-				<?php if ( $wp_http_referer && ! str_contains( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
-					<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
-				<?php endif; ?>
-			</div>
-		<?php endif; ?>
+		if ( isset( $_GET['updated'] ) ) :
+			if ( IS_PROFILE_PAGE ) :
+				$message = '<strong>' . __( 'Profile updated.' ) . '</strong>';
+			else :
+				$message = '<strong>' . __( 'User updated.' ) . '</strong>';
+			endif;
+			if ( $wp_http_referer && ! str_contains( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) :
+				$message .= '<a href="' . esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ) . '">' . __( '&larr; Go to Users' ) . '</a>';
+			endif;
+			wp_admin_notice(
+				$message,
+				array(
+					'id'                 => 'message',
+					'dismissible'        => true,
+					'additional_classes' => array( 'updated' ),
+				)
+			);
+		endif;
 
-		<?php if ( isset( $_GET['error'] ) ) : ?>
-			<div class="notice notice-error">
-			<?php if ( 'new-email' === $_GET['error'] ) : ?>
-				<p><?php _e( 'Error while saving the new email address. Please try again.' ); ?></p>
-			<?php endif; ?>
-			</div>
-		<?php endif; ?>
+		if ( isset( $_GET['error'] ) ) :
+			$message = '';
+			if ( 'new-email' === $_GET['error'] ) :
+				$message = __( 'Error while saving the new email address. Please try again.' );
+			endif;
+			wp_admin_notice(
+				$message,
+				array(
+					'type' => 'error',
+				)
+			);
+		endif;
 
-		<?php if ( isset( $errors ) && is_wp_error( $errors ) ) : ?>
-			<div class="error">
-				<p><?php echo implode( "</p>\n<p>", $errors->get_error_messages() ); ?></p>
-			</div>
-		<?php endif; ?>
+		if ( isset( $errors ) && is_wp_error( $errors ) ) {
+			wp_admin_notice(
+				implode( "</p>\n<p>", $errors->get_error_messages() ),
+				array(
+					'additional_classes' => array( 'error' ),
+				)
+			);
+		}
+		?>
 
 		<div class="wrap" id="profile-page">
 			<h1 class="wp-heading-inline">
@@ -238,9 +260,9 @@ switch ( $action ) {
 
 			<?php if ( ! IS_PROFILE_PAGE ) : ?>
 				<?php if ( current_user_can( 'create_users' ) ) : ?>
-					<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
+					<a href="user-new.php" class="page-title-action"><?php echo esc_html__( 'Add New User' ); ?></a>
 				<?php elseif ( is_multisite() && current_user_can( 'promote_users' ) ) : ?>
-					<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add Existing', 'user' ); ?></a>
+					<a href="user-new.php" class="page-title-action"><?php echo esc_html__( 'Add Existing User' ); ?></a>
 				<?php endif; ?>
 			<?php endif; ?>
 
@@ -524,25 +546,28 @@ switch ( $action ) {
 								</p>
 							<?php endif; ?>
 
-							<?php $new_email = get_user_meta( $current_user->ID, '_new_email', true ); ?>
-							<?php if ( $new_email && $new_email['newemail'] !== $current_user->user_email && $profile_user->ID === $current_user->ID ) : ?>
-							<div class="updated inline">
-								<p>
-									<?php
-									printf(
-										/* translators: %s: New email. */
-										__( 'There is a pending change of your email to %s.' ),
-										'<code>' . esc_html( $new_email['newemail'] ) . '</code>'
-									);
-									printf(
-										' <a href="%1$s">%2$s</a>',
-										esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
-										__( 'Cancel' )
-									);
-									?>
-								</p>
-							</div>
-							<?php endif; ?>
+							<?php
+							$new_email = get_user_meta( $current_user->ID, '_new_email', true );
+							if ( $new_email && $new_email['newemail'] !== $current_user->user_email && $profile_user->ID === $current_user->ID ) :
+
+								$pending_change_message = sprintf(
+									/* translators: %s: New email. */
+									__( 'There is a pending change of your email to %s.' ),
+									'<code>' . esc_html( $new_email['newemail'] ) . '</code>'
+								);
+								$pending_change_message .= sprintf(
+									' <a href="%1$s">%2$s</a>',
+									esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
+									__( 'Cancel' )
+								);
+								wp_admin_notice(
+									$pending_change_message,
+									array(
+										'additional_classes' => array( 'updated', 'inline' ),
+									)
+								);
+							endif;
+							?>
 						</td>
 					</tr>
 
@@ -802,11 +827,17 @@ switch ( $action ) {
 
 										<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add New Application Password' ); ?></button>
 									</div>
-								<?php else : ?>
-									<div class="notice notice-error inline">
-										<p><?php _e( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ); ?></p>
-									</div>
-								<?php endif; ?>
+									<?php
+								else :
+									wp_admin_notice(
+										__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
+										array(
+											'type' => 'error',
+											'additional_classes' => array( 'inline' ),
+										)
+									);
+								endif;
+								?>
 
 								<div class="application-passwords-list-table-wrapper">
 									<?php
@@ -934,7 +965,7 @@ switch ( $action ) {
 
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
-		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="-1">
+		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert">
 			<p class="application-password-display">
 				<label for="new-application-password-value">
 					<?php

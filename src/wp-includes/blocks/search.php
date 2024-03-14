@@ -16,7 +16,7 @@
  *
  * @return string The search block markup.
  */
-function render_block_core_search( $attributes, $content, $block ) {
+function render_block_core_search( $attributes ) {
 	// Older versions of the Search block defaulted the label and buttonText
 	// attributes to `__( 'Search' )` meaning that many posts contain `<!--
 	// wp:search /-->`. Support these by defaulting an undefined label and
@@ -36,7 +36,6 @@ function render_block_core_search( $attributes, $content, $block ) {
 	$show_button         = ( ! empty( $attributes['buttonPosition'] ) && 'no-button' === $attributes['buttonPosition'] ) ? false : true;
 	$button_position     = $show_button ? $attributes['buttonPosition'] : null;
 	$query_params        = ( ! empty( $attributes['query'] ) ) ? $attributes['query'] : array();
-	$button_behavior     = ( ! empty( $attributes['buttonBehavior'] ) ) ? $attributes['buttonBehavior'] : 'default';
 	$button              = '';
 	$query_params_markup = '';
 	$inline_styles       = styles_for_block_core_search( $attributes );
@@ -46,6 +45,9 @@ function render_block_core_search( $attributes, $content, $block ) {
 		'button-inside' === $attributes['buttonPosition'];
 	// Border color classes need to be applied to the elements that have a border color.
 	$border_color_classes = get_border_color_classes_for_block_core_search( $attributes );
+	// This variable is a constant and its value is always false at this moment.
+	// It is defined this way because some values depend on it, in case it changes in the future.
+	$open_by_default = false;
 
 	$label_inner_html = empty( $attributes['label'] ) ? __( 'Search' ) : wp_kses_post( $attributes['label'] );
 	$label            = new WP_HTML_Tag_Processor( sprintf( '<label %1$s>%2$s</label>', $inline_styles['label'], $label_inner_html ) );
@@ -75,25 +77,29 @@ function render_block_core_search( $attributes, $content, $block ) {
 		$input->set_attribute( 'value', get_search_query() );
 		$input->set_attribute( 'placeholder', $attributes['placeholder'] );
 
-		$is_expandable_searchfield = 'button-only' === $button_position && 'expand-searchfield' === $button_behavior;
+		// If it's interactive, enqueue the script module and add the directives.
+		$is_expandable_searchfield = 'button-only' === $button_position;
 		if ( $is_expandable_searchfield ) {
+			$suffix = wp_scripts_get_suffix();
+			if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
+				$module_url = gutenberg_url( '/build/interactivity/search.min.js' );
+			}
+
+			wp_register_script_module(
+				'@wordpress/block-library/search',
+				isset( $module_url ) ? $module_url : includes_url( "blocks/search/view{$suffix}.js" ),
+				array( '@wordpress/interactivity' ),
+				defined( 'GUTENBERG_VERSION' ) ? GUTENBERG_VERSION : get_bloginfo( 'version' )
+			);
+			wp_enqueue_script_module( '@wordpress/block-library/search' );
+
+			$input->set_attribute( 'data-wp-bind--aria-hidden', '!context.isSearchInputVisible' );
+			$input->set_attribute( 'data-wp-bind--tabindex', 'state.tabindex' );
+
+			// Adding these attributes manually is needed until the Interactivity API
+			// SSR logic is added to core.
 			$input->set_attribute( 'aria-hidden', 'true' );
 			$input->set_attribute( 'tabindex', '-1' );
-		}
-
-		// If the script already exists, there is no point in removing it from viewScript.
-		$view_js_file = 'wp-block-search-view';
-		if ( ! wp_script_is( $view_js_file ) ) {
-			$script_handles = $block->block_type->view_script_handles;
-
-			// If the script is not needed, and it is still in the `view_script_handles`, remove it.
-			if ( ! $is_expandable_searchfield && in_array( $view_js_file, $script_handles, true ) ) {
-				$block->block_type->view_script_handles = array_diff( $script_handles, array( $view_js_file ) );
-			}
-			// If the script is needed, but it was previously removed, add it again.
-			if ( $is_expandable_searchfield && ! in_array( $view_js_file, $script_handles, true ) ) {
-				$block->block_type->view_script_handles = array_merge( $script_handles, array( $view_js_file ) );
-			}
 		}
 	}
 
@@ -138,10 +144,19 @@ function render_block_core_search( $attributes, $content, $block ) {
 
 		if ( $button->next_tag() ) {
 			$button->add_class( implode( ' ', $button_classes ) );
-			if ( 'expand-searchfield' === $attributes['buttonBehavior'] && 'button-only' === $attributes['buttonPosition'] ) {
+			if ( 'button-only' === $attributes['buttonPosition'] ) {
+				$button->set_attribute( 'data-wp-bind--aria-label', 'state.ariaLabel' );
+				$button->set_attribute( 'data-wp-bind--aria-controls', 'state.ariaControls' );
+				$button->set_attribute( 'data-wp-bind--aria-expanded', 'context.isSearchInputVisible' );
+				$button->set_attribute( 'data-wp-bind--type', 'state.type' );
+				$button->set_attribute( 'data-wp-on--click', 'actions.openSearchInput' );
+
+				// Adding these attributes manually is needed until the Interactivity
+				// API SSR logic is added to core.
 				$button->set_attribute( 'aria-label', __( 'Expand search field' ) );
 				$button->set_attribute( 'aria-controls', 'wp-block-search__input-' . $input_id );
 				$button->set_attribute( 'aria-expanded', 'false' );
+				$button->set_attribute( 'type', 'button' );
 			} else {
 				$button->set_attribute( 'aria-label', wp_strip_all_tags( $attributes['buttonText'] ) );
 			}
@@ -158,11 +173,34 @@ function render_block_core_search( $attributes, $content, $block ) {
 	$wrapper_attributes   = get_block_wrapper_attributes(
 		array( 'class' => $classnames )
 	);
+	$form_directives      = '';
+
+	// If it's interactive, add the directives.
+	if ( $is_expandable_searchfield ) {
+		$aria_label_expanded  = __( 'Submit Search' );
+		$aria_label_collapsed = __( 'Expand search field' );
+		$form_context         = wp_interactivity_data_wp_context(
+			array(
+				'isSearchInputVisible' => $open_by_default,
+				'inputId'              => $input_id,
+				'ariaLabelExpanded'    => $aria_label_expanded,
+				'ariaLabelCollapsed'   => $aria_label_collapsed,
+			)
+		);
+		$form_directives      = '
+		 data-wp-interactive="core/search"'
+		. $form_context .
+		'data-wp-class--wp-block-search__searchfield-hidden="!context.isSearchInputVisible"
+		 data-wp-on--keydown="actions.handleSearchKeydown"
+		 data-wp-on--focusout="actions.handleSearchFocusout"
+		';
+	}
 
 	return sprintf(
-		'<form role="search" method="get" action="%s" %s>%s</form>',
+		'<form role="search" method="get" action="%1s" %2s %3s>%4s</form>',
 		esc_url( home_url( '/' ) ),
 		$wrapper_attributes,
+		$form_directives,
 		$label . $field_markup
 	);
 }
@@ -204,10 +242,7 @@ function classnames_for_block_core_search( $attributes ) {
 		}
 
 		if ( 'button-only' === $attributes['buttonPosition'] ) {
-			$classnames[] = 'wp-block-search__button-only';
-			if ( ! empty( $attributes['buttonBehavior'] ) && 'expand-searchfield' === $attributes['buttonBehavior'] ) {
-				$classnames[] = 'wp-block-search__button-behavior-expand wp-block-search__searchfield-hidden';
-			}
+			$classnames[] = 'wp-block-search__button-only wp-block-search__searchfield-hidden';
 		}
 	}
 
@@ -236,11 +271,9 @@ function classnames_for_block_core_search( $attributes ) {
  * @param array  $wrapper_styles Current collection of wrapper styles.
  * @param array  $button_styles  Current collection of button styles.
  * @param array  $input_styles   Current collection of input styles.
- *
- * @return void
  */
 function apply_block_core_search_border_style( $attributes, $property, $side, &$wrapper_styles, &$button_styles, &$input_styles ) {
-	$is_button_inside = 'button-inside' === _wp_array_get( $attributes, array( 'buttonPosition' ), false );
+	$is_button_inside = isset( $attributes['buttonPosition'] ) && 'button-inside' === $attributes['buttonPosition'];
 
 	$path = array( 'style', 'border', $property );
 
@@ -282,8 +315,6 @@ function apply_block_core_search_border_style( $attributes, $property, $side, &$
  * @param array  $wrapper_styles Current collection of wrapper styles.
  * @param array  $button_styles  Current collection of button styles.
  * @param array  $input_styles   Current collection of input styles.
- *
- * @return void
  */
 function apply_block_core_search_border_styles( $attributes, $property, &$wrapper_styles, &$button_styles, &$input_styles ) {
 	apply_block_core_search_border_style( $attributes, $property, null, $wrapper_styles, $button_styles, $input_styles );

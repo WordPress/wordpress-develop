@@ -622,6 +622,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @ticket 57529
 	 * @ticket 58522
 	 * @ticket 58523
+	 * @ticket 59048
 	 *
 	 * @covers ::wp_register_typography_support
 	 *
@@ -692,12 +693,17 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 			'returns clamp value using custom fluid config' => array(
 				'font_size_value' => '17px',
 				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
-				'expected_output' => 'font-size:clamp(16px, 1rem + ((1vw - 3.2px) * 0.147), 17px);',
+				'expected_output' => 'font-size:clamp(16px, 1rem + ((1vw - 6.4px) * 0.179), 17px);',
 			),
 			'returns value when font size <= custom min font size bound' => array(
 				'font_size_value' => '15px',
 				'theme_slug'      => 'block-theme-child-with-fluid-typography-config',
 				'expected_output' => 'font-size:15px;',
+			),
+			'returns clamp value using default config if layout is fluid' => array(
+				'font_size_value' => '15px',
+				'theme_slug'      => 'block-theme-child-with-fluid-layout',
+				'expected_output' => 'font-size:clamp(14px, 0.875rem + ((1vw - 3.2px) * 0.078), 15px);',
 			),
 		);
 	}
@@ -907,6 +913,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Tests computed font size values.
 	 *
 	 * @ticket 58522
+	 * @ticket 60263
 	 *
 	 * @covers ::wp_get_computed_fluid_typography_value
 	 *
@@ -944,6 +951,16 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 					'scale_factor'           => 1,
 				),
 				'expected_output' => 'clamp(50px, 3.125rem + ((1vw - 3.2px) * 7.353), 100px)',
+			),
+			'returns `null` when maximum and minimum viewport width are equal' => array(
+				'args'            => array(
+					'minimum_viewport_width' => '800px',
+					'maximum_viewport_width' => '800px',
+					'minimum_font_size'      => '50px',
+					'maximum_font_size'      => '100px',
+					'scale_factor'           => 1,
+				),
+				'expected_output' => null,
 			),
 			'returns `null` when `maximum_viewport_width` is an unsupported unit' => array(
 				'args'            => array(
@@ -988,4 +1005,3 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 		);
 	}
 }
-

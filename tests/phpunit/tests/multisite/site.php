@@ -422,7 +422,7 @@ if ( is_multisite() ) :
 		public function test_get_blog_details_when_site_does_not_exist() {
 			// Create an unused site so that we can then assume an invalid site ID.
 			$blog_id = self::factory()->blog->create();
-			$blog_id++;
+			++$blog_id;
 
 			// Prime the cache for an invalid site.
 			get_blog_details( $blog_id );
@@ -1162,7 +1162,6 @@ if ( is_multisite() ) :
 			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
 
 			$this->assertIsInt( $site_id );
-
 		}
 
 		public function action_database_insert_on_clean_site_cache() {
@@ -2194,7 +2193,6 @@ if ( is_multisite() ) :
 			$fetched_site = get_site( $new_site_id );
 			$this->assertInstanceOf( 'WP_Site', $fetched_site );
 			$this->assertEquals( $new_site_id, $fetched_site->blog_id );
-
 		}
 
 		/**

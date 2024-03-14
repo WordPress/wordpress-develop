@@ -508,7 +508,7 @@ class WP_Widget {
 		$widget_args   = wp_parse_args( $widget_args, array( 'number' => -1 ) );
 		$all_instances = $this->get_settings();
 
-		if ( -1 === (int) $widget_args['number'] ) {
+		if ( -1 === $widget_args['number'] ) {
 			// We echo out a form where 'number' can be set later.
 			$this->_set( '__i__' );
 			$instance = array();

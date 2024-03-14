@@ -152,7 +152,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 		$total     = (int) $result[ WP_REST_Search_Handler::RESULT_TOTAL ];
 		$page      = (int) $request['page'];
 		$per_page  = (int) $request['per_page'];
-		$max_pages = ceil( $total / $per_page );
+		$max_pages = (int) ceil( $total / $per_page );
 
 		if ( $page > $max_pages && $total > 0 ) {
 			return new WP_Error(
@@ -195,6 +195,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$item_id = $item;
+
 		$handler = $this->get_search_handler( $request );
 		if ( is_wp_error( $handler ) ) {
 			return new WP_REST_Response();

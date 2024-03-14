@@ -375,7 +375,13 @@ function wp_print_media_templates() {
 		<div class="attachment-media-view {{ data.orientation }}">
 			<?php
 			if ( isset( $_GET['error'] ) && 'deprecated' === $_GET['error'] ) {
-				echo '<div id="message" class="error notice"><p>' . __( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ) . '</p></div>';
+				wp_admin_notice(
+					__( 'The Edit Media screen is deprecated as of WordPress 6.3. Please use the Media Library instead.' ),
+					array(
+						'id'                 => 'message',
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			}
 			?>
 			<h2 class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _e( 'Attachment Preview' ); ?></h2>
@@ -551,7 +557,10 @@ function wp_print_media_templates() {
 
 			<div class="actions">
 				<# if ( data.link ) { #>
-					<a class="view-attachment" href="{{ data.link }}"><?php _e( 'View attachment page' ); ?></a>
+					<?php
+					$view_media_text = ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View attachment page' ) : __( 'View media file' );
+					?>
+					<a class="view-attachment" href="{{ data.link }}"><?php echo $view_media_text; ?></a>
 				<# } #>
 				<# if ( data.can.save ) { #>
 					<# if ( data.link ) { #>

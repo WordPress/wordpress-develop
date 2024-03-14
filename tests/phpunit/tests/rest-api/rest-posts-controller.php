@@ -18,6 +18,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	protected static $supported_formats;
 	protected static $post_ids    = array();
+	protected static $terms       = array();
 	protected static $total_posts = 30;
 	protected static $per_page    = 50;
 
@@ -28,6 +29,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
+		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
+		wp_set_object_terms( self::$post_id, self::$terms, 'category' );
 
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -223,6 +226,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
 	}
 
+	public function test_registered_get_items_embed() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->response_to_data( $response, true );
+		$this->assertArrayHasKey( '_embedded', $response[0], 'The _embedded key must exist' );
+		$this->assertArrayHasKey( 'wp:term', $response[0]['_embedded'], 'The wp:term key must exist' );
+		$this->assertCount( 15, $response[0]['_embedded']['wp:term'][0], 'Should should be 15 terms and not the default 10' );
+		$i = 0;
+		foreach ( $response[0]['_embedded']['wp:term'][0] as $term ) {
+			$this->assertSame( self::$terms[ $i ], $term['id'], 'Check term id existing in response' );
+			++$i;
+		}
+	}
+
 	/**
 	 * @ticket 43701
 	 */
@@ -256,7 +274,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * A valid query that returns 0 results should return an empty JSON list.
 	 *
-	 * @issue 862
+	 * @link https://github.com/WP-API/WP-API/issues/862
 	 */
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
@@ -1662,8 +1680,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// 3rd page.
 		self::factory()->post->create();
-		$total_posts++;
-		$total_pages++;
+		++$total_posts;
+		++$total_pages;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
@@ -2278,8 +2296,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2314,8 +2332,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -4302,7 +4320,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
-
 	}
 
 	public function test_get_item_schema() {
@@ -5028,7 +5045,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
-
 	}
 
 	/**

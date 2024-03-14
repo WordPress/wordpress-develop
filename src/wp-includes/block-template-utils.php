@@ -37,21 +37,15 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * }
  */
 function get_block_theme_folders( $theme_stylesheet = null ) {
-	$theme_name = null === $theme_stylesheet ? get_stylesheet() : $theme_stylesheet;
-	$root_dir   = get_theme_root( $theme_name );
-	$theme_dir  = "$root_dir/$theme_name";
-
-	if ( file_exists( $theme_dir . '/block-templates' ) || file_exists( $theme_dir . '/block-template-parts' ) ) {
+	$theme = wp_get_theme( (string) $theme_stylesheet );
+	if ( ! $theme->exists() ) {
+		// Return the default folders if the theme doesn't exist.
 		return array(
-			'wp_template'      => 'block-templates',
-			'wp_template_part' => 'block-template-parts',
+			'wp_template'      => 'templates',
+			'wp_template_part' => 'parts',
 		);
 	}
-
-	return array(
-		'wp_template'      => 'templates',
-		'wp_template_part' => 'parts',
-	);
+	return $theme->get_block_template_folders();
 }
 
 /**
@@ -131,11 +125,11 @@ function get_default_block_template_types() {
 		),
 		'single'         => array(
 			'title'       => _x( 'Single Posts', 'Template name' ),
-			'description' => __( 'Displays single posts on your website unless a custom template has been applied to that post or a dedicated template exists.' ),
+			'description' => __( 'Displays a single post on your website unless a custom template has been applied to that post or a dedicated template exists.' ),
 		),
 		'page'           => array(
 			'title'       => _x( 'Pages', 'Template name' ),
-			'description' => __( 'Display all static pages unless a custom template has been applied or a dedicated template exists.' ),
+			'description' => __( 'Displays a static page unless a custom template has been applied to that page or a dedicated template exists.' ),
 		),
 		'archive'        => array(
 			'title'       => _x( 'All Archives', 'Template name' ),
@@ -180,7 +174,7 @@ function get_default_block_template_types() {
 	);
 
 	/**
-	 * Filters the list of template types.
+	 * Filters the list of default template types.
 	 *
 	 * @since 5.9.0
 	 *
@@ -230,14 +224,21 @@ function _filter_block_template_part_area( $type ) {
  * @return string[] A list of paths to all template part files.
  */
 function _get_block_templates_paths( $base_directory ) {
+	static $template_path_list = array();
+	if ( isset( $template_path_list[ $base_directory ] ) ) {
+		return $template_path_list[ $base_directory ];
+	}
 	$path_list = array();
-	if ( file_exists( $base_directory ) ) {
+	try {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
 			$path_list[] = $path;
 		}
+	} catch ( Exception $e ) {
+		// Do nothing.
 	}
+	$template_path_list[ $base_directory ] = $path_list;
 	return $path_list;
 }
 
@@ -247,10 +248,10 @@ function _get_block_templates_paths( $base_directory ) {
  * @since 5.9.0
  * @access private
  *
- * @param string $template_type 'wp_template' or 'wp_template_part'.
+ * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @param string $slug          Template slug.
  * @return array|null {
- *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part'.
+ *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
  *    null otherwise.
  *
  *    @type string   $slug      Template slug.
@@ -304,7 +305,7 @@ function _get_block_template_file( $template_type, $slug ) {
  * @since 6.3.0 Added the `$query` parameter.
  * @access private
  *
- * @param string $template_type 'wp_template' or 'wp_template_part'.
+ * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @param array  $query {
  *     Arguments to retrieve templates. Optional, empty by default.
  *
@@ -477,73 +478,38 @@ function _flatten_blocks( &$blocks ) {
 }
 
 /**
- * Parses wp_template content and injects the active theme's
- * stylesheet as a theme attribute into each wp_template_part
+ * Injects the active theme's stylesheet as a `theme` attribute
+ * into a given template part block.
  *
- * @since 5.9.0
+ * @since 6.4.0
  * @access private
  *
- * @param string $template_content serialized wp_template content.
- * @return string Updated 'wp_template' content.
+ * @param array $block a parsed block.
  */
-function _inject_theme_attribute_in_block_template_content( $template_content ) {
-	$has_updated_content = false;
-	$new_content         = '';
-	$template_blocks     = parse_blocks( $template_content );
-
-	$blocks = _flatten_blocks( $template_blocks );
-	foreach ( $blocks as &$block ) {
-		if (
-			'core/template-part' === $block['blockName'] &&
-			! isset( $block['attrs']['theme'] )
-		) {
-			$block['attrs']['theme'] = get_stylesheet();
-			$has_updated_content     = true;
-		}
+function _inject_theme_attribute_in_template_part_block( &$block ) {
+	if (
+		'core/template-part' === $block['blockName'] &&
+		! isset( $block['attrs']['theme'] )
+	) {
+		$block['attrs']['theme'] = get_stylesheet();
 	}
-
-	if ( $has_updated_content ) {
-		foreach ( $template_blocks as &$block ) {
-			$new_content .= serialize_block( $block );
-		}
-
-		return $new_content;
-	}
-
-	return $template_content;
 }
 
 /**
- * Parses a block template and removes the theme attribute from each template part.
+ * Removes the `theme` attribute from a given template part block.
  *
- * @since 5.9.0
+ * @since 6.4.0
  * @access private
  *
- * @param string $template_content Serialized block template content.
- * @return string Updated block template content.
+ * @param array $block a parsed block.
  */
-function _remove_theme_attribute_in_block_template_content( $template_content ) {
-	$has_updated_content = false;
-	$new_content         = '';
-	$template_blocks     = parse_blocks( $template_content );
-
-	$blocks = _flatten_blocks( $template_blocks );
-	foreach ( $blocks as $key => $block ) {
-		if ( 'core/template-part' === $block['blockName'] && isset( $block['attrs']['theme'] ) ) {
-			unset( $blocks[ $key ]['attrs']['theme'] );
-			$has_updated_content = true;
-		}
+function _remove_theme_attribute_from_template_part_block( &$block ) {
+	if (
+		'core/template-part' === $block['blockName'] &&
+		isset( $block['attrs']['theme'] )
+	) {
+		unset( $block['attrs']['theme'] );
 	}
-
-	if ( ! $has_updated_content ) {
-		return $template_content;
-	}
-
-	foreach ( $template_blocks as $block ) {
-		$new_content .= serialize_block( $block );
-	}
-
-	return $new_content;
 }
 
 /**
@@ -554,18 +520,17 @@ function _remove_theme_attribute_in_block_template_content( $template_content ) 
  * @access private
  *
  * @param array  $template_file Theme file.
- * @param string $template_type 'wp_template' or 'wp_template_part'.
+ * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @return WP_Block_Template Template.
  */
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
-	$template_content       = file_get_contents( $template_file['path'] );
 	$theme                  = get_stylesheet();
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
-	$template->content        = _inject_theme_attribute_in_block_template_content( $template_content );
+	$template->content        = file_get_contents( $template_file['path'] );
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -588,6 +553,16 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	if ( 'wp_template_part' === $template_type && isset( $template_file['area'] ) ) {
 		$template->area = $template_file['area'];
 	}
+
+	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
+	$after_block_visitor  = null;
+	$hooked_blocks        = get_hooked_blocks();
+	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+	}
+	$blocks            = parse_blocks( $template->content );
+	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
 }
@@ -754,6 +729,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  *
  * @since 5.9.0
  * @since 6.3.0 Added `modified` property to template objects.
+ * @since 6.4.0 Added support for a revision post to be passed to this function.
  * @access private
  *
  * @param WP_Post $post Template post.
@@ -761,7 +737,14 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  */
 function _build_block_template_result_from_post( $post ) {
 	$default_template_types = get_default_block_template_types();
-	$terms                  = get_the_terms( $post, 'wp_theme' );
+
+	$post_id = wp_is_post_revision( $post );
+	if ( ! $post_id ) {
+		$post_id = $post;
+	}
+	$parent_post = get_post( $post_id );
+
+	$terms = get_the_terms( $parent_post, 'wp_theme' );
 
 	if ( is_wp_error( $terms ) ) {
 		return $terms;
@@ -775,12 +758,12 @@ function _build_block_template_result_from_post( $post ) {
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
 	$has_theme_file = get_stylesheet() === $theme && null !== $template_file;
 
-	$origin           = get_post_meta( $post->ID, 'origin', true );
-	$is_wp_suggestion = get_post_meta( $post->ID, 'is_wp_suggestion', true );
+	$origin           = get_post_meta( $parent_post->ID, 'origin', true );
+	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
-	$template->id             = $theme . '//' . $post->post_name;
+	$template->id             = $theme . '//' . $parent_post->post_name;
 	$template->theme          = $theme;
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
@@ -795,23 +778,23 @@ function _build_block_template_result_from_post( $post ) {
 	$template->author         = $post->post_author;
 	$template->modified       = $post->post_modified;
 
-	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
+	if ( 'wp_template' === $parent_post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
 	}
 
-	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
+	if ( 'wp_template' === $parent_post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
 	}
 
-	if ( 'wp_template_part' === $post->post_type ) {
-		$type_terms = get_the_terms( $post, 'wp_template_part_area' );
+	if ( 'wp_template_part' === $parent_post->post_type ) {
+		$type_terms = get_the_terms( $parent_post, 'wp_template_part_area' );
 		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
 			$template->area = $type_terms[0]->name;
 		}
 	}
 
 	// Check for a block template without a description and title or with a title equal to the slug.
-	if ( 'wp_template' === $post->post_type && empty( $template->description ) && ( empty( $template->title ) || $template->title === $template->slug ) ) {
+	if ( 'wp_template' === $parent_post->post_type && empty( $template->description ) && ( empty( $template->title ) || $template->title === $template->slug ) ) {
 		$matches = array();
 
 		// Check for a block template for a single author, page, post, tag, category, custom post type, or custom taxonomy.
@@ -918,6 +901,14 @@ function _build_block_template_result_from_post( $post ) {
 		}
 	}
 
+	$hooked_blocks = get_hooked_blocks();
+	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+		$blocks               = parse_blocks( $template->content );
+		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+	}
+
 	return $template;
 }
 
@@ -934,7 +925,7 @@ function _build_block_template_result_from_post( $post ) {
  *     @type string   $area      A 'wp_template_part_area' taxonomy value to filter by (for 'wp_template_part' template type only).
  *     @type string   $post_type Post type to get the templates for.
  * }
- * @param string $template_type 'wp_template' or 'wp_template_part'.
+ * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @return WP_Block_Template[] Array of block templates.
  */
 function get_block_templates( $query = array(), $template_type = 'wp_template' ) {
@@ -955,7 +946,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *     @type string   $area      A 'wp_template_part_area' taxonomy value to filter by (for 'wp_template_part' template type only).
 	 *     @type string   $post_type Post type to get the templates for.
 	 * }
-	 * @param string $template_type 'wp_template' or 'wp_template_part'.
+	 * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	$templates = apply_filters( 'pre_get_block_templates', null, $query, $template_type );
 	if ( ! is_null( $templates ) ) {
@@ -1060,7 +1051,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
  * @since 5.8.0
  *
  * @param string $id            Template unique identifier (example: 'theme_slug//template_slug').
- * @param string $template_type Optional. Template type: 'wp_template' or 'wp_template_part'.
+ * @param string $template_type Optional. Template type. Either 'wp_template' or 'wp_template_part'.
  *                              Default 'wp_template'.
  * @return WP_Block_Template|null Template.
  */
@@ -1075,7 +1066,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 	 * @param WP_Block_Template|null $block_template Return block template object to short-circuit the default query,
 	 *                                               or null to allow WP to run its normal queries.
 	 * @param string                 $id             Template unique identifier (example: 'theme_slug//template_slug').
-	 * @param string                 $template_type  Template type: 'wp_template' or 'wp_template_part'.
+	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	$block_template = apply_filters( 'pre_get_block_template', null, $id, $template_type );
 	if ( ! is_null( $block_template ) ) {
@@ -1121,7 +1112,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 	 *
 	 * @param WP_Block_Template|null $block_template The found block template, or null if there isn't one.
 	 * @param string                 $id             Template unique identifier (example: 'theme_slug//template_slug').
-	 * @param array                  $template_type  Template type: 'wp_template' or 'wp_template_part'.
+	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	return apply_filters( 'get_block_template', $block_template, $id, $template_type );
 }
@@ -1134,7 +1125,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
  * @since 5.9.0
  *
  * @param string $id            Template unique identifier (example: 'theme_slug//template_slug').
- * @param string $template_type Optional. Template type: 'wp_template' or 'wp_template_part'.
+ * @param string $template_type Optional. Template type. Either 'wp_template' or 'wp_template_part'.
  *                              Default 'wp_template'.
  * @return WP_Block_Template|null The found block template, or null if there isn't one.
  */
@@ -1149,7 +1140,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	 * @param WP_Block_Template|null $block_template Return block template object to short-circuit the default query,
 	 *                                               or null to allow WP to run its normal queries.
 	 * @param string                 $id             Template unique identifier (example: 'theme_slug//template_slug').
-	 * @param string                 $template_type  Template type: 'wp_template' or 'wp_template_part'.
+	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	$block_template = apply_filters( 'pre_get_block_file_template', null, $id, $template_type );
 	if ( ! is_null( $block_template ) ) {
@@ -1183,7 +1174,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	 *
 	 * @param WP_Block_Template|null $block_template The found block template, or null if there is none.
 	 * @param string                 $id             Template unique identifier (example: 'theme_slug//template_slug').
-	 * @param string                 $template_type  Template type: 'wp_template' or 'wp_template_part'.
+	 * @param string                 $template_type  Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	return apply_filters( 'get_block_file_template', $block_template, $id, $template_type );
 }
@@ -1193,7 +1184,7 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
  *
  * @since 5.9.0
  *
- * @param string $part The block template part to print. Use "header" or "footer".
+ * @param string $part The block template part to print. Either 'header' or 'footer'.
  */
 function block_template_part( $part ) {
 	$template_part = get_block_template( get_stylesheet() . '//' . $part, 'wp_template_part' );
@@ -1227,7 +1218,7 @@ function block_footer_area() {
  * @since 6.0.0
  *
  * @param string $path The path of the file in the theme.
- * @return Bool Whether this file is in an ignored directory.
+ * @return bool Whether this file is in an ignored directory.
  */
 function wp_is_theme_directory_ignored( $path ) {
 	$directories_to_ignore = array( '.DS_Store', '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
@@ -1298,7 +1289,10 @@ function wp_generate_block_templates_export_file() {
 	// Load templates into the zip file.
 	$templates = get_block_templates();
 	foreach ( $templates as $template ) {
-		$template->content = _remove_theme_attribute_in_block_template_content( $template->content );
+		$template->content = traverse_and_serialize_blocks(
+			parse_blocks( $template->content ),
+			'_remove_theme_attribute_from_template_part_block'
+		);
 
 		$zip->addFromString(
 			'templates/' . $template->slug . '.html',
@@ -1353,8 +1347,8 @@ function wp_generate_block_templates_export_file() {
  *
  * @since 6.1.0
  *
- * @param string  $slug           The template slug to be created.
- * @param boolean $is_custom      Optional. Indicates if a template is custom or
+ * @param string $slug            The template slug to be created.
+ * @param bool   $is_custom       Optional. Indicates if a template is custom or
  *                                part of the template hierarchy. Default false.
  * @param string $template_prefix Optional. The template prefix for the created template.
  *                                Used to extract the main template type, e.g.
@@ -1437,4 +1431,49 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	}
 	$template_hierarchy[] = 'index';
 	return $template_hierarchy;
+}
+
+/**
+ * Inject ignoredHookedBlocks metadata attributes into a template or template part.
+ *
+ * Given an object that represents a `wp_template` or `wp_template_part` post object
+ * prepared for inserting or updating the database, locate all blocks that have
+ * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
+ * blocks to reflect the latter.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param stdClass        $post    An object representing a template or template part
+ *                                 prepared for inserting or updating the database.
+ * @param WP_REST_Request $request Request object.
+ * @return stdClass The updated object representing a template or template part.
+ */
+function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
+	$filter_name = current_filter();
+	if ( ! str_starts_with( $filter_name, 'rest_pre_insert_' ) ) {
+		return $post;
+	}
+	$post_type = str_replace( 'rest_pre_insert_', '', $filter_name );
+
+	$hooked_blocks = get_hooked_blocks();
+	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
+		return $post;
+	}
+
+	// At this point, the post has already been created.
+	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
+	// To that end, we need to suppress hooked blocks from getting inserted into the template.
+	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
+	$template = $request['id'] ? get_block_template( $request['id'], $post_type ) : null;
+	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
+
+	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+
+	$blocks  = parse_blocks( $post->post_content );
+	$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+
+	$post->post_content = $content;
+	return $post;
 }

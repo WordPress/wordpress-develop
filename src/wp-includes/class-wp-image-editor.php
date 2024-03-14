@@ -318,6 +318,7 @@ abstract class WP_Image_Editor {
 				$quality = 86;
 				break;
 			case 'image/jpeg':
+			case 'image/avif':
 			default:
 				$quality = $this->default_quality;
 		}
@@ -654,4 +655,3 @@ abstract class WP_Image_Editor {
 		return wp_get_default_extension_for_mime_type( $mime_type );
 	}
 }
-

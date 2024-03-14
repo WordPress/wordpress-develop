@@ -491,14 +491,14 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	public function test_feed_links_extra_should_respect_feed_type() {
 		add_filter(
 			'default_feed',
-			static function() {
+			static function () {
 				return 'foo';
 			}
 		);
 
 		add_filter(
 			'feed_content_type',
-			static function() {
+			static function () {
 				return 'testing/foo';
 			}
 		);

@@ -222,6 +222,45 @@ function create_initial_taxonomies() {
 			'show_in_rest'      => false,
 		)
 	);
+
+	register_taxonomy(
+		'wp_pattern_category',
+		array( 'wp_block' ),
+		array(
+			'public'             => false,
+			'publicly_queryable' => false,
+			'hierarchical'       => false,
+			'labels'             => array(
+				'name'                       => _x( 'Pattern Categories', 'taxonomy general name' ),
+				'singular_name'              => _x( 'Pattern Category', 'taxonomy singular name' ),
+				'add_new_item'               => __( 'Add New Category' ),
+				'add_or_remove_items'        => __( 'Add or remove pattern categories' ),
+				'back_to_items'              => __( '&larr; Go to Pattern Categories' ),
+				'choose_from_most_used'      => __( 'Choose from the most used pattern categories' ),
+				'edit_item'                  => __( 'Edit Pattern Category' ),
+				'item_link'                  => __( 'Pattern Category Link' ),
+				'item_link_description'      => __( 'A link to a pattern category.' ),
+				'items_list'                 => __( 'Pattern Categories list' ),
+				'items_list_navigation'      => __( 'Pattern Categories list navigation' ),
+				'new_item_name'              => __( 'New Pattern Category Name' ),
+				'no_terms'                   => __( 'No pattern categories' ),
+				'not_found'                  => __( 'No pattern categories found.' ),
+				'popular_items'              => __( 'Popular Pattern Categories' ),
+				'search_items'               => __( 'Search Pattern Categories' ),
+				'separate_items_with_commas' => __( 'Separate pattern categories with commas' ),
+				'update_item'                => __( 'Update Pattern Category' ),
+				'view_item'                  => __( 'View Pattern Category' ),
+			),
+			'query_var'          => false,
+			'rewrite'            => false,
+			'show_ui'            => true,
+			'_builtin'           => true,
+			'show_in_nav_menus'  => false,
+			'show_in_rest'       => true,
+			'show_admin_column'  => true,
+			'show_tagcloud'      => false,
+		)
+	);
 }
 
 /**
@@ -233,7 +272,7 @@ function create_initial_taxonomies() {
  *
  * @param array  $args     Optional. An array of `key => value` arguments to match against the taxonomy objects.
  *                         Default empty array.
- * @param string $output   Optional. The type of output to return in the array. Accepts either taxonomy 'names'
+ * @param string $output   Optional. The type of output to return in the array. Either 'names'
  *                         or 'objects'. Default 'names'.
  * @param string $operator Optional. The logical operation to perform. Accepts 'and' or 'or'. 'or' means only
  *                         one element from the array needs to match; 'and' means all elements must match.
@@ -959,6 +998,7 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	// Ensure for filters that this is not empty.
 	$taxonomy = $_term->taxonomy;
 
+	$old_term = $_term;
 	/**
 	 * Filters a taxonomy term object.
 	 *
@@ -998,7 +1038,9 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 	}
 
 	// Sanitize term, according to the specified filter.
-	$_term->filter( $filter );
+	if ( $_term !== $old_term || $_term->filter !== $filter ) {
+		$_term->filter( $filter );
+	}
 
 	if ( ARRAY_A === $output ) {
 		return $_term->to_array();
@@ -1541,8 +1583,7 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 
 	// Ensure that while importing, queries are not cached.
 	if ( ! empty( $_wp_suspend_cache_invalidation ) ) {
-		// @todo Disable caching once #52710 is merged.
-		$defaults['cache_domain'] = microtime();
+		$defaults['cache_results'] = false;
 	}
 
 	if ( ! empty( $taxonomy ) ) {
@@ -2411,6 +2452,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$description = wp_unslash( $args['description'] );
 	$parent      = (int) $args['parent'];
 
+	// Sanitization could clean the name to an empty string that must be checked again.
+	if ( '' === $name ) {
+		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
+	}
+
 	$slug_provided = ! empty( $args['slug'] );
 	if ( ! $slug_provided ) {
 		$slug = sanitize_title( $name );
@@ -2550,7 +2596,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	$tt_id = (int) $wpdb->insert_id;
 
 	/*
-	 * Sanity check: if we just created a term with the same parent + taxonomy + slug but a higher term_id than
+	 * Confidence check: if we just created a term with the same parent + taxonomy + slug but a higher term_id than
 	 * an existing term, then we have unwittingly created a duplicate term. Delete the dupe, and use the term_id
 	 * and term_taxonomy_id of the older term instead. Then return out of the function so that the "create" hooks
 	 * are not fired.
@@ -3090,7 +3136,7 @@ function wp_unique_term_slug( $slug, $term ) {
 			$num = 2;
 			do {
 				$alt_slug = $slug . "-$num";
-				$num++;
+				++$num;
 				$slug_check = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM $wpdb->terms WHERE slug = %s", $alt_slug ) );
 			} while ( $slug_check );
 			$slug = $alt_slug;

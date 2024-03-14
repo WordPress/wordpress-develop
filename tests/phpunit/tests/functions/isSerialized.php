@@ -5,7 +5,8 @@
  *
  * @ticket 53299
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::is_serialized
  */
 class Tests_Functions_IsSerialized extends WP_UnitTestCase {
@@ -24,7 +25,7 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 	/**
 	 * Data provider for `test_is_serialized()`.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_serialized() {
 		return array(
@@ -96,7 +97,7 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 	/**
 	 * Data provider for `test_is_serialized()`.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_is_not_serialized() {
 		return array(
@@ -191,6 +192,11 @@ class Tests_Functions_IsSerialized extends WP_UnitTestCase {
 		$this->assertTrue( is_serialized( $value ) );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_is_serialized_should_return_true_for_large_floats() {
 		return array(
 			array( serialize( 1.7976931348623157E+308 ) ),

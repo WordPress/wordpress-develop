@@ -88,6 +88,14 @@ class WP_REST_Server {
 	protected $embed_cache = array();
 
 	/**
+	 * Stores request objects that are currently being handled.
+	 *
+	 * @since 6.5.0
+	 * @var array
+	 */
+	protected $dispatching_requests = array();
+
+	/**
 	 * Instantiates the REST server.
 	 *
 	 * @since 4.4.0
@@ -323,24 +331,6 @@ class WP_REST_Server {
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
 
 		/**
-		 * Filters whether to send nocache headers on a REST API request.
-		 *
-		 * @since 4.4.0
-		 *
-		 * @param bool $rest_send_nocache_headers Whether to send no-cache headers.
-		 */
-		$send_no_cache_headers = apply_filters( 'rest_send_nocache_headers', is_user_logged_in() );
-		if ( $send_no_cache_headers ) {
-			foreach ( wp_get_nocache_headers() as $header => $header_value ) {
-				if ( empty( $header_value ) ) {
-					$this->remove_header( $header );
-				} else {
-					$this->send_header( $header, $header_value );
-				}
-			}
-		}
-
-		/**
 		 * Filters whether the REST API is enabled.
 		 *
 		 * @since 4.4.0
@@ -394,10 +384,12 @@ class WP_REST_Server {
 		 * $_GET['_method']. If that is not set, we check for the HTTP_X_HTTP_METHOD_OVERRIDE
 		 * header.
 		 */
+		$method_overridden = false;
 		if ( isset( $_GET['_method'] ) ) {
 			$request->set_method( $_GET['_method'] );
 		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
 			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
+			$method_overridden = true;
 		}
 
 		$expose_headers = array( 'X-WP-Total', 'X-WP-TotalPages', 'Link' );
@@ -481,6 +473,30 @@ class WP_REST_Server {
 
 		$code = $result->get_status();
 		$this->set_status( $code );
+
+		/**
+		 * Filters whether to send no-cache headers on a REST API request.
+		 *
+		 * @since 4.4.0
+		 * @since 6.3.2 Moved the block to catch the filter added on rest_cookie_check_errors() from wp-includes/rest-api.php.
+		 *
+		 * @param bool $rest_send_nocache_headers Whether to send no-cache headers.
+		 */
+		$send_no_cache_headers = apply_filters( 'rest_send_nocache_headers', is_user_logged_in() );
+
+		/*
+		 * Send no-cache headers if $send_no_cache_headers is true,
+		 * OR if the HTTP_X_HTTP_METHOD_OVERRIDE is used but resulted a 4xx response code.
+		 */
+		if ( $send_no_cache_headers || ( true === $method_overridden && str_starts_with( $code, '4' ) ) ) {
+			foreach ( wp_get_nocache_headers() as $header => $header_value ) {
+				if ( empty( $header_value ) ) {
+					$this->remove_header( $header );
+				} else {
+					$this->send_header( $header, $header_value );
+				}
+			}
+		}
 
 		/**
 		 * Filters whether the REST API request has already been served.
@@ -732,6 +748,13 @@ class WP_REST_Server {
 						$request['context'] = 'embed';
 					}
 
+					if ( empty( $request['per_page'] ) ) {
+						$matched = $this->match_request_to_handler( $request );
+						if ( ! is_wp_error( $matched ) && isset( $matched[1]['args']['per_page']['maximum'] ) ) {
+							$request['per_page'] = (int) $matched[1]['args']['per_page']['maximum'];
+						}
+					}
+
 					$response = $this->dispatch( $request );
 
 					/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
@@ -975,6 +998,8 @@ class WP_REST_Server {
 	 * @return WP_REST_Response Response returned by the callback.
 	 */
 	public function dispatch( $request ) {
+		$this->dispatching_requests[] = $request;
+
 		/**
 		 * Filters the pre-calculated result of a REST API dispatch request.
 		 *
@@ -1000,6 +1025,7 @@ class WP_REST_Server {
 				$result = $this->error_to_response( $result );
 			}
 
+			array_pop( $this->dispatching_requests );
 			return $result;
 		}
 
@@ -1007,7 +1033,9 @@ class WP_REST_Server {
 		$matched = $this->match_request_to_handler( $request );
 
 		if ( is_wp_error( $matched ) ) {
-			return $this->error_to_response( $matched );
+			$response = $this->error_to_response( $matched );
+			array_pop( $this->dispatching_requests );
+			return $response;
 		}
 
 		list( $route, $handler ) = $matched;
@@ -1032,7 +1060,22 @@ class WP_REST_Server {
 			}
 		}
 
-		return $this->respond_to_request( $request, $route, $handler, $error );
+		$response = $this->respond_to_request( $request, $route, $handler, $error );
+		array_pop( $this->dispatching_requests );
+		return $response;
+	}
+
+	/**
+	 * Returns whether the REST server is currently dispatching / responding to a request.
+	 *
+	 * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return bool Whether the REST server is currently handling a request.
+	 */
+	public function is_dispatching() {
+		return (bool) $this->dispatching_requests;
 	}
 
 	/**
@@ -1079,7 +1122,6 @@ class WP_REST_Server {
 
 			foreach ( $handlers as $handler ) {
 				$callback = $handler['callback'];
-				$response = null;
 
 				// Fallback to GET method if no HEAD method is registered.
 				$checked_method = $method;
@@ -1273,10 +1315,30 @@ class WP_REST_Server {
 		);
 
 		$response = new WP_REST_Response( $available );
-		$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
-		$this->add_active_theme_link_to_index( $response );
-		$this->add_site_logo_to_index( $response );
-		$this->add_site_icon_to_index( $response );
+
+		$fields = isset( $request['_fields'] ) ? $request['_fields'] : '';
+		$fields = wp_parse_list( $fields );
+		if ( empty( $fields ) ) {
+			$fields[] = '_links';
+		}
+
+		if ( $request->has_param( '_embed' ) ) {
+			$fields[] = '_embedded';
+		}
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_link( 'help', 'https://developer.wordpress.org/rest-api/' );
+			$this->add_active_theme_link_to_index( $response );
+			$this->add_site_logo_to_index( $response );
+			$this->add_site_icon_to_index( $response );
+		} else {
+			if ( rest_is_field_included( 'site_logo', $fields ) ) {
+				$this->add_site_logo_to_index( $response );
+			}
+			if ( rest_is_field_included( 'site_icon', $fields ) || rest_is_field_included( 'site_icon_url', $fields ) ) {
+				$this->add_site_icon_to_index( $response );
+			}
+		}
 
 		/**
 		 * Filters the REST API root index data.

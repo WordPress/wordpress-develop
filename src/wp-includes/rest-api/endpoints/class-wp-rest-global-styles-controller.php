@@ -358,7 +358,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function prepare_item_for_response( $post, $request ) {
 		$raw_config                       = json_decode( $post->post_content, true );
 		$is_global_styles_user_theme_json = isset( $raw_config['isGlobalStylesUserThemeJSON'] ) && true === $raw_config['isGlobalStylesUserThemeJSON'];
 		$config                           = array();
@@ -367,8 +367,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		// Base fields for every post.
-		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = $post->ID;
@@ -603,8 +603,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		$theme  = WP_Theme_JSON_Resolver::get_merged_data( 'theme' );
-		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'settings', $fields ) ) {
 			$data['settings'] = $theme->get_settings();
@@ -641,7 +641,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
-	public function get_theme_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function get_theme_items_permissions_check( $request ) {
 		/*
 		 * Verify if the current user has edit_theme_options capability.
 		 * This capability is required to edit/view/delete templates.
@@ -663,6 +663,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Returns the given theme global styles variations.
 	 *
 	 * @since 6.0.0
+	 * @since 6.2.0 Returns parent theme variations, if they exist.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
@@ -679,9 +680,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 		}
 
 		$variations = WP_Theme_JSON_Resolver::get_style_variations();
-		$response   = rest_ensure_response( $variations );
 
-		return $response;
+		return rest_ensure_response( $variations );
 	}
 
 	/**
@@ -690,11 +690,12 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Controller {
 	 * Currently just checks for invalid markup.
 	 *
 	 * @since 6.2.0
+	 * @since 6.4.0 Changed method visibility to protected.
 	 *
 	 * @param string $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
-	private function validate_custom_css( $css ) {
+	protected function validate_custom_css( $css ) {
 		if ( preg_match( '#</?\w+#', $css ) ) {
 			return new WP_Error(
 				'rest_custom_css_illegal_markup',

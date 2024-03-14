@@ -41,7 +41,7 @@ class Tests_Post_WpGetAttachmentLink extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_get_attachment_link_attributes',
-			static function( $attr ) use ( $attributes ) {
+			static function ( $attr ) use ( $attributes ) {
 				return array_merge( $attr, $attributes );
 			}
 		);

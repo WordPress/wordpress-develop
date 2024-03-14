@@ -206,8 +206,8 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  * The action will trigger when someone visits your WordPress site if the scheduled
  * time has passed.
  *
- * Valid values for the recurrence are 'hourly', 'daily', and 'twicedaily'. These can
- * be extended using the {@see 'cron_schedules'} filter in wp_get_schedules().
+ * Valid values for the recurrence are 'hourly', 'twicedaily', 'daily', and 'weekly'.
+ * These can be extended using the {@see 'cron_schedules'} filter in wp_get_schedules().
  *
  * Use wp_next_scheduled() to prevent duplicate events.
  *
@@ -863,7 +863,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	 * Multiple processes on multiple web servers can run this code concurrently,
 	 * this lock attempts to make spawning as atomic as possible.
 	 */
-	$lock = get_transient( 'doing_cron' );
+	$lock = (float) get_transient( 'doing_cron' );
 
 	if ( $lock > $gmt_time + 10 * MINUTE_IN_SECONDS ) {
 		$lock = 0;
@@ -874,7 +874,7 @@ function spawn_cron( $gmt_time = 0 ) {
 		return false;
 	}
 
-	// Sanity check.
+	// Confidence check.
 	$crons = wp_get_ready_cron_jobs();
 	if ( empty( $crons ) ) {
 		return false;

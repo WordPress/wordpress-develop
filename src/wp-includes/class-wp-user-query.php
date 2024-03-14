@@ -818,13 +818,13 @@ class WP_User_Query {
 		$this->results = apply_filters_ref_array( 'users_pre_query', array( null, &$this ) );
 
 		if ( null === $this->results ) {
-			$this->request = "
-				SELECT {$this->query_fields}
-				{$this->query_from}
-				{$this->query_where}
-				{$this->query_orderby}
-				{$this->query_limit}
-			";
+			// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+			$this->request =
+				"SELECT {$this->query_fields}
+				 {$this->query_from}
+				 {$this->query_where}
+				 {$this->query_orderby}
+				 {$this->query_limit}";
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
 			$cache_group   = 'user-queries';
@@ -1122,7 +1122,8 @@ class WP_User_Query {
 			return $this->$name;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Getting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -1145,7 +1146,8 @@ class WP_User_Query {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Setting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -1166,7 +1168,8 @@ class WP_User_Query {
 			return isset( $this->$name );
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
@@ -1188,7 +1191,8 @@ class WP_User_Query {
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.',
 			E_USER_DEPRECATED
