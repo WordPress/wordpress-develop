@@ -14,7 +14,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	 * @var int
 	 */
 	protected static $admin_id;
-	private static $post;
+	private static $template_post;
 
 	/**
 	 * Create fake data before our tests run.
@@ -29,7 +29,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		);
 
 		// Set up template post.
-		$args       = array(
+		$args                = array(
 			'post_type'    => 'wp_template',
 			'post_name'    => 'my_template',
 			'post_title'   => 'My Template',
@@ -41,12 +41,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 				),
 			),
 		);
-		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
+		self::$template_post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$template_post->ID, get_stylesheet(), 'wp_theme' );
 	}
 
 	public static function wpTearDownAfterClass() {
-		wp_delete_post( self::$post->ID );
+		wp_delete_post( self::$template_post->ID );
 	}
 
 	/**
@@ -130,11 +130,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'rendered' => 'My Template',
 				),
 				'status'          => 'publish',
-				'wp_id'           => self::$post->ID,
+				'wp_id'           => self::$template_post->ID,
 				'has_theme_file'  => false,
 				'is_custom'       => true,
 				'author'          => 0,
-				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -177,11 +177,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'rendered' => 'My Template',
 				),
 				'status'          => 'publish',
-				'wp_id'           => self::$post->ID,
+				'wp_id'           => self::$template_post->ID,
 				'has_theme_file'  => false,
 				'is_custom'       => true,
 				'author'          => 0,
-				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
@@ -216,11 +216,11 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 					'rendered' => 'My Template',
 				),
 				'status'          => 'publish',
-				'wp_id'           => self::$post->ID,
+				'wp_id'           => self::$template_post->ID,
 				'has_theme_file'  => false,
 				'is_custom'       => true,
 				'author'          => 0,
-				'modified'        => mysql_to_rfc3339( self::$post->post_modified ),
+				'modified'        => mysql_to_rfc3339( self::$template_post->post_modified ),
 				'author_text'     => 'Test Blog',
 				'original_source' => 'site',
 			),
