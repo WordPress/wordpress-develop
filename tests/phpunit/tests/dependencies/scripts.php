@@ -3105,6 +3105,36 @@ HTML
 	}
 
 	/**
+	 * Test that get_script_polyfill() returns the correct polyfill.
+	 *
+	 * @ticket 60348
+	 *
+	 * @covers ::wp_get_script_polyfill
+	 *
+	 * @global WP_Scripts $wp_scripts WP_Scripts instance.
+	 */
+	public function test_wp_get_script_polyfill() {
+		global $wp_scripts;
+		$script_name = 'wp-polyfill-importmap';
+		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
+		$script_url  = 'https://example.com/wp-polyfill-importmap.js';
+		wp_register_script( $script_name, $script_url );
+
+		$polyfill = wp_get_script_polyfill(
+			$wp_scripts,
+			array(
+				$test_script => $script_name,
+			)
+		);
+
+		wp_deregister_script( $script_name );
+
+		$expected = '( ' . $test_script . ' ) || document.write( \'<script src="' . $script_url . '"></scr\' + \'ipt>\' );';
+
+		$this->assertEquals( $expected, $polyfill );
+	}
+
+	/**
 	 * Data provider for test_wp_scripts_move_to_footer.
 	 *
 	 * @return array[]
@@ -3366,7 +3396,7 @@ HTML
 
 		wp_default_packages_vendor( $wp_scripts );
 
-		$this->assertEquals( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
+		$this->assertSame( $package_json[ $script ], $wp_scripts->query( $script, 'registered' )->ver );
 	}
 
 	public function data_wp_default_packages_vendor() {
