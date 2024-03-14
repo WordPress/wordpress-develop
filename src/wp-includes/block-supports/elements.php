@@ -22,7 +22,7 @@ function wp_get_elements_class_name( $block ) {
 /**
  * Updates the block content with elements class names.
  *
- * @deprecated 6.5.0 Generation of element class name is handled via `render_block_data` filter.
+ * @deprecated 6.6.0 Generation of element class name is handled via `render_block_data` filter.
  *
  * @since 5.8.0
  * @since 6.4.0 Added support for button and heading element styling.
@@ -33,14 +33,14 @@ function wp_get_elements_class_name( $block ) {
  * @return string Filtered block content.
  */
 function wp_render_elements_support( $block_content, $block ) {
-	_deprecated_function( __FUNCTION__, '6.5.0', 'wp_render_elements_support' );
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_support' );
 	return $block_content;
 }
 
 /**
  * Determines whether an elements class name should be added to the block.
  *
- * @since 6.5.0
+ * @since 6.6.0
  * @access private
  *
  * @param  array $block   Block object.
@@ -122,7 +122,7 @@ function wp_should_add_elements_class_name( $block, $options ) {
  *
  * @since 6.0.0
  * @since 6.1.0 Implemented the style engine to generate CSS and classnames.
- * @since 6.5.0 Element block support class and styles are generated via the `render_block_data` filter instead of `pre_render_block`.
+ * @since 6.6.0 Element block support class and styles are generated via the `render_block_data` filter instead of `pre_render_block`.
  * @access private
  *
  * @param array $parsed_block The parsed block.
@@ -131,7 +131,7 @@ function wp_should_add_elements_class_name( $block, $options ) {
 function wp_render_elements_support_styles( $parsed_block ) {
 	/*
 	 * The generation of element styles and classname were moved to the
-	 * `render_block_data` filter in 6.5.0 to avoid filtered attributes
+	 * `render_block_data` filter in 6.6.0 to avoid filtered attributes
 	 * breaking the application of the elements CSS class.
 	 *
 	 * @see https://github.com/WordPress/gutenberg/pull/59535.
@@ -142,7 +142,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
 	if ( is_string( $parsed_block ) ) {
 		_deprecated_argument(
 			__FUNCTION__,
-			'6.5.0',
+			'6.6.0',
 			__( 'Use as a `pre_render_block` filter is deprecated. Use with `render_block_data` instead.' )
 		);
 	}
