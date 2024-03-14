@@ -72,9 +72,9 @@ class WP_Theme_JSON_Data {
 
 	/**
 	 * Return theme JSON object.
-	 * 
+	 *
 	 * @since 6.6.0
-	 * 
+	 *
 	 * @return WP_Theme_JSON
 	 */
 	public function get_theme_json() {
