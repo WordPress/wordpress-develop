@@ -1408,6 +1408,23 @@ class WP_Debug_Data {
 			);
 		}
 
+		if ( 'en_US' !== get_locale() ) {
+			$updates                = wp_get_translation_updates();
+			$translations_available = __( 'No' );
+			if ( ! empty( $updates ) ) {
+				$translations_available = __( 'Yes' );
+			}
+			$info['wp-translations'] = array(
+				'label'  => __( 'Translations' ),
+				'fields' => array(
+					'translations' => array(
+						'label' => __( 'Translations available' ),
+						'value' => $translations_available,
+					),
+				),
+			);
+		}
+
 		/**
 		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
 		 *
