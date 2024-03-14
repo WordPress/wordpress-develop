@@ -564,9 +564,14 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
 
 		// Filter the version to include the ID in the final URL, to test the filter, this should affect the tests below.
-		add_filter( 'script_module_loader_src', function( src, $id ) {
-			return add_query_arg( 'script_module_id', urlencode( $id ), src );
-		}, 10, 2 );
+		add_filter(
+			'script_module_loader_src',
+			function( src, $id ) {
+				return add_query_arg( 'script_module_id', urlencode( $id ), src );
+			},
+			10,
+			2
+		);
 
 		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
 		$this->assertEquals( 'http://example.com/module.js?script_module_id=module_without_version', $result );
