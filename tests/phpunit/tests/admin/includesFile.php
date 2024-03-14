@@ -29,9 +29,9 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$_SERVER['SCRIPT_FILENAME'] = 'S:/home/wordpress/trunk/wp/wp-admin/options-permalink.php';
 		$this->assertSame( 'S:/home/wordpress/trunk/', get_home_path() );
 
-		add_filter('get_home_path',array($this,'filter_get_home_path'));
-		$this->assertSame( 'D:/Users/foo/public_html/trunk',get_home_path());
-		remove_filter('get_home_path',array($this,'filter_get_home_path'));
+		add_filter( 'get_home_path', array( $this, 'filter_get_home_path' ) );
+		$this->assertSame( 'D:/Users/foo/public_html/trunk', get_home_path() );
+		remove_filter( 'get_home_path', array( $this, 'filter_get_home_path' ) );
 
 		update_option( 'home', $home );
 		update_option( 'siteurl', $siteurl );
