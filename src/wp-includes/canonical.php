@@ -548,7 +548,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	/**
-	 * Pretty permalinks for search-results were removed in 6.5.0.
+	 * Pretty permalinks for search-results were removed in 6.6.0.
 	 * All search results are now served from /?s={search_query}.
 	 *
 	 * @see https://core.trac.wordpress.org/ticket/4463
