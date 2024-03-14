@@ -64,9 +64,3 @@ remove_action( 'init', 'register_block_core_social_link' );
 remove_action( 'init', 'register_block_core_tag_cloud' );
 remove_action( 'init', 'register_block_core_template_part' );
 remove_action( 'init', 'register_block_core_term_description' );
-
-// Temporary hook removals to prevent impacting the phpunit tests timing.
-remove_action( 'registered_post_type', 'block_core_navigation_link_register_post_type_variation' );
-remove_action( 'registered_taxonomy', 'block_core_navigation_link_register_taxonomy_variation' );
-remove_action( 'unregistered_post_type', 'block_core_navigation_link_unregister_post_type_variation' );
-remove_action( 'unregistered_taxonomy', 'block_core_navigation_link_unregister_taxonomy_variation' );

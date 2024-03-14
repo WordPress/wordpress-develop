@@ -293,21 +293,30 @@ HTML;
 
 	/**
 	 * @ticket 56299
+	 * @ticket 60697
 	 *
 	 * @covers WP_HTML_Tag_Processor::seek
 	 */
 	public function test_updates_bookmark_for_additions_after_both_sides() {
 		$processor = new WP_HTML_Tag_Processor( '<div>First</div><div>Second</div>' );
 		$processor->next_tag();
+		$processor->set_attribute( 'id', 'one' );
 		$processor->set_bookmark( 'first' );
 		$processor->next_tag();
+		$processor->set_attribute( 'id', 'two' );
 		$processor->add_class( 'second' );
 
 		$processor->seek( 'first' );
 		$processor->add_class( 'first' );
 
 		$this->assertSame(
-			'<div class="first">First</div><div class="second">Second</div>',
+			'one',
+			$processor->get_attribute( 'id' ),
+			'Should have remembered attribute change from before the seek.'
+		);
+
+		$this->assertSame(
+			'<div class="first" id="one">First</div><div class="second" id="two">Second</div>',
 			$processor->get_updated_html(),
 			'The bookmark was updated incorrectly in response to HTML markup updates'
 		);
@@ -434,5 +443,50 @@ HTML;
 
 		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::seek' );
 		$this->assertFalse( $processor->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit" );
+	}
+
+	/**
+	 * Ensures that it's possible to seek to an earlier location in a document even
+	 * after reaching the end of a document, when most functionality shuts down.
+	 *
+	 * @ticket 60428
+	 *
+	 * @dataProvider data_incomplete_html_with_target_nodes_for_seeking
+	 *
+	 * @param string $html_with_target_element HTML string containing a tag with a `target` attribute.
+	 */
+	public function test_can_seek_after_document_ends( $html_with_target_element ) {
+		$processor = new WP_HTML_Tag_Processor( $html_with_target_element );
+
+		$sought_tag_name = null;
+		while ( $processor->next_tag() ) {
+			if ( null !== $processor->get_attribute( 'target' ) ) {
+				$processor->set_bookmark( 'target' );
+				$sought_tag_name = $processor->get_tag();
+			}
+		}
+
+		$this->assertTrue(
+			$processor->seek( 'target' ),
+			'Should have been able to seek to the target bookmark after reaching the end of the document.'
+		);
+
+		$this->assertSame(
+			$sought_tag_name,
+			$processor->get_tag(),
+			"Should have found original target node instead of {$processor->get_tag()}."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_incomplete_html_with_target_nodes_for_seeking() {
+		return array(
+			'Compete document'    => array( '<div><img target></div>' ),
+			'Incomplete document' => array( '<div><img target></div' ),
+		);
 	}
 }

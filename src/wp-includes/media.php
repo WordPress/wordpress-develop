@@ -972,14 +972,25 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 		$src = false;
 
 		if ( $icon ) {
-			$src = wp_mime_type_icon( $attachment_id );
+			$src = wp_mime_type_icon( $attachment_id, '.svg' );
 
 			if ( $src ) {
 				/** This filter is documented in wp-includes/post.php */
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
-				$src_file               = $icon_dir . '/' . wp_basename( $src );
+				$src_file = $icon_dir . '/' . wp_basename( $src );
+
 				list( $width, $height ) = wp_getimagesize( $src_file );
+
+				$ext = strtolower( substr( $src_file, -4 ) );
+
+				if ( '.svg' === $ext ) {
+					// SVG does not have true dimensions, so this assigns width and height directly.
+					$width  = 48;
+					$height = 64;
+				} else {
+					list( $width, $height ) = wp_getimagesize( $src_file );
+				}
 			}
 		}
 
@@ -2354,10 +2365,6 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  * @return string HTML content to display the caption.
  */
 function img_caption_shortcode( $attr, $content = '' ) {
-	if ( ! $attr ) {
-		$attr = array();
-	}
-
 	// New-style shortcode with the caption inside the shortcode with the link and image tags.
 	if ( ! isset( $attr['caption'] ) ) {
 		if ( preg_match( '#((?:<a [^>]+>\s*)?<img [^>]+>(?:\s*</a>)?)(.*)#is', $content, $matches ) ) {
@@ -3071,7 +3078,7 @@ function wp_playlist_shortcode( $attr ) {
 				list( $src, $width, $height ) = wp_get_attachment_image_src( $thumb_id, 'thumbnail' );
 				$track['thumb']               = compact( 'src', 'width', 'height' );
 			} else {
-				$src            = wp_mime_type_icon( $attachment->ID );
+				$src            = wp_mime_type_icon( $attachment->ID, '.svg' );
 				$width          = 48;
 				$height         = 64;
 				$track['image'] = compact( 'src', 'width', 'height' );
@@ -4100,6 +4107,7 @@ function _wp_image_editor_choose( $args = array() ) {
 	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
 	/**
 	 * Filters the list of image editing library classes.
 	 *
@@ -4202,6 +4210,11 @@ function wp_plupload_default_settings() {
 	// Check if WebP images can be edited.
 	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 		$defaults['webp_upload_error'] = true;
+	}
+
+	// Check if AVIF images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+		$defaults['avif_upload_error'] = true;
 	}
 
 	/**
@@ -4337,7 +4350,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		'mime'          => $attachment->post_mime_type,
 		'type'          => $type,
 		'subtype'       => $subtype,
-		'icon'          => wp_mime_type_icon( $attachment->ID ),
+		'icon'          => wp_mime_type_icon( $attachment->ID, '.svg' ),
 		'dateFormatted' => mysql2date( __( 'F j, Y' ), $attachment->post_date ),
 		'nonces'        => array(
 			'update' => false,
@@ -4508,7 +4521,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 			list( $src, $width, $height ) = wp_get_attachment_image_src( $id, 'thumbnail' );
 			$response['thumb']            = compact( 'src', 'width', 'height' );
 		} else {
-			$src               = wp_mime_type_icon( $attachment->ID );
+			$src               = wp_mime_type_icon( $attachment->ID, '.svg' );
 			$width             = 48;
 			$height            = 64;
 			$response['image'] = compact( 'src', 'width', 'height' );
@@ -5480,6 +5493,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  *
  * @since 5.7.0
  * @since 5.8.0 Added support for WebP images.
+ * @since 6.5.0 Added support for AVIF images.
  *
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
@@ -5512,7 +5526,11 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
-	if ( false !== $info ) {
+	if (
+		! empty( $info ) &&
+		// Some PHP versions return 0x0 sizes from `getimagesize` for unrecognized image formats, including AVIFs.
+		! ( empty( $info[0] ) && empty( $info[1] ) )
+	) {
 		return $info;
 	}
 
@@ -5541,8 +5559,73 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		}
 	}
 
+	// For PHP versions that don't support AVIF images, extract the image size info from the file headers.
+	if ( 'image/avif' === wp_get_image_mime( $filename ) ) {
+		$avif_info = wp_get_avif_info( $filename );
+
+		$width  = $avif_info['width'];
+		$height = $avif_info['height'];
+
+		// Mimic the native return format.
+		if ( $width && $height ) {
+			return array(
+				$width,
+				$height,
+				IMAGETYPE_AVIF,
+				sprintf(
+					'width="%d" height="%d"',
+					$width,
+					$height
+				),
+				'mime' => 'image/avif',
+			);
+		}
+	}
+
 	// The image could not be parsed.
 	return false;
+}
+
+/**
+ * Extracts meta information about an AVIF file: width, height, bit depth, and number of channels.
+ *
+ * @since 6.5.0
+ *
+ * @param string $filename Path to an AVIF file.
+ * @return array {
+ *    An array of AVIF image information.
+ *
+ *    @type int|false $width        Image width on success, false on failure.
+ *    @type int|false $height       Image height on success, false on failure.
+ *    @type int|false $bit_depth    Image bit depth on success, false on failure.
+ *    @type int|false $num_channels Image number of channels on success, false on failure.
+ * }
+ */
+function wp_get_avif_info( $filename ) {
+	$results = array(
+		'width'        => false,
+		'height'       => false,
+		'bit_depth'    => false,
+		'num_channels' => false,
+	);
+
+	if ( 'image/avif' !== wp_get_image_mime( $filename ) ) {
+		return $results;
+	}
+
+	// Parse the file using libavifinfo's PHP implementation.
+	require_once ABSPATH . WPINC . '/class-avif-info.php';
+
+	$handle = fopen( $filename, 'rb' );
+	if ( $handle ) {
+		$parser  = new Avifinfo\Parser( $handle );
+		$success = $parser->parse_ftyp() && $parser->parse_file();
+		fclose( $handle );
+		if ( $success ) {
+			$results = $parser->features->primary_item_features;
+		}
+	}
+	return $results;
 }
 
 /**
