@@ -39,7 +39,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		$this->assertSame( $font_dir, static::$dir_defaults );
 	}
 
-	public function test_add_and_remove_fonts_dir_filter() {
+	public function test_font_dir_filter() {
 		// Define a callback function to pass to the filter.
 		function set_new_values( $defaults ) {
 			$defaults['path']    = path_join( WP_CONTENT_DIR, 'custom_dir' );
