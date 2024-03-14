@@ -475,6 +475,8 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 60754
+	 *
 	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_applies_filter_correctly() {
