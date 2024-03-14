@@ -383,7 +383,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests handling of bindings within nested tags.
+	 * Tests handling bindings to boolean values.
 	 *
 	 * @ticket 60758
 	 *
