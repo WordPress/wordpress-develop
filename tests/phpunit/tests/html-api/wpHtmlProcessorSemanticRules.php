@@ -128,6 +128,9 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'DIV', $processor->get_tag(), 'Did not stop at initial DIV tag.' );
 		$this->assertFalse( $processor->is_tag_closer(), 'Did not find that initial DIV tag is an opener.' );
 
+		$processor->step();
+		$this->assertSame( '#text', $processor->get_token_type(), 'Should have found the text node.' );
+
 		/*
 		 * When encountering the BUTTON closing tag, there is no BUTTON in the stack of open elements.
 		 * It should be ignored as there's no BUTTON to close.

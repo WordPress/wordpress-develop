@@ -62,6 +62,11 @@ jobs:
       - name: Install npm Dependencies
         run: npm ci
 
+      - name: Run Emoji precommit task
+        run: npm run grunt precommit:emoji
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
 
