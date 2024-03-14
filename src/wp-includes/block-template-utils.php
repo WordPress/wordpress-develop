@@ -1469,16 +1469,17 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	// `terms_input` and `meta_input` properties in the changes object.
 
 	$terms_filter = function( $terms, $post_id, $taxonomy ) use ( $post ) {
-		if ( 'wp_theme' === $taxonomy && isset( $post->tax_input['wp_theme'] ) ) {
-			// TODO: Verify it's not an error object.
-			// TODO: Verify that $post_id matches (or isn't set).
-			$term       = new stdClass;
-			$term->name = $post->tax_input['wp_theme'];
-
-			$term = new WP_Term( $term );
-			return array( $term );
+		if ( 'wp_theme' !== $taxonomy || ! isset( $post->tax_input['wp_theme'] ) ) {
+			return $terms;
 		}
-		return $terms;
+
+		// TODO: Verify it's not an error object.
+		// TODO: Verify that $post_id matches (or isn't set).
+		$term       = new stdClass;
+		$term->name = $post->tax_input['wp_theme'];
+
+		$term = new WP_Term( $term );
+		return array( $term );
 	};
 
 	$meta_filter = function( $value, $post_id, $meta_key, $single ) use ( $post ) {
