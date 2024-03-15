@@ -1444,21 +1444,21 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * @since 6.5.0
  * @access private
  *
- * @param stdClass        $post    An object representing a template or template part
+ * @param stdClass        $changes An object representing a template or template part
  *                                 prepared for inserting or updating the database.
  * @param WP_REST_Request $request Request object.
  * @return stdClass The updated object representing a template or template part.
  */
-function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
+function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) {
 	$filter_name = current_filter();
 	if ( ! str_starts_with( $filter_name, 'rest_pre_insert_' ) ) {
-		return $post;
+		return $changes;
 	}
 	$post_type = str_replace( 'rest_pre_insert_', '', $filter_name );
 
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
-		return $post;
+		return $changes;
 	}
 
 	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
@@ -1468,27 +1468,27 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	// We also need to mimic terms and meta for the post based on the corresponding
 	// `terms_input` and `meta_input` properties in the changes object.
 
-	$terms_filter = function( $terms, $post_id, $taxonomy ) use ( $post ) {
-		if ( 'wp_theme' !== $taxonomy || ! isset( $post->tax_input['wp_theme'] ) ) {
+	$terms_filter = function( $terms, $post_id, $taxonomy ) use ( $changes ) {
+		if ( 'wp_theme' !== $taxonomy || ! isset( $changes->tax_input['wp_theme'] ) ) {
 			return $terms;
 		}
 
 		// TODO: Verify it's not an error object.
 		// TODO: Verify that $post_id matches (or isn't set).
 		$term       = new stdClass;
-		$term->name = $post->tax_input['wp_theme'];
+		$term->name = $changes->tax_input['wp_theme'];
 
 		$term = new WP_Term( $term );
 		return array( $term );
 	};
 
-	$meta_filter = function( $value, $post_id, $meta_key, $single ) use ( $post ) {
-		if ( 'origin' === $meta_key && isset( $post->meta_input['origin'] ) ) {
-			return $single ? $post->meta_input['origin'] : array( $post->meta_input['origin'] );
+	$meta_filter = function( $value, $post_id, $meta_key, $single ) use ( $changes ) {
+		if ( 'origin' === $meta_key && isset( $changes->meta_input['origin'] ) ) {
+			return $single ? $changes->meta_input['origin'] : array( $changes->meta_input['origin'] );
 		}
 
-		if ( 'is_wp_suggestion' === $meta_key && isset( $post->meta_input['is_wp_suggestion'] ) ) {
-			return $single ? $post->meta_input['is_wp_suggestion'] : array( $post->meta_input['is_wp_suggestion'] );
+		if ( 'is_wp_suggestion' === $meta_key && isset( $changes->meta_input['is_wp_suggestion'] ) ) {
+			return $single ? $changes->meta_input['is_wp_suggestion'] : array( $changes->meta_input['is_wp_suggestion'] );
 		}
 
 		return $value;
@@ -1496,7 +1496,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 
 	add_filter( 'get_the_terms', $terms_filter, 10, 3 );
 	add_filter( 'get_post_metadata', $meta_filter, 10, 4 );
-	$template = _build_block_template_result_from_post( $post );
+	$template = _build_block_template_result_from_post( $changes );
 	remove_filter( 'get_post_metadata', $meta_filter );
 	remove_filter( 'get_the_terms', $terms_filter );
 
@@ -1505,9 +1505,9 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post, $request ) {
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 
-	$blocks  = parse_blocks( $post->post_content );
+	$blocks  = parse_blocks( $changes->post_content );
 	$content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
-	$post->post_content = $content;
-	return $post;
+	$changes->post_content = $content;
+	return $changes;
 }
