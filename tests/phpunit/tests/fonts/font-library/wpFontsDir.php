@@ -12,6 +12,7 @@
  */
 class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	private static $dir_defaults;
+	private static $skip_file_system_tests = false;
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
@@ -26,6 +27,11 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			'baseurl' => $url,
 			'error'   => false,
 		);
+
+		$default_dir_exists  = file_exists( $path );
+		$fallback_dir_exists = file_exists( path_join( WP_CONTENT_DIR, 'uploads/fonts' ) );
+
+		self::$skip_file_system_tests = $default_dir_exists || $fallback_dir_exists;
 	}
 
 	public function tear_down() {
@@ -115,6 +121,10 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	}
 
 	public function test_should_create_fonts_dir_in_uploads_when_fails_in_wp_content() {
+		if ( self::$skip_file_system_tests ) {
+			$this->markTestSkipped( 'The file system tests can not run on this environment.' );
+		}
+
 		// Set the expected results.
 		$upload_dir = wp_upload_dir();
 		$expected   = array(
@@ -137,6 +147,10 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	}
 
 	public function test_should_return_error_if_unable_to_create_fonts_dir_in_uploads() {
+		if ( self::$skip_file_system_tests ) {
+			$this->markTestSkipped( 'The file system tests can not run on this environment.' );
+		}
+
 		// Disallow the creation of the `wp-content/fonts` directory.
 		$this->create_fake_file_to_avoid_dir_creation( static::$dir_defaults['path'] );
 		$this->assertFileExists( static::$dir_defaults['path'] );
