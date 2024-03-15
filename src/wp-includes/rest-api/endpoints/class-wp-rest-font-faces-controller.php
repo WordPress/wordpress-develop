@@ -856,13 +856,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function handle_font_file_upload( $file ) {
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		/*
-		 * Filter the upload directory to return the fonts directory..
-		 *
-		 * The filter runs at priority 20 to ensure it runs after any filters
-		 * added at the default priority by plugins modifying the upload path
-		 * or URL.
-		*/
+		// Filter the upload directory to return the fonts directory..
 		add_filter( 'upload_dir', 'wp_apply_font_dir_filters' );
 
 		$overrides = array(
