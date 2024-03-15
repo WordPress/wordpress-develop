@@ -254,7 +254,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 
 SCRIPT_TAG;
 
-		$this->assertEquals( $expected, $printed_script );
+		$this->assertSame( $expected, $printed_script );
 	}
 
 	/**
@@ -287,7 +287,7 @@ SCRIPT_TAG;
 
 SCRIPT_TAG;
 
-		$this->assertEquals( $expected, $printed_script );
+		$this->assertSame( $expected, $printed_script );
 	}
 
 	/**
@@ -308,7 +308,7 @@ SCRIPT_TAG;
 
 SCRIPT_TAG;
 
-		$this->assertEquals( $expected, $printed_script );
+		$this->assertSame( $expected, $printed_script );
 	}
 
 	/**
@@ -341,7 +341,7 @@ SCRIPT_TAG;
 
 SCRIPT_TAG;
 
-		$this->assertEquals( $expected, $printed_script );
+		$this->assertSame( $expected, $printed_script );
 	}
 
 	/**
