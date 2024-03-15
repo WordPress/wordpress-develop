@@ -739,13 +739,28 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	$default_template_types = get_default_block_template_types();
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
 
+	/*
+	 * These are fields that are directly mapped from the post object to the template object.
+	 */
+	$post_to_template_mapping = array(
+		'ID'           => 'wp_id',
+		'post_content' => 'content',
+		'post_name'    => 'slug',
+		'post_type'    => 'type',
+		'post_excerpt' => 'description',
+		'post_title'   => 'title',
+		'post_status'  => 'status',
+		'post_author'  => 'author',
+		'post_modified' => 'modified',
+	);
+
 	$template = new WP_Block_Template();
-	$template->content 		  = $post->post_content;
-	$template->slug 		  = $post->post_name;
-	$template->type           = $post->post_type;
-	$template->description    = $post->post_excerpt;
-	$template->title          = $post->post_title;
-	$template->status         = $post->post_status;
+
+	foreach ( $post_to_template_mapping as $post_key => $template_key ) {
+		if ( isset( $post->{$post_key} ) ) {
+			$template->{$template_key} = $post->{$post_key};
+		}
+	}
 
 	if (
 		'wp_template' === $post->post_type &&
@@ -808,8 +823,6 @@ function _build_block_template_result_from_post( $post ) {
 		'wp_id'          => $post->ID,
 		'has_theme_file' => $has_theme_file,
 		'is_custom'      => empty( $is_wp_suggestion ),
-		'author'         => $post->post_author,
-		'modified'       => $post->post_modified,
 		'origin'         => ! empty( $origin ) ? $origin : null,
 		'source'         => 'custom',
 	);
@@ -1485,14 +1498,18 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
-	// Custom made templates don't have a post_name set.
-	// TODO: Shall we update the controller to always set the post_name?
-	if ( ! isset( $changes->post_name ) ) {
-		$changes->post_name = $request['slug'];
-	}
-
 	$theme = $changes->tax_input['wp_theme'];
 	$template_file  = _get_block_template_file( $changes->post_type, $changes->post_name );
+	$additional_fields = array();
+
+	if ( ! empty( $changes->ID ) ) {
+		$post = get_post( $changes->ID );
+	} else {
+		if ( ! isset( $changes->post_name ) ) {
+			$changes->post_name = $request['slug'];
+		}
+		$post = $changes;
+	}
 
 	$additional_fields = array(
 		'theme'          => $changes->tax_input['wp_theme'],
@@ -1500,7 +1517,6 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		'has_theme_file' => get_stylesheet() === $theme && null !== $template_file,
 		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
 		'source'         => 'custom',
-		'author'         => isset( $changes->post_author ) ? $changes->post_author : null,
 		'is_custom'      => isset( $changes->meta_input['is_wp_suggestion'] ) ? $changes->meta_input['is_wp_suggestion'] : false,
 	);
 
@@ -1508,15 +1524,8 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$additional_fields['area'] = $changes->tax_input['wp_template_part_area'];
 	}
 
-	if ( ! empty( $changes->ID ) ) {
-		$post = get_post( $changes->ID );
-	} else {
-		$post = $changes;
-	}
-
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
 
-	// Last parameter is set to false to avoid hooking blocks into the content.
 	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $additional_fields );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
