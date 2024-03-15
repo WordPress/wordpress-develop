@@ -821,6 +821,8 @@ function _build_block_template_result_from_post( $post ) {
 
 	$additional_fields = array(
 		'wp_id'          => $post->ID,
+		'id'             => $theme . '//' . $parent_post->post_name,
+		'theme'          => $theme,
 		'has_theme_file' => $has_theme_file,
 		'is_custom'      => empty( $is_wp_suggestion ),
 		'origin'         => ! empty( $origin ) ? $origin : null,
@@ -1517,7 +1519,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		'has_theme_file' => get_stylesheet() === $theme && null !== $template_file,
 		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
 		'source'         => 'custom',
-		'is_custom'      => isset( $changes->meta_input['is_wp_suggestion'] ) ? $changes->meta_input['is_wp_suggestion'] : false,
+		'is_custom'      => empty( $changes->meta_input['is_wp_suggestion'] ),
 	);
 
 	if ( isset( $changes->tax_input['wp_template_part_area'] ) ) {
