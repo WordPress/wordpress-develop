@@ -725,6 +725,68 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 }
 
 /**
+ * Build a block template object for based on a WP_Post object.
+ * 
+ * @since 6.5.0
+ * @access private
+ *
+ * @param WP_Post $post Template post.
+ * @param array $additional_fields Additional fields to add to the template object.
+ * @param bool $hook_blocks Whether to insert hooked blocks into the content or not.
+ * @return WP_Block_Template|WP_Error Template or error object.
+ */
+function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array(), $hook_blocks = true ) {
+	$default_template_types = get_default_block_template_types();
+	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
+
+	$template = new WP_Block_Template();
+	$template->content 		  = $post->post_content;
+	$template->slug 		  = $post->post_name;
+	$template->type           = $post->post_type;
+	$template->description    = $post->post_excerpt;
+	$template->title          = $post->post_title;
+	$template->status         = $post->post_status;
+
+	// Set default values for properties expected to be set.
+	$template->wp_id 		  = null;
+	$template->modified 	  = null;
+	$template->is_custom      = null;
+	$template->has_theme_file = null;
+	$template->author		  = null;
+	$template->area		      = null;
+	$template->post_types	  = null;
+
+	if (
+		'wp_template' === $post->post_type &&
+		isset( $template_file['postTypes'] ) &&
+		isset( $additional_fields['has_theme_file'] ) &&
+		$additional_fields['has_theme_file']
+	) {
+		$template->post_types = $template_file['postTypes'];
+	}
+
+	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
+		$template->is_custom = false;
+	}
+
+	if ( is_array( $additional_fields ) && ! empty( $additional_fields ) ) {
+		foreach ( $additional_fields as $key => $value ) {
+			$template->{$key} = $value;
+		}
+	}
+
+	if ( $hook_blocks ) {
+		$hooked_blocks = get_hooked_blocks();
+		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
+			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+			$blocks               = parse_blocks( $template->content );
+			$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+		}
+	}
+}
+
+/**
  * Builds a unified template object based a post Object.
  *
  * @since 5.9.0
@@ -736,8 +798,6 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * @return WP_Block_Template|WP_Error Template or error object.
  */
 function _build_block_template_result_from_post( $post ) {
-	$default_template_types = get_default_block_template_types();
-
 	$post_id = wp_is_post_revision( $post );
 	if ( ! $post_id ) {
 		$post_id = $post;
@@ -761,37 +821,24 @@ function _build_block_template_result_from_post( $post ) {
 	$origin           = get_post_meta( $parent_post->ID, 'origin', true );
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
-	$template                 = new WP_Block_Template();
-	$template->wp_id          = $post->ID;
-	$template->id             = $theme . '//' . $parent_post->post_name;
-	$template->theme          = $theme;
-	$template->content        = $post->post_content;
-	$template->slug           = $post->post_name;
-	$template->source         = 'custom';
-	$template->origin         = ! empty( $origin ) ? $origin : null;
-	$template->type           = $post->post_type;
-	$template->description    = $post->post_excerpt;
-	$template->title          = $post->post_title;
-	$template->status         = $post->post_status;
-	$template->has_theme_file = $has_theme_file;
-	$template->is_custom      = empty( $is_wp_suggestion );
-	$template->author         = $post->post_author;
-	$template->modified       = $post->post_modified;
-
-	if ( 'wp_template' === $parent_post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
-		$template->post_types = $template_file['postTypes'];
-	}
-
-	if ( 'wp_template' === $parent_post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
-		$template->is_custom = false;
-	}
+	$additional_fields = array(
+		'wp_id'          => $post->ID,
+		'has_theme_file' => $has_theme_file,
+		'is_custom'      => empty( $is_wp_suggestion ),
+		'author'         => $post->post_author,
+		'modified'       => $post->post_modified,
+		'origin'         => ! empty( $origin ) ? $origin : null,
+		'source'         => 'custom',
+	);
 
 	if ( 'wp_template_part' === $parent_post->post_type ) {
 		$type_terms = get_the_terms( $parent_post, 'wp_template_part_area' );
 		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
-			$template->area = $type_terms[0]->name;
+			$additional_fields['area'] = $type_terms[0]->name;
 		}
 	}
+
+	$template = _build_block_template_object_from_wp_post_object( $post, $additional_fields );
 
 	// Check for a block template without a description and title or with a title equal to the slug.
 	if ( 'wp_template' === $parent_post->post_type && empty( $template->description ) && ( empty( $template->title ) || $template->title === $template->slug ) ) {
@@ -899,14 +946,6 @@ function _build_block_template_result_from_post( $post ) {
 					break;
 			}
 		}
-	}
-
-	$hooked_blocks = get_hooked_blocks();
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
-		$blocks               = parse_blocks( $template->content );
-		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
 
 	return $template;
@@ -1450,66 +1489,42 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * @return stdClass The updated object representing a template or template part.
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) {
-	$filter_name = current_filter();
-	if ( ! str_starts_with( $filter_name, 'rest_pre_insert_' ) ) {
-		return $changes;
-	}
-	$post_type = str_replace( 'rest_pre_insert_', '', $filter_name );
-
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
 		return $changes;
 	}
 
-	// We need to build the corresponding `WP_Block_Template` object as context argument for the visitor.
-	// To that end, we need to suppress hooked blocks from getting inserted into the template.
-	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
+	// Custom made templates don't have a post_name set.
+	if ( ! isset( $changes->post_name ) ) {
+		$changes->post_name = $request['slug'];
+	}
 
-	if ( isset( $changes->ID ) ) {
+	$theme = $changes->tax_input['wp_theme'];
+	$template_file  = _get_block_template_file( $changes->post_type, $changes->post_name );
+
+	$additional_fields = array(
+		'theme'          => $changes->tax_input['wp_theme'],
+		'id'             => $theme . '//' . $changes->post_name,
+		'has_theme_file' => get_stylesheet() === $theme && null !== $template_file,
+		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
+		'source'         => 'custom',
+		'author'         => isset( $changes->post_author ) ? $changes->post_author : null,
+		'is_custom'      => isset( $changes->meta_input['is_wp_suggestion'] ) ? $changes->meta_input['is_wp_suggestion'] : false,
+	);
+
+	if ( isset( $changes->tax_input['wp_template_part_area'] ) ) {
+		$additional_fields['area'] = $changes->tax_input['wp_template_part_area'];
+	}
+
+	if ( ! empty( $changes->ID ) ) {
 		$post = get_post( $changes->ID );
 	} else {
-		// This means that there's not post for this template in the DB yet.
-		$post = new stdClass; // Is this correct? Might instead want to init a WP_Post with some fields set.
+		$post = $changes;
 	}
 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
-
-	// We also need to mimic terms and meta for the post based on the corresponding
-	// `terms_input` and `meta_input` properties in the changes object.
-
-	$terms_filter = function( $terms, $post_id, $taxonomy ) use ( $changes ) {
-		if ( 'wp_theme' !== $taxonomy || ! isset( $changes->tax_input['wp_theme'] ) ) {
-			return $terms;
-		}
-
-		// TODO: Verify it's not an error object.
-		// TODO: Verify that $post_id matches (or isn't set).
-		$term       = new stdClass;
-		$term->name = $changes->tax_input['wp_theme'];
-
-		$term = new WP_Term( $term );
-		return array( $term );
-	};
-
-	$meta_filter = function( $value, $post_id, $meta_key, $single ) use ( $changes ) {
-		if ( 'origin' === $meta_key && isset( $changes->meta_input['origin'] ) ) {
-			return $single ? $changes->meta_input['origin'] : array( $changes->meta_input['origin'] );
-		}
-
-		if ( 'is_wp_suggestion' === $meta_key && isset( $changes->meta_input['is_wp_suggestion'] ) ) {
-			return $single ? $changes->meta_input['is_wp_suggestion'] : array( $changes->meta_input['is_wp_suggestion'] );
-		}
-
-		return $value;
-	};
-
-	add_filter( 'get_the_terms', $terms_filter, 10, 3 );
-	add_filter( 'get_post_metadata', $meta_filter, 10, 4 );
-	$template = _build_block_template_result_from_post( $post_with_changes_applied );
-	remove_filter( 'get_post_metadata', $meta_filter );
-	remove_filter( 'get_the_terms', $terms_filter );
-
-	remove_filter( 'hooked_block_types', '__return_empty_array', 99999 );
+	// Last parameter is set to false to avoid hooking blocks into the content.
+	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $additional_fields, false );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
