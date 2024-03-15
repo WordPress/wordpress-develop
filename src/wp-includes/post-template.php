@@ -296,19 +296,21 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 	}
 
 	if ( null === $more_link_text ) {
-		$more_link_text = sprintf(
-			'<span aria-label="%1$s">%2$s</span>',
-			sprintf(
-				/* translators: %s: Post title. */
-				__( 'Continue reading %s' ),
-				the_title_attribute(
-					array(
-						'echo' => false,
-						'post' => $_post,
+		$more_link_text = WP_HTML::render(
+			'<span aria-label="</%label>"></%title></span>',
+			array(
+				'label' => sprintf(
+					/* translators: %s: Post title. */
+					__( 'Continue reading %s' ),
+					the_title_attribute(
+						array(
+							'echo' => false,
+							'post' => $_post,
+						)
 					)
-				)
-			),
-			__( '(more&hellip;)' )
+				),
+				'title' => __( '(more&hellip;)' ),
+			)
 		);
 	}
 
@@ -359,9 +361,17 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 
 	if ( count( $content ) > 1 ) {
 		if ( $elements['more'] ) {
-			$output .= '<span id="more-' . $_post->ID . '"></span>' . $content[1];
+			$output .= WP_HTML::render( '<span id="more-</%id>"></span>', array( 'id' => $_post->ID ) );
+			$output .= $content[1];
 		} else {
 			if ( ! empty( $more_link_text ) ) {
+				$link_html = WP_HTML::render(
+					'<a href="</%post_link>" class="more-link"></%link_text></a>',
+					array(
+						'post_link' => get_permalink( $_post ) . "#more-{$_post->ID}",
+						'link_text' => $more_link_text,
+					)
+				);
 
 				/**
 				 * Filters the Read More link text.
@@ -371,7 +381,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 				 * @param string $more_link_element Read More link element.
 				 * @param string $more_link_text    Read More text.
 				 */
-				$output .= apply_filters( 'the_content_more_link', ' <a href="' . get_permalink( $_post ) . "#more-{$_post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
+				$output .= apply_filters( 'the_content_more_link', $link_html, $more_link_text );
 			}
 			$output = force_balance_tags( $output );
 		}

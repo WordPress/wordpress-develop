@@ -2103,8 +2103,8 @@ class WP_HTML_Tag_Processor {
 		$this->token_length         = null;
 		$this->tag_name_starts_at   = null;
 		$this->tag_name_length      = null;
-		$this->text_starts_at       = 0;
-		$this->text_length          = 0;
+		$this->text_starts_at       = null;
+		$this->text_length          = null;
 		$this->is_closing_tag       = null;
 		$this->attributes           = array();
 		$this->comment_type         = null;
@@ -2889,6 +2889,50 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
+	 * Sets the modifiable text for the matched token, if possible.
+	 *
+	 * @param string $text Replace the modifiable text with this string.
+	 * @return bool Whether the modifiable text was updated.
+	 */
+	public function set_modifiable_text( $text ) {
+		if ( null === $this->text_starts_at || ! is_string( $text ) ) {
+			return false;
+		}
+
+		switch ( $this->get_token_name() ) {
+			case '#text':
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					esc_html( $text )
+				);
+				break;
+
+			case 'TEXTAREA':
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					preg_replace( '~</textarea~i', '&lt;/textarea', $text )
+				);
+				break;
+
+			case 'TITLE':
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->text_starts_at,
+					$this->text_length,
+					preg_replace( '~</title~i', '&lt;/title', $text )
+				);
+				break;
+
+			default:
+				return false;
+		}
+
+		$this->get_updated_html();
+		return true;
+	}
+
+	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
 	 * For boolean attributes special handling is provided:
@@ -2961,14 +3005,37 @@ class WP_HTML_Tag_Processor {
 		 * > To represent a false value, the attribute has to be omitted altogether.
 		 *     - HTML5 spec, https://html.spec.whatwg.org/#boolean-attributes
 		 */
-		if ( false === $value ) {
+		if ( false === $value || null === $value ) {
 			return $this->remove_attribute( $name );
 		}
 
 		if ( true === $value ) {
 			$updated_attribute = $name;
 		} else {
-			$escaped_new_value = esc_attr( $value );
+			$tag_name        = $this->get_tag();
+			$comparable_name = strtolower( $name );
+
+			/*
+			 * Escape URL attributes.
+			 *
+			 * @see https://html.spec.whatwg.org/#attributes-3
+			 */
+			if (
+				! str_starts_with( $value, 'data:' ) && (
+					'cite' === $comparable_name ||
+					'formaction' === $comparable_name ||
+					'href' === $comparable_name ||
+					'ping' === $comparable_name ||
+					'src' === $comparable_name ||
+					( 'FORM' === $tag_name && 'action' === $comparable_name ) ||
+					( 'OBJECT' === $tag_name && 'data' === $comparable_name ) ||
+					( 'VIDEO' === $tag_name && 'poster' === $comparable_name )
+				)
+			) {
+				$escaped_new_value = esc_url( $value );
+			} else {
+				$escaped_new_value = esc_attr( $value );
+			}
 			$updated_attribute = "{$name}=\"{$escaped_new_value}\"";
 		}
 

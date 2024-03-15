@@ -158,12 +158,8 @@ final class _WP_Editors {
 	 */
 	public static function editor( $content, $editor_id, $settings = array() ) {
 		$set            = self::parse_settings( $editor_id, $settings );
-		$editor_class   = ' class="' . trim( esc_attr( $set['editor_class'] ) . ' wp-editor-area' ) . '"';
-		$tabindex       = $set['tabindex'] ? ' tabindex="' . (int) $set['tabindex'] . '"' : '';
 		$default_editor = 'html';
 		$buttons        = '';
-		$autocomplete   = '';
-		$editor_id_attr = esc_attr( $editor_id );
 
 		if ( $set['drag_drop_upload'] ) {
 			self::$drag_drop_upload = true;
@@ -180,8 +176,6 @@ final class _WP_Editors {
 		}
 
 		if ( self::$this_tinymce ) {
-			$autocomplete = ' autocomplete="off"';
-
 			if ( self::$this_quicktags ) {
 				$default_editor = $set['default_editor'] ? $set['default_editor'] : wp_default_editor();
 				// 'html' is used for the "Text" editor tab.
@@ -189,10 +183,16 @@ final class _WP_Editors {
 					$default_editor = 'tinymce';
 				}
 
-				$buttons .= '<button type="button" id="' . $editor_id_attr . '-tmce" class="wp-switch-editor switch-tmce"' .
-					' data-wp-editor-id="' . $editor_id_attr . '">' . _x( 'Visual', 'Name for the Visual editor tab' ) . "</button>\n";
-				$buttons .= '<button type="button" id="' . $editor_id_attr . '-html" class="wp-switch-editor switch-html"' .
-					' data-wp-editor-id="' . $editor_id_attr . '">' . _x( 'Text', 'Name for the Text editor tab (formerly HTML)' ) . "</button>\n";
+				$buttons .= WP_HTML::render( <<<HTML
+ <button type="button" id="</%id>-tmce" class="wp-switch-editor switch-tmce" data-wp-editor-id="</%id>"></%visual_label></button>
+ <button type="button" id="</%id>-html" class="wp-switch-editor switch-html" data-wp-editor-id="</%id>"></%text_label></button>
+HTML,
+					array(
+						'id'           => $editor_id,
+						'text_label'   => _x( 'Text', 'Name for the Text editor tab (formerly HTML)' ),
+						'visual_label' => _x( 'Visual', 'Name for the Visual editor tab' ),
+					)
+				);
 			} else {
 				$default_editor = 'tinymce';
 			}
@@ -201,11 +201,13 @@ final class _WP_Editors {
 		$switch_class = 'html' === $default_editor ? 'html-active' : 'tmce-active';
 		$wrap_class   = 'wp-core-ui wp-editor-wrap ' . $switch_class;
 
-		if ( $set['_content_editor_dfw'] ) {
-			$wrap_class .= ' has-dfw';
-		}
-
-		echo '<div id="wp-' . $editor_id_attr . '-wrap" class="' . $wrap_class . '">';
+		echo WP_HTML::render(
+			'<div id="wp-</%id>-wrap" class="wp-core-jui wp-editor-wrap </%has_dfw>">',
+			array(
+				'id'      => $editor_id,
+				'has_dfw' => $set['_content_editor_dfw'] ? 'has-dfw' : '',
+			)
+		);
 
 		if ( self::$editor_buttons_css ) {
 			wp_print_styles( 'editor-buttons' );
@@ -217,7 +219,10 @@ final class _WP_Editors {
 		}
 
 		if ( ! empty( $buttons ) || $set['media_buttons'] ) {
-			echo '<div id="wp-' . $editor_id_attr . '-editor-tools" class="wp-editor-tools hide-if-no-js">';
+			echo WP_HTML::render(
+				'<div id="wp-</%id>-editor-tools" class="wp-editor-tools hide-if-no-js">',
+				array( 'id' => $editor_id )
+			);
 
 			if ( $set['media_buttons'] ) {
 				self::$has_medialib = true;
@@ -226,7 +231,10 @@ final class _WP_Editors {
 					require ABSPATH . 'wp-admin/includes/media.php';
 				}
 
-				echo '<div id="wp-' . $editor_id_attr . '-media-buttons" class="wp-media-buttons">';
+				echo WP_HTML::render(
+					'<div id="wp-</%id>-media-button" class="wp-media-buttons">',
+					array( 'id' => $editor_id )
+				);
 
 				/**
 				 * Fires after the default media button(s) are displayed.
@@ -249,10 +257,13 @@ final class _WP_Editors {
 			if ( 'content' === $editor_id && ! empty( $GLOBALS['current_screen'] ) && 'post' === $GLOBALS['current_screen']->base ) {
 				$toolbar_id = 'ed_toolbar';
 			} else {
-				$toolbar_id = 'qt_' . $editor_id_attr . '_toolbar';
+				$toolbar_id = 'qt_' . $editor_id . '_toolbar';
 			}
 
-			$quicktags_toolbar = '<div id="' . $toolbar_id . '" class="quicktags-toolbar hide-if-no-js"></div>';
+			$quicktags_toolbar = WP_HTML::render(
+				'<div id="</%id>" class="quicktags-toolbar hide-if-no-js"></div>',
+				array( 'id' => $toolbar_id )
+			);
 		}
 
 		/**
@@ -264,10 +275,28 @@ final class _WP_Editors {
 		 */
 		$the_editor = apply_filters(
 			'the_editor',
-			'<div id="wp-' . $editor_id_attr . '-editor-container" class="wp-editor-container">' .
+			WP_HTML::render(
+				'<div id="wp-</%id>-editor-container" class="wp-editor-container">',
+				array( 'id' => $editor_id )
+			) .
 			$quicktags_toolbar .
-			'<textarea' . $editor_class . $height . $tabindex . $autocomplete . ' cols="40" name="' . esc_attr( $set['textarea_name'] ) . '" ' .
-			'id="' . $editor_id_attr . '">%s</textarea></div>'
+			WP_HTML::render(
+				<<<'HTML'
+<textarea class="</%editor_class>" ...height tabindex="</%tabindex>"
+ autocomplete="</%autocomplete>" cols="40" name="</%name>" id="</%id>">%s</textarea>
+HTML,
+				array(
+					'autocomplete' => self::$this_tinymce ? 'off' : null,
+					'editor_class' => trim( "{$set['editor_class']} wp-editor-area" ),
+					'height'       => ! empty( $set['editor_height'] )
+						? array( 'style' => "height: {$set['editor_height']}px;" )
+						: array( 'rows' => (string) $set['textarea_rows'] ),
+					'id'           => $editor_id,
+					'name'         => $set['textarea_name'],
+					'tabindex'     => $set['tabindex'] ? (string) $set['tabindex'] : null,
+				)
+			) .
+			'</div>'
 		);
 
 		// Prepare the content for the Visual or Text editor, only when TinyMCE is used (back-compat).
@@ -300,12 +329,16 @@ final class _WP_Editors {
 			$content = apply_filters_deprecated( 'richedit_pre', array( $content ), '4.3.0', 'format_for_editor' );
 		}
 
-		if ( false !== stripos( $content, 'textarea' ) ) {
-			$content = preg_replace( '%</textarea%i', '&lt;/textarea', $content );
+		$processor = new WP_HTML_Tag_Processor( $the_editor );
+		while ( $processor->next_tag( 'TEXTAREA' ) ) {
+			if ( $editor_id === $processor->get_attribute( 'id' ) ) {
+				$processor->set_modifiable_text( $content );
+				break;
+			}
 		}
+		$the_editor = $processor->get_updated_html();
 
-		printf( $the_editor, $content );
-		echo "\n</div>\n\n";
+		echo "{$the_editor}\n</div>\n\n";
 
 		self::editor_settings( $editor_id, $set );
 	}

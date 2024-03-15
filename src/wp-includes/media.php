@@ -381,14 +381,10 @@ function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
  * @return string HTML IMG element for given image attachment.
  */
 function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
-
 	list( $img_src, $width, $height ) = image_downsize( $id, $size );
-	$hwstring                         = image_hwstring( $width, $height );
-
-	$title = $title ? 'title="' . esc_attr( $title ) . '" ' : '';
 
 	$size_class = is_array( $size ) ? implode( 'x', $size ) : $size;
-	$class      = 'align' . esc_attr( $align ) . ' size-' . esc_attr( $size_class ) . ' wp-image-' . $id;
+	$class      = "align{$align} size-{$size_class} wp-image-{$id}";
 
 	/**
 	 * Filters the value of the attachment's image tag class attribute.
@@ -403,7 +399,19 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	 */
 	$class = apply_filters( 'get_image_tag_class', $class, $id, $align, $size );
 
-	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
+	$html = WP_HTML::render(
+		<<<'HTML'
+<img src="</%src>" alt="</%alt>" title="</%title>" class="</%class>" height="</%height>" width="</%width>">
+HTML,
+		array(
+			'alt'    => $alt,
+			'class'  => $class,
+			'height' => (string) $height,
+			'src'    => $img_src,
+			'title'  => empty( $title ) ? null : $title,
+			'width'  => (string) $width,
+		)
+	);
 
 	/**
 	 * Filters the HTML content for the image tag.
@@ -3610,26 +3618,14 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	$html_atts = array(
 		'class'    => $atts['class'],
 		'id'       => sprintf( 'video-%d-%d', $post_id, $instance ),
-		'width'    => absint( $atts['width'] ),
-		'height'   => absint( $atts['height'] ),
-		'poster'   => esc_url( $atts['poster'] ),
+		'width'    => (string) absint( $atts['width'] ),
+		'height'   => (string) absint( $atts['height'] ),
+		'poster'   => empty( $atts['poster'] ) ? null : $atts['poster'],
 		'loop'     => wp_validate_boolean( $atts['loop'] ),
 		'autoplay' => wp_validate_boolean( $atts['autoplay'] ),
 		'muted'    => wp_validate_boolean( $atts['muted'] ),
-		'preload'  => $atts['preload'],
+		'preload'  => empty( $atts['preload'] ) ? null : $attr['preload'],
 	);
-
-	// These ones should just be omitted altogether if they are blank.
-	foreach ( array( 'poster', 'loop', 'autoplay', 'preload', 'muted' ) as $a ) {
-		if ( empty( $html_atts[ $a ] ) ) {
-			unset( $html_atts[ $a ] );
-		}
-	}
-
-	$attr_strings = array();
-	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
-	}
 
 	$html = '';
 
@@ -3637,10 +3633,9 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
+	$html .= WP_HTML::render( '<video controls="controls" ...args>', array( 'args' => $html_atts ) );
 
 	$fileurl = '';
-	$source  = '<source type="%s" src="%s" />';
 
 	foreach ( $default_types as $fallback ) {
 		if ( ! empty( $atts[ $fallback ] ) ) {
@@ -3654,8 +3649,14 @@ function wp_video_shortcode( $attr, $content = '' ) {
 			} else {
 				$type = wp_check_filetype( $atts[ $fallback ], wp_get_mime_types() );
 			}
-			$url   = add_query_arg( '_', $instance, $atts[ $fallback ] );
-			$html .= sprintf( $source, $type['type'], esc_url( $url ) );
+
+			$html .= WP_HTML::render(
+				'<source type="</%source>" src="</%src>">',
+				array(
+					'source' => $type['type'],
+					'src'    => add_query_arg( '_', $instance, $atts[ $fallback ] ),
+				)
+			);
 		}
 	}
 
@@ -3671,11 +3672,16 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	}
 	$html .= '</video>';
 
-	$width_rule = '';
-	if ( ! empty( $atts['width'] ) ) {
-		$width_rule = sprintf( 'width: %dpx;', $atts['width'] );
-	}
-	$output = sprintf( '<div style="%s" class="wp-video">%s</div>', $width_rule, $html );
+	$output = (
+		WP_HTML::render(
+			'<div class="wp-video" style="</%width>">',
+			array(
+				'width' => ! empty( $atts['width'] ) ? "width: {$atts['width']}px;" : null,
+			)
+		) .
+		$html .
+		'</div>'
+	);
 
 	/**
 	 * Filters the output of the video shortcode.
