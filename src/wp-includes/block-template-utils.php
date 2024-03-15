@@ -1495,6 +1495,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	}
 
 	// Custom made templates don't have a post_name set.
+	// TODO: Shall we update the controller to always set the post_name?
 	if ( ! isset( $changes->post_name ) ) {
 		$changes->post_name = $request['slug'];
 	}
@@ -1523,6 +1524,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	}
 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
+
 	// Last parameter is set to false to avoid hooking blocks into the content.
 	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $additional_fields, false );
 
