@@ -4,16 +4,16 @@ require_once __DIR__ . '/Admin_WpMediaListTable_TestCase.php';
 
 /**
  * @group admin
+ * 
+ * @covers WP_Media_List_Table::_get_row_actions
  */
-class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
+class Admin_WpMediaListTable_GetRowActions_Test extends Admin_WpMediaListTable_TestCase {
 
 	/**
 	 * Tests that `WP_Media_List_Table::_get_row_actions()` only includes an action
 	 * in certain scenarios.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 *
 	 * @dataProvider data_get_row_actions_should_include_action
 	 *
@@ -93,8 +93,6 @@ class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
 	 * in certain scenarios.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 *
 	 * @dataProvider data_get_row_actions_should_not_include_action
 	 *
@@ -204,8 +202,6 @@ class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
 	 * when a permalink is not available.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_not_include_view_without_a_permalink() {
 		self::set_is_trash( false );
@@ -226,8 +222,6 @@ class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
 	 * Tests that `WP_Media_List_Table::_get_row_actions()` includes the 'copy' action.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_include_copy() {
 		self::set_is_trash( false );
@@ -246,8 +240,6 @@ class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
 	 * when an attachment URL is not available.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_not_include_copy_without_an_attachment_url() {
 		self::set_is_trash( false );
@@ -268,8 +260,6 @@ class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
 	 * Tests that `WP_Media_List_Table::_get_row_actions()` includes the 'download' action.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_include_download() {
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
@@ -286,8 +276,6 @@ class Tests_Admin_wpMediaListTable extends Admin_WpMediaListTable_TestCase {
 	 * when an attachment URL is not available.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_not_include_download_without_an_attachment_url() {
 		// Ensure the attachment URL is `false`.
