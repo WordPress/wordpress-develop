@@ -4,7 +4,7 @@ require_once __DIR__ . '/Admin_WpMediaListTable_TestCase.php';
 
 /**
  * @group admin
- * 
+ *
  * @covers WP_Media_List_Table::prepare_items
  */
 class Admin_WpMediaListTable_PrepareItems_Test extends Admin_WpMediaListTable_TestCase {

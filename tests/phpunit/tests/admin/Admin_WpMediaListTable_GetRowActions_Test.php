@@ -4,7 +4,7 @@ require_once __DIR__ . '/Admin_WpMediaListTable_TestCase.php';
 
 /**
  * @group admin
- * 
+ *
  * @covers WP_Media_List_Table::_get_row_actions
  */
 class Admin_WpMediaListTable_GetRowActions_Test extends Admin_WpMediaListTable_TestCase {
