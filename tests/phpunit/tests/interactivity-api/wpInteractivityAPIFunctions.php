@@ -69,7 +69,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_single_interactive_block() {
 		$post_content    = '<!-- wp:test/interactive-block { "block": 1 } /-->';
@@ -85,7 +85,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_multiple_interactive_blocks_in_paralell() {
 		$post_content    = '
@@ -111,7 +111,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_inside_non_interactive_block() {
 		$post_content    = '
@@ -131,7 +131,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_multple_interactive_blocks_inside_non_interactive_block() {
 		$post_content    = '
@@ -154,7 +154,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_inside_multple_non_interactive_block() {
 		$post_content    = '
@@ -179,7 +179,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_without_directives() {
 		$post_content    = '
@@ -201,7 +201,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_containing_non_interactive_block_with_directives() {
 		$post_content    = '
@@ -224,7 +224,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_processs_directives_of_interactive_block_containing_nested_interactive_and_non_interactive_blocks() {
 		$post_content    = '
@@ -277,7 +277,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_process_directives_of_interactive_blocks
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
 	public function test_process_directives_only_process_the_root_interactive_blocks() {
 		$class                = new ReflectionClass( 'WP_Interactivity_API' );
@@ -352,7 +352,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_data_wp_context
+	 * @covers wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_different_arrays() {
 		$this->assertEquals( 'data-wp-context=\'{}\'', wp_interactivity_data_wp_context( array() ) );
@@ -382,7 +382,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_data_wp_context
+	 * @covers wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_different_arrays_and_a_namespace() {
 		$this->assertEquals( 'data-wp-context=\'myPlugin::{}\'', wp_interactivity_data_wp_context( array(), 'myPlugin' ) );
@@ -415,7 +415,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @ticket 60356
 	 *
-	 * @covers ::wp_interactivity_data_wp_context
+	 * @covers wp_interactivity_data_wp_context
 	 */
 	public function test_wp_interactivity_data_wp_context_with_json_flags() {
 		$this->assertEquals( 'data-wp-context=\'{"tag":"\u003Cfoo\u003E"}\'', wp_interactivity_data_wp_context( array( 'tag' => '<foo>' ) ) );
