@@ -178,6 +178,9 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 
 	private function remove_font_paths() {
+		if ( self::$skip_file_system_tests ) {
+			return;
+		}
 		$paths = array(
 			path_join( WP_CONTENT_DIR, 'fonts' ),
 			path_join( WP_CONTENT_DIR, 'custom_dir' ),
