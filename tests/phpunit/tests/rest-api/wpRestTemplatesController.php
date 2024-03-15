@@ -974,12 +974,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 
 		$id          = get_stylesheet() . '//' . 'my_template_part';
 		$body_params = array(
-			'id'          => $id,
-			'title'       => 'Untitled Template Part',
-			'slug'        => 'my_template_part',
-			'description' => 'Description of my template part.',
-			'author'      => 1,
-			'content'     => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
+			'id'      => $id,
+			'slug'    => 'my_template_part',
+			'content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
