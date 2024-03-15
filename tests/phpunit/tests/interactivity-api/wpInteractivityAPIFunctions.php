@@ -450,4 +450,79 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertEquals( '1', $processor->get_attribute( 'src' ) );
 	}
+
+	/**
+	 * Tests that context from void tags is not propagated to next tags.
+	 *
+	 * @ticket 60768
+	 *
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
+	 */
+	public function test_process_context_directive_in_void_tags() {
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<div data-wp-interactive="nameSpace" data-wp-context=\'{"text": "outer"}\'><input id="first-input" data-wp-context=\'{"text": "inner"}\' data-wp-bind--value="context.text" /><input id="second-input" data-wp-bind--value="context.text" /></div>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		$post_content      = '<!-- wp:test/custom-directive-block /-->';
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag(
+			array(
+				'tag_name' => 'input',
+				'id'       => 'first-input',
+			)
+		);
+		$first_input_value = $processor->get_attribute( 'value' );
+		$processor->next_tag(
+			array(
+				'tag_name' => 'input',
+				'id'       => 'second-input',
+			)
+		);
+		$second_input_value = $processor->get_attribute( 'value' );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertEquals( 'inner', $first_input_value );
+		$this->assertEquals( 'outer', $second_input_value );
+	}
+
+	/**
+	 * Tests that namespace from void tags is not propagated to next tags.
+	 *
+	 * @ticket 60768
+	 *
+	 * @covers wp_interactivity_process_directives_of_interactive_blocks
+	 */
+	public function test_process_interactive_directive_in_void_tags() {
+		wp_interactivity_state(
+			'void',
+			array(
+				'text' => 'void',
+			)
+		);
+		register_block_type(
+			'test/custom-directive-block',
+			array(
+				'render_callback' => function () {
+					return '<div data-wp-interactive="parent"><img data-wp-interactive="void" /><input data-wp-bind--value="state.text" /></div>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+		$post_content      = '<!-- wp:test/custom-directive-block /-->';
+		$processed_content = do_blocks( $post_content );
+		$processor         = new WP_HTML_Tag_Processor( $processed_content );
+		$processor->next_tag( array( 'tag_name' => 'input' ) );
+		$input_value = $processor->get_attribute( 'value' );
+		unregister_block_type( 'test/custom-directive-block' );
+		$this->assertNull( $input_value );
+	}
 }
