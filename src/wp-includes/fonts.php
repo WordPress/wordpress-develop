@@ -188,7 +188,8 @@ function wp_default_font_dir() {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
-	return array(
+	// Default font directory within the wp-content directory.
+	$font_directory = array(
 		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
 		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'subdir'  => '',
@@ -196,6 +197,70 @@ function wp_default_font_dir() {
 		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'error'   => false,
 	);
+
+	$target = $font_directory['path'];
+	$use_default = true;
+
+	// From wp_mkdir_p().
+	$wrapper = null;
+
+	// Strip the protocol.
+	if ( wp_is_stream( $target ) ) {
+		list( $wrapper, $target ) = explode( '://', $target, 2 );
+	}
+
+	// From php.net/mkdir user contributed notes.
+	$target = str_replace( '//', '/', $target );
+
+	// Put the wrapper back on the target.
+	if ( null !== $wrapper ) {
+		$target = $wrapper . '://' . $target;
+	}
+
+	// Safe mode fails with a trailing slash under certain PHP versions.
+	$target = rtrim( $target, '/' );
+	if ( empty( $target ) ) {
+		$target = '/';
+	}
+
+	if ( file_exists( $target ) && ! @is_dir( $target ) ) {
+		$use_default = false;
+	}
+
+	// Do not allow path traversals.
+	if ( true === $use_default && str_contains( $target, '../' ) || str_contains( $target, '..' . DIRECTORY_SEPARATOR ) ) {
+		$use_default = false;
+	}
+
+	// We need to find the permissions of the parent folder that exists and inherit that.
+	$target_parent = dirname( $target );
+	while ( true === $use_default && '.' !== $target_parent && ! is_dir( $target_parent ) && dirname( $target_parent ) !== $target_parent ) {
+		if ( file_exists( $target_parent ) && ! @is_dir( $target_parent ) ) {
+			$use_default = false;
+		} elseif ( file_exists( $target_parent ) && @is_dir( $target_parent ) && ! wp_is_writable( $target_parent ) ) {
+			$use_default = false;
+		} else {
+			// If the parent folder doesn't exist, find the next parent folder.
+			$target_parent = dirname( $target_parent );
+		}
+	}
+
+	if ( true === $use_default ) {
+		return $font_directory;
+	}
+
+	// Use the fallback font directory if the default is not writable.
+	$upload_dir     = wp_get_upload_dir();
+	$font_directory = array(
+		'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
+		'url'     => $upload_dir['baseurl'] . '/fonts',
+		'subdir'  => '',
+		'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
+		'baseurl' => $upload_dir['baseurl'] . '/fonts',
+		'error'   => false,
+	);
+
+	return $font_directory;
 }
 
 /**
