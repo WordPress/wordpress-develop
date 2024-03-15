@@ -1465,6 +1465,15 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	// To that end, we need to suppress hooked blocks from getting inserted into the template.
 	add_filter( 'hooked_block_types', '__return_empty_array', 99999, 0 );
 
+	if ( isset( $changes->ID ) ) {
+		$post = get_post( $changes->ID );
+	} else {
+		// This means that there's not post for this template in the DB yet.
+		$post = new stdClass; // Is this correct? Might instead want to init a WP_Post with some fields set.
+	}
+
+	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
+
 	// We also need to mimic terms and meta for the post based on the corresponding
 	// `terms_input` and `meta_input` properties in the changes object.
 
@@ -1496,7 +1505,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 
 	add_filter( 'get_the_terms', $terms_filter, 10, 3 );
 	add_filter( 'get_post_metadata', $meta_filter, 10, 4 );
-	$template = _build_block_template_result_from_post( $changes );
+	$template = _build_block_template_result_from_post( $post_with_changes_applied );
 	remove_filter( 'get_post_metadata', $meta_filter );
 	remove_filter( 'get_the_terms', $terms_filter );
 
