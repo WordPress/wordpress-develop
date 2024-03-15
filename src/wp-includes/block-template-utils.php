@@ -747,15 +747,6 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	$template->title          = $post->post_title;
 	$template->status         = $post->post_status;
 
-	// Set default values for properties expected to be set.
-	$template->wp_id 		  = null;
-	$template->modified 	  = null;
-	$template->is_custom      = null;
-	$template->has_theme_file = null;
-	$template->author		  = null;
-	$template->area		      = null;
-	$template->post_types	  = null;
-
 	if (
 		'wp_template' === $post->post_type &&
 		isset( $template_file['postTypes'] ) &&
