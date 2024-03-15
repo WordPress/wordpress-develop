@@ -1637,8 +1637,8 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 
 	if ( ! empty( $taxonomy ) ) {
 		return array(
-			'term_id'          => (string) $_term->term_id,
-			'term_taxonomy_id' => (string) $_term->term_taxonomy_id,
+			'term_id'          => (int) $_term->term_id,
+			'term_taxonomy_id' => (int) $_term->term_taxonomy_id,
 		);
 	}
 
