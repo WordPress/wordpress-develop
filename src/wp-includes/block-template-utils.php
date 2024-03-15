@@ -735,7 +735,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * @param bool $hook_blocks Whether to insert hooked blocks into the content or not.
  * @return WP_Block_Template|WP_Error Template or error object.
  */
-function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array(), $hook_blocks = true ) {
+function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array() ) {
 	$default_template_types = get_default_block_template_types();
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
 
@@ -775,15 +775,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		}
 	}
 
-	if ( $hook_blocks ) {
-		$hooked_blocks = get_hooked_blocks();
-		if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-			$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
-			$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
-			$blocks               = parse_blocks( $template->content );
-			$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-		}
-	}
+	return $template;
 }
 
 /**
@@ -946,6 +938,14 @@ function _build_block_template_result_from_post( $post ) {
 					break;
 			}
 		}
+	}
+
+	$hooked_blocks = get_hooked_blocks();
+	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
+		$blocks               = parse_blocks( $template->content );
+		$template->content    = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 	}
 
 	return $template;
@@ -1526,7 +1526,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
 
 	// Last parameter is set to false to avoid hooking blocks into the content.
-	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $additional_fields, false );
+	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $additional_fields );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
