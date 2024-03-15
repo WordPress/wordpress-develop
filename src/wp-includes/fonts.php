@@ -198,10 +198,10 @@ function wp_default_font_dir() {
 		'error'   => false,
 	);
 
-	$target = $font_directory['path'];
+	$target      = $font_directory['path'];
 	$use_default = true;
 
-	// From wp_mkdir_p().
+	// The following is adapted from wp_mkdir_p().
 	$wrapper = null;
 
 	// Strip the protocol.
@@ -232,16 +232,15 @@ function wp_default_font_dir() {
 		$use_default = false;
 	}
 
-	// We need to find the permissions of the parent folder that exists and inherit that.
-	$target_parent = dirname( $target );
-	while ( true === $use_default && '.' !== $target_parent && ! is_dir( $target_parent ) && dirname( $target_parent ) !== $target_parent ) {
-		if ( file_exists( $target_parent ) && ! @is_dir( $target_parent ) ) {
-			$use_default = false;
-		} elseif ( file_exists( $target_parent ) && @is_dir( $target_parent ) && ! wp_is_writable( $target_parent ) ) {
-			$use_default = false;
-		} else {
-			// If the parent folder doesn't exist, find the next parent folder.
+	// If the target directory doesn't exist, find an existing parent directory to use as the target.
+	if ( true === $use_default && ! file_exists( $target ) ) {
+		$target_parent = dirname( $target );
+		while ( '.' !== $target_parent && ! file_exists( $target_parent ) ) {
 			$target_parent = dirname( $target_parent );
+		}
+
+		if ( '.' === $target_parent || ! is_dir( $target_parent ) || ! is_writable( $target_parent ) ) {
+			$use_default = false;
 		}
 	}
 
