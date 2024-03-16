@@ -333,7 +333,6 @@ function get_plugins( $plugin_folder = '' ) {
 		return $wp_plugins;
 	}
 
-	$new_plugin_data = array();
 	foreach ( $plugin_files as $plugin_file ) {
 		if ( ! is_readable( "$plugin_root/$plugin_file" ) ) {
 			continue;
@@ -346,13 +345,6 @@ function get_plugins( $plugin_folder = '' ) {
 			continue;
 		}
 
-		$new_plugin_file = str_replace(
-			trailingslashit( WP_PLUGIN_DIR ),
-			'',
-			"$plugin_root/$plugin_file"
-		);
-
-		$new_plugin_data[ $new_plugin_file ]           = $plugin_data;
 		$wp_plugins[ plugin_basename( $plugin_file ) ] = $plugin_data;
 	}
 
@@ -360,10 +352,6 @@ function get_plugins( $plugin_folder = '' ) {
 
 	$cache_plugins[ $plugin_folder ] = $wp_plugins;
 	wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
-
-	if ( ! wp_installing() ) {
-		update_option( 'plugin_data', $new_plugin_data );
-	}
 
 	return $wp_plugins;
 }
@@ -493,14 +481,23 @@ function get_dropins() {
 }
 
 /**
- * Returns drop-ins that WordPress uses.
+ * Returns drop-in plugins that WordPress uses.
  *
  * Includes Multisite drop-ins only when is_multisite()
  *
  * @since 3.0.0
- * @return array[] Key is file name. The value is an array, with the first value the
- *  purpose of the drop-in and the second value the name of the constant that must be
- *  true for the drop-in to be used, or true if no constant is required.
+ *
+ * @return array[] {
+ *     Key is file name. The value is an array of data about the drop-in.
+ *
+ *     @type array ...$0 {
+ *         Data about the drop-in.
+ *
+ *         @type string      $0 The purpose of the drop-in.
+ *         @type string|true $1 Name of the constant that must be true for the drop-in
+ *                              to be used, or true if no constant is required.
+ *     }
+ * }
  */
 function _get_dropins() {
 	$dropins = array(
@@ -966,7 +963,6 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 	$plugins_dir = trailingslashit( $plugins_dir );
 
 	$plugin_translations = wp_get_installed_translations( 'plugins' );
-	$all_plugin_data     = get_option( 'plugin_data', array() );
 
 	$errors = array();
 
@@ -1011,7 +1007,6 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			$errors[] = $plugin_file;
 			continue;
 		}
-		unset( $all_plugin_data[ $plugin_file ] );
 
 		$plugin_slug = dirname( $plugin_file );
 
@@ -1060,7 +1055,6 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		return new WP_Error( 'could_not_remove_plugin', sprintf( $message, implode( ', ', $errors ) ) );
 	}
-	update_option( 'plugin_data', $all_plugin_data );
 
 	return true;
 }
@@ -1205,27 +1199,58 @@ function validate_plugin_requirements( $plugin ) {
 		);
 	}
 
-	if ( WP_Plugin_Dependencies::has_unmet_dependencies( $plugin ) ) {
-		$dependencies       = WP_Plugin_Dependencies::get_dependencies( $plugin );
-		$unmet_dependencies = array();
+	WP_Plugin_Dependencies::initialize();
 
-		foreach ( $dependencies as $dependency ) {
+	if ( WP_Plugin_Dependencies::has_unmet_dependencies( $plugin ) ) {
+		$dependency_names       = WP_Plugin_Dependencies::get_dependency_names( $plugin );
+		$unmet_dependencies     = array();
+		$unmet_dependency_names = array();
+
+		foreach ( $dependency_names as $dependency => $dependency_name ) {
 			$dependency_file = WP_Plugin_Dependencies::get_dependency_filepath( $dependency );
 
 			if ( false === $dependency_file ) {
-				$unmet_dependencies['not_installed'][] = $dependency;
+				$unmet_dependencies['not_installed'][ $dependency ] = $dependency_name;
+				$unmet_dependency_names[]                           = $dependency_name;
 			} elseif ( is_plugin_inactive( $dependency_file ) ) {
-				$unmet_dependencies['inactive'][] = $dependency;
+				$unmet_dependencies['inactive'][ $dependency ] = $dependency_name;
+				$unmet_dependency_names[]                      = $dependency_name;
 			}
+		}
+
+		$error_message = sprintf(
+			/* translators: 1: Plugin name, 2: Number of plugins, 3: A comma-separated list of plugin names. */
+			_n(
+				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s.',
+				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s.',
+				count( $unmet_dependency_names )
+			),
+			$plugin_headers['Name'],
+			count( $unmet_dependency_names ),
+			implode( wp_get_list_item_separator(), $unmet_dependency_names )
+		);
+
+		if ( is_multisite() ) {
+			if ( current_user_can( 'manage_network_plugins' ) ) {
+				$error_message .= ' ' . sprintf(
+					/* translators: %s: Link to the plugins page. */
+					__( '<a href="%s">Manage plugins</a>.' ),
+					esc_url( network_admin_url( 'plugins.php' ) )
+				);
+			} else {
+				$error_message .= ' ' . __( 'Please contact your network administrator.' );
+			}
+		} else {
+			$error_message .= ' ' . sprintf(
+				/* translators: %s: Link to the plugins page. */
+				__( '<a href="%s">Manage plugins</a>.' ),
+				esc_url( admin_url( 'plugins.php' ) )
+			);
 		}
 
 		return new WP_Error(
 			'plugin_missing_dependencies',
-			'<p>' . sprintf(
-				/* translators: %s: Plugin name. */
-				_x( '<strong>Error:</strong> %s requires plugins that are not installed or activated.', 'plugin' ),
-				$plugin_headers['Name']
-			) . '</p>',
+			"<p>{$error_message}</p>",
 			$unmet_dependencies
 		);
 	}
@@ -2432,6 +2457,8 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
+ *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool True, if in the list of paused plugins. False, if not in the list.
  */
@@ -2453,6 +2480,8 @@ function is_plugin_paused( $plugin ) {
  * Gets the error that was recorded for a paused plugin.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return array|false Array of error information as returned by `error_get_last()`,
@@ -2528,7 +2557,8 @@ function resume_plugin( $plugin, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string                       $pagenow         The filename of the current screen.
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
  */
 function paused_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {

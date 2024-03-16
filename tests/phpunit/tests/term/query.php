@@ -1123,4 +1123,19 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
 }

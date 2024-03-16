@@ -39,11 +39,12 @@ function got_mod_rewrite() {
  * @since 3.7.0
  *
  * @global bool $is_nginx
+ * @global bool $is_caddy
  *
  * @return bool Whether the server supports URL rewriting.
  */
 function got_url_rewrite() {
-	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || iis7_supports_permalinks() );
+	$got_url_rewrite = ( got_mod_rewrite() || $GLOBALS['is_nginx'] || $GLOBALS['is_caddy'] || iis7_supports_permalinks() );
 
 	/**
 	 * Filters whether URL rewriting is available.
@@ -1404,7 +1405,7 @@ function wp_admin_canonical_url() {
 	 *
 	 * @param string $filtered_url The admin canonical url value.
 	 */
-	$filtered_url = apply_filters( 'admin_canonical_url', $filtered_url );
+	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
 	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
 	<script>
