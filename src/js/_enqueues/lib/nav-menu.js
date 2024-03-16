@@ -301,7 +301,7 @@
 								$html = '',
 								$selected = '',
 								currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
-								currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val();
+								currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val(),
 								currentItem = parentDropdown.closest('li.menu-item'),
 								currentMenuItemChild = currentItem.childMenuItems(),
 								excludeMenuItem = [currentItemID];
@@ -312,7 +312,7 @@
 										childID = childItem.find('.menu-item-data-db-id').val();
 
 									excludeMenuItem.push(childID);
-								})
+								});
 							}
 
 							if(currentparentID == 0) $selected = 'selected';
@@ -321,10 +321,10 @@
 
 							$.each( menuItems, function() {
 								var menuItem = $(this),
-									$selected = '',
-									menuID = menuItem.find('.menu-item-data-db-id').val(),
-									menuTitle = menuItem.find('.edit-menu-item-title').val();
-								
+								$selected = '',
+								menuID = menuItem.find('.menu-item-data-db-id').val(),
+								menuTitle = menuItem.find('.edit-menu-item-title').val();
+
 								if(!excludeMenuItem.includes(menuID) ) {
 									if(currentparentID == menuID) $selected = 'selected';
 									$html += '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
@@ -565,8 +565,7 @@
 				parentItemPosition = parseInt( parentItem.index(), 10 ),
 				parentItemChild = parseInt( parentItem.childMenuItems().length, 10 ),
 				parentItemDepth = parentItem.menuItemDepth(),
-				menuItemNewDepth = parseInt(parentItemDepth) + 1,
-				totalPrimaryMenuItems = $( '.menu-item-depth-0' ).length;
+				menuItemNewDepth = parseInt(parentItemDepth) + 1;
 
 			if(newParentID == 0){
 				menuItemNewDepth = 0;
