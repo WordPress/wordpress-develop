@@ -1579,7 +1579,7 @@ function filter_default_metadata( $value, $object_id, $meta_key, $single, $meta_
 	if ( $single ) {
 		$value = $default_value;
 	} else {
-		$value = [ $default_value ];
+		$value = array( $default_value );
 	}
 
 	return $value;
