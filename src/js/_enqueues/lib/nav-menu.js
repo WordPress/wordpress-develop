@@ -302,6 +302,18 @@
 								$selected = '',
 								currentItemID = parentDropdown.closest('li.menu-item').find('.menu-item-data-db-id').val(),
 								currentparentID = parentDropdown.closest('li.menu-item').find('.menu-item-data-parent-id').val();
+								currentItem = parentDropdown.closest('li.menu-item'),
+								currentMenuItemChild = currentItem.childMenuItems(),
+								excludeMenuItem = [currentItemID];
+
+							if( currentMenuItemChild.length > 0 ){
+								$.each( currentMenuItemChild, function(){
+									var childItem = $(this),
+										childID = childItem.find('.menu-item-data-db-id').val();
+
+									excludeMenuItem.push(childID);
+								})
+							}
 
 							if(currentparentID == 0) $selected = 'selected';
 
@@ -313,7 +325,7 @@
 									menuID = menuItem.find('.menu-item-data-db-id').val(),
 									menuTitle = menuItem.find('.edit-menu-item-title').val();
 								
-								if(currentItemID != menuID) {
+								if(!excludeMenuItem.includes(menuID) ) {
 									if(currentparentID == menuID) $selected = 'selected';
 									$html += '<option ' + $selected + ' value="'+menuID+'">'+menuTitle+'</option>';
 								}
@@ -540,38 +552,43 @@
 		 * @param {object} ParentDropdown select field
 		 */
 		changeMenuParent : function( ParentDropdown ) {
-			var menuItemWithChild,
+			var menuItemWithChild, menuItemNewPosition,
 				menuItems = $( '#menu-to-edit li' ),
 				$this = $( ParentDropdown ),
 				newParentID = $this.val(),
 				menuItem = $this.closest('li.menu-item').first(),
-				oldDepth = menuItem.menuItemDepth(),
-				thisItemChildren = menuItem.childMenuItems(),
+				menuItemPosition = parseInt( menuItem.index(), 10 ),
+				menuItemOldDepth = menuItem.menuItemDepth(),
+				menuItemChildren = menuItem.childMenuItems(),
+				menuItemNoChildren = parseInt( menuItem.childMenuItems().length, 10 ),
 				parentItem = $('#menu-item-'+newParentID),
-				parentPosition = parseInt( parentItem.index(), 10 ),
-				noOfChild = parseInt( parentItem.childMenuItems().length, 10 ),
-				newItemPosition = parentPosition + noOfChild,
-				parentDepth = parentItem.menuItemDepth(),
-				newDepth = parseInt(parentDepth) + 1;
+				parentItemPosition = parseInt( parentItem.index(), 10 ),
+				parentItemChild = parseInt( parentItem.childMenuItems().length, 10 ),
+				parentItemDepth = parentItem.menuItemDepth(),
+				menuItemNewDepth = parseInt(parentItemDepth) + 1,
+				totalPrimaryMenuItems = $( '.menu-item-depth-0' ).length;
 
 			if(newParentID == 0){
-				newDepth = 0;
-				newItemPosition = menuItems.length - 1;
+				menuItemNewDepth = 0;
+				menuItemNewPosition = menuItems.length - 1;
+				if(menuItemPosition == menuItemNewPosition - menuItemNoChildren) menuItemNewPosition = menuItemNewPosition - menuItemNoChildren;
+
+			} else {
+				menuItemNewPosition = parentItemPosition + parentItemChild;
 			}
 
 			menuItem.find('.menu-item-data-parent-id').val(newParentID);
-			menuItem.moveHorizontally(newDepth, oldDepth);
-			
-			if ( thisItemChildren ) {
-				menuItemWithChild = menuItem.add( thisItemChildren );
+			menuItem.moveHorizontally(menuItemNewDepth, menuItemOldDepth);
 
-				// Move the entire block.
-				menuItemWithChild.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+			if( menuItemPosition != menuItemNewPosition ) {
+				if ( menuItemChildren ) {
+					menuItemWithChild = menuItem.add( menuItemChildren );
 
-			} else {
-				
-				menuItem.detach().insertAfter( menuItems.eq( newItemPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
-
+					// Move the entire block.
+					menuItemWithChild.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+				} else {
+					menuItem.detach().insertAfter( menuItems.eq( menuItemNewPosition ) ).updateParentMenuItemDBId().updateParentDropdown().updateOrderDropdown().find('.edit-menu-item-parent').focus();
+				}
 			}
 
 			api.registerChange();
