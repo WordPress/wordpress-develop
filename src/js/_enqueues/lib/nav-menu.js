@@ -309,9 +309,9 @@
 
 							$.each( menuItems, function() {
 								var menuItem = $(this),
-								$selected = '',
-								menuID = menuItem.find('.menu-item-data-db-id').val(),
-								menuTitle = menuItem.find('.edit-menu-item-title').val();
+									$selected = '',
+									menuID = menuItem.find('.menu-item-data-db-id').val(),
+									menuTitle = menuItem.find('.edit-menu-item-title').val();
 								
 								if(currentItemID != menuID) {
 									if(currentparentID == menuID) $selected = 'selected';
