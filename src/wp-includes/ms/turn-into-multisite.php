@@ -138,15 +138,16 @@ EOT;
 			);
 		}
 
-		update_network_option(null, 'ms_migration', true);
-		wp_safe_redirect(wp_login_url());
+		wp_redirect(wp_nonce_url(admin_url('plugins.php')));
+		exit();
 	}
 }
 add_action('admin_post_ms_migration', 'ms_turn_into_multisite');
 
 function ms_display_process()
 {
-	if (!get_network_option(null, 'ms_migration')) {
+	if (!get_option('ms_migration')) {
+
 		return;
 	}
 
@@ -206,7 +207,7 @@ add_action('admin_notices', 'ms_display_process');
 
 function ms_initialize_migration()
 {
-	update_network_option(null, 'ms_migration', true);
+	update_network_option(get_current_blog_id(), 'ms_migration', true);
 
 	wp_safe_redirect(wp_nonce_url(admin_url('plugins.php')));
 }
