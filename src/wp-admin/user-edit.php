@@ -573,7 +573,7 @@ switch ( $action ) {
 
 					<tr class="user-url-wrap">
 						<th><label for="url"><?php _e( 'Website' ); ?></label></th>
-						<td><input type="url" name="url" id="url" value="<?php echo esc_attr( $profile_user->user_url ); ?>" class="regular-text code" /></td>
+						<td><input type="url" name="url" id="url" value="<?php echo esc_url( $profile_user->user_url ); ?>" class="regular-text code" /></td>
 					</tr>
 
 					<?php foreach ( wp_get_user_contact_methods( $profile_user ) as $name => $desc ) : ?>
