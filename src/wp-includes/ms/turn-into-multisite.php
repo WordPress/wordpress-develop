@@ -1,6 +1,10 @@
 <?php
 function ms_display_multisite_tool_box()
 {
+	if (get_network_option(null, 'ms_migration') || is_multisite()) {
+		return;
+	}
+
 	if (current_user_can('setup_network')) :
 ?>
 		<div class="card">
@@ -8,8 +12,8 @@ function ms_display_multisite_tool_box()
 			<p>
 				<?php
 				printf(
-					__('Turn this Site into a Multisite'),
-					'turn-into-multisite.php'
+					__('<a href="%s">Turn this Site into a Multisite</a>'),
+					wp_nonce_url( admin_url( 'admin-post.php?action=ms_initialize_migration' ) )
 				);
 				?>
 			</p>
@@ -123,3 +127,50 @@ EOT;
 	}
 }
 add_action('admin_post_ms_migration', 'ms_turn_into_multisite');
+
+
+function ms_notice($args) {
+	?>
+	<div class="notice notice-info ">
+			<h3><?php echo __('Make your installation Multisite-ready'); ?></h3>
+			<p><?php echo __('Make your installation Multisite-ready to add translation or creates new sites. The following steps will happen during this process:');?></p>
+			<ol>
+				<li><?php echo __('Your currently active plugins will get deactivated.'); ?></li>
+				<li><?php echo __('Your database will be prepared for Multisite.'); ?></li>
+				<li><?php echo __('Your plugins will get a activated again.'); ?></li>
+			</ol>
+			<p>
+				<a href="<?php echo wp_nonce_url( admin_url( 'admin-post.php?action=ms_migration' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php echo __( 'Make Multisite-ready' ); ?></a>
+			</p>
+	</div>
+	<?php
+}
+
+function ms_display_process()
+{
+	if (! get_network_option(null, 'ms_migration')) {
+		return;
+	}
+
+	if( key_exists('errors', $_GET)) {
+		wp_admin_notice(__('my_message'), [
+			'type' => 'error'
+		]);
+	}
+
+
+	ms_notice([]);
+}
+
+
+add_action('admin_notices', 'ms_display_process');
+
+function ms_initialize_migration()
+{
+	update_network_option(null, 'ms_migration', '1');
+
+	wp_safe_redirect( wp_nonce_url( admin_url( 'plugins.php' ) ) );
+
+}
+
+add_action('admin_post_ms_initialize_migration', 'ms_initialize_migration');
