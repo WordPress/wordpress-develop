@@ -562,6 +562,13 @@ class SimplePie
 	public $cache_duration = 3600;
 
 	/**
+	* @var int Error cache duration (in seconds)
+	* @see SimplePie::set_error_cache_duration()
+	* @access private
+	*/
+	public $error_cache_duration = 3600;
+
+	/**
 	 * @var int Auto-discovery cache duration (in seconds)
 	 * @see SimplePie::set_autodiscovery_cache_duration()
 	 * @access private
@@ -928,6 +935,18 @@ class SimplePie
 	public function set_cache_duration($seconds = 3600)
 	{
 		$this->cache_duration = (int) $seconds;
+	}
+
+	/**
+	 * Set the length of time (in seconds) that the errors for failed feed loads
+	 * will be cached
+	 *
+	 * @since 6.5
+	 *
+	 * @param int $seconds The feed error cache duration
+	 */
+	public function set_error_cache_duration( $seconds = 3600 ) {
+		$this->error_cache_duration = (int) $seconds;
 	}
 
 	/**
@@ -1645,6 +1664,11 @@ class SimplePie
 						$this->data = array();
 					}
 				}
+				// Check if the error cache has been updated.
+				elseif ( $cache->mtime() + $this->error_cache_duration < time() && isset( $this->data['error'] ) ) {
+					$cache->unlink();
+					$this->data = array();
+				}
 				// Check if the cache has been updated
 				elseif ($cache->mtime() + $this->cache_duration < time())
 				{
@@ -1696,6 +1720,10 @@ class SimplePie
 				// If the cache is still valid, just return true
 				else
 				{
+					// If we're caching an error, pull it back out from the cache payload for persistent error response.
+					if ( ! empty( $this->data['error'] ) ) {
+						$this->error = $this->data['error'];
+					}
 					$this->raw_data = false;
 					return true;
 				}
@@ -1728,6 +1756,7 @@ class SimplePie
 		if (!$file->success && !($file->method & SIMPLEPIE_FILE_SOURCE_REMOTE === 0 || ($file->status_code === 200 || $file->status_code > 206 && $file->status_code < 300)))
 		{
 			$this->error = $file->error;
+			$this->cache_results( $cache, $this->feed_url );
 			return !empty($this->data);
 		}
 
@@ -1784,6 +1813,7 @@ class SimplePie
 							unset($file);
 							$this->error = "A feed could not be found at `$this->feed_url`; the status code is `$copyStatusCode` and content-type is `$copyContentType`";
 							$this->registry->call('Misc', 'error', array($this->error, E_USER_NOTICE, __FILE__, __LINE__));
+							$this->cache_results( $cache, $this->feed_url );
 							return false;
 						}
 					}
@@ -1795,17 +1825,10 @@ class SimplePie
 					// This is usually because DOMDocument doesn't exist
 					$this->error = $e->getMessage();
 					$this->registry->call('Misc', 'error', array($this->error, E_USER_NOTICE, $e->getFile(), $e->getLine()));
+					$this->cache_results( $cache, $this->feed_url );
 					return false;
 				}
-				if ($cache)
-				{
-					$this->data = array('url' => $this->feed_url, 'feed_url' => $file->url, 'build' => SIMPLEPIE_BUILD);
-					if (!$cache->save($this))
-					{
-						trigger_error("$this->cache_location is not writable. Make sure you've set the correct relative or absolute path, and that the location is server-writable.", E_USER_WARNING);
-					}
-					$cache = $this->registry->call('Cache', 'get_handler', array($this->cache_location, call_user_func($this->cache_name_function, $file->url), 'spc'));
-				}
+				$this->cache_results( $cache, $file->url );
 			}
 			$this->feed_url = $file->url;
 			$locate = null;
@@ -1818,6 +1841,38 @@ class SimplePie
 		$sniffed = $sniffer->get_type();
 
 		return array($headers, $sniffed);
+	}
+
+	/**
+	 * Cache the results of the feed request.
+	 *
+	 * @since 6.5
+	 *
+	 * @param SimplePie_Cache|false $cache Cache handler, or false to not load from the cache
+	 * @param string $feedurl
+	 */
+	public function cache_results( &$cache, $feedurl ) {
+		if ( $cache ) {
+			$this->data = array( 'url' => $this->feed_url, 'build' => SIMPLEPIE_BUILD );
+
+			// A weird little hack to ensure that we cache errors.
+			if ( ! empty( $this->error ) ) {
+				$this->data['error'] = $this->error;
+			} // For some reason feed_url in the cache payload should only be set if there are no errors.
+			else {
+				$this->data['feed_url'] = $feedurl;
+			}
+
+			if ( ! $cache->save( $this ) ) {
+				trigger_error( "$this->cache_location is not writeable. Make sure you've set the correct relative or absolute path, and that the location is server-writable.", E_USER_WARNING );
+			}
+
+			$this->registry->call( 'Cache', 'get_handler', array(
+				$this->cache_location,
+				call_user_func( $this->cache_name_function, $feedurl ),
+				'spc'
+			) );
+		}
 	}
 
 	/**

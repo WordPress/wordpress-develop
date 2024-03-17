@@ -1586,7 +1586,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 
 	if ( is_wp_error( $rss ) ) {
 		if ( is_admin() || current_user_can( 'manage_options' ) ) {
-			echo '<p><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $rss->get_error_message() ) . '</p>';
+			echo '<p class="error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $rss->get_error_message() ) . '</p>';
 		}
 		return;
 	}
