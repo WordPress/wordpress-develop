@@ -44,7 +44,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 		);
 
 		$block_markup = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
-		$actual       = wp_render_elements_support( $block_markup, $block );
+		$actual       = wp_render_elements_class_name( $block_markup, $block );
 
 		$this->assertSame( $block_markup, $actual, 'Expected to leave block content unmodified, but found changes.' );
 	}
@@ -90,7 +90,14 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 			),
 		);
 
-		$actual = wp_render_elements_support( $block_markup, $block );
+		/*
+		 * To ensure a consistent elements class name it is generated within a
+		 * `render_block_data` filter and stored in the `className` attribute.
+		 * As a result, the block data needs to be passed through the same
+		 * function for this test.
+		 */
+		$filtered_block = wp_render_elements_support_styles( $block );
+		$actual         = wp_render_elements_class_name( $block_markup, $filtered_block );
 
 		$this->assertMatchesRegularExpression(
 			$expected_markup,
