@@ -19,7 +19,7 @@ function ms_display_multisite_tool_box()
 }
 add_action('tool_box', 'ms_display_multisite_tool_box');
 
-function wp_config_path()
+function ms_wp_config_path()
 {
 	static $path;
 
@@ -42,10 +42,23 @@ function wp_config_path()
 	return $path;
 };
 
-function modify_wp_config($content)
+function ms_modify_wp_config($content, $writable)
 {
+
+	$active_plugins = get_option('active_plugins');
+	$errors = [];
+
+	if (!empty($active_plugins)) $errors[] = 'active_plugins';
+	if (!$writable) $errors[] = 'config_not_writable';
+
+	if (!empty($errors)) {
+		$errors = implode(',', $errors);
+		$redirect = add_query_arg(['errors' => $errors], wp_get_referer());
+		wp_redirect($redirect);
+		exit();
+	}
 	$token           = "/* That's all, stop editing!";
-	$config_contents = file_get_contents(wp_config_path());
+	$config_contents = file_get_contents(ms_wp_config_path());
 	if (false === strpos($config_contents, $token)) {
 		return false;
 	}
@@ -55,7 +68,7 @@ function modify_wp_config($content)
 	$content = trim($content);
 
 	file_put_contents(
-		wp_config_path(),
+		ms_wp_config_path(),
 		"{$before}\n\n{$content}\n\n{$token}{$after}"
 	);
 }
@@ -99,13 +112,13 @@ function ms_turn_into_multisite()
 define( 'WP_ALLOW_MULTISITE', true );
 define( 'MULTISITE', true );
 define( 'SUBDOMAIN_INSTALL', false );
-\$base = '{$base}';
 define( 'DOMAIN_CURRENT_SITE', '{$domain}' );
 define( 'PATH_CURRENT_SITE', '{$base}' );
 define( 'SITE_ID_CURRENT_SITE', {$site_id} );
 define( 'BLOG_ID_CURRENT_SITE', 1 );
 EOT;
-		is_writable(wp_config_path()) && modify_wp_config($ms_config);
+		$is_config_writable = is_writable(ms_wp_config_path());
+		$is_config_writable && ms_modify_wp_config($ms_config, $is_config_writable);
 	} else {
 		/* Multisite constants are defined, therefore we already have an empty site_admins site meta.
 			 *
