@@ -141,6 +141,26 @@ class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 				'random',
 				true,
 			),
+			'core mode, testing for any'               => array(
+				'core',
+				'any',
+				true,
+			),
+			'plugin mode, testing for any'             => array(
+				'core',
+				'any',
+				true,
+			),
+			'theme mode, testing for any via default'  => array(
+				'core',
+				null,
+				true,
+			),
+			'random mode, testing for any via default' => array(
+				'random',
+				null,
+				false,
+			),
 			'invalid mode, testing for core'           => array(
 				'invalid',
 				'core',
