@@ -1826,7 +1826,6 @@ function is_blog_installed() {
 		}
 
 		// One or more tables exist. This is not good.
-
 		wp_load_translations_early();
 
 		// Die with a DB error.
