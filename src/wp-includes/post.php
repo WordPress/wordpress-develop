@@ -3558,7 +3558,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	/**
 	 * Fires immediately before a post is deleted from the database.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @param int     $postid Post ID.
 	 * @param WP_Post $post   Post object.
