@@ -44,7 +44,7 @@ function ms_wp_config_path()
 
 function ms_modify_wp_config($content, $writable)
 {
-
+	!is_super_admin() && wp_die(__('Sorry, you are not allowed allowed to do that'));
 	$active_plugins = get_option('active_plugins');
 	$errors = [];
 
