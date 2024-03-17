@@ -13,12 +13,12 @@ function ms_display_multisite_tool_box()
 				<?php
 				printf(
 					__('<a href="%s">Turn this Site into a Multisite</a>'),
-					wp_nonce_url( admin_url( 'admin-post.php?action=ms_initialize_migration' ) )
+					wp_nonce_url(admin_url('admin-post.php?action=ms_initialize_migration'))
 				);
 				?>
 			</p>
 		</div>
-<?php
+	<?php
 	endif;
 }
 add_action('tool_box', 'ms_display_multisite_tool_box');
@@ -124,27 +124,30 @@ EOT;
 				['meta_id' => $row->meta_id]
 			);
 		}
+
+		update_network_option(null, 'ms_migration', true);
+		wp_safe_redirect(wp_login_url());
 	}
 }
 add_action('admin_post_ms_migration', 'ms_turn_into_multisite');
 
 function ms_display_process()
 {
-	if (! get_network_option(null, 'ms_migration')) {
+	if (!get_network_option(null, 'ms_migration')) {
 		return;
 	}
 
-	if( key_exists('errors', $_GET)) {
+	if (key_exists('errors', $_GET)) {
 		$errors = explode(',', (string) $_GET['errors']);
 
 		foreach ($errors as $error) {
-			if('active_plugins' === $error) {
+			if ('active_plugins' === $error) {
 				wp_admin_notice(__('Making your installation Multisite ready failed, plugins are still enabled please try again.'), [
 					'type' => 'error'
 				]);
 				continue;
 			}
-			if('config_not_writable' === $error) {
+			if ('config_not_writable' === $error) {
 				wp_admin_notice(__('Making your installation Multisite ready failed, it is not possible to write wp-config.php please try again.'), [
 					'type' => 'error'
 				]);
@@ -160,25 +163,29 @@ function ms_display_process()
 	?>
 	<div class="notice notice-info ">
 		<h3><?php echo __('Make your installation Multisite-ready'); ?></h3>
-		<p><?php echo __('Make your installation Multisite-ready to add translation or creates new sites. The following steps will happen during this process:');?></p>
+		<p><?php echo __('Make your installation Multisite-ready to add translation or creates new sites. The following steps will happen during this process:'); ?></p>
 		<ol>
-			<li><?php if ($has_active_plugins&& ! is_multisite()):
-					echo __('Reactivate your plugins. You can find them in the “Recently Active” tab in the plugins table.');
-			else:
-					echo __('All plugins deactivated.');
-				endif; ?></li>
+			<li><?php if ($has_active_plugins && !is_multisite()) :
+						echo __('Deactivate your plugins. You can find them in the “Recently Active” tab in the plugins table.');
+					else :
+						echo __('All plugins deactivated.');
+					endif; ?></li>
 			<li>
 				<?php echo __('Start converting to Multisite. Your database and wp-config.php will be made Multisite-ready.'); ?>
-				<?php if( ! $has_active_plugins &&  ! is_multisite() ): ?>
-					<a href="<?php echo wp_nonce_url( admin_url( 'admin-post.php?action=ms_migration' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php echo __( 'Make Multisite-ready' ); ?></a>
-				<?php endif; ?></li>
-			<li><?php echo __('Reactivate your plugins. You can find them in the “Recently Active” tab in the plugins table.'); ?> <?php if( is_multisite() ): ?>
+				<?php if (!$has_active_plugins &&  !is_multisite()) : ?>
+					<a href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=ms_migration')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+										?>"><?php echo __('Make Multisite-ready'); ?></a>
+				<?php endif; ?>
+			</li>
+			<li><?php echo __('Reactivate your plugins. You can find them in the “Recently Active” tab in the plugins table.'); ?> <?php if (is_multisite()) : ?>
 					<p><?php echo __('Select all “Recently active” plugins and go to Bulk actions. Choose “Activate” and click “Apply”.'); ?></p>
-					<a href="<?php echo wp_nonce_url( admin_url( 'plugins.php' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"><?php echo __( 'Activate my plugins' ); ?></a>
-				<?php endif; ?></li>
+					<a href="<?php echo wp_nonce_url(admin_url('plugins.php')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+										?>"><?php echo __('Activate my plugins'); ?></a>
+				<?php endif; ?>
+			</li>
 		</ol>
 	</div>
-	<?php
+<?php
 }
 
 
@@ -188,8 +195,7 @@ function ms_initialize_migration()
 {
 	update_network_option(null, 'ms_migration', true);
 
-	wp_safe_redirect( wp_nonce_url( admin_url( 'plugins.php' ) ) );
-
+	wp_safe_redirect(wp_nonce_url(admin_url('plugins.php')));
 }
 
 add_action('admin_post_ms_initialize_migration', 'ms_initialize_migration');
