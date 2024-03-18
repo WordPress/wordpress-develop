@@ -24,7 +24,7 @@ global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
 $block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 
-// Flag that we're loading the block editor.
+// Flag that the block editor is loaded.
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
 
@@ -130,7 +130,7 @@ wp_add_inline_script(
 /*
  * Get all available templates for the post/page attributes meta-box.
  * The "Default template" array element should only be added if the array is
- * not empty so we do not trigger the template select element without any options
+ * not empty, to not trigger the template select element without any options
  * besides the default value.
  */
 $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
@@ -206,8 +206,7 @@ $editor_settings = array(
 	'supportsLayout'       => wp_theme_has_theme_json(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
-	// Whether or not to load the 'postcustom' meta box is stored as a user meta
-	// field so that we're not always loading its assets.
+	// Check whether the 'postcustom' meta box should be loaded.
 	'enableCustomFields'   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
 );
 
@@ -271,7 +270,7 @@ wp_enqueue_style( 'wp-edit-post' );
  */
 do_action( 'enqueue_block_editor_assets' );
 
-// In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
+// In order to duplicate classic meta box behavior, run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 

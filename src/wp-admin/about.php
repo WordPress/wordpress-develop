@@ -312,7 +312,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <?php
 
-// These are strings we may use to describe maintenance/security releases, where we aim for no new strings.
+// These are strings used to describe maintenance/security releases. Adding new strings is discouraged.
 return;
 
 __( 'Maintenance Release' );
