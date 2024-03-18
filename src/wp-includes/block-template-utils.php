@@ -736,69 +736,46 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * @return WP_Block_Template|WP_Error Template or error object.
  */
 function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array() ) {
-	$default_template_types = get_default_block_template_types();
-
 	if ( empty( $additional_fields['theme'] ) ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 	$theme = $additional_fields['theme'];
 
+
+	$default_template_types = get_default_block_template_types();
+
+	$post_id = wp_is_post_revision( $post );
+	if ( ! $post_id ) {
+		$post_id = $post;
+	}
+	$parent_post = get_post( $post_id );
+
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
 	$has_theme_file = get_stylesheet() === $theme && null !== $template_file;
-	$template_id    = ! empty( $theme ) && ! empty( $post->post_name ) ? $theme . '//' . $post->post_name : null;
 
-	/*
-	 * These are fields that are directly mapped from the post object to the template object.
-	 */
-	$post_to_template_mapping = array(
-		'ID'            => 'wp_id',
-		'post_content'  => 'content',
-		'post_name'     => 'slug',
-		'post_type'     => 'type',
-		'post_excerpt'  => 'description',
-		'post_title'    => 'title',
-		'post_status'   => 'status',
-		'post_author'   => 'author',
-		'post_modified' => 'modified',
-	);
+	$template                 = new WP_Block_Template();
+	$template->wp_id          = $post->ID;
+	$template->id             = $theme . '//' . $parent_post->post_name;
+	$template->theme          = $theme;
+	$template->content        = $post->post_content;
+	$template->slug           = $post->post_name;
+	$template->source         = 'custom';
+	$template->origin         = ! empty( $additional_fields['origin'] ) ? $additional_fields['origin'] : null;
+	$template->type           = $post->post_type;
+	$template->description    = $post->post_excerpt;
+	$template->title          = $post->post_title;
+	$template->status         = $post->post_status;
+	$template->has_theme_file = $has_theme_file;
+	$template->is_custom      = empty( $additional_fields['is_wp_suggestion'] );
+	$template->author         = $post->post_author;
+	$template->modified       = $post->post_modified;
 
-	/*
-	 * These are derived or hardcoded fields that are added to the template object.
-	 * Doing it this way means we benefit from the property_exists check on the WP_Block_Template class.
-	 */
-	$derived_or_hardcoded_fields = array(
-		'id'             => $template_id,
-		'source'         => 'custom',
-		'has_theme_file' => $has_theme_file,
-	);
-
-	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
-		$derived_or_hardcoded_fields['post_types'] = $template_file['postTypes'];
+	if ( 'wp_template' === $parent_post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
+		$template->post_types = $template_file['postTypes'];
 	}
 
-	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $post->post_name ] ) ) {
-		$derived_or_hardcoded_fields['is_custom'] = false;
-	}
-
-	/*
-	 * Merge $additional_fields with $derived_or_hardcoded_fields as the second argument to array_merge to ensure that $derived_or_hardcoded_fields take precedence.
-	 */
-	$additional_fields = is_array( $additional_fields ) && ! empty( $additional_fields ) ? array_merge( $additional_fields, $derived_or_hardcoded_fields ) : $derived_or_hardcoded_fields;
-
-	$template = new WP_Block_Template();
-
-	foreach ( $post_to_template_mapping as $post_key => $template_key ) {
-		if ( isset( $post->{$post_key} ) && property_exists( $template, $template_key ) ) {
-			$template->{$template_key} = $post->{$post_key};
-		}
-	}
-
-	if ( is_array( $additional_fields ) && ! empty( $additional_fields ) ) {
-		foreach ( $additional_fields as $key => $value ) {
-			if ( property_exists( $template, $key ) ) {
-				$template->{$key} = $value;
-			}
-		}
+	if ( 'wp_template' === $parent_post->post_type && isset( $default_template_types[ $post->post_name ] ) ) {
+		$template->is_custom = false;
 	}
 
 	return $template;
@@ -838,10 +815,9 @@ function _build_block_template_result_from_post( $post ) {
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
 	$additional_fields = array(
-		'id'             => $theme . '//' . $parent_post->post_name,
-		'theme'          => $theme,
-		'is_custom'      => empty( $is_wp_suggestion ),
-		'origin'         => ! empty( $origin ) ? $origin : null,
+		'theme'            => $theme,
+		'origin'           => $origin,
+		'is_wp_suggestion' => $is_wp_suggestion,
 	);
 
 	if ( 'wp_template_part' === $parent_post->post_type ) {
@@ -1530,9 +1506,9 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	}
 
 	$additional_fields = array(
-		'theme'          => $theme,
-		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
-		'is_custom'      => empty( $changes->meta_input['is_wp_suggestion'] ),
+		'theme'            => $theme,
+		'origin'           => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
+		'is_wp_suggestion' => isset( $changes->meta_input['is_wp_suggestion'] ) ? $changes->meta_input['is_wp_suggestion'] : null,
 	);
 
 	if ( isset( $changes->tax_input['wp_template_part_area'] ) ) {
