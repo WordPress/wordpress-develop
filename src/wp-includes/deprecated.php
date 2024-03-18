@@ -5252,9 +5252,10 @@ function wp_get_global_styles_svg_filters() {
 	 */
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 	$cache_group    = 'theme_json';
+	$theme          = wp_get_theme();
 	$cache_key      = 'wp_get_global_styles_svg_filters';
 	if ( $can_use_cached ) {
-		$cached = wp_cache_get( $cache_key, $cache_group );
+		$cached = $theme->cache_get( $cache_key, $cache_group );
 		if ( $cached ) {
 			return $cached;
 		}
@@ -5271,7 +5272,7 @@ function wp_get_global_styles_svg_filters() {
 	$svgs = $tree->get_svg_filters( $origins );
 
 	if ( $can_use_cached ) {
-		wp_cache_set( $cache_key, $svgs, $cache_group );
+		$theme->cache_add( $cache_key, $svgs, $cache_group );
 	}
 
 	return $svgs;
