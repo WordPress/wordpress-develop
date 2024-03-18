@@ -1491,9 +1491,12 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	$terms = $changes->tax_input;
 
 	if ( ! empty( $changes->ID ) ) {
-		$post              = get_post( $changes->ID );
-		$type_terms        = get_the_terms( $post, 'wp_theme' );
+		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
 		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
+
+		// Apply changes to the existing post object.
+		$post = get_post( $changes->ID );
+		$post = (object) array_merge( (array) $post, (array) $changes );
 	} else {
 		if ( empty( $changes->post_name ) ) {
 			$changes->post_name = $request['slug'];
@@ -1501,9 +1504,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$post = $changes;
 	}
 
-	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
-
-	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $terms, $changes->meta_input );
+	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $changes->meta_input );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
