@@ -10,6 +10,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 37392
+		 *
+		 * @covers ::wp_count_sites
 		 */
 		public function test_wp_count_sites() {
 			// Create a random number of sites with each status.

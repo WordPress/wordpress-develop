@@ -5,6 +5,8 @@ if ( is_multisite() ) :
 	/**
 	 * @group ms-site
 	 * @group multisite
+	 *
+	 * @covers ::update_blog_details
 	 */
 	class Tests_Multisite_UpdateBlogDetails extends WP_UnitTestCase {
 

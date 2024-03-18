@@ -122,6 +122,8 @@ if ( is_multisite() ) :
 		 * @param string $domain       The requested domain.
 		 * @param string $path         The requested path.
 		 * @param string $message      The message to pass for failed tests.
+		 *
+		 * @covers ::get_network_by_path
 		 */
 		public function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
 			$network = get_network_by_path( $domain, $path );
@@ -153,6 +155,8 @@ if ( is_multisite() ) :
 		 * @param string $domain       The requested domain.
 		 * @param string $path         The requested path.
 		 * @param string $message      The message to pass for failed tests.
+		 *
+		 * @covers ::get_network_by_path
 		 */
 		public function test_get_network_by_path_with_zero_path_segments( $expected_key, $domain, $path, $message ) {
 			add_filter( 'network_by_path_segments_count', '__return_zero' );
@@ -180,6 +184,8 @@ if ( is_multisite() ) :
 		/**
 		 * Even if a matching network is available, it should not match if the the filtered
 		 * value for network path segments is fewer than the number of paths passed.
+		 *
+		 * @covers ::get_network_by_path
 		 */
 		public function test_get_network_by_path_with_forced_single_path_segment_returns_single_path_network() {
 			add_filter( 'network_by_path_segments_count', array( $this, 'filter_network_path_segments' ) );
@@ -202,6 +208,8 @@ if ( is_multisite() ) :
 		 * @param string $domain       The requested domain.
 		 * @param string $path         The requested path.
 		 * @param int    $segments     Optional. Number of segments to use in `get_site_by_path()`.
+		 *
+		 * @covers ::get_site_by_path
 		 */
 		public function test_get_site_by_path( $expected_key, $domain, $path, $segments = null ) {
 			$site = get_site_by_path( $domain, $path, $segments );
@@ -254,6 +262,8 @@ if ( is_multisite() ) :
 		 * @param string $network_key The array key associated with the expected network for the test.
 		 * @param string $domain      The requested domain.
 		 * @param string $path        The requested path.
+		 *
+		 * @covers ::ms_load_current_site_and_network
 		 */
 		public function test_multisite_bootstrap( $site_key, $network_key, $domain, $path ) {
 			global $current_blog;
@@ -293,6 +303,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 27884
+		 *
+		 * @covers ::ms_load_current_site_and_network
 		 */
 		public function test_multisite_bootstrap_additional_path_segments() {
 			global $current_blog;
@@ -315,6 +327,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 37053
+		 *
+		 * @covers ::get_site_by_path
 		 */
 		public function test_get_site_by_path_returns_wp_site() {
 			add_filter( 'pre_get_site_by_path', array( $this, 'filter_pre_get_site_by_path' ), 10, 3 );

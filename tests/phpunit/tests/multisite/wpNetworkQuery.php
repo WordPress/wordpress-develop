@@ -8,6 +8,8 @@ if ( is_multisite() ) :
 	 * @group ms-network
 	 * @group ms-network-query
 	 * @group multisite
+	 *
+	 * @covers WP_Network_Query::query
 	 */
 	class Tests_Multisite_wpNetworkQuery extends WP_UnitTestCase {
 		protected static $network_ids;
