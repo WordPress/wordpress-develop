@@ -838,7 +838,7 @@ function _build_block_template_result_from_post( $post ) {
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
 	$additional_fields = array(
-		'id' 		     => $theme . '//' . $parent_post->post_name,
+		'id'             => $theme . '//' . $parent_post->post_name,
 		'theme'          => $theme,
 		'is_custom'      => empty( $is_wp_suggestion ),
 		'origin'         => ! empty( $origin ) ? $origin : null,
