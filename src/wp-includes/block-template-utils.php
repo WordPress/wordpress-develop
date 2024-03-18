@@ -738,7 +738,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array() ) {
 	$default_template_types = get_default_block_template_types();
 
-	if ( empty ( $additional_fields['theme'] ) ) {
+	if ( empty( $additional_fields['theme'] ) ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 	$theme = $additional_fields['theme'];
