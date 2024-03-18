@@ -1500,13 +1500,8 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$theme = isset( $post->tax_input['wp_theme'] ) ? $post->tax_input['wp_theme'] : null;
 	}
 
-	$terms = array(
-		'wp_theme' => $theme,
-	);
-
-	if ( isset( $changes->tax_input['wp_template_part_area'] ) ) {
-		$terms['area'] = $changes->tax_input['wp_template_part_area'];
-	}
+	$terms             = $changes->tax_input;
+	$terms['wp_theme'] = $theme;
 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
 
