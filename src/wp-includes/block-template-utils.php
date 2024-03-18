@@ -1489,9 +1489,9 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	}
 
 	if ( ! empty( $changes->ID ) ) {
-		$post  = get_post( $changes->ID );
-		$terms = get_the_terms( $post, 'wp_theme' );
-		$theme = ! is_wp_error( $terms ) && ! empty( $terms ) ? $terms[0]->name : null;
+		$post       = get_post( $changes->ID );
+		$type_terms = get_the_terms( $post, 'wp_theme' );
+		$theme      = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
 	} else {
 		if ( empty( $changes->post_name ) ) {
 			$changes->post_name = $request['slug'];
