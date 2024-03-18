@@ -4,6 +4,8 @@
  * Test functions in wp-includes/user.php
  *
  * @group user
+ *
+ * @covers ::wp_dropdown_users
  */
 class Tests_User_wpDropdownUsers extends WP_UnitTestCase {
 

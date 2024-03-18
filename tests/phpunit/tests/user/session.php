@@ -21,6 +21,11 @@ class Tests_User_Session extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_User_Meta_Session_Tokens', $this->manager );
 	}
 
+	/**
+	 * @covers WP_Session_Tokens::create
+	 * @covers WP_Session_Tokens::verify
+	 * @covers WP_Session_Tokens::destroy
+	 */
 	public function test_verify_and_destroy_token() {
 		$expiration = time() + DAY_IN_SECONDS;
 		$token      = $this->manager->create( $expiration );
@@ -30,6 +35,9 @@ class Tests_User_Session extends WP_UnitTestCase {
 		$this->assertFalse( $this->manager->verify( $token ) );
 	}
 
+	/**
+	 * @covers WP_Session_Tokens::destroy_others
+	 */
 	public function test_destroy_other_tokens() {
 		$expiration = time() + DAY_IN_SECONDS;
 		$token_1    = $this->manager->create( $expiration );
@@ -44,6 +52,9 @@ class Tests_User_Session extends WP_UnitTestCase {
 		$this->assertFalse( $this->manager->verify( $token_3 ) );
 	}
 
+	/**
+	 * @covers WP_Session_Tokens::destroy_all
+	 */
 	public function test_destroy_all_tokens() {
 		$expiration = time() + DAY_IN_SECONDS;
 		$token_1    = $this->manager->create( $expiration );

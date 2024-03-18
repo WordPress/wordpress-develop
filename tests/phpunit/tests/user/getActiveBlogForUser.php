@@ -8,6 +8,8 @@ if ( is_multisite() ) :
 	 * @group user
 	 * @group ms-user
 	 * @group multisite
+	 *
+	 * @covers ::get_active_blog_for_user
 	 */
 	class Tests_User_GetActiveBlogForUser extends WP_UnitTestCase {
 		public static $user_id = false;

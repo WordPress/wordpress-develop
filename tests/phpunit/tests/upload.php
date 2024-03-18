@@ -2,6 +2,8 @@
 /**
  * @group upload
  * @group media
+ *
+ * @covers ::wp_upload_dir
  */
 class Tests_Upload extends WP_UnitTestCase {
 
