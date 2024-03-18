@@ -2,6 +2,7 @@
 
 /**
  * @group post
+ * @covers ::get_page_uri
  */
 class Tests_Post_GetPageUri extends WP_UnitTestCase {
 

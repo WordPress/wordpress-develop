@@ -5,6 +5,9 @@
  */
 class Tests_POMO_Translations extends WP_UnitTestCase {
 
+	/**
+	 * @covers Translations::add_entry
+	 */
 	public function test_add_entry() {
 		$entry  = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry2 = new Translation_Entry( array( 'singular' => 'dyado' ) );
@@ -42,6 +45,9 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$this->assertSame( $entry->key(), $entries[0]->key() );
 	}
 
+	/**
+	 * @covers Translations::translate
+	 */
 	public function test_translate() {
 		$entry1 = new Translation_Entry(
 			array(
@@ -65,6 +71,9 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$this->assertSame( 'babaz', $domain->translate( 'babaz' ) );
 	}
 
+	/**
+	 * @covers Translations::translate_plural
+	 */
 	public function test_translate_plural() {
 		$entry_incomplete = new Translation_Entry(
 			array(
@@ -105,6 +114,10 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$this->assertSame( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', -18881 ) );
 	}
 
+	/**
+	 * @covers Translations::translate
+	 * @covers Translation_Entry::merge_with
+	 */
 	public function test_digit_and_merge() {
 		$entry_digit_1 = new Translation_Entry(
 			array(

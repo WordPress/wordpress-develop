@@ -2,8 +2,11 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_post_type_labels
  */
 class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
+
 	public function test_returns_an_object() {
 		$this->assertIsObject(
 			get_post_type_labels(
@@ -55,7 +58,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 
 		$this->assertSame( 'Foo', $labels->name_admin_bar );
 	}
-
 
 	public function test_name_admin_bar_label_should_fall_back_to_post_type_name() {
 		$labels = get_post_type_labels(

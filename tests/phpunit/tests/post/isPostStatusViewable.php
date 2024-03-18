@@ -2,6 +2,7 @@
 
 /**
  * @group post
+ * @covers ::is_post_status_viewable
  */
 class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 

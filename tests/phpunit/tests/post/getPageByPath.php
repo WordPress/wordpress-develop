@@ -2,6 +2,7 @@
 
 /**
  * @group post
+ * @covers ::get_page_by_path
  */
 class Tests_Post_GetPageByPath extends WP_UnitTestCase {
 	/**

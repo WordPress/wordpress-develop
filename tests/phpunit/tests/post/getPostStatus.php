@@ -2,6 +2,7 @@
 
 /**
  * @group post
+ * @covers ::get_post_status
  */
 class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 
