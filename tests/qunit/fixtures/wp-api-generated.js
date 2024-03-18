@@ -13508,9 +13508,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=2",
         "slug": "restapiclientfixtureuser",
         "avatar_urls": {
-            "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-            "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-            "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+            "24": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+            "48": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+            "96": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": ""
@@ -13538,9 +13538,9 @@ mockedApiResponse.UserModel = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+        "48": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+        "96": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13555,9 +13555,9 @@ mockedApiResponse.me = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+        "48": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+        "96": "http://2.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13581,9 +13581,9 @@ mockedApiResponse.CommentsCollection = [
         "status": "approved",
         "type": "comment",
         "author_avatar_urls": {
-            "24": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-            "48": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-            "96": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+            "24": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+            "48": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+            "96": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -13626,9 +13626,9 @@ mockedApiResponse.CommentModel = {
     "status": "approved",
     "type": "comment",
     "author_avatar_urls": {
-        "24": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-        "48": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-        "96": "http://2.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+        "24": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+        "48": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+        "96": "http://0.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": "meta_value"
