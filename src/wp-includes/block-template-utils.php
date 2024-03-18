@@ -817,7 +817,7 @@ function _build_block_template_result_from_post( $post ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 
-	$theme          = $terms[0]->name;
+	$theme = $terms[0]->name;
 
 	$origin           = get_post_meta( $parent_post->ID, 'origin', true );
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
