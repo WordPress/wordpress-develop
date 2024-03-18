@@ -732,7 +732,6 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  *
  * @param WP_Post $post Template post.
  * @param array $additional_fields Additional fields to add to the template object.
- * @param bool $hook_blocks Whether to insert hooked blocks into the content or not.
  * @return WP_Block_Template|WP_Error Template or error object.
  */
 function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array() ) {
