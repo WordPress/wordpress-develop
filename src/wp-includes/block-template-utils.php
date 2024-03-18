@@ -1488,7 +1488,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
-	$terms             = $changes->tax_input;
+	$terms = $changes->tax_input;
 
 	if ( ! empty( $changes->ID ) ) {
 		$post              = get_post( $changes->ID );
