@@ -772,7 +772,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	if ( is_array( $additional_fields ) && ! empty( $additional_fields ) ) {
 		foreach ( $additional_fields as $key => $value ) {
 			if ( property_exists( $template, $key ) ) {
-				$template->{$key} = $value;	
+				$template->{$key} = $value;
 			}
 		}
 	}
