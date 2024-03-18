@@ -726,7 +726,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 
 /**
  * Build a block template object for based on a WP_Post object.
- * 
+ *
  * @since 6.5.0
  * @access private
  *
@@ -762,23 +762,23 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		}
 	}
 
+	if ( is_array( $additional_fields ) && ! empty( $additional_fields ) ) {
+		foreach ( $additional_fields as $key => $value ) {
+			$template->{$key} = $value;
+		}
+	}
+
 	if (
 		'wp_template' === $post->post_type &&
-		isset( $template_file['postTypes'] ) &&
 		isset( $additional_fields['has_theme_file'] ) &&
-		$additional_fields['has_theme_file']
+		$additional_fields['has_theme_file'] &&
+		isset( $template_file['postTypes'] )
 	) {
 		$template->post_types = $template_file['postTypes'];
 	}
 
 	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
-	}
-
-	if ( is_array( $additional_fields ) && ! empty( $additional_fields ) ) {
-		foreach ( $additional_fields as $key => $value ) {
-			$template->{$key} = $value;
-		}
 	}
 
 	return $template;
@@ -820,7 +820,6 @@ function _build_block_template_result_from_post( $post ) {
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
 	$additional_fields = array(
-		'wp_id'          => $post->ID,
 		'id'             => $theme . '//' . $parent_post->post_name,
 		'theme'          => $theme,
 		'has_theme_file' => $has_theme_file,
@@ -1500,22 +1499,30 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
-	$theme = $changes->tax_input['wp_theme'];
-	$template_file  = _get_block_template_file( $changes->post_type, $changes->post_name );
+	$template_file  = isset( $changes->post_type ) ? _get_block_template_file( $changes->post_type, $changes->post_name ) : null;
 	$additional_fields = array();
 
 	if ( ! empty( $changes->ID ) ) {
 		$post = get_post( $changes->ID );
+		$terms = get_the_terms( $post, 'wp_theme' );
+		if ( $terms ) {
+			$theme = $terms[0]->name;
+		} else {
+			$theme = null;
+		}
 	} else {
-		if ( ! isset( $changes->post_name ) ) {
+		if ( empty( $changes->post_name ) ) {
 			$changes->post_name = $request['slug'];
 		}
 		$post = $changes;
+		$theme = isset( $post->tax_input['wp_theme'] ) ? $post->tax_input['wp_theme'] : null;
 	}
 
+	$template_id = ! empty( $theme ) && ! empty( $post->post_name ) ? $theme . '//' . $post->post_name : null;
+
 	$additional_fields = array(
-		'theme'          => $changes->tax_input['wp_theme'],
-		'id'             => $theme . '//' . $changes->post_name,
+		'theme'          => $theme,
+		'id'             => $template_id,
 		'has_theme_file' => get_stylesheet() === $theme && null !== $template_file,
 		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
 		'source'         => 'custom',
