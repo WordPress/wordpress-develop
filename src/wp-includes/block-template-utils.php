@@ -736,10 +736,10 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * @return WP_Block_Template|WP_Error Template or error object.
  */
 function _build_block_template_object_from_wp_post_object( $post, $terms = array(), $meta = array() ) {
-	if ( empty( $terms['theme'] ) ) {
+	if ( empty( $terms['wp_theme'] ) ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
-	$theme = $terms['theme'];
+	$theme = $terms['wp_theme'];
 
 	$default_template_types = get_default_block_template_types();
 
@@ -809,7 +809,7 @@ function _build_block_template_result_from_post( $post ) {
 	}
 
 	$terms = array(
-		'theme' => $terms[0]->name,
+		'wp_theme' => $terms[0]->name,
 	);
 
 	$meta = array(
@@ -1501,7 +1501,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	}
 
 	$terms = array(
-		'theme' => $theme,
+		'wp_theme' => $theme,
 	);
 
 	if ( isset( $changes->tax_input['wp_template_part_area'] ) ) {
