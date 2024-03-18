@@ -762,6 +762,10 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		'post_modified' => 'modified',
 	);
 
+	/*
+	 * These are derived or hardcoded fields that are added to the template object.
+	 * Doing it this way means we benefit from the property_exists check on the WP_Block_Template class.
+	 */
 	$derived_or_hardcoded_fields = array(
 		'id'             => $template_id,
 		'source'         => 'custom',
