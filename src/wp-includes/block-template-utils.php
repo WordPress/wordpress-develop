@@ -730,16 +730,16 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * @since 6.5.0
  * @access private
  *
- * @param WP_Post $post Template post.
- * @param array $additional_fields Additional fields to add to the template object.
+ * @param WP_Post $post  Template post.
+ * @param array   $terms Additional terms to inform the template object.
+ * @param array   $meta  Additional meta fields to inform the template object.
  * @return WP_Block_Template|WP_Error Template or error object.
  */
-function _build_block_template_object_from_wp_post_object( $post, $additional_fields = array() ) {
-	if ( empty( $additional_fields['theme'] ) ) {
+function _build_block_template_object_from_wp_post_object( $post, $terms = array(), $meta = array() ) {
+	if ( empty( $terms['theme'] ) ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
-	$theme = $additional_fields['theme'];
-
+	$theme = $terms['theme'];
 
 	$default_template_types = get_default_block_template_types();
 
@@ -759,13 +759,13 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
 	$template->source         = 'custom';
-	$template->origin         = ! empty( $additional_fields['origin'] ) ? $additional_fields['origin'] : null;
+	$template->origin         = ! empty( $meta['origin'] ) ? $meta['origin'] : null;
 	$template->type           = $post->post_type;
 	$template->description    = $post->post_excerpt;
 	$template->title          = $post->post_title;
 	$template->status         = $post->post_status;
 	$template->has_theme_file = $has_theme_file;
-	$template->is_custom      = empty( $additional_fields['is_wp_suggestion'] );
+	$template->is_custom      = empty( $meta['is_wp_suggestion'] );
 	$template->author         = $post->post_author;
 	$template->modified       = $post->post_modified;
 
@@ -808,15 +808,13 @@ function _build_block_template_result_from_post( $post ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 
-	$theme = $terms[0]->name;
+	$terms = array(
+		'theme' => $terms[0]->name,
+	);
 
-	$origin           = get_post_meta( $parent_post->ID, 'origin', true );
-	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
-
-	$additional_fields = array(
-		'theme'            => $theme,
-		'origin'           => $origin,
-		'is_wp_suggestion' => $is_wp_suggestion,
+	$meta = array(
+		'origin'           => get_post_meta( $parent_post->ID, 'origin', true ),
+		'is_wp_suggestion' => get_post_meta( $parent_post->ID, 'is_wp_suggestion', true ),
 	);
 
 	if ( 'wp_template_part' === $parent_post->post_type ) {
@@ -826,7 +824,7 @@ function _build_block_template_result_from_post( $post ) {
 		}
 	}
 
-	$template = _build_block_template_object_from_wp_post_object( $post, $additional_fields );
+	$template = _build_block_template_object_from_wp_post_object( $post, $terms, $meta );
 
 	// Check for a block template without a description and title or with a title equal to the slug.
 	if ( 'wp_template' === $parent_post->post_type && empty( $template->description ) && ( empty( $template->title ) || $template->title === $template->slug ) ) {
@@ -1490,8 +1488,6 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
-	$additional_fields = array();
-
 	if ( ! empty( $changes->ID ) ) {
 		$post = get_post( $changes->ID );
 		$terms = get_the_terms( $post, 'wp_theme' );
@@ -1504,19 +1500,17 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$theme = isset( $post->tax_input['wp_theme'] ) ? $post->tax_input['wp_theme'] : null;
 	}
 
-	$additional_fields = array(
-		'theme'            => $theme,
-		'origin'           => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
-		'is_wp_suggestion' => isset( $changes->meta_input['is_wp_suggestion'] ) ? $changes->meta_input['is_wp_suggestion'] : null,
+	$terms = array(
+		'theme' => $theme,
 	);
 
 	if ( isset( $changes->tax_input['wp_template_part_area'] ) ) {
-		$additional_fields['area'] = $changes->tax_input['wp_template_part_area'];
+		$terms['area'] = $changes->tax_input['wp_template_part_area'];
 	}
 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
 
-	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $additional_fields );
+	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post_with_changes_applied ), $terms, $changes->meta_input );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
