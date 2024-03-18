@@ -764,7 +764,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 
 	$derived_or_hardcoded_fields = array(
 		'id'             => $template_id,
-		'source'		 => 'custom',
+		'source'         => 'custom',
 		'has_theme_file' => $has_theme_file,
 	);
 
