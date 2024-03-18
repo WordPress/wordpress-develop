@@ -1488,20 +1488,18 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
+	$terms             = $changes->tax_input;
+
 	if ( ! empty( $changes->ID ) ) {
-		$post       = get_post( $changes->ID );
-		$type_terms = get_the_terms( $post, 'wp_theme' );
-		$theme      = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
+		$post              = get_post( $changes->ID );
+		$type_terms        = get_the_terms( $post, 'wp_theme' );
+		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
 	} else {
 		if ( empty( $changes->post_name ) ) {
 			$changes->post_name = $request['slug'];
 		}
 		$post = $changes;
-		$theme = isset( $post->tax_input['wp_theme'] ) ? $post->tax_input['wp_theme'] : null;
 	}
-
-	$terms             = $changes->tax_input;
-	$terms['wp_theme'] = $theme;
 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
 
