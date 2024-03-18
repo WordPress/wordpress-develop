@@ -9230,7 +9230,8 @@ mockedApiResponse.Schema = {
                                 "de_DE",
                                 "en_GB",
                                 "es_ES",
-                                "ja_JP"
+                                "ja_JP",
+                                "de_CH"
                             ],
                             "required": false
                         },
@@ -9361,7 +9362,8 @@ mockedApiResponse.Schema = {
                                 "de_DE",
                                 "en_GB",
                                 "es_ES",
-                                "ja_JP"
+                                "ja_JP",
+                                "de_CH"
                             ],
                             "required": false
                         },
@@ -9502,7 +9504,8 @@ mockedApiResponse.Schema = {
                                 "de_DE",
                                 "en_GB",
                                 "es_ES",
-                                "ja_JP"
+                                "ja_JP",
+                                "de_CH"
                             ],
                             "required": false
                         },
