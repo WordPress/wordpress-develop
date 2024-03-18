@@ -774,7 +774,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		$template->post_types = $template_file['postTypes'];
 	}
 
-	if ( 'wp_template' === $parent_post->post_type && isset( $default_template_types[ $post->post_name ] ) ) {
+	if ( 'wp_template' === $parent_post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
 	}
 
