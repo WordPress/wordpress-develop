@@ -835,8 +835,8 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	/**
 	 * Filters the default post name initially used in the "Write Post" form.
 	 *
-  	 * @since 6.5.0
-    	 *
+	 * @since 6.5.0
+	 *
 	 * @param string  $post_name Default post name.
 	 * @param WP_Post $post      Post object.
 	 */
