@@ -776,7 +776,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		$derived_or_hardcoded_fields['is_custom'] = false;
 	}
 
-	$additional_fields = is_array( $additional_fields ) && ! empty( $additional_fields )  ? array_merge( $additional_fields, $derived_or_hardcoded_fields ) : $derived_or_hardcoded_fields;
+	$additional_fields = is_array( $additional_fields ) && ! empty( $additional_fields ) ? array_merge( $additional_fields, $derived_or_hardcoded_fields ) : $derived_or_hardcoded_fields;
 
 	$template = new WP_Block_Template();
 
