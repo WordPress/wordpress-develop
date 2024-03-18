@@ -9,6 +9,8 @@ class Tests_XMLRPC_Client extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 26947
+	 *
+	 * @covers  IXR_Client::__construct
 	 */
 	public function test_ixr_client_allows_query_strings() {
 		$client = new IXR_Client( 'http://example.com/server.php?this-is-needed=true#not-this' );
@@ -19,6 +21,8 @@ class Tests_XMLRPC_Client extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 26947
+	 *
+	 * @covers  WP_HTTP_IXR_Client::__construct
 	 */
 	public function test_wp_ixr_client_allows_query_strings() {
 		$client = new WP_HTTP_IXR_Client( 'http://example.com/server.php?this-is-needed=true#not-this' );

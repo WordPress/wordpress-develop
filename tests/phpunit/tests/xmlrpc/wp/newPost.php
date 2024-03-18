@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_newPost
  */
 class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
