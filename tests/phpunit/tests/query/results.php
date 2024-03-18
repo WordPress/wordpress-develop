@@ -5,6 +5,8 @@
  * We're testing against a known data set, so we can check that specific posts are included in the output.
  *
  * @group query
+ *
+ * @covers WP_Query::query
  */
 class Tests_Query_Results extends WP_UnitTestCase {
 	protected $q;
