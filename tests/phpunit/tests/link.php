@@ -4,6 +4,9 @@
  */
 class Tests_Link extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_get_shortlink
+	 */
 	public function test_wp_get_shortlink() {
 		$post_id  = self::factory()->post->create();
 		$post_id2 = self::factory()->post->create();
@@ -48,6 +51,9 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->assertSame( home_url( '?p=' . $post_id ), wp_get_shortlink() );
 	}
 
+	/**
+	 * @covers ::wp_get_shortlink
+	 */
 	public function test_wp_get_shortlink_with_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
@@ -62,6 +68,8 @@ class Tests_Link extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26871
+	 *
+	 * @covers ::wp_get_shortlink
 	 */
 	public function test_wp_get_shortlink_with_home_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -77,6 +85,8 @@ class Tests_Link extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30910
+	 *
+	 * @covers ::get_permalink
 	 */
 	public function test_get_permalink_should_not_reveal_post_name_for_post_with_post_status_future() {
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
@@ -126,6 +136,8 @@ class Tests_Link extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 1914
+	 *
+	 * @covers ::get_permalink
 	 */
 	public function test_unattached_attachment_has_a_pretty_permalink() {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
@@ -148,6 +160,8 @@ class Tests_Link extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 1914
+	 *
+	 * @covers ::get_permalink
 	 */
 	public function test_attachment_attached_to_non_existent_post_type_has_a_pretty_permalink() {
 		global $wp_post_types;
