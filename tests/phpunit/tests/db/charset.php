@@ -646,6 +646,8 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	 *
 	 * @ticket 21212
 	 * @depends test_process_field_charsets
+	 *
+	 * @covers wpdb::process_field_charsets
 	 */
 	public function test_process_field_charsets_on_nonexistent_table() {
 		$data = array(
