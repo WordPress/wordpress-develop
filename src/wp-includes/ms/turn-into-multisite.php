@@ -133,7 +133,6 @@ add_action('admin_post_ms_migration', 'ms_turn_into_multisite');
 function ms_display_process()
 {
 	if (!get_option('ms_migration')) {
-
 		return;
 	}
 
@@ -148,7 +147,7 @@ function ms_display_process()
 				continue;
 			}
 			if ('config_not_writable' === $error) {
-				wp_admin_notice(__('Making your installation Multisite ready failed, it is not possible to write wp-config.php please try again.'), [
+				wp_admin_notice(__('Maki||ng your installation Multisite ready failed, it is not possible to write wp-config.php please try again.'), [
 					'type' => 'error'
 				]);
 			}
@@ -161,7 +160,7 @@ function ms_display_process()
 
 
 	?>
-	<div class="notice notice-info ">
+	<div id="ms-migration" class="notice notice-info is-dismissible">
 		<h3><?php echo __('Make your installation Multisite-ready'); ?></h3>
 		<p><?php echo __('Make your installation Multisite-ready to add translation or creates new sites. The following steps will happen during this process:'); ?></p>
 		<ol>
@@ -199,3 +198,21 @@ function ms_initialize_migration()
 }
 
 add_action('admin_post_ms_initialize_migration', 'ms_initialize_migration');
+
+function ms_handle_dismiss()
+{
+	wp_enqueue_script('ms_handle_dismiss', includes_url('/ms/handle_dismiss.js'), array('jquery'), '1.0', true);
+	wp_add_inline_script('ms_handle_dismiss', 'const ms_handle_dismiss = ' . json_encode([
+		'nonce' => wp_create_nonce('ms_handle_dismiss'),
+		'ajaxUrl' => admin_url('admin-ajax.php'),
+	]), 'before');
+}
+add_action('admin_enqueue_scripts', 'ms_handle_dismiss');
+add_action('wp_ajax_ms_handle_dismiss', 'ms_dismiss_admin_notice');
+
+function ms_dismiss_admin_notice()
+{
+	check_ajax_referer('ms_handle_dismiss', 'nonce', true);
+	add_site_option('ms_admin_notice_dismissed', true);
+	exit;
+}
