@@ -111,8 +111,8 @@ function ms_turn_into_multisite()
 	delete_site_option('upload_space_check_disabled');
 	update_site_option('upload_space_check_disabled', 1);
 
-	if (!is_multisite()) {
-		$ms_config        = <<<EOT
+	if (is_multisite()) die();
+	$ms_config        = <<<EOT
 define( 'WP_ALLOW_MULTISITE', true );
 define( 'MULTISITE', true );
 define( 'SUBDOMAIN_INSTALL', false );
@@ -121,27 +121,13 @@ define( 'PATH_CURRENT_SITE', '{$base}' );
 define( 'SITE_ID_CURRENT_SITE', {$site_id} );
 define( 'BLOG_ID_CURRENT_SITE', 1 );
 EOT;
-		$is_config_writable = is_writable(ms_wp_config_path());
-		$is_config_writable && ms_modify_wp_config($ms_config, $is_config_writable);
-	} else {
-		/* Multisite constants are defined, therefore we already have an empty site_admins site meta.
-			 *
-			 * Code based on parts of delete_network_option. */
-		$rows = $wpdb->get_results("SELECT meta_id, site_id FROM {$wpdb->sitemeta} WHERE meta_key = 'site_admins' AND meta_value = ''");
-
-		foreach ($rows as $row) {
-			wp_cache_delete("{$row->site_id}:site_admins", 'site-options');
-
-			$wpdb->delete(
-				$wpdb->sitemeta,
-				['meta_id' => $row->meta_id]
-			);
-		}
-
-		wp_redirect(wp_nonce_url(admin_url('plugins.php')));
-		exit();
-	}
+	$is_config_writable = is_writable(ms_wp_config_path());
+	$is_config_writable && ms_modify_wp_config($ms_config, $is_config_writable);
+	wp_logout();
+	wp_redirect(wp_login_url());
+	exit();
 }
+
 add_action('admin_post_ms_migration', 'ms_turn_into_multisite');
 
 function ms_display_process()
