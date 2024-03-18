@@ -520,7 +520,7 @@ function wp_print_media_templates() {
 				<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
 				<span class="setting" data-setting="title">
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
-					<input type="text" id="attachment-details-two-column-title" value="{{ data.title }}" {{ maybeReadOnly }} />
+					<textarea id="attachment-details-two-column-title" aria-describedby="title-description" {{ maybeReadOnly }}>{{ data.title }}</textarea>
 				</span>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
