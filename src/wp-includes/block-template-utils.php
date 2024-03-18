@@ -778,7 +778,6 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	}
 
 	$template->id = ! empty( $template->theme ) && ! empty( $template->slug ) ? $template->theme . '//' . $template->slug : null;
-
 	$template->source         = 'custom';
 	$template->has_theme_file = $has_theme_file;
 
