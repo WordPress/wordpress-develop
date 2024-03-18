@@ -766,7 +766,6 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		'id'             => $template_id,
 		'source'		 => 'custom',
 		'has_theme_file' => $has_theme_file,
-		'theme'			 => $theme,
 	);
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
