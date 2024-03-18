@@ -775,6 +775,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		}
 	}
 
+	$template->source         = 'custom';
 	$template->has_theme_file = $has_theme_file;
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
@@ -826,7 +827,6 @@ function _build_block_template_result_from_post( $post ) {
 		'theme'          => $theme,
 		'is_custom'      => empty( $is_wp_suggestion ),
 		'origin'         => ! empty( $origin ) ? $origin : null,
-		'source'         => 'custom',
 	);
 
 	if ( 'wp_template_part' === $parent_post->post_type ) {
@@ -1520,7 +1520,6 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		'theme'          => $theme,
 		'id'             => $template_id,
 		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
-		'source'         => 'custom',
 		'is_custom'      => empty( $changes->meta_input['is_wp_suggestion'] ),
 	);
 
