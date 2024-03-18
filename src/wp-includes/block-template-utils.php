@@ -764,14 +764,16 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	$template = new WP_Block_Template();
 
 	foreach ( $post_to_template_mapping as $post_key => $template_key ) {
-		if ( isset( $post->{$post_key} ) ) {
+		if ( isset( $post->{$post_key} ) && property_exists( $template, $template_key ) ) {
 			$template->{$template_key} = $post->{$post_key};
 		}
 	}
 
 	if ( is_array( $additional_fields ) && ! empty( $additional_fields ) ) {
 		foreach ( $additional_fields as $key => $value ) {
-			$template->{$key} = $value;
+			if ( property_exists( $template, $key ) ) {
+				$template->{$key} = $value;	
+			}
 		}
 	}
 
