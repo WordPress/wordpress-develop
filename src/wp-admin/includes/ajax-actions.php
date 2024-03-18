@@ -1484,8 +1484,8 @@ function wp_ajax_edit_comment() {
 
 	$position = ( isset( $_POST['position'] ) && (int) $_POST['position'] ) ? (int) $_POST['position'] : '-1';
 	/*
-	 * Checkbox is used to differentiate between the Comments section on the Edit Post screen
-	 * and the Edit Comments screen.
+	 * Checkbox is used to differentiate between the Edit Comments screen (1)
+	 * and the Comments section on the Edit Post screen (0).
 	 */
 	$checkbox      = ( isset( $_POST['checkbox'] ) && '1' === $_POST['checkbox'] ) ? 1 : 0;
 	$wp_list_table = _get_list_table( $checkbox ? 'WP_Comments_List_Table' : 'WP_Post_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
