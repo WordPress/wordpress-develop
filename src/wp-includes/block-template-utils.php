@@ -745,6 +745,7 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
 	$has_theme_file = get_stylesheet() === $theme && null !== $template_file;
+	$template_id    = ! empty( $theme ) && ! empty( $post->post_name ) ? $theme . '//' . $post->post_name : null;
 
 	/*
 	 * These are fields that are directly mapped from the post object to the template object.
@@ -761,6 +762,23 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		'post_modified' => 'modified',
 	);
 
+	$derived_or_hardcoded_fields = array(
+		'id'             => $template_id,
+		'source'		 => 'custom',
+		'has_theme_file' => $has_theme_file,
+		'theme'			 => $theme,
+	);
+
+	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
+		$derived_or_hardcoded_fields['post_types'] = $template_file['postTypes'];
+	}
+
+	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $post->post_name ] ) ) {
+		$derived_or_hardcoded_fields['is_custom'] = false;
+	}
+
+	$additional_fields = is_array( $additional_fields ) && ! empty( $additional_fields )  ? array_merge( $additional_fields, $derived_or_hardcoded_fields ) : $derived_or_hardcoded_fields;
+
 	$template = new WP_Block_Template();
 
 	foreach ( $post_to_template_mapping as $post_key => $template_key ) {
@@ -775,18 +793,6 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 				$template->{$key} = $value;
 			}
 		}
-	}
-
-	$template->id = ! empty( $template->theme ) && ! empty( $template->slug ) ? $template->theme . '//' . $template->slug : null;
-	$template->source         = 'custom';
-	$template->has_theme_file = $has_theme_file;
-
-	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
-		$template->post_types = $template_file['postTypes'];
-	}
-
-	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
-		$template->is_custom = false;
 	}
 
 	return $template;
