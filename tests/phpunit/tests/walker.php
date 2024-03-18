@@ -19,6 +19,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->walker = new Walker_Test();
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_single_item() {
 
 		$items  = array(
@@ -33,6 +36,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_single_item_flat() {
 
 		$items  = array(
@@ -47,6 +53,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_single_item_depth_1() {
 
 		$items  = array(
@@ -61,6 +70,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_single_level() {
 
 		$items = array(
@@ -80,6 +92,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li><li>2</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_multiple_levels() {
 
 		$items = array(
@@ -99,6 +114,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1<ul><li>2</li></ul></li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_multiple_levels_flat() {
 
 		$items = array(
@@ -118,6 +136,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li><li>2</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_multiple_levels_depth_1() {
 
 		$items = array(
@@ -137,6 +158,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_multiple_levels_depth_2() {
 
 		$items = array(
@@ -160,6 +184,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1<ul><li>2</li></ul></li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_recursive() {
 
 		$items = array(
@@ -179,6 +206,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1<ul><li>2</li></ul></li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_single_item_child() {
 
 		$items = array(
@@ -194,6 +224,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>1</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_single_item_missing_parent_depth_1() {
 
 		$items = array(
@@ -216,6 +249,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		// $this->assertSame( '', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_missing_parents() {
 
 		$items = array(
@@ -239,6 +275,9 @@ class Tests_Walker extends WP_UnitTestCase {
 		$this->assertSame( '<li>4</li><li>5</li><li>6</li>', $output );
 	}
 
+	/**
+	 * @covers Walker::walk
+	 */
 	public function test_multiple_items_missing_parents_depth_1() {
 
 		$items = array(

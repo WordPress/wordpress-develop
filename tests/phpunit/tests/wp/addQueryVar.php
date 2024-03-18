@@ -17,6 +17,9 @@ class Tests_WP_AddQueryVar extends WP_UnitTestCase {
 		$this->wp = new WP();
 	}
 
+	/**
+	 * @covers WP::add_query_var
+	 */
 	public function test_add_query_var() {
 		$public_qv_count = count( $this->wp->public_query_vars );
 
