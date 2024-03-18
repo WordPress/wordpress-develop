@@ -775,6 +775,8 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		}
 	}
 
+	$template->id = ! empty( $template->theme ) && ! empty( $template->slug ) ? $template->theme . '//' . $template->slug : null;
+
 	$template->source         = 'custom';
 	$template->has_theme_file = $has_theme_file;
 
@@ -823,7 +825,6 @@ function _build_block_template_result_from_post( $post ) {
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
 	$additional_fields = array(
-		'id'             => $theme . '//' . $parent_post->post_name,
 		'theme'          => $theme,
 		'is_custom'      => empty( $is_wp_suggestion ),
 		'origin'         => ! empty( $origin ) ? $origin : null,
@@ -1514,11 +1515,8 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$theme = isset( $post->tax_input['wp_theme'] ) ? $post->tax_input['wp_theme'] : null;
 	}
 
-	$template_id = ! empty( $theme ) && ! empty( $post->post_name ) ? $theme . '//' . $post->post_name : null;
-
 	$additional_fields = array(
 		'theme'          => $theme,
-		'id'             => $template_id,
 		'origin'         => isset( $changes->meta_input['origin'] ) ? $changes->meta_input['origin'] : null,
 		'is_custom'      => empty( $changes->meta_input['is_wp_suggestion'] ),
 	);
