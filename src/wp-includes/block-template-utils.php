@@ -1469,7 +1469,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$post = get_post( $changes->ID );
 	} else {
 		// This means that there's not post for this template in the DB yet.
-		$post = new stdClass; // Is this correct? Might instead want to init a WP_Post with some fields set.
+		$post = new stdClass(); // Is this correct? Might instead want to init a WP_Post with some fields set.
 	}
 
 	$post_with_changes_applied = (object) array_merge( (array) $post, (array) $changes );
@@ -1477,21 +1477,21 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	// We also need to mimic terms and meta for the post based on the corresponding
 	// `terms_input` and `meta_input` properties in the changes object.
 
-	$terms_filter = function( $terms, $post_id, $taxonomy ) use ( $changes ) {
+	$terms_filter = function ( $terms, $post_id, $taxonomy ) use ( $changes ) {
 		if ( 'wp_theme' !== $taxonomy || ! isset( $changes->tax_input['wp_theme'] ) ) {
 			return $terms;
 		}
 
 		// TODO: Verify it's not an error object.
 		// TODO: Verify that $post_id matches (or isn't set).
-		$term       = new stdClass;
+		$term       = new stdClass();
 		$term->name = $changes->tax_input['wp_theme'];
 
 		$term = new WP_Term( $term );
 		return array( $term );
 	};
 
-	$meta_filter = function( $value, $post_id, $meta_key, $single ) use ( $changes ) {
+	$meta_filter = function ( $value, $post_id, $meta_key, $single ) use ( $changes ) {
 		if ( 'origin' === $meta_key && isset( $changes->meta_input['origin'] ) ) {
 			return $single ? $changes->meta_input['origin'] : array( $changes->meta_input['origin'] );
 		}
