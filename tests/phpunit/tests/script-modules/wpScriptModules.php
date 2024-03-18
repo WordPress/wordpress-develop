@@ -512,48 +512,72 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the functionality of the `get_versioned_src` method to ensure
+	 * Tests the functionality of the `get_src` method to ensure
 	 * proper URLs with version strings are returned.
 	 *
 	 * @ticket 56313
 	 *
-	 * @covers ::get_versioned_src()
+	 * @covers ::get_src()
 	 */
-	public function test_get_versioned_src() {
-		$get_versioned_src = new ReflectionMethod( $this->script_modules, 'get_versioned_src' );
-		$get_versioned_src->setAccessible( true );
+	public function test_get_src() {
+		$get_src = new ReflectionMethod( $this->script_modules, 'get_src' );
+		$get_src->setAccessible( true );
 
-		$module_with_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => '1.0',
+		$this->script_modules->register(
+			'module_with_version',
+			'http://example.com/module.js',
+			array(),
+			'1.0'
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_with_version );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_version' );
 		$this->assertEquals( 'http://example.com/module.js?ver=1.0', $result );
 
-		$module_without_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => null,
+		$this->script_modules->register(
+			'module_without_version',
+			'http://example.com/module.js',
+			array(),
+			null
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_without_version );
+		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
 		$this->assertEquals( 'http://example.com/module.js', $result );
 
-		$module_with_wp_version = array(
-			'src'     => 'http://example.com/module.js',
-			'version' => false,
+		$this->script_modules->register(
+			'module_with_wp_version',
+			'http://example.com/module.js',
+			array(),
+			false
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_with_wp_version );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_wp_version' );
 		$this->assertEquals( 'http://example.com/module.js?ver=' . get_bloginfo( 'version' ), $result );
 
-		$module_with_existing_query_string = array(
-			'src'     => 'http://example.com/module.js?foo=bar',
-			'version' => '1.0',
+		$this->script_modules->register(
+			'module_with_existing_query_string',
+			'http://example.com/module.js?foo=bar',
+			array(),
+			'1.0'
 		);
 
-		$result = $get_versioned_src->invoke( $this->script_modules, $module_with_existing_query_string );
+		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
 		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0', $result );
+
+		// Filter the version to include the ID in the final URL, to test the filter, this should affect the tests below.
+		add_filter(
+			'script_module_loader_src',
+			function ( $src, $id ) {
+				return add_query_arg( 'script_module_id', urlencode( $id ), $src );
+			},
+			10,
+			2
+		);
+
+		$result = $get_src->invoke( $this->script_modules, 'module_without_version' );
+		$this->assertEquals( 'http://example.com/module.js?script_module_id=module_without_version', $result );
+
+		$result = $get_src->invoke( $this->script_modules, 'module_with_existing_query_string' );
+		$this->assertEquals( 'http://example.com/module.js?foo=bar&ver=1.0&script_module_id=module_with_existing_query_string', $result );
 	}
 
 	/**

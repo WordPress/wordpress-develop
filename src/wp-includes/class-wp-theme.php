@@ -417,7 +417,10 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		// If we got our data from cache, we can assume that 'template' is pointing to the right place.
-		if ( ! is_array( $cache ) && $this->template !== $this->stylesheet && ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' ) ) {
+		if ( ! is_array( $cache )
+			&& $this->template !== $this->stylesheet
+			&& ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' )
+		) {
 			/*
 			 * If we're in a directory of themes inside /themes, look for the parent nearby.
 			 * wp-content/themes/directory-of-themes/*
@@ -425,7 +428,9 @@ final class WP_Theme implements ArrayAccess {
 			$parent_dir  = dirname( $this->stylesheet );
 			$directories = search_theme_directories();
 
-			if ( '.' !== $parent_dir && file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ) {
+			if ( '.' !== $parent_dir
+				&& file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' )
+			) {
 				$this->template = $parent_dir . '/' . $this->template;
 			} elseif ( $directories && isset( $directories[ $this->template ] ) ) {
 				/*
