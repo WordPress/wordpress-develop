@@ -780,6 +780,9 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 		$derived_or_hardcoded_fields['is_custom'] = false;
 	}
 
+	/*
+	 * Merge $additional_fields with $derived_or_hardcoded_fields as the second argument to array_merge to ensure that $derived_or_hardcoded_fields take precedence.
+	 */
 	$additional_fields = is_array( $additional_fields ) && ! empty( $additional_fields ) ? array_merge( $additional_fields, $derived_or_hardcoded_fields ) : $derived_or_hardcoded_fields;
 
 	$template = new WP_Block_Template();
@@ -835,6 +838,7 @@ function _build_block_template_result_from_post( $post ) {
 	$is_wp_suggestion = get_post_meta( $parent_post->ID, 'is_wp_suggestion', true );
 
 	$additional_fields = array(
+		'id' 		     => $theme . '//' . $parent_post->post_name,
 		'theme'          => $theme,
 		'is_custom'      => empty( $is_wp_suggestion ),
 		'origin'         => ! empty( $origin ) ? $origin : null,
