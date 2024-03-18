@@ -750,14 +750,14 @@ function _build_block_template_object_from_wp_post_object( $post, $additional_fi
 	 * These are fields that are directly mapped from the post object to the template object.
 	 */
 	$post_to_template_mapping = array(
-		'ID'           => 'wp_id',
-		'post_content' => 'content',
-		'post_name'    => 'slug',
-		'post_type'    => 'type',
-		'post_excerpt' => 'description',
-		'post_title'   => 'title',
-		'post_status'  => 'status',
-		'post_author'  => 'author',
+		'ID'            => 'wp_id',
+		'post_content'  => 'content',
+		'post_name'     => 'slug',
+		'post_type'     => 'type',
+		'post_excerpt'  => 'description',
+		'post_title'    => 'title',
+		'post_status'   => 'status',
+		'post_author'   => 'author',
 		'post_modified' => 'modified',
 	);
 
