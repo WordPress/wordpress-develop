@@ -432,6 +432,11 @@ function wp_theme_has_theme_json() {
 	/** This filter is documented in wp-includes/link-template.php */
 	$path = apply_filters( 'theme_file_path', $path, 'theme.json' );
 
+	if ( ! $path ) {
+		$theme_has_support[ $stylesheet ] = false;
+		return false;
+	}
+
 	$theme_has_support[ $stylesheet ] = file_exists( $path );
 
 	return $theme_has_support[ $stylesheet ];
