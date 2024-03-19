@@ -1485,8 +1485,8 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * @since 6.5.0
  * @access private
  *
- * @param stdClass        $changes An object representing a template or template part
- *                                 prepared for inserting or updating the database.
+ * @param stdClass $changes  An object representing a template or template part
+ *                           prepared for inserting or updating the database.
  * @return stdClass|WP_Error The updated object representing a template or template part.
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes ) {
