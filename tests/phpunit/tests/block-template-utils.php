@@ -473,7 +473,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
-	public function test_inject_ignored_hooked_blocks_metadata_attributes_applies_filter_correctly() {
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_applies_filter_correctly() {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
@@ -524,6 +524,74 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			self::$template_post->post_excerpt,
+			$context->description,
+			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
+		);
+	}
+
+	/**
+	 * @ticket 60754
+	 *
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part_applies_filter_correctly() {
+		$action = new MockAction();
+		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
+
+		$id      = self::TEST_THEME . '//' . 'my_template_part';
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
+		$request->set_param( 'id', $id );
+
+		$changes               = new stdClass();
+		$changes->post_name    = 'my-updated-template-part';
+		$changes->ID           = self::$template_part_post->ID;
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+
+		$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_FOOTER;
+
+		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+
+		$args              = $action->get_args();
+		$anchor_block_type = end( $args )[2];
+		$context           = end( $args )[3];
+
+		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+
+		$this->assertInstanceOf( 'WP_Block_Template', $context );
+
+		$this->assertSame(
+			$changes->post_name,
+			$context->slug,
+			'The slug field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->ID,
+			$context->wp_id,
+			'The wp_id field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			'publish',
+			$context->status,
+			'The status field of the context passed to the hooked_block_types filter isn\'t set to publish.'
+		);
+		$this->assertSame(
+			$changes->post_content,
+			$context->content,
+			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->tax_input['wp_template_part_area'],
+			$context->area,
+			'The area field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+
+		$this->assertSame(
+			self::$template_part_post->post_title,
+			$context->title,
+			'The title field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
+		);
+		$this->assertSame(
+			self::$template_part_post->post_excerpt,
 			$context->description,
 			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
 		);
