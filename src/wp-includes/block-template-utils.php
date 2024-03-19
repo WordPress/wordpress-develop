@@ -820,7 +820,7 @@ function _build_block_template_result_from_post( $post ) {
 	if ( 'wp_template_part' === $parent_post->post_type ) {
 		$type_terms = get_the_terms( $parent_post, 'wp_template_part_area' );
 		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
-			$additional_fields['area'] = $type_terms[0]->name;
+			$terms['area'] = $type_terms[0]->name;
 		}
 	}
 
