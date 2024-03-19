@@ -283,6 +283,11 @@ class WP_Debug_Data {
 					'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
 					'debug' => WP_DEBUG,
 				),
+				'WP_DEBUG_LEVEL'      => array(
+					'label' => 'WP_DEBUG_LEVEL',
+					'value' => WP_DEBUG_LEVEL ? __( 'Enabled' ) : __( 'Disabled' ),
+					'debug' => WP_DEBUG_LEVEL,
+				),
 				'WP_DEBUG_DISPLAY'    => array(
 					'label' => 'WP_DEBUG_DISPLAY',
 					'value' => WP_DEBUG_DISPLAY ? __( 'Enabled' ) : __( 'Disabled' ),
