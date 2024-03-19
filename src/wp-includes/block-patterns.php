@@ -380,7 +380,7 @@ function _register_theme_block_patterns() {
 
 		if ( ! is_readable( $dirpath ) ) {
 			continue;
-		} else {
+		} 	
 			$files = glob( $dirpath . '*.php' );
 			if ( $files ) {
 				foreach ( $files as $file ) {
