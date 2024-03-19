@@ -96,7 +96,7 @@ function wp_unregister_font_collection( string $slug ) {
  *
  * @since 6.5.0
  *
- * @param string|false $make_dir Pass `make` to attempt to make the directory if it does not exist.
+ * @param string|false $create_dir Pass `create` to attempt to make the directory if it does not exist.
  * @return array $defaults {
  *     Array of information about the upload directory.
  *
@@ -108,7 +108,7 @@ function wp_unregister_font_collection( string $slug ) {
  *     @type string|false $error   False or error message.
  * }
  */
-function wp_get_font_dir( $make_dir = false ) {
+function wp_get_font_dir( $create_dir = false ) {
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
@@ -144,7 +144,7 @@ function wp_get_font_dir( $make_dir = false ) {
 	 */
 	$font_dir = apply_filters( 'font_dir', $default_dir );
 
-	if ( 'make' === $make_dir && ! is_dir( $font_dir['path'] ) ) {
+	if ( 'create' === $create_dir && ! is_dir( $font_dir['path'] ) ) {
 		// Attempt to create the directory.
 		wp_mkdir_p( $font_dir['path'] );
 	}

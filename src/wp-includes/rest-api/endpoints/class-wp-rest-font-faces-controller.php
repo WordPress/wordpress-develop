@@ -866,7 +866,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		 * To avoid an infinite loop, don't hook wp_get_font_dir() to 'upload_dir'.
 		 * Instead, just pass its return value to the 'upload_dir' callback.
 		 */
-		$font_dir       = wp_get_font_dir();
+		$font_dir       = wp_get_font_dir( 'create' );
 		$set_upload_dir = function () use ( $font_dir ) {
 			return $font_dir;
 		};
