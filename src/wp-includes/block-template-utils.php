@@ -777,6 +777,10 @@ function _build_block_template_object_from_wp_post_object( $post, $terms = array
 		$template->is_custom = false;
 	}
 
+	if ( 'wp_template_part' === $parent_post->post_type && isset( $terms['wp_template_part_area'] ) ) {
+		$template->area = $terms['wp_template_part_area'];
+	}
+
 	return $template;
 }
 
@@ -815,7 +819,7 @@ function _build_block_template_result_from_post( $post ) {
 	if ( 'wp_template_part' === $parent_post->post_type ) {
 		$type_terms = get_the_terms( $parent_post, 'wp_template_part_area' );
 		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
-			$terms['area'] = $type_terms[0]->name;
+			$terms['wp_template_part_area'] = $type_terms[0]->name;
 		}
 	}
 
@@ -1515,6 +1519,11 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 	// If the post_author is empty, set it to the current user.
 	if ( empty( $post->post_author ) ) {
 		$post->post_author = get_current_user_id();
+	}
+
+	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
+		$area_terms                     = get_the_terms( $changes->ID, 'wp_template_part_area' );
+		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
 	}
 
 	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $meta );
