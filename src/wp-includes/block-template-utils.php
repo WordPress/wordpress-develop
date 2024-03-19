@@ -1504,6 +1504,14 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$post = $changes;
 	}
 
+	// Required for the WP_Block_Template. Update the post object with the current time.
+	$post->post_modified = current_time( 'mysql' );
+
+	// If the post_author is empty, set it to the current user.
+	if ( empty( $post->post_author ) ) {
+		$post->post_author = get_current_user_id();
+	}
+
 	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $changes->meta_input );
 
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
