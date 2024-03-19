@@ -1487,10 +1487,9 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  *
  * @param stdClass        $changes An object representing a template or template part
  *                                 prepared for inserting or updating the database.
- * @param WP_REST_Request $request Request object.
  * @return stdClass|WP_Error The updated object representing a template or template part.
  */
-function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) {
+function inject_ignored_hooked_blocks_metadata_attributes( $changes ) {
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
 		return $changes;
@@ -1507,9 +1506,6 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$post = get_post( $changes->ID );
 		$post = (object) array_merge( (array) $post, (array) $changes );
 	} else {
-		if ( empty( $changes->post_name ) ) {
-			$changes->post_name = $request['slug'];
-		}
 		$post = $changes;
 	}
 
