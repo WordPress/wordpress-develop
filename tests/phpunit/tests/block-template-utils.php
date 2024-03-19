@@ -419,16 +419,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			)
 		);
 
-		$id      = self::TEST_THEME . '//' . 'my_template';
-		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
-		$request->set_param( 'id', $id );
+		$id       = self::TEST_THEME . '//' . 'my_template';
 		$template = get_block_template( $id, 'wp_template' );
 
 		$changes               = new stdClass();
 		$changes->ID           = $template->wp_id;
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 
-		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes );
 		$this->assertSame(
 			'<!-- wp:tests/anchor-block {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} -->Hello<!-- /wp:tests/anchor-block -->',
 			$post->post_content,
@@ -451,16 +449,14 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			)
 		);
 
-		$id      = self::TEST_THEME . '//' . 'my_template_part';
-		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
-		$request->set_param( 'id', $id );
+		$id       = self::TEST_THEME . '//' . 'my_template_part';
 		$template = get_block_template( $id, 'wp_template_part' );
 
 		$changes               = new stdClass();
 		$changes->ID           = $template->wp_id;
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 
-		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		$post = inject_ignored_hooked_blocks_metadata_attributes( $changes );
 		$this->assertSame(
 			'<!-- wp:tests/anchor-block {"metadata":{"ignoredHookedBlocks":["tests/hooked-block"]}} -->Hello<!-- /wp:tests/anchor-block -->',
 			$post->post_content,
@@ -477,16 +473,12 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
-		$id      = self::TEST_THEME . '//' . 'my_template';
-		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
-		$request->set_param( 'id', $id );
-
 		$changes               = new stdClass();
 		$changes->post_name    = 'my-updated-template';
 		$changes->ID           = self::$template_post->ID;
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 
-		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
 		$args              = $action->get_args();
 		$anchor_block_type = end( $args )[2];
@@ -538,10 +530,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
-		$id      = self::TEST_THEME . '//' . 'my_template_part';
-		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' . $id );
-		$request->set_param( 'id', $id );
-
 		$changes               = new stdClass();
 		$changes->post_name    = 'my-updated-template-part';
 		$changes->ID           = self::$template_part_post->ID;
@@ -549,7 +537,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 
 		$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_FOOTER;
 
-		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
+		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
 		$args              = $action->get_args();
 		$anchor_block_type = end( $args )[2];
