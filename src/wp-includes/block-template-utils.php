@@ -1492,6 +1492,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
+	$meta  = isset( $changes->meta_input ) ? $changes->meta_input : array();
 	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
 
 	if ( ! empty( $changes->ID ) ) {
@@ -1516,7 +1517,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		$post->post_author = get_current_user_id();
 	}
 
-	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $changes->meta_input );
+	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $meta );
 
 	if ( is_wp_error( $template ) ) {
 		return $template;
