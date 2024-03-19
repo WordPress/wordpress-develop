@@ -735,7 +735,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * @param array   $meta  Additional meta fields to inform the template object.
  * @return WP_Block_Template|WP_Error Template or error object.
  */
-function _build_block_template_object_from_wp_post_object( $post, $terms = array(), $meta = array() ) {
+function _build_block_template_object_from_post_object( $post, $terms = array(), $meta = array() ) {
 	if ( empty( $terms['wp_theme'] ) ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
@@ -828,7 +828,7 @@ function _build_block_template_result_from_post( $post ) {
 		'is_wp_suggestion' => get_post_meta( $parent_post->ID, 'is_wp_suggestion', true ),
 	);
 
-	$template = _build_block_template_object_from_wp_post_object( $post, $terms, $meta );
+	$template = _build_block_template_object_from_post_object( $post, $terms, $meta );
 
 	if ( is_wp_error( $template ) ) {
 		return $template;
@@ -1523,7 +1523,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes ) {
 		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
 	}
 
-	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $meta );
+	$template = _build_block_template_object_from_post_object( new WP_Post( $post ), $terms, $meta );
 
 	if ( is_wp_error( $template ) ) {
 		return $template;
