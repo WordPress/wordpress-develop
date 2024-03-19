@@ -53,7 +53,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'post_content' => 'Content',
 			'post_excerpt' => 'Description of my template part.',
 			'tax_input'    => array(
-				'wp_theme' => array(
+				'wp_theme'              => array(
 					get_stylesheet(),
 				),
 				'wp_template_part_area' => array(
