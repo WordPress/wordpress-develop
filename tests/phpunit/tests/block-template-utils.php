@@ -516,5 +516,16 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$context->content,
 			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
+
+		$this->assertSame(
+			self::$template_post->post_title,
+			$context->title,
+			'The title field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
+		);
+		$this->assertSame(
+			self::$template_post->post_excerpt,
+			$context->description,
+			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
+		);
 	}
 }
