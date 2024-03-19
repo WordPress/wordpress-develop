@@ -826,6 +826,10 @@ function _build_block_template_result_from_post( $post ) {
 
 	$template = _build_block_template_object_from_wp_post_object( $post, $terms, $meta );
 
+	if ( is_wp_error( $template ) ) {
+		return $template;
+	}
+
 	// Check for a block template without a description and title or with a title equal to the slug.
 	if ( 'wp_template' === $parent_post->post_type && empty( $template->description ) && ( empty( $template->title ) || $template->title === $template->slug ) ) {
 		$matches = array();
