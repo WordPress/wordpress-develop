@@ -1498,15 +1498,16 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes ) {
 	$meta  = isset( $changes->meta_input ) ? $changes->meta_input : array();
 	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
 
-	if ( ! empty( $changes->ID ) ) {
-		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
-		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
-
+	if ( empty( $changes->ID ) ) {
+		// There's no post object for this template in the database for this template yet.
+		$post = $changes;
+	} else {
 		// Apply changes to the existing post object.
 		$post = get_post( $changes->ID );
 		$post = (object) array_merge( (array) $post, (array) $changes );
-	} else {
-		$post = $changes;
+
+		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
+		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
 	}
 
 	// Required for the WP_Block_Template. Update the post object with the current time.
