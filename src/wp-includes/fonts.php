@@ -96,6 +96,7 @@ function wp_unregister_font_collection( string $slug ) {
  *
  * @since 6.5.0
  *
+ * @param string|false $make_dir Pass `make` to attempt to make the directory if it does not exist.
  * @return array $defaults {
  *     Array of information about the upload directory.
  *
@@ -107,18 +108,28 @@ function wp_unregister_font_collection( string $slug ) {
  *     @type string|false $error   False or error message.
  * }
  */
-function wp_get_font_dir() {
+function wp_get_font_dir( $make_dir = false ) {
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
+	// wp-content/fonts is the default location
+	if ( is_multisite() || ( is_dir( WP_CONTENT_DIR ) && wp_is_writable( WP_CONTENT_DIR ) ) ) {
+		$font_dir_path = path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path;
+		$font_dir_url  = untrailingslashit( content_url( 'fonts' ) ) . $site_path;
+	} else {
+		$upload_dir    = wp_get_upload_dir();
+		$font_dir_path = path_join( $upload_dir['basedir'], 'fonts' );
+		$font_dir_url  = $upload_dir['baseurl'] . '/fonts';
+	}
+
 	$default_dir = array(
-		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
-		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
+		'path'    => $font_dir_path,
+		'url'     => $font_dir_url,
 		'subdir'  => '',
-		'basedir' => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
-		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
+		'basedir' => $font_dir_path,
+		'baseurl' => $font_dir_url,
 		'error'   => false,
 	);
 
@@ -133,39 +144,17 @@ function wp_get_font_dir() {
 	 */
 	$font_dir = apply_filters( 'font_dir', $default_dir );
 
-	wp_mkdir_p( $font_dir['path'] );
+	if ( 'make' === $make_dir && ! is_dir( $font_dir['path'] ) ) {
+		// Attempt to create the directory.
+		wp_mkdir_p( $font_dir['path'] );
+	}
 
 	if ( ! is_dir( $font_dir['path'] ) || ! wp_is_writable( $font_dir['path'] ) ) {
-
-		// If the default directory was filtered it uses the filtered values and doesnt fall back to the wp-content/uploads/fonts.
-		if ( $font_dir !== $default_dir ) {
-			$font_dir['error'] = sprintf(
-				/* translators: %s: Directory path. */
-				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
-				esc_html( str_replace( ABSPATH, '', $font_dir['path'] ) )
-			);
-			return $font_dir;
-		}
-
-		$upload_dir = wp_get_upload_dir();
-		$font_dir   = array(
-			'path'    => path_join( $upload_dir['basedir'], 'fonts' ),
-			'url'     => $upload_dir['baseurl'] . '/fonts',
-			'subdir'  => '',
-			'basedir' => path_join( $upload_dir['basedir'], 'fonts' ),
-			'baseurl' => $upload_dir['baseurl'] . '/fonts',
-			'error'   => false,
+		$font_dir['error'] = sprintf(
+			/* translators: %s: Directory path. */
+			__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+			esc_html( str_replace( ABSPATH, '', $font_dir['path'] ) )
 		);
-
-		wp_mkdir_p( $font_dir['path'] );
-
-		if ( ! is_dir( $font_dir['path'] ) || ! wp_is_writable( $font_dir['path'] ) ) {
-			$font_dir['error'] = sprintf(
-				/* translators: %s: Directory path. */
-				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
-				esc_html( str_replace( ABSPATH, '', $font_dir['path'] ) )
-			);
-		}
 	}
 
 	return $font_dir;
