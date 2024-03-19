@@ -725,7 +725,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 }
 
 /**
- * Build a block template object for based on a WP_Post object.
+ * Build a block template object from a post object.
  *
  * @since 6.5.0
  * @access private
