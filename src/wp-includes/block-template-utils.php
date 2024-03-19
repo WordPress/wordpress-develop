@@ -1492,7 +1492,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 		return $changes;
 	}
 
-	$terms = $changes->tax_input;
+	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
 
 	if ( ! empty( $changes->ID ) ) {
 		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
