@@ -812,17 +812,17 @@ function _build_block_template_result_from_post( $post ) {
 		'wp_theme' => $terms[0]->name,
 	);
 
-	$meta = array(
-		'origin'           => get_post_meta( $parent_post->ID, 'origin', true ),
-		'is_wp_suggestion' => get_post_meta( $parent_post->ID, 'is_wp_suggestion', true ),
-	);
-
 	if ( 'wp_template_part' === $parent_post->post_type ) {
 		$type_terms = get_the_terms( $parent_post, 'wp_template_part_area' );
 		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
 			$terms['area'] = $type_terms[0]->name;
 		}
 	}
+
+	$meta = array(
+		'origin'           => get_post_meta( $parent_post->ID, 'origin', true ),
+		'is_wp_suggestion' => get_post_meta( $parent_post->ID, 'is_wp_suggestion', true ),
+	);
 
 	$template = _build_block_template_object_from_wp_post_object( $post, $terms, $meta );
 
