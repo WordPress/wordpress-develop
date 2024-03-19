@@ -1518,6 +1518,10 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $request ) 
 
 	$template = _build_block_template_object_from_wp_post_object( new WP_Post( $post ), $terms, $changes->meta_input );
 
+	if ( is_wp_error( $template ) ) {
+		return $template;
+	}
+
 	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 
