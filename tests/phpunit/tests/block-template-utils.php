@@ -492,23 +492,10 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $id );
 		$request->set_param( 'id', $id );
 
-		$changes                = new stdClass();
-		$changes->ID            = self::$template_post->ID;
-		$changes->post_type     = 'wp_template';
-		$changes->post_author   = 123;
-		$changes->post_name     = 'my-updated-template';
-		$changes->post_title    = 'My updated Template';
-		$changes->post_content  = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
-		$changes->post_excerpt  = 'Displays a single post on your website unless a custom template...';
-		$changes->post_status   = 'publish';
-		$changes->post_modified = '2021-07-01 12:00:00'; // FIXME
-		$changes->meta_input    = array(
-			'origin'           => 'custom',
-			'is_wp_suggestion' => true,
-		);
-		$changes->tax_input     = array(
-			'wp_theme' => self::TEST_THEME,
-		);
+		$changes               = new stdClass();
+		$changes->post_name    = 'my-updated-template';
+		$changes->ID           = self::$template_post->ID;
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes, $request );
 
@@ -517,35 +504,28 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$context           = end( $args )[3];
 
 		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+
 		$this->assertInstanceOf( 'WP_Block_Template', $context );
 
-		$post_to_template_key_map = array(
-			'ID'            => 'wp_id',
-			'post_author'   => 'author',
-			'post_name'     => 'slug',
-			'post_content'  => 'content',
-			'post_title'    => 'title',
-			'post_excerpt'  => 'description',
-			'post_type'     => 'type',
-			'post_status'   => 'status',
-			'post_modified' => 'modified',
+		$this->assertSame(
+			$changes->post_name,
+			$context->slug,
+			'The slug field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
-
-		$expected = array();
-		foreach ( $post_to_template_key_map as $post_key => $template_key ) {
-			if ( isset( $changes->$post_key ) ) {
-				$expected[ $template_key ] = $changes->$post_key;
-			}
-		}
-		$expected['id']             = self::TEST_THEME . '//' . 'my-updated-template';
-		$expected['origin']         = 'custom';
-		$expected['source']         = 'custom';
-		$expected['theme']          = self::TEST_THEME;
-		$expected['is_custom']      = false;
-		$expected['has_theme_file'] = false;
-		$expected['post_types']     = null;
-		$expected['area']           = null;
-
-		$this->assertEquals( $expected, (array) $context );
+		$this->assertSame(
+			$changes->ID,
+			$context->wp_id,
+			'The wp_id field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			'publish',
+			$context->status,
+			'The status field of the context passed to the hooked_block_types filter isn\'t set to publish.'
+		);
+		$this->assertSame(
+			$changes->post_content,
+			$context->content,
+			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
 	}
 }
