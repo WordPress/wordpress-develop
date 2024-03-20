@@ -21,6 +21,7 @@ const { state, actions } = store( 'twentytwentyone', {
         isPrimaryMenuOpen: false,
         prevScroll: 0,
         isDarkMode: false,
+        isDarkModeManuallyOverwritten: false,
         isDarkModeTogglerHidden: false,
     },
     actions: {
@@ -38,6 +39,7 @@ const { state, actions } = store( 'twentytwentyone', {
 
         toggleDarkMode: () => {
             state.isDarkMode = ! state.isDarkMode;
+            state.isDarkModeManuallyOverwritten = true;
         },
 
         trapFocusInModal: ( event ) => {
@@ -159,19 +161,26 @@ const { state, actions } = store( 'twentytwentyone', {
 
         initDarkMode: () => {
             let isDarkMode = window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
+            let isDarkModeManuallyOverwritten = false;
 
             const cachedValue = window.localStorage.getItem( 'twentytwentyoneDarkMode' );
             if ( 'yes' === cachedValue ) {
                 isDarkMode = true;
+                isDarkModeManuallyOverwritten = true;
             } else if ( 'no' === cachedValue ) {
                 isDarkMode = false;
+                isDarkModeManuallyOverwritten = true;
             }
 
             state.isDarkMode = isDarkMode;
+            state.isDarkModeManuallyOverwritten = isDarkModeManuallyOverwritten;
         },
 
         storeDarkMode: () => {
-            window.localStorage.setItem( 'twentytwentyoneDarkMode', state.isDarkMode ? 'yes' : 'no' );
+            // Store dark mode preference in local storage only if it was explicitly set via the website toggle.
+            if ( state.isDarkModeManuallyOverwritten ) {
+                window.localStorage.setItem( 'twentytwentyoneDarkMode', state.isDarkMode ? 'yes' : 'no' );
+            }
         },
 
         refreshHtmlElementDarkMode: () => {
