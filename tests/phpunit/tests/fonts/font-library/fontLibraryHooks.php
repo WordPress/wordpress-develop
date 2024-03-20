@@ -72,7 +72,7 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 	protected function upload_font_file( $font_filename ) {
 		$font_file_path = DIR_TESTDATA . '/fonts/' . $font_filename;
 
-		$upload_dir_override = function() {
+		$upload_dir_override = function () {
 			return wp_get_font_dir( 'create' );
 		};
 

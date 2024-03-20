@@ -120,7 +120,6 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			'error'   => false,
 		);
 
-
 		add_filter( 'font_dir__wp_content_is_writable', '__return_false' );
 		$font_dir = wp_get_font_dir( 'create' );
 		remove_filter( 'font_dir__wp_content_is_writable', '__return_false' );
