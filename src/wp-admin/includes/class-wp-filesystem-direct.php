@@ -378,8 +378,19 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 
 		$file = str_replace( '\\', '/', $file ); // For Win32, occasional problems deleting files otherwise.
 
-		if ( 'f' === $type || $this->is_file( $file ) ) {
-			return @unlink( $file );
+		if ( 'f' === $type || $this->is_file( $file ) || $this->is_link( $file ) ) {
+			if (
+				'WIN' === strtoupper( substr( PHP_OS, 0, 3 ) ) &&
+				$this->is_link( $file ) &&
+				$this->is_dir( $file )
+			) {
+				// on windows unlink()'ing a symlink that points to a directory fails.
+				// @link https://bugs.php.net/bug.php?id=52176
+				return @rmdir( $file );
+			} else {
+				// untrailingslashit() needed to remove symlinks successfully.
+				return @unlink( untrailingslashit( $file ) );
+			}
 		}
 
 		if ( ! $recursive && $this->is_dir( $file ) ) {
@@ -465,6 +476,19 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 */
 	public function is_writable( $path ) {
 		return @is_writable( $path );
+	}
+
+	/**
+	 * Checks if a file or directory is a symbolic link.
+	 *
+	 * @since 6.1.0
+	 *
+	 * @param string $file Path to file or directory.
+	 * @return bool Whether $file is a symbolic link.
+	 */
+	public function is_link( $file ) {
+		// Strip trailing slashes, to avoid directory symlinks resolving.
+		return @is_link( untrailingslashit( $file ) );
 	}
 
 	/**
@@ -622,7 +646,10 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * }
 	 */
 	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
-		if ( $this->is_file( $path ) ) {
+		if ( $this->is_dir( $path ) && $this->is_link( $path ) ) {
+			// Directory is symlink, therefore return no listing.
+			return array();
+		} elseif ( $this->is_file( $path ) || $this->is_link( $path ) ) {
 			$limit_file = basename( $path );
 			$path       = dirname( $path );
 		} else {
@@ -669,7 +696,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 			$struc['time']        = gmdate( 'h:i:s', $struc['lastmodunix'] );
 			$struc['type']        = $this->is_dir( $path . $entry ) ? 'd' : 'f';
 
-			if ( 'd' === $struc['type'] ) {
+			if ( 'd' === $struc['type'] && ! $this->is_link( $path . '/' . $struc['name'] ) ) {
 				if ( $recursive ) {
 					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
