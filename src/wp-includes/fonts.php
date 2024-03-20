@@ -116,7 +116,7 @@ function wp_get_font_dir( $create_dir = false ) {
 
 	$is_writable = true;
 	if ( defined( 'WP_RUN_CORE_TESTS' ) ) {
-		// Allow mocking of unwritable wp-contwent directory
+		// Allow mocking of unwritable wp-content directory. chmod( WP_CONTENT_DIR, ... ) doesn't seem to work as expected.
 		$is_writable = apply_filters( 'font_dir__wp_content_is_writable', true );
 	}
 
