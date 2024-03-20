@@ -922,6 +922,30 @@ function wp_not_installed() {
 }
 
 /**
+ * Gets the for-core plugin's minimum compatible version.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param string $plugin Plugin path relative to the plugins' directory.
+ * @return string Returns the minimum version on success, otherwise an empty string.
+ */
+function _get_plugin_wp_min_compatible_version( $plugin ) {
+	static $plugin_data = array(
+		'gutenberg/gutenberg.php' => array(
+			'name'                       => 'Gutenberg',
+			'minimum_compatible_version' => '17.6',
+		),
+	);
+
+	if ( ! isset( $plugin_data[ $plugin ] ) ) {
+		return '';
+	}
+
+	return $plugin_data[ $plugin ]['minimum_compatible_version'];
+}
+
+/**
  * Retrieves an array of must-use plugin files.
  *
  * The default directory is wp-content/mu-plugins. To change the default

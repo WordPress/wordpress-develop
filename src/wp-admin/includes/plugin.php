@@ -2671,3 +2671,97 @@ function deactivated_plugins_notice() {
 		update_site_option( 'wp_force_deactivated_plugins', array() );
 	}
 }
+
+/**
+ * Deactivate incompatible for-core plugins.
+ *
+ * @since 6.5.0
+ */
+function _deactivate_incompatible_for_core_plugins() {
+	$blog_plugins = get_option( 'found_incompatible_for_core_plugins' );
+	$site_plugins = array();
+
+	// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
+	if ( false === $blog_plugins ) {
+		update_option( 'found_incompatible_for_core_plugins', array() );
+	}
+
+	if ( is_multisite() ) {
+		$site_plugins = get_site_option( 'found_incompatible_for_core_plugins' );
+		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
+		if ( false === $site_plugins ) {
+			update_site_option( 'found_incompatible_for_core_plugins', array() );
+		}
+	}
+
+	// No incompatible plugins. Bail out.
+	if ( empty( $blog_plugins ) && empty( $site_plugins ) ) {
+		return;
+	}
+
+	$incompatible_plugins = array_merge( $blog_plugins, $site_plugins );
+
+	// Deactivate.
+	$plugins_to_deactivate = array_keys( $incompatible_plugins );
+	deactivate_plugins( $plugins_to_deactivate, true );
+}
+
+/**
+ * Renders an admin notice for each incompatible plugin.
+ *
+ * These plugins were not loaded during WordPress' early loading
+ * due to incompatibility with the current version of WordPress.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @global string $wp_version The WordPress version string.
+ */
+function _render_admin_notice_for_incompatible_plugins() {
+
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+	$blog_plugins = get_option( 'found_incompatible_for_core_plugins' );
+	$site_plugins = is_multisite()
+		? get_site_option( 'found_incompatible_for_core_plugins' )
+		: array();
+
+	// No incompatible plugins. Bail out.
+	if ( empty( $blog_plugins ) && empty( $site_plugins ) ) {
+		return;
+	}
+
+	$incompatible_plugins = array_merge( $blog_plugins, $site_plugins );
+
+	foreach ( $incompatible_plugins as $plugin ) {
+		// Skip if information is missing.
+		if ( empty( $plugin['version_compatible'] ) || empty( $plugin['version_deactivated'] ) ) {
+			continue;
+		}
+
+		$explanation = sprintf(
+			/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version. */
+			__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
+			$plugin['plugin_name'],
+			$plugin['version_deactivated'],
+			$GLOBALS['wp_version'],
+			$plugin['version_compatible']
+		);
+
+		$message = sprintf(
+			'%s</p><p><a href="%s">%s</a>',
+			$explanation,
+			esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ),
+			__( 'Go to the Plugins screen' )
+		);
+		wp_admin_notice( $message, array( 'type' => 'warning' ) );
+	}
+
+	// Empty the options.
+	update_option( 'found_incompatible_for_core_plugins', array() );
+	if ( is_multisite() ) {
+		update_site_option( 'found_incompatible_for_core_plugins', array() );
+	}
+}
