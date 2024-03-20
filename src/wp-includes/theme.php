@@ -4221,6 +4221,31 @@ function create_initial_theme_features() {
 		)
 	);
 	register_theme_feature(
+		'editor-shadow-presets',
+		array(
+			'type'         => 'array',
+			'description'  => __( 'Custom shadow presets if defined by the theme.' ),
+			'show_in_rest' => array(
+				'schema' => array(
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name'     => array(
+								'type' => 'string',
+							),
+							'shadow' => array(
+								'type' => 'string',
+							),
+							'slug'     => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			),
+		)
+	);
+	register_theme_feature(
 		'editor-styles',
 		array(
 			'description'  => __( 'Whether theme opts in to the editor styles CSS wrapper.' ),

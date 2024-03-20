@@ -312,6 +312,19 @@ class WP_Theme_JSON_Resolver {
 			}
 			$theme_support_data['settings']['color']['defaultGradients'] = $default_gradients;
 
+			if ( ! isset( $theme_support_data['settings']['shadow'] ) ) {
+				$theme_support_data['settings']['shadow'] = array();
+			}
+			$default_shadows = false;
+			if ( current_theme_supports( 'default-shadow-presets' ) ) {
+				$default_shadows = true;
+			}
+			if ( ! isset( $theme_support_data['settings']['shadow']['presets'] ) ) {
+				// If the theme does not have any shadows, we still want to show the core ones.
+				$default_shadows = true;
+			}
+			$theme_support_data['settings']['shadow']['defaultPresets'] = $default_shadows;
+
 			// Allow themes to enable link color setting via theme_support.
 			if ( current_theme_supports( 'link-color' ) ) {
 				$theme_support_data['settings']['color']['link'] = true;
