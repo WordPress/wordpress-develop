@@ -4230,13 +4230,13 @@ function create_initial_theme_features() {
 					'items' => array(
 						'type'       => 'object',
 						'properties' => array(
-							'name'     => array(
+							'name'   => array(
 								'type' => 'string',
 							),
-							'shadow'   => array(
+							'shadow' => array(
 								'type' => 'string',
 							),
-							'slug'     => array(
+							'slug'   => array(
 								'type' => 'string',
 							),
 						),
