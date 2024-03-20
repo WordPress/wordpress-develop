@@ -19,6 +19,7 @@ const getBaseConfig = ( env ) => {
 			minimizer: [
 				new TerserPlugin( {
 					extractComments: false,
+					exclude: /-esm-proxy(?:\.min)?\.js$/,
 				} ),
 			],
 		},

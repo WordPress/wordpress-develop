@@ -4,6 +4,7 @@
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const UglifyJS = require( 'uglify-js' );
+const WpScriptsPackageProxyModuleWebpackPlugin = require( './packages-proxy-module-gen-plugin' );
 
 /**
  * WordPress dependencies
@@ -93,7 +94,8 @@ module.exports = function (
 		'wp-polyfill-object-fit.js':
 			'objectFitPolyfill/src/objectFitPolyfill.js',
 		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
-		'wp-polyfill-importmap.js': 'es-module-shims/dist/es-module-shims.wasm.js',
+		'wp-polyfill-importmap.js':
+			'es-module-shims/dist/es-module-shims.wasm.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
@@ -122,7 +124,8 @@ module.exports = function (
 			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-dom-rect.min.js':
 			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
-		'wp-polyfill-importmap.min.js': 'es-module-shims/dist/es-module-shims.wasm.js',
+		'wp-polyfill-importmap.min.js':
+			'es-module-shims/dist/es-module-shims.wasm.js',
 	};
 
 	const phpFiles = {
@@ -171,42 +174,96 @@ module.exports = function (
 	} ) );
 
 	const baseConfig = getBaseConfig( env );
-	const config = {
-		...baseConfig,
-		entry: packages.reduce( ( memo, packageName ) => {
-			memo[ packageName ] = {
-				import: normalizeJoin(
-					baseDir,
-					`node_modules/@wordpress/${ packageName }`
-				),
-				library: {
-					name: [ 'wp', camelCaseDash( packageName ) ],
-					type: 'window',
-					export: exportDefaultPackages.includes( packageName )
-						? 'default'
-						: undefined,
-				},
-			};
+	const config = [
+		{
+			...baseConfig,
+			entry: packages.reduce( ( memo, packageName ) => {
+				memo[ packageName ] = {
+					import: normalizeJoin(
+						baseDir,
+						`node_modules/@wordpress/${ packageName }`
+					),
+					library: {
+						name: [ 'wp', camelCaseDash( packageName ) ],
+						type: 'window',
+						export: exportDefaultPackages.includes( packageName )
+							? 'default'
+							: undefined,
+					},
+				};
 
-			return memo;
-		}, {} ),
-		output: {
-			devtoolNamespace: 'wp',
-			filename: `[name]${ suffix }.js`,
-			path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
+				return memo;
+			}, {} ),
+			output: {
+				devtoolNamespace: 'wp',
+				filename: `[name]${ suffix }.js`,
+				path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
+			},
+			plugins: [
+				...baseConfig?.plugins,
+				new DependencyExtractionPlugin( {
+					injectPolyfill: true,
+					combineAssets: true,
+					combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
+				} ),
+				new WpScriptsPackageProxyModuleWebpackPlugin( {
+					combinedOutputFile: `../../assets/script-loader-packages-proxy-modules${ suffix }.php`,
+				} ),
+				new CopyWebpackPlugin( {
+					patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
+				} ),
+			],
 		},
-		plugins: [
-			...baseConfig.plugins,
-			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
-				combineAssets: true,
-				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
-			} ),
-			new CopyWebpackPlugin( {
-				patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
-			} ),
-		],
-	};
+		{
+			...baseConfig,
+			experiments: {
+				...baseConfig?.experiments,
+				outputModule: true,
+			},
+			entry: packages.reduce( ( memo, packageName ) => {
+				memo[ packageName ] = {
+					import: normalizeJoin(
+						baseDir,
+						`node_modules/@wordpress/${ packageName }`
+					),
+					library: {
+						type: 'module',
+						// export: exportDefaultPackages.includes( packageName )
+						// 	? 'default'
+						// 	: undefined,
+					},
+				};
+
+				return memo;
+			}, {} ),
+			output: {
+				devtoolNamespace: '@wordpress',
+				filename: `[name]-esm${ suffix }.js`,
+				path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
+				module: true,
+				chunkFormat: 'module',
+				environment: {
+					...baseConfig?.output?.environment,
+					module: true,
+				},
+				library: {
+					...baseConfig?.output?.library,
+					type: 'module',
+				},
+			},
+			plugins: [
+				...baseConfig?.plugins,
+				new DependencyExtractionPlugin( {
+					injectPolyfill: true,
+					combineAssets: true,
+					combinedOutputFile: `../../assets/script-loader-packages-esm${ suffix }.php`,
+				} ),
+				new CopyWebpackPlugin( {
+					patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
+				} ),
+			],
+		},
+	];
 
 	if ( config.mode === 'development' ) {
 		config.plugins.push(
