@@ -4233,7 +4233,7 @@ function create_initial_theme_features() {
 							'name'     => array(
 								'type' => 'string',
 							),
-							'shadow' => array(
+							'shadow'   => array(
 								'type' => 'string',
 							),
 							'slug'     => array(
