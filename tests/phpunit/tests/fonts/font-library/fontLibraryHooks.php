@@ -72,14 +72,18 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 	protected function upload_font_file( $font_filename ) {
 		$font_file_path = DIR_TESTDATA . '/fonts/' . $font_filename;
 
+		$upload_dir_override = function() {
+			return wp_get_font_dir( 'create' );
+		};
+
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		add_filter( 'upload_dir', 'wp_get_font_dir' );
+		add_filter( 'upload_dir', $upload_dir_override );
 		$font_file = wp_upload_bits(
 			$font_filename,
 			null,
 			file_get_contents( $font_file_path )
 		);
-		remove_filter( 'upload_dir', 'wp_get_font_dir' );
+		remove_filter( 'upload_dir', $upload_dir_override );
 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		return $font_file;

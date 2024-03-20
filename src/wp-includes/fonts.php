@@ -114,8 +114,14 @@ function wp_get_font_dir( $create_dir = false ) {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
+	$is_writable = true;
+	if ( defined( 'WP_RUN_CORE_TESTS' ) ) {
+		// Allow mocking of unwritable wp-contwent directory
+		$is_writable = apply_filters( 'font_dir__wp_content_is_writable', true );
+	}
+
 	// wp-content/fonts is the default location
-	if ( is_multisite() || ( is_dir( WP_CONTENT_DIR ) && wp_is_writable( WP_CONTENT_DIR ) ) ) {
+	if ( $is_writable && ( is_multisite() || ( is_dir( WP_CONTENT_DIR ) && wp_is_writable( WP_CONTENT_DIR ) ) ) ) {
 		$font_dir_path = path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path;
 		$font_dir_url  = untrailingslashit( content_url( 'fonts' ) ) . $site_path;
 	} else {

@@ -55,7 +55,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		add_filter( 'font_dir', 'set_new_values' );
 
 		// Gets the fonts dir.
-		$font_dir = wp_get_font_dir();
+		$font_dir = wp_get_font_dir( 'create' );
 
 		$expected = array(
 			'path'    => path_join( WP_CONTENT_DIR, 'custom_dir' ),
@@ -72,7 +72,7 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		$this->assertSame( $expected, $font_dir, 'The wp_get_font_dir() method should return the expected values.' );
 
 		// Gets the fonts dir.
-		$font_dir = wp_get_font_dir();
+		$font_dir = wp_get_font_dir( 'create' );
 
 		$this->assertSame( static::$dir_defaults, $font_dir, 'The wp_get_font_dir() method should return the default values.' );
 	}
@@ -120,10 +120,10 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			'error'   => false,
 		);
 
-		$this->create_fake_file_to_avoid_dir_creation( static::$dir_defaults['path'] );
-		$this->assertFileExists( static::$dir_defaults['path'] );
 
-		$font_dir = wp_get_font_dir();
+		add_filter( 'font_dir__wp_content_is_writable', '__return_false' );
+		$font_dir = wp_get_font_dir( 'create' );
+		remove_filter( 'font_dir__wp_content_is_writable', '__return_false' );
 
 		$this->assertDirectoryDoesNotExist( static::$dir_defaults['path'], 'The `wp-content/fonts` directory should not exist.' );
 		$this->assertDirectoryExists( $font_dir['path'], 'The `uploads/fonts` directory should exist.' );
@@ -131,10 +131,6 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	}
 
 	public function test_should_return_error_if_unable_to_create_fonts_dir_in_uploads() {
-		// Disallow the creation of the `wp-content/fonts` directory.
-		$this->create_fake_file_to_avoid_dir_creation( static::$dir_defaults['path'] );
-		$this->assertFileExists( static::$dir_defaults['path'] );
-
 		// Disallow the creation of the `uploads/fonts` directory.
 		$upload_dir       = wp_upload_dir();
 		$font_upload_path = path_join( $upload_dir['basedir'], 'fonts' );
@@ -150,7 +146,9 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 			'error'   => 'Unable to create directory wp-content/uploads/fonts. Is its parent directory writable by the server?',
 		);
 
-		$font_dir = wp_get_font_dir();
+		add_filter( 'font_dir__wp_content_is_writable', '__return_false' );
+		$font_dir = wp_get_font_dir( 'create' );
+		remove_filter( 'font_dir__wp_content_is_writable', '__return_false' );
 
 		$this->assertDirectoryDoesNotExist( $font_upload_path, 'The `uploads/fonts` directory should not exist.' );
 		$this->assertSame( $expected, $font_dir, 'As /wp-content/uplods/fonts is not writable the error key should be populated with an error message.' );
