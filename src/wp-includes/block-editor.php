@@ -844,10 +844,5 @@ function get_classic_theme_supports_block_editor_settings() {
 		$theme_settings['gradients'] = $gradient_presets;
 	}
 
-	$shadow_presets = current( (array) get_theme_support( 'editor-shadow-presets' ) );
-	if ( false !== $shadow_presets ) {
-		$theme_settings['shadow_presets'] = $shadow_presets;
-	}
-
 	return $theme_settings;
 }
