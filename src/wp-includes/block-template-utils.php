@@ -515,7 +515,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
 /**
  * Gets the contents for the given template file path.
  *
- * @since 6.4.0
+ * @since 6.6.0
  * @access private
  *
  * @param string $template_file_path Absolute path to a theme template file.
