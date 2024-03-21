@@ -3294,6 +3294,13 @@ class WP_Theme_JSON {
 			$theme_settings['settings']['color']['gradients'] = $settings['gradients'];
 		}
 
+		if ( isset( $settings['shadow'] ) ) {
+			if ( ! isset( $theme_settings['settings']['shadow'] ) ) {
+				$theme_settings['settings']['shadow'] = array();
+			}
+			$theme_settings['settings']['shadow']['presets'] = $settings['shadow'];
+		}
+
 		if ( isset( $settings['fontSizes'] ) ) {
 			$font_sizes = $settings['fontSizes'];
 			// Back-compatibility for presets without units.
