@@ -651,7 +651,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$classes = apply_filters( 'post_list_table_classes', $classes, $this );
 
-		return is_array($classes) ? $classes : array();
+		return is_array( $classes ) ? $classes : array();
 	}
 
 	/**
