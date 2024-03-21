@@ -2642,6 +2642,7 @@ function get_theme_starter_content() {
  * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
+ * @since 6.5.0 The `editor-shadow-presets` feature is added for adding custom shadow presets to the editor.
  *
  * @global array $_wp_theme_features
  *
@@ -2668,6 +2669,7 @@ function get_theme_starter_content() {
  *                          - 'disable-layout-styles'
  *                          - 'editor-color-palette'
  *                          - 'editor-gradient-presets'
+ *                          - 'editor-shadow-presets'
  *                          - 'editor-font-sizes'
  *                          - 'editor-styles'
  *                          - 'featured-content'
