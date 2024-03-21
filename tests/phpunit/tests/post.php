@@ -756,4 +756,23 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
 	}
+
+	/**
+	 * Ensure get_post_meta does not try to get metadata from a revision
+	 *
+	 * @ticket 58763
+	 * @covers ::get_post_meta
+	 */
+	public function test_get_post_meta() {
+		$post_id     = self::factory()->post->create();
+		$revision_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'revision',
+				'post_parent' => $post_id,
+			)
+		);
+
+		update_post_meta( $revision_id, 'test', 'testvalue' );
+		$this->assertSame( 'testvalue', get_post_meta( $revision_id, 'test', true ) );
+	}
 }
