@@ -874,6 +874,7 @@ function wp_start_object_cache() {
 				'site-queries',
 				'site-transient',
 				'theme_files',
+				'translation_files',
 				'rss',
 				'users',
 				'user-queries',
