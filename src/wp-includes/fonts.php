@@ -114,7 +114,7 @@ function wp_get_font_dir() {
  * @since 6.5.0
  *
  * @param bool $create_dir Optional. Whether to check and create the font uploads directory. Default true.
- * @return array $defaults {
+ * @return array {
  *     Array of information about the font upload directory.
  *
  *     @type string       $path    Base directory and subdirectory or full path to the fonts upload directory.
@@ -133,58 +133,36 @@ function wp_font_dir( $create_dir = true ) {
 	 * directly and when the upload directory is filtered in the Font Face
 	 * REST API endpoint.
 	 */
-	add_filter( 'upload_dir', 'wp_apply_font_dir_filters' );
+	add_filter( 'upload_dir', 'wp_filter_font_directory' );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', 'wp_apply_font_dir_filters' );
+	remove_filter( 'upload_dir', 'wp_filter_font_directory' );
 	return $font_dir;
 }
 
 /**
- * Applies filters to manipulate the font directory used by the font library.
+ * Returns the font directory for use by the font library.
  *
- * Wrapper for apply_filters( 'font_dir', $font_dir ).
- * Does not apply filters if already doing the {@see 'font_dir'} filter.
- *
- * Allows developers to manipulate the font directory used by the
- * font library.
+ * This function is a callback for the 'upload_dir' filter. It is used not
+ * intended to be called directly. Use wp_get_font_dir() instead.
  *
  * @since 6.5.0
+ * @access private
  *
  * @param string $font_dir The font directory.
  * @return string The modified font directory.
  */
-function wp_apply_font_dir_filters( $font_dir ) {
+function wp_filter_font_directory( $font_dir ) {
 	if ( doing_filter( 'font_dir' ) ) {
 		// Avoid an infinite loop.
 		return $font_dir;
 	}
 
-	return apply_filters( 'font_dir', $font_dir );
-}
-
-/**
- * Modifies the default font directory.
- *
- * This function should not be called directly, use wp_get_font_dir() instead.
- *
- * Modifies the default font directory used by WordPress to the subdirectory fonts
- * within the content directory. This function should not be called directly but
- * rather applied to the {@see 'font_dir'} hook.
- *
- * @access private
- * @since 6.5.0
- *
- * @see wp_get_font_dir()
- *
- * @return array See wp_font_dir() for description.
- */
-function wp_default_font_dir() {
 	$site_path = '';
 	if ( is_multisite() && ! ( is_main_network() && is_main_site() ) ) {
 		$site_path = '/sites/' . get_current_blog_id();
 	}
 
-	return array(
+	$font_dir = array(
 		'path'    => path_join( WP_CONTENT_DIR, 'fonts' ) . $site_path,
 		'url'     => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'subdir'  => '',
@@ -192,6 +170,26 @@ function wp_default_font_dir() {
 		'baseurl' => untrailingslashit( content_url( 'fonts' ) ) . $site_path,
 		'error'   => false,
 	);
+
+	/**
+	 * Filters the fonts directory data.
+	 *
+	 * This filter allows developers to modify the fonts directory data.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param array $font_dir {
+	 *     Array of information about the font upload directory.
+	 *
+	 *     @type string       $path    Base directory and subdirectory or full path to the fonts upload directory.
+	 *     @type string       $url     Base URL and subdirectory or absolute URL to the fonts upload directory.
+	 *     @type string       $subdir  Subdirectory
+	 *     @type string       $basedir Path without subdir.
+	 *     @type string       $baseurl URL path without subdir.
+	 *     @type string|false $error   False or error message.
+	 * }
+	 */
+	return apply_filters( 'font_dir', $font_dir );
 }
 
 /**

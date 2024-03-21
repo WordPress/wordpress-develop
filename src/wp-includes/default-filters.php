@@ -751,8 +751,6 @@ add_action( 'wp_head', 'wp_print_font_faces', 50 );
 add_action( 'deleted_post', '_wp_after_delete_font_family', 10, 2 );
 add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
-// Filter the font upload directory. Runs early to ensure the default directory is applied at priority 10 (default).
-add_filter( 'font_dir', 'wp_default_font_dir', 5 );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
