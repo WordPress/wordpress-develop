@@ -133,9 +133,9 @@ function wp_font_dir( $create_dir = true ) {
 	 * directly and when the upload directory is filtered in the Font Face
 	 * REST API endpoint.
 	 */
-	add_filter( 'upload_dir', 'wp_filter_font_directory' );
+	add_filter( 'upload_dir', '_wp_filter_font_directory' );
 	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', 'wp_filter_font_directory' );
+	remove_filter( 'upload_dir', '_wp_filter_font_directory' );
 	return $font_dir;
 }
 
@@ -151,7 +151,7 @@ function wp_font_dir( $create_dir = true ) {
  * @param string $font_dir The font directory.
  * @return string The modified font directory.
  */
-function wp_filter_font_directory( $font_dir ) {
+function _wp_filter_font_directory( $font_dir ) {
 	if ( doing_filter( 'font_dir' ) ) {
 		// Avoid an infinite loop.
 		return $font_dir;
