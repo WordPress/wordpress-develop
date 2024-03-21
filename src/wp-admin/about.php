@@ -66,7 +66,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Add and manage fonts across your site' ); ?></h3>
-				<p><?php _e( 'The new Font Library puts you in control of an essential piece of your site&#8217;s design—typography—without coding or extra steps. Effortlessly install, remove, and activate local and Google Fonts across your site regardless of your active theme. The ability to include custom typography collections gives site creators and publishers even more choice.' ); ?></p>
+				<p><?php _e( 'The new Font Library puts you in control of an essential piece of your site&#8217;s design—typography—without coding or extra steps. Effortlessly install, remove, and activate local and Google Fonts across your site for any block theme. The ability to include custom typography collections gives site creators and publishers even more choice.' ); ?></p>
 			</div>
 		</div>
 
