@@ -180,7 +180,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Requires Plugins */
 						__( 'There&#8217;s now an easier way to manage plugin dependencies. Plugin authors can supply a new %s header with a comma-separated list of required plugin slugs, presenting users with links to install and activate those plugins first.' ),
-						'<code>Requires Plugins</code>'
+						'<code lang="en">Requires Plugins</code>'
 					);
 					?>
 				</p>
