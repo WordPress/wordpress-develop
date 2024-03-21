@@ -112,7 +112,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="https://s.w.org/images/core/6.5/7-data-views.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Discover new Data Views' ); ?></h3>
-				<p><?php _e( 'Make fast, informed changes with data views for pages, templates, patterns, and template parts. Arrange data in a table or grid view and enjoy a new UI for toggling fields and making bulk changes.' ); ?></p>
+				<p><?php _e( 'Find and organize your data however you like with data views for pages, templates, patterns, and template parts. Arrange it in a table or grid view with the option to toggle fields and make bulk changes.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
