@@ -37,7 +37,7 @@ if ( ! isset( $content_width ) ) {
 /**
  * Twenty Fifteen only works in WordPress 4.1 or later.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '4.1-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -53,7 +53,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 	 *
 	 * @since Twenty Fifteen 1.0
 	 *
-	 * @global string $wp_version WordPress version.
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfifteen_setup() {
 
@@ -502,7 +502,7 @@ add_action( 'enqueue_block_editor_assets', 'twentyfifteen_block_editor_styles' )
  * @since Twenty Fifteen 1.7
  * @deprecated Twenty Fifteen 3.4 Disabled filter because, by default, fonts are self-hosted.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.

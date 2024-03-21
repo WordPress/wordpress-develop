@@ -44,7 +44,7 @@ if ( ! isset( $content_width ) ) {
  *
  * @since Twenty Twelve 1.0
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 function twentytwelve_setup() {
 	/*
@@ -241,7 +241,7 @@ add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
  * @since Twenty Twelve 2.2
  * @deprecated Twenty Twelve 3.9 Disabled filter because, by default, fonts are self-hosted.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.

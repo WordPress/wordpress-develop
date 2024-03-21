@@ -71,7 +71,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @global string $wp_version WordPress version.
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyeleven_setup() {
 

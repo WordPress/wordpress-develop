@@ -12,7 +12,7 @@
 /**
  * Twenty Seventeen only works in WordPress 4.7 or later.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';

@@ -73,7 +73,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 	 *
 	 * @since Twenty Ten 1.0
 	 *
-	 * @global string $wp_version WordPress version.
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyten_setup() {
 
@@ -440,7 +440,7 @@ function twentyten_remove_gallery_css( $css ) {
 /**
  * Backward compatibility with WordPress 3.0.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '3.1', '<' ) ) {
 	add_filter( 'gallery_style', 'twentyten_remove_gallery_css' );

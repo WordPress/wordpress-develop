@@ -41,7 +41,7 @@ require get_template_directory() . '/inc/custom-header.php';
 /**
  * Twenty Thirteen only works in WordPress 3.6 or later.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '3.6-alpha', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -69,7 +69,7 @@ require get_template_directory() . '/inc/block-patterns.php';
  *
  * @since Twenty Thirteen 1.0
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 function twentythirteen_setup() {
 	/*
@@ -361,7 +361,7 @@ add_action( 'wp_enqueue_scripts', 'twentythirteen_scripts_styles' );
  * @since Twenty Thirteen 2.1
  * @deprecated Twenty Thirteen 3.8 Disabled filter because, by default, fonts are self-hosted.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.

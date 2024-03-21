@@ -39,7 +39,7 @@ if ( ! isset( $content_width ) ) {
 /**
  * Twenty Fourteen only works in WordPress 3.6 or later.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  */
 if ( version_compare( $GLOBALS['wp_version'], '3.6', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
@@ -57,7 +57,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
-	 * @global string $wp_version WordPress version.
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfourteen_setup() {
 
@@ -423,7 +423,7 @@ add_action( 'admin_print_scripts-appearance_page_custom-header', 'twentyfourteen
  * @since Twenty Fourteen 1.9
  * @deprecated Twenty Fourteen 3.6 Disabled filter because, by default, fonts are self-hosted.
  *
- * @global string $wp_version WordPress version.
+ * @global string $wp_version The WordPress version string.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -533,7 +533,7 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
-	 * @global string $wp_version WordPress version.
+	 * @global string $wp_version The WordPress version string.
 	 */
 	function twentyfourteen_list_authors() {
 		$args = array(
