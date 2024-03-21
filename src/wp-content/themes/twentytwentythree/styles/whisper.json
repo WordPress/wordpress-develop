@@ -83,6 +83,15 @@
 	},
 	"styles": {
 		"blocks": {
+			"core/image": {
+				"elements": {
+					"link": {
+						"border": {
+							"width": "0"
+						}
+					}
+				}
+			},
 			"core/navigation": {
 				"color": {
 					"text": "var(--wp--preset--color--contrast)"
@@ -249,6 +258,15 @@
 					"color": "var(--wp--preset--color--contrast)",
 					"style": "double",
 					"width": "6px 0 0 0"
+				}
+			},
+			"core/site-logo": {
+				"elements": {
+					"link": {
+						"border": {
+							"width": "0"
+						}
+					}
 				}
 			},
 			"core/site-title": {
