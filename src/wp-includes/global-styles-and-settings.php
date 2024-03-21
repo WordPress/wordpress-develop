@@ -514,7 +514,7 @@ function wp_get_theme_data_template_parts() {
 			 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
 			 * @param string $context          Additional context for better cache control.
 			 */
-			$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', 1800, 'theme_data_template_parts' );
+			$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', WP_Theme::$cache_expiration, 'theme_data_template_parts' );
 
 			if ( ! false === $cache_expiration ) {
 				if ( wp_using_ext_object_cache() ) {

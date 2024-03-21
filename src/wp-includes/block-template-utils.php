@@ -578,7 +578,7 @@ function _get_block_template_file_content( $template_file_path ) {
 	 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
 	 * @param string $context          Additional context for better cache control.
 	 */
-	$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', 1800, 'theme_template_file_content' );
+	$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', WP_Theme::$cache_expiration, 'theme_template_file_content' );
 
 	// Update cache.
 	if ( ! false === $cache_expiration ) {
