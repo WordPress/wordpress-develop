@@ -6413,7 +6413,6 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	 */
 	do_action( 'delete_attachment', $post_id, $post );
 
-	wp_delete_object_term_relationships( $post_id, array( 'category', 'post_tag' ) );
 	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	// Delete all for any posts.
