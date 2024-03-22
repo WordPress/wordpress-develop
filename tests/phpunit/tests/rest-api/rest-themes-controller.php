@@ -968,26 +968,17 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * It should not be possible to remove 'editor-styles'.
+	 *
 	 * @ticket 49037
 	 */
-	public function test_theme_no_editor_styles() {
+	public function test_theme_editor_styles() {
+		add_theme_support( 'editor-styles' );
 		remove_theme_support( 'editor-styles' );
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 		$this->assertArrayHasKey( 'editor-styles', $result[0]['theme_supports'] );
-		$this->assertFalse( $result[0]['theme_supports']['editor-styles'] );
-	}
-
-	/**
-	 * @ticket 49037
-	 */
-	public function test_theme_editor_styles_optin() {
-		remove_theme_support( 'editor-styles' );
-		add_theme_support( 'editor-styles' );
-		$response = self::perform_active_theme_request();
-		$result   = $response->get_data();
-		$this->assertArrayHasKey( 'theme_supports', $result[0] );
 		$this->assertTrue( $result[0]['theme_supports']['editor-styles'] );
 	}
 
