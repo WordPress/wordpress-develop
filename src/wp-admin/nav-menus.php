@@ -583,7 +583,7 @@ $nav_menus_l10n = array(
 	/* translators: 1: Item name, 2: Item type. */
 	'menuFocus'               => __( 'Edit menu item: %1$s (%2$s)' ),
 	/* translators: 1: Item name, 2: Item type, 3: Item Depth. */
-	'subMenuFocus'            => __( 'Edit menu item: %1$s (%2$s) ' ),
+	'subMenuFocus'            => __( 'Edit menu item: %1$s (%2$s), sub-item (level %3$d)' ),
 	/* translators: %s: Item name. */
 	'menuItemDeletion'        => __( 'item %s' ),
 	/* translators: %s: Item name. */
