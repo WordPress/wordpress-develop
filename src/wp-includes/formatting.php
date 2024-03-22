@@ -5011,6 +5011,13 @@ function sanitize_option( $option, $value ) {
 			}
 			break;
 
+		case 'admin_locale':
+			$allowed = get_available_languages();
+			if ( ! in_array( $value, $allowed, true ) && ! empty( $value ) ) {
+				$value = get_option( $option );
+			}
+			break;
+
 		case 'illegal_names':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {

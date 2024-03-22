@@ -662,6 +662,7 @@ code {
 
 /* Dashicon for language options on General Settings and Profile screens */
 .form-table th label[for="locale"] .dashicons,
+.form-table th label[for="admin_locale"] .dashicons,
 .form-table th label[for="WPLANG"] .dashicons {
 	margin-left: 5px;
 }

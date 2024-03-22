@@ -304,6 +304,7 @@ if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPL
 	$languages[] = WPLANG;
 }
 if ( ! empty( $languages ) || ! empty( $translations ) ) {
+	$show_available_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
 	?>
 	<tr>
 		<th scope="row"><label for="WPLANG"><?php _e( 'Site Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
@@ -321,7 +322,7 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 					'selected'                    => $locale,
 					'languages'                   => $languages,
 					'translations'                => $translations,
-					'show_available_translations' => current_user_can( 'install_languages' ) && wp_can_install_language_pack(),
+					'show_available_translations' => $show_available_translations,
 				)
 			);
 
@@ -335,6 +336,37 @@ if ( ! empty( $languages ) || ! empty( $translations ) ) {
 				);
 			}
 			?>
+		</td>
+	</tr>
+	<tr>
+		<th scope="row"><label for="admin_locale"><?php _e( 'Admin Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
+		<td>
+			<?php
+			$admin_locale = get_admin_locale();
+			if ( ! in_array( $admin_locale, $languages, true ) ) {
+				$admin_locale = '';
+			}
+
+			wp_dropdown_languages(
+				array(
+					'name'                        => 'admin_locale',
+					'id'                          => 'admin_locale',
+					'selected'                    => $admin_locale,
+					'languages'                   => $languages,
+					'translations'                => $translations,
+					'show_available_translations' => $show_available_translations,
+				)
+			);
+			?>
+		<p class="description" id="admin-locale-description">
+			<?php
+			printf(
+				/* translators: %s: link to profile edit screen. */
+				__( 'Used in the admin and for sending notifications to the administration email address. <a href="%s">You can override it in your profile</a>.' ),
+				self_admin_url( 'profile.php' )
+			);
+			?>
+		</p>
 		</td>
 	</tr>
 	<?php
