@@ -4876,7 +4876,7 @@ class WP_Query {
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
-		$key = md5( serialize( $args ) . $sql );
+		$key = md5( $sql );
 
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		if ( ! empty( $this->tax_query->queries ) ) {

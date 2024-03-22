@@ -1529,4 +1529,48 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// No additional queries expected.
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
+
+	/**
+	 * @ticket 59442
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 */
+	public function test_generate_cache_key_avoid_args() {
+		global $wpdb;
+
+		$query1 = new WP_Query(
+			array(
+				'cache_results' => true,
+				'fields'        => 'ids',
+				'post_type'     => 'post',
+			)
+		);
+
+		$reflection1 = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection1->setAccessible( true );
+		// Cache key with post_type
+		$cache_key_1 = $reflection1->invoke( $query1, $query1->query_vars, $query1->request );
+		$reflection1->setAccessible( false );
+		$num_queries_start = get_num_queries();
+
+		// Following query without `post_type` leads to exact same SQL request as query1.
+		$query2      = new WP_Query(
+			array(
+				'cache_results' => true,
+				'fields'        => 'ids',
+			)
+		);
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		$reflection2 = new ReflectionMethod( $query2, 'generate_cache_key' );
+		$reflection2->setAccessible( true );
+		// Cache key without `post_type`.
+		$cache_key_2 = $reflection2->invoke( $query2, $query2->query_vars, $query2->request );
+		$reflection2->setAccessible( false );
+
+		// Ensure SQL request formed with and without `post_type` were similar.
+		$this->assertSame( $query1->request, $query2->request, 'SQL request formed are not similar.' );
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when `post_type` not passed in args.' );
+		$this->assertSame( 0, $num_queries, 'Second call executed additional queries.' );
+	}
 }
