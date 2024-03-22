@@ -530,7 +530,7 @@ function _get_block_template_file_content( $template_file_path ) {
 	$template_file_path = wp_normalize_path( $template_file_path );
 
 	$cache_group   = 'theme_files';
-	$cache_key     = 'wp_theme_template_contents_' . $theme->get_stylesheet();
+	$cache_key     = 'wp_theme_template_contents_' . get_stylesheet();
 	$transient_key = "{$cache_group}_{$cache_key}";
 
 	/*
