@@ -513,8 +513,7 @@
 				parentItemName = parentItem.find( '.menu-item-title' ).text(),
 				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1,
-				itemDepth = menuItem.menuItemDepth(),
-				itemType = $this.closest( '.menu-item-handle' ).find( '.item-controls' ).find( '.item-type' ).text();
+				itemDepth = menuItem.menuItemDepth();
 
 				// String together help text for sub menu items.
 				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemDepth );
