@@ -2311,7 +2311,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	 *                   False if the nonce is invalid.
 	 */
 	function wp_verify_nonce( $nonce, $action = -1 ) {
-		$nonce = (string) apply_filters( 'wp_verify_nonce_change', $nonce);
+		$nonce = (string) apply_filters( 'wp_verify_nonce_change', $nonce );
 		$user  = wp_get_current_user();
 		$uid   = (int) $user->ID;
 		if ( ! $uid ) {
