@@ -835,9 +835,12 @@ function wp_uninitialize_site( $site_id ) {
 	 */
 	$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $site->id );
 
+	$wpdb->query( 'SET foreign_key_checks = 0' );
 	foreach ( (array) $drop_tables as $table ) {
-		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// Disable foreign key checks when deleting site.
+		$wpdb->query( "DROP TABLE IF EXISTS `$table`;" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
+	$wpdb->query( 'SET foreign_key_checks = 1' );
 
 	/**
 	 * Filters the upload base directory to delete when the site is deleted.
