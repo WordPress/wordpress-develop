@@ -6,7 +6,7 @@ return array(
 	'title'      => __( 'Simple dark about page', 'twentytwentytwo' ),
 	'categories' => array( 'twentytwentytwo_pages' ),
 	'content'    => '<!-- wp:cover {"overlayColor":"foreground","minHeight":100,"minHeightUnit":"vh","contentPosition":"center center","align":"full","style":{"spacing":{"padding":{"top":"max(1.25rem, 8vw)","right":"max(1.25rem, 8vw)","bottom":"max(1.25rem, 8vw)","left":"max(1.25rem, 8vw)"}}}} -->
-					<div class="wp-block-cover alignfull has-foreground-background-color has-background-dim" style="padding-top:max(1.25rem, 8vw);padding-right:max(1.25rem, 8vw);padding-bottom:max(1.25rem, 8vw);padding-left:max(1.25rem, 8vw);min-height:100vh"><div class="wp-block-cover__inner-container"><!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"},"overlayMenu":"always"} -->
+					<div class="wp-block-cover alignfull is-light" style="padding-top:max(1.25rem, 8vw);padding-right:max(1.25rem, 8vw);padding-bottom:max(1.25rem, 8vw);padding-left:max(1.25rem, 8vw);min-height:100vh"><span aria-hidden="true" class="has-foreground-background-color has-background-dim-100 wp-block-cover__gradient-background has-background-dim"></span><div class="wp-block-cover__inner-container"><!-- wp:navigation {"layout":{"type":"flex","setCascadingProperties":true,"justifyContent":"right"},"overlayMenu":"always"} -->
 					<!-- wp:page-list {"isNavigationChild":true,"showSubmenuIcon":true,"openSubmenusOnClick":false} /-->
 					<!-- /wp:navigation -->
 
@@ -22,7 +22,7 @@ return array(
 					<p style="line-height:1.6">' . esc_html__( 'Oh hello. My name’s Jesús, and you’ve found your way to my website. I’m an avid bird watcher, and I also broadcast my own radio show on Tuesday evenings at 11PM EDT.', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":40} -->
+					<!-- wp:spacer {"height":"40px"} -->
 					<div style="height:40px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 

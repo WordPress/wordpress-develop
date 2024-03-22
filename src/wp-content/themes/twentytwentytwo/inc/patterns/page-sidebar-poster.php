@@ -32,7 +32,7 @@ return array(
 					<figure class="wp-block-image size-full is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/icon-binoculars.png" alt="' . esc_attr__( 'An icon representing binoculars.', 'twentytwentytwo' ) . '" width="100" height="47"/></figure>
 					<!-- /wp:image -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -44,7 +44,7 @@ return array(
 					<p>' . esc_html__( 'February, 12 2021', 'twentytwentytwo' ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 
@@ -56,7 +56,7 @@ return array(
 					<p>' . wp_kses_post( __( 'The Grand Theater<br>154 Eastern Avenue<br>Maryland NY, 12345', 'twentytwentytwo' ) ) . '</p>
 					<!-- /wp:paragraph -->
 
-					<!-- wp:spacer {"height":16} -->
+					<!-- wp:spacer {"height":"16px"} -->
 					<div style="height:16px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer --></div>
 					<!-- /wp:column --></div>

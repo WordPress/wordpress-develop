@@ -17,7 +17,7 @@ return array(
 					<!-- wp:post-featured-image /-->
 					<!-- wp:post-title /-->
 					<!-- wp:post-date /-->
-					<!-- wp:spacer {"height":200} -->
+					<!-- wp:spacer {"height":"200px"} -->
 					<div style="height:200px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 					<!-- /wp:post-template --></div>
@@ -26,7 +26,7 @@ return array(
 					<!-- wp:column {"width":"50%"} -->
 					<div class="wp-block-column" style="flex-basis:50%"><!-- wp:query {"query":{"perPage":2,"pages":0,"offset":2,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"exclude","inherit":false},"displayLayout":{"type":"list"}} -->
 					<div class="wp-block-query"><!-- wp:post-template -->
-					<!-- wp:spacer {"height":200} -->
+					<!-- wp:spacer {"height":"200px"} -->
 					<div style="height:200px" aria-hidden="true" class="wp-block-spacer"></div>
 					<!-- /wp:spacer -->
 					<!-- wp:post-featured-image /-->
