@@ -373,7 +373,7 @@ printf(
 						<span class="code">
 							<code id="permalink-custom"><?php echo esc_url( $url_base ); ?></code>
 							<input name="permalink_structure" id="permalink_structure"
-								type="text" value="<?php echo esc_attr( $permalink_structure ); ?>"
+								type="text" disabled value="<?php echo esc_attr( $permalink_structure ); ?>"
 								aria-describedby="permalink-custom" class="regular-text code"
 							/>
 						</span>
@@ -387,7 +387,7 @@ printf(
 							<ul role="list">
 							<?php foreach ( $available_tags as $tag => $explanation ) : ?>
 								<li>
-									<button type="button"
+									<button disabled type="button"
 										class="button button-secondary"
 										aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
 										data-added="<?php echo esc_attr( sprintf( $tag_added, $tag ) ); ?>"
@@ -403,6 +403,23 @@ printf(
 					</div><!-- .available-structure-tags -->
 				</div>
 			</div><!-- .row -->
+			<script>
+				jQuery('input[name="selection"]').on('change', function(e) {
+					var strctureType = e.target.value;
+					const structureButtons = document.querySelectorAll('.button-secondary');
+					if(strctureType == 'custom'){
+						document.querySelector('input[name="permalink_structure"]').disabled = false;
+						for (let i = 0; i < structureButtons.length; i++) {
+							structureButtons[i].disabled = false;
+						}
+					} else {
+						document.querySelector('input[name="permalink_structure"]').disabled = true;
+						for (let i = 0; i < structureButtons.length; i++) {
+							structureButtons[i].disabled = true;
+						}
+					}
+				});
+			</script>
 		</fieldset><!-- .structure-selection -->
 	</td>
 </tr>

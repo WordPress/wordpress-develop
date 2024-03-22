@@ -486,12 +486,23 @@ foreach ( $date_formats as $format ) {
 			/* translators: Hidden accessibility text. */
 			__( 'Custom date format:' ) .
 		'</label>' .
-		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
+		'<input type="text" disabled name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'date_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
 ?>
 	</fieldset>
+	<script>
+		jQuery('input[name="date_format"]').on('change', function(e) {
+			var dateFormat = e.target.value;
+			dateFormat = dateFormat.replace(/\\/g, '');
+			if(dateFormat == "custom"){
+				document.querySelector('input[name="date_format_custom"]').disabled = false;
+			} else {
+				document.querySelector('input[name="date_format_custom"]').disabled = true;
+			}
+		});
+	</script>
 </td>
 </tr>
 <tr>
@@ -534,7 +545,7 @@ foreach ( $time_formats as $format ) {
 			/* translators: Hidden accessibility text. */
 			__( 'Custom time format:' ) .
 		'</label>' .
-		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .
+		'<input type="text" disabled name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'time_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
@@ -542,6 +553,17 @@ foreach ( $time_formats as $format ) {
 	echo "\t<p class='date-time-doc'>" . __( '<a href="https://wordpress.org/documentation/article/customize-date-and-time-format/">Documentation on date and time formatting</a>.' ) . "</p>\n";
 ?>
 	</fieldset>
+	<script>
+		jQuery('input[name="time_format"]').on('change', function(e) {
+			var timeFormat = e.target.value;
+			timeFormat = timeFormat.replace(/\\/g, '');
+			if(timeFormat == "custom"){
+				document.querySelector('input[name="time_format_custom"]').disabled = false;
+			} else {
+				document.querySelector('input[name="time_format_custom"]').disabled = true;
+			}
+		});
+	</script>
 </td>
 </tr>
 <tr>
