@@ -44,7 +44,7 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		);
 
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
-		$this->assertSame( $anchor_block['attrs']['metadata']['ignoredHookedBlocks'], array( 'tests/hooked-block' ) );
+		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 	}
 
 	/**
@@ -70,8 +70,8 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 
 		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
 		$this->assertSame(
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			array( 'tests/other-ignored-block', 'tests/hooked-block' )
+			array( 'tests/other-ignored-block', 'tests/hooked-block' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		);
 	}
 
@@ -101,8 +101,8 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		remove_filter( 'hooked_block_types', $filter, 10 );
 
 		$this->assertSame(
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			array( 'tests/hooked-block-added-by-filter' )
+			array( 'tests/hooked-block-added-by-filter' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		);
 	}
 
@@ -140,8 +140,44 @@ class Tests_Blocks_SetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 		remove_filter( 'hooked_block_types', $filter, 10 );
 
 		$this->assertSame(
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
-			array( 'tests/hooked-block-added-by-filter' )
+			array( 'tests/hooked-block-added-by-filter' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
 		);
+	}
+
+	/**
+	 * @ticket 60580
+	 *
+	 * @covers ::set_ignored_hooked_blocks_metadata
+	 */
+	public function test_set_ignored_hooked_blocks_metadata_for_block_suppressed_by_filter() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+			'attrs'     => array(),
+		);
+
+		$hooked_blocks = array(
+			'tests/anchor-block' => array(
+				'after' => array( 'tests/hooked-block', 'tests/hooked-block-suppressed-by-filter' ),
+			),
+		);
+
+		$filter = function ( $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block ) {
+			if (
+				'tests/hooked-block-suppressed-by-filter' === $hooked_block_type &&
+				'after' === $relative_position &&
+				'tests/anchor-block' === $parsed_anchor_block['blockName']
+			) {
+				return null;
+			}
+
+			return $parsed_hooked_block;
+		};
+
+		add_filter( 'hooked_block', $filter, 10, 4 );
+		set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
+		remove_filter( 'hooked_block', $filter );
+
+		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 	}
 }

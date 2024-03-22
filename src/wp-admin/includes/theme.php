@@ -1111,6 +1111,8 @@ function customize_themes_print_templates() {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
+ *
  * @param string $theme Path to the theme directory relative to the themes directory.
  * @return bool True, if in the list of paused themes. False, not in the list.
  */
@@ -1130,6 +1132,8 @@ function is_theme_paused( $theme ) {
  * Gets the error that was recorded for a paused theme.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  *
  * @param string $theme Path to the theme directory relative to the themes
  *                      directory.
@@ -1160,12 +1164,17 @@ function wp_get_theme_error( $theme ) {
  *
  * @since 5.2.0
  *
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
+ *
  * @param string $theme    Single theme to resume.
  * @param string $redirect Optional. URL to redirect to. Default empty string.
  * @return bool|WP_Error True on success, false if `$theme` was not paused,
  *                       `WP_Error` on failure.
  */
 function resume_theme( $theme, $redirect = '' ) {
+	global $wp_stylesheet_path, $wp_template_path;
+
 	list( $extension ) = explode( '/', $theme );
 
 	/*
@@ -1173,14 +1182,11 @@ function resume_theme( $theme, $redirect = '' ) {
 	 * creating a fatal error.
 	 */
 	if ( ! empty( $redirect ) ) {
-		$stylesheet_path = get_stylesheet_directory();
-		$template_path   = get_template_directory();
-
 		$functions_path = '';
-		if ( str_contains( $stylesheet_path, $extension ) ) {
-			$functions_path = $stylesheet_path . '/functions.php';
-		} elseif ( str_contains( $template_path, $extension ) ) {
-			$functions_path = $template_path . '/functions.php';
+		if ( str_contains( $wp_stylesheet_path, $extension ) ) {
+			$functions_path = $wp_stylesheet_path . '/functions.php';
+		} elseif ( str_contains( $wp_template_path, $extension ) ) {
+			$functions_path = $wp_template_path . '/functions.php';
 		}
 
 		if ( ! empty( $functions_path ) ) {
@@ -1219,7 +1225,8 @@ function resume_theme( $theme, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string                       $pagenow        The filename of the current screen.
+ * @global WP_Paused_Extensions_Storage $_paused_themes
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {
