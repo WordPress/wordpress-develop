@@ -70,6 +70,9 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		$this->assertSame( static::$dir_defaults, $font_dir, 'The wp_get_font_dir() method should return the default values.' );
 	}
 
+	/**
+	 * @ticket 60652
+	 */
 	public function test_fonts_dir_filters_do_not_trigger_infinite_loop() {
 		/*
 		 * Naive filtering of uploads directory to return font directory.
