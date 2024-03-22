@@ -115,7 +115,6 @@ class WP_Font_Utils {
 		} else {
 			$font_family   = strtolower( $settings['fontFamily'] );
 		}
-			
 		$font_style    = strtolower( $settings['fontStyle'] );
 		$font_weight   = strtolower( $settings['fontWeight'] );
 		$font_stretch  = strtolower( $settings['fontStretch'] );
