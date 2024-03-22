@@ -4376,7 +4376,7 @@ function _add_default_theme_supports() {
  * @since 6.6.0
  *
  * @param string $file_path The file path to check.
- * @return bool True if the file is part of the theme, false otherwise.
+ * @return WP_Theme|bool WP_Theme object of the theme of which file is a part of. False otherwise.
  */
 function is_theme_file( $file_path ) {
 	$theme = wp_get_theme();
@@ -4385,12 +4385,12 @@ function is_theme_file( $file_path ) {
 	$theme_dir = wp_normalize_path( $theme->get_stylesheet_directory() ) . '/';
 
 	if ( str_starts_with( $file_path, $theme_dir ) ) {
-		return true;
+		return $theme;
 	} elseif ( $theme->parent() ) {
 		$theme     = $theme->parent();
 		$theme_dir = wp_normalize_path( $theme->get_stylesheet_directory() ) . '/';
 		if ( str_starts_with( $file_path, $theme_dir ) ) {
-			return true;
+			return $theme;
 		}
 	}
 

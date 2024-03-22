@@ -522,15 +522,17 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  * @return string The template file contents.
  */
 function _get_block_template_file_content( $template_file_path ) {
+	$theme = is_theme_file( $template_file_path );
+
 	// Bypass cache if the file is not within the theme directory.
-	if ( ! is_theme_file( $template_file_path ) ) {
+	if ( ! $theme ) {
 		return file_get_contents( $template_file_path );
 	}
 
 	$template_file_path = wp_normalize_path( $template_file_path );
 
 	$cache_group   = 'theme_files';
-	$cache_key     = 'wp_theme_template_contents_' . get_stylesheet();
+	$cache_key     = 'wp_theme_template_contents_' . $theme->get_stylesheet();
 	$transient_key = "{$cache_group}_{$cache_key}";
 
 	/*
@@ -578,7 +580,7 @@ function _get_block_template_file_content( $template_file_path ) {
 	 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
 	 * @param string $context          Additional context for better cache control.
 	 */
-	$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', WP_Theme::$cache_expiration, 'theme_template_file_content' );
+	$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', 1800, 'theme_template_file_content' );
 
 	// Update cache.
 	if ( ! false === $cache_expiration ) {
@@ -1544,8 +1546,8 @@ function inject_ignored_hooked_blocks_metadata_attributes( $post ) {
 
 	wp_update_post(
 		array(
-			'ID'            => $post->ID,
-			'post_content'  => $content,
+			'ID'           => $post->ID,
+			'post_content' => $content,
 		)
 	);
 }
