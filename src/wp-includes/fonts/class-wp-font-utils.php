@@ -111,9 +111,9 @@ class WP_Font_Utils {
 		);
 		$settings = wp_parse_args( $settings, $defaults );
 		if ( function_exists( 'mb_strtolower' ) ) {
-			$font_family   = mb_strtolower( $settings['fontFamily'] );
+			$font_family = mb_strtolower( $settings['fontFamily'] );
 		} else {
-			$font_family   = strtolower( $settings['fontFamily'] );
+			$font_family = strtolower( $settings['fontFamily'] );
 		}
 		$font_style    = strtolower( $settings['fontStyle'] );
 		$font_weight   = strtolower( $settings['fontWeight'] );
