@@ -497,7 +497,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		}
 
 		$qs_urls = array(
-			'baz=1', // #WP4903
+			'?baz=1',
 			'/?baz',
 			'/2012/07/30/?baz',
 			'edit.php?baz',
@@ -558,7 +558,55 @@ class Tests_Functions extends WP_UnitTestCase {
 			);
 		}
 
+		$_SERVER['REQUEST_URI'] = 'nothing';
+
+		$this->assertSame( 'baz=1&foo=1', add_query_arg( 'foo', '1', 'baz=1' ) ); // #WP4903
+
 		$_SERVER['REQUEST_URI'] = $old_req_uri;
+	}
+
+	/**
+	 * @ticket 58902
+	 * @group add_query_arg
+	 */
+	public function test_add_query_arg_sanitize_url() {
+		$old_request_uri = $_SERVER['REQUEST_URI'];
+
+		$urls_with_query_string = array(
+			'http://example.com/two words?foo=1' => 'http://example.com/two%20words?foo=1',
+			'http;//example.com?foo=1'           => 'http://example.com?foo=1',
+			'example.com?foo=1'                  => 'http://example.com?foo=1',
+			'/example?foo=1'                     => '/example?foo=1',
+			' ?foo=1'                            => '?foo=1',
+			' example.com?foo=1'                 => 'http://example.com?foo=1',
+			'http://example.com?foo=[1]'         => 'http://example.com?foo=%5B1%5D',
+		);
+
+		foreach ( $urls_with_query_string as $wrong_url => $correct_url ) {
+			$_SERVER['REQUEST_URI'] = $wrong_url;
+			$this->assertSame( "$correct_url&bar=2", add_query_arg( array( 'bar' => '2' ) ) );
+		}
+
+		$urls_without_query_string = array(
+			'/'                              => '/',
+			'example.com'                    => 'http://example.com',
+			' example.com'                   => 'http://example.com',
+			'http;//example.com'             => 'http://example.com',
+			'http://example.com/two words'   => 'http://example.com/two%20words',
+			'wrongprotocol://example.com'    => '',
+			'/example'                       => '/example',
+			'example.php'                    => 'example.php',
+			'example'                        => 'http://example',
+			'http://example/%0d%0a%0D%0A%20' => 'http://example/%20',
+			'mailto:%0d%0a%0D%0A%20'         => 'mailto:%0d%0a%0D%0A%20',
+		);
+
+		foreach ( $urls_without_query_string as $wrong_url => $correct_url ) {
+			$_SERVER['REQUEST_URI'] = $wrong_url;
+			$this->assertSame( "$correct_url?foo=1", add_query_arg( array( 'foo' => '1' ) ) );
+		}
+
+		$_SERVER['REQUEST_URI'] = $old_request_uri;
 	}
 
 	/**
