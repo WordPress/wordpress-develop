@@ -3056,12 +3056,13 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
 	global $wp_rewrite;
 
-	$pagenum = (int) $pagenum;
+	$pagenum  = (int) $pagenum;
+	$max_page = (int) $max_page;
 
 	$result = get_permalink();
 
 	if ( 'newest' === get_option( 'default_comments_page' ) ) {
-		if ( $pagenum !== (int) $max_page ) {
+		if ( $pagenum !== $max_page ) {
 			if ( $wp_rewrite->using_permalinks() ) {
 				$result = user_trailingslashit( trailingslashit( $result ) . $wp_rewrite->comments_pagination_base . '-' . $pagenum, 'commentpaged' );
 			} else {
@@ -4154,7 +4155,9 @@ function wp_get_shortlink( $id = 0, $context = 'post', $allow_slugs = true ) {
 	if ( ! empty( $post_id ) ) {
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'page' === $post->post_type && (int) get_option( 'page_on_front' ) === $post->ID && 'page' === get_option( 'show_on_front' ) ) {
+		if ( 'page' === $post->post_type
+			&& 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) === $post->ID
+		) {
 			$shortlink = home_url( '/' );
 		} elseif ( $post_type && $post_type->public ) {
 			$shortlink = home_url( '?p=' . $post_id );
