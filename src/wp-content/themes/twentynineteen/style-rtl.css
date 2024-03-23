@@ -6441,6 +6441,16 @@ body.page .main-navigation {
   color: #FFF;
 }
 
+.wp-block-navigation-item .wp-block-navigation-submenu__toggle {
+  background: transparent;
+  outline-offset: 0;
+  border-radius: 0;
+}
+
+.wp-block-navigation-item.open-on-click .wp-block-navigation-submenu__toggle {
+  padding: 0 0 0 0.85em;
+}
+
 /* Media */
 .page-content .wp-smiley,
 .entry-content .wp-smiley,

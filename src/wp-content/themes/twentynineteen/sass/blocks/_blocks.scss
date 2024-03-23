@@ -1054,3 +1054,16 @@
 		color: #FFF;
 	}
 }
+
+.wp-block-navigation-item {
+
+	.wp-block-navigation-submenu__toggle {
+		background: transparent;
+		outline-offset: 0;
+		border-radius: 0;
+	}
+
+	&.open-on-click .wp-block-navigation-submenu__toggle {
+		padding: 0 0.85em 0 0;
+	}
+}
