@@ -426,10 +426,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	public function test_truncated_index() {
 		global $wpdb;
 
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support in MySQL.' );
-		}
-
 		// This table needs to be actually created.
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
