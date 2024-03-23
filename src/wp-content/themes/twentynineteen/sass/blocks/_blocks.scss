@@ -155,6 +155,34 @@
 		}
 	}
 
+	//! Avatar
+	.wp-block-avatar {
+		:where([style*=border-width]),
+		:where(.has-border-color) {
+			border-style: solid;
+		}
+	
+		:where([style*="border-top-width"]),
+		:where([style*="border-top-color"]) {
+			border-top-style: solid;
+		}
+	
+		:where([style*="border-right-width"]),
+		:where([style*="border-right-color"]) {
+			border-right-style: solid;
+		}
+	
+		:where([style*="border-bottom-width"]),
+		:where([style*="border-bottom-color"]) {
+			border-bottom-style: solid;
+		}
+	
+		:where([style*="border-left-width"]),
+		:where([style*="border-left-color"]) {
+			border-left-style: solid;
+		}
+	}
+
 	//! Video
 	.wp-block-video {
 
@@ -187,6 +215,31 @@
 
 			&:not(.has-text-color) {
 				color: white;
+			}
+
+			&:where([style*=border-width]),
+			&:where(.has-border-color) {
+				border-style: solid;
+			}
+
+			&:where([style*="border-top-width"]),
+			&:where([style*="border-top-color"]) {
+				border-top-style: solid;
+			}
+
+			&:where([style*="border-right-width"]),
+			&:where([style*="border-right-color"]) {
+				border-left-style: solid;
+			}
+
+			&:where([style*="border-bottom-width"]),
+			&:where([style*="border-bottom-color"]) {
+				border-bottom-style: solid;
+			}
+
+			&:where([style*="border-left-width"]),
+			&:where([style*="border-left-color"]) {
+				border-right-style: solid;
 			}
 
 			&:hover {
@@ -553,9 +606,9 @@
 			display: block;
 		}
 
-		// If an image does not have a left/center/right alignment, 
-		// it's a direct child of .wp-block-image.  If it has no other 
-		// alignment added, we want to make sure the image and its 
+		// If an image does not have a left/center/right alignment,
+		// it's a direct child of .wp-block-image.  If it has no other
+		// alignment added, we want to make sure the image and its
 		// caption do not extend beyond the width of the text column.
 		&:not(.alignwide):not(.alignfull) > img,
 		&:not(.alignwide):not(.alignfull) > a > img,
@@ -595,6 +648,34 @@
 				margin-left: auto;
 				margin-right: auto;
 			}
+		}
+	}
+
+	//! Featured Image
+	.wp-block-post-featured-image {
+		:where([style*=border-width]),
+		:where(.has-border-color) {
+			border-style: solid;
+		}
+	
+		:where([style*="border-top-width"]),
+		:where([style*="border-top-color"]) {
+			border-top-style: solid;
+		}
+	
+		:where([style*="border-right-width"]),
+		:where([style*="border-right-color"]) {
+			border-right-style: solid;
+		}
+	
+		:where([style*="border-bottom-width"]),
+		:where([style*="border-bottom-color"]) {
+			border-bottom-style: solid;
+		}
+	
+		:where([style*="border-left-width"]),
+		:where([style*="border-left-color"]) {
+			border-left-style: solid;
 		}
 	}
 
@@ -748,6 +829,13 @@
 		td {
 			border-color: $color__text-light;
 		}
+
+		:where(.has-border-color) {
+			th,
+			td {
+				border-color: inherit;
+			};
+		}
 	}
 
 	//! File
@@ -840,7 +928,7 @@
 	//! Group
 	.wp-block-group {
 
-		// When the Group block is standard/wide, we need to prevent full-aligned 
+		// When the Group block is standard/wide, we need to prevent full-aligned
 		// child blocks from expanding out of their container.
 		&:not(.alignfull) > .wp-block-group__inner-container > .alignfull,
 		&:not(.alignfull) > .wp-block-group__inner-container > .wp-block-image > img {
@@ -881,7 +969,7 @@
 				}
 			}
 
-			// If the Group block is full-width, it does not need this extra padding. 
+			// If the Group block is full-width, it does not need this extra padding.
 			&.alignfull {
 				padding-left: 0;
 				padding-right: 0;
@@ -896,7 +984,7 @@
 			&:not(.alignfull) > .wp-block-group__inner-container > .alignfull {
 				width: 100%;
 				max-width: 100%;
-				
+
 				@include media(tablet) {
 					width: calc( 100% + #{$size__spacing-unit * 2} );
 					max-width: calc( 100% + #{$size__spacing-unit * 2} );
@@ -904,7 +992,7 @@
 				}
 			}
 		}
-		
+
 	}
 
 	//! Latest Comments
@@ -1052,5 +1140,26 @@
 	.wp-block-pullquote blockquote.has-white-color,
 	.wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
 		color: #FFF;
+	}
+
+	//! Custom border colors
+	.has-primary-border-color {
+		border-color: $color__border-block-primary;
+	}
+
+	.has-secondary-border-color {
+		border-color: $color__border-block-secondary;
+	}
+
+	.has-dark-gray-border-color {
+		border-color: $color__border-block-dark-gray;
+	}
+
+	.has-light-gray-border-color {
+		border-color: $color__border-block-light-gray;
+	}
+
+	.has-white-border-color {
+		border-color: $color__border-block-white;
 	}
 }

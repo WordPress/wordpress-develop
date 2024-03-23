@@ -5492,6 +5492,31 @@ body.page .main-navigation {
   }
 }
 
+.entry .entry-content .wp-block-avatar :where([style*=border-width]),
+.entry .entry-content .wp-block-avatar :where(.has-border-color) {
+  border-style: solid;
+}
+
+.entry .entry-content .wp-block-avatar :where([style*="border-top-width"]),
+.entry .entry-content .wp-block-avatar :where([style*="border-top-color"]) {
+  border-top-style: solid;
+}
+
+.entry .entry-content .wp-block-avatar :where([style*="border-right-width"]),
+.entry .entry-content .wp-block-avatar :where([style*="border-right-color"]) {
+  border-right-style: solid;
+}
+
+.entry .entry-content .wp-block-avatar :where([style*="border-bottom-width"]),
+.entry .entry-content .wp-block-avatar :where([style*="border-bottom-color"]) {
+  border-bottom-style: solid;
+}
+
+.entry .entry-content .wp-block-avatar :where([style*="border-left-width"]),
+.entry .entry-content .wp-block-avatar :where([style*="border-left-color"]) {
+  border-left-style: solid;
+}
+
 .entry .entry-content .wp-block-video video {
   width: 100%;
 }
@@ -5518,6 +5543,26 @@ body.page .main-navigation {
 
 .entry .entry-content .wp-block-button .wp-block-button__link:not(.has-text-color) {
   color: white;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*=border-width]), .entry .entry-content .wp-block-button .wp-block-button__link:where(.has-border-color) {
+  border-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-top-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-top-color"]) {
+  border-top-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-right-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-right-color"]) {
+  border-left-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-bottom-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-bottom-color"]) {
+  border-bottom-style: solid;
+}
+
+.entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-left-width"]), .entry .entry-content .wp-block-button .wp-block-button__link:where([style*="border-left-color"]) {
+  border-right-style: solid;
 }
 
 .entry .entry-content .wp-block-button .wp-block-button__link:hover {
@@ -5938,6 +5983,31 @@ body.page .main-navigation {
   }
 }
 
+.entry .entry-content .wp-block-post-featured-image :where([style*=border-width]),
+.entry .entry-content .wp-block-post-featured-image :where(.has-border-color) {
+  border-style: solid;
+}
+
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-top-width"]),
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-top-color"]) {
+  border-top-style: solid;
+}
+
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-right-width"]),
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-right-color"]) {
+  border-right-style: solid;
+}
+
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-bottom-width"]),
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-bottom-color"]) {
+  border-bottom-style: solid;
+}
+
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-left-width"]),
+.entry .entry-content .wp-block-post-featured-image :where([style*="border-left-color"]) {
+  border-left-style: solid;
+}
+
 .entry .entry-content .wp-block-cover-image,
 .entry .entry-content .wp-block-cover {
   position: relative;
@@ -6157,6 +6227,11 @@ body.page .main-navigation {
 .entry .entry-content .wp-block-table th,
 .entry .entry-content .wp-block-table td {
   border-color: #767676;
+}
+
+.entry .entry-content .wp-block-table :where(.has-border-color) th,
+.entry .entry-content .wp-block-table :where(.has-border-color) td {
+  border-color: inherit;
 }
 
 .entry .entry-content .wp-block-file {
@@ -6451,6 +6526,26 @@ body.page .main-navigation {
 .entry .entry-content .wp-block-pullquote blockquote.has-white-color,
 .entry .entry-content .wp-block-pullquote.is-style-solid-color blockquote.has-white-color {
   color: #FFF;
+}
+
+.entry .entry-content .has-primary-border-color {
+  border-color: #0073aa;
+}
+
+.entry .entry-content .has-secondary-border-color {
+  border-color: #005177;
+}
+
+.entry .entry-content .has-dark-gray-border-color {
+  border-color: #111;
+}
+
+.entry .entry-content .has-light-gray-border-color {
+  border-color: #767676;
+}
+
+.entry .entry-content .has-white-border-color {
+  border-color: #fff;
 }
 
 /* Media */
