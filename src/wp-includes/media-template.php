@@ -592,8 +592,9 @@ function wp_print_media_templates() {
 
 	<?php // Template for the Attachment "thumbnails" in the Media Grid. ?>
 	<script type="text/html" id="tmpl-attachment">
-		<div class="attachment-preview js--select-attachment type-{{ data.type }} subtype-{{ data.subtype }} {{ data.orientation }}">
-			<div class="thumbnail">
+		<div class="attachment-preview js--select-attachment type-{{ data.type }} subtype-{{ data.subtype }} {{ data.orientation }} {{ data.hasTransparencyClass }}"
+			 data-dominant-color="{{ data.dominantColor }}" data-has-transparency="{{ data.hasTransparency }}" style="--dominant-color: #{{ data.dominantColor }};" >
+			<div  class="thumbnail">
 				<# if ( data.uploading ) { #>
 					<div class="media-progress-bar"><div style="width: {{ data.percent }}%"></div></div>
 				<# } else if ( 'image' === data.type && data.size && data.size.url ) { #>

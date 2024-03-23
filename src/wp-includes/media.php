@@ -4540,6 +4540,17 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		}
 	}
 
+	$response['dominantColor'] = '';
+	if ( isset( $meta['dominant_color'] ) ) {
+		$response['dominantColor'] = $meta['dominant_color'];
+	}
+	$response['hasTransparency'] = '';
+	$response['hasTransparencyClass'] = '';
+	if ( isset( $meta['has_transparency'] ) ) {
+		$response['hasTransparency'] = $meta['has_transparency'];
+		$response['hasTransparencyClass'] = $meta['has_transparency'] ? 'has-transparency' : 'not-transparent';
+	}
+
 	/**
 	 * Filters the attachment data prepared for JavaScript.
 	 *
