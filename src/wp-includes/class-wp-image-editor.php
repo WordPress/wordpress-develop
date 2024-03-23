@@ -15,6 +15,7 @@
 abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
+	protected $hash              = null;
 	protected $mime_type         = null;
 	protected $output_mime_type  = null;
 	protected $default_mime_type = 'image/jpeg';
@@ -218,6 +219,31 @@ abstract class WP_Image_Editor {
 			'width'  => (int) $width,
 			'height' => (int) $height,
 		);
+		return true;
+	}
+
+
+	/**
+	 * Gets hash for the current image.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return string $hash 8-character MD5 hash.
+	 */
+	public function get_crop_hash() {
+		return $this->hash;
+	}
+
+	/**
+	 * Sets hash for the current image.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param string $hash 8-character MD5 hash.
+	 * @return true
+	 */
+	protected function update_crop_hash( $hash = null ) {
+		$this->hash = $hash;
 		return true;
 	}
 
@@ -487,7 +513,13 @@ abstract class WP_Image_Editor {
 			return false;
 		}
 
-		return "{$this->size['width']}x{$this->size['height']}";
+		$suffix = "{$this->size['width']}x{$this->size['height']}";
+
+		if( $this->get_crop_hash() ){
+			$suffix = $suffix . "-{$this->hash}";
+		}
+		
+		return $suffix;
 	}
 
 	/**

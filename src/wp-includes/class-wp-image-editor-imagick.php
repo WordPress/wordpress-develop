@@ -321,6 +321,30 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
+	 * Generates an hash for the current image.
+	 *
+	 * Concatenates crop coordinates, destination width and destination 
+	 * height into a string, calculates an MD5 hash, and returns first 8 characters.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param bool|array $crop Boolean or array with crop coordinates (e.g., array( x, y )).
+	 * @param int        $dst_w The destination width.
+	 * @param int        $dst_h The destination height.
+	 * @return false|string 8-char MD5 hash. False for non-array $crop.
+	 */
+	protected function create_crop_hash( $crop, $dst_w, $dst_h ) {
+		if ( ! is_array( $crop ) ) {
+			return false;
+		}
+
+		$str  = $crop[0] . $crop[1] . $dst_w . $dst_h;
+		$hash = substr( md5( $str ), 0, 8 );
+
+		return parent::update_crop_hash( $hash );
+	}
+
+	/**
 	 * Resizes current image.
 	 *
 	 * At minimum, either a height or width must be provided.
@@ -354,6 +378,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
 
 		if ( $crop ) {
+			$this->create_crop_hash( $crop, $dst_w, $dst_h );
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 		}
 
@@ -862,6 +887,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
+			'hash'      => $this->hash,
 			'mime-type' => $mime_type,
 			'filesize'  => wp_filesize( $filename ),
 		);

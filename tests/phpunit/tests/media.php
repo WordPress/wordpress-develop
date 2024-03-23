@@ -1366,6 +1366,64 @@ VIDEO;
 	}
 
 	/**
+	 * @ticket 40370
+	 */
+	public function test_media_handle_upload_add_image_size() {
+		global $_wp_additional_image_sizes; 
+
+		$iptc_file = DIR_TESTDATA . '/images/test-image-iptc.jpg';
+
+		// Make a copy of this file as it gets moved during the file upload
+		$tmp_name = wp_tempnam( $iptc_file );
+
+		copy( $iptc_file, $tmp_name );
+
+		// FIXME : change to correct upload method that creates thumbnails
+		// and resuts in the new filenames with hashes
+		$_FILES['async-upload'] = array(
+			'tmp_name' => $tmp_name,
+			'name'     => 'test-image-iptc.jpg',
+			'type'     => 'image/jpeg',
+			'error'    => 0,
+			'size'     => filesize( $iptc_file ),
+		);
+
+		// add multiple image sizes
+		add_image_size( 'newscentered', 400, 400, array( 'center', 'center') ); 
+		add_image_size( 'newstop', 400, 400, array( 'center', 'top' ) ); 
+		add_image_size( 'newsbottom', 400, 400, array( 'center', 'bottom' ) ); 
+
+		$info = wp_upload_dir();
+
+		$orig = array_map('basename', glob( ABSPATH . 'wp-content/uploads'
+					. $info['subdir'] .'/*.png'));
+
+		// upload file
+		$post_id = media_handle_upload(
+			'async-upload',
+			0,
+			array(),
+			array(
+				'action'    => 'test_iptc_upload',
+				'test_form' => false,
+			)
+		);
+
+		unset( $_FILES['upload'] );
+
+		// Clean up.
+		wp_delete_attachment( $post_id );
+
+		// 3 new files should be created
+		$new = array_map('basename', glob( ABSPATH . 'wp-content/uploads'
+					. $info['subdir'] .'/*.{jpg, png}', GLOB_BRACE));
+		$new_files = array_diff($new, $orig);
+
+		$this->assertCount(3, $new_files );
+		
+	}
+
+	/**
 	 * @ticket 33016
 	 */
 	public function test_multiline_cdata() {
