@@ -885,24 +885,32 @@ function upgrade_100() {
 		}
 	}
 
-	$sql = "UPDATE $wpdb->options
-		SET option_value = REPLACE(option_value, 'wp-links/links-images/', 'wp-images/links/')
-		WHERE option_name LIKE %s
-		AND option_value LIKE %s";
-	$wpdb->query( $wpdb->prepare( $sql, $wpdb->esc_like( 'links_rating_image' ) . '%', $wpdb->esc_like( 'wp-links/links-images/' ) . '%' ) );
+	$wpdb->query(
+		$wpdb->prepare(
+			"UPDATE $wpdb->options
+			SET option_value = REPLACE(option_value, 'wp-links/links-images/', 'wp-images/links/')
+			WHERE option_name LIKE %s
+			AND option_value LIKE %s",
+			$wpdb->esc_like( 'links_rating_image' ) . '%',
+			$wpdb->esc_like( 'wp-links/links-images/' ) . '%'
+		)
+	);
 
 	$done_ids = $wpdb->get_results( "SELECT DISTINCT post_id FROM $wpdb->post2cat" );
-	if ( $done_ids ) :
-		$done_posts = array();
-		foreach ( $done_ids as $done_id ) :
-			$done_posts[] = $done_id->post_id;
-		endforeach;
-		$catwhere = ' AND ID NOT IN (' . implode( ',', $done_posts ) . ')';
-	else :
-		$catwhere = '';
-	endif;
+	$catwhere = '';
 
+	if ( $done_ids ) {
+		$done_posts = array();
+		foreach ( $done_ids as $done_id ) {
+			$done_posts[] = $done_id->post_id;
+		}
+
+		$catwhere = ' AND ID NOT IN (' . implode( ',', $done_posts ) . ')';
+	}
+
+	// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	$allposts = $wpdb->get_results( "SELECT ID, post_category FROM $wpdb->posts WHERE post_category != '0' $catwhere" );
+
 	if ( $allposts ) :
 		foreach ( $allposts as $post ) {
 			// Check to see if it's already been imported.
@@ -997,11 +1005,13 @@ function upgrade_110() {
 		// Add or subtract time to all dates, to get GMT dates.
 		$add_hours   = (int) $diff_gmt_weblogger;
 		$add_minutes = (int) ( 60 * ( $diff_gmt_weblogger - $add_hours ) );
+		//phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "UPDATE $wpdb->posts SET post_date_gmt = DATE_ADD(post_date, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
 		$wpdb->query( "UPDATE $wpdb->posts SET post_modified = post_date" );
 		$wpdb->query( "UPDATE $wpdb->posts SET post_modified_gmt = DATE_ADD(post_modified, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE) WHERE post_modified != '0000-00-00 00:00:00'" );
 		$wpdb->query( "UPDATE $wpdb->comments SET comment_date_gmt = DATE_ADD(comment_date, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
 		$wpdb->query( "UPDATE $wpdb->users SET user_registered = DATE_ADD(user_registered, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
+		// phpcs:enable
 	}
 }
 
@@ -1084,8 +1094,15 @@ function upgrade_130() {
 			$limit    = $option->dupes - 1;
 			$dupe_ids = $wpdb->get_col( $wpdb->prepare( "SELECT option_id FROM $wpdb->options WHERE option_name = %s LIMIT %d", $option->option_name, $limit ) );
 			if ( $dupe_ids ) {
-				$dupe_ids = implode( ',', $dupe_ids );
-				$wpdb->query( "DELETE FROM $wpdb->options WHERE option_id IN ($dupe_ids)" );
+				$wpdb->query(
+					$wpdb->prepare(
+						sprintf(
+							"DELETE FROM $wpdb->options WHERE option_id IN (%s)",
+							implode( ',', array_fill( 0, count( $dupe_ids ), '%d' ) )
+						),
+						$dupe_ids
+					)
+				);
 			}
 		}
 	}
@@ -1175,7 +1192,8 @@ function upgrade_160() {
 	$old_user_fields = array( 'user_firstname', 'user_lastname', 'user_icq', 'user_aim', 'user_msn', 'user_yim', 'user_idmode', 'user_ip', 'user_domain', 'user_browser', 'user_description', 'user_nickname', 'user_level' );
 	$wpdb->hide_errors();
 	foreach ( $old_user_fields as $old ) {
-		$wpdb->query( "ALTER TABLE $wpdb->users DROP $old" );
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnquotedComplexPlaceholder
+		$wpdb->query( $wpdb->prepare( "ALTER TABLE $wpdb->users DROP %1s", $old ) );
 	}
 	$wpdb->show_errors();
 
@@ -1253,7 +1271,12 @@ function upgrade_210() {
 	if ( $wp_current_db_version < 3531 ) {
 		// Give future posts a post_status of future.
 		$now = gmdate( 'Y-m-d H:i:59' );
-		$wpdb->query( "UPDATE $wpdb->posts SET post_status = 'future' WHERE post_status = 'publish' AND post_date_gmt > '$now'" );
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE $wpdb->posts SET post_status = 'future' WHERE post_status = 'publish' AND post_date_gmt > %s",
+				$now
+			)
+		);
 
 		$posts = $wpdb->get_results( "SELECT ID, post_date FROM $wpdb->posts WHERE post_status ='future'" );
 		if ( ! empty( $posts ) ) {
@@ -1354,12 +1377,22 @@ function upgrade_230() {
 		}
 	}
 
-	$select = 'post_id, category_id';
+	$fields = array( 'post_id', 'category_id' );
 	if ( $have_tags ) {
-		$select .= ', rel_type';
+		$fields[] = 'rel_type';
 	}
 
-	$posts = $wpdb->get_results( "SELECT $select FROM $wpdb->post2cat GROUP BY post_id, category_id" );
+	$posts = $wpdb->get_results(
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$wpdb->prepare(
+			sprintf(
+				"SELECT %s FROM $wpdb->post2cat GROUP BY post_id, category_id",
+				implode( ', ', array_fill( 0, count( $fields ), '%s' ) )
+			),
+			$fields
+		)
+	);
+
 	foreach ( $posts as $post ) {
 		$post_id  = (int) $post->post_id;
 		$term_id  = (int) $post->category_id;
@@ -1504,6 +1537,7 @@ function upgrade_230_options_table() {
 	$old_options_fields = array( 'option_can_override', 'option_type', 'option_width', 'option_height', 'option_description', 'option_admin_level' );
 	$wpdb->hide_errors();
 	foreach ( $old_options_fields as $old ) {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "ALTER TABLE $wpdb->options DROP $old" );
 	}
 	$wpdb->show_errors();
@@ -1623,7 +1657,12 @@ function upgrade_280() {
 	}
 	if ( is_multisite() ) {
 		$start = 0;
-		while ( $rows = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options ORDER BY option_id LIMIT $start, 20" ) ) {
+		while ( $rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT option_name, option_value FROM $wpdb->options ORDER BY option_id LIMIT %d, 20",
+				$start
+			)
+		) ) {
 			foreach ( $rows as $row ) {
 				$value = maybe_unserialize( $row->option_value );
 				if ( $value === $row->option_value ) {
@@ -1700,6 +1739,7 @@ function upgrade_300() {
 		$prefix = $wpdb->esc_like( $wpdb->base_prefix );
 		$wpdb->query(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$sql,
 				$prefix . '%' . $wpdb->esc_like( 'meta-box-hidden' ) . '%',
 				$prefix . '%' . $wpdb->esc_like( 'closedpostboxes' ) . '%',
@@ -1857,8 +1897,15 @@ function upgrade_350() {
 			}
 		}
 		if ( $meta_keys ) {
-			$meta_keys = implode( "', '", $meta_keys );
-			$wpdb->query( "DELETE FROM $wpdb->usermeta WHERE meta_key IN ('$meta_keys')" );
+			$wpdb->query(
+				$wpdb->prepare(
+					sprintf(
+						"DELETE FROM $wpdb->usermeta WHERE meta_key IN (%s)",
+						implode( ', ', array_fill( 0, count( $meta_keys ), '%s' ) )
+					),
+					$meta_keys
+				)
+			);
 		}
 	}
 
@@ -2025,10 +2072,16 @@ function upgrade_430_fix_comments() {
 	$allowed_length = (int) $content_length['length'] - 10;
 
 	$comments = $wpdb->get_results(
-		"SELECT `comment_ID` FROM `{$wpdb->comments}`
-			WHERE `comment_date_gmt` > '2015-04-26'
-			AND LENGTH( `comment_content` ) >= {$allowed_length}
-			AND ( `comment_content` LIKE '%<%' OR `comment_content` LIKE '%>%' )"
+		// todo: Double-check the %<% and %>% replacements.
+		$wpdb->prepare(
+			"SELECT `comment_ID` FROM `{$wpdb->comments}`
+				WHERE `comment_date_gmt` > '2015-04-26'
+				AND LENGTH( `comment_content` ) >= %d
+				AND ( `comment_content` LIKE %s OR `comment_content` LIKE %s )",
+			$allowed_length,
+			'%<%',
+			'%>%'
+		)
 	);
 
 	foreach ( $comments as $comment ) {
@@ -2413,7 +2466,10 @@ function upgrade_network() {
 		delete_site_option( 'deactivated_sitewide_plugins' );
 
 		$start = 0;
-		while ( $rows = $wpdb->get_results( "SELECT meta_key, meta_value FROM {$wpdb->sitemeta} ORDER BY meta_id LIMIT $start, 20" ) ) {
+		while ( $rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT meta_key, meta_value FROM {$wpdb->sitemeta} ORDER BY meta_id LIMIT $start, 20"
+		) ) {
 			foreach ( $rows as $row ) {
 				$value = $row->meta_value;
 				if ( ! @unserialize( $value ) ) {
@@ -2487,7 +2543,7 @@ function upgrade_network() {
 			$tables = $wpdb->tables( 'global' );
 
 			// sitecategories may not exist.
-			if ( ! $wpdb->get_var( "SHOW TABLES LIKE '{$tables['sitecategories']}'" ) ) {
+			if ( ! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tables['sitecategories'] ) ) ) {
 				unset( $tables['sitecategories'] );
 			}
 
@@ -2516,7 +2572,7 @@ function upgrade_network() {
 			$tables = $wpdb->tables( 'global' );
 
 			// sitecategories may not exist.
-			if ( ! $wpdb->get_var( "SHOW TABLES LIKE '{$tables['sitecategories']}'" ) ) {
+			if ( ! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tables['sitecategories'] ) ) ) {
 				unset( $tables['sitecategories'] );
 			}
 
@@ -2556,17 +2612,20 @@ function upgrade_network() {
 function maybe_create_table( $table_name, $create_ddl ) {
 	global $wpdb;
 
-	$query = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) );
-
-	if ( $wpdb->get_var( $query ) === $table_name ) {
+	if ( $table_name === $wpdb->get_var(
+		$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) )
+	) ) {
 		return true;
 	}
 
 	// Didn't find it, so try to create it.
+	// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	$wpdb->query( $create_ddl );
 
 	// We cannot directly tell that whether this succeeded!
-	if ( $wpdb->get_var( $query ) === $table_name ) {
+	if ( $table_name === $wpdb->get_var(
+		$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table_name ) )
+	) ) {
 		return true;
 	}
 
@@ -2589,11 +2648,15 @@ function drop_index( $table, $index ) {
 
 	$wpdb->hide_errors();
 
-	$wpdb->query( "ALTER TABLE `$table` DROP INDEX `$index`" );
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, $index ) );
 
 	// Now we need to take out all the extra ones we may have created.
 	for ( $i = 0; $i < 25; $i++ ) {
-		$wpdb->query( "ALTER TABLE `$table` DROP INDEX `{$index}_$i`" );
+		// The placeholder ignores can be removed when %i is supported by WPCS.
+		// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP INDEX %i', $table, "{$index}_$i" ) );
 	}
 
 	$wpdb->show_errors();
@@ -2616,7 +2679,9 @@ function add_clean_index( $table, $index ) {
 	global $wpdb;
 
 	drop_index( $table, $index );
-	$wpdb->query( "ALTER TABLE `$table` ADD INDEX ( `$index` )" );
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$wpdb->query( $wpdb->prepare( 'ALTER TABLE %i ADD INDEX ( %i )', $table, $index ) );
 
 	return true;
 }
@@ -2636,7 +2701,11 @@ function add_clean_index( $table, $index ) {
 function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	global $wpdb;
 
-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$columns = $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 );
+
+	foreach ( $columns as $column ) {
 		if ( $column === $column_name ) {
 			return true;
 		}
@@ -2645,8 +2714,12 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 	// Didn't find it, so try to create it.
 	$wpdb->query( $create_ddl );
 
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$columns = $wpdb->get_col( $wpdb->prepare( 'DESC %i', $table_name ), 0 );
+
 	// We cannot directly tell that whether this succeeded!
-	foreach ( $wpdb->get_col( "DESC $table_name", 0 ) as $column ) {
+	foreach ( $columns as $column ) {
 		if ( $column === $column_name ) {
 			return true;
 		}
@@ -2668,7 +2741,9 @@ function maybe_add_column( $table_name, $column_name, $create_ddl ) {
 function maybe_convert_table_to_utf8mb4( $table ) {
 	global $wpdb;
 
-	$results = $wpdb->get_results( "SHOW FULL COLUMNS FROM `$table`" );
+	// The placeholder ignores can be removed when %i is supported by WPCS.
+	// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+	$results = $wpdb->get_results( $wpdb->prepare( 'SHOW FULL COLUMNS FROM %i', $table ) );
 	if ( ! $results ) {
 		return false;
 	}
@@ -2684,7 +2759,7 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 		}
 	}
 
-	$table_details = $wpdb->get_row( "SHOW TABLE STATUS LIKE '$table'" );
+	$table_details = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $table ) );
 	if ( ! $table_details ) {
 		return false;
 	}
@@ -2710,7 +2785,10 @@ function maybe_convert_table_to_utf8mb4( $table ) {
 function get_alloptions_110() {
 	global $wpdb;
 	$all_options = new stdClass();
-	$options     = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options" );
+	$options     = $wpdb->get_results(
+		$wpdb->prepare( 'SELECT option_name, option_value FROM %i', $wpdb->options )
+	);
+
 	if ( $options ) {
 		foreach ( $options as $option ) {
 			if ( 'siteurl' === $option->option_name || 'home' === $option->option_name || 'category_base' === $option->option_name ) {
@@ -2894,7 +2972,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 
 		// Fetch the table column structure from the database.
 		$suppress    = $wpdb->suppress_errors();
-		$tablefields = $wpdb->get_results( "DESCRIBE {$table};" );
+		$tablefields = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
 		$wpdb->suppress_errors( $suppress );
 
 		if ( ! $tablefields ) {
@@ -3137,7 +3215,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 		}
 
 		// Index stuff goes here. Fetch the table index structure from the database.
-		$tableindices = $wpdb->get_results( "SHOW INDEX FROM {$table};" );
+		$tableindices = $wpdb->get_results( $wpdb->prepare( 'SHOW INDEX FROM %i', $table ) );
 
 		if ( $tableindices ) {
 			// Clear the index array.
@@ -3220,6 +3298,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	$allqueries = array_merge( $cqueries, $iqueries );
 	if ( $execute ) {
 		foreach ( $allqueries as $query ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$wpdb->query( $query );
 		}
 	}

@@ -1480,10 +1480,12 @@ class WP_Query {
 
 			$search_columns_parts = array();
 			foreach ( $search_columns as $search_column ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$search_columns_parts[ $search_column ] = $wpdb->prepare( "({$wpdb->posts}.$search_column $like_op %s)", $like );
 			}
 
 			if ( ! empty( $this->allow_query_attachment_by_filename ) ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$search_columns_parts['attachment'] = $wpdb->prepare( "(sq1.meta_value $like_op %s)", $like );
 			}
 
@@ -2394,6 +2396,7 @@ class WP_Query {
 					$q['comment_count']['compare'] = '=';
 				}
 
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$where .= $wpdb->prepare( " AND {$wpdb->posts}.comment_count {$q['comment_count']['compare']} %d", $q['comment_count']['value'] );
 			}
 		}
@@ -2820,6 +2823,7 @@ class WP_Query {
 			$cache_key   = "comment_feed:$key:$last_changed";
 			$comment_ids = wp_cache_get( $cache_key, 'comment-queries' );
 			if ( false === $comment_ids ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_add( $cache_key, $comment_ids, 'comment-queries' );
 			}
@@ -3220,6 +3224,7 @@ class WP_Query {
 
 		if ( 'ids' === $q['fields'] ) {
 			if ( null === $this->posts ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$this->posts = $wpdb->get_col( $this->request );
 			}
 
@@ -3243,6 +3248,7 @@ class WP_Query {
 
 		if ( 'id=>parent' === $q['fields'] ) {
 			if ( null === $this->posts ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$this->posts = $wpdb->get_results( $this->request );
 			}
 
@@ -3326,6 +3332,7 @@ class WP_Query {
 				 */
 				$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
 
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$post_ids = $wpdb->get_col( $this->request );
 
 				if ( $post_ids ) {
@@ -3336,6 +3343,7 @@ class WP_Query {
 					$this->posts = array();
 				}
 			} else {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$this->posts = $wpdb->get_results( $this->request );
 				$this->set_found_posts( $q, $limits );
 			}
@@ -3399,6 +3407,7 @@ class WP_Query {
 			$comment_cache_key = "comment_feed:$comment_key:$comment_last_changed";
 			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment-queries' );
 			if ( false === $comment_ids ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$comment_ids = $wpdb->get_col( $comments_request );
 				wp_cache_add( $comment_cache_key, $comment_ids, 'comment-queries' );
 			}
@@ -3600,6 +3609,7 @@ class WP_Query {
 			 */
 			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 		} else {
 			if ( is_array( $this->posts ) ) {

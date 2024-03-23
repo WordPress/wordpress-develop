@@ -730,6 +730,7 @@ class WP_List_Table {
 			}
 
 			$months = $wpdb->get_results(
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$wpdb->prepare(
 					"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
 					FROM $wpdb->posts
@@ -738,6 +739,7 @@ class WP_List_Table {
 					ORDER BY post_date DESC",
 					$post_type
 				)
+				// phpcs:enable
 			);
 		}
 

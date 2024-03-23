@@ -491,9 +491,11 @@ class WP_Network_Query {
 			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			return (int) $wpdb->get_var( $this->request );
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$network_ids = $wpdb->get_col( $this->request );
 
 		return array_map( 'intval', $network_ids );

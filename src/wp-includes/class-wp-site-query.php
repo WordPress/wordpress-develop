@@ -705,9 +705,11 @@ class WP_Site_Query {
 			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			return (int) $wpdb->get_var( $this->request );
 		}
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$site_ids = $wpdb->get_col( $this->request );
 
 		return array_map( 'intval', $site_ids );
@@ -735,6 +737,7 @@ class WP_Site_Query {
 			 */
 			$found_sites_query = apply_filters( 'found_sites_query', 'SELECT FOUND_ROWS()', $this );
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$this->found_sites = (int) $wpdb->get_var( $found_sites_query );
 		}
 	}
@@ -761,7 +764,9 @@ class WP_Site_Query {
 
 		$searches = array();
 		foreach ( $columns as $column ) {
-			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
+			// The placeholder ignores can be removed when %i is supported by WPCS.
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnsupportedPlaceholder, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$searches[] = $wpdb->prepare( '%i LIKE %s', $column, $like );
 		}
 
 		return '(' . implode( ' OR ', $searches ) . ')';

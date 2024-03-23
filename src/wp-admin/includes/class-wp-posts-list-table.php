@@ -90,6 +90,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		);
 
 		$this->user_posts_count = (int) $wpdb->get_var(
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
 			$wpdb->prepare(
 				"SELECT COUNT( 1 )
 				FROM $wpdb->posts
@@ -99,6 +100,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$post_type,
 				get_current_user_id()
 			)
+			// phpcs:enable
 		);
 
 		if ( $this->user_posts_count
@@ -115,6 +117,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$sticky_posts = implode( ', ', array_map( 'absint', (array) $sticky_posts ) );
 
 			$this->sticky_posts_count = (int) $wpdb->get_var(
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$wpdb->prepare(
 					"SELECT COUNT( 1 )
 					FROM $wpdb->posts
@@ -123,6 +126,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					AND ID IN ($sticky_posts)",
 					$post_type
 				)
+				// phpcs:enable
 			);
 		}
 	}
