@@ -307,7 +307,7 @@ function get_bookmarks( $args = '' ) {
 	$query  = "SELECT * $length $recently_updated_test $get_updated FROM $wpdb->links $join WHERE 1=1 $visible $category_query";
 	$query .= " $exclusions $inclusions $search";
 	$query .= " ORDER BY $orderby $order";
-	if ( -1 !== (int) $parsed_args['limit'] ) {
+	if ( -1 !== $parsed_args['limit'] ) {
 		$query .= ' LIMIT ' . absint( $parsed_args['limit'] );
 	}
 
