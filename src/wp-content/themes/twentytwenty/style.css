@@ -67,7 +67,14 @@ h2,
 h3,
 h4,
 h5,
-h6,
+h6 {
+	font-size: inherit;
+	line-height: inherit;
+	margin: 0;
+	padding: 0;
+	text-align: inherit;
+}
+
 p,
 blockquote,
 address,
@@ -2756,6 +2763,10 @@ h2.entry-title {
 	color: #fff;
 }
 
+:root .has-accent-border-color {
+	border-color: #cd2653;
+}
+
 :root .has-primary-color {
 	color: #000;
 }
@@ -2763,6 +2774,10 @@ h2.entry-title {
 :root .has-primary-background-color {
 	background-color: #000;
 	color: #f5efe0;
+}
+
+:root .has-primary-border-color {
+	border-color: #000;
 }
 
 :root .has-secondary-color {
@@ -2774,6 +2789,10 @@ h2.entry-title {
 	color: #fff;
 }
 
+:root .has-secondary-border-color {
+	border-color: #6d6d6d;
+}
+
 :root .has-subtle-background-color {
 	color: #dcd7ca;
 }
@@ -2781,6 +2800,10 @@ h2.entry-title {
 :root .has-subtle-background-background-color {
 	background-color: #dcd7ca;
 	color: #000;
+}
+
+:root .has-subtle-background-border-color {
+	border-color: #dcd7ca;
 }
 
 :root .has-background-color {
@@ -2792,6 +2815,9 @@ h2.entry-title {
 	color: #000;
 }
 
+:root .has-background-border-color {
+	border-color: #f5efe0;
+}
 
 /* Block Typography Classes ------------------ */
 
@@ -3029,6 +3055,38 @@ ol.wp-block-latest-comments {
 	width: 100%;
 }
 
+/* Block: Avatar ------------------------------ */
+
+/*
+* Set a default border style so that borders show on the front when
+* the avatar only has a border color or border width set.
+* Supported from WordPress 6.3.
+*/
+.wp-block-avatar :where([style*=border-width]),
+.wp-block-avatar :where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-avatar :where([style*="border-top-width"]),
+.wp-block-avatar :where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-avatar :where([style*="border-right-width"]),
+.wp-block-avatar :where([style*="border-right-color"]) {
+	border-right-style: solid;
+}
+
+.wp-block-avatar :where([style*="border-bottom-width"]),
+.wp-block-avatar :where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-avatar :where([style*="border-left-width"]),
+.wp-block-avatar :where([style*="border-left-color"]) {
+	border-left-style: solid;
+}
+
 /* Block: Button ----------------------------- */
 
 .wp-block-button {
@@ -3051,6 +3109,36 @@ ol.wp-block-latest-comments {
 .wp-block-buttons[style*="text-transform"] .wp-block-button__link,
 .wp-block-button[style*="text-transform"] .wp-block-button__link {
 	text-transform: inherit;
+}
+
+/*
+* Set a default border style so that borders show on the front when
+* the button only has a border color or border width set.
+* Supported from WordPress 6.3.
+*/
+.wp-block-button__link:where([style*=border-width]),
+.wp-block-button__link:where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-top-width"]),
+.wp-block-button__link:where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-right-width"]),
+.wp-block-button__link:where([style*="border-right-color"]) {
+	border-left-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-bottom-width"]),
+.wp-block-button__link:where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-button__link:where([style*="border-left-width"]),
+.wp-block-button__link:where([style*="border-left-color"]) {
+	border-right-style: solid;
 }
 
 /* Block: Columns ---------------------------- */
@@ -3209,6 +3297,71 @@ figure.wp-block-gallery.alignfull {
 
 .wp-block-media-text__content > *:last-child {
 	margin-bottom: 0;
+}
+
+/* Block: Featured Image ------------------------------ */
+
+/*
+* Set a default border style so that borders show on the front when
+* the image only has a border color or border width set.
+* Supported from WordPress 6.3.
+*/
+.wp-block-post-featured-image :where([style*=border-width]),
+.wp-block-post-featured-image :where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-post-featured-image :where([style*="border-top-width"]),
+.wp-block-post-featured-image :where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-post-featured-image :where([style*="border-right-width"]),
+.wp-block-post-featured-image :where([style*="border-right-color"]) {
+	border-right-style: solid;
+}
+
+.wp-block-post-featured-image :where([style*="border-bottom-width"]),
+.wp-block-post-featured-image :where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-post-featured-image :where([style*="border-left-width"]),
+.wp-block-post-featured-image :where([style*="border-left-color"]) {
+	border-left-style: solid;
+}
+
+
+/* Block: Footnotes ------------------------------ */
+
+/*
+* Set a default border style so that borders show on the front when
+* the footnote only has a border color or border width set.
+* Supported from WordPress 6.3.
+*/
+.wp-block-footnotes:where([style*=border-width]),
+.wp-block-footnotes:where(.has-border-color) {
+	border-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-top-width"]),
+.wp-block-footnotes:where([style*="border-top-color"]) {
+	border-top-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-right-width"]),
+.wp-block-footnotes:where([style*="border-right-color"]) {
+	border-right-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-bottom-width"]),
+.wp-block-footnotes:where([style*="border-bottom-color"]) {
+	border-bottom-style: solid;
+}
+
+.wp-block-footnotes:where([style*="border-left-width"]),
+.wp-block-footnotes:where([style*="border-left-color"]) {
+	border-left-style: solid;
 }
 
 /* Block: Pullquote -------------------------- */

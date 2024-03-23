@@ -568,6 +568,13 @@
 	background: #dcd7ca;
 }
 
+/* Border color support from WordPress 6.3 */
+.editor-styles-wrapper .wp-block-table .has-border-color td,
+.editor-styles-wrapper .wp-block-table .has-border-color th,
+.editor-styles-wrapper .wp-block-table .has-border-color tr,
+.editor-styles-wrapper .wp-block-table .has-border-color>* {
+	border-color: inherit;
+}
 
 /* Block: Separator -------------------------- */
 
@@ -783,11 +790,14 @@ hr.wp-block-separator.is-style-dots::before {
 /* Block: Pullquote -------------------------- */
 
 .editor-styles-wrapper .wp-block-pullquote {
-	border: none;
 	color: inherit;
 	padding: 0;
 	position: relative;
 	text-align: center;
+}
+
+.editor-styles-wrapper .wp-block-pullquote:not(.has-border-color):not([style*=border-width]) {
+	border: none;
 }
 
 .editor-styles-wrapper .wp-block-pullquote::before {
