@@ -2130,8 +2130,18 @@ function wp_insert_user( $userdata ) {
 		return new WP_Error( 'user_login_too_long', __( 'Username may not be longer than 60 characters.' ) );
 	}
 
-	if ( ! $update && username_exists( $user_login ) ) {
-		return new WP_Error( 'existing_user_login', __( 'Sorry, that username already exists!' ) );
+	// Check additional restrictions for new users.
+	if ( ! $update ) {
+
+		// Username must be unique.
+		if ( username_exists( $user_login ) ) {
+			return new WP_Error( 'existing_user_login', __( 'Sorry, that username already exists!' ) );
+		}
+
+		// Username must not match an existing user email.
+		if ( email_exists( $user_login ) ) {
+			return new WP_Error( 'existing_user_email_as_login', __( 'Sorry, that username is not available.' ) );
+		}
 	}
 
 	/**
@@ -3354,6 +3364,8 @@ function register_new_user( $user_login, $user_email ) {
 		$sanitized_user_login = '';
 	} elseif ( username_exists( $sanitized_user_login ) ) {
 		$errors->add( 'username_exists', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
+	} elseif ( email_exists( $sanitized_user_login ) ) {
+		$errors->add( 'username_exists_as_email', __( '<strong>Error:</strong> This username is not available. Please choose another one.' ) );
 	} else {
 		/** This filter is documented in wp-includes/user.php */
 		$illegal_user_logins = (array) apply_filters( 'illegal_user_logins', array() );
