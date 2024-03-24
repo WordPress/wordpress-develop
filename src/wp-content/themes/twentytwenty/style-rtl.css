@@ -960,17 +960,17 @@ th {
 }
 
 .screen-height {
-	min-height: 100vh;
+	min-height: 100dvh;
 }
 
 .admin-bar .screen-height {
-	min-height: calc(100vh - 32px);
+	min-height: calc(100dvh - 32px);
 }
 
 @media (max-width: 782px) {
 
 	.admin-bar .screen-height {
-		min-height: calc(100vh - 46px);
+		min-height: calc(100dvh - 46px);
 	}
 }
 
