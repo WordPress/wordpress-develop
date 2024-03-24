@@ -1892,7 +1892,7 @@ final class WP_Theme implements ArrayAccess {
 					__FUNCTION__,
 					sprintf(
 						/* translators: 1: file name. */
-						__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
+						__( 'Could not register file "%s" as a block pattern ("slug" field missing)' ),
 						$file
 					),
 					'6.0.0'
