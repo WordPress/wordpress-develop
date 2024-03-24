@@ -217,7 +217,7 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 5, $properties, 'There should be 5 properties in the response data schema.' );
+		$this->assertCount( 6, $properties, 'There should be 6 properties in the response data schema.' );
 		$this->assertArrayHasKey( 'slug', $properties, 'The slug property should exist in the response data schema.' );
 		$this->assertArrayHasKey( 'name', $properties, 'The name property should exist in the response data schema.' );
 		$this->assertArrayHasKey( 'description', $properties, 'The description property should exist in the response data schema.' );

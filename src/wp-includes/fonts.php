@@ -71,6 +71,7 @@ function wp_print_font_faces( $fonts = array() ) {
  *                                       or a string containing the path or URL to a JSON file containing the font collection.
  *     @type array        $categories    Optional. Array of categories, each with a name and slug, that are used by the
  *                                       fonts in the collection. Default empty.
+ *    @type string       $terms_and_conditions Optional. The terms and conditions for using the font collection. Default empty.
  * }
  * @return WP_Font_Collection|WP_Error A font collection if it was registered
  *                                     successfully, or WP_Error object on failure.
