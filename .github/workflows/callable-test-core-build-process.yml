@@ -20,6 +20,11 @@ on:
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Verifies that installing npm dependencies and building WordPress works as expected.
   #

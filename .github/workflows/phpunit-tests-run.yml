@@ -45,6 +45,12 @@ on:
         required: false
         type: 'boolean'
         default: false
+
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
