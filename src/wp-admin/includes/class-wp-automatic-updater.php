@@ -187,7 +187,29 @@ class WP_Automatic_Updater {
 	 *
 	 * @param string $type    The type of update being checked: 'core', 'theme',
 	 *                        'plugin', 'translation'.
-	 * @param object $item    The update offer.
+	 * @param object $item {
+	 *     The update offer.
+	 *
+	 *     @type string   $current            The version number of the update offer.
+	 *     @type bool     $disable_autoupdate Whether automatic updates for this particular update offer have been
+	 *                                        remotely disabled via the update API response.
+	 *     @type bool     $dismissed          Whether this update offer has previously been dismissed.
+	 *     @type string   $download           URL to the ZIP file for the update.
+	 *     @type string   $locale             Locale of the update offer, eg. `en_US`.
+	 *     @type string   $mysql_version      Minimum required MySQL version for the update.
+	 *     @type object   $packages {
+	 *         URLs for various ZIP packages for the update.
+	 *
+	 *         @type false|string $full        URL to the full ZIP package.
+	 *         @type false|string $no_content  URL to the no content ZIP package.
+	 *         @type false|string $new_bundled URL to the new bundled ZIP package.
+	 *         @type false|string $partial     URL to the partial ZIP package.
+	 *         @type false|string $rollback    URL to the rollback ZIP package.
+	 *     }
+	 *     @type string   $php_version        Minimum required PHP version for the update.
+	 *     @type string   $plugin             File name of the plugin in the update offer, eg. `akismet/akismet.php`.
+	 *     @type string   $theme              Directory name of the theme in the update offer, eg. `twentytwenty`.
+	 * }
 	 * @param string $context The filesystem context (a path) against which filesystem
 	 *                        access and status should be checked.
 	 * @return bool True if the item should be updated, false otherwise.
@@ -263,7 +285,29 @@ class WP_Automatic_Updater {
 		 *
 		 * @param bool|null $update Whether to update. The value of null is internally used
 		 *                          to detect whether nothing has hooked into this filter.
-		 * @param object    $item   The update offer.
+		 * @param object    $item {
+		 *     The update offer.
+		 *
+		 *     @type string   $current            The version number of the update offer.
+		 *     @type bool     $disable_autoupdate Whether automatic updates for this particular update offer have been
+		 *                                        remotely disabled via the update API response.
+		 *     @type bool     $dismissed          Whether this update offer has previously been dismissed.
+		 *     @type string   $download           URL to the ZIP file for the update.
+		 *     @type string   $locale             Locale of the update offer, eg. `en_US`.
+		 *     @type string   $mysql_version      Minimum required MySQL version for the update.
+		 *     @type object   $packages {
+		 *         URLs for various ZIP packages for the update.
+		 *
+		 *         @type false|string $full        URL to the full ZIP package.
+		 *         @type false|string $no_content  URL to the no content ZIP package.
+		 *         @type false|string $new_bundled URL to the new bundled ZIP package.
+		 *         @type false|string $partial     URL to the partial ZIP package.
+		 *         @type false|string $rollback    URL to the rollback ZIP package.
+		 *     }
+		 *     @type string   $php_version        Minimum required PHP version for the update.
+		 *     @type string   $plugin             File name of the plugin in the update offer, eg. `akismet/akismet.php`.
+		 *     @type string   $theme              Directory name of the theme in the update offer, eg. `twentytwenty`.
+		 * }
 		 */
 		$update = apply_filters( "auto_update_{$type}", $update, $item );
 
@@ -305,7 +349,29 @@ class WP_Automatic_Updater {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param object $item The update offer.
+	 * @param object $item {
+	 *     The update offer.
+	 *
+	 *     @type string   $current            The version number of the update offer.
+	 *     @type bool     $disable_autoupdate Whether automatic updates for this particular update offer have been
+	 *                                        remotely disabled via the update API response.
+	 *     @type bool     $dismissed          Whether this update offer has previously been dismissed.
+	 *     @type string   $download           URL to the ZIP file for the update.
+	 *     @type string   $locale             Locale of the update offer, eg. `en_US`.
+	 *     @type string   $mysql_version      Minimum required MySQL version for the update.
+	 *     @type object   $packages {
+	 *         URLs for various ZIP packages for the update.
+	 *
+	 *         @type false|string $full        URL to the full ZIP package.
+	 *         @type false|string $no_content  URL to the no content ZIP package.
+	 *         @type false|string $new_bundled URL to the new bundled ZIP package.
+	 *         @type false|string $partial     URL to the partial ZIP package.
+	 *         @type false|string $rollback    URL to the rollback ZIP package.
+	 *     }
+	 *     @type string   $php_version        Minimum required PHP version for the update.
+	 *     @type string   $plugin             File name of the plugin in the update offer, eg. `akismet/akismet.php`.
+	 *     @type string   $theme              Directory name of the theme in the update offer, eg. `twentytwenty`.
+	 * }
 	 * @return bool True if the site administrator is notified of a core update,
 	 *              false otherwise.
 	 */
@@ -340,7 +406,29 @@ class WP_Automatic_Updater {
 		 * @since 3.7.0
 		 *
 		 * @param bool   $notify Whether the site administrator is notified.
-		 * @param object $item   The update offer.
+		 * @param object $item {
+		 *     The update offer.
+		 *
+		 *     @type string   $current            The version number of the update offer.
+		 *     @type bool     $disable_autoupdate Whether automatic updates for this particular update offer have been
+		 *                                        remotely disabled via the update API response.
+		 *     @type bool     $dismissed          Whether this update offer has previously been dismissed.
+		 *     @type string   $download           URL to the ZIP file for the update.
+		 *     @type string   $locale             Locale of the update offer, eg. `en_US`.
+		 *     @type string   $mysql_version      Minimum required MySQL version for the update.
+		 *     @type object   $packages {
+		 *         URLs for various ZIP packages for the update.
+		 *
+		 *         @type false|string $full        URL to the full ZIP package.
+		 *         @type false|string $no_content  URL to the no content ZIP package.
+		 *         @type false|string $new_bundled URL to the new bundled ZIP package.
+		 *         @type false|string $partial     URL to the partial ZIP package.
+		 *         @type false|string $rollback    URL to the rollback ZIP package.
+		 *     }
+		 *     @type string   $php_version        Minimum required PHP version for the update.
+		 *     @type string   $plugin             File name of the plugin in the update offer, eg. `akismet/akismet.php`.
+		 *     @type string   $theme              Directory name of the theme in the update offer, eg. `twentytwenty`.
+		 * }
 		 */
 		if ( ! apply_filters( 'send_core_update_notification_email', $notify, $item ) ) {
 			return false;
@@ -356,7 +444,29 @@ class WP_Automatic_Updater {
 	 * @since 3.7.0
 	 *
 	 * @param string $type The type of update being checked: 'core', 'theme', 'plugin', 'translation'.
-	 * @param object $item The update offer.
+	 * @param object $item {
+	 *     The update offer.
+	 *
+	 *     @type string   $current            The version number of the update offer.
+	 *     @type bool     $disable_autoupdate Whether automatic updates for this particular update offer have been
+	 *                                        remotely disabled via the update API response.
+	 *     @type bool     $dismissed          Whether this update offer has previously been dismissed.
+	 *     @type string   $download           URL to the ZIP file for the update.
+	 *     @type string   $locale             Locale of the update offer, eg. `en_US`.
+	 *     @type string   $mysql_version      Minimum required MySQL version for the update.
+	 *     @type object   $packages {
+	 *         URLs for various ZIP packages for the update.
+	 *
+	 *         @type false|string $full        URL to the full ZIP package.
+	 *         @type false|string $no_content  URL to the no content ZIP package.
+	 *         @type false|string $new_bundled URL to the new bundled ZIP package.
+	 *         @type false|string $partial     URL to the partial ZIP package.
+	 *         @type false|string $rollback    URL to the rollback ZIP package.
+	 *     }
+	 *     @type string   $php_version        Minimum required PHP version for the update.
+	 *     @type string   $plugin             File name of the plugin in the update offer, eg. `akismet/akismet.php`.
+	 *     @type string   $theme              Directory name of the theme in the update offer, eg. `twentytwenty`.
+	 * }
 	 * @return null|WP_Error
 	 */
 	public function update( $type, $item ) {
@@ -394,7 +504,29 @@ class WP_Automatic_Updater {
 		 * @since 4.4.0
 		 *
 		 * @param string $type    The type of update being checked: 'core', 'theme', 'plugin', or 'translation'.
-		 * @param object $item    The update offer.
+		 * @param object $item {
+		 *     The update offer.
+		 *
+		 *     @type string   $current            The version number of the update offer.
+		 *     @type bool     $disable_autoupdate Whether automatic updates for this particular update offer have been
+		 *                                        remotely disabled via the update API response.
+		 *     @type bool     $dismissed          Whether this update offer has previously been dismissed.
+		 *     @type string   $download           URL to the ZIP file for the update.
+		 *     @type string   $locale             Locale of the update offer, eg. `en_US`.
+		 *     @type string   $mysql_version      Minimum required MySQL version for the update.
+		 *     @type object   $packages {
+		 *         URLs for various ZIP packages for the update.
+		 *
+		 *         @type false|string $full        URL to the full ZIP package.
+		 *         @type false|string $no_content  URL to the no content ZIP package.
+		 *         @type false|string $new_bundled URL to the new bundled ZIP package.
+		 *         @type false|string $partial     URL to the partial ZIP package.
+		 *         @type false|string $rollback    URL to the rollback ZIP package.
+		 *     }
+		 *     @type string   $php_version        Minimum required PHP version for the update.
+		 *     @type string   $plugin             File name of the plugin in the update offer, eg. `akismet/akismet.php`.
+		 *     @type string   $theme              Directory name of the theme in the update offer, eg. `twentytwenty`.
+		 * }
 		 * @param string $context The filesystem context (a path) against which filesystem access and status
 		 *                        should be checked.
 		 */
