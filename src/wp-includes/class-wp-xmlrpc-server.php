@@ -6914,7 +6914,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				}
 			}
 		} else {
-			// TODO: Attempt to extract a post ID from the given URL.
+			// @todo Attempt to extract a post ID from the given URL.
 			return $this->pingback_error( 33, __( 'The specified target URL cannot be used as a target. It either does not exist, or it is not a pingback-enabled resource.' ) );
 		}
 		$post_id = (int) $post_id;

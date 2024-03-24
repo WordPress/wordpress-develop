@@ -299,14 +299,14 @@ class WP_Block {
 			case 'rich-text':
 				$block_reader = new WP_HTML_Tag_Processor( $block_content );
 
-				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
+				// @todo Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
 				$selectors = explode( ',', $block_type->attributes[ $attribute_name ]['selector'] );
 				// Add a bookmark to the first tag to be able to iterate over the selectors.
 				$block_reader->next_tag();
 				$block_reader->set_bookmark( 'iterate-selectors' );
 
-				// TODO: This shouldn't be needed when the `set_inner_html` function is ready.
+				// @todo This shouldn't be needed when the `set_inner_html` function is ready.
 				// Store the parent tag and its attributes to be able to restore them later in the button.
 				// The button block has a wrapper while the paragraph and heading blocks don't.
 				if ( 'core/button' === $this->name ) {
@@ -327,7 +327,7 @@ class WP_Block {
 					) ) {
 						$block_reader->release_bookmark( 'iterate-selectors' );
 
-						// TODO: Use `set_inner_html` method whenever it's ready in the HTML API.
+						// @todo Use `set_inner_html` method whenever it's ready in the HTML API.
 						// Until then, it is hardcoded for the paragraph, heading, and button blocks.
 						// Store the tag and its attributes to be able to restore them later.
 						$selector_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
@@ -364,7 +364,7 @@ class WP_Block {
 				$amended_content = new WP_HTML_Tag_Processor( $block_content );
 				if ( ! $amended_content->next_tag(
 					array(
-						// TODO: build the query from CSS selector.
+						// @todo build the query from CSS selector.
 						'tag_name' => $block_type->attributes[ $attribute_name ]['selector'],
 					)
 				) ) {

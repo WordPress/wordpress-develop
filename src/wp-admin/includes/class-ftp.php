@@ -810,7 +810,7 @@ class ftp_base {
 		if(count($out)==1) return($this->glob_regexp("^$out[0]$",$subject));
 		else {
 			foreach($out as $tester)
-				// TODO: This should probably be glob_regexp(), but needs tests.
+				// @todo This should probably be glob_regexp(), but needs tests.
 				if($this->my_regexp("^$tester$",$subject)) return true;
 		}
 		return false;
