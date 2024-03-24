@@ -511,7 +511,7 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	 * set the right vars, do the associated actions, but skip
 	 * the extra unnecessary work
 	 */
-	if ( (int) $new_blog_id === $prev_blog_id ) {
+	if ( $new_blog_id === $prev_blog_id ) {
 		/**
 		 * Fires when the blog is switched.
 		 *
