@@ -4024,7 +4024,10 @@ function wp_ajax_crop_image() {
 			$wp_site_icon = new WP_Site_Icon();
 
 			// Skip creating a new attachment if the attachment is a Site Icon.
-			if ( get_post_meta( $attachment_id, '_wp_attachment_context', true ) == $context ) {
+			if (
+				( get_post_meta( $attachment_id, '_wp_attachment_context', true ) == $context ) ||
+				( $data['width'] === $metadata['width'] && $data['height'] === $metadata['height'] )
+			) {
 
 				// Delete the temporary cropped file, we don't need it.
 				wp_delete_file( $cropped );
