@@ -4364,7 +4364,7 @@ function _add_default_theme_supports() {
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
 	/*
-	 * Remove the Customizer's Menus panel when block theme is active.
+	 * Remove the Customizer's Menus and Widgets panels when block theme is active.
 	 */
 	add_filter(
 		'customize_panel_active',
@@ -4372,6 +4372,12 @@ function _add_default_theme_supports() {
 			if (
 				'nav_menus' === $panel->id &&
 				! current_theme_supports( 'menus' ) &&
+				! current_theme_supports( 'widgets' )
+			) {
+				$active = false;
+			}
+			if (
+				'widgets' === $panel->id &&
 				! current_theme_supports( 'widgets' )
 			) {
 				$active = false;
