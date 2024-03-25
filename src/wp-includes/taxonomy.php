@@ -426,6 +426,7 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @since 5.4.0 Added the registered taxonomy object as a return value.
  * @since 5.5.0 Introduced `default_term` argument.
  * @since 5.9.0 Introduced `rest_namespace` argument.
+ * @since x.x.x Introduced `update_count_by_callback` argument.
  *
  * @global WP_Taxonomy[] $wp_taxonomies Registered taxonomies.
  *
@@ -491,14 +492,17 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *         @type bool   $hierarchical Either hierarchical rewrite tag or not. Default false.
  *         @type int    $ep_mask      Assign an endpoint mask. Default `EP_NONE`.
  *     }
- *     @type string|bool   $query_var             Sets the query var key for this taxonomy. Default `$taxonomy` key. If
- *                                                false, a taxonomy cannot be loaded at `?{query_var}={term_slug}`. If a
- *                                                string, the query `?{query_var}={term_slug}` will be valid.
- *     @type callable      $update_count_callback Works much like a hook, in that it will be called when the count is
- *                                                updated. Default _update_post_term_count() for taxonomies attached
- *                                                to post types, which confirms that the objects are published before
- *                                                counting them. Default _update_generic_term_count() for taxonomies
- *                                                attached to other object types, such as users.
+ *     @type string|bool   $query_var                Sets the query var key for this taxonomy. Default `$taxonomy` key. If
+ *                                                   false, a taxonomy cannot be loaded at `?{query_var}={term_slug}`. If a
+ *                                                   string, the query `?{query_var}={term_slug}` will be valid.
+ *     @type callable      $update_count_callback    Works much like a hook, in that it will be called when the count is
+ *                                                   updated. Default _update_post_term_count() for taxonomies attached
+ *                                                   to post types, which confirms that the objects are published before
+ *                                                   counting them. Default _update_generic_term_count() for taxonomies
+ *                                                   attached to other object types, such as users.
+ *     @type callable      $update_count_by_callback Works much like a hook, in that it will be called when the count is
+ *                                                   incremented or decremented. Defaults to the value of `$update_count_callback` if
+ *                                                   a custom callack is defined, otherwise uses wp_modify_term_count_by().
  *     @type string|array  $default_term {
  *         Default term to be used for the taxonomy.
  *
@@ -2797,6 +2801,25 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
+	$taxonomy_object = get_taxonomy( $taxonomy );
+
+	$object_types = (array) $taxonomy_object->object_type;
+	foreach ( $object_types as &$object_type ) {
+		if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			list( $object_type ) = explode( ':', $object_type );
+		}
+	}
+
+	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
+		// This taxonomy applies to non-posts, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} elseif ( 'publish' === get_post_status( $object_id ) ) {
+		// Published post, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} else {
+		$do_recount = false;
+	}
+
 	if ( empty( $terms ) ) {
 		$terms = array();
 	} elseif ( ! is_array( $terms ) ) {
@@ -2884,8 +2907,8 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		$new_tt_ids[] = $tt_id;
 	}
 
-	if ( $new_tt_ids ) {
-		wp_update_term_count( $new_tt_ids, $taxonomy );
+	if ( $new_tt_ids && $do_recount ) {
+		wp_increment_term_count( $new_tt_ids, $taxonomy );
 	}
 
 	if ( ! $append ) {
@@ -2903,9 +2926,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		}
 	}
 
-	$t = get_taxonomy( $taxonomy );
-
-	if ( ! $append && isset( $t->sort ) && $t->sort ) {
+	if ( ! $append && isset( $taxonomy_object->sort ) && $taxonomy_object->sort ) {
 		$values     = array();
 		$term_order = 0;
 
@@ -2986,6 +3007,31 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
+	$taxonomy_object = get_taxonomy( $taxonomy );
+
+	$object_types = (array) $taxonomy_object->object_type;
+	foreach ( $object_types as &$object_type ) {
+		if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			list( $object_type ) = explode( ':', $object_type );
+		}
+	}
+
+	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
+		// This taxonomy applies to non-posts, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} elseif (
+		'publish' === get_post_status( $object_id ) ||
+		(
+			'inherit' === get_post_status( $object_id ) &&
+			'publish' === get_post_status( wp_get_post_parent_id( $object_id ) )
+		)
+	) {
+		// Published post, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} else {
+		$do_recount = false;
+	}
+
 	if ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
@@ -3044,7 +3090,9 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		 */
 		do_action( 'deleted_term_relationships', $object_id, $tt_ids, $taxonomy );
 
-		wp_update_term_count( $tt_ids, $taxonomy );
+		if ( $do_recount ) {
+			wp_decrement_term_count( $tt_ids, $taxonomy );
+		}
 
 		return (bool) $deleted;
 	}
@@ -3492,11 +3540,199 @@ function wp_defer_term_counting( $defer = null ) {
 		$_defer = $defer;
 		// Flush any deferred counts.
 		if ( ! $defer ) {
+			wp_modify_term_count_by( null, null, null, true );
 			wp_update_term_count( null, null, true );
 		}
 	}
 
 	return $_defer;
+}
+
+/**
+ * Prevents add/removing a term from modifying a term count.
+ *
+ * This is used by functions calling wp_transition_post_status() to indicate the
+ * term count will be handled during the post's transition.
+ *
+ * @private
+ * @since 5.9.0
+ *
+ * @param bool $new_setting The new setting for preventing term counts.
+ * @return bool Whether term count prevention is enabled or disabled.
+ */
+function _wp_prevent_term_counting( $new_setting = null ) {
+	static $prevent = false;
+
+	if ( is_bool( $new_setting ) ) {
+		$prevent = $new_setting;
+	}
+
+	return $prevent;
+}
+
+/**
+ * Increments the amount of terms in taxonomy.
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to increment the count by one and update the database.
+ *
+ * @since 5.9.0
+ *
+ * @param int|array $tt_ids       The term_taxonomy_id of the terms.
+ * @param string    $taxonomy     The context of the term.
+ * @param int       $increment_by By how many the term count is to be incremented. Default 1.
+ * @param bool      $do_deferred  Whether to flush the deferred term counts too. Default false.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_increment_term_count( $tt_ids, $taxonomy, $increment_by = 1, $do_deferred = false ) {
+	return wp_modify_term_count_by( $tt_ids, $taxonomy, $increment_by, $do_deferred );
+}
+
+/**
+ * Decrements the amount of terms in taxonomy.
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to decrement the count by one and update the database.
+ *
+ * @since 5.9.0
+ *
+ * @param int|array $tt_ids       The term_taxonomy_id of the terms.
+ * @param string    $taxonomy     The context of the term.
+ * @param int       $decrement_by By how many the term count is to be decremented. Default 1.
+ * @param bool      $do_deferred  Whether to flush the deferred term counts too. Default false.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_decrement_term_count( $tt_ids, $taxonomy, $decrement_by = 1, $do_deferred = false ) {
+	return wp_modify_term_count_by( $tt_ids, $taxonomy, $decrement_by * -1, $do_deferred );
+}
+
+/**
+ * Modifies the amount of terms in taxonomy.
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to decrement the count by one and update the database.
+ *
+ * @since 5.9.0
+ *
+ * @param int|array $tt_ids      The term_taxonomy_id of the terms.
+ * @param string    $taxonomy    The context of the term.
+ * @param int       $modify_by   By how many the term count is to be modified.
+ * @param bool      $do_deferred Whether to flush the deferred term counts too. Default false.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by, $do_deferred = false ) {
+	static $_deferred = array();
+
+	if ( $do_deferred ) {
+		foreach ( (array) $_deferred as $taxonomy_name => $modifications ) {
+			$tax_by_count = array_reduce(
+				array_keys( $modifications ),
+				function( $by_count, $tt_id ) use ( $modifications ) {
+					if ( ! isset( $by_count[ $modifications[ $tt_id ] ] ) ) {
+						$by_count[ $modifications[ $tt_id ] ] = array();
+					}
+					$by_count[ $modifications[ $tt_id ] ][] = $tt_id;
+					return $by_count;
+				},
+				array()
+			);
+
+			foreach ( $tax_by_count as $_modify_by => $_tt_ids ) {
+				wp_modify_term_count_by_now( $_tt_ids, $taxonomy_name, $_modify_by );
+			}
+			unset( $_deferred[ $taxonomy_name ] );
+		}
+	}
+
+	if ( empty( $tt_ids ) ) {
+		return false;
+	}
+
+	if ( ! is_array( $tt_ids ) ) {
+		$tt_ids = array( $tt_ids );
+	}
+
+	if ( wp_defer_term_counting() ) {
+		foreach ( $tt_ids as $tt_id ) {
+			if ( ! isset( $_deferred[ $taxonomy ][ $tt_id ] ) ) {
+				$_deferred[ $taxonomy ][ $tt_id ] = 0;
+			}
+			$_deferred[ $taxonomy ][ $tt_id ] += $modify_by;
+		}
+		return true;
+	}
+
+	return wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by );
+}
+
+/**
+ * Modifies the amount of terms in taxonomy immediately
+ *
+ * If there is a taxonomy callback applied, then it will be called for updating
+ * the count.
+ *
+ * The default action is to decrement the count by one and update the database.
+ *
+ * @since 5.9.0
+ *
+ * @param int|array $tt_ids      The term_taxonomy_id of the terms.
+ * @param string    $taxonomy    The context of the term.
+ * @param int       $modify_by   By how many the term count is to be modified.
+ * @return bool If no terms will return false, and if successful will return true.
+ */
+function wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by ) {
+	global $wpdb;
+
+	if ( 0 === $modify_by ) {
+		return false;
+	}
+
+	$tt_ids = array_filter( array_map( 'intval', (array) $tt_ids ) );
+
+	if ( empty( $tt_ids ) ) {
+		return false;
+	}
+
+	$taxonomy = get_taxonomy( $taxonomy );
+	if ( ! empty( $taxonomy->update_count_by_callback ) ) {
+		call_user_func( $taxonomy->update_count_by_callback, $tt_ids, $taxonomy, $modify_by );
+		clean_term_cache( $tt_ids, '', false );
+		return true;
+	}
+
+	$tt_ids_string = '(' . implode( ',', $tt_ids ) . ')';
+
+	foreach ( $tt_ids as $tt_id ) {
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy->name );
+	}
+
+	$result = $wpdb->query(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"UPDATE {$wpdb->term_taxonomy} AS tt SET tt.count = GREATEST( 0, tt.count + %d ) WHERE tt.term_taxonomy_id IN $tt_ids_string",
+			$modify_by
+		)
+	);
+
+	if ( ! $result ) {
+		return false;
+	}
+
+	foreach ( $tt_ids as $tt_id ) {
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy->name );
+	}
+
+	clean_term_cache( $tt_ids, '', false );
+
+	return true;
 }
 
 /**
