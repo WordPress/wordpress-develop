@@ -520,6 +520,7 @@
 			}
 
 			$this.attr( 'aria-label', title );
+			$this.find('.screen-reader-text').text( title );
 
 			// Mark this item's accessibility as refreshed.
 			$this.data( 'needs_accessibility_refresh', false );
@@ -734,6 +735,7 @@
 
 					api.refreshKeyboardAccessibility();
 					api.refreshAdvancedAccessibility();
+					api.refreshAdvancedAccessibilityOfItem( ui.item.find('a.item-edit') );
 				},
 				change: function(e, ui) {
 					// Make sure the placeholder is inside the menu.
