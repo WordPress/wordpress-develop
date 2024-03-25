@@ -15,13 +15,15 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
+		
+		$upload_dir = wp_get_upload_dir();
 
 		static::$dir_defaults = array(
-			'path'    => path_join( WP_CONTENT_DIR, 'fonts' ),
-			'url'     => content_url( 'fonts' ),
+			'path'    => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+			'url'     => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 			'subdir'  => '',
-			'basedir' => path_join( WP_CONTENT_DIR, 'fonts' ),
-			'baseurl' => content_url( 'fonts' ),
+			'basedir' => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+			'baseurl' => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 			'error'   => false,
 		);
 	}
