@@ -886,6 +886,7 @@ form#tags-filter {
 	pointer-events: none;
 	font-weight: 600;
 	flex-grow: 1;
+	padding-right: 1.5em;
 }
 
 .privacy-settings-accordion-trigger .icon,
