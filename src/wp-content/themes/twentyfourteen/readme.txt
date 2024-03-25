@@ -1,7 +1,7 @@
 === Twenty Fourteen ===
 Contributors: wordpressdotorg
 Requires at least: 3.6
-Tested up to: 6.4
+Tested up to: 6.6
 Requires PHP: 5.2.4
 Stable tag: 3.8
 License: GPLv2 or later

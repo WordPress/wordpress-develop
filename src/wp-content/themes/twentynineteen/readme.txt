@@ -2,7 +2,7 @@
 Contributors: wordpressdotorg
 Tags: one-column, accessibility-ready, custom-colors, custom-menu, custom-logo, editor-style, featured-images, footer-widgets, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
 Requires at least: 4.7
-Tested up to: 6.4
+Tested up to: 6.6
 Requires PHP: 5.2.4
 Stable tag: 2.7
 License: GPLv2 or later
