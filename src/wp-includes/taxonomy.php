@@ -3202,6 +3202,17 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	// First, get all of the original args.
 	$term = get_term( $term_id, $taxonomy );
 
+	/**
+	 * Filters a term before it is sanitized and updated into the database.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @param string|WP_Error $term     The term name to add, or a WP_Error object if there's an error.
+	 * @param string          $taxonomy Taxonomy slug.
+	 * @param array|string    $args     Array or query string of arguments passed to wp_update_term().
+	 */
+	$term = apply_filters( 'pre_update_term', $term, $taxonomy, $args );
+
 	if ( is_wp_error( $term ) ) {
 		return $term;
 	}
