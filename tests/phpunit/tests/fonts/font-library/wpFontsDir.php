@@ -69,4 +69,44 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 		$this->assertSame( static::$dir_defaults, $font_dir, 'The wp_get_font_dir() method should return the default values.' );
 	}
+
+	/**
+	 * @ticket 60652
+	 */
+	public function test_fonts_dir_filters_do_not_trigger_infinite_loop() {
+		/*
+		 * Naive filtering of uploads directory to return font directory.
+		 *
+		 * This emulates the approach a plugin developer may take to
+		 * add the filter when extending the font library functionality.
+		 */
+		add_filter( 'upload_dir', '_wp_filter_font_directory' );
+
+		add_filter(
+			'upload_dir',
+			function ( $upload_dir ) {
+				static $count = 0;
+				++$count;
+				// The filter may be applied a couple of times, at five iterations assume an infinite loop.
+				if ( $count >= 5 ) {
+					$this->fail( 'Filtering the uploads directory triggered an infinite loop.' );
+				}
+				return $upload_dir;
+			},
+			5
+		);
+
+		/*
+		 * Filter the font directory to return the uploads directory.
+		 *
+		 * This emulates moving font files back to the uploads directory due
+		 * to file system structure.
+		 */
+		add_filter( 'font_dir', 'wp_get_upload_dir' );
+
+		wp_get_upload_dir();
+
+		// This will never be hit if an infinite loop is triggered.
+		$this->assertTrue( true );
+	}
 }
