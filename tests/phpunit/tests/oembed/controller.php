@@ -127,7 +127,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 				'response' => array(
 					'code' => 200,
 				),
-				'body'     => '<html><head><link rel="alternate" type="application/json+oembed" href="' . self::UNTRUSTED_PROVIDER_URL . '" /></head><body></body></html>',
+				'body'     => '<html><head><link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . self::UNTRUSTED_PROVIDER_URL . '" /></head><body></body></html>',
 			);
 		}
 
