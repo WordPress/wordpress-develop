@@ -52,7 +52,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 			),
 			'invalid'  => array(
 				'autoload' => 'foo',
-				'expected' => 'on',
+				'expected' => 'auto',
 			),
 			'null'     => array(
 				'autoload' => null,
