@@ -45,22 +45,6 @@ class Tests_dashboard_wp_check_browser_version extends WP_UnitTestCase {
 	/**
 	 * @ticket 60828
 	 */
-//	public function test_wp_check_browser_version_timeout() {
-//		$_SERVER['HTTP_USER_AGENT'] = 'ddddd'. rand_str(10);
-//
-//		add_filter( 'http_request_timeout', array( __CLASS__,'http_request_timeout' ) );
-//
-//		$this->assertFalse( wp_check_browser_version() );
-//		remove_filter( 'http_request_timeout', array( __CLASS__,'http_request_timeout' ) );
-//	}
-//
-//	public static function http_request_timeout() {
-//		return 0.00000000001;
-//	}
-
-	/**
-	 * @ticket 60828
-	 */
 	public function test_wp_check_browser_version_Google_Chrome_on_Windows() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
 
