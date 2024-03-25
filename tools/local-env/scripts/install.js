@@ -21,6 +21,25 @@ wp_cli( `config set WP_DEVELOPMENT_MODE ${process.env.LOCAL_WP_DEVELOPMENT_MODE}
 // Move wp-config.php to the base directory, so it doesn't get mixed up in the src or build directories.
 renameSync( 'src/wp-config.php', 'wp-config.php' );
 
+// Handle Codespaces support.
+if ( process.env.CODESPACES ) {
+	// Add our custom Codespaces host mapping code.
+	const fixHost = `
+		// Use forwarded host if available.
+		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_HOST'] ) ) {
+			$_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'];
+		}
+		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strpos( $_SERVER['HTTP_X_FORWARDED_PROTO'], 'https' ) !== false ) {
+			$_SERVER['HTTPS'] = 'on';
+		}
+	`;
+
+	const endMarker = "/* That's all, stop editing! Happy publishing. */";
+	const newConfig = readFileSync( 'wp-config.php', 'utf8' )
+		.replace( endMarker, fixHost + '\n' + endMarker );
+	writeFileSync( 'wp-config.php', newConfig );
+}
+
 install_wp_importer();
 
 // Read in wp-tests-config-sample.php, edit it to work with our config, then write it to wp-tests-config.php.
@@ -36,8 +55,9 @@ writeFileSync( 'wp-tests-config.php', testConfig );
 // Once the site is available, install WordPress!
 wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
 	.then( () => {
+		const LOCAL_URL = process.env.LOCAL_URL || `http://localhost:${process.env.LOCAL_PORT}`;
 		wp_cli( 'db reset --yes' );
-		wp_cli( `core install --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
+		wp_cli( `core install --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@test.com --skip-email --url=${LOCAL_URL}` );
 	} );
 
 /**
