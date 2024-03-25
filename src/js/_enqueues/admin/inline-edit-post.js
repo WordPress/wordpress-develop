@@ -365,12 +365,24 @@ window.wp = window.wp || {};
 			$(':input[name="' + fields[f] + '"]', editRow).val( val );
 		}
 
-		if ( $( '.comment_status', rowData ).text() === 'open' ) {
-			$( 'input[name="comment_status"]', editRow ).prop( 'checked', true );
+		comment_status = $( '.comment_status', rowData ).text();
+		if( $('input[name="comment_status"]').is(':checkbox') ) {
+			if ( comment_status === 'open' ) {
+				$( 'input[name="comment_status"]', editRow ).prop( 'checked', true );
+			}
+		} else {
+			$('input[name="comment_status"]').val( comment_status );
 		}
-		if ( $( '.ping_status', rowData ).text() === 'open' ) {
-			$( 'input[name="ping_status"]', editRow ).prop( 'checked', true );
+
+		ping_status = $( '.ping_status', rowData ).text();
+		if( $('input[name="ping_status"]').is(':checkbox') ) {
+			if ( ping_status === 'open' ) {
+				$( 'input[name="ping_status"]', editRow ).prop( 'checked', true );
+			}
+		} else {
+			$('input[name="ping_status"]').val( ping_status );
 		}
+
 		if ( $( '.sticky', rowData ).text() === 'sticky' ) {
 			$( 'input[name="sticky"]', editRow ).prop( 'checked', true );
 		}

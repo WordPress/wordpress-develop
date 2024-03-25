@@ -1952,6 +1952,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 								<span class="checkbox-title"><?php _e( 'Allow Comments' ); ?></span>
 							</label>
 
+						<?php else : ?>
+
+							<input type="hidden" name="comment_status" />
+
 						<?php endif; ?>
 
 						<?php if ( post_type_supports( $screen->post_type, 'trackbacks' ) ) : ?>
@@ -1960,6 +1964,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 								<input type="checkbox" name="ping_status" value="open" />
 								<span class="checkbox-title"><?php _e( 'Allow Pings' ); ?></span>
 							</label>
+
+						<?php else : ?>
+
+							<input type="hidden" name="ping_status" />
 
 						<?php endif; ?>
 
