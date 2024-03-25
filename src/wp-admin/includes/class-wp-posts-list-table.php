@@ -1188,7 +1188,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	public function column_date( $post ) {
 		global $mode;
 
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$t_time    = __( 'Unpublished' );
 			$time_diff = 0;
 		} else {
@@ -1196,12 +1196,12 @@ class WP_Posts_List_Table extends WP_List_Table {
 				/* translators: 1: Post date, 2: Post time. */
 				__( '%1$s at %2$s' ),
 				/* translators: Post date format. See https://www.php.net/manual/datetime.format.php */
-				get_the_time( __( 'Y/m/d' ), $post ),
+				wp_date( __( 'Y/m/d' ), get_post_time( 'U', true ) ),
 				/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
-				get_the_time( __( 'g:i a' ), $post )
+				wp_date( __( 'g:i a' ), get_post_time( 'U', true ) )
 			);
 
-			$time      = get_post_timestamp( $post );
+			$time      = get_post_time( 'U', true );
 			$time_diff = time() - $time;
 		}
 
