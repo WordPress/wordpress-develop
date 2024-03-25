@@ -1311,7 +1311,12 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  * @param string $email     The new user's email address.
  * @return int|false Returns false on failure, or int $user_id on success.
  */
-function wpmu_create_user( $user_name, $password, $email ) {
+function wpmu_create_user(
+	$user_name,
+	#[\SensitiveParameter ]
+	$password,
+	$email
+) {
 	$user_name = preg_replace( '/\s+/', '', sanitize_user( $user_name, true ) );
 
 	$user_id = wp_create_user( $user_name, $password, $email );
@@ -1595,7 +1600,14 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
  * @param array  $meta     Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  * @return bool Whether the email notification was sent.
  */
-function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta = array() ) {
+function wpmu_welcome_notification(
+	$blog_id,
+	$user_id,
+	#[\SensitiveParameter ]
+	$password,
+	$title,
+	$meta = array()
+) {
 	$current_network = get_network();
 
 	/**
