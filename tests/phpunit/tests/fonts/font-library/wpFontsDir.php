@@ -15,7 +15,6 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
-		
 		$upload_dir = wp_get_upload_dir();
 
 		static::$dir_defaults = array(
