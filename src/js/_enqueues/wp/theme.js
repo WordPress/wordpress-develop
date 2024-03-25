@@ -1538,15 +1538,14 @@ themes.Run = {
 themes.view.InstallerSearch =  themes.view.Search.extend({
 
 	events: {
-		'input': 'search',
-		'keyup': 'search'
+		'input': 'searchSortAndFilter',
+		'keyup': 'searchSortAndFilter'
 	},
 
-	terms: '',
+	browse: '',
 
-	// Handles Ajax request for searching through themes in public repo.
-	search: function( event ) {
-
+	// handle input and keyup events on the search input.
+	searchSortAndFilter: function( event ) {
 		// Tabbing or reverse tabbing into the search input shouldn't trigger a search.
 		if ( event.type === 'keyup' && ( event.which === 9 || event.which === 16 ) ) {
 			return;
@@ -1559,21 +1558,50 @@ themes.view.InstallerSearch =  themes.view.Search.extend({
 			event.target.value = '';
 		}
 
-		this.doSearch( event.target.value );
+		this.doSearchSortAndFilter( event.target.value );
 	},
 
-	doSearch: function( value ) {
-		var request = {};
+	/**
+	 * prepare request by adding search, sort and filter parameters.
+	 *
+	 * @param {string} value - Search term.
+	 */
+	doSearchSortAndFilter: function( value ) {
+		var request = {
+			tag: []
+		};
 
-		// Don't do anything if the search terms haven't changed.
-		if ( this.terms === value ) {
-			return;
+		// prepare request
+		request = this.doSearching( request, value );
+		request = this.doSorting( request );
+		request = this.doFiltering( request );
+
+		// send request
+		this.collection.query( request );
+
+		// set URL
+		if( request.search ) {
+			themes.router.navigate( themes.router.baseUrl( themes.router.browsePath + encodeURIComponent( this.browse ) + '&search=' + encodeURIComponent( request.search ) ), { replace: false } );
 		}
+		else {
+			themes.router.navigate( themes.router.baseUrl( themes.router.browsePath + encodeURIComponent( this.browse ) ), { replace: false } );
+		}
+	},
 
+	/**
+	 * add search parameter to request.
+	 *
+	 * @param {Object} request - Request object.
+	 * @param {string} value - Search term.
+	 * @returns {Object} request - Request object.
+	 */
+	doSearching: function( request, value ) {
 		// Updates terms with the value passed.
 		this.terms = value;
 
-		request.search = value;
+		if( value ) {
+			request.search = value;
+		}
 
 		/*
 		 * Intercept an [author] search.
@@ -1594,22 +1622,91 @@ themes.view.InstallerSearch =  themes.view.Search.extend({
 		 */
 		if ( value.substring( 0, 4 ) === 'tag:' ) {
 			request.search = '';
-			request.tag = [ value.slice( 4 ) ];
+			request.tag.push( value.slice( 4 ) );
 		}
 
-		$( '.filter-links li > a.current' )
+		return request;
+	},
+
+	/**
+	 * add browse parameter to request.
+	 *
+	 * @param {Object} request - Request object.
+	 * @returns {Object} request - Request object.
+	 */
+	doSorting: function( request ) {
+		// get the browse value from the URL.
+		var urlParams = new URLSearchParams( window.location.search );
+		var browse = urlParams.get( 'browse' );
+
+		// set default browse value
+		if( ! browse ) {
+			browse = 'popular';
+		}
+
+		// Updates browse with the value passed in request.
+		this.browse = browse;
+
+
+		// for block themes, set the tag parameter to `full-site-editing`.
+		if( browse === 'block-themes' ) {
+			request.tag = [ 'full-site-editing' ];
+		}
+		else {
+			request.browse = browse;
+		}
+
+		// highlight active link
+		$( '.filter-links li > a' )
 			.removeClass( 'current' )
 			.removeAttr( 'aria-current' );
 
-		$( 'body' ).removeClass( 'show-filters filters-applied show-favorites-form' );
+		$( '.filter-links li > a[data-sort="' + browse.toString() + '"]' )
+			.addClass( 'current' )
+			.attr( 'aria-current', 'page' );
+
 		$( '.drawer-toggle' ).attr( 'aria-expanded', 'false' );
 
-		// Get the themes by sending Ajax POST request to api.wordpress.org/themes
-		// or searching the local cache.
-		this.collection.query( request );
+		if ( 'favorites' === browse ) {
+			$( 'body' ).addClass( 'show-favorites-form' );
+		} else {
+			$( 'body' ).removeClass( 'show-favorites-form' );
+		}
 
-		// Set route.
-		themes.router.navigate( themes.router.baseUrl( themes.router.searchPath + encodeURIComponent( value ) ), { replace: true } );
+		return request;
+	},
+
+	/**
+	 * add filter parameter to request.
+	 *
+	 * @param {Object} request - Request object.
+	 * @returns {Object} request - Request object.
+	 */
+	doFiltering: function( request ) {
+		// get checked filters
+		var filters = this.options.parent.filtersChecked();
+
+		if( filters === false ) {
+			filters = [];
+		}
+
+		// append filters in UI
+		var fragment = document.createDocumentFragment();
+
+		_.each( filters, function( tag ) {
+			var name = $( 'label[for="filter-id-' + tag + '"]' ).text();
+			fragment.append( '<span data-filter-tag="' + tag + '" class="tag">' + name + '</span>' );
+		});
+
+		$( '.filter-tags' ).html( fragment );
+
+		request.tag = request.tag.concat(filters);
+
+		if( request.tag.length === 0 ) {
+			delete request.tag;
+		}
+
+		return request;
 	}
 });
 
@@ -1626,6 +1723,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		'click .filter-group [type="checkbox"]': 'addFilter',
 		'click .filter-drawer .clear-filters': 'clearFilters',
 		'click .edit-filters': 'backToFilters',
+		'click .remove-filters': 'removeFilters',
 		'click .favorites-form-submit' : 'saveUsername',
 		'keyup #wporg-username-input': 'saveUsername'
 	},
@@ -1720,6 +1818,9 @@ themes.view.Installer = themes.view.Appearance.extend({
 
 		this.sort( sort );
 
+		// clear filters
+		this.clearFilters( event );
+
 		// Trigger a router.navigate update.
 		themes.router.navigate( themes.router.baseUrl( themes.router.browsePath + sort ) );
 	},
@@ -1788,7 +1889,6 @@ themes.view.Installer = themes.view.Appearance.extend({
 	applyFilters: function( event ) {
 		var name,
 			tags = this.filtersChecked(),
-			request = { tag: tags },
 			filteringBy = $( '.filtered-by .tags' );
 
 		if ( event ) {
@@ -1796,14 +1896,15 @@ themes.view.Installer = themes.view.Appearance.extend({
 		}
 
 		if ( ! tags ) {
+			// hide the filters drawer
+			$( 'body' ).removeClass( 'show-filters' );
+			$( '.wp-filter-search' ).trigger( 'focus' ).trigger( 'keyup' );
+
 			wp.a11y.speak( l10n.selectFeatureFilter );
 			return;
 		}
 
 		$( 'body' ).addClass( 'filters-applied' );
-		$( '.filter-links li > a.current' )
-			.removeClass( 'current' )
-			.removeAttr( 'aria-current' );
 
 		filteringBy.empty();
 
@@ -1812,9 +1913,8 @@ themes.view.Installer = themes.view.Appearance.extend({
 			filteringBy.append( '<span class="tag">' + name + '</span>' );
 		});
 
-		// Get the themes by sending Ajax POST request to api.wordpress.org/themes
-		// or searching the local cache.
-		this.collection.query( request );
+		// trigger search
+		$( '.wp-filter-search' ).trigger( 'focus' ).trigger( 'keyup' );
 	},
 
 	// Save the user's WordPress.org username and get his favorite themes.
@@ -1901,13 +2001,26 @@ themes.view.Installer = themes.view.Appearance.extend({
 			return this.backToFilters();
 		}
 
-		this.clearSearch();
-
-		themes.router.navigate( themes.router.baseUrl( '' ) );
 		// Toggle the feature filters view.
 		$body.toggleClass( 'show-filters' );
+
 		// Toggle the `aria-expanded` button attribute.
 		$toggleButton.attr( 'aria-expanded', $body.hasClass( 'show-filters' ) );
+
+		$( '.wp-filter-search' ).trigger( 'focus' ).trigger( 'keyup' );
+	},
+
+	/**
+	 * Remove all the checked filters and hide the filters drawer.
+	 *
+	 * @param event
+	 */
+	removeFilters: function( event ) {
+		this.clearFilters( event );
+
+		$( 'body' ).removeClass( 'filters-applied show-filters' );
+
+		$( '.wp-filter-search' ).trigger( 'focus' ).trigger( 'keyup' );
 	},
 
 	/**
@@ -1943,9 +2056,10 @@ themes.view.Installer = themes.view.Appearance.extend({
 themes.InstallerRouter = Backbone.Router.extend({
 	routes: {
 		'theme-install.php?theme=:slug': 'preview',
-		'theme-install.php?browse=:sort': 'sort',
-		'theme-install.php?search=:query': 'search',
-		'theme-install.php': 'sort'
+		'theme-install.php?browse=:sort&search=:query': 'search-and-sort',
+		'theme-install.php?browse=:sort': 'search-and-sort',
+		'theme-install.php?search=:query': 'search-and-sort',
+		'theme-install.php': 'search-and-sort'
 	},
 
 	baseUrl: function( url ) {
@@ -1956,7 +2070,12 @@ themes.InstallerRouter = Backbone.Router.extend({
 	browsePath: '?browse=',
 	searchPath: '?search=',
 
-	search: function( query ) {
+	// set initial value in search input
+	searchAndSort: function( query ) {
+		if( ! query ) {
+			query = '';
+		}
+
 		$( '.wp-filter-search' ).val( query.replace( /\+/g, ' ' ) );
 	},
 
@@ -1978,7 +2097,7 @@ themes.RunInstaller = {
 		this.render();
 
 		// Start debouncing user searches after Backbone.history.start().
-		this.view.SearchView.doSearch = _.debounce( this.view.SearchView.doSearch, 500 );
+		this.view.SearchView.doSearchAndSort = _.debounce( this.view.SearchView.doSearchAndSort, 500 );
 	},
 
 	render: function() {
@@ -2034,26 +2153,20 @@ themes.RunInstaller = {
 			}
 		});
 
-		/*
-		 * Handles sorting / browsing routes.
-		 * Also handles the root URL triggering a sort request
-		 * for `popular`, the default view.
-		 */
-		themes.router.on( 'route:sort', function( sort ) {
-			if ( ! sort ) {
-				sort = 'popular';
-				themes.router.navigate( themes.router.baseUrl( '?browse=popular' ), { replace: true } );
-			}
-			self.view.sort( sort );
+		// Handles search route event.
+		themes.router.on( 'route:search-and-sort', function() {
 
-			// Close the preview if open.
+			// find the search term
+			var urlParams = new URLSearchParams( window.location.search );
+			var searchTerm = urlParams.get( 'search' );
+
+			// Set the search term in the search input.
+			themes.router.searchAndSort( searchTerm );
+
 			if ( themes.preview ) {
 				themes.preview.close();
 			}
-		});
 
-		// The `search` route event. The router populates the input field.
-		themes.router.on( 'route:search', function() {
 			$( '.wp-filter-search' ).trigger( 'focus' ).trigger( 'keyup' );
 		});
 

@@ -270,6 +270,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<span><?php _e( 'Filtering by:' ); ?></span>
 				<div class="tags"></div>
 				<button type="button" class="button-link edit-filters"><?php _e( 'Edit Filters' ); ?></button>
+				<button type="button" class="button-link remove-filters"><?php _e( 'Remove Filters' ); ?></button>
 			</div>
 		</div>
 	</div>
