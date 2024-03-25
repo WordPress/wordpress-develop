@@ -260,11 +260,18 @@ abstract class WP_Image_Editor {
 			 * The WP_Image_Editor::set_quality() method has priority over the filter.
 			 *
 			 * @since 3.5.0
+			 * @since 6.0.0 Added the size parameter.
 			 *
 			 * @param int    $quality   Quality level between 1 (low) and 100 (high).
 			 * @param string $mime_type Image mime type.
+			 * @param int[]  $size {
+			 *     Dimensions of the image.
+			 *
+			 *     @type int $width  The image width.
+			 *     @type int $height The image height.
+			 * }
 			 */
-			$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type );
+			$quality = apply_filters( 'wp_editor_set_quality', $default_quality, $mime_type, $this->size );
 
 			if ( 'image/jpeg' === $mime_type ) {
 				/**
