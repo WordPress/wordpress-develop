@@ -315,11 +315,13 @@ class WP_Theme_JSON_Resolver {
 			if ( ! isset( $theme_support_data['settings']['shadow'] ) ) {
 				$theme_support_data['settings']['shadow'] = array();
 			}
-			// Shadow presets are explicitly opt-in for classic themes even if they haven't defined any custom ones.
+			/*
+			 * Shadow presets are explicitly disabled for classic themes until a
+			 * decision is made for whether the default presets should match the
+			 * other presets or if they should be disabled by default in classic
+			 * themes. See https://github.com/WordPress/gutenberg/issues/59989.
+			 */
 			$theme_support_data['settings']['shadow']['defaultPresets'] = false;
-			if ( current_theme_supports( 'default-shadow-presets' ) ) {
-				$theme_support_data['settings']['shadow']['defaultPresets'] = true;
-			}
 
 			// Allow themes to enable link color setting via theme_support.
 			if ( current_theme_supports( 'link-color' ) ) {
@@ -337,7 +339,6 @@ class WP_Theme_JSON_Resolver {
 			// Allow themes to enable appearance tools via theme_support.
 			if ( current_theme_supports( 'appearance-tools' ) ) {
 				$theme_support_data['settings']['appearanceTools'] = true;
-				$theme_support_data['settings']['shadow']['defaultPresets'] = true;
 			}
 		}
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
