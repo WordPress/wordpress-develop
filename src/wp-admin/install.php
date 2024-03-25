@@ -153,6 +153,7 @@ function display_setup_form( $error = null ) {
 				<strong><?php _e( 'Important:' ); ?></strong>
 				<?php /* translators: The non-breaking space prevents 1Password from thinking the text "log in" should trigger a password save prompt. */ ?>
 				<?php _e( 'You will need this password to log&nbsp;in. Please store it in a secure location.' ); ?></span></p>
+				<p class="description indicator-hint"><?php echo wp_get_password_hint(); ?></p>
 			</td>
 		</tr>
 		<tr class="form-field form-required user-pass2-wrap hide-if-js">
