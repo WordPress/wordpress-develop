@@ -359,23 +359,26 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_option_autoloading() {
 		return array(
+			// Supported values.
 			array( 'autoload_yes', 'yes', 'on' ),
 			array( 'autoload_true', true, 'on' ),
-			array( 'autoload_string', 'foo', 'on' ),
-			array( 'autoload_int', 123456, 'on' ),
-			array( 'autoload_array', array(), 'on' ),
 			array( 'autoload_no', 'no', 'off' ),
 			array( 'autoload_false', false, 'off' ),
 			array( 'autoload_null', null, 'auto' ),
+
+			// Technically unsupported values.
+			array( 'autoload_string', 'foo', 'auto' ),
+			array( 'autoload_int', 123456, 'auto' ),
+			array( 'autoload_array', array(), 'auto' ),
 		);
 	}
 
 	/**
-	 *
 	 * @ticket 42441
-	 * @dataProvider data_option_autoloading_large_option
 	 *
 	 * @covers ::update_option
+	 *
+	 * @dataProvider data_option_autoloading_large_option
 	 */
 	public function test_update_option_autoloading_large_option( $autoload, $expected ) {
 		global $wpdb;
@@ -392,45 +395,33 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	public function data_option_autoloading_large_option() {
 		return array(
-			'on'             => array(
+			'on'    => array(
 				'autoload' => 'on',
 				'expected' => 'on',
 			),
-			'off'            => array(
+			'off'   => array(
 				'autoload' => 'off',
 				'expected' => 'off',
 			),
-			'yes'            => array(
+			'yes'   => array(
 				'autoload' => 'yes',
 				'expected' => 'on',
 			),
-			'true'           => array(
+			'true'  => array(
 				'autoload' => true,
 				'expected' => 'on',
 			),
-			'no'             => array(
+			'no'    => array(
 				'autoload' => 'no',
 				'expected' => 'off',
 			),
-			'false'          => array(
+			'false' => array(
 				'autoload' => false,
 				'expected' => 'off',
 			),
-			'null'           => array(
+			'null'  => array(
 				'autoload' => null,
 				'expected' => 'auto-off',
-			),
-			'autoload_int'   => array(
-				'autoload' => '1223',
-				'expected' => 'on',
-			),
-			'autoload_array' => array(
-				'autoload' => array(),
-				'expected' => 'on',
-			),
-			'stdClass'       => array(
-				'autoload' => new stdClass(),
-				'expected' => 'on',
 			),
 		);
 	}
@@ -440,7 +431,6 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @ticket 42441
 	 *
 	 * @covers ::update_option

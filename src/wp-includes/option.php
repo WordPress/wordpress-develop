@@ -829,6 +829,7 @@ function update_option( $option, $value, $autoload = null ) {
 	if ( null !== $autoload ) {
 		$update_args['autoload'] = wp_determine_option_autoload_value( $option, $value, $serialized_value, $autoload );
 	} else {
+		// Retrieve the current autoload value to reevaluate it in case it was set automatically.
 		$raw_autoload = $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $option ) );
 		$allow_values = array( 'auto-on', 'auto-off', 'auto' );
 		if ( in_array( $raw_autoload, $allow_values, true ) ) {
@@ -924,6 +925,7 @@ function update_option( $option, $value, $autoload = null ) {
  * options the same as the ones which are protected.
  *
  * @since 1.0.0
+ * @since 6.6.0 The $autoload parameter's default value was changed to null.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1186,15 +1188,6 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
 			return 'off';
 	}
 
-	/*
-	 * For backward compatibility, any formally unsupported value is interpreted as 'on' (formerly 'yes').
-	 * The values assigned by WordPress core ("auto", "auto-on", "auto-off") may be overwritten as they
-	 * are recalculated using the filter below.
-	 */
-	if ( ! in_array( $autoload, array( null, 'auto', 'auto-on', 'auto-off' ), true ) ) {
-		return 'on';
-	}
-
 	/**
 	 * Allows to determine the default autoload value for an option where no explicit value is passed.
 	 *
@@ -1222,7 +1215,7 @@ function wp_determine_option_autoload_value( $option, $value, $serialized_value,
  * @param bool|null $autoload         The default autoload value to set.
  * @param string    $option           The passed option name.
  * @param mixed     $value            The passed option value to be saved.
- * @param mixed     $serialized_value The passed  option value to be saved, in serialized form.
+ * @param mixed     $serialized_value The passed option value to be saved, in serialized form.
  * @return bool|null Potentially modified $default.
  */
 function wp_filter_default_autoload_value_via_option_size( $autoload, $option, $value, $serialized_value ) {
