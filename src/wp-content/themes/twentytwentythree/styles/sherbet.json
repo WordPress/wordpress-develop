@@ -34,16 +34,6 @@
 			],
 			"palette": [
 				{
-					"color": "#FFFFFF",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#000000",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
-				{
 					"color": "#FFCCFF",
 					"name": "Primary",
 					"slug": "primary"
@@ -117,7 +107,9 @@
 					"link": {
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--contrast)"
+								"text": {
+									"ref": "styles.color.text"
+								}
 							}
 						}
 					}
@@ -146,11 +138,15 @@
 				"elements": {
 					"link": {
 						"color": {
-							"text": "var(--wp--preset--color--contrast)"
+							"text": {
+								"ref": "styles.color.text"
+							}
 						},
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--contrast)"
+								"text": {
+									"ref": "styles.color.text"
+								}
 							}
 						}
 					}
@@ -190,20 +186,28 @@
 			}
 		},
 		"color": {
-			"gradient": "var(--wp--preset--gradient--primary-secondary-tertiary)"
+			"background": "var(--wp--preset--color--white)",
+			"gradient": "var(--wp--preset--gradient--primary-secondary-tertiary)",
+			"text": "var(--wp--preset--color--black)"
 		},
 		"elements": {
 			"button": {
 				"border": {
-					"color": "var(--wp--preset--color--contrast)",
+					"color": {
+						"ref": "styles.color.text"
+					},
 					"radius": "99999px",
 					"style": "solid",
 					"width": "2px"
 				},
 				"color": {
-					"background": "var(--wp--preset--color--base)",
+					"background": {
+						"ref": "styles.color.background"
+					},
 					"gradient": "var(--wp--preset--gradient--primary-secondary-tertiary-fixed)",
-					"text": "var(--wp--preset--color--contrast)"
+					"text": {
+						"ref": "styles.color.text"
+					}
 				},
 				"typography": {
 					"fontSize": "var(--wp--preset--font-size--x-small)",
@@ -213,18 +217,24 @@
 				":hover": {
 					"color": {
 						"gradient": "var(--wp--preset--gradient--tertiary-secondary-primary-fixed)",
-						"text": "var(--wp--preset--color--contrast)"
+						"text": {
+							"ref": "styles.color.text"
+						}
 					}
 				},
 				":focus": {
 					"color": {
-						"background": "var(--wp--preset--color--contrast)",
+						"background": {
+							"ref": "styles.color.text"
+						},
 						"gradient": "none"
 					}
 				},
 				":active": {
 					"color": {
-						"background": "var(--wp--preset--color--contrast)",
+						"background": {
+							"ref": "styles.color.text"
+						},
 						"gradient": "none"
 					}
 				}

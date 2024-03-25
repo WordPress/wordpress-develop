@@ -16,16 +16,6 @@
 			],
 			"palette": [
 				{
-					"color": "#fdff85",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#000000",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
-				{
 					"color": "#000000",
 					"name": "Primary",
 					"slug": "primary"
@@ -39,6 +29,11 @@
 					"color": "#ffffff",
 					"name": "Tertiary",
 					"slug": "tertiary"
+				},
+				{
+					"color": "#fdff85",
+					"name": "Canary Yellow",
+					"slug": "canary-yellow"
 				}
 			]
 		},
@@ -165,43 +160,65 @@
 				}
 			}
 		},
+		"color": {
+			"background": "var(--wp--preset--color--canary-yellow)",
+			"text": "var(--wp--preset--color--black)"
+		},
 		"elements": {
 			"button": {
 				":hover": {
 					"color": {
-						"background": "var(--wp--preset--color--base)",
-						"text": "var(--wp--preset--color--contrast)"
+						"background": {
+							"ref": "styles.color.background"
+						},
+						"text": {
+							"ref": "styles.color.text"
+						}
 					},
 					"border": {
-						"color": "var(--wp--preset--color--contrast)",
+						"color": {
+							"ref": "styles.color.text"
+						},
 						"style": "solid",
 						"width": "2px"
 					}
 				},
 				":focus": {
 					"color": {
-						"background": "var(--wp--preset--color--base)",
-						"text": "var(--wp--preset--color--contrast)"
+						"background": {
+							"ref": "styles.color.background"
+						},
+						"text": {
+							"ref": "styles.color.text"
+						}
 					},
 					"border": {
-						"color": "var(--wp--preset--color--contrast)",
+						"color": {
+							"ref": "styles.color.text"
+						},
 						"style": "solid",
 						"width": "2px"
 					}
 				},
 				":visited": {
 					"color": {
-						"text": "var(--wp--preset--color--base)"
+						"text": {
+							"ref": "styles.color.background"
+						}
 					}
 				},
 				"border": {
 					"radius": "5px",
-					"color": "var(--wp--preset--color--contrast)",
+					"color": {
+						"ref": "styles.color.text"
+					},
 					"style": "solid",
 					"width": "2px"
 				},
 				"color": {
-					"text": "var(--wp--preset--color--base)"
+					"text": {
+						"ref": "styles.color.background"
+					}
 				},
 				"spacing": {
 					"padding": {

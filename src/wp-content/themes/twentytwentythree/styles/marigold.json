@@ -6,16 +6,6 @@
 		"color": {
 			"palette": [
 				{
-					"color": "#F6F2EC",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#21251F",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
-				{
 					"color": "#5B4460",
 					"name": "Primary",
 					"slug": "primary"
@@ -29,6 +19,16 @@
 					"color": "#E7A1A9",
 					"name": "Tertiary",
 					"slug": "tertiary"
+				},
+				{
+					"color": "#F6F2EC",
+					"name": "Stone",
+					"slug": "stone"
+				},
+				{
+					"color": "#21251F",
+					"name": "Dark Grey",
+					"slug": "dark-grey"
 				}
 			]
 		},
@@ -209,6 +209,10 @@
 				}
 			}
 		},
+		"color": {
+			"background": "var(--wp--preset--color--stone)",
+			"text": "var(--wp--preset--color--dark-grey)"
+		},
 		"elements": {
 			"h1": {
 				"typography": {
@@ -278,7 +282,9 @@
 				":hover": {
 					"color": {
 						"background": "var(--wp--preset--color--tertiary)",
-						"text": "var(--wp--preset--color--contrast)"
+						"text": {
+							"ref": "styles.color.text"
+						}
 					}
 				},
 				":focus": {

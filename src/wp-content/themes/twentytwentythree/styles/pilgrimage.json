@@ -36,27 +36,17 @@
 					"slug": "tertiary-primary"
 				},
 				{
-					"gradient": "linear-gradient(180deg, var(--wp--preset--color--base) 0%,var(--wp--preset--color--primary) 350%)",
-					"name": "Base to Primary",
-					"slug": "base-primary"
+					"gradient": "linear-gradient(180deg, var(--wp--preset--color--dark-grey) 0%,var(--wp--preset--color--primary) 350%)",
+					"name": "Dark Grey to Primary",
+					"slug": "dark-grey-primary"
 				},
 				{
-					"gradient": "radial-gradient(circle at 5px 5px,#0c0d0d70 2px,#ffffff00 0px,#ffffff00 0px) 0 0 / 8px 8px, linear-gradient(180deg, var(--wp--preset--color--base) 0%,#000000 200%)",
+					"gradient": "radial-gradient(circle at 5px 5px,#0c0d0d70 2px,#ffffff00 0px,#ffffff00 0px) 0 0 / 8px 8px, linear-gradient(180deg, var(--wp--preset--color--dark-grey) 0%,#000000 200%)",
 					"name": "Dots",
 					"slug": "dots"
 				}
 			],
 			"palette": [
-				{
-					"color": "#222828",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#ffffff",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
 				{
 					"color": "#53ED85",
 					"name": "Primary",
@@ -71,6 +61,11 @@
 					"color": "#D8E202",
 					"name": "Tertiary",
 					"slug": "tertiary"
+				},
+				{
+					"color": "#222828",
+					"name": "Dark Grey",
+					"slug": "dark-grey"
 				}
 			]
 		}
@@ -230,7 +225,9 @@
 			}
 		},
 		"color": {
-			"gradient": "var(--wp--preset--gradient--dots)"
+			"background": "var(--wp--preset--color--dark-grey)",
+			"gradient": "var(--wp--preset--gradient--dots)",
+			"text": "var(--wp--preset--color--white)"
 		},
 		"elements": {
 			"button": {
@@ -252,7 +249,9 @@
 				},
 				":visited": {
 					"color": {
-						"text": "var(--wp--preset--color--base)"
+						"text": {
+							"ref": "styles.color.background"
+						}
 					}
 				},
 				"border": {
@@ -260,7 +259,9 @@
 				},
 				"color": {
 					"gradient": "var(--wp--preset--gradient--primary-secondary)",
-					"text": "var(--wp--preset--color--base)"
+					"text": {
+						"ref": "styles.color.background"
+					}
 				}
 			},
 			"h1": {

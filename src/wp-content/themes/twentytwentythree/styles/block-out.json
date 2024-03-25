@@ -16,16 +16,6 @@
 			],
 			"palette": [
 				{
-					"color": "#ff5252",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#252525",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
-				{
 					"color": "#ffffff",
 					"name": "Primary",
 					"slug": "primary"
@@ -39,6 +29,16 @@
 					"color": "#ff7e7e",
 					"name": "Tertiary",
 					"slug": "tertiary"
+				},
+				{
+					"color": "#ff5252",
+					"name": "Block out Red",
+					"slug": "block-out-red"
+				},
+				{
+					"color": "#252525",
+					"name": "Dark Grey",
+					"slug": "dark-grey"
 				}
 			]
 		},
@@ -108,12 +108,16 @@
 				"elements": {
 					"link": {
 						"color": {
-							"text": "var(--wp--preset--color--contrast)"
+							"text": {
+								"ref": "styles.color.text"
+							}
 						}
 					},
 					"h1": {
 						"color": {
-							"text": "var(--wp--preset--color--contrast)"
+							"text": {
+								"ref": "styles.color.text"
+							}
 						}
 					}
 				}
@@ -187,6 +191,10 @@
 				}
 			}
 		},
+		"color": {
+			"background": "var(--wp--preset--color--block-out-red)",
+			"text": "var(--wp--preset--color--dark-grey)"
+		},
 		"elements": {
 			"button": {
 				"border": {
@@ -199,7 +207,9 @@
 				},
 				":active": {
 					"color": {
-						"text": "var(--wp--preset--color--contrast)"
+						"text": {
+							"ref": "styles.color.text"
+						}
 					}
 				}
 			},

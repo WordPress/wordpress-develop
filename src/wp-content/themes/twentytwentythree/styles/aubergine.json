@@ -6,14 +6,14 @@
 		"color": {
 			"gradients": [
 				{
-					"gradient": "linear-gradient(180deg, var(--wp--preset--color--secondary) 0%,var(--wp--preset--color--base) 100%)",
-					"name": "Secondary to Base",
-					"slug": "secondary-base"
+					"gradient": "linear-gradient(180deg, var(--wp--preset--color--secondary) 0%,var(--wp--preset--color--dark-purple) 100%)",
+					"name": "Secondary to Dark Purple",
+					"slug": "secondary-dark-purple"
 				},
 				{
-					"gradient": "linear-gradient(180deg, var(--wp--preset--color--base) 0 min(24rem, 10%), var(--wp--preset--color--secondary) 0% 30%, var(--wp--preset--color--base) 100%)",
-					"name": "Base to Secondary to Base",
-					"slug": "base-secondary-base"
+					"gradient": "linear-gradient(180deg, var(--wp--preset--color--dark-purple) 0 min(24rem, 10%), var(--wp--preset--color--secondary) 0% 30%, var(--wp--preset--color--dark-purple) 100%)",
+					"name": "Dark Purple to Secondary to Dark Purple",
+					"slug": "dark-purple-secondary-dark-purple"
 				},
 				{
 					"gradient": "linear-gradient(90deg, var(--wp--preset--color--tertiary) 5.74%, var(--wp--preset--color--primary) 100%)",
@@ -28,16 +28,6 @@
 			],
 			"palette": [
 				{
-					"color": "#1B1031",
-					"name": "Base",
-					"slug": "base"
-				},
-				{
-					"color": "#FFFFFF",
-					"name": "Contrast",
-					"slug": "contrast"
-				},
-				{
 					"color": "#FF746D",
 					"name": "Primary",
 					"slug": "primary"
@@ -51,6 +41,11 @@
 					"color": "#FB326B",
 					"name": "Tertiary",
 					"slug": "tertiary"
+				},
+				{
+					"color": "#1B1031",
+					"name": "Dark Purple",
+					"slug": "dark-purple"
 				}
 			]
 		},
@@ -138,7 +133,9 @@
 				"elements": {
 					"link": {
 						"color": {
-							"text": "var(--wp--preset--color--contrast)"
+							"text": {
+								"ref": "styles.color.text"
+							}
 						},
 						"typography": {
 							"letterSpacing": "0.09rem",
@@ -164,7 +161,12 @@
 					"link": {
 						":active": {
 							"color": {
-								"text": "var(--wp--preset--color--contrast)"
+								"background": {
+									"ref": "styles.color.background"
+								},
+								"text": {
+									"ref": "styles.color.text"
+								}
 							}
 						}
 					}
@@ -234,7 +236,9 @@
 			}
 		},
 		"color": {
-			"gradient": "var(--wp--preset--gradient--base-secondary-base) no-repeat"
+			"background": "var(--wp--preset--color--dark-purple)",
+			"gradient": "var(--wp--preset--gradient--dark-purple-secondary-dark-purple) no-repeat",
+			"text": "var(--wp--preset--color--white)"
 		},
 		"elements": {
 			"button": {
@@ -243,7 +247,9 @@
 				},
 				"color": {
 					"gradient": "var(--wp--preset--gradient--tertiary-primary)",
-					"text": "var(--wp--preset--color--base)"
+					"text": {
+						"ref": "styles.color.background"
+					}
 				},
 				":hover": {
 					"color": {
@@ -268,7 +274,9 @@
 				},
 				":visited": {
 					"color": {
-						"text": "var(--wp--preset--color--base)"
+						"text": {
+							"ref": "styles.color.background"
+						}
 					}
 				}
 			},
