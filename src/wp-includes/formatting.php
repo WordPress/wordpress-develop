@@ -1101,13 +1101,16 @@ function wp_specialchars_decode( $text, $quote_style = ENT_NOQUOTES ) {
  * @since 2.8.0
  *
  * @param string $text   The text which is to be checked.
- * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
- * @return string The checked text.
+ * @param bool $strip Optional. Whether to attempt to strip out invalid UTF8, using the bytewise regex. Default is false.
+ * @param bool $bytewise_fallback Optional. Use the bytewise regex when UTF8 regex is unavailable. Default is false.
+ * @param bool $bytewise_always Optional. Use only the bytewise regex. Default is false.
+ * @return string Unmodifed string if valid UTF8; or blog_charset is not UTF8; or UTF8 regex unavailable and $bytewise off.
+ *                 Otherwise, empty string or string stripped of inva
  */
-function wp_check_invalid_utf8( $text, $strip = false ) {
+function wp_check_invalid_utf8( $text, $strip = false, $bytewise_fallback = false, $bytewise_always = false ) {
 	$text = (string) $text;
 
-	if ( 0 === strlen( $text ) ) {
+	if ( '' == $text ) {
 		return '';
 	}
 
@@ -1119,26 +1122,57 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	if ( ! $is_utf8 ) {
 		return $text;
 	}
-
 	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
 	static $utf8_pcre = null;
+
 	if ( ! isset( $utf8_pcre ) ) {
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+
+		if ( ! $bytewise_always ) {
+			// Check for support for utf8 in the installed PCRE library once and store the result in a static
+			if ( ! isset( $utf8_pcre ) ) {
+				$utf8_pcre = @preg_match( '/^./u', 'a' );  // Returns false on error.
+			}
+		}
 	}
-	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
-	if ( ! $utf8_pcre ) {
+	if ( $utf8_pcre ) {
+
+		// preg_match fails when it encounters invalid UTF8 in $string
+		if ( 1 === @preg_match( '/^./us', $text ) ) {
+			return $text;
+		}
+		if ( ! $strip ) {
+			return '';
+		}
+	} elseif ( ! $bytewise_fallback ) {
 		return $text;
 	}
+	if ( $strip || $bytewise_fallback || $bytewise_always ) {
+		// Bytewise regex captures valid UTF8 in blocks of 40 and skips invalid characters.
+		$regex = '/
+ 		              (
+ 		                       (?: [\x00-\x7F]                   # single-byte sequences   0xxxxxxx
+ 		                       |   [\xC2-\xDF][\x80-\xBF]        # double-byte sequences   110xxxxx 10xxxxxx
+ 		                       |   \xE0[\xA0-\xBF][\x80-\xBF]    # triple-byte sequences   1110xxxx 10xxxxxx * 2
+ 		                       |   [\xE1-\xEC][\x80-\xBF]{2}
+ 		                       |   \xED[\x80-\x9F][\x80-\xBF]
+ 		                       |   [\xEE-\xEF][\x80-\xBF]{2}
+ 		                       |   \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
+ 		                       |   [\xF1-\xF3][\x80-\xBF]{3}
+ 		                       |   \xF4[\x80-\x8F][\x80-\xBF]{2}
+ 		                       ){1,40}                           # ...one or more times
+ 		               ) | .                                 # anything else
+ 		              /x';
 
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
-		return $text;
-	}
-
-	// Attempt to strip the bad chars if requested (not recommended).
-	if ( $strip && function_exists( 'iconv' ) ) {
-		return iconv( 'utf-8', 'utf-8', $text );
+		// Remove invalid byte sequences.
+		$clean_string = @preg_replace( $regex, '$1', $text );  // Returns null on error.
+		if ( $clean_string === $text ) {
+			return $text;
+		}
+		// Return string with invalid characters stripped if requested (not recommended).
+		if ( $strip && is_string( $clean_string ) ) {
+			return $clean_string;
+		}
 	}
 
 	return '';
