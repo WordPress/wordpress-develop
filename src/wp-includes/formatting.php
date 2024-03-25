@@ -5138,6 +5138,10 @@ function sanitize_option( $option, $value ) {
  * @return mixed The value with the callback applied to all non-arrays and non-objects inside it.
  */
 function map_deep( $value, $callback ) {
+	if ( $value instanceof __PHP_Incomplete_Class ) {
+		return $value;
+	}
+
 	if ( is_array( $value ) ) {
 		foreach ( $value as $index => $item ) {
 			$value[ $index ] = map_deep( $item, $callback );
