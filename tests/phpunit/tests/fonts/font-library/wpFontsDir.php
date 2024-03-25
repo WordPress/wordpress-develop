@@ -1,8 +1,4 @@
 <?php
-
-use SebastianBergmann\RecursionContext\InvalidArgumentException;
-use PHPUnit\Framework\ExpectationFailedException;
-
 /**
  * Test wp_get_font_dir().
  *
