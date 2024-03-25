@@ -168,13 +168,13 @@ function _wp_filter_font_directory( $font_dir ) {
 	}
 
 	$font_dir = array(
-        'path'    => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
-        'url'     => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
-        'subdir'  => '',
-        'basedir' => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
-        'baseurl' => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
-        'error'   => false,
-    );
+		'path'    => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
+		'url'     => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
+		'subdir'  => '',
+		'basedir' => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
+		'baseurl' => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
+		'error'   => false,
+	);
 
 	/**
 	 * Filters the fonts directory data.
