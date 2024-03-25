@@ -288,6 +288,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$lazyloader->reset_queue( 'term' );
 		$lazyloader->reset_queue( 'comment' );
 		$lazyloader->reset_queue( 'blog' );
+		$lazyloader->reset_queue( 'user' );
 	}
 
 	/**

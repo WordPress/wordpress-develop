@@ -1174,6 +1174,21 @@ function get_user_meta( $user_id, $key = '', $single = false ) {
 }
 
 /**
+ * Queue user meta for lazy-loading.
+ *
+ * @since 6.4.0
+ *
+ * @param array $user_ids List of user IDs.
+ */
+function wp_lazyload_user_meta( array $user_ids ) {
+	if ( empty( $user_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'user', $user_ids );
+}
+
+/**
  * Updates user meta field based on user ID.
  *
  * Use the $prev_value parameter to differentiate between meta fields with the

@@ -159,15 +159,21 @@ class Tests_User_Query extends WP_UnitTestCase {
 	 * @ticket 55594
 	 */
 	public function test_get_all_primed_users() {
+		$this->reset_lazyload_queue();
 		$filter = new MockAction();
 		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
-		new WP_User_Query(
+		$query = new WP_User_Query(
 			array(
 				'include' => self::$author_ids,
 				'fields'  => 'all',
 			)
 		);
+
+		$users = $query->get_results();
+		foreach ( $users as $user ) {
+			$user->roles;
+		}
 
 		$args      = $filter->get_args();
 		$last_args = end( $args );
