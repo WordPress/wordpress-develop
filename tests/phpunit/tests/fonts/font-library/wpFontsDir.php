@@ -39,6 +39,8 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	/**
 	 * Ensure that the fonts directory is correct for a multisite installation.
 	 *
+	 * The main site will use the default location and others will follow a pattern of  `/sites/{$blog_id}/fonts`
+	 *
 	 * @group multisite
 	 * @group ms-required
 	 */
