@@ -153,6 +153,7 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 			<?php
 			/**
 			 * Update parent and order of menu item by changing it.
+			 * Refresh Code
 			 *
 			 * @since 6.6.0
 			 */
