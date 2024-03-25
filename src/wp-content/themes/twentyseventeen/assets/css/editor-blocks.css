@@ -460,8 +460,9 @@ html[lang="th"] .edit-post-visual-editor * {
 
 /* Caption styles*/
 
-[class^="wp-block-"]:not(.wp-block-gallery) figcaption {
-	font-style: italic;
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption {
+	font-style: normal;
 	margin-bottom: 1.5em;
 	text-align: left;
 }
@@ -470,6 +471,14 @@ html[lang="th"] .edit-post-visual-editor * {
 	text-align: right;
 }
 
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption cite,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption cite,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption em,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption em,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption i,
+[class*=" wp-block-"]:not(.wp-block-gallery) figcaption i {
+	font-style: italic;
+}
 /* Code styles */
 
 .wp-block-freeform.block-library-rich-text__tinymce code {
