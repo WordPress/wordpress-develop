@@ -13,10 +13,6 @@ const results = {
 };
 
 test.describe( 'Admin', () => {
-	test.beforeAll( async ( { requestUtils } ) => {
-		await requestUtils.activateTheme( 'twentytwentyone' );
-	} );
-
 	test.afterAll( async ( {}, testInfo ) => {
 		await testInfo.attach( 'results', {
 			body: JSON.stringify( results, null, 2 ),

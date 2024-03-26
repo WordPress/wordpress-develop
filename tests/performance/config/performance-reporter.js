@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { join, dirname, basename } from 'node:path';
+import { join, basename } from 'node:path';
 import { writeFileSync } from 'node:fs';
 
 /**
@@ -26,8 +26,8 @@ class PerformanceReporter {
 		if ( performanceResults?.body ) {
 			writeFileSync(
 				join(
-					dirname( test.location.file ),
-					getResultsFilename( basename( test.location.file, '.js' ) )
+					process.env.WP_ARTIFACTS_PATH,
+					getResultsFilename( basename( test.location.file, '.test.js' ) )
 				),
 				performanceResults.body.toString( 'utf-8' )
 			);
