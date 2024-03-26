@@ -1226,6 +1226,10 @@ table.form-table td .updated p {
 	margin-top: 0;
 }
 
+.permalink-structure-optional-description code {
+	display: inline-block;
+}
+
 /*------------------------------------------------------------------------------
   21.0 - Network Admin
 ------------------------------------------------------------------------------*/
@@ -1752,6 +1756,16 @@ table.form-table td .updated p {
 
 	.form-table.permalink-structure td input[type="text"] {
 		margin-top: 4px;
+	}
+
+	.permalink-structure-has-blog-prefix {
+		display: flex;
+		align-items: center;
+	}
+
+	.permalink-structure-has-blog-prefix code {
+		word-wrap: normal;
+		word-break: normal;
 	}
 
 	.form-table input.regular-text {
