@@ -16,7 +16,7 @@ Whether you want to build a complex or incredibly simple website, you can do it 
 == Changelog ==
 
 = 1.4 =
-* Released: March 26, 2024
+* Released: April 2, 2024
 
 https://wordpress.org/documentation/article/twenty-twenty-three-changelog/#Version_1.4
 

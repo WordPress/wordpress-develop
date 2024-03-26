@@ -41,7 +41,7 @@ GNU General Public License for more details.
 == Changelog ==
 
 = 2.8 =
-* Released: March 26, 2024
+* Released: April 2, 2024
 
 https://wordpress.org/documentation/article/twenty-nineteen-changelog/#Version_2.8
 

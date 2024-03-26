@@ -73,7 +73,7 @@ Image used in screenshot.png: A photo by Austin Schmid (https://unsplash.com/sch
 == Changelog ==
 
 = 3.2 =
-* Released: March 26, 2024
+* Released: April 2, 2024
 
 https://wordpress.org/documentation/article/twenty-sixteen-changelog/#Version_3.2
 

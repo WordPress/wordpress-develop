@@ -49,7 +49,7 @@ Images
 == Changelog ==
 
 = 4.6 =
-* Released: March 26, 2024
+* Released: April 2, 2024
 
 https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_4.6
 

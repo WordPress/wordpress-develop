@@ -18,7 +18,7 @@ Whether you’re building a single-page website, a blog, a business website, or 
 == Changelog ==
 
 = 1.7 =
-* Released: March 26, 2024
+* Released: April 2, 2024
 
 https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.7
 
