@@ -2834,7 +2834,7 @@
 		background: #ffffff;
 		width: 100%;
 		height: 100%;
-		visibility: hidden;
+		display: none;
 		position: absolute;
 		left: 0;
 		right: 0;
