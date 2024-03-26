@@ -584,4 +584,70 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
 		);
 	}
+
+	/**
+	 * @ticket 60754
+	 *
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_file_based_template_applies_filter_correctly() {
+		$action = new MockAction();
+		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
+
+		$changes               = new stdClass();
+		$changes->post_name    = 'index';
+		$changes->post_type    = 'wp_template';
+		$changes->post_status  = 'publish';
+		$changes->post_title   = 'Index';
+		$changes->post_excerpt = 'Description of index template.';
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->tax_input    = array(
+			'wp_theme' => get_stylesheet(),
+		);
+
+		inject_ignored_hooked_blocks_metadata_attributes( $changes );
+
+		$args              = $action->get_args();
+		$anchor_block_type = end( $args )[2];
+		$context           = end( $args )[3];
+
+		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+
+		$this->assertInstanceOf( 'WP_Block_Template', $context );
+
+		$this->assertSame(
+			$changes->post_name,
+			$context->slug,
+			'The slug field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_type,
+			$context->type,
+			'The type field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_status,
+			$context->status,
+			'The status field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_title,
+			$context->title,
+			'The title field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_excerpt,
+			$context->description,
+			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
+		);
+		$this->assertSame(
+			$changes->post_content,
+			$context->content,
+			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertTrue(
+			$context->has_theme_file,
+			'The has_theme_file field of the context passed to the hooked_block_types filter isn\'t set to true.'
+		);
+	}
 }
