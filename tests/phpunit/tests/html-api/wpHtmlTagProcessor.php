@@ -2727,4 +2727,49 @@ HTML
 		$this->assertSame( '#text', $processor->get_token_type(), 'Did not find text node.' );
 		$this->assertSame( 'test< /A>', $processor->get_modifiable_text(), 'Did not find complete text node.' );
 	}
+
+	/**
+	 * Ensures that updates which are enqueued in front of the cursor
+	 * are applied before moving forward in the document.
+	 *
+	 * @ticket 60697
+	 */
+	public function test_applies_updates_before_proceeding() {
+		$html = '<div><img></div><div><img></div>';
+
+		$subclass = new class( $html ) extends WP_HTML_Tag_Processor {
+			/**
+			 * Inserts raw text after the current token.
+			 *
+			 * @param string $new_html Raw text to insert.
+			 */
+			public function insert_after( $new_html ) {
+				$this->set_bookmark( 'here' );
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->bookmarks['here']->start + $this->bookmarks['here']->length + 1,
+					0,
+					$new_html
+				);
+			}
+		};
+
+		$subclass->next_tag( 'img' );
+		$subclass->insert_after( '<p>snow-capped</p>' );
+
+		$subclass->next_tag();
+		$this->assertSame(
+			'P',
+			$subclass->get_tag(),
+			'Should have matched inserted HTML as next tag.'
+		);
+
+		$subclass->next_tag( 'img' );
+		$subclass->set_attribute( 'alt', 'mountain' );
+
+		$this->assertSame(
+			'<div><img><p>snow-capped</p></div><div><img alt="mountain"></div>',
+			$subclass->get_updated_html(),
+			'Should have properly applied the update from in front of the cursor.'
+		);
+	}
 }

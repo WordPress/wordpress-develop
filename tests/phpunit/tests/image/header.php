@@ -108,25 +108,6 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		$this->assertSame( 1200, $dimensions['dst_height'] );
 	}
 
-	public function test_create_attachment_object() {
-		$id = wp_insert_attachment(
-			array(
-				'post_status' => 'publish',
-				'post_title'  => 'foo.png',
-				'post_type'   => 'post',
-				'guid'        => 'http://localhost/foo.png',
-			)
-		);
-
-		$cropped = 'foo-cropped.png';
-
-		$object = $this->custom_image_header->create_attachment_object( $cropped, $id );
-		$this->assertSame( 'foo-cropped.png', $object['post_title'] );
-		$this->assertSame( 'http://localhost/' . $cropped, $object['guid'] );
-		$this->assertSame( 'custom-header', $object['context'] );
-		$this->assertSame( 'image/jpeg', $object['post_mime_type'] );
-	}
-
 	public function test_insert_cropped_attachment() {
 		$id = wp_insert_attachment(
 			array(
@@ -138,7 +119,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 		);
 
 		$cropped = 'foo-cropped.png';
-		$object  = $this->custom_image_header->create_attachment_object( $cropped, $id );
+		$object  = wp_copy_parent_attachment_properties( $cropped, $id, 'custom-header' );
 
 		$cropped_id = $this->custom_image_header->insert_attachment( $object, $cropped );
 
@@ -161,7 +142,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 		// Create inital crop object.
 		$cropped_1 = 'foo-cropped-1.png';
-		$object    = $this->custom_image_header->create_attachment_object( $cropped_1, $id );
+		$object    = wp_copy_parent_attachment_properties( $cropped_1, $id, 'custom-header' );
 
 		// Ensure no previous crop exists.
 		$previous = $this->custom_image_header->get_previous_crop( $object );
@@ -175,7 +156,7 @@ class Tests_Image_Header extends WP_UnitTestCase {
 
 		// Create second crop.
 		$cropped_2 = 'foo-cropped-2.png';
-		$object    = $this->custom_image_header->create_attachment_object( $cropped_2, $id );
+		$object    = wp_copy_parent_attachment_properties( $cropped_2, $id );
 
 		// Test that a previous crop is found.
 		$previous = $this->custom_image_header->get_previous_crop( $object );
