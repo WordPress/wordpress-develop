@@ -141,23 +141,48 @@ function wp_default_packages_vendor( $scripts ) {
 	did_action( 'init' ) && $scripts->add_inline_script(
 		'moment',
 		sprintf(
-			"moment.updateLocale( '%s', %s );",
-			get_user_locale(),
+			"( function( settings ) {
+				moment.defineLocale( settings.locale, {
+					parentLocale: 'en', // We don't load moment-with-locales.js, so English is all there is.
+					months: settings.months,
+					monthsShort: settings.monthsShort,
+					weekdays: settings.weekdays,
+					weekdaysShort: settings.weekdaysShort,
+					week: {
+						dow: settings.dow,
+						doy: 7 + settings.dow - 1,
+					},
+					meridiem: function( hour, minute, isLowercase ) {
+						if ( hour < 12 ) {
+							return isLowercase ? settings.meridiem.am : settings.meridiem.AM;
+						}
+						return isLowercase ? settings.meridiem.pm : settings.meridiem.PM;
+					},
+					longDateFormat: {
+						LT: settings.longDateFormat.LT,
+						LTS: moment.localeData( 'en' ).longDateFormat( 'LTS' ),
+						L: moment.localeData( 'en' ).longDateFormat( 'L' ),
+						LL: settings.longDateFormat.LL,
+						LLL: settings.longDateFormat.LLL,
+						LLLL: moment.localeData( 'en' ).longDateFormat( 'LLLL' )
+					}
+				} );
+			} )( %s );",
 			wp_json_encode(
 				array(
+					'locale'         => get_user_locale(),
 					'months'         => array_values( $wp_locale->month ),
 					'monthsShort'    => array_values( $wp_locale->month_abbrev ),
 					'weekdays'       => array_values( $wp_locale->weekday ),
 					'weekdaysShort'  => array_values( $wp_locale->weekday_abbrev ),
-					'week'           => array(
-						'dow' => (int) get_option( 'start_of_week', 0 ),
-					),
+					'dow'            => (int) get_option( 'start_of_week', 0 ),
+					'meridiem'       => (object) $wp_locale->meridiem,
 					'longDateFormat' => array(
-						'LT'   => get_option( 'time_format', __( 'g:i a' ) ),
+						'LT'   => wp_convert_php_datetime_format_to_moment_js( get_option( 'time_format', __( 'g:i a' ) ) ),
 						'LTS'  => null,
 						'L'    => null,
-						'LL'   => get_option( 'date_format', __( 'F j, Y' ) ),
-						'LLL'  => __( 'F j, Y g:i a' ),
+						'LL'   => wp_convert_php_datetime_format_to_moment_js( get_option( 'date_format', __( 'F j, Y' ) ) ),
+						'LLL'  => wp_convert_php_datetime_format_to_moment_js( __( 'F j, Y g:i a' ) ),
 						'LLLL' => null,
 					),
 				)
@@ -165,6 +190,63 @@ function wp_default_packages_vendor( $scripts ) {
 		),
 		'after'
 	);
+}
+
+/**
+ * Convert a PHP datetime format to moment JS format
+ *
+ * @since x.x.x
+ *
+ * @param string php_format The php datetime format to convert (see https://www.php.net/manual/en/datetime.format.php)
+ * @return string The converted momentJS format (see https://momentjs.com/docs/#/displaying/format/)
+ */
+function wp_convert_php_datetime_format_to_moment_js( $php_format ) {
+	$format_map = array(
+		'd' => 'DD',
+		'D' => 'ddd',
+		'j' => 'D',
+		'l' => 'dddd',
+		'N' => 'E',
+		'w' => 'd',
+		'W' => 'W',
+		'F' => 'MMMM',
+		'm' => 'MM',
+		'M' => 'MMM',
+		'n' => 'M',
+		'o' => 'GGGG',
+		'Y' => 'YYYY',
+		'y' => 'YY',
+		'a' => 'a',
+		'A' => 'A',
+		'g' => 'h',
+		'G' => 'H',
+		'h' => 'hh',
+		'H' => 'HH',
+		'i' => 'mm',
+		's' => 'ss',
+		'u' => 'X',
+		'e' => 'z',
+		'O' => 'ZZ',
+		'P' => 'Z',
+		'T' => 'z',
+		'c' => 'YYYY-MM-DD[T]HH:mm:ssZ',
+		'r' => 'ddd, DD MMM YYYY HH:mm:ss ZZ',
+		'U' => 'X',
+	);
+
+	$has_backslash    = false;
+	$moment_js_format = '';
+	$php_format_chars = str_split( $php_format );
+	foreach ( $php_format_chars as $char ) {
+		if ( '\\' === $char && ! $has_backslash ) {
+			$has_backslash = true;
+			continue;
+		}
+		$moment_js_format .= $has_backslash || ! isset( $format_map[ $char ] ) ? '[' . $char . ']' : $format_map[ $char ];
+		$has_backslash = false;
+	}
+
+	return $moment_js_format;
 }
 
 /**
