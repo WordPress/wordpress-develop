@@ -638,4 +638,65 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			'The has_theme_file field of the context passed to the hooked_block_types filter isn\'t set to true.'
 		);
 	}
+
+	/**
+	 * @ticket 60754
+	 *
+	 * @covers inject_ignored_hooked_blocks_metadata_attributes
+	 */
+	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_file_based_template_part_applies_filter_correctly() {
+		$action = new MockAction();
+		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
+
+		$changes               = new stdClass();
+		$changes->post_name    = 'small-header';
+		$changes->post_type    = 'wp_template_part';
+		$changes->post_status  = 'publish';
+		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->tax_input    = array(
+			'wp_theme' => get_stylesheet(),
+		);
+
+		$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_HEADER;
+
+		inject_ignored_hooked_blocks_metadata_attributes( $changes );
+
+		$args              = $action->get_args();
+		$anchor_block_type = end( $args )[2];
+		$context           = end( $args )[3];
+
+		$this->assertSame( 'tests/anchor-block', $anchor_block_type );
+
+		$this->assertInstanceOf( 'WP_Block_Template', $context );
+
+		$this->assertSame(
+			$changes->post_name,
+			$context->slug,
+			'The slug field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_type,
+			$context->type,
+			'The type field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_status,
+			$context->status,
+			'The status field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertSame(
+			$changes->post_content,
+			$context->content,
+			'The content field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+		$this->assertTrue(
+			$context->has_theme_file,
+			'The has_theme_file field of the context passed to the hooked_block_types filter isn\'t set to true.'
+		);
+		$this->assertSame(
+			$changes->tax_input['wp_template_part_area'],
+			$context->area,
+			'The area field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
+	}
 }
