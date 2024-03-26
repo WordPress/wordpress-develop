@@ -248,6 +248,60 @@ function get_option( $option, $default_value = false ) {
 }
 
 /**
+ *
+ * @since 6.6.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ *
+ * @param string[] $options An array of option names to be loaded.
+ */
+function wp_prime_network_option_caches( $network_id = null, array $options = array() ) {
+	global $wpdb;
+
+	if ( ! is_multisite() || wp_installing() ) {
+		return;
+	}
+
+	if ( empty( $network_id ) ) {
+		$network_id = get_current_network_id();
+	}
+
+	$cache_keys = array();
+	foreach ( $options as $option ) {
+		$cache_keys[] = "{$network_id}:{$option}";
+	}
+
+	$cached_options = wp_cache_get_multiple( $cache_keys, 'site-options' );
+
+	// Filter options that are not in the cache.
+	$options_to_prime = array();
+	foreach ( $options as $option ) {
+		if ( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] ) {
+			$options_to_prime[] = $option;
+		}
+	}
+
+	// Bail early if there are no options to be loaded.
+	if ( empty( $options_to_prime ) ) {
+		return;
+	}
+
+	$core_options_in = "'" . implode( "', '", $options_to_prime ) . "'";
+	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
+
+	$data = array();
+	foreach ( $options as $option ) {
+		$key                = $option->meta_key;
+		$cache_key          = "{$network_id}:$key";
+		$option->meta_value = maybe_unserialize( $option->meta_value );
+
+		$data[ $cache_key ] = $option->meta_value;
+	}
+	wp_cache_set_multiple( $data, 'site-options' );
+}
+
+/**
  * Primes specific options into the cache with a single database query.
  *
  * Only options that do not already exist in cache will be loaded.
@@ -652,40 +706,9 @@ function wp_load_alloptions( $force_cache = false ) {
  * @param int $network_id Optional. Network ID of network for which to prime network options cache. Defaults to current network.
  */
 function wp_load_core_site_options( $network_id = null ) {
-	global $wpdb;
-
-	if ( ! is_multisite() || wp_installing() ) {
-		return;
-	}
-
-	if ( empty( $network_id ) ) {
-		$network_id = get_current_network_id();
-	}
-
 	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting' );
 
-	if ( wp_using_ext_object_cache() ) {
-		$cache_keys = array();
-		foreach ( $core_options as $option ) {
-			$cache_keys[] = "{$network_id}:{$option}";
-		}
-		wp_cache_get_multiple( $cache_keys, 'site-options' );
-
-		return;
-	}
-
-	$core_options_in = "'" . implode( "', '", $core_options ) . "'";
-	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
-
-	$data = array();
-	foreach ( $options as $option ) {
-		$key                = $option->meta_key;
-		$cache_key          = "{$network_id}:$key";
-		$option->meta_value = maybe_unserialize( $option->meta_value );
-
-		$data[ $cache_key ] = $option->meta_value;
-	}
-	wp_cache_set_multiple( $data, 'site-options' );
+	wp_prime_network_option_caches( $network_id, $core_options );
 }
 
 /**
