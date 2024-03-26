@@ -7256,11 +7256,6 @@ function get_lastpostmodified( $timezone = 'server', $post_type = 'any' ) {
 	}
 
 	$lastpostmodified = _get_last_post_time( $timezone, 'modified', $post_type );
-	$lastpostdate     = get_lastpostdate( $timezone, $post_type );
-
-	if ( $lastpostdate > $lastpostmodified ) {
-		$lastpostmodified = $lastpostdate;
-	}
 
 	/**
 	 * Filters the most recent time that a post on the site was modified.
