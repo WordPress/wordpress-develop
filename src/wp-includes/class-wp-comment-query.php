@@ -823,9 +823,15 @@ class WP_Comment_Query {
 
 		// Falsey search strings are ignored.
 		if ( isset( $this->query_vars['search'] ) && strlen( $this->query_vars['search'] ) ) {
+			// Some fields contain sensitive information, and can only be queried by privileged users.
+			$allowed_columns = array( 'comment_author', 'comment_author_url', 'comment_content' );
+			if ( current_user_can( 'list_users' ) ) {
+				$allowed_columns[] = 'comment_author_email';
+				$allowed_columns[] = 'comment_author_IP';
+			}
 			$search_sql = $this->get_search_sql(
 				$this->query_vars['search'],
-				array( 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_author_IP', 'comment_content' )
+				$allowed_columns
 			);
 
 			// Strip leading 'AND'.

@@ -8,6 +8,7 @@
 class Tests_Comment_Query extends WP_UnitTestCase {
 	protected static $post_id;
 	protected $comment_id;
+	protected static $users;
 
 	/**
 	 * Temporary storage for comment exclusions to allow a filter to access these.
@@ -21,7 +22,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	private $to_exclude;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create();
+		self::$post_id        = $factory->post->create();
+		self::$users['admin'] = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 
 	public function tear_down() {
@@ -2540,6 +2542,84 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_search() {
+		$c1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'user_id'              => 4,
+				'comment_approved'     => '0',
+				'comment_author'       => 'foo',
+				'comment_author_email' => 'bar@example.com',
+			)
+		);
+		$c2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'user_id'              => 4,
+				'comment_approved'     => '0',
+				'comment_author'       => 'bar',
+				'comment_author_email' => 'foo@example.com',
+			)
+		);
+		$c3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'user_id'              => 4,
+				'comment_approved'     => '0',
+				'comment_author'       => 'bar',
+				'comment_author_email' => 'bar@example.com',
+				'comment_author_url'   => 'http://foo.bar',
+			)
+		);
+		$c4 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'user_id'              => 4,
+				'comment_approved'     => '0',
+				'comment_author'       => 'bar',
+				'comment_author_email' => 'bar@example.com',
+				'comment_author_url'   => 'http://example.com',
+				'comment_author_IP'    => 'foo.bar',
+			)
+		);
+		$c5 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'user_id'              => 4,
+				'comment_approved'     => '0',
+				'comment_author'       => 'bar',
+				'comment_author_email' => 'bar@example.com',
+				'comment_author_url'   => 'http://example.com',
+				'comment_content'      => 'Nice foo comment',
+			)
+		);
+		$c6 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'user_id'              => 4,
+				'comment_approved'     => '0',
+				'comment_author'       => 'bar',
+				'comment_author_email' => 'bar@example.com',
+				'comment_author_url'   => 'http://example.com',
+			)
+		);
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'search' => 'foo',
+				'fields' => 'ids',
+			)
+		);
+
+		$this->assertSameSets( array( $c1, $c3, $c5 ), $found );
+	}
+
+	/**
+	 * @ticket 53784
+	 */
+	public function test_search_high_privileged_user() {
+		wp_set_current_user( self::$users['admin'] );
+
 		$c1 = self::factory()->comment->create(
 			array(
 				'comment_post_ID'      => self::$post_id,
