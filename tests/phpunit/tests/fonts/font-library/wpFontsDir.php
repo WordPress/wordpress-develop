@@ -15,23 +15,58 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
+		$upload_dir = wp_get_upload_dir();
 
 		static::$dir_defaults = array(
-			'path'    => path_join( WP_CONTENT_DIR, 'fonts' ),
-			'url'     => content_url( 'fonts' ),
+			'path'    => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+			'url'     => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 			'subdir'  => '',
-			'basedir' => path_join( WP_CONTENT_DIR, 'fonts' ),
-			'baseurl' => content_url( 'fonts' ),
+			'basedir' => untrailingslashit( $upload_dir['basedir'] ) . '/fonts',
+			'baseurl' => untrailingslashit( $upload_dir['baseurl'] ) . '/fonts',
 			'error'   => false,
 		);
 	}
 
+	/**
+	 * Ensure the font directory is correct.
+	 */
 	public function test_fonts_dir() {
 		$font_dir = wp_get_font_dir();
 
 		$this->assertSame( $font_dir, static::$dir_defaults );
 	}
 
+	/**
+	 * Ensure that the fonts directory is correct for a multisite installation.
+	 *
+	 * The main site will use the default location and others will follow a pattern of  `/sites/{$blog_id}/fonts`
+	 *
+	 * @group multisite
+	 * @group ms-required
+	 */
+	public function test_fonts_dir_for_multisite() {
+		$blog_id              = self::factory()->blog->create();
+		$main_site_upload_dir = wp_get_upload_dir();
+		switch_to_blog( $blog_id );
+
+		$actual   = wp_get_font_dir();
+		$expected = array(
+			'path'    => untrailingslashit( $main_site_upload_dir['basedir'] ) . "/sites/{$blog_id}/fonts",
+			'url'     => untrailingslashit( $main_site_upload_dir['baseurl'] ) . "/sites/{$blog_id}/fonts",
+			'subdir'  => '',
+			'basedir' => untrailingslashit( $main_site_upload_dir['basedir'] ) . "/sites/{$blog_id}/fonts",
+			'baseurl' => untrailingslashit( $main_site_upload_dir['baseurl'] ) . "/sites/{$blog_id}/fonts",
+			'error'   => false,
+		);
+
+		// Restore blog prior to assertions.
+		restore_current_blog();
+		$this->assertSameSets( $expected, $actual );
+	}
+
+	/**
+	 * Ensure modifying the font directory via the 'font_dir' filter works.
+	 */
 	public function test_fonts_dir_with_filter() {
 		// Define a callback function to pass to the filter.
 		function set_new_values( $defaults ) {
@@ -71,6 +106,8 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure infinite loops are not triggered when filtering the font uploads directory.
+	 *
 	 * @ticket 60652
 	 */
 	public function test_fonts_dir_filters_do_not_trigger_infinite_loop() {
