@@ -16,7 +16,16 @@
 class WP_Plugin_Dependencies {
 
 	/**
-	 * Holds 'get_plugins()'.
+	 * Holds Must-Use plugins.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @var array
+	 */
+	protected static $mustuse_plugins;
+
+	/**
+	 * Holds plugins and Must-Use plugins.
 	 *
 	 * @since 6.5.0
 	 *
@@ -240,7 +249,10 @@ class WP_Plugin_Dependencies {
 		foreach ( self::$dependencies[ $plugin_file ] as $dependency ) {
 			$dependency_filepath = self::get_dependency_filepath( $dependency );
 
-			if ( false === $dependency_filepath || is_plugin_inactive( $dependency_filepath ) ) {
+			if (
+				false === $dependency_filepath ||
+				( ! isset( self::$mustuse_plugins[ $dependency_filepath ] ) && is_plugin_inactive( $dependency_filepath ) )
+			) {
 				return true;
 			}
 		}
@@ -544,7 +556,8 @@ class WP_Plugin_Dependencies {
 		}
 
 		require_once ABSPATH . '/wp-admin/includes/plugin.php';
-		self::$plugins = get_plugins();
+		self::$mustuse_plugins = get_mu_plugins();
+		self::$plugins         = array_merge( get_plugins(), self::$mustuse_plugins );
 
 		return self::$plugins;
 	}
@@ -604,7 +617,7 @@ class WP_Plugin_Dependencies {
 			$slug = apply_filters( 'wp_plugin_dependencies_slug', $slug );
 
 			// Match to WordPress.org slug format.
-			if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*$/mu', $slug ) ) {
+			if ( preg_match( '/^[a-z0-9]+(-[a-z0-9]+)*?(\.php)?$/mu', $slug ) ) {
 				$sanitized_slugs[] = $slug;
 			}
 		}
@@ -871,9 +884,12 @@ class WP_Plugin_Dependencies {
 	 * @return string The plugin's slug.
 	 */
 	protected static function convert_to_slug( $plugin_file ) {
+		$plugin_file = trim( $plugin_file, " \n\r\t\v\x00./" );
+
 		if ( 'hello.php' === $plugin_file ) {
 			return 'hello-dolly';
 		}
-		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : str_replace( '.php', '', $plugin_file );
+
+		return str_contains( $plugin_file, '/' ) ? dirname( $plugin_file ) : basename( $plugin_file );
 	}
 }

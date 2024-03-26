@@ -22,8 +22,8 @@ class Tests_Admin_WPPluginDependencies_HasDependents extends WP_PluginDependenci
 	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_plugin_has_dependents() {
-		$this->set_property_value( 'dependency_slugs', array( 'dependent' ) );
-		$this->assertTrue( self::$instance::has_dependents( 'dependent/dependent.php' ) );
+		$this->set_property_value( 'dependency_slugs', array( 'dependency' ) );
+		$this->assertTrue( self::$instance::has_dependents( 'dependency/dependency.php' ) );
 	}
 
 	/**
@@ -32,8 +32,8 @@ class Tests_Admin_WPPluginDependencies_HasDependents extends WP_PluginDependenci
 	 * @ticket 22316
 	 */
 	public function test_should_return_true_when_a_single_file_plugin_has_dependents() {
-		$this->set_property_value( 'dependency_slugs', array( 'dependent' ) );
-		$this->assertTrue( self::$instance::has_dependents( 'dependent.php' ) );
+		$this->set_property_value( 'dependency_slugs', array( 'dependency.php' ) );
+		$this->assertTrue( self::$instance::has_dependents( 'dependency.php' ) );
 	}
 
 	/**
@@ -42,8 +42,8 @@ class Tests_Admin_WPPluginDependencies_HasDependents extends WP_PluginDependenci
 	 * @ticket 22316
 	 */
 	public function test_should_return_false_when_a_plugin_has_no_dependents() {
-		$this->set_property_value( 'dependency_slugs', array( 'dependent2' ) );
-		$this->assertFalse( self::$instance::has_dependents( 'dependent/dependent.php' ) );
+		$this->set_property_value( 'dependency_slugs', array( 'dependency2' ) );
+		$this->assertFalse( self::$instance::has_dependents( 'dependency/dependency.php' ) );
 	}
 
 	/**
