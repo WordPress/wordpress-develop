@@ -395,6 +395,13 @@ function wp_functionality_constants() {
 	if ( ! defined( 'WP_CRON_LOCK_TIMEOUT' ) ) {
 		define( 'WP_CRON_LOCK_TIMEOUT', MINUTE_IN_SECONDS );
 	}
+
+	/**
+	 * @since 6.0.0
+	 */
+	if ( ! defined( 'WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS' ) ) {
+		define( 'WP_OBJECT_CACHE_IGNORE_GLOBAL_GROUPS', false );
+	}
 }
 
 /**
