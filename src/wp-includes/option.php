@@ -806,7 +806,7 @@ function update_option( $option, $value, $autoload = null ) {
 			$autoload = 'yes';
 		}
 
-		return add_option( $option, $value, '', $autoload );
+		return _add_option( $option, $value, $autoload );
 	}
 
 	$serialized_value = maybe_serialize( $value );
@@ -916,8 +916,6 @@ function update_option( $option, $value, $autoload = null ) {
  *
  * @since 1.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
  * @param string      $option     Name of the option to add. Expected to not be SQL-escaped.
  * @param mixed       $value      Optional. Option value. Must be serializable if non-scalar.
  *                                Expected to not be SQL-escaped.
@@ -932,7 +930,6 @@ function update_option( $option, $value, $autoload = null ) {
  * @return bool True if the option was added, false otherwise.
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
-	global $wpdb;
 
 	if ( ! empty( $deprecated ) ) {
 		_deprecated_argument( __FUNCTION__, '2.3.0' );
@@ -976,6 +973,39 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	$value = sanitize_option( $option, $value );
+
+	return _add_option( $option, $value, $autoload );
+}
+
+/**
+ * Adds a new option.
+ *
+ * Warning: No checks are performed to ensure that you aren't adding a
+ * protected WordPress option. Do not use those which are protected. The value
+ * is expected to be filtered and sanitized. This is an internal function
+ * solely to prevent double-processing the value when update_option() detects
+ * the option does not yet exist. Use add_option() instead.
+ *
+ * @since X.X.X
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string      $option     Name of the option to add. Expected to not be SQL-escaped.
+ *                                Must have already passed through wp_protect_special_option().
+ * @param mixed       $value      Pre-sanitized and cloned option value. Must be serializable if non-scalar.
+ *                                Expected to not be SQL-escaped.
+ * @param string|bool $autoload   Whether to load the option when WordPress starts up.
+ *                                Accepts 'yes'|true to enable or 'no'|false to disable.
+ *                                Autoloading too many options can lead to performance problems, especially if the
+ *                                options are not frequently used. For options which are accessed across several places
+ *                                in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                                For options which are accessed only on few specific URLs, it is recommended
+ *                                to not autoload them, by using 'no'|false. Default 'yes'.
+ * @return bool True if the option was added, false otherwise.
+ */
+function _add_option( $option, $value, $autoload ) {
+	global $wpdb;
 
 	/*
 	 * Make sure the option doesn't already exist.

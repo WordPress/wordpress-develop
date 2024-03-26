@@ -220,6 +220,44 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21989
+	 *
+	 * @covers ::add_option
+	 * @covers ::add_filter
+	 * @covers ::update_option
+	 * @covers ::remove_filter
+	 * @covers ::get_option
+	 */
+	public function test_stored_sanitized_value_from_update_of_nonexistent_option_should_be_same_as_that_from_add_option() {
+		$before    = 'x';
+		$sanitized = $this->_append_y( $before );
+
+		// Add the comparison option, it did not exist before this.
+		add_filter( 'sanitize_option_doesnotexist_filtered_add', array( $this, '_append_y' ) );
+		add_option( 'doesnotexist_filtered_add', $before );
+		remove_filter( 'sanitize_option_doesnotexist_filtered_add', array( $this, '_append_y' ) );
+
+		// Add the option, it did not exist before this.
+		add_filter( 'sanitize_option_doesnotexist_filtered_update', array( $this, '_append_y' ) );
+		$added = update_option( 'doesnotexist_filtered_update', $before );
+		remove_filter( 'sanitize_option_doesnotexist_filtered_update', array( $this, '_append_y' ) );
+
+		$after = get_option( 'doesnotexist_filtered_update' );
+
+		// Check all values match.
+		$this->assertTrue( $added );
+		$this->assertSame( get_option( 'doesnotexist_filtered_add' ), $after );
+		$this->assertSame( $sanitized, $after );
+	}
+
+	/**
+	 * `add_filter()` callback for test_stored_sanitized_value_from_update_of_nonexistent_option_should_be_same_as_that_from_add_option().
+	 */
+	public function _append_y( $value ) {
+		return $value . '_y';
+	}
+
+	/**
 	 * `add_filter()` callback for test_should_respect_default_option_filter_when_option_does_not_yet_exist_in_database().
 	 */
 	public function __return_foo() {
