@@ -2232,7 +2232,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
 		$this->assertSame(
-			array( 320.0, 48.0, 64.0, 24.0 ),
+			array( 320, 48, 64, 24 ),
 			WP_Image_Editor_Mock::$spy['crop'][0]
 		);
 	}
