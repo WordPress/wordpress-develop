@@ -743,18 +743,12 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
 
 	$default_template_types = get_default_block_template_types();
 
-	$post_id = wp_is_post_revision( $post );
-	if ( ! $post_id ) {
-		$post_id = $post;
-	}
-	$parent_post = get_post( $post_id );
-
 	$template_file  = _get_block_template_file( $post->post_type, $post->post_name );
 	$has_theme_file = get_stylesheet() === $theme && null !== $template_file;
 
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
-	$template->id             = $theme . '//' . $parent_post->post_name;
+	$template->id             = $theme . '//' . $post->post_name;
 	$template->theme          = $theme;
 	$template->content        = $post->post_content;
 	$template->slug           = $post->post_name;
@@ -769,15 +763,15 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
 	$template->author         = $post->post_author;
 	$template->modified       = $post->post_modified;
 
-	if ( 'wp_template' === $parent_post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
+	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
 	}
 
-	if ( 'wp_template' === $parent_post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
+	if ( 'wp_template' === $post->post_type && isset( $default_template_types[ $template->slug ] ) ) {
 		$template->is_custom = false;
 	}
 
-	if ( 'wp_template_part' === $parent_post->post_type && isset( $terms['wp_template_part_area'] ) ) {
+	if ( 'wp_template_part' === $post->post_type && isset( $terms['wp_template_part_area'] ) ) {
 		$template->area = $terms['wp_template_part_area'];
 	}
 
@@ -800,7 +794,9 @@ function _build_block_template_result_from_post( $post ) {
 	if ( ! $post_id ) {
 		$post_id = $post;
 	}
-	$parent_post = get_post( $post_id );
+	$parent_post     = get_post( $post_id );
+	$post->post_name = $parent_post->post_name;
+	$post->post_type = $parent_post->post_type;
 
 	$terms = get_the_terms( $parent_post, 'wp_theme' );
 
@@ -1502,8 +1498,18 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes ) {
 		// There's no post object for this template in the database for this template yet.
 		$post = $changes;
 	} else {
-		// Apply changes to the existing post object.
+		// Find the existing post object.
 		$post = get_post( $changes->ID );
+
+		// If the post is a revision, use the parent post's post_name and post_type.
+		$post_id = wp_is_post_revision( $post );
+		if ( $post_id ) {
+			$parent_post     = get_post( $post_id );
+			$post->post_name = $parent_post->post_name;
+			$post->post_type = $parent_post->post_type;
+		}
+
+		// Apply the changes to the existing post object.
 		$post = (object) array_merge( (array) $post, (array) $changes );
 
 		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
