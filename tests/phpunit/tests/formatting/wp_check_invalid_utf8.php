@@ -7,17 +7,17 @@
  *
  * @covers ::wp_check_invalid_utf8
  */
-class Tests_formatting_wp_check_invalid_utf8 extends WP_UnitTestCase{
+class Tests_formatting_wp_check_invalid_utf8 extends WP_UnitTestCase {
 
-    /**
-     * @ticket 29717
-     *
-     * @param string $string
-     * @param bool $force
-     * @param string $expected
-     *
-     * @dataProvider data_wp_check_invalid_utf8
-     */
+	/**
+	 * @ticket 29717
+	 *
+	 * @param string $string
+	 * @param bool $force
+	 * @param string $expected
+	 *
+	 * @dataProvider data_wp_check_invalid_utf8
+	 */
     public function test_wp_check_invalid_utf8( $string, $force, $expected ) {
 
         $this->assertSame( $expected, wp_check_invalid_utf8( $string, $force ) );
