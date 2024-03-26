@@ -173,22 +173,22 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions',
+			'/wp/v2/templates/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/revisions',
 			$routes,
 			'Template revisions route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/templates/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/revisions/(?P<id>[\d]+)',
 			$routes,
 			'Single template revision based on the given ID route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions',
+			'/wp/v2/template-parts/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/revisions',
 			$routes,
 			'Template part revisions route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/revisions/(?P<id>[\d]+)',
+			'/wp/v2/template-parts/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/revisions/(?P<id>[\d]+)',
 			$routes,
 			'Single template part revision based on the given ID route does not exist.'
 		);
@@ -492,6 +492,66 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 				"The '%s' controller doesn't currently support the ability to update template revisions.",
 				WP_REST_Template_Revisions_Controller::class
 			)
+		);
+	}
+
+	/**
+	 * Test that the routes defined in WP_REST_Template_Revisions_Controller::register_routes method
+	 * don't match requests containing parent theme, e.g. /parent_theme/child_theme/template_name.
+	 *
+	 * @ticket 59635
+	 *
+	 * @covers WP_REST_Template_Revisions_Controller::register_routes
+	 *
+	 * @dataProvider data_template_revisions_controller_is_not_matched_for_requests_with_parent_theme
+	 *
+	 * @param $route string Route to be tested.
+	 */
+	public function test_template_revisions_controller_is_not_matched_for_requests_with_parent_theme( $route ) {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', $route );
+
+		$response = rest_get_server()->dispatch( $request );
+		$handler  = $response->get_matched_handler();
+		$this->assertIsArray( $handler, 'The matched handler is not an array.' );
+		$this->assertArrayHasKey( 'callback', $handler, 'The handler array does not contain a "callback" key.' );
+		$this->assertIsArray( $handler['callback'], 'The "callback" value in the handler array is not an array.' );
+
+		$this->assertArrayHasKey( 0, $handler['callback'], 'The "callback" array does not contain the expected index 0.' );
+		$this->assertNotInstanceOf(
+			WP_REST_Template_Revisions_Controller::class,
+			$handler['callback'][0],
+			'The WP_REST_Template_Revisions_Controller controller should not be matched for this request.'
+		);
+	}
+
+	public function data_template_revisions_controller_is_not_matched_for_requests_with_parent_theme() {
+		return array(
+			'get all revisions for a template'          => array(
+				'/wp/v2/templates/parent_theme/child_theme/template_name/revisions',
+			),
+			'get all revisions for a template (double slash)' => array(
+				'/wp/v2/templates/parent_theme/child_theme//template_name/revisions',
+			),
+			'get a single revision for a template'      => array(
+				'/wp/v2/templates/theme_name/parent_theme_name/template_name/revisions/1',
+			),
+			'get a single revision for a template (double slash)' => array(
+				'/wp/v2/templates/parent_theme/child_theme//template_name/revisions/1',
+			),
+			'get all revisions for a template part'     => array(
+				'/wp/v2/template-parts/theme_name/parent_theme_name/template_name/revisions',
+			),
+			'get all revisions for a template part (double slash)' => array(
+				'/wp/v2/template-parts/parent_theme/child_theme//template_name/revisions',
+			),
+			'get a single revision for a template part' => array(
+				'/wp/v2/template-parts/theme_name/parent_theme_name/template_name/revisions/1',
+			),
+			'get a single revision for a template part (double slash)' => array(
+				'/wp/v2/template-parts/parent_theme/child_theme//template_name/revisions/1',
+			),
 		);
 	}
 

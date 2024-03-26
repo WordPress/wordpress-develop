@@ -77,12 +77,13 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 				'/%s/(?P<parent>%s%s)/%s',
 				$this->parent_base,
 				/*
-				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				 * Matches the theme's directory, followed by one or two forward slashes.
+				 * Slashes serve as a delimiter between the theme name and template name.
 				 * Excludes invalid directory name characters: `/:<>*?"|`.
 				 */
-				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				'[^\/:<>\*\?"\|]+\/{1,2}',
 				// Matches the template name.
-				'[\/\w%-]+',
+				'[\w%-]+',
 				$this->rest_base
 			),
 			array(
@@ -109,12 +110,13 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 				'/%s/(?P<parent>%s%s)/%s/%s',
 				$this->parent_base,
 				/*
-				 * Matches theme's directory: `/themes/<subdirectory>/<theme>/` or `/themes/<theme>/`.
+				 * Matches the theme's directory, followed by one or two forward slashes.
+				 * Slashes serve as a delimiter between the theme name and template name.
 				 * Excludes invalid directory name characters: `/:<>*?"|`.
 				 */
-				'([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)',
+				'[^\/:<>\*\?"\|]+\/{1,2}',
 				// Matches the template name.
-				'[\/\w%-]+',
+				'[\w%-]+',
 				$this->rest_base,
 				'(?P<id>[\d]+)'
 			),

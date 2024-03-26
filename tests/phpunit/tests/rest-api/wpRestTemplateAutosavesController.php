@@ -95,22 +95,22 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves',
+			'/wp/v2/templates/(?P<id>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves',
 			$routes,
 			'Template autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/templates/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/templates/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves/(?P<id>[\d]+)',
 			$routes,
 			'Single template autosave based on the given ID route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/template-parts/(?P<id>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves',
+			'/wp/v2/template-parts/(?P<id>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves',
 			$routes,
 			'Template part autosaves route does not exist.'
 		);
 		$this->assertArrayHasKey(
-			'/wp/v2/template-parts/(?P<parent>([^\/:<>\*\?"\|]+(?:\/[^\/:<>\*\?"\|]+)?)[\/\w%-]+)/autosaves/(?P<id>[\d]+)',
+			'/wp/v2/template-parts/(?P<parent>[^\/:<>\*\?"\|]+\/{1,2}[\w%-]+)/autosaves/(?P<id>[\d]+)',
 			$routes,
 			'Single template part autosave based on the given ID route does not exist.'
 		);
@@ -385,6 +385,66 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$request     = new WP_REST_Request( 'POST', '/wp/v2/templates/' . $template_id . '/autosaves' );
 		$response    = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, WP_Http::UNAUTHORIZED );
+	}
+
+	/**
+	 * Test that the routes defined in WP_REST_Template_Autosaves_Controller::register_routes method
+	 * don't match requests containing parent theme, e.g. /parent_theme/child_theme/template_name.
+	 *
+	 * @ticket 59635
+	 *
+	 * @covers WP_REST_Template_Autosaves_Controller::register_routes
+	 *
+	 * @dataProvider data_template_autosaves_controller_is_not_matched_for_requests_with_parent_theme
+	 *
+	 * @param $route string Route to be tested.
+	 */
+	public function test_template_autosaves_controller_is_not_matched_for_requests_with_parent_theme( $route ) {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', $route );
+
+		$response = rest_get_server()->dispatch( $request );
+		$handler  = $response->get_matched_handler();
+		$this->assertIsArray( $handler, 'The matched handler is not an array.' );
+		$this->assertArrayHasKey( 'callback', $handler, 'The handler array does not contain a "callback" key.' );
+		$this->assertIsArray( $handler['callback'], 'The "callback" value in the handler array is not an array.' );
+
+		$this->assertArrayHasKey( 0, $handler['callback'], 'The "callback" array does not contain the expected index 0.' );
+		$this->assertNotInstanceOf(
+			WP_REST_Template_Autosaves_Controller::class,
+			$handler['callback'][0],
+			'The WP_REST_Template_Autosaves_Controller controller should not be matched for this request.'
+		);
+	}
+
+	public function data_template_autosaves_controller_is_not_matched_for_requests_with_parent_theme() {
+		return array(
+			'get all autosaves for a template'          => array(
+				'/wp/v2/templates/parent_theme/child_theme/template_name/autosaves',
+			),
+			'get all autosaves for a template (double slash)' => array(
+				'/wp/v2/templates/parent_theme/child_theme//template_name/autosaves',
+			),
+			'get a single autosave for a template'      => array(
+				'/wp/v2/templates/theme_name/parent_theme_name/template_name/autosaves/1',
+			),
+			'get a single autosave for a template (double slash)' => array(
+				'/wp/v2/templates/parent_theme/child_theme//template_name/autosaves/1',
+			),
+			'get all autosaves for a template part'     => array(
+				'/wp/v2/template-parts/theme_name/parent_theme_name/template_name/autosaves',
+			),
+			'get all autosaves for a template part (double slash)' => array(
+				'/wp/v2/template-parts/parent_theme/child_theme//template_name/autosaves',
+			),
+			'get a single autosave for a template part' => array(
+				'/wp/v2/template-parts/theme_name/parent_theme_name/template_name/autosaves/1',
+			),
+			'get a single autosave for a template part (double slash)' => array(
+				'/wp/v2/template-parts/parent_theme/child_theme//template_name/autosaves/1',
+			),
+		);
 	}
 
 	/**
