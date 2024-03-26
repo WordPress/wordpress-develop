@@ -4500,6 +4500,7 @@ function paginate_links( $args = '' ) {
 		'add_fragment'       => '',
 		'before_page_number' => '',
 		'after_page_number'  => '',
+		'links_aria_label'   => __( 'Page' ),
 	);
 
 	$args = wp_parse_args( $args, $defaults );
@@ -4555,7 +4556,7 @@ function paginate_links( $args = '' ) {
 		$link .= $args['add_fragment'];
 
 		$page_links[] = sprintf(
-			'<a class="prev page-numbers" href="%s">%s</a>',
+			'<a class="prev page-numbers" href="%s" aria-label="%s">%s</a>',
 			/**
 			 * Filters the paginated links for the given archive pages.
 			 *
@@ -4587,9 +4588,11 @@ function paginate_links( $args = '' ) {
 				$link .= $args['add_fragment'];
 
 				$page_links[] = sprintf(
-					'<a class="page-numbers" href="%s">%s</a>',
+					'<a class="page-numbers" href="%s" aria-label="%s">%s</a>',
 					/** This filter is documented in wp-includes/general-template.php */
 					esc_url( apply_filters( 'paginate_links', $link ) ),
+					esc_attr( $args['links_aria_label'] . ' ' . number_format_i18n( $n ) ),
+					esc_attr( $args['prev_text'] . ' ' . $args['links_aria_label'] ),
 					$args['before_page_number'] . number_format_i18n( $n ) . $args['after_page_number']
 				);
 
@@ -4614,6 +4617,7 @@ function paginate_links( $args = '' ) {
 			'<a class="next page-numbers" href="%s">%s</a>',
 			/** This filter is documented in wp-includes/general-template.php */
 			esc_url( apply_filters( 'paginate_links', $link ) ),
+			esc_attr( $args['next_text'] . ' ' . $args['links_aria_label'] ),
 			$args['next_text']
 		);
 	endif;
