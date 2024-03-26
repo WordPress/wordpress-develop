@@ -790,24 +790,28 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 			$imagedata['width']  = $imagedata['sizes']['full']['width'];
 		}
 
-		foreach ( $imagedata['sizes'] as $_size => $data ) {
+		foreach ( $imagedata['sizes'] as $_size => $size_data ) {
+			if ( ! is_array( $size_data ) || ! isset( $size_data['width'] ) || ! isset( $size_data['height'] ) ) {
+				continue;
+			}
+
 			// If there's an exact match to an existing image size, short circuit.
-			if ( (int) $data['width'] === (int) $size[0] && (int) $data['height'] === (int) $size[1] ) {
-				$candidates[ $data['width'] * $data['height'] ] = $data;
+			if ( (int) $size_data['width'] === (int) $size[0] && (int) $size_data['height'] === (int) $size[1] ) {
+				$candidates[ $size_data['width'] * $size_data['height'] ] = $size_data;
 				break;
 			}
 
 			// If it's not an exact match, consider larger sizes with the same aspect ratio.
-			if ( $data['width'] >= $size[0] && $data['height'] >= $size[1] ) {
+			if ( $size_data['width'] >= $size[0] && $size_data['height'] >= $size[1] ) {
 				// If '0' is passed to either size, we test ratios against the original file.
 				if ( 0 === $size[0] || 0 === $size[1] ) {
-					$same_ratio = wp_image_matches_ratio( $data['width'], $data['height'], $imagedata['width'], $imagedata['height'] );
+					$same_ratio = wp_image_matches_ratio( $size_data['width'], $size_data['height'], $imagedata['width'], $imagedata['height'] );
 				} else {
-					$same_ratio = wp_image_matches_ratio( $data['width'], $data['height'], $size[0], $size[1] );
+					$same_ratio = wp_image_matches_ratio( $size_data['width'], $size_data['height'], $size[0], $size[1] );
 				}
 
 				if ( $same_ratio ) {
-					$candidates[ $data['width'] * $data['height'] ] = $data;
+					$candidates[ $size_data['width'] * $size_data['height'] ] = $size_data;
 				}
 			}
 		}
