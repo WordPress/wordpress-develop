@@ -390,6 +390,10 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	$size_class = is_array( $size ) ? implode( 'x', $size ) : $size;
 	$class      = 'align' . esc_attr( $align ) . ' size-' . esc_attr( $size_class ) . ' wp-image-' . $id;
 
+	if ( current_theme_supports( 'html5', 'picture' ) ) {
+		$html = '<picture>' . $html . '</picture>';
+	}
+
 	/**
 	 * Filters the value of the attachment's image tag class attribute.
 	 *
@@ -1156,6 +1160,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$html .= ' />';
+
+		if ( current_theme_supports( 'html5', 'picture' ) ) {
+			$html = '<picture>' . $html . '</picture>';
+		}
 	}
 
 	/**
