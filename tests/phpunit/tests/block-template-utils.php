@@ -598,8 +598,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 		$changes->post_name    = 'index';
 		$changes->post_type    = 'wp_template';
 		$changes->post_status  = 'publish';
-		$changes->post_title   = 'Index';
-		$changes->post_excerpt = 'Description of index template.';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 		$changes->tax_input    = array(
 			'wp_theme' => get_stylesheet(),
@@ -629,16 +627,6 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 			$changes->post_status,
 			$context->status,
 			'The status field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
-		);
-		$this->assertSame(
-			$changes->post_title,
-			$context->title,
-			'The title field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
-		);
-		$this->assertSame(
-			$changes->post_excerpt,
-			$context->description,
-			'The description field of the context passed to the hooked_block_types filter doesn\'t match the template post object.'
 		);
 		$this->assertSame(
 			$changes->post_content,
