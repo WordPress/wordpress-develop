@@ -575,6 +575,22 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 					),
 				),
 			),
+			'shadow'     => array(
+				'presets' => array(
+					'theme' => array(
+						array(
+							'name'   => 'Natural',
+							'slug'   => 'natural',
+							'shadow' => '2px 2px 3px #000',
+						),
+						array(
+							'name'   => 'Test',
+							'slug'   => 'test',
+							'shadow' => '2px 2px 3px #000',
+						),
+					),
+				),
+			),
 			'spacing'    => array(
 				'blockGap' => true,
 				'units'    => array( 'rem' ),
