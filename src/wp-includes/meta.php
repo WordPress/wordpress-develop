@@ -1548,44 +1548,38 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
  *               The default value of the meta field if `$single` is true.
  */
 function filter_default_metadata( $value, $object_id, $meta_key, $single, $meta_type ) {
-	global $wp_meta_keys;
-
 	if ( wp_installing() ) {
 		return $value;
 	}
 
-	if ( ! is_array( $wp_meta_keys ) || ! isset( $wp_meta_keys[ $meta_type ] ) ) {
-		return $value;
-	}
+	$default_value = null;
 
-	$defaults = array();
-	foreach ( $wp_meta_keys[ $meta_type ] as $sub_type => $meta_data ) {
-		foreach ( $meta_data as $_meta_key => $args ) {
-			if ( $_meta_key === $meta_key && array_key_exists( 'default', $args ) ) {
-				$defaults[ $sub_type ] = $args;
-			}
-		}
-	}
+	$meta_keys = get_registered_meta_keys( $meta_type );
 
-	if ( ! $defaults ) {
-		return $value;
-	}
-
-	// If this meta type does not have subtypes, then the default is keyed as an empty string.
-	if ( isset( $defaults[''] ) ) {
-		$metadata = $defaults[''];
+	if ( isset( $meta_keys[ $meta_key ]['default'] ) ) {
+		// Support the '' subtype.
+		$default_value = $meta_keys[ $meta_key ]['default'];
 	} else {
+		// Check for the object's subtype.
 		$sub_type = get_object_subtype( $meta_type, $object_id );
-		if ( ! isset( $defaults[ $sub_type ] ) ) {
-			return $value;
+
+		$meta_keys = get_registered_meta_keys( $meta_type, $sub_type );
+
+		if ( isset( $meta_keys[ $meta_key ]['default'] ) ) {
+			$default_value = $meta_keys[ $meta_key ]['default'];
 		}
-		$metadata = $defaults[ $sub_type ];
 	}
 
+	// No default value available.
+	if ( null === $default_value ) {
+		return $value;
+	}
+
+	// Set the default value.
 	if ( $single ) {
-		$value = $metadata['default'];
+		$value = $default_value;
 	} else {
-		$value = array( $metadata['default'] );
+		$value = array( $default_value );
 	}
 
 	return $value;
@@ -1673,6 +1667,17 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  */
 function get_registered_meta_keys( $object_type, $object_subtype = '' ) {
 	global $wp_meta_keys;
+
+	/**
+	 * Allow late registration of meta keys before any are actually retrieved.
+	 *
+	 * @since TBD
+	 *
+	 * @param string $object_type     Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+	 *                                or any other object type with an associated meta table.
+	 * @param string $object_subtype  Optional. The subtype of the object type. Default empty string.
+	 */
+	do_action( 'pre_get_registered_meta_keys', $object_type, $object_subtype );
 
 	if ( ! is_array( $wp_meta_keys ) || ! isset( $wp_meta_keys[ $object_type ] ) || ! isset( $wp_meta_keys[ $object_type ][ $object_subtype ] ) ) {
 		return array();
