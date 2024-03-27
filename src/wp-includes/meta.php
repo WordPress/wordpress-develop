@@ -1170,40 +1170,53 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		return $cache;
 	}
 
-	// Get meta info.
-	$id_list   = implode( ',', $non_cached_ids );
-	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
+	/**
+	 * Filters the size of the chunks in the loop use to cache meta values.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param int   $batch_size default 250
+	 */
+	$batch_size = apply_filters( 'meta_cache_batch_size', 250 );
+	$chunks = array_chunk( $non_cached_ids, $batch_size );
 
-	$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
+	while ( ! empty( $chunks ) ) {
+		$batch = array_shift( $chunks );
 
-	if ( ! empty( $meta_list ) ) {
-		foreach ( $meta_list as $metarow ) {
-			$mpid = (int) $metarow[ $column ];
-			$mkey = $metarow['meta_key'];
-			$mval = $metarow['meta_value'];
+		// Get meta info.
+		$id_list   = implode( ',', $batch );
+		$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
 
-			// Force subkeys to be array type.
-			if ( ! isset( $cache[ $mpid ] ) || ! is_array( $cache[ $mpid ] ) ) {
-				$cache[ $mpid ] = array();
+		$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
+
+		if ( ! empty( $meta_list ) ) {
+			foreach ( $meta_list as $metarow ) {
+				$mpid = (int) $metarow[ $column ];
+				$mkey = $metarow['meta_key'];
+				$mval = $metarow['meta_value'];
+
+				// Force subkeys to be array type.
+				if ( ! isset( $cache[ $mpid ] ) || ! is_array( $cache[ $mpid ] ) ) {
+					$cache[ $mpid ] = array();
+				}
+				if ( ! isset( $cache[ $mpid ][ $mkey ] ) || ! is_array( $cache[ $mpid ][ $mkey ] ) ) {
+					$cache[ $mpid ][ $mkey ] = array();
+				}
+
+				// Add a value to the current pid/key.
+				$cache[ $mpid ][ $mkey ][] = $mval;
 			}
-			if ( ! isset( $cache[ $mpid ][ $mkey ] ) || ! is_array( $cache[ $mpid ][ $mkey ] ) ) {
-				$cache[ $mpid ][ $mkey ] = array();
+		}
+
+		$data = array();
+		foreach ( $non_cached_ids as $id ) {
+			if ( ! isset( $cache[ $id ] ) ) {
+				$cache[ $id ] = array();
 			}
-
-			// Add a value to the current pid/key.
-			$cache[ $mpid ][ $mkey ][] = $mval;
+			$data[ $id ] = $cache[ $id ];
 		}
+		wp_cache_add_multiple( $data, $cache_key );
 	}
-
-	$data = array();
-	foreach ( $non_cached_ids as $id ) {
-		if ( ! isset( $cache[ $id ] ) ) {
-			$cache[ $id ] = array();
-		}
-		$data[ $id ] = $cache[ $id ];
-	}
-	wp_cache_add_multiple( $data, $cache_key );
-
 	return $cache;
 }
 
