@@ -914,6 +914,259 @@ function seems_utf8( $str ) {
 	return true;
 }
 
+
+/**
+ * Escapes a string value bound for rendering inside an HTML attribute.
+ *
+ *  - Encodes special characters with named character references: `&`, `<`, `>`, `"`, and `'`. e.g. `<` becomes `&lt;`.
+ *  - Replaces invalid character references by escaping their leading `&`: e.g. `&garbage;` becomes `&amp;arbage;`.
+ *  - Truncates superfluous leading zeros in numeric character references: e.g. `&#x0003F;` becomes `&#3F;`.
+ *  - Leaves valid character references untouched: e.g. `&hellip;` remains `&hellip;`.
+ *
+ * @param string              $text               Unescaped raw string input bound for an HTML attribute.
+ * @param string|WP_Token_Set $allowable_entities 'legacy' for legacy WordPress allowables,
+ *                                                'html5' for everything in the HTML5 spec,
+ *                                                or a WP_Token_Set for custom needs.
+ * @return string
+ */
+function _esc_attr_single_pass_utf8( $text, $allowable_entities = 'legacy' ) {
+	global $html4_named_character_entity_set;
+	global $html5_named_character_entity_set;
+
+	if ( 0 === strlen( $text ) ) {
+		return $text;
+	}
+
+	switch ( $allowable_entities ) {
+		case 'legacy':
+			$entity_set = $html4_named_character_entity_set;
+			break;
+
+		case 'html5':
+			$entity_set = $html5_named_character_entity_set;
+			break;
+
+		default:
+			if ( $allowable_entities instanceof WP_Token_Set ) {
+				$entity_set = $allowable_entities;
+				break;
+			} else {
+				return $text;
+			}
+	}
+
+	$at     = 0;
+	$output = '';
+	$length = strlen( $text );
+
+	while ( $at < $length ) {
+		$was_at = $at;
+		// Jump to the next syntax element.
+		$at += strcspn( $text, "&<>\"'", $at );
+		if ( $at >= $length ) {
+			return $output . substr( $text, $was_at );
+		}
+
+		$output .= substr( $text, $was_at, $at - $was_at );
+
+		switch ( $text[ $at ] ) {
+			case '<':
+				$output .= '&lt;';
+				++$at;
+				break;
+
+			case '>':
+				$output .= '&gt;';
+				++$at;
+				break;
+
+			case '"':
+				$output .= '&quot;';
+				++$at;
+				break;
+
+			case "'":
+				$output .= '&#039;';
+				++$at;
+				break;
+
+			case '&':
+				// Cut off before starting the character reference.
+				if ( $at + 1 >= $length ) {
+					return $output . '&amp;';
+				}
+
+				// Numeric character references.
+				if ( '#' === $text[ $at + 1 ] ) {
+					// Cut off before the smallest numeric character reference could appear. e.g. `&#9;`
+					if ( $at + 4 > $length ) {
+						$output .= '&amp;#';
+						$at     += 2;
+						break;
+					}
+
+					/** Tracks inner parsing within the numeric character reference. */
+					$num_at = $at + 2;
+
+					if ( 'x' === $text[ $num_at ] || 'X' === $text[ $num_at ] ) {
+						$numeric_base   = 16;
+						$numeric_digits = '0123456789abcdefABCDEF';
+						$max_digits     = 6; // &#x10FFFF;
+						$num_at        += 1;
+					} else {
+						$numeric_base   = 10;
+						$numeric_digits = '0123456789';
+						$max_digits     = 7; // &#1114111;
+					}
+
+					// Leading zeros are interpreted as zero values; skip them.
+					$num_at += strspn( $text, '0', $num_at );
+
+					// No character reference may be only zeros.
+					if ( $num_at >= $length ) {
+						// Replace the leading `&` and copy the remaining characters.
+						return $output . '&amp;' . substr( $text, $at + 1 );
+					}
+
+					// Max legitimate character reference is to U+10FFFF.
+					$digits_at   = $num_at;
+					$digit_count = strspn( $text, $numeric_digits, $num_at );
+					if ( 0 === $digit_count || $digit_count > $max_digits ) {
+						$num_at += $digit_count;
+						$output .= '&amp;' . substr( $text, $at + 1, $num_at - ( $at + 1 ) );
+						$at      = $num_at;
+						break;
+					}
+
+					$digits     = substr( $text, $digits_at, $digit_count );
+					$code_point = intval( $digits, $numeric_base );
+
+					/*
+					 * While HTML specifies that we replace invalid references like these
+					 * with the replacement character U+FFFD, we're going to leave it in
+					 * so we can preserve the input as best we can. The browser will still
+					 * replace it eventually, but until render we don't want to inject
+					 * these replacement characters into the data stream.
+					 *
+					 * @TODO: This is a point of divergence between legacy Core behavior
+					 *        and HTML5. If we escape these with `&` we're preserving the
+					 *        raw text that was typed, e.g. `&#x3;` will render as such.
+					 *        In HTML though the entire sequence would be rendered as `�`.
+					 */
+					if (
+						// Null character.
+						0 === $code_point ||
+
+						// Outside Unicode range.
+						$code_point > 0x10FFFF ||
+
+						// Surrogate.
+						( $code_point >= 0xD800 && $code_point <= 0xDFFF ) ||
+
+						// Noncharacters.
+						( $code_point >= 0xFDD0 && $code_point <= 0xFDEF ) ||
+						( 0xFFFE === ( $code_point & 0xFFFE ) ) ||
+
+						// 0x0D or non-ASCII-whitespace control
+						0x0D === $code_point ||
+						(
+							$code_point >= 0 &&
+							$code_point <= 0x1F &&
+							0x9 !== $code_point &&
+							0xA !== $code_point &&
+							0xC !== $code_point &&
+							0xD !== $code_point
+						)
+					) {
+						$num_at += $digit_count;
+						$output .= '&amp;' . substr( $text, $at + 1, $num_at - ( $at + 1 ) );
+						$at      = $num_at;
+						break;
+					}
+
+					$num_at += $digit_count;
+					// End of document before the semicolon.
+					if ( $num_at >= $length ) {
+						return $output . '&amp;' . substr( $text, $at + 1 );
+					}
+
+					// Missing semicolon.
+					if ( ';' !== $text[ $num_at ] ) {
+						$output .= '&amp;' . substr( $text, $at + 1, $num_at - ( $at + 1 ) );
+						$at      = $num_at;
+						break;
+					}
+
+					/*
+					 * There's an established valid numeric character reference. Trim its leading zeros
+					 * unless it's a single quote, in which case there's an exception for legacy `&#039;`.
+					 */
+					$zero       = ( 10 === $numeric_base && 39 === $code_point ) ? '0' : '';
+					$hex_prefix = 16 === $numeric_base ? $text[ $at + 2 ] : '';
+					$digits     = strtoupper( substr( $text, $digits_at, $digit_count ) );
+					$output    .= '&#' . $hex_prefix . $zero . $digits . ';';
+					$at         = $num_at + 1;
+					break;
+				}
+
+				/** Tracks inner parsing within the named character reference. */
+				$name_at = $at;
+				// Minimum named character reference is three characters. E.g. `&GT`
+				if ( $name_at + 3 > $length ) {
+					$output .= '&amp;';
+					++$at;
+					break;
+				}
+
+				// Advance past the `&`.
+				++$name_at;
+
+				$name = $entity_set->read_token( $text, $name_at );
+				if ( false === $name ) {
+					$output .= '&amp;';
+					++$at;
+					break;
+				}
+
+				$name_at += strlen( $name );
+
+				// If we have an un-ambiguous ampersand we can safely leave it in.
+				if ( ';' === $text[ $name_at - 1 ] ) {
+					$output .= substr( $text, $at, $name_at - $at );
+					$at      = $name_at;
+					break;
+				}
+
+				/*
+				 * At this point though have matched an entry in the named
+				 * character reference table but the match doesn't end in `;`.
+				 * We need to determine if the next letter makes it an ambiguous.
+				 */
+				$ambiguous_follower = (
+					$name_at < $length &&
+					(
+						ctype_alnum( $text[ $name_at ] ) ||
+						'=' === $text[ $name_at ]
+					)
+				);
+
+				// It's non-ambiguous, safe to leave it in.
+				if ( ! $ambiguous_follower ) {
+					$output .= substr( $text, $at, $name_at - $at );
+					$at      = $name_at;
+					break;
+				}
+
+				// Ambiguous ampersands are not allowed in an attribute, escape it.
+				$output .= '&amp;' . substr( $text, $at + 1, $name_at - ( $at + 1 ) );
+				$at      = $name_at;
+				break;
+		}
+	}
+
+	return $output;
+}
+
 /**
  * Converts a number of special characters into their HTML entities.
  *
@@ -4705,7 +4958,24 @@ function esc_html( $text ) {
  */
 function esc_attr( $text ) {
 	$safe_text = wp_check_invalid_utf8( $text );
-	$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
+
+	// Store the site charset as a static to avoid multiple calls to wp_load_alloptions().
+	static $charset = null;
+	if ( ! isset( $charset ) ) {
+		$alloptions = wp_load_alloptions();
+		$charset   = isset( $alloptions['blog_charset'] ) ? $alloptions['blog_charset'] : '';
+	}
+
+	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ), true ) ) {
+		$charset = 'UTF-8';
+	}
+
+	if ( 'UTF-8' === $charset ) {
+		$safe_text = _esc_attr_single_pass_utf8( $safe_text );
+	} else {
+		$safe_text = _wp_specialchars( $safe_text, ENT_QUOTES );
+	}
+
 	/**
 	 * Filters a string cleaned and escaped for output in an HTML attribute.
 	 *
