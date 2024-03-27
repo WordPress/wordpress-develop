@@ -105,6 +105,38 @@ function twentytwelve_setup() {
 		)
 	);
 
+	// Add support for custom color scheme.
+	add_theme_support(
+		'editor-gradient-presets',
+		array(
+			array(
+				'name'     => __( 'Blue Gradient', 'twentytwelve' ),
+				'slug'     => 'blue-gradient',
+				'gradient' => 'linear-gradient(90deg, #21759b 0%, #2a95c5 100%)',
+			),
+			array(
+				'name'     => __( 'Dark Gray Gradient', 'twentytwelve' ),
+				'slug'     => 'dark-gray-gradient',
+				'gradient' => 'linear-gradient(90deg, #444 0%, #888 100%)',
+			),
+			array(
+				'name'     => __( 'Medium Gray Gradient', 'twentytwelve' ),
+				'slug'     => 'medium-gray-gradient',
+				'gradient' => 'linear-gradient(90deg, #9f9f9f 0%, #696969 100%)',
+			),
+			array(
+				'name'     => __( 'Light Gray Gradient', 'twentytwelve' ),
+				'slug'     => 'light-gray-gradient',
+				'gradient' => 'linear-gradient(90deg, #e6e6e6 0%, #808080 100%)',
+			),
+			array(
+				'name'     => __( 'White Gradient', 'twentytwelve' ),
+				'slug'     => 'white-gradient',
+				'gradient' => 'linear-gradient(90deg, #fff 0%, #e3e3e3 100%)',
+			),
+		)
+	);
+
 	// Adds RSS feed links to <head> for posts and comments.
 	add_theme_support( 'automatic-feed-links' );
 
