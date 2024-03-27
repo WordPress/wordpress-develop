@@ -491,4 +491,33 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $found );
 	}
+
+	/**
+	 * @ticket https://core.trac.wordpress.org/ticket/55999
+	 *
+	 * @covers wp_suspend_cache_addition
+	 */
+	public function test_suspend_cache_addition() {
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		$key = __FUNCTION__;
+		$val = 'val1';
+
+		$this->assertFalse( wp_cache_add( $key, $val ) );
+		$this->assertFalse( wp_cache_set( $key, $val ) );
+		$this->assertFalse( wp_cache_get( $key ) );
+		$this->assertFalse( wp_cache_replace( $key, $val ) );
+		$this->assertFalse( wp_cache_incr( $key ) );
+		$this->assertFalse( wp_cache_decr( $key ) );
+
+		$this->assertFalse( $this->cache->add( $key, $val ) );
+		$this->assertFalse( $this->cache->set( $key, $val ) );
+		$this->assertFalse( $this->cache->get( $key ) );
+		$this->assertFalse( $this->cache->replace( $key, $val ) );
+		$this->assertFalse( $this->cache->incr( $key ) );
+		$this->assertFalse( $this->cache->decr( $key ) );
+
+		wp_suspend_cache_addition( $suspend );
+	}
 }
