@@ -88,4 +88,40 @@ class Tests_Option_GetOptions extends WP_UnitTestCase {
 
 		$this->assertFalse( $options['nonexistent_option'], 'nonexistent_option is present in option.' );
 	}
+
+	/**
+	 * @covers update_option_atomic
+	 * @dataProvider data_options_atomic
+	 *
+	 * @param string $autoload
+	 */
+	public function test_options_atomic( $autoload ) {
+		$option      = __METHOD__ . rand( 1000, 9999 ) . $autoload;
+		$first_value = 'first';
+		$this->assertTrue( add_option( $option, $first_value, '', $autoload ) );
+
+		$old_value = get_option( $option );
+		$this->assertFalse( update_option( $option, $first_value ) );
+
+		$second_value = 'second';
+		$this->assertTrue( update_option( $option, $second_value ) );
+
+		// new and old value are identical
+		$this->assertFalse( update_option( $option, $first_value, null, $old_value ) );
+		$this->assertFalse( update_option_atomic( $option, $first_value, $old_value ) );
+
+		// new and old are different, but we already have this value in DB
+		$this->assertFalse( update_option( $option, $second_value, null, $old_value ) );
+		$this->assertFalse( update_option_atomic( $option, $second_value, $old_value ) );
+
+		$this->assertTrue( update_option( $option, 'third', null, $old_value ) );
+		$this->assertTrue( update_option_atomic( $option, 'fourth', $old_value ) );
+	}
+
+	public function data_options_atomic() {
+		return array(
+			array( 'yes' ),
+			array( 'no' ),
+		);
+	}
 }

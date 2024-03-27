@@ -696,29 +696,32 @@ function wp_load_core_site_options( $network_id = null ) {
  * Remember, resources cannot be serialized or added as an option.
  *
  * If the option does not exist, it will be created.
-
+ *
  * This function is designed to work with or without a logged-in user. In terms of security,
  * plugin developers should check the current user's capabilities before updating any options.
  *
  * @since 1.0.0
  * @since 4.2.0 The `$autoload` parameter was added.
+ * @since 6.6.0 The `$old_value` parameter was added.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string      $option   Name of the option to update. Expected to not be SQL-escaped.
- * @param mixed       $value    Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
- * @param string|bool $autoload Optional. Whether to load the option when WordPress starts up. For existing options,
- *                              `$autoload` can only be updated using `update_option()` if `$value` is also changed.
- *                              Accepts 'yes'|true to enable or 'no'|false to disable.
- *                              Autoloading too many options can lead to performance problems, especially if the
- *                              options are not frequently used. For options which are accessed across several places
- *                              in the frontend, it is recommended to autoload them, by using 'yes'|true.
- *                              For options which are accessed only on few specific URLs, it is recommended
- *                              to not autoload them, by using 'no'|false. For non-existent options, the default value
- *                              is 'yes'. Default null.
+ * @param string           $option    Name of the option to update. Expected to not be SQL-escaped.
+ * @param mixed            $value     Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param string|bool|null $autoload  Optional. Whether to load the option when WordPress starts up. For existing options,
+ *                               `$autoload` can only be updated using `update_option()` if `$value` is also changed.
+ *                               Accepts 'yes'|true to enable or 'no'|false to disable.
+ *                               Autoloading too many options can lead to performance problems, especially if the
+ *                               options are not frequently used. For options which are accessed across several places
+ *                               in the frontend, it is recommended to autoload them, by using 'yes'|true.
+ *                               For options which are accessed only on few specific URLs, it is recommended
+ *                               to not autoload them, by using 'no'|false. For non-existent options, the default value
+ *                               is 'yes'. Default null.
+ * @param mixed             $old_value Optional. Old value of the option to compare against instead of getting the old value.
+ *                               from get_option, as this can cause newer values to be overwritten with old option data.
  * @return bool True if the value was updated, false otherwise.
  */
-function update_option( $option, $value, $autoload = null ) {
+function update_option( $option, $value, $autoload = null, $old_value = null ) {
 	global $wpdb;
 
 	if ( is_scalar( $option ) ) {
@@ -749,7 +752,7 @@ function update_option( $option, $value, $autoload = null ) {
 				$deprecated_keys[ $option ]
 			)
 		);
-		return update_option( $deprecated_keys[ $option ], $value, $autoload );
+		return update_option( $deprecated_keys[ $option ], $value, $autoload, $old_value );
 	}
 
 	wp_protect_special_option( $option );
@@ -759,7 +762,8 @@ function update_option( $option, $value, $autoload = null ) {
 	}
 
 	$value     = sanitize_option( $option, $value );
-	$old_value = get_option( $option );
+	$old_value_atomic = $old_value;
+	$old_value = null === $old_value ? get_option( $option ) : $old_value;
 
 	/**
 	 * Filters a specific option before its value is (maybe) serialized and updated.
@@ -797,6 +801,11 @@ function update_option( $option, $value, $autoload = null ) {
 	 */
 	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
+	}
+
+	// If the value changed, we still need to validate that this isn't the value that's in DB already now.
+	if ( null !== $old_value_atomic ) {
+		return update_option( $option, $value, $autoload );
 	}
 
 	/** This filter is documented in wp-includes/option.php */
@@ -900,6 +909,24 @@ function update_option( $option, $value, $autoload = null ) {
 	do_action( 'updated_option', $option, $old_value, $value );
 
 	return true;
+}
+
+/**
+ * Utility wrapper for update_option() that requires the old value to compare against
+ *
+ * @see update_option()
+ *
+ * @since 6.6.0
+ *
+ * @param string      $option    Name of the option to update. Expected to not be SQL-escaped.
+ * @param mixed       $value     Option value. Must be serializable if non-scalar. Expected to not be SQL-escaped.
+ * @param mixed       $old_value The option value retrieved with get_option() initially to compare against
+ *                               to avoid any intermittent changes to the option to update the option with an old value.
+ * @param string|bool $autoload  Optional. @see update_option(). Default null.
+ * @return bool True if the value was updated, false otherwise.
+ */
+function update_option_atomic( $option, $value, $old_value, $autoload = null ) {
+	return update_option( $option, $value, $autoload, $old_value );
 }
 
 /**
