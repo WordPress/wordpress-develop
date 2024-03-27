@@ -201,21 +201,21 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 					'padding'  => true,
 					'blockGap' => true,
 				),
-				'shadow' => array(
+				'shadow'     => array(
 					'presets' => array(
 						'theme' => array(
 							array(
-								'name' => 'Natural',
-								'slug' => 'natural',
+								'name'   => 'Natural',
+								'slug'   => 'natural',
 								'shadow' => '2px 2px 3px #000',
 							),
 							array(
-								'name' => 'Test',
-								'slug' => 'test',
+								'name'   => 'Test',
+								'slug'   => 'test',
 								'shadow' => '2px 2px 3px #000',
-							)
-						)
-					)
+							),
+						),
+					),
 				),
 				'blocks'     => array(
 					'core/paragraph' => array(
