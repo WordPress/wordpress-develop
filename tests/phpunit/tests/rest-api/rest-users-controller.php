@@ -1273,11 +1273,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'url'         => 'http://example.com',
 		);
 
-		// Username rules are different (more strict) for multisite; see `wpmu_validate_user_signup`.
-		if ( is_multisite() ) {
-			$params['username'] = 'no-dashes-allowed';
-		}
-
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
@@ -1286,18 +1281,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 
-		if ( is_multisite() ) {
-			$this->assertIsArray( $data['additional_errors'] );
-			$this->assertCount( 1, $data['additional_errors'] );
-			$error = $data['additional_errors'][0];
-			$this->assertSame( 'user_name', $error['code'] );
-			$this->assertSame( 'Usernames can only contain lowercase letters (a-z) and numbers.', $error['message'] );
-		} else {
-			$this->assertIsArray( $data['data']['params'] );
-			$errors = $data['data']['params'];
-			$this->assertIsString( $errors['username'] );
-			$this->assertSame( 'This username is invalid because it uses illegal characters. Please enter a valid username.', $errors['username'] );
-		}
+		$this->assertIsArray( $data['data']['params'] );
+		$errors = $data['data']['params'];
+		$this->assertIsString( $errors['username'] );
+		$this->assertSame( 'This username is invalid because it uses illegal characters. Please enter a valid username.', $errors['username'] );
 	}
 
 	public function get_illegal_user_logins() {

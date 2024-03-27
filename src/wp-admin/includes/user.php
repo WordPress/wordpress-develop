@@ -20,7 +20,7 @@ function add_user() {
 /**
  * Edit user settings based on contents of $_POST
  *
- * Used on user-edit.php and profile.php to manage and process user options, passwords etc.
+ * Used on user-edit.php, user-new.php, and profile.php to manage and process user options, passwords etc.
  *
  * @since 2.0.0
  *
@@ -38,10 +38,6 @@ function edit_user( $user_id = 0 ) {
 		$user->user_login = wp_slash( $userdata->user_login );
 	} else {
 		$update = false;
-	}
-
-	if ( ! $update && isset( $_POST['user_login'] ) ) {
-		$user->user_login = sanitize_user( wp_unslash( $_POST['user_login'] ), true );
 	}
 
 	$pass1 = '';
@@ -147,9 +143,14 @@ function edit_user( $user_id = 0 ) {
 
 	$errors = new WP_Error();
 
-	/* checking that username has been typed */
-	if ( '' === $user->user_login ) {
-		$errors->add( 'user_login', __( '<strong>Error:</strong> Please enter a username.' ) );
+	// Validate the user_login when not updating the user.
+	if ( ! $update ) {
+		$user->user_login = '';
+		if ( isset( $_POST['user_login'] ) ) {
+			$user->user_login = $_POST['user_login'];
+		}
+
+		wp_validate_user_login( $user->user_login, $errors );
 	}
 
 	/* checking that nickname has been typed */
@@ -187,22 +188,7 @@ function edit_user( $user_id = 0 ) {
 		$user->user_pass = $pass1;
 	}
 
-	if ( ! $update && isset( $_POST['user_login'] ) && ! validate_username( $_POST['user_login'] ) ) {
-		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is invalid because it uses illegal characters. Please enter a valid username.' ) );
-	}
-
-	if ( ! $update && username_exists( $user->user_login ) ) {
-		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
-	}
-
-	/** This filter is documented in wp-includes/user.php */
-	$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
-
-	if ( in_array( strtolower( $user->user_login ), array_map( 'strtolower', $illegal_logins ), true ) ) {
-		$errors->add( 'invalid_username', __( '<strong>Error:</strong> Sorry, that username is not allowed.' ) );
-	}
-
-	// Checking email address.
+	/* checking email address */
 	if ( empty( $user->user_email ) ) {
 		$errors->add( 'empty_email', __( '<strong>Error:</strong> Please enter an email address.' ), array( 'form-field' => 'email' ) );
 	} elseif ( ! is_email( $user->user_email ) ) {

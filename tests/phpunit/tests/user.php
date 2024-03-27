@@ -739,7 +739,8 @@ class Tests_User extends WP_UnitTestCase {
 
 		$response = register_new_user( $user_login, $user_email );
 		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertSame( 'invalid_username', $response->get_error_code() );
+		$expected = is_multisite() ? 'user_name' : 'invalid_username';
+		$this->assertSame( $expected, $response->get_error_code() );
 
 		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
@@ -2184,5 +2185,62 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		return $additional_profile_data;
+	}
+
+	/**
+	 * @ticket 17904
+	 * @group ms-required
+	 */
+	public function test_is_username_reserved() {
+		global $wpdb;
+
+		// New username
+		$this->assertEquals(
+			false,
+			is_username_reserved( 'testsuser' ),
+			'assert username not in signups to be available.'
+		);
+
+		// Existing signup username
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'user_login' => 'testsuser1',
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( 'now' ) ),
+			),
+			array(
+				'%s',
+				'%s',
+			)
+		);
+		$this->assertEquals(
+			true,
+			is_username_reserved( 'testsuser1' ),
+			'assert username in signups for less than two days to not be available.'
+		);
+		$this->assertEquals(
+			1,
+			$wpdb->get_var( $wpdb->prepare( "SELECT count(signup_id) FROM $wpdb->signups WHERE user_login = %s", 'testsuser1' ) ),
+			"assert username in signups for less than two days to haven't be deleted."
+		);
+
+		// Expired signup username
+		$wpdb->insert(
+			$wpdb->signups,
+			array(
+				'user_login' => 'testsuser2',
+				'registered' => gmdate( 'Y-m-d H:i:s', strtotime( '3 days ago' ) ),
+			),
+			array(
+				'%s',
+				'%s',
+			)
+		);
+		$this->assertEquals( false, is_username_reserved( 'testsuser2' ), 'assert username in signups for more than two days to be available.' );
+		$this->assertEquals(
+			0,
+			$wpdb->get_var( $wpdb->prepare( "SELECT count(signup_id) FROM $wpdb->signups WHERE user_login = %s", 'testsuser2' ) ),
+			'assert username in signups for more than two days to have been deleted.'
+		);
 	}
 }
