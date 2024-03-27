@@ -178,7 +178,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	appearance: none;
 	font-size: inherit;
 	border: 0;
-	line-height: 2.1em;
+	line-height: 2.1;
 	background: none;
 	cursor: pointer;
 	text-decoration: underline;
