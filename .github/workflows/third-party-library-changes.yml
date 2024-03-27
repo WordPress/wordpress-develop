@@ -1,0 +1,78 @@
+name: Third Party Library Changes
+on:
+  pull_request:
+    branches:
+      - trunk
+      - "3.[89]"
+      - "[4-9].[0-9]"
+
+jobs:
+  third-party-changed-files:
+    runs-on: ubuntu-latest
+    name: Get third party library modified files
+    permissions:
+      pull-requests: read
+    outputs:
+      file_list: ${{ steps.modified_libraries.outputs.file_list }}
+      has_changed_files: ${{ steps.modified_libraries.outputs.has_changed_files }}
+    env:
+      THIRD_PARTY_LIBRARIES: (
+        "src/wp-includes/ID3"
+        "src/wp-includes/IXR"
+        "src/wp-includes/PHPMailer"
+        "src/wp-includes/Requests"
+        "src/wp-includes/SimplePie"
+        "src/wp-includes/sodium_compat"
+        "src/wp-includes/Text"
+        )
+    steps:
+      - name: Get changed files
+        id: changed_files
+        uses: tj-actions/changed-files@v37
+
+      - name: Get modified third party libraries
+        id: modified_libraries
+        run: |
+          ALL_CHANGED_FILES="${{ steps.changed_files.outputs.all_changed_files }}"
+          THIRD_PARTY_LIBRARIES=${{ env.THIRD_PARTY_LIBRARIES }}
+          THIRD_PARTY_CHANGED_FILES=()
+          HAS_CHANGED_FILES=false
+
+
+          for LIBRARY in "${THIRD_PARTY_LIBRARIES[@]}"; do
+            for FILE in $ALL_CHANGED_FILES; do
+              if [[ $FILE == $LIBRARY* ]]; then
+            	THIRD_PARTY_CHANGED_FILES+=("${FILE}")
+                HAS_CHANGED_FILES=true
+              fi
+            done
+          done
+
+          echo "file_list<<EOF" >> $GITHUB_OUTPUT
+          for LIBRARY in "${THIRD_PARTY_CHANGED_FILES[@]}"; do
+            echo "- $LIBRARY" >> $GITHUB_OUTPUT
+          done
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+          echo "has_changed_files=${HAS_CHANGED_FILES}" >> $GITHUB_OUTPUT
+
+  comment-on-pull-request:
+    needs: third-party-changed-files
+    runs-on: ubuntu-latest
+    name: Comment on pull request with third party library changes
+    permissions:
+      pull-requests: write
+    if: ${{ needs.third-party-changed-files.outputs.has_changed_files == 'true' }}
+    steps:
+      - name: Comment on third party libraries changed_files
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Hey @${{ github.actor }} :wave:, It looks like you have modified the following third party library files:
+
+            ${{ needs.third-party-changed-files.outputs.file_list }}
+
+            It would be great if you could suggest the changes to the library repository as well otherwise the changes will be lost when the library is updated in the future.
+
+            Thanks!
