@@ -4549,6 +4549,7 @@ function paginate_links( $args = '' ) {
 	if ( $args['prev_next'] && $current && 1 < $current ) :
 		$link = str_replace( '%_%', 2 == $current ? '' : $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current - 1, $link );
+		$link = user_trailingslashit( $link );
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
 		}
@@ -4581,6 +4582,7 @@ function paginate_links( $args = '' ) {
 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
 				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
 				$link = str_replace( '%#%', $n, $link );
+				$link = user_trailingslashit( $link );
 				if ( $add_args ) {
 					$link = add_query_arg( $add_args, $link );
 				}
@@ -4605,6 +4607,7 @@ function paginate_links( $args = '' ) {
 	if ( $args['prev_next'] && $current && $current < $total ) :
 		$link = str_replace( '%_%', $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current + 1, $link );
+		$link = user_trailingslashit( $link );
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
 		}
