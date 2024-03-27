@@ -438,27 +438,53 @@ twentytwenty.primaryMenu = {
 
 		links = menu.getElementsByTagName( 'a' );
 
-		// Each time a menu link is focused or blurred, toggle focus.
+		// Each time a menu link is focused, update focus.
 		for ( i = 0, len = links.length; i < len; i++ ) {
-			links[i].addEventListener( 'focus', toggleFocus, true );
-			links[i].addEventListener( 'blur', toggleFocus, true );
+			links[i].addEventListener( 'focus', updateFocus, true );
 		}
 
-		//Sets or removes the .focus class on an element.
-		function toggleFocus() {
+		// Update focus class on an element.
+		function updateFocus() {
 			var self = this;
-
-			// Move up through the ancestors of the current link until we hit .primary-menu.
-			while ( -1 === self.className.indexOf( 'primary-menu' ) ) {
-				// On li elements toggle the class .focus.
-				if ( 'li' === self.tagName.toLowerCase() ) {
-					if ( -1 !== self.className.indexOf( 'focus' ) ) {
-						self.className = self.className.replace( ' focus', '' );
-					} else {
-						self.className += ' focus';
-					}
+			
+			// Remove focus from all li elements of primary-menu.
+			menu.querySelectorAll('li').forEach( function(el){
+				if(el.classList.contains('focus')){
+					el.classList.remove('focus');
 				}
-				self = self.parentElement;
+			});
+			
+			// Add focus to current a tag parent li.
+			self.parentElement.classList.add('focus');
+
+			// If current element is inside sub-menu find main parent li and add focus.
+			if(self.closest('.menu-item-has-children')) {
+				self.closest('.menu-item-has-children').classList.add('focus');
+			}
+
+		}
+
+		// Each time esc key is pressed while in menu, remove focus.
+		menu.addEventListener('keydown', removeFocusEsc, true);
+
+		// Remove focus when esc key pressed.
+		function removeFocusEsc(e){
+			e = e || window.event;
+			var isEscape = false;
+
+			// Find is pressed key is esc.
+			if ('key' in e) {
+				isEscape = (e.key === 'Escape' || e.key === 'Esc');
+			} else {
+				isEscape = (e.keyCode === 27);
+			}
+
+			// If pressed key is esc, remove focus class from main parent menu li.
+			if (isEscape) {
+				if(menu.querySelector('li.menu-item-has-children').classList.contains('focus')){
+					menu.querySelector('li.focus.menu-item-has-children > a').focus();
+					menu.querySelector('li.focus.menu-item-has-children').classList.remove('focus');
+				}
 			}
 		}
 	}
