@@ -8,6 +8,21 @@
  */
 
 /**
+ * Preload files from the current version into memory that may be
+ * needed during the update process, and may not be available
+ * after files from the updated version have been installed.
+ *
+ * This covers upgrades.
+ * Downgrades are covered in wp-admin/includes/class-wp-upgrader.php.
+ *
+ * @since 6.1.0
+ */
+global $wp_version;
+if ( version_compare( $wp_version, '4.6', '>=' ) ) {
+	require_once ABSPATH . WPINC . '/Requests/Exception.php';
+}
+
+/**
  * Stores files to be deleted.
  *
  * Bundled theme files should not be included in this list.
