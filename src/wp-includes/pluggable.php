@@ -1413,7 +1413,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 			wp_die( __( 'HTTP redirect status code must be a redirection code, 3xx.' ) );
 		}
 
-		$location = wp_sanitize_redirect( $location );
+		$location = sanitize_url( $location );
 
 		if ( ! $is_IIS && 'cgi-fcgi' !== PHP_SAPI ) {
 			status_header( $status ); // This causes problems on IIS and some FastCGI setups.
@@ -1446,33 +1446,13 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 	 * Sanitizes a URL for use in a redirect.
 	 *
 	 * @since 2.3.0
+	 * @since 6.5.0 Turned into an alias for sanitize_url().
 	 *
 	 * @param string $location The path to redirect to.
 	 * @return string Redirect-sanitized URL.
 	 */
 	function wp_sanitize_redirect( $location ) {
-		// Encode spaces.
-		$location = str_replace( ' ', '%20', $location );
-
-		$regex    = '/
-		(
-			(?: [\xC2-\xDF][\x80-\xBF]        # double-byte sequences   110xxxxx 10xxxxxx
-			|   \xE0[\xA0-\xBF][\x80-\xBF]    # triple-byte sequences   1110xxxx 10xxxxxx * 2
-			|   [\xE1-\xEC][\x80-\xBF]{2}
-			|   \xED[\x80-\x9F][\x80-\xBF]
-			|   [\xEE-\xEF][\x80-\xBF]{2}
-			|   \xF0[\x90-\xBF][\x80-\xBF]{2} # four-byte sequences   11110xxx 10xxxxxx * 3
-			|   [\xF1-\xF3][\x80-\xBF]{3}
-			|   \xF4[\x80-\x8F][\x80-\xBF]{2}
-		){1,40}                              # ...one or more times
-		)/x';
-		$location = preg_replace_callback( $regex, '_wp_sanitize_utf8_in_redirect', $location );
-		$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!*\[\]()@]|i', '', $location );
-		$location = wp_kses_no_null( $location );
-
-		// Remove %0D and %0A from location.
-		$strip = array( '%0d', '%0a', '%0D', '%0A' );
-		return _deep_replace( $strip, $location );
+		return sanitize_url( $location );
 	}
 
 	/**
@@ -1480,9 +1460,8 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 	 *
 	 * @ignore
 	 * @since 4.2.0
+	 * @deprecated 6.5.0
 	 * @access private
-	 *
-	 * @see wp_sanitize_redirect()
 	 *
 	 * @param array $matches RegEx matches against the redirect location.
 	 * @return string URL-encoded version of the first RegEx match.
@@ -1528,7 +1507,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
 
 		// Need to look at the URL the way it will end up in wp_redirect().
-		$location = wp_sanitize_redirect( $location );
+		$location = sanitize_url( $location );
 
 		/**
 		 * Filters the redirect fallback URL for when the provided redirect is not safe (local).
@@ -1563,7 +1542,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	 * @return string Redirect-sanitized URL.
 	 */
 	function wp_validate_redirect( $location, $fallback_url = '' ) {
-		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
+		$location = sanitize_url( trim( $location, " \t\n\r\0\x08\x0B" ) );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
 		if ( str_starts_with( $location, '//' ) ) {
 			$location = 'http:' . $location;
