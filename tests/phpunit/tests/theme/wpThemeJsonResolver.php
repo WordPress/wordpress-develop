@@ -1072,7 +1072,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57545
+	 * @ticket 60815
 	 */
 	public function test_theme_shadow_presets_do_not_override_default_shadow_presets() {
 		switch_theme( 'block-theme' );
@@ -1128,7 +1128,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 57545
+	 * @ticket 60815
 	 */
 	public function test_shadow_default_presets_value_for_block_and_classic_themes() {
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
