@@ -182,9 +182,9 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 							'<a class="item-edit" id="edit-%s" href="%s" aria-label="%s"><span class="screen-reader-text">%s</span></a>',
 							$item_id,
 							esc_url( $edit_url ),
-							esc_attr__( 'Edit menu item' ),
+							__( 'Edit menu item' ),
 							/* translators: Hidden accessibility text. */
-							__( 'Edit' )
+							__( 'Edit menu item' )
 						);
 						?>
 					</span>

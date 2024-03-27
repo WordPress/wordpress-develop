@@ -455,6 +455,7 @@
 				depth = menuItem.menuItemDepth(),
 				isPrimaryMenuItem = ( 0 === depth ),
 				itemName = $this.closest( '.menu-item-handle' ).find( '.menu-item-title' ).text(),
+				menuItemType = $this.closest( '.menu-item-handle' ).find( '.item-controls' ).find( '.item-type' ).text(),
 				position = parseInt( menuItem.index(), 10 ),
 				prevItemDepth = ( isPrimaryMenuItem ) ? depth : parseInt( depth - 1, 10 ),
 				prevItemNameLeft = menuItem.prevAll('.menu-item-depth-' + prevItemDepth).first().find( '.menu-item-title' ).text(),
@@ -505,7 +506,7 @@
 				totalMenuItems = primaryItems.length,
 
 				// String together help text for primary menu items.
-				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$d', totalMenuItems );
+				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType );
 			} else {
 				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
 				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
@@ -514,10 +515,11 @@
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
-				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$s', parentItemName );
+				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', depth );
 			}
 
 			$this.attr( 'aria-label', title );
+			$this.find('.screen-reader-text').text( title );
 
 			// Mark this item's accessibility as refreshed.
 			$this.data( 'needs_accessibility_refresh', false );
@@ -732,6 +734,7 @@
 
 					api.refreshKeyboardAccessibility();
 					api.refreshAdvancedAccessibility();
+					api.refreshAdvancedAccessibilityOfItem( ui.item.find('a.item-edit') );
 				},
 				change: function(e, ui) {
 					// Make sure the placeholder is inside the menu.

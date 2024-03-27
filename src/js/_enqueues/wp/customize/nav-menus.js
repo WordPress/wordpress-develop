@@ -2,7 +2,7 @@
  * @output wp-admin/js/customize-nav-menus.js
  */
 
-/* global _wpCustomizeNavMenusSettings, wpNavMenu, console */
+/* global menus, _wpCustomizeNavMenusSettings, wpNavMenu, console */
 ( function( api, wp, $ ) {
 	'use strict';
 
@@ -1673,6 +1673,8 @@
 					isMoveLeft = moveBtn.is( '.menus-move-left' ),
 					isMoveRight = moveBtn.is( '.menus-move-right' );
 
+				var title;
+
 				if ( isMoveUp ) {
 					control.moveUp();
 				} else if ( isMoveDown ) {
@@ -1681,18 +1683,24 @@
 					control.moveLeft();
 					if ( 1 === control.params.depth ) {
 						control.container.find( '.is-submenu' ).hide();
+						title = menus.menuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label );
 					} else {
 						control.container.find( '.is-submenu' ).show();
+						title = menus.subMenuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label ).replace( '%3$d', control.params.depth );
 					}
 				} else if ( isMoveRight ) {
 					control.moveRight();
 					control.params.depth += 1;
 					if ( 0 === control.params.depth ) {
 						control.container.find( '.is-submenu' ).hide();
+						title = menus.menuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label );
 					} else {
 						control.container.find( '.is-submenu' ).show();
+						title = menus.subMenuFocus.replace( '%1$s', control.params.label ).replace( '%2$s', control.params.item_type_label ).replace( '%3$d', control.params.depth );
 					}
 				}
+
+				control.container.find( '.screen-reader-text' ).text( title );
 
 				moveBtn.focus(); // Re-focus after the container was moved.
 			} );
