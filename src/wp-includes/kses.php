@@ -1922,14 +1922,14 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
  * @return string Correctly encoded entity.
  */
 function wp_kses_named_entities( $matches ) {
-	global $allowedentitynames;
+	global $html4wp_named_character_entity_set;
 
 	if ( empty( $matches[1] ) ) {
 		return '';
 	}
 
 	$i = $matches[1];
-	return ( ! in_array( $i, $allowedentitynames, true ) ) ? "&amp;$i;" : "&$i;";
+	return ! $html4wp_named_character_entity_set->contains( $i ) ? "&amp;$i;" : "&$i;";
 }
 
 /**
