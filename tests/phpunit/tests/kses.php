@@ -2188,4 +2188,97 @@ HTML;
 
 		return $this->text_array_to_dataprovider( $required_kses_globals );
 	}
+
+	/**
+	 * @ticket 29807
+	 */
+	public function test_wp_filter_post_kses_img() {
+		global $allowedposttags;
+
+		$attributes = array(
+			'class' => 'classname',
+			'id' => 'idattr',
+			'style' => 'color: red;',
+			'alt' => 'alt',
+			'src' => '/test.png',
+			'srcset' => '/test.png 1x, /test-2x.png 2x',
+			'width' => '100',
+			'height' => '100',
+			'usemap' => '#hash',
+			'vspace' => '20',
+			'hspace' => '20',
+			'longdesc' => 'this is the longdesc',
+			'align' => 'middle',
+			'border' => '5',
+		);
+
+		foreach ( $attributes as $name => $value ) {
+			if ( $name === $value ) {
+				$string = "<img $value />";
+				$expect_string = '<img ' . trim( $value, ';' ) . ' />';
+			} else {
+				$string = "<img $name='$value' />";
+				$expect_string = "<img $name='" . trim( $value, ';' ) . "' />";
+			}
+
+			$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
+		}
+	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @param string $unfiltered Unfiltered srcset value before wp_kses.
+	 * @param string $expected   Expected srset value after wp_kses.
+	 *
+	 * @dataProvider data_wp_kses_srcset
+	 */
+	public function test_wp_kses_srcset( $unfiltered, $expected ) {
+		$unfiltered = "<img src='test.png' srcset='{$unfiltered}' />";
+		$expected = "<img src='test.png' srcset='{$expected}' />";
+		$this->assertEquals( $expected, wp_kses_post( $unfiltered ) );
+	}
+
+	public function data_wp_kses_srcset() {
+		return array(
+			array(
+				'/test.png 1x, /test-2x.png 2x',
+				'/test.png 1x, /test-2x.png 2x',
+			),
+			array(
+				'bad://localhost/test.png 1x, http://localhost/test-2x.png 2x',
+				'//localhost/test.png 1x, http://localhost/test-2x.png 2x',
+			),
+			array(
+				'http://localhost/test.png 1x, bad://localhost/test-2x.png 2x',
+				'http://localhost/test.png 1x, //localhost/test-2x.png 2x',
+			),
+			array(
+				'http://localhost/test.png,big 1x, bad://localhost/test.png,medium 2x',
+				'http://localhost/test.png,big 1x, //localhost/test.png,medium 2x',
+			),
+			array(
+				'path/to/test.png 1x, path/to/test-2x.png 2x',
+				'path/to/test.png 1x, path/to/test-2x.png 2x',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 29807
+	 */
+	public function test_wp_filter_post_kses_picture() {
+		global $allowedposttags;
+
+		$html = '<picture><source srcset="pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertEquals( $html, wp_kses( $html, $allowedposttags ) );
+
+		$html = '<picture><source srcset="https://wordpress.org/pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="https://wordpress.org/pear-tablet.jpeg 500w, https://wordpress.org/pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertEquals( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Test bad protocol in srcset
+		$original = '<picture><source srcset="bad://pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$expected = '<picture><source srcset="//pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertEquals( $expected, wp_kses( $original, $allowedposttags ) );
+	}
 }

@@ -206,6 +206,7 @@ if ( ! CUSTOM_TAGS ) {
 			'longdesc' => true,
 			'vspace'   => true,
 			'src'      => true,
+			'srcset'   => true,
 			'usemap'   => true,
 			'width'    => true,
 		),
@@ -250,6 +251,7 @@ if ( ! CUSTOM_TAGS ) {
 		'p'          => array(
 			'align' => true,
 		),
+		'picture'    => array(),
 		'pre'        => array(
 			'width' => true,
 		),
@@ -270,6 +272,12 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 		),
 		'small'      => array(),
+		'source'     => array(
+			'srcset'  => true,
+			'type'    => true,
+			'media'   => true,
+			'sizes'   => true,
+		),
 		'strike'     => array(),
 		'strong'     => array(),
 		'sub'        => array(),
@@ -768,7 +776,6 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
  * @return string Filtered attribute.
  */
 function wp_kses_one_attr( $attr, $element ) {
-	$uris              = wp_kses_uri_attributes();
 	$allowed_html      = wp_kses_allowed_html( 'post' );
 	$allowed_protocols = wp_allowed_protocols();
 	$attr              = wp_kses_no_null( $attr, array( 'slash_zero' => 'keep' ) );
@@ -812,10 +819,7 @@ function wp_kses_one_attr( $attr, $element ) {
 		// Sanitize quotes, angle braces, and entities.
 		$value = esc_attr( $value );
 
-		// Sanitize URI values.
-		if ( in_array( strtolower( $name ), $uris, true ) ) {
-			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
-		}
+		$value = wp_kses_sanitize_uris( $name, $value, $allowed_protocols );
 
 		$attr  = "$name=$quote$value$quote";
 		$vless = 'n';
@@ -1380,9 +1384,9 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 				if ( preg_match( '%^"([^"]*)"(\s+|/?$)%', $attr, $match ) ) {
 					// "value"
 					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
+
+					// Sanitize URI values.
+					$thisval = wp_kses_sanitize_uris( $attrname, $thisval, $allowed_protocols );
 
 					if ( false === array_key_exists( $attrname, $attrarr ) ) {
 						$attrarr[ $attrname ] = array(
@@ -1402,9 +1406,8 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 				if ( preg_match( "%^'([^']*)'(\s+|/?$)%", $attr, $match ) ) {
 					// 'value'
 					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
+					// Sanitize URI values.
+					$thisval = wp_kses_sanitize_uris( $attrname, $thisval, $allowed_protocols );
 
 					if ( false === array_key_exists( $attrname, $attrarr ) ) {
 						$attrarr[ $attrname ] = array(
@@ -1424,9 +1427,8 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 				if ( preg_match( "%^([^\s\"']+)(\s+|/?$)%", $attr, $match ) ) {
 					// value
 					$thisval = $match[1];
-					if ( in_array( strtolower( $attrname ), $uris, true ) ) {
-						$thisval = wp_kses_bad_protocol( $thisval, $allowed_protocols );
-					}
+					// Sanitize URI values.
+					$thisval = wp_kses_sanitize_uris( $attrname, $thisval, $allowed_protocols );
 
 					if ( false === array_key_exists( $attrname, $attrarr ) ) {
 						$attrarr[ $attrname ] = array(
@@ -1466,6 +1468,41 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 	}
 
 	return $attrarr;
+}
+
+/**
+ * Santizes uris in attributes
+ *
+ * This condenses code that was spread around two functions and several cases. It places the list of attributes
+ * which can have uris in them and checks for ones that can have multiple uri candidates (like srcset)
+ * It ultimately passes everything to wp_kses_bad_protocol() to do the actual work.
+ *
+ * @since ?
+ *
+ * @param string $attrname Attribute name to test against.
+ * @param string $attrvalue Content to filter bad protocols from.
+ * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @return string Filtered content.
+ */
+function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols ) {
+	$uris           = wp_kses_uri_attributes();
+	$uri_candidates = array( 'srcset' );
+
+	if ( ! in_array( strtolower( $attrname ), $uris ) ) {
+		return $attrvalue;
+	} else {
+		if ( in_array( strtolower( $attrname ), $uri_candidates ) ) {
+			$thesevals = preg_split( '/\s*,\s+/', $attrvalue );
+		} else {
+			$thesevals = array( $attrvalue );
+		}
+	}
+
+	foreach ( (array) $thesevals as $key => $val ) {
+		$thesevals[ $key ] = wp_kses_bad_protocol( $val, $allowed_protocols );
+	}
+
+	return join( ', ', $thesevals );
 }
 
 /**
