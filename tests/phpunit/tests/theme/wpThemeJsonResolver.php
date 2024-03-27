@@ -1070,4 +1070,79 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			$actual_settings
 		);
 	}
+
+	/**
+	 * @ticket 57545
+	 */
+	public function test_theme_shadow_presets_do_not_override_default_shadow_presets() {
+		switch_theme( 'block-theme' );
+
+		$theme_json_resolver = new WP_Theme_JSON_Resolver();
+		$theme_json          = $theme_json_resolver->get_merged_data();
+		$actual_settings     = $theme_json->get_settings()['shadow']['presets'];
+
+		$expected_settings = array(
+			'default'=> array(
+				array(
+					'name' => 'Natural',
+					'shadow' => '6px 6px 9px rgba(0, 0, 0, 0.2)',
+					'slug' => 'natural',
+				),
+				array(
+					'name' => 'Deep',
+					'shadow' => '12px 12px 50px rgba(0, 0, 0, 0.4)',
+					'slug' => 'deep',
+				),
+				array(
+					'name' => 'Sharp',
+					'shadow' => '6px 6px 0px rgba(0, 0, 0, 0.2)',
+					'slug' => 'sharp',
+				),
+				array(
+					'name' => 'Outlined',
+					'shadow' => '6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1)',
+					'slug' => 'outlined',
+				),
+				array(
+					'name' => 'Crisp',
+					'shadow' => '6px 6px 0px rgba(0, 0, 0, 1)',
+					'slug' => 'crisp',
+				),
+			),
+			'theme' => array(
+				array(
+					'name' => 'Test',
+					'shadow' => '2px 2px 3px #000',
+					'slug' => 'test',
+				),
+			),
+		);
+
+		wp_recursive_ksort( $actual_settings );
+		wp_recursive_ksort( $expected_settings );
+
+		$this->assertSame(
+			$expected_settings,
+			$actual_settings
+		);
+	}
+
+	/**
+	 * @ticket 57545
+	 */
+	public function test_shadow_default_presets_value_for_block_and_classic_themes() {
+		$theme_json_resolver = new WP_Theme_JSON_Resolver();
+		$theme_json          = $theme_json_resolver->get_merged_data();
+
+		$defaultPresetsForClassicTheme = $theme_json->get_settings()['shadow']['defaultPresets'];
+		$this->assertFalse( $defaultPresetsForClassicTheme );
+
+		switch_theme( 'block-theme' );
+		$theme_json_resolver = new WP_Theme_JSON_Resolver();
+		$theme_json          = $theme_json_resolver->get_merged_data();
+
+		$defaultPresetsForBlockTheme = $theme_json->get_settings()['shadow']['defaultPresets'];
+		$this->assertTrue( $defaultPresetsForBlockTheme );
+	}
+
 }
