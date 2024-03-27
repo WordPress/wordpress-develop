@@ -1082,7 +1082,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$actual_settings     = $theme_json->get_settings()['shadow']['presets'];
 
 		$expected_settings = array(
-			'default'=> array(
+			'default' => array(
 				array(
 					'name' => 'Natural',
 					'shadow' => '6px 6px 9px rgba(0, 0, 0, 0.2)',
@@ -1144,5 +1144,4 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$defaultPresetsForBlockTheme = $theme_json->get_settings()['shadow']['defaultPresets'];
 		$this->assertTrue( $defaultPresetsForBlockTheme );
 	}
-
 }
