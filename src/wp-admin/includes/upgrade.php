@@ -847,6 +847,9 @@ function upgrade_all() {
 		upgrade_650();
 	}
 
+	if ( $wp_current_db_version < 57778 ) {
+		upgrade_660();
+	}
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2379,6 +2382,23 @@ function upgrade_650() {
 
 		$autoload = array_fill_keys( $theme_mods_options, 'no' );
 		wp_set_option_autoload_values( $autoload );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.6.0.
+ *
+ * @ignore
+ * @since 6.6.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_660() {
+	global $wp_current_db_version, $wpdb;
+
+	if ( $wp_current_db_version < 57778 ) {
+		drop_index( $wpdb->comments, 'comment_post_ID' );
 	}
 }
 

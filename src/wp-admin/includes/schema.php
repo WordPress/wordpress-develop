@@ -115,7 +115,7 @@ CREATE TABLE $wpdb->comments (
 	comment_parent bigint(20) unsigned NOT NULL default '0',
 	user_id bigint(20) unsigned NOT NULL default '0',
 	PRIMARY KEY  (comment_ID),
-	KEY comment_post_ID (comment_post_ID),
+	KEY comment_post_ID (comment_post_ID,comment_content($max_index_length)),
 	KEY comment_approved_date_gmt (comment_approved,comment_date_gmt),
 	KEY comment_date_gmt (comment_date_gmt),
 	KEY comment_parent (comment_parent),
