@@ -1859,11 +1859,12 @@ class WP_Query {
 	 * @since 1.5.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
+	 * @global array $wp_filter Stores all of the filters.
 	 *
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
 	 */
 	public function get_posts() {
-		global $wpdb;
+		global $wpdb, $wp_filter;
 
 		$this->parse_query();
 
@@ -3171,6 +3172,15 @@ class WP_Query {
 
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
+
+			/*
+			 * `posts_request_ids` can be used to modify the query used to get an array of post IDs.
+			 * This may lead to cache collisions if not taken into consideration during key generation.
+			 */
+			if ( has_filter( 'posts_request_ids' ) ) {
+				$q['posts_request_ids_filters'] = $wp_filter['posts_request_ids'];
+			}
+
 			$cache_key   = $this->generate_cache_key( $q, $new_request );
 
 			$cache_found = false;
