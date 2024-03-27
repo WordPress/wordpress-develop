@@ -150,6 +150,30 @@ class WP_Customize_Nav_Menu_Item_Control extends WP_Customize_Control {
 			do_action( 'wp_nav_menu_item_custom_fields_customize_template' );
 			?>
 
+			<?php
+			/**
+			 * Update parent and order of menu item by changing it.
+			 * Refresh Code
+			 *
+			 * @since 6.6.0
+			 */
+			?>
+
+			<fieldset class="field-move-combo description description-wide">
+				<div class="" style="display: flex;">
+					<label style="flex-basis: 100%;" for="edit-menu-item-parent-{{ data.menu_item_id }}">
+						<?php _e( 'Menu Parent' ); ?><br />
+						<select style="width: 100%;" class="edit-menu-item-parent" id="edit-menu-item-parent-{{ data.menu_item_id }}" name="menu-item-parent[{{ data.menu_item_id }}]">
+						</select>
+					</label>
+					<label style="flex-basis: 100%;" for="edit-menu-item-order-{{ data.menu_item_id }}">
+						<?php _e( 'Menu Order' ); ?><br />
+						<select style="width: 100%;" class="edit-menu-item-order" id="edit-menu-item-order-{{ data.menu_item_id }}" name="menu-item-order[{{ data.menu_item_id }}]">
+						</select>
+					</label>
+				</div>
+			</fieldset>
+
 			<div class="menu-item-actions description-thin submitbox">
 				<# if ( ( 'post_type' === data.item_type || 'taxonomy' === data.item_type ) && '' !== data.original_title ) { #>
 				<p class="link-to-original">

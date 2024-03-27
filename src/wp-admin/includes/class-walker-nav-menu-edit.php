@@ -262,6 +262,29 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<button type="button" class="button-link menus-move menus-move-top" data-dir="top"><?php _e( 'To the top' ); ?></button>
 				</fieldset>
 
+				<?php
+				/**
+				 * Update parent and order of menu item by changing it.
+				 *
+				 * @since 6.6.0
+				 */
+				?>
+
+				<fieldset class="field-move-combo description description-wide">
+					<div class="" style="display: flex;">
+						<label style="flex-basis: 100%;" for="edit-menu-item-parent-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Parent' ); ?><br />
+							<select style="width: 100%;" class="edit-menu-item-parent" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
+							</select>
+						</label>
+						<label style="flex-basis: 100%;" for="edit-menu-item-order-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Order' ); ?><br />
+							<select style="width: 100%;" class="edit-menu-item-order" id="edit-menu-item-order-<?php echo $item_id; ?>" name="menu-item-order[<?php echo $item_id; ?>]">
+							</select>
+						</label>
+					</div>
+				</fieldset>
+
 				<div class="menu-item-actions description-wide submitbox">
 					<?php if ( 'custom' !== $menu_item->type && false !== $original_title ) : ?>
 						<p class="link-to-original">
