@@ -34,6 +34,11 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * @var int
 	 */
+	protected static $global_styles_id_2;
+
+	/**
+	 * @var int
+	 */
 	private $total_revisions;
 
 	/**
@@ -97,6 +102,20 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 				'post_title'   => __( 'Custom Styles', 'default' ),
 				'post_type'    => 'wp_global_styles',
 				'post_name'    => 'wp-global-styles-tt1-blocks-revisions',
+				'tax_input'    => array(
+					'wp_theme' => 'tt1-blocks',
+				),
+			)
+		);
+
+		// This creates another global styles post for the current theme.
+		self::$global_styles_id_2 = $factory->post->create(
+			array(
+				'post_content' => '{"version": ' . WP_Theme_JSON::LATEST_SCHEMA . ', "isGlobalStylesUserThemeJSON": true }',
+				'post_status'  => 'publish',
+				'post_title'   => __( 'Custom Styles' ),
+				'post_type'    => 'wp_global_styles',
+				'post_name'    => 'wp-global-styles-tt1-blocks-revisions-2',
 				'tax_input'    => array(
 					'wp_theme' => 'tt1-blocks',
 				),
@@ -254,6 +273,36 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
+	}
+
+	/**
+	 * @ticket 59810
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_item_valid_parent_id() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( self::$global_styles_id, $data['parent'], "The returned revision's id should match the parent id." );
+		$this->check_get_revision_response( $data, $this->revision_1 );
+	}
+
+	/**
+	 * @ticket 59810
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_item_invalid_parent_id() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id_2 . '/revisions/' . $this->revision_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
+
+		$expected_message = 'The revision does not belong to the specified parent with id of "' . self::$global_styles_id_2 . '"';
+		$this->assertSame( $expected_message, $response->as_error()->get_error_messages()[0], 'The message must contain the correct parent ID.' );
 	}
 
 	/**
