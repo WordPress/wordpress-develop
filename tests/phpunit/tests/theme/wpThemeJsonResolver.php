@@ -1084,36 +1084,36 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$expected_settings = array(
 			'default' => array(
 				array(
-					'name' => 'Natural',
+					'name'   => 'Natural',
 					'shadow' => '6px 6px 9px rgba(0, 0, 0, 0.2)',
-					'slug' => 'natural',
+					'slug'   => 'natural',
 				),
 				array(
-					'name' => 'Deep',
+					'name'   => 'Deep',
 					'shadow' => '12px 12px 50px rgba(0, 0, 0, 0.4)',
-					'slug' => 'deep',
+					'slug'   => 'deep',
 				),
 				array(
-					'name' => 'Sharp',
+					'name'   => 'Sharp',
 					'shadow' => '6px 6px 0px rgba(0, 0, 0, 0.2)',
-					'slug' => 'sharp',
+					'slug'   => 'sharp',
 				),
 				array(
-					'name' => 'Outlined',
+					'name'   => 'Outlined',
 					'shadow' => '6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1)',
-					'slug' => 'outlined',
+					'slug'   => 'outlined',
 				),
 				array(
-					'name' => 'Crisp',
+					'name'   => 'Crisp',
 					'shadow' => '6px 6px 0px rgba(0, 0, 0, 1)',
-					'slug' => 'crisp',
+					'slug'   => 'crisp',
 				),
 			),
-			'theme' => array(
+			'theme'   => array(
 				array(
-					'name' => 'Test',
+					'name'   => 'Test',
 					'shadow' => '2px 2px 3px #000',
-					'slug' => 'test',
+					'slug'   => 'test',
 				),
 			),
 		);
@@ -1134,14 +1134,14 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
 		$theme_json          = $theme_json_resolver->get_merged_data();
 
-		$defaultPresetsForClassicTheme = $theme_json->get_settings()['shadow']['defaultPresets'];
-		$this->assertFalse( $defaultPresetsForClassicTheme );
+		$default_presets_for_classic = $theme_json->get_settings()['shadow']['defaultPresets'];
+		$this->assertFalse( $default_presets_for_classic );
 
 		switch_theme( 'block-theme' );
 		$theme_json_resolver = new WP_Theme_JSON_Resolver();
 		$theme_json          = $theme_json_resolver->get_merged_data();
 
-		$defaultPresetsForBlockTheme = $theme_json->get_settings()['shadow']['defaultPresets'];
-		$this->assertTrue( $defaultPresetsForBlockTheme );
+		$default_presets_for_block = $theme_json->get_settings()['shadow']['defaultPresets'];
+		$this->assertTrue( $default_presets_for_block );
 	}
 }
