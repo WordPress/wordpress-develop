@@ -205,10 +205,16 @@ function export_wp( $args = array() ) {
 		$categories = (array) get_categories( array( 'get' => 'all' ) );
 		$tags       = (array) get_tags( array( 'get' => 'all' ) );
 
+		$block_taxonomies  = array(
+			'wp_theme'              => 'wp_theme',
+			'wp_template_part_area' => 'wp_template_part_area',
+		);
+
 		$custom_taxonomies = get_taxonomies( array( '_builtin' => false ) );
+		$_taxonomies       = (array) array_merge( $custom_taxonomies, $block_taxonomies );
 		$custom_terms      = (array) get_terms(
 			array(
-				'taxonomy' => $custom_taxonomies,
+				'taxonomy' => $_taxonomies,
 				'get'      => 'all',
 			)
 		);
