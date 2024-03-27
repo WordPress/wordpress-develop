@@ -76,7 +76,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
@@ -94,7 +94,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@73963f5001e335723c998e4a0125ce060083985c # v2.30.1
         with:
           php-version: '7.4'
           coverage: none
@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload single site report to Codecov
         if: ${{ ! matrix.multisite && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
+        uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8 # v4.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage-single-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Upload multisite report to Codecov
         if: ${{ matrix.multisite && github.event_name != 'pull_request' }}
-        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # v4.1.0
+        uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8 # v4.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: wp-code-coverage-multisite-${{ github.sha }}${{ 'clover' == matrix.format && '.xml' || '' }}
