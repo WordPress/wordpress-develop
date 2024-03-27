@@ -885,14 +885,27 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 	 */
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
 
+	/**
+	 * Filters the list of hooked blocks for a given anchor and relative position.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param array[]                         $hooked_blocks       The list of hooked blocks.
+	 * @param string                          $relative_position   The relative position of the hooked blocks.
+	 *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
+	 * @param array                           $parsed_anchor_block The parsed anchor block.
+	 * @param WP_Block_Template|WP_Post|array $context             The block template, template part, `wp_navigation` post type,
+	 *                                                             or pattern that the anchor block belongs to.
+	 */
+	$hooked_blocks = apply_filters( 'hooked_blocks', $hooked_blocks, $relative_position, $parsed_anchor_block, $context );
+
+	// Merge hooked blocks and hooked block types.
+	$hooked_blocks = array_merge( $hooked_blocks, $hooked_block_types );
+
 	$markup = '';
-	foreach ( $hooked_block_types as $hooked_block_type ) {
-		$parsed_hooked_block = array(
-			'blockName'    => $hooked_block_type,
-			'attrs'        => array(),
-			'innerBlocks'  => array(),
-			'innerContent' => array(),
-		);
+	foreach ( $hooked_blocks as $hooked_block ) {
+		$parsed_hooked_block = get_parsed_block( $hooked_block );
+		$hooked_block_type   = $parsed_hooked_block['blockName'];
 
 		/**
 		 * Filters the parsed block array for a given hooked block.
@@ -928,11 +941,13 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 			continue;
 		}
 
+		$hooked_block_signature = get_hooked_block_signature( $parsed_hooked_block );
+
 		// It's possible that the filter returned a block of a different type, so we explicitly
 		// look for the original `$hooked_block_type` in the `ignoredHookedBlocks` metadata.
 		if (
 			! isset( $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] ) ||
-			! in_array( $hooked_block_type, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
+			! in_array( $hooked_block_signature, $parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'], true )
 		) {
 			$markup .= serialize_block( $parsed_hooked_block );
 		}
@@ -964,17 +979,19 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 
 	/** This filter is documented in wp-includes/blocks.php */
 	$hooked_block_types = apply_filters( 'hooked_block_types', $hooked_block_types, $relative_position, $anchor_block_type, $context );
-	if ( empty( $hooked_block_types ) ) {
+	/** This filter is documented in wp-includes/blocks.php */
+	$hooked_blocks = apply_filters( 'hooked_blocks', $hooked_blocks, $relative_position, $parsed_anchor_block, $context );
+	$hooked_blocks = array_merge( $hooked_blocks, $hooked_block_types );
+
+	if ( empty( $hooked_blocks ) ) {
 		return '';
 	}
 
+	$hooked_block_signatures = [];
+
 	foreach ( $hooked_block_types as $index => $hooked_block_type ) {
-		$parsed_hooked_block = array(
-			'blockName'    => $hooked_block_type,
-			'attrs'        => array(),
-			'innerBlocks'  => array(),
-			'innerContent' => array(),
-		);
+		$parsed_hooked_block = get_parsed_block( $hooked_block );
+		$hooked_block_type   = $parsed_hooked_block['blockName'];
 
 		/** This filter is documented in wp-includes/blocks.php */
 		$parsed_hooked_block = apply_filters( 'hooked_block', $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
@@ -982,8 +999,8 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 		/** This filter is documented in wp-includes/blocks.php */
 		$parsed_hooked_block = apply_filters( "hooked_block_{$hooked_block_type}", $parsed_hooked_block, $hooked_block_type, $relative_position, $parsed_anchor_block, $context );
 
-		if ( null === $parsed_hooked_block ) {
-			unset( $hooked_block_types[ $index ] );
+		if ( null !== $parsed_hooked_block ) {
+			$hooked_block_signatures[] = get_hooked_block_signature( $parsed_hooked_block );
 		}
 	}
 
@@ -994,7 +1011,7 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 	$parsed_anchor_block['attrs']['metadata']['ignoredHookedBlocks'] = array_unique(
 		array_merge(
 			$previously_ignored_hooked_blocks,
-			$hooked_block_types
+			$hooked_block_signatures
 		)
 	);
 
@@ -2266,4 +2283,45 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 		_wp_footnotes_kses_init_filters();
 	}
 	return $arg;
+}
+
+/**
+ * Get hooked block signature to help identify hooked blocks with differing attributes.
+ *
+ * @param array $parsed_block The block to generate a signature from.
+ * @return string Block signature. 
+ */
+function get_hooked_block_signature( $parsed_block ) {
+	if ( empty( $parsed_block['attrs'] ) ) {
+		return $parsed_block['blockName'];
+	}
+
+	return $parsed_block['blockName'] . '-' . json_encode( $parsed_block['attrs'] );
+}
+
+/**
+ * Get the fully parsed block from a partial block array or block type string.
+ *
+ * @param array|string $block The block as an array or a block type string.
+ * @return array Parsed block.
+ */
+function get_parsed_block( $block ) {
+	if ( is_string( $block ) ) {
+		return array(
+			'blockName'    => $block,
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
+		);
+	}
+	
+	return array_merge(
+		array(
+			'blockName'    => '',
+			'attrs'        => array(),
+			'innerBlocks'  => array(),
+			'innerContent' => array(),
+		),
+		$block
+	);
 }
