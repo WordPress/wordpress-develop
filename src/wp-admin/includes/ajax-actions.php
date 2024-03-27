@@ -1636,7 +1636,14 @@ function wp_ajax_add_meta() {
 				gmdate( __( 'g:i a' ), $now )
 			);
 
+			/* this is to avoid adding the meta twice */
+			$_tmp_post = $_POST;
+			unset( $_POST[ 'metakeyselect' ] );
+			unset( $_POST[ 'metakeyinput' ] );
+
 			$pid = edit_post( $post_data );
+			
+			$_POST = $_tmp_post;
 
 			if ( $pid ) {
 				if ( is_wp_error( $pid ) ) {
