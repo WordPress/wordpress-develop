@@ -2176,15 +2176,19 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key.
+ * @param mixed $key Key to sanitize.
  * @return string Sanitized key.
  */
 function sanitize_key( $key ) {
 	$sanitized_key = '';
 
-	if ( is_scalar( $key ) ) {
+	if ( is_int( $key ) || is_float( $key ) ) {
+		$sanitized_key = (string) $key;
+	} elseif ( ! is_string( $key ) ) {
+		return '';
+	} else {
 		$sanitized_key = strtolower( $key );
-		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
+		$sanitized_key = preg_replace( '/[^\w-]/', '', $sanitized_key );
 	}
 
 	/**
@@ -2209,7 +2213,7 @@ function sanitize_key( $key ) {
  *
  * @since 1.0.0
  *
- * @param string $title          The string to be sanitized.
+ * @param mixed $title          The string to be sanitized.
  * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
  * @param string $context        Optional. The operation for which the string is sanitized.
  *                               When set to 'save', the string runs through remove_accents().
@@ -2217,6 +2221,9 @@ function sanitize_key( $key ) {
  * @return string The sanitized string.
  */
 function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
+	if ( ! is_string( $title ) ) {
+		$title = '';
+	}
 	$raw_title = $title;
 
 	if ( 'save' === $context ) {
@@ -3763,10 +3770,14 @@ function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
  *
  * @since 1.5.0
  *
- * @param string $email Email address to filter.
+ * @param mixed $email Email address to filter.
  * @return string Filtered email address.
  */
 function sanitize_email( $email ) {
+	if ( ! is_string( $email ) ) {
+		return '';
+	}
+
 	// Test for the minimum length the email can be.
 	if ( strlen( $email ) < 6 ) {
 		/**
@@ -5574,10 +5585,14 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
  * @see wp_check_invalid_utf8()
  * @see wp_strip_all_tags()
  *
- * @param string $str String to sanitize.
+ * @param mixed $str Data to sanitize as text field.
  * @return string Sanitized string.
  */
 function sanitize_text_field( $str ) {
+	if ( ! is_string( $str ) ) {
+		return '';
+	}
+
 	$filtered = _sanitize_text_fields( $str, false );
 
 	/**
@@ -5602,10 +5617,14 @@ function sanitize_text_field( $str ) {
  *
  * @since 4.7.0
  *
- * @param string $str String to sanitize.
+ * @param mixed $str Data to sanitize as textarea field.
  * @return string Sanitized string.
  */
 function sanitize_textarea_field( $str ) {
+	if ( ! is_string( $str ) ) {
+		return '';
+	}
+
 	$filtered = _sanitize_text_fields( $str, true );
 
 	/**
