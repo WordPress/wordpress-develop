@@ -80,7 +80,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 	/**
 	 * @ticket 60754
 	 */
-	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_applies_filter_correctly() {
+	public function test_hooked_block_types_filter_with_existing_template_post() {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
@@ -135,7 +135,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 	/**
 	 * @ticket 60754
 	 */
-	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part_applies_filter_correctly() {
+	public function test_hooked_block_types_filter_with_existing_template_part_post() {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
@@ -197,7 +197,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 	/**
 	 * @ticket 60754
 	 */
-	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_file_based_template_applies_filter_correctly() {
+	public function test_hooked_block_types_filter_with_existing_template_file() {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
@@ -249,7 +249,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 	/**
 	 * @ticket 60754
 	 */
-	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_file_based_template_part_applies_filter_correctly() {
+	public function test_hooked_block_types_filter_with_existing_template_part_file() {
 		$action = new MockAction();
 		add_filter( 'hooked_block_types', array( $action, 'filter' ), 10, 4 );
 
