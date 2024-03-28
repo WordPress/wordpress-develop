@@ -1682,6 +1682,58 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Checks that edit_user() correctly sanitizes the supplied email address.
+	 *
+	 * @ticket 45714
+	 */
+	public function test_edit_user_sanitize_password() {
+		$_POST    = array();
+		$_GET     = array();
+		$_REQUEST = array();
+
+		$user = $this->factory()->user->create_and_get(
+			array(
+				'email' => 'eusp1@example.com',
+			)
+		);
+
+		$_POST['nickname']   = 'eusp1';
+		$_POST['user_login'] = $user->user_login;
+
+		// Success cases.
+		foreach ( array(
+			'eusp2@example.com'       => 'eusp2@example.com',
+			'eusp3%4@example.com'     => 'eusp3%4@example.com',
+			'eusp4@example.com!'      => 'eusp4@example.com',
+			'  eusp6@example.com%aa ' => 'eusp6@example.comaa',
+			'eu\'sp@example.com'      => 'eu\'sp@example.com',
+		) as $em_pre => $em_post ) {
+			$_POST['email'] = $em_pre;
+
+			$user_id = edit_user( $user->ID );
+
+			$this->assertIsInt( $user_id );
+
+			$user = get_user_by( 'ID', $user_id );
+
+			$this->assertInstanceOf( 'WP_User', $user );
+			$this->assertEquals( $em_post, $user->user_email );
+		}
+
+		// Failure cases (resulting in an invalid email address).
+		foreach ( array(
+			''      => '',
+			'eusp5' => 'eusp5',
+		) as $em_pre => $em_post ) {
+			$_POST['email'] = $em_pre;
+			$user_id        = edit_user( $user->ID );
+
+			$this->assertInstanceOf( 'WP_Error', $user_id );
+			$this->assertEquals( 'empty_email', $user_id->get_error_code() );
+		}
+	}
+
+	/**
 	 * Check passwords action for test_edit_user_blank_password().
 	 */
 	public function action_check_passwords_blank_password( $user_login, &$pass1 ) {
