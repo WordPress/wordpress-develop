@@ -65,10 +65,24 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return;
 	}
 
-	if ( ! $requested_url && isset( $_SERVER['HTTP_HOST'] ) ) {
+	// www.example.com vs. example.com
+	$user_home = parse_url( home_url( '/' ) );
+
+	if ( ! $requested_url ) {
 		// Build the URL in the address bar.
-		$requested_url  = is_ssl() ? 'https://' : 'http://';
-		$requested_url .= $_SERVER['HTTP_HOST'];
+		$requested_url = is_ssl() ? 'https://' : 'http://';
+		if ( isset( $_SERVER['HTTP_HOST'] ) ) {
+			$requested_url .= $_SERVER['HTTP_HOST'];
+		} else {
+			/*
+			 * Fallback for HTTP/1.0 where the requested host and port are unknown.
+			 * In this case, correctly redirecting no-www <=> yes-www is not possible.
+			 */
+			$requested_url .= $user_home['host'];
+			if ( ! empty( $user_home['port'] ) ) {
+				$requested_url .= ':' . $user_home['port'];
+			}
+		}
 		$requested_url .= $_SERVER['REQUEST_URI'];
 	}
 
@@ -595,9 +609,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( $redirect_url ) {
 		$redirect = parse_url( $redirect_url );
 	}
-
-	// www.example.com vs. example.com
-	$user_home = parse_url( home_url() );
 
 	if ( ! empty( $user_home['host'] ) ) {
 		$redirect['host'] = $user_home['host'];
