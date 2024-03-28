@@ -731,7 +731,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * It is self-sufficient in that it only uses information passed as arguments; it does not
  * query the database for additional information.
  *
- * @since 6.5.0
+ * @since 6.5.1
  * @access private
  *
  * @param WP_Post $post  Template post.
