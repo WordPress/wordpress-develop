@@ -255,8 +255,7 @@ class WP_Theme_JSON_Resolver {
 			 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 			 */
 			$theme_json      = apply_filters( 'wp_theme_json_data_theme', new WP_Theme_JSON_Data( $theme_json_data, 'theme' ) );
-			$theme_json_data = $theme_json->get_data();
-			static::$theme   = new WP_Theme_JSON( $theme_json_data );
+			static::$theme   = $theme_json->get_theme_json();
 
 			if ( $wp_theme->parent() ) {
 				// Get parent theme.json.
