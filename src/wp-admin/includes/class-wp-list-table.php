@@ -1656,7 +1656,9 @@ class WP_List_Table {
 
 		$mode_class = esc_attr( 'table-view-' . $mode );
 
-		return array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
+		$classes = array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
+
+		return apply_filters( 'post_list_table_classes', $classes, $this );
 	}
 
 	/**
