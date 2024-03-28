@@ -117,7 +117,16 @@ function get_home_path() {
 		$home_path = ABSPATH;
 	}
 
-	return str_replace( '\\', '/', $home_path );
+	$home_path = str_replace( '\\', '/', $home_path );
+
+	/**
+	 * Filters the function return value
+	 *
+	 * @since ???
+	 *
+	 * @param string $home_path full filesystem path to the root of the WordPress installation
+	 */
+	return apply_filters( 'get_home_path', $home_path );
 }
 
 /**
