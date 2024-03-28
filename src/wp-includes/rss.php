@@ -18,11 +18,6 @@ _deprecated_file( basename( __FILE__ ), '3.0.0', WPINC . '/class-simplepie.php' 
  */
 do_action( 'load_feed_engine' );
 
-/** RSS feed constant. */
-define('RSS', 'RSS');
-define('ATOM', 'Atom');
-define('MAGPIE_USER_AGENT', 'WordPress/' . $GLOBALS['wp_version']);
-
 class MagpieRSS {
 	var $parser;
 	var $current_item        = array();
