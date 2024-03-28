@@ -800,11 +800,6 @@ class Tests_Theme extends WP_UnitTestCase {
 					'feature' => 'responsive-embeds',
 				),
 			),
-			'editor-styles'        => array(
-				'support' => array(
-					'feature' => 'editor-styles',
-				),
-			),
 			'html5: comment-list'  => array(
 				'support' => array(
 					'feature'     => 'html5',
