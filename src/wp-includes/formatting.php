@@ -249,10 +249,6 @@ function wptexturize( $text, $reset = false ) {
 				continue;
 			} else {
 				// This is an HTML element delimiter.
-
-				// Replace each & with &#038; unless it already looks like an entity.
-				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
-
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
 		} elseif ( '' === trim( $curl ) ) {
@@ -657,13 +653,24 @@ function get_html_split_regex() {
 			.     $cdata
 			. ')';
 
+		$ignore_attr =
+			'(?:'
+			.     '[^>"\']*'       // Match any characters except >, " or '.
+			.     '(?:'
+			.         '"[^"]*"'    // Double-quoted attribute value.
+			.     '|'
+			.         '\'[^\']*\'' // Single-quoted attribute value.
+			.     ')?'
+			. ')*';                // End of attribute value.
+
 		$regex =
-			'/('                // Capture the entire match.
-			.     '<'           // Find start of element.
-			.     '(?'          // Conditional expression follows.
-			.         $escaped  // Find end of escaped element.
-			.     '|'           // ...else...
-			.         '[^>]*>?' // Find end of normal element.
+			'/('                   // Capture the entire match.
+			.     '<'              // Find start of element.
+			.     '(?'             // Conditional expression follows.
+			.         $escaped     // Find end of escaped element.
+			.     '|'              // ...else...
+			.         $ignore_attr // Exclude matching within attribute values.
+			.         '[^>]*>?'    // Find end of normal element.
 			.     ')'
 			. ')/';
 		// phpcs:enable
@@ -696,12 +703,26 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 			. ')*+'         // Loop possessively.
 			. '(?:-->)?';   // End of comment. If not found, match all input.
 
+		/**
+		 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+		 */
+		$ignore_attr_regex =
+			'(?:'
+			.     '[^>"\']*'       // Match any characters except >, " or '.
+			.     '(?:'
+			.         '"[^"]*"'    // Double-quoted attribute value.
+			.     '|'
+			.         '\'[^\']*\'' // Single-quoted attribute value.
+			.     ')?'
+			. ')*';                // End of attribute value.
+
 		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
-			'<'                  // Find start of element.
-			. '(?(?=!--)'        // Is this a comment?
-			.     $comment_regex // Find end of comment.
+			'<'                      // Find start of element.
+			. '(?(?=!--)'            // Is this a comment?
+			.     $comment_regex     // Find end of comment.
 			. '|'
-			.     '[^>]*>?'      // Find end of element. If not found, match all input.
+			.     $ignore_attr_regex // Ignore matching of element end within attribute values.
+			.     '[^>]*>?'          // Find end of element. If not found, match all input.
 			. ')';
 		// phpcs:enable
 	}

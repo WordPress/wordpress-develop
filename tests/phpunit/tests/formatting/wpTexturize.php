@@ -1278,11 +1278,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a> ]',
-				'[ photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a> ]',
+				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a> ]',
 			),
 			array(
 				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a>]',
-				'[photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a>]',
+				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a>]',
 			),
 			array(
 				'& <script>&&</script>',
@@ -2114,5 +2114,48 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	public function data_whole_posts() {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
+	}
+
+	/**
+	 * @ticket 43457
+	 * @ticket 45387
+	 * @ticket 57381
+	 * @dataProvider data_greater_than_in_attribute_value
+	 */
+	public function test_greater_than_in_attribute_value( $input, $output ) {
+		$this->assertSame( $output, wptexturize( $input ) );
+	}
+
+	public function data_greater_than_in_attribute_value() {
+		return array(
+			array(
+				'
+				<label class="[&>span]:font-bold">"foo" or "bar"</label>
+				<input placeholder="foo<->bar" />
+				',
+				'
+				<label class="[&>span]:font-bold">&#8220;foo&#8221; or &#8220;bar&#8221;</label>
+				<input placeholder="foo<->bar" />
+				',
+			),
+			array(
+				'
+				<label class=\'[&>span]:font-bold\'>\'foo\' or \'bar\'</label>
+				<input placeholder=\'foo<->bar\' />
+				',
+				'
+				<label class=\'[&>span]:font-bold\'>&#8216;foo&#8217; or &#8216;bar&#8217;</label>
+				<input placeholder=\'foo<->bar\' />
+				',
+			),
+			array(
+				'<span data-content="<p>abcd</p>">loading...</span>',
+				'<span data-content="<p>abcd</p>">loading&#8230;</span>',
+			),
+			array(
+				'<p>Go to <a href="https://wordpress.org" target="_blank" rel="noreferrer noopener" aria-label="WordPress ->">WordPress -></a></p>',
+				'<p>Go to <a href="https://wordpress.org" target="_blank" rel="noreferrer noopener" aria-label="WordPress ->">WordPress -></a></p>',
+			),
+		);
 	}
 }
