@@ -547,6 +547,65 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		}
 	}
 
+	/**
+	 * Pretty permalinks for search-results were removed in 6.6.0.
+	 * All search results are now served from /?s={search_query}.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/4463
+	 */
+	if ( str_contains( $requested_url, '/search/' ) && ( is_404() || is_feed() ) ) {
+		$search_query       = explode( '/search/', $requested_url )[1];
+		$search_query_parts = explode( '/', $search_query );
+		$search_query_args  = array();
+
+		$skip_next = false;
+		foreach ( $search_query_parts as $key => $search_query_part ) {
+			if ( $skip_next ) {
+				$skip_next = false;
+				continue;
+			}
+
+			// Add the search term.
+			if ( 0 === $key ) {
+				$search_query_args['s'] = $search_query_part;
+				continue;
+			}
+
+			// Handle feeds.
+			if ( 'feed' === $search_query_part &&
+				isset( $search_query_parts[ $key + 1 ] ) &&
+				in_array( $search_query_parts[ $key + 1 ], array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true )
+			) {
+				// URLs formatted like /search/{search_query}/feed/{feed_type}/.
+				$search_query_args['feed'] = $search_query_parts[ $key + 1 ];
+				$skip_next                 = true;
+				continue;
+			} elseif ( in_array( $search_query_part, array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true ) ) {
+				// URLs formatted like /search/{search_query}/{feed_type}/.
+				$search_query_part         = 'feed' === $search_query_part ? 'rss2' : $search_query_part;
+				$search_query_args['feed'] = $search_query_part;
+				continue;
+			}
+
+			// Handle embeds.
+			if ( 'embed' === $search_query_part ) {
+				$search_query_args['embed'] = 'true';
+				continue;
+			}
+
+			// Handle pagination.
+			if ( 'page' === $search_query_part && isset( $search_query_parts[ $key + 1 ] ) ) {
+				$search_query_args['paged'] = (int) $search_query_parts[ $key + 1 ];
+				$skip_next                  = true;
+				continue;
+			}
+		}
+
+		if ( ! empty( $search_query_args ) ) {
+			$redirect_url = add_query_arg( $search_query_args, home_url( '/' ) );
+		}
+	}
+
 	$is_attachment_redirect = false;
 
 	if ( is_attachment() && ! get_option( 'wp_attachment_pages_enabled' ) ) {

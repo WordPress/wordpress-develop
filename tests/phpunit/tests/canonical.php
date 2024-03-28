@@ -543,4 +543,84 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 4463
+	 * @dataProvider data_test_redirect_pretty_search_results
+	 */
+	public function test_redirect_pretty_search_results( $input_url, $expected, $query ) {
+		static $pre_tests_run = false;
+		if ( ! $pre_tests_run ) {
+			$this->set_permalink_structure( '/%postname%/' );
+			update_option( 'posts_per_page', 2 );
+			self::factory()->post->create_many( 3, array( 'post_title' => 'test' ) );
+			self::factory()->post->create_many( 3, array( 'post_title' => 'Fünf bar' ) );
+			$pre_tests_run = true;
+		}
+
+		// Go to the pretty search URL and check that it redirects to the expected URL.
+		$this->go_to( $input_url );
+		$this->assertSame(
+			sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $expected ),
+			redirect_canonical( sprintf( 'http://%1$s%2$s', WP_TESTS_DOMAIN, $input_url ), false )
+		);
+
+		$this->assertQueryTrue( 'is_search' );
+
+		// Go to the redirected URL and check that the search query is set correctly.
+		$this->go_to( $expected );
+		$this->assertSame( get_query_var( 's' ), $query );
+
+		if ( false !== strpos( $expected, 'paged' ) ) {
+			$this->assertQueryTrue( 'is_paged' );
+		}
+	}
+
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_with_custom_statuses().
+	 *
+	 * return array[] {
+	 *    array Arguments used to register custom status
+	 *    bool  Whether the 404 link is expected to redirect
+	 * }
+	 */
+	public function data_test_redirect_pretty_search_results() {
+		return array(
+			'simple search'                                => array(
+				'input_url' => '/search/hello',
+				'expected'  => '/?s=hello',
+				'query'     => 'hello',
+			),
+			'paged search'                                 => array(
+				'input_url' => '/search/hello/page/2',
+				'expected'  => '/?s=hello&paged=2',
+				'query'     => 'hello',
+			),
+			'feed search with both "feed" and "type" args' => array(
+				'input_url' => '/search/hello/feed/rss2',
+				'expected'  => '/?s=hello&feed=rss2',
+				'query'     => 'hello',
+			),
+			'feed search with only "type" arg'             => array(
+				'input_url' => '/search/hello/rss2',
+				'expected'  => '/?s=hello&feed=rss2',
+				'query'     => 'hello',
+			),
+			'feed search with only "feed" arg'             => array(
+				'input_url' => '/search/hello/feed',
+				'expected'  => '/?s=hello&feed=rss2',
+				'query'     => 'hello',
+			),
+			'paged feed search'                            => array(
+				'input_url' => '/search/hello/feed/rss2/page/2',
+				'expected'  => '/?s=hello&feed=rss2&paged=2',
+				'query'     => 'hello',
+			),
+			'search with encoded characters'               => array(
+				'input_url' => '/search/F%C3%BCnf%2Bbar/',
+				'expected'  => '/?s=F%C3%BCnf%2Bbar',
+				'query'     => 'Fünf bar',
+			),
+		);
+	}
 }
