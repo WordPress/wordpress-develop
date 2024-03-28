@@ -2311,7 +2311,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	 *                   False if the nonce is invalid.
 	 */
 	function wp_verify_nonce( $nonce, $action = -1 ) {
-		$nonce = (string) $nonce;
+		$nonce = (string) apply_filters( 'wp_verify_nonce_change', $nonce );
 		$user  = wp_get_current_user();
 		$uid   = (int) $user->ID;
 		if ( ! $uid ) {
@@ -2336,13 +2336,13 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 		// Nonce generated 0-12 hours ago.
 		$expected = substr( wp_hash( $i . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
 		if ( hash_equals( $expected, $nonce ) ) {
-			return 1;
+			return apply_filters( 'wp_verify_nonce_match_1', 1 );
 		}
 
 		// Nonce generated 12-24 hours ago.
 		$expected = substr( wp_hash( ( $i - 1 ) . '|' . $action . '|' . $uid . '|' . $token, 'nonce' ), -12, 10 );
 		if ( hash_equals( $expected, $nonce ) ) {
-			return 2;
+			return apply_filters( 'wp_verify_nonce_match_2', 2 );
 		}
 
 		/**
@@ -2358,7 +2358,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 		do_action( 'wp_verify_nonce_failed', $nonce, $action, $user, $token );
 
 		// Invalid nonce.
-		return false;
+		return apply_filters( 'wp_verify_nonce_failed_return', false );
 	}
 endif;
 
