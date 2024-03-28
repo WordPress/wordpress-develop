@@ -30,7 +30,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), 'yes' ), 'Function did not succeed' );
 		$this->assertSame( $num_queries + 2, get_num_queries(), 'Updating options autoload value ran too many queries' );
-		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSame( array( 'on', 'on' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $value ) {
 			$this->assertFalse( wp_cache_get( $option, 'options' ), sprintf( 'Option %s not deleted from individual cache', $option ) );
 		}
@@ -59,7 +59,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), 'no' ), 'Function did not succeed' );
 		$this->assertSame( $num_queries + 2, get_num_queries(), 'Updating options autoload value ran too many queries' );
-		$this->assertSame( array( 'no', 'no' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSame( array( 'off', 'off' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $value ) {
 			$this->assertArrayNotHasKey( $option, wp_cache_get( 'alloptions', 'options' ), sprintf( 'Option %s not deleted from alloptions cache', $option ) );
 		}
@@ -87,7 +87,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), 'yes' ), 'Function did unexpectedly succeed' );
 		$this->assertSame( $num_queries + 1, get_num_queries(), 'Function attempted to update options autoload value in database' );
-		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Options autoload value unexpectedly updated in database' );
+		$this->assertSame( array( 'on', 'on' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Options autoload value unexpectedly updated in database' );
 	}
 
 	/**
@@ -133,7 +133,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), 'yes' ), 'Function produced unexpected result' );
-		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSame( array( 'on', 'on' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 		foreach ( $options as $option => $value ) {
 			$this->assertFalse( wp_cache_get( $option, 'options' ), sprintf( 'Option %s not deleted from individual cache', $option ) );
 		}
@@ -161,7 +161,7 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), true ), 'Function produced unexpected result' );
-		$this->assertSame( array( 'yes', 'yes' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSame( array( 'on', 'on' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 	}
 
 	/**
@@ -185,6 +185,6 @@ class Tests_Option_WpSetOptionsAutoload extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, wp_set_options_autoload( array_keys( $options ), false ), 'Function produced unexpected result' );
-		$this->assertSame( array( 'no', 'no' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
+		$this->assertSame( array( 'off', 'off' ), $wpdb->get_col( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name IN (" . implode( ',', array_fill( 0, count( $options ), '%s' ) ) . ')', ...array_keys( $options ) ) ), 'Option autoload values not updated in database' );
 	}
 }

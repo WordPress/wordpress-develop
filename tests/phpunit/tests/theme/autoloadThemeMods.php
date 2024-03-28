@@ -28,13 +28,13 @@ class Tests_Autoload_Theme_Mods extends WP_Theme_UnitTestCase {
 
 		switch_theme( $new_theme_stylesheet );
 
-		$this->assertSame( 'no', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$current_theme_stylesheet" ) ), 'Theme mods autoload value not set to no in database' );
-		$this->assertSame( 'yes', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$new_theme_stylesheet" ) ), 'Theme mods autoload value not set to yes in database' );
+		$this->assertSame( 'off', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$current_theme_stylesheet" ) ), 'Theme mods autoload value not set to no in database' );
+		$this->assertSame( 'on', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$new_theme_stylesheet" ) ), 'Theme mods autoload value not set to yes in database' );
 
 		switch_theme( $current_theme_stylesheet );
 
-		$this->assertSame( 'yes', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$current_theme_stylesheet" ) ), 'Theme mods autoload value not set to yes in database' );
-		$this->assertSame( 'no', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$new_theme_stylesheet" ) ), 'Theme mods autoload value not set to no in database' );
+		$this->assertSame( 'on', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$current_theme_stylesheet" ) ), 'Theme mods autoload value not set to yes in database' );
+		$this->assertSame( 'off', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", "theme_mods_$new_theme_stylesheet" ) ), 'Theme mods autoload value not set to no in database' );
 
 		// Basic assertion to make sure that we haven't lost the mods.
 		$this->assertSame( 'a-value', get_theme_mod( 'foo-bar-option' ) );

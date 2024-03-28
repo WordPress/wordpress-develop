@@ -308,9 +308,9 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return array(
 			'string 123'   => array( '123' ),
 			'integer 123'  => array( 123 ),
-			'integer -123' => array( -123 ),
+			'integer -123' => array( - 123 ),
 			'float 12.3'   => array( 12.3 ),
-			'float -1.23'  => array( -1.23 ),
+			'float -1.23'  => array( - 1.23 ),
 			'boolean true' => array( true ),
 		);
 	}
@@ -359,14 +359,92 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 */
 	public function data_option_autoloading() {
 		return array(
-			array( 'autoload_yes', 'yes', 'yes' ),
-			array( 'autoload_true', true, 'yes' ),
-			array( 'autoload_string', 'foo', 'yes' ),
-			array( 'autoload_int', 123456, 'yes' ),
-			array( 'autoload_array', array(), 'yes' ),
-			array( 'autoload_no', 'no', 'no' ),
-			array( 'autoload_false', false, 'no' ),
+			// Supported values.
+			array( 'autoload_yes', 'yes', 'on' ),
+			array( 'autoload_true', true, 'on' ),
+			array( 'autoload_no', 'no', 'off' ),
+			array( 'autoload_false', false, 'off' ),
+			array( 'autoload_null', null, 'auto' ),
+
+			// Technically unsupported values.
+			array( 'autoload_string', 'foo', 'auto' ),
+			array( 'autoload_int', 123456, 'auto' ),
+			array( 'autoload_array', array(), 'auto' ),
 		);
+	}
+
+	/**
+	 * @ticket 42441
+	 *
+	 * @covers ::update_option
+	 *
+	 * @dataProvider data_option_autoloading_large_option
+	 */
+	public function test_update_option_autoloading_large_option( $autoload, $expected ) {
+		global $wpdb;
+		$name = 'foo';
+		add_option( $name, 'bar' );
+		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
+		$value   = file( DIR_TESTDATA . '/formatting/entities.txt' );
+		$updated = update_option( $name, $value, $autoload );
+		$this->assertTrue( $updated );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
+		$this->assertSame( $expected, $actual->autoload );
+	}
+
+	public function data_option_autoloading_large_option() {
+		return array(
+			'on'    => array(
+				'autoload' => 'on',
+				'expected' => 'on',
+			),
+			'off'   => array(
+				'autoload' => 'off',
+				'expected' => 'off',
+			),
+			'yes'   => array(
+				'autoload' => 'yes',
+				'expected' => 'on',
+			),
+			'true'  => array(
+				'autoload' => true,
+				'expected' => 'on',
+			),
+			'no'    => array(
+				'autoload' => 'no',
+				'expected' => 'off',
+			),
+			'false' => array(
+				'autoload' => false,
+				'expected' => 'off',
+			),
+			'null'  => array(
+				'autoload' => null,
+				'expected' => 'auto-off',
+			),
+		);
+	}
+
+	public function filter_max_option_size( $current ) {
+		return 1000;
+	}
+
+	/**
+	 * @ticket 42441
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_autoloading_small_option_auto() {
+		global $wpdb;
+
+		$name = 'foo';
+		add_option( $name, 'bar' );
+		$updated = update_option( $name, 'small_option_data' );
+		$this->assertTrue( $updated );
+
+		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
+		$this->assertSame( 'auto', $actual->autoload );
 	}
 
 	/**
