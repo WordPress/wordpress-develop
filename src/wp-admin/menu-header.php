@@ -256,6 +256,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 				if ( ! empty( $menu_hook )
 					|| ( ( 'index.php' !== $sub_item[2] )
+						&& ( filter_var( $sub_file, FILTER_VALIDATE_URL ) === false )
 						&& file_exists( WP_PLUGIN_DIR . "/$sub_file" )
 						&& ! file_exists( ABSPATH . "/wp-admin/$sub_file" ) )
 				) {
