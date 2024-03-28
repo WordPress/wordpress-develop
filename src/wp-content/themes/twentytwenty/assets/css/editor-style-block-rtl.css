@@ -277,6 +277,10 @@
 	line-height: 1.4;
 }
 
+.editor-styles-wrapper li {
+	margin: 0.5rem 2rem 0 0;
+}
+
 /* POST TITLE */
 
 .editor-styles-wrapper .wp-block-post-title {
