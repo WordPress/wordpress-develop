@@ -755,7 +755,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters the post data for a REST API response.
+		 * Filters the data for a REST API response.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
