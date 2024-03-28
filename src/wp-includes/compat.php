@@ -333,11 +333,6 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	}
 endif;
 
-// sodium_crypto_box() was introduced in PHP 7.2.
-if ( ! function_exists( 'sodium_crypto_box' ) ) {
-	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
-}
-
 if ( ! function_exists( 'is_countable' ) ) {
 	/**
 	 * Polyfill for is_countable() function added in PHP 7.3.
@@ -356,23 +351,6 @@ if ( ! function_exists( 'is_countable' ) ) {
 			|| $value instanceof SimpleXMLElement
 			|| $value instanceof ResourceBundle
 		);
-	}
-}
-
-if ( ! function_exists( 'is_iterable' ) ) {
-	/**
-	 * Polyfill for is_iterable() function added in PHP 7.1.
-	 *
-	 * Verify that the content of a variable is an array or an object
-	 * implementing the Traversable interface.
-	 *
-	 * @since 4.9.6
-	 *
-	 * @param mixed $value The value to check.
-	 * @return bool True if `$value` is iterable, false otherwise.
-	 */
-	function is_iterable( $value ) {
-		return ( is_array( $value ) || $value instanceof Traversable );
 	}
 }
 
@@ -518,16 +496,6 @@ if ( ! function_exists( 'str_ends_with' ) ) {
 
 		return substr( $haystack, -$len, $len ) === $needle;
 	}
-}
-
-// IMAGETYPE_WEBP constant is only defined in PHP 7.1 or later.
-if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
-	define( 'IMAGETYPE_WEBP', 18 );
-}
-
-// IMG_WEBP constant is only defined in PHP 7.0.10 or later.
-if ( ! defined( 'IMG_WEBP' ) ) {
-	define( 'IMG_WEBP', IMAGETYPE_WEBP );
 }
 
 // IMAGETYPE_AVIF constant is only defined in PHP 8.x or later.
