@@ -1,64 +1,53 @@
 <?php
 
 /**
- * Test the remove_all_filters method of WP_Hook
+ * Test remove_all_filters().
  *
  * @group hooks
- * @covers WP_Hook::remove_all_filters
+ * @covers ::remove_all_filters
  */
 class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {
 
-	public function test_remove_all_filters() {
-		$callback      = '__return_null';
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 2;
+	/**
+	 * @ticket 20920
+	 */
+	public function test_should_respect_the_priority_argument() {
+		$a         = new MockAction();
+		$hook_name = __FUNCTION__;
 
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		add_filter( $hook_name, array( $a, 'filter' ), 12 );
+		$this->assertTrue( has_filter( $hook_name ) );
 
-		$hook->remove_all_filters();
-		$this->check_priority_non_existent( $hook, $priority );
+		// Should not be removed.
+		remove_all_filters( $hook_name, 11 );
+		$this->assertTrue( has_filter( $hook_name ) );
 
-		$this->assertFalse( $hook->has_filters() );
+		remove_all_filters( $hook_name, 12 );
+		$this->assertFalse( has_filter( $hook_name ) );
 	}
 
-	public function test_remove_all_filters_with_priority() {
-		$callback_one  = '__return_null';
-		$callback_two  = '__return_false';
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 2;
+	/**
+	 * @ticket 29070
+	 */
+	public function test_has_filter_after_remove_all_filters() {
+		$a         = new MockAction();
+		$hook_name = __FUNCTION__;
 
-		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
-		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
+		// No priority.
+		add_filter( $hook_name, array( $a, 'filter' ), 11 );
+		add_filter( $hook_name, array( $a, 'filter' ), 12 );
+		$this->assertTrue( has_filter( $hook_name ) );
 
-		$hook->remove_all_filters( $priority );
-		$this->check_priority_non_existent( $hook, $priority );
+		remove_all_filters( $hook_name );
+		$this->assertFalse( has_filter( $hook_name ) );
 
-		$this->assertFalse( $hook->has_filter( $hook_name, $callback_one ) );
-		$this->assertTrue( $hook->has_filters() );
-		$this->assertSame( $priority + 1, $hook->has_filter( $hook_name, $callback_two ) );
-		$this->check_priority_exists( $hook, $priority + 1 );
-	}
+		// Remove priorities one at a time.
+		add_filter( $hook_name, array( $a, 'filter' ), 11 );
+		add_filter( $hook_name, array( $a, 'filter' ), 12 );
+		$this->assertTrue( has_filter( $hook_name ) );
 
-	protected function check_priority_non_existent( $hook, $priority ) {
-		$priorities = $this->get_priorities( $hook );
-
-		$this->assertNotContains( $priority, $priorities );
-	}
-
-	protected function check_priority_exists( $hook, $priority ) {
-		$priorities = $this->get_priorities( $hook );
-
-		$this->assertContains( $priority, $priorities );
-	}
-	protected function get_priorities( $hook ) {
-		$reflection          = new ReflectionClass( $hook );
-		$reflection_property = $reflection->getProperty( 'priorities' );
-		$reflection_property->setAccessible( true );
-
-		return $reflection_property->getValue( $hook );
+		remove_all_filters( $hook_name, 11 );
+		remove_all_filters( $hook_name, 12 );
+		$this->assertFalse( has_filter( $hook_name ) );
 	}
 }

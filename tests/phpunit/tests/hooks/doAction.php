@@ -1,88 +1,185 @@
 <?php
 
 /**
- * Test the do_action method of WP_Hook
+ * Test do_action().
  *
  * @group hooks
- * @covers WP_Hook::do_action
+ * @covers ::do_action
  */
 class Tests_Hooks_DoAction extends WP_UnitTestCase {
-	private $events        = array();
-	private $action_output = '';
-	private $hook;
 
-	public function set_up() {
-		parent::set_up();
-		$this->events = array();
+	public function test_simple_action() {
+		$a         = new MockAction();
+		$hook_name = __FUNCTION__;
+
+		add_action( $hook_name, array( &$a, 'action' ) );
+		do_action( $hook_name );
+
+		// Only one event occurred for the hook, with empty args.
+		$this->assertSame( 1, $a->get_call_count() );
+		// Only our hook was called.
+		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
+
+		$argsvar = $a->get_args();
+		$args    = array_pop( $argsvar );
+		$this->assertSame( array( '' ), $args );
 	}
 
-	public function test_do_action_with_callback() {
-		$a             = new MockAction();
-		$callback      = array( $a, 'action' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 2;
-		$arg           = __FUNCTION__ . '_arg';
+	public function test_all_action() {
+		$a          = new MockAction();
+		$hook_name1 = __FUNCTION__ . '_1';
+		$hook_name2 = __FUNCTION__ . '_2';
 
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
-		$hook->do_action( array( $arg ) );
+		// Add an 'all' action.
+		add_action( 'all', array( &$a, 'action' ) );
+		$this->assertSame( 10, has_filter( 'all', array( &$a, 'action' ) ) );
 
-		$this->assertSame( 1, $a->get_call_count() );
+		// Do some actions.
+		do_action( $hook_name1 );
+		do_action( $hook_name2 );
+		do_action( $hook_name1 );
+		do_action( $hook_name1 );
+
+		// Our action should have been called once for each tag.
+		$this->assertSame( 4, $a->get_call_count() );
+		// Only our hook was called.
+		$this->assertSame( array( $hook_name1, $hook_name2, $hook_name1, $hook_name1 ), $a->get_hook_names() );
+
+		remove_action( 'all', array( &$a, 'action' ) );
+		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
 	}
 
-	public function test_do_action_with_multiple_calls() {
-		$a             = new MockAction();
-		$callback      = array( $a, 'filter' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 2;
-		$arg           = __FUNCTION__ . '_arg';
+	/**
+	 * One tag with multiple actions.
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_multiple_actions() {
+		$a1        = new MockAction();
+		$a2        = new MockAction();
+		$hook_name = __FUNCTION__;
 
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
-		$hook->do_action( array( $arg ) );
-		$hook->do_action( array( $arg ) );
+		// Add both actions to the hook.
+		add_action( $hook_name, array( &$a1, 'action' ) );
+		add_action( $hook_name, array( &$a2, 'action' ) );
 
-		$this->assertSame( 2, $a->get_call_count() );
+		do_action( $hook_name );
+
+		// Both actions called once each.
+		$this->assertSame( 1, $a1->get_call_count() );
+		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
-	public function test_do_action_with_multiple_callbacks_on_same_priority() {
-		$a             = new MockAction();
-		$b             = new MockAction();
-		$callback_one  = array( $a, 'filter' );
-		$callback_two  = array( $b, 'filter' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 2;
-		$arg           = __FUNCTION__ . '_arg';
+	/**
+	 * One tag with multiple actions.
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_action_args_1() {
+		$a         = new MockAction();
+		$hook_name = __FUNCTION__;
+		$val       = __FUNCTION__ . '_val';
 
-		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
-		$hook->add_filter( $hook_name, $callback_two, $priority, $accepted_args );
-		$hook->do_action( array( $arg ) );
+		add_action( $hook_name, array( &$a, 'action' ) );
+		// Call the action with a single argument.
+		do_action( $hook_name, $val );
 
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( 1, $a->get_call_count() );
+		$call_count = $a->get_call_count();
+		$this->assertSame( 1, $call_count );
+		$argsvar = $a->get_args();
+		$this->assertSame( array( $val ), array_pop( $argsvar ) );
 	}
 
-	public function test_do_action_with_multiple_callbacks_on_different_priorities() {
-		$a             = new MockAction();
-		$b             = new MockAction();
-		$callback_one  = array( $a, 'filter' );
-		$callback_two  = array( $b, 'filter' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 2;
-		$arg           = __FUNCTION__ . '_arg';
+	/**
+	 * One tag with multiple actions.
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_action_args_2() {
+		$a1        = new MockAction();
+		$a2        = new MockAction();
+		$hook_name = __FUNCTION__;
+		$val1      = __FUNCTION__ . '_val1';
+		$val2      = __FUNCTION__ . '_val2';
 
-		$hook->add_filter( $hook_name, $callback_one, $priority, $accepted_args );
-		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
-		$hook->do_action( array( $arg ) );
+		// $a1 accepts two arguments, $a2 doesn't.
+		add_action( $hook_name, array( &$a1, 'action' ), 10, 2 );
+		add_action( $hook_name, array( &$a2, 'action' ) );
+		// Call the action with two arguments.
+		do_action( $hook_name, $val1, $val2 );
 
-		$this->assertSame( 1, $a->get_call_count() );
-		$this->assertSame( 1, $a->get_call_count() );
+		$call_count = $a1->get_call_count();
+		// $a1 should be called with both args.
+		$this->assertSame( 1, $call_count );
+		$argsvar1 = $a1->get_args();
+		$this->assertSame( array( $val1, $val2 ), array_pop( $argsvar1 ) );
+
+		// $a2 should be called with one only.
+		$this->assertSame( 1, $a2->get_call_count() );
+		$argsvar2 = $a2->get_args();
+		$this->assertSame( array( $val1 ), array_pop( $argsvar2 ) );
+	}
+
+	/**
+	 * Test that multiple callbacks receive the correct number of args even when the number
+	 * is less than, or greater than previous hooks.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/17817#comment:72
+	 * @ticket 17817
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_action_args_3() {
+		$a1        = new MockAction();
+		$a2        = new MockAction();
+		$a3        = new MockAction();
+		$hook_name = __FUNCTION__;
+		$val1      = __FUNCTION__ . '_val1';
+		$val2      = __FUNCTION__ . '_val2';
+
+		// $a1 accepts two arguments, $a2 doesn't, $a3 accepts two arguments.
+		add_action( $hook_name, array( &$a1, 'action' ), 10, 2 );
+		add_action( $hook_name, array( &$a2, 'action' ) );
+		add_action( $hook_name, array( &$a3, 'action' ), 10, 2 );
+		// Call the action with two arguments.
+		do_action( $hook_name, $val1, $val2 );
+
+		$call_count = $a1->get_call_count();
+		// $a1 should be called with both args.
+		$this->assertSame( 1, $call_count );
+		$argsvar1 = $a1->get_args();
+		$this->assertSame( array( $val1, $val2 ), array_pop( $argsvar1 ) );
+
+		// $a2 should be called with one only.
+		$this->assertSame( 1, $a2->get_call_count() );
+		$argsvar2 = $a2->get_args();
+		$this->assertSame( array( $val1 ), array_pop( $argsvar2 ) );
+
+		// $a3 should be called with both args.
+		$this->assertSame( 1, $a3->get_call_count() );
+		$argsvar3 = $a3->get_args();
+		$this->assertSame( array( $val1, $val2 ), array_pop( $argsvar3 ) );
+	}
+
+	/**
+	 * Tests PHP 4 notation for calling actions while passing in an object by reference.
+	 *
+	 * @ticket 48312
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_action_args_with_php4_syntax() {
+		$a         = new MockAction();
+		$hook_name = __FUNCTION__;
+		$val       = new stdClass();
+
+		add_action( $hook_name, array( &$a, 'action' ) );
+		// Call the action with PHP 4 notation for passing object by reference.
+		do_action( $hook_name, array( &$val ) );
+
+		$call_count = $a->get_call_count();
+		$argsvar    = $a->get_args();
+		$this->assertSame( array( $val ), array_pop( $argsvar ) );
 	}
 
 	/**
@@ -90,6 +187,8 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_priority_callback_order_with_integers
 	 * @dataProvider data_priority_callback_order_with_unhappy_path_nonintegers
+	 *
+	 * @covers ::do_action
 	 *
 	 * @param array $priorities {
 	 *     Indexed array of the priorities for the MockAction callbacks.
@@ -102,7 +201,6 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	 */
 	public function test_priority_callback_order( $priorities, $expected_call_order, $expected_deprecation = '' ) {
 		$mock      = new MockAction();
-		$hook      = new WP_Hook();
 		$hook_name = __FUNCTION__;
 
 		if ( $expected_deprecation && PHP_VERSION_ID >= 80100 ) {
@@ -110,9 +208,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 			$this->expectDeprecationMessage( $expected_deprecation );
 		}
 
-		$hook->add_filter( $hook_name, array( $mock, 'action' ), $priorities[0], 1 );
-		$hook->add_filter( $hook_name, array( $mock, 'action2' ), $priorities[1], 1 );
-		$hook->do_action( array( '' ) );
+		add_action( $hook_name, array( $mock, 'action' ), $priorities[0] );
+		add_action( $hook_name, array( $mock, 'action2' ), $priorities[1] );
+		do_action( $hook_name );
 
 		$this->assertSame( 2, $mock->get_call_count(), 'The number of call counts does not match' );
 
@@ -213,93 +311,134 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_do_action_with_no_accepted_args() {
-		$callback      = array( $this, '_action_callback' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 0;
-		$arg           = __FUNCTION__ . '_arg';
+	/**
+	 * @ticket 11241
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_action_keyed_array() {
+		$a         = new MockAction();
+		$hook_name = __FUNCTION__;
 
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
-		$hook->do_action( array( $arg ) );
+		add_action( $hook_name, array( &$a, 'action' ) );
 
-		$this->assertEmpty( $this->events[0]['args'] );
-	}
+		$context = array( 'key1' => 'val1' );
+		do_action( $hook_name, $context );
 
-	public function test_do_action_with_one_accepted_arg() {
-		$callback      = array( $this, '_action_callback' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 1;
-		$accepted_args = 1;
-		$arg           = __FUNCTION__ . '_arg';
+		$args = $a->get_args();
+		$this->assertSame( $args[0][0], $context );
 
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
-		$hook->do_action( array( $arg ) );
+		$context2 = array(
+			'key2' => 'val2',
+			'key3' => 'val3',
+		);
+		do_action( $hook_name, $context2 );
 
-		$this->assertCount( 1, $this->events[0]['args'] );
-	}
-
-	public function test_do_action_with_more_accepted_args() {
-		$callback      = array( $this, '_action_callback' );
-		$hook          = new WP_Hook();
-		$hook_name     = __FUNCTION__;
-		$priority      = 100;
-		$accepted_args = 1000;
-		$arg           = __FUNCTION__ . '_arg';
-
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
-		$hook->do_action( array( $arg ) );
-
-		$this->assertCount( 1, $this->events[0]['args'] );
-	}
-
-	public function test_do_action_doesnt_change_value() {
-		$this->hook          = new WP_Hook();
-		$this->action_output = '';
-
-		$this->hook->add_filter( 'do_action_doesnt_change_value', array( $this, '_filter_do_action_doesnt_change_value1' ), 10, 1 );
-		$this->hook->add_filter( 'do_action_doesnt_change_value', array( $this, '_filter_do_action_doesnt_change_value2' ), 10, 1 );
-		$this->hook->add_filter( 'do_action_doesnt_change_value', array( $this, '_filter_do_action_doesnt_change_value3' ), 11, 1 );
-
-		$this->hook->do_action( array( 'a' ) );
-
-		$this->assertSame( 'a1-b1b3-a2a3', $this->action_output );
-	}
-
-	public function _filter_do_action_doesnt_change_value1( $value ) {
-		$this->action_output .= $value . 1;
-		return 'x1';
-	}
-	public function _filter_do_action_doesnt_change_value2( $value ) {
-		$this->hook->remove_filter( 'do_action_doesnt_change_value', array( $this, '_filter_do_action_doesnt_change_value2' ), 10 );
-
-		$this->action_output .= '-';
-		$this->hook->do_action( array( 'b' ) );
-		$this->action_output .= '-';
-
-		$this->hook->add_filter( 'do_action_doesnt_change_value', array( $this, '_filter_do_action_doesnt_change_value2' ), 10, 1 );
-
-		$this->action_output .= $value . 2;
-
-		return 'x2';
-	}
-
-	public function _filter_do_action_doesnt_change_value3( $value ) {
-		$this->action_output .= $value . 3;
-		return 'x3';
+		$args = $a->get_args();
+		$this->assertSame( $args[1][0], $context2 );
 	}
 
 	/**
-	 * Use this rather than MockAction so we can test callbacks with no args
+	 * @ticket 10493
 	 *
-	 * @param mixed ...$args Optional arguments passed to the action.
+	 * @covers ::add_action
+	 * @covers ::has_action
+	 * @covers ::do_action
 	 */
-	public function _action_callback( ...$args ) {
-		$this->events[] = array(
-			'action' => __FUNCTION__,
-			'args'   => $args,
-		);
+	public function test_action_closure() {
+		$hook_name = __FUNCTION__;
+		$closure   = static function ( $a, $b ) {
+			$GLOBALS[ $a ] = $b;
+		};
+		add_action( $hook_name, $closure, 10, 2 );
+
+		$this->assertSame( 10, has_action( $hook_name, $closure ) );
+
+		$context = array( 'val1', 'val2' );
+		do_action( $hook_name, $context[0], $context[1] );
+
+		$this->assertSame( $GLOBALS[ $context[0] ], $context[1] );
+
+		$hook_name2 = __FUNCTION__ . '_2';
+		$closure2   = static function () {
+			$GLOBALS['closure_no_args'] = true;
+		};
+		add_action( $hook_name2, $closure2 );
+
+		$this->assertSame( 10, has_action( $hook_name2, $closure2 ) );
+
+		do_action( $hook_name2 );
+
+		$this->assertTrue( $GLOBALS['closure_no_args'] );
+
+		remove_action( $hook_name, $closure );
+		remove_action( $hook_name2, $closure2 );
+	}
+
+	/**
+	 * @ticket 17817
+	 *
+	 * @covers ::do_action
+	 */
+	public function test_action_recursion() {
+		$hook_name = __FUNCTION__;
+		$a         = new MockAction();
+		$b         = new MockAction();
+
+		add_action( $hook_name, array( $a, 'action' ), 11, 1 );
+		add_action( $hook_name, array( $b, 'action' ), 13, 1 );
+		add_action( $hook_name, array( $this, 'action_that_causes_recursion' ), 12, 1 );
+		do_action( $hook_name, $hook_name );
+
+		$this->assertSame( 2, $a->get_call_count(), 'recursive actions should call all callbacks with earlier priority' );
+		$this->assertSame( 2, $b->get_call_count(), 'recursive actions should call callbacks with later priority' );
+	}
+
+	/**
+	 * @covers ::do_action
+	 */
+	public function action_that_causes_recursion( $hook_name ) {
+		static $recursing = false;
+		if ( ! $recursing ) {
+			$recursing = true;
+			do_action( $hook_name, $hook_name );
+		}
+		$recursing = false;
+	}
+
+	/**
+	 * @ticket 9968
+	 * @ticket 17817
+	 *
+	 * @covers ::remove_action
+	 * @covers ::add_action
+	 */
+	public function test_action_callback_manipulation_while_running() {
+		$hook_name = __FUNCTION__;
+		$a         = new MockAction();
+		$b         = new MockAction();
+		$c         = new MockAction();
+		$d         = new MockAction();
+		$e         = new MockAction();
+
+		add_action( $hook_name, array( $a, 'action' ), 11, 2 );
+		add_action( $hook_name, array( $this, 'action_that_manipulates_a_running_hook' ), 12, 2 );
+		add_action( $hook_name, array( $b, 'action' ), 12, 2 );
+
+		do_action( $hook_name, $hook_name, array( $a, $b, $c, $d, $e ) );
+		do_action( $hook_name, $hook_name, array( $a, $b, $c, $d, $e ) );
+
+		$this->assertSame( 2, $a->get_call_count(), 'callbacks should run unless otherwise instructed' );
+		$this->assertSame( 1, $b->get_call_count(), 'callback removed by same priority callback should still get called' );
+		$this->assertSame( 1, $c->get_call_count(), 'callback added by same priority callback should not get called' );
+		$this->assertSame( 2, $d->get_call_count(), 'callback added by earlier priority callback should get called' );
+		$this->assertSame( 1, $e->get_call_count(), 'callback added by later priority callback should not get called' );
+	}
+
+	public function action_that_manipulates_a_running_hook( $hook_name, $mocks ) {
+		remove_action( $hook_name, array( $mocks[1], 'action' ), 12, 2 );
+		add_action( $hook_name, array( $mocks[2], 'action' ), 12, 2 );
+		add_action( $hook_name, array( $mocks[3], 'action' ), 13, 2 );
+		add_action( $hook_name, array( $mocks[4], 'action' ), 10, 2 );
 	}
 }
