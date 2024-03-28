@@ -979,7 +979,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'content' => '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->',
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts/' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/template-parts' );
 		$request->set_body_params( $body_params );
 
 		$prepared = $prepare_item_for_database->invoke( $endpoint, $request );
