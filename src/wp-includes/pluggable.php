@@ -1415,6 +1415,18 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 
 		$location = wp_sanitize_redirect( $location );
 
+		// don't create redirect loops, but allow redirects from http to https
+		$http_host = filter_input( INPUT_SERVER, 'HTTP_HOST', FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME );
+		$request_uri = filter_input( INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL );
+		if (
+			// falsy on CLI requests
+			! empty( $http_host ) && ! empty( $request_uri ) &&
+			( is_ssl() || substr( $location, 0, 5 ) !== 'https' ) &&
+			preg_match( '#^(?>https?)?(?>:?//)?(?>' . preg_quote( $http_host, '#' ) . ')?' . preg_quote( $request_uri, '#' ) . '$#', $location ) === 1
+		) {
+			return false;
+		}
+
 		if ( ! $is_IIS && 'cgi-fcgi' !== PHP_SAPI ) {
 			status_header( $status ); // This causes problems on IIS and some FastCGI setups.
 		}
@@ -1541,6 +1553,18 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 		$fallback_url = apply_filters( 'wp_safe_redirect_fallback', admin_url(), $status );
 
 		$location = wp_validate_redirect( $location, $fallback_url );
+
+		// don't create redirect loops, but allow redirects from http to https
+		$http_host = filter_input( INPUT_SERVER, 'HTTP_HOST', FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME );
+		$request_uri = filter_input( INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL );
+		if (
+			// falsy on CLI requests
+			! empty( $http_host ) && ! empty( $request_uri ) &&
+			( is_ssl() || substr( $location, 0, 5 ) !== 'https' ) &&
+			preg_match( '#^(?>https?)?(?>:?//)?(?>' . preg_quote( $http_host, '#' ) . ')?' . preg_quote( $request_uri, '#' ) . '$#', $location ) === 1
+		) {
+			return false;
+		}
 
 		return wp_redirect( $location, $status, $x_redirect_by );
 	}
