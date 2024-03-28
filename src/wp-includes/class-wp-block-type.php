@@ -11,6 +11,7 @@
  * Core class representing a block type.
  *
  * @since 5.0.0
+ * @property array[] $variations Block variations.
  *
  * @see register_block_type()
  */
@@ -358,12 +359,13 @@ class WP_Block_Type {
 	 *
 	 * @param string $name Deprecated property name.
 	 *
-	 * @return string|string[]|null|void The value read from the new property if the first item in the array provided,
-	 *                                   null when value not found, or void when unknown property name provided.
+	 * @return string|string[]|array[]|void The value read from the new property if the first item in the array provided,
+	 *                                      null when value not found, or void when unknown property name provided.
 	 */
-	public function __get( $name ) {
+	public function &__get( $name ) {
 		if ( 'variations' === $name ) {
-			return $this->get_variations();
+			$this->get_variations();
+			return $this->variations;
 		}
 
 		if ( 'uses_context' === $name ) {
@@ -377,13 +379,15 @@ class WP_Block_Type {
 		$new_name = $name . '_handles';
 
 		if ( ! property_exists( $this, $new_name ) || ! is_array( $this->{$new_name} ) ) {
-			return null;
+			return;
 		}
 
 		if ( count( $this->{$new_name} ) > 1 ) {
 			return $this->{$new_name};
 		}
-		return isset( $this->{$new_name}[0] ) ? $this->{$new_name}[0] : null;
+		if ( isset( $this->{$new_name}[0] ) ) {
+			return $this->{$new_name}[0];
+		}
 	}
 
 	/**
