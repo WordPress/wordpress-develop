@@ -2675,6 +2675,17 @@
 		});
 
 		/**
+		 * Click handler for disabled links.
+		 *
+		 * @since 6.5.0
+		 *
+		 * @param {Event} event Event interface.
+		 */
+		$document.on( 'click', '.button-disabled', function( event ) {
+			event.preventDefault();
+		} );
+
+		/**
 		 * Click handler for importer plugins installs in the Import screen.
 		 *
 		 * @since 4.6.0
