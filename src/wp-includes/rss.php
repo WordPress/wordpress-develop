@@ -33,27 +33,22 @@ define('MAGPIE_USER_AGENT', 'WordPress/' . $GLOBALS['wp_version']);
 
 class MagpieRSS {
 	var $parser;
-	var $current_item	= array();	// item currently being parsed
-	var $items			= array();	// collection of parsed items
-	var $channel		= array();	// hash of channel fields
-	var $textinput		= array();
-	var $image			= array();
+	var $current_item        = array();
+	var $items               = array();
+	var $channel             = array();
+	var $textinput           = array();
+	var $image               = array();
 	var $feed_type;
 	var $feed_version;
-
-	// parser variables
-	var $stack				= array(); // parser stack
-	var $inchannel			= false;
-	var $initem 			= false;
-	var $incontent			= false; // if in Atom <content mode="xml"> field
-	var $intextinput		= false;
-	var $inimage 			= false;
-	var $current_field		= '';
-	var $current_namespace	= false;
-
-	//var $ERROR = "";
-
-	var $_CONTENT_CONSTRUCTS = array('content', 'summary', 'info', 'title', 'tagline', 'copyright');
+	var $stack               = array();
+	var $inchannel           = false;
+	var $initem              = false;
+	var $incontent           = false;
+	var $intextinput         = false;
+	var $inimage             = false;
+	var $current_field       = '';
+	var $current_namespace   = false;
+	var $_CONTENT_CONSTRUCTS = array();
 
 	/**
 	 * PHP5 constructor.
@@ -478,9 +473,9 @@ function is_server_error() {
 }
 
 class RSSCache {
-	var $BASE_CACHE;	// where the cache files are stored
-	var $MAX_AGE	= 43200;  		// when are files stale, default twelve hours
-	var $ERROR 		= '';			// accumulate error messages
+	var $BASE_CACHE;
+	var $MAX_AGE    = 43200;
+	var $ERROR      = '';
 
 	/**
 	 * PHP5 constructor.
