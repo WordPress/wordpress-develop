@@ -1,15 +1,7 @@
 <?php
 /**
- * MagpieRSS: a simple RSS integration tool
+ * Adds function and class names from MagpieRSS, which is deprecated.
  *
- * A compiled file for RSS syndication
- *
- * @author Kellan Elliott-McCrea <kellan@protest.net>
- * @version 0.51
- * @license GPL
- *
- * @package External
- * @subpackage MagpieRSS
  * @deprecated 3.0.0 Use SimplePie instead.
  */
 
