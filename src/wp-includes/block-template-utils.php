@@ -1487,7 +1487,7 @@ function inject_ignored_hooked_blocks_metadata_attributes_for_database( $post, $
  *
  * @param WP_REST_Response  $response  The response object.
  * @param WP_Block_Template $template  An object representing a template or template part
- * 
+ *
  * @return WP_Block_Template The updated object representing a template or template part.
  */
 function inject_ignored_hooked_blocks_metadata_attributes_for_response( $response, $template ) {
