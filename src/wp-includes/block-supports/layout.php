@@ -985,7 +985,7 @@ function wp_restore_image_outer_container( $block_content, $block ) {
 		$wrapper_classnames = array_merge( $wrapper_classnames, explode( ' ', $block['attrs']['className'] ) );
 	}
 	$content_classnames          = explode( ' ', $matches[2] );
-	$filtered_content_classnames = array_diff( $content_classnames, $wrapper_classnames );
+	$filtered_content_classnames = array_diff( $content_classnames, array( $block['attrs']['className'] ) );
 
 	return '<div class="' . implode( ' ', $wrapper_classnames ) . '">' . $matches[1] . implode( ' ', $filtered_content_classnames ) . $matches[3] . '</div>';
 }
