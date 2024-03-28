@@ -6138,6 +6138,12 @@ body.page .main-navigation {
   display: none;
 }
 
+.entry .entry-content .wp-block-separator.aligncenter,
+.entry .entry-content hr.aligncenter {
+  transform: translateX(50%);
+  right: 50%;
+}
+
 .entry .entry-content .wp-block-embed-twitter {
   word-break: break-word;
 }

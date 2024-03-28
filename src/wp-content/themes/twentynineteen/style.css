@@ -6150,6 +6150,12 @@ body.page .main-navigation {
   display: none;
 }
 
+.entry .entry-content .wp-block-separator.aligncenter,
+.entry .entry-content hr.aligncenter {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .entry .entry-content .wp-block-embed-twitter {
   word-break: break-word;
 }
