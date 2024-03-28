@@ -1,160 +1,19 @@
 <?php
 
+require_once __DIR__ . '/Admin_WpMediaListTable_TestCase.php';
+
 /**
  * @group admin
+ *
+ * @covers WP_Media_List_Table::_get_row_actions
  */
-class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
-	/**
-	 * A list table for testing.
-	 *
-	 * @var WP_Media_List_Table
-	 */
-	protected static $list_table;
-
-	/**
-	 * A reflection of the `$is_trash` property.
-	 *
-	 * @var ReflectionProperty
-	 */
-	protected static $is_trash;
-
-	/**
-	 * The original value of the `$is_trash` property.
-	 *
-	 * @var bool|null
-	 */
-	protected static $is_trash_original;
-
-	/**
-	 * A reflection of the `$detached` property.
-	 *
-	 * @var ReflectionProperty
-	 */
-	protected static $detached;
-
-	/**
-	 * The original value of the `$detached` property.
-	 *
-	 * @var bool|null
-	 */
-	protected static $detached_original;
-
-	/**
-	 * The ID of an 'administrator' user for testing.
-	 *
-	 * @var int
-	 */
-	protected static $admin;
-
-	/**
-	 * The ID of a 'subscriber' user for testing.
-	 *
-	 * @var int
-	 */
-	protected static $subscriber;
-
-	/**
-	 * A post for testing.
-	 *
-	 * @var WP_Post
-	 */
-	protected static $post;
-
-	/**
-	 * An attachment for testing.
-	 *
-	 * @var WP_Post
-	 */
-	protected static $attachment;
-
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-
-		require_once ABSPATH . 'wp-admin/includes/class-wp-media-list-table.php';
-
-		self::$list_table = new WP_Media_List_Table();
-		self::$is_trash   = new ReflectionProperty( self::$list_table, 'is_trash' );
-		self::$detached   = new ReflectionProperty( self::$list_table, 'detached' );
-
-		self::$is_trash->setAccessible( true );
-		self::$is_trash_original = self::$is_trash->getValue( self::$list_table );
-		self::$is_trash->setAccessible( false );
-
-		self::$detached->setAccessible( true );
-		self::$detached_original = self::$detached->getValue( self::$list_table );
-		self::$detached->setAccessible( false );
-
-		// Create users.
-		self::$admin      = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		self::$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-
-		// Create posts.
-		self::$post       = self::factory()->post->create_and_get();
-		self::$attachment = self::factory()->attachment->create_and_get(
-			array(
-				'post_name'      => 'attachment-name',
-				'file'           => 'image.jpg',
-				'post_mime_type' => 'image/jpeg',
-			)
-		);
-	}
-
-	/**
-	 * Restores reflections to their original values.
-	 */
-	public function tear_down() {
-		self::set_is_trash( self::$is_trash_original );
-		self::set_detached( self::$detached_original );
-
-		parent::tear_down();
-	}
-
-	/**
-	 * Tests that a call to WP_Media_List_Table::prepare_items() on a site without any scheduled events
-	 * does not result in a PHP warning.
-	 *
-	 * The warning that we should not see:
-	 * PHP <= 7.4: `Invalid argument supplied for foreach()`.
-	 * PHP 8.0 and higher: `Warning: foreach() argument must be of type array|object, bool given`.
-	 *
-	 * Note: This does not test the actual functioning of the WP_Media_List_Table::prepare_items() method.
-	 * It just and only tests for/against the PHP warning.
-	 *
-	 * @ticket 53949
-	 * @covers WP_Media_List_Table::prepare_items
-	 * @group cron
-	 */
-	public function test_prepare_items_without_cron_option_does_not_throw_warning() {
-		global $wp_query;
-
-		// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-		$mock = $this->getMockBuilder( WP_Media_List_Table::class )
-			->disableOriginalConstructor()
-			->disallowMockingUnknownTypes()
-			->setMethods( array( 'set_pagination_args' ) )
-			->getMock();
-
-		$mock->expects( $this->once() )
-			->method( 'set_pagination_args' );
-
-		$wp_query->query_vars['posts_per_page'] = 10;
-		delete_option( 'cron' );
-
-		// Verify that the cause of the error is in place.
-		$this->assertIsArray( _get_cron_array(), '_get_cron_array() does not return an array.' );
-		$this->assertEmpty( _get_cron_array(), '_get_cron_array() does not return an empty array.' );
-
-		// If this test does not error out due to the PHP warning, we're good.
-		$mock->prepare_items();
-	}
+class Admin_WpMediaListTable_GetRowActions_Test extends Admin_WpMediaListTable_TestCase {
 
 	/**
 	 * Tests that `WP_Media_List_Table::_get_row_actions()` only includes an action
 	 * in certain scenarios.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 *
 	 * @dataProvider data_get_row_actions_should_include_action
 	 *
@@ -234,8 +93,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * in certain scenarios.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 *
 	 * @dataProvider data_get_row_actions_should_not_include_action
 	 *
@@ -345,8 +202,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * when a permalink is not available.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_not_include_view_without_a_permalink() {
 		self::set_is_trash( false );
@@ -367,8 +222,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * Tests that `WP_Media_List_Table::_get_row_actions()` includes the 'copy' action.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_include_copy() {
 		self::set_is_trash( false );
@@ -387,8 +240,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * when an attachment URL is not available.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_not_include_copy_without_an_attachment_url() {
 		self::set_is_trash( false );
@@ -409,8 +260,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * Tests that `WP_Media_List_Table::_get_row_actions()` includes the 'download' action.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_include_download() {
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
@@ -427,8 +276,6 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * when an attachment URL is not available.
 	 *
 	 * @ticket 57893
-	 *
-	 * @covers WP_Media_List_Table::_get_row_actions
 	 */
 	public function test_get_row_actions_should_not_include_download_without_an_attachment_url() {
 		// Ensure the attachment URL is `false`.
@@ -441,31 +288,5 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayNotHasKey( 'download', $actions, '"download" was included in the actions.' );
-	}
-
-	/**
-	 * Sets the `$is_trash` property.
-	 *
-	 * Helper method.
-	 *
-	 * @param bool $is_trash Whether the attachment filter is currently 'trash'.
-	 */
-	private static function set_is_trash( $is_trash ) {
-		self::$is_trash->setAccessible( true );
-		self::$is_trash->setValue( self::$list_table, $is_trash );
-		self::$is_trash->setAccessible( false );
-	}
-
-	/**
-	 * Sets the `$detached` property.
-	 *
-	 * Helper method.
-	 *
-	 * @param bool $detached Whether the attachment filter is currently 'detached'.
-	 */
-	private static function set_detached( $detached ) {
-		self::$detached->setAccessible( true );
-		self::$detached->setValue( self::$list_table, $detached );
-		self::$detached->setAccessible( false );
 	}
 }
