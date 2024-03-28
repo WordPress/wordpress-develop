@@ -2148,7 +2148,7 @@ function wp_get_archives( $args = '' ) {
 					$arc_week_end   = date_i18n( get_option( 'date_format' ), $arc_week['end'] );
 					$url            = add_query_arg(
 						array(
-							'm' => $arc_year,
+							'y' => $arc_year,
 							'w' => $result->week,
 						),
 						home_url( '/' )
