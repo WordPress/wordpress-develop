@@ -271,6 +271,122 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	public function test_meta_query_single_query_compare_startswith() {
+		$posts = self::factory()->post->create_many( 5 );
+
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'               => 'foo',
+						'value'             => 'bar',
+						'compare'           => 'LIKE',
+						'compare_like_mode' => 'startswith',
+					),
+				),
+			)
+		);
+
+		$expected = array( $posts[0], $posts[4] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_meta_query_single_query_compare_not_startswith() {
+		$posts = self::factory()->post->create_many( 5 );
+
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'               => 'foo',
+						'value'             => 'bar',
+						'compare'           => 'NOT LIKE',
+						'compare_like_mode' => 'startswith',
+					),
+				),
+			)
+		);
+
+		$expected = array( $posts[1], $posts[2], $posts[3] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_meta_query_single_query_compare_endswith() {
+		$posts = self::factory()->post->create_many( 5 );
+
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'               => 'foo',
+						'value'             => 'ar',
+						'compare'           => 'LIKE',
+						'compare_like_mode' => 'endswith',
+					),
+				),
+			)
+		);
+
+		$expected = array( $posts[1], $posts[4] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_meta_query_single_query_compare_not_endswith() {
+		$posts = self::factory()->post->create_many( 5 );
+
+		add_post_meta( $posts[0], 'foo', 'barSTARTSWITH' );
+		add_post_meta( $posts[1], 'foo', 'ENDSWITHbar' );
+		add_post_meta( $posts[2], 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $posts[3], 'foo', 'nomatch' );
+		add_post_meta( $posts[4], 'foo', 'barbar' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'               => 'foo',
+						'value'             => 'bar',
+						'compare'           => 'NOT LIKE',
+						'compare_like_mode' => 'endswith',
+					),
+				),
+			)
+		);
+
+		$expected = array( $posts[0], $posts[2], $posts[3] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
 	public function test_meta_query_single_query_compare_between_not_between() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
@@ -1322,10 +1438,12 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	public function test_meta_vars_should_be_converted_to_meta_query() {
 		$q = new WP_Query(
 			array(
-				'meta_key'     => 'foo',
-				'meta_value'   => '5',
-				'meta_compare' => '>',
-				'meta_type'    => 'SIGNED',
+				'meta_key'                   => 'foo',
+				'meta_value'                 => '5',
+				'meta_compare'               => '>',
+				'meta_type'                  => 'SIGNED',
+				'meta_compare_key_like_mode' => 'endswith',
+				'meta_compare_like_mode'     => 'startswith',
 			)
 		);
 
@@ -1333,6 +1451,8 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSame( '5', $q->meta_query->queries[0]['value'] );
 		$this->assertSame( '>', $q->meta_query->queries[0]['compare'] );
 		$this->assertSame( 'SIGNED', $q->meta_query->queries[0]['type'] );
+		$this->assertSame( 'startswith', $q->meta_query->queries[0]['compare_like_mode'] );
+		$this->assertSame( 'endswith', $q->meta_query->queries[0]['compare_key_like_mode'] );
 	}
 
 	/**
@@ -1872,6 +1992,105 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
+	}
+
+	public function test_compare_key_like_startswith() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+
+		$query = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key'           => 'LIKE',
+						'compare_key_like_mode' => 'startswith',
+						'key'                   => 'aaa_foo',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$expected = array( $posts[0], $posts[2] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_compare_key_like_endswith() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+
+		$query = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key'           => 'LIKE',
+						'compare_key_like_mode' => 'endswith',
+						'key'                   => 'foo_bbb',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$expected = array( $posts[2] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_compare_key_like_explicit_contains() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'abc' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+
+		$query = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key'           => 'LIKE',
+						'compare_key_like_mode' => 'contains',
+						'key'                   => 'a_foo_',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$expected = array( $posts[0], $posts[2] );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_compare_key_like_and_value_like() {
+		$posts = self::factory()->post->create_many( 3 );
+
+		add_post_meta( $posts[0], 'aaa_foo_aaa', 'abc' );
+		add_post_meta( $posts[1], 'aaa_bar_aaa', 'def' );
+		add_post_meta( $posts[2], 'aaa_foo_bbb', 'abc' );
+
+		$query = new WP_Query(
+			array(
+				'meta_query' => array(
+					array(
+						'compare_key'           => 'LIKE',
+						'compare_key_like_mode' => 'endswith',
+						'key'                   => 'aaa',
+						'compare'               => 'LIKE',
+						'compare_like_mode'     => 'startswith',
+						'value'                 => 'de',
+					),
+				),
+				'fields'     => 'ids',
+			)
+		);
+
+		$expected = array( $posts[1] );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
