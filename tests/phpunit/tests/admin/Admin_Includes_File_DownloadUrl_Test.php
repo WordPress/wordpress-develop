@@ -3,41 +3,13 @@
 /**
  * @group file
  * @group admin
+ *
+ * @covers ::download_url
  */
-class Tests_Admin_IncludesFile extends WP_UnitTestCase {
-
-	/**
-	 * @ticket 20449
-	 *
-	 * @covers ::get_home_path
-	 */
-	public function test_get_home_path() {
-		$home    = get_option( 'home' );
-		$siteurl = get_option( 'siteurl' );
-		$sfn     = $_SERVER['SCRIPT_FILENAME'];
-		$this->assertSame( str_replace( '\\', '/', ABSPATH ), get_home_path() );
-
-		update_option( 'home', 'http://localhost' );
-		update_option( 'siteurl', 'http://localhost/wp' );
-
-		$_SERVER['SCRIPT_FILENAME'] = 'D:\root\vhosts\site\httpdocs\wp\wp-admin\options-permalink.php';
-		$this->assertSame( 'D:/root/vhosts/site/httpdocs/', get_home_path() );
-
-		$_SERVER['SCRIPT_FILENAME'] = '/Users/foo/public_html/trunk/wp/wp-admin/options-permalink.php';
-		$this->assertSame( '/Users/foo/public_html/trunk/', get_home_path() );
-
-		$_SERVER['SCRIPT_FILENAME'] = 'S:/home/wordpress/trunk/wp/wp-admin/options-permalink.php';
-		$this->assertSame( 'S:/home/wordpress/trunk/', get_home_path() );
-
-		update_option( 'home', $home );
-		update_option( 'siteurl', $siteurl );
-		$_SERVER['SCRIPT_FILENAME'] = $sfn;
-	}
+class Admin_Includes_File_DownloadUrl_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43329
-	 *
-	 * @covers ::download_url
 	 */
 	public function test_download_url_non_200_response_code() {
 		add_filter( 'pre_http_request', array( $this, '_fake_download_url_non_200_response_code' ), 10, 3 );
@@ -86,8 +58,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * @ticket 38231
 	 * @dataProvider data_download_url_should_respect_filename_from_content_disposition_header
 	 *
-	 * @covers ::download_url
-	 *
 	 * @param $filter A callback containing a fake Content-Disposition header.
 	 */
 	public function test_download_url_should_respect_filename_from_content_disposition_header( $filter ) {
@@ -117,8 +87,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	/**
 	 * @ticket 55109
 	 * @dataProvider data_save_to_temp_directory_when_getting_filename_from_content_disposition_header
-	 *
-	 * @covers ::download_url
 	 *
 	 * @param $filter A callback containing a fake Content-Disposition header.
 	 */
@@ -200,8 +168,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	/**
 	 * @ticket 38231
 	 * @dataProvider data_download_url_should_reject_filename_from_invalid_content_disposition_header
-	 *
-	 * @covers ::download_url
 	 *
 	 * @param $filter A callback containing a fake Content-Disposition header.
 	 */
@@ -285,7 +251,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	/**
 	 * Verify that a WP_Error object is returned when invalid input is passed as the `$url` parameter.
 	 *
-	 * @covers ::download_url
 	 * @dataProvider data_download_url_empty_url
 	 *
 	 * @param mixed $url Input URL.
@@ -317,7 +282,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * is not thrown when the `$url` does not have a path component.
 	 *
 	 * @ticket 53635
-	 * @covers ::download_url
 	 */
 	public function test_download_url_no_warning_for_url_without_path() {
 		// Hook a mocked HTTP request response.
@@ -335,7 +299,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * and signature verification via a local file is requested.
 	 *
 	 * @ticket 53635
-	 * @covers ::download_url
 	 */
 	public function test_download_url_no_warning_for_url_without_path_with_signature_verification() {
 		// Hook a mocked HTTP request response.
