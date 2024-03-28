@@ -1972,6 +1972,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Gets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Adds support for transient caching.
 	 *
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
@@ -1979,7 +1980,13 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! $this->exists() ) {
 			return false;
 		}
-		$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+
+		if ( wp_using_ext_object_cache() ) {
+			$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		} else {
+			$pattern_data = get_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
+		}
+
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
 		}
@@ -1990,6 +1997,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Sets block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Adds support for transient caching.
 	 *
 	 * @param array $patterns Block patterns data to set in cache.
 	 */
@@ -1998,16 +2006,38 @@ final class WP_Theme implements ArrayAccess {
 			'version'  => $this->get( 'Version' ),
 			'patterns' => $patterns,
 		);
-		wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files' );
+
+		/**
+		 * Filters whether to cache theme files persistently.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
+		 * @param string $context          Additional context for better cache control.
+		 */
+		$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', self::$cache_expiration, 'theme_block_patterns' );
+
+		if ( ! false === $cache_expiration ) {
+			if ( wp_using_ext_object_cache() ) {
+				wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files', $cache_expiration );
+			} else {
+				set_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet, $pattern_data, $cache_expiration );
+			}
+		}
 	}
 
 	/**
 	 * Clears block pattern cache.
 	 *
 	 * @since 6.4.0
+	 * @since 6.6.0 Adds support for transient caching.
 	 */
 	public function delete_pattern_cache() {
-		wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+		} else {
+			delete_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
+		}
 	}
 
 	/**
