@@ -27,14 +27,40 @@ function network_domain_check() {
 }
 
 /**
- * Allow subdomain installation
+ * Allow subdomain installation.
+ *
+ * Subdomain installation is not allowed:
+ * - If home URL is a subdirectory.
+ * - If home URL is 'localhost'.
+ * - If home URL is set to an IP address.
+ * In all these cases, changing the site to a subdomain Multisite would break access to the site.
  *
  * @since 3.0.0
- * @return bool Whether subdomain installation is allowed
+ * @return bool Whether subdomain installation is allowed.
  */
 function allow_subdomain_install() {
-	$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'home' ) );
-	if ( parse_url( get_option( 'home' ), PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
+	$home = get_option( 'home' );
+
+	// Check that we have a valid home URL.
+	if ( ! is_string( $home ) ) {
+		return false;
+	}
+
+	$home = untrailingslashit( $home );
+
+	if ( '' === $home ) {
+		return false;
+	}
+
+	$home_parts = parse_url( $home );
+
+	$domain = ! empty( $home_parts['host'] ) ? $home_parts['host'] : '';
+	$path   = ! empty( $home_parts['path'] ) ? $home_parts['path'] : '';
+
+	if ( '' !== $path
+		|| 'localhost' === $domain
+		|| preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain )
+	) {
 		return false;
 	}
 
