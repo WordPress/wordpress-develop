@@ -221,11 +221,14 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * @ticket 30266
 	 */
 	public function test_wp_mail_with_empty_from_header() {
+		// Make sure that we don't add any ports to the from header.
+		$url_parts = parse_url( 'http://' . WP_TESTS_DOMAIN );
+
 		$to       = 'address@tld.com';
 		$subject  = 'Testing';
 		$message  = 'Test Message';
 		$headers  = 'From: ';
-		$expected = 'From: WordPress <wordpress@' . WP_TESTS_DOMAIN . '>';
+		$expected = 'From: WordPress <wordpress@' . $url_parts['host'] . '>';
 
 		wp_mail( $to, $subject, $message, $headers );
 

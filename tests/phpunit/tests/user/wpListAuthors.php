@@ -279,7 +279,7 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 			wp_list_authors(
 				array(
 					'echo'       => false,
-					'feed_image' => WP_TESTS_DOMAIN . '/path/to/a/graphic.png',
+					'feed_image' => 'http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png',
 				)
 			)
 		);

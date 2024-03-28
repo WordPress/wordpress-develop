@@ -495,6 +495,8 @@ JS;
 	 * @return array[]
 	 */
 	public function data_provider_to_test_various_strategy_dependency_chains() {
+		$wp_tests_domain = WP_TESTS_DOMAIN;
+
 		return array(
 			'async-dependent-with-one-blocking-dependency' => array(
 				'set_up'          => function () {
@@ -881,8 +883,8 @@ HTML
 					wp_enqueue_script( 'theme-functions', 'https://example.com/theme-functions.js', array( 'jquery' ), null, array( 'strategy' => 'defer' ) );
 				},
 				'expected_markup' => <<<HTML
-<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
-<script type='text/javascript' src='http://example.org/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://$wp_tests_domain/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
+<script type='text/javascript' src='http://$wp_tests_domain/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
 <script type='text/javascript' src='https://example.com/theme-functions.js' id='theme-functions-js' defer data-wp-strategy='defer'></script>
 HTML
 				,
