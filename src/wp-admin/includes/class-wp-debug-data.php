@@ -278,6 +278,11 @@ class WP_Debug_Data {
 					'label' => 'WP_MAX_MEMORY_LIMIT',
 					'value' => WP_MAX_MEMORY_LIMIT,
 				),
+				'DB_ENGINE'           => array(
+					'label' => 'DB_ENGINE',
+					'value' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : __( 'Undefined' ) ),
+					'debug' => ( defined( 'DB_ENGINE' ) ? DB_ENGINE : 'undefined' ),
+				),
 				'WP_DEBUG'            => array(
 					'label' => 'WP_DEBUG',
 					'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
@@ -863,51 +868,75 @@ class WP_Debug_Data {
 			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
 		);
 
-		// Populate the database debug fields.
-		if ( is_object( $wpdb->dbh ) ) {
-			// mysqli or PDO.
-			$extension = get_class( $wpdb->dbh );
-		} else {
-			// Unknown sql extension.
-			$extension = null;
+		$db_engine = defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ? 'sqlite' : 'mysql';
+		$extension = null;
+		if ( 'mysql' === $db_engine ) {
+			// Populate the database debug fields.
+			if ( is_object( $wpdb->dbh ) ) {
+				// mysqli or PDO.
+				$extension = get_class( $wpdb->dbh );
+			}
 		}
 
 		$server = $wpdb->get_var( 'SELECT VERSION()' );
 
 		$client_version = $wpdb->dbh->client_info;
 
-		$info['wp-database']['fields']['extension'] = array(
-			'label' => __( 'Extension' ),
-			'value' => $extension,
+		$info['wp-database']['fields']['db_engine'] = array(
+			'label' => __( 'Database engine' ),
+			'value' => 'sqlite' === $db_engine ? 'SQLite' : 'MySQL/MariaDB',
 		);
 
-		$info['wp-database']['fields']['server_version'] = array(
-			'label' => __( 'Server version' ),
-			'value' => $server,
-		);
+		if ( 'mysql' === $db_engine ) {
+			$info['wp-database']['fields']['extension'] = array(
+				'label' => __( 'Extension' ),
+				'value' => $extension,
+			);
 
-		$info['wp-database']['fields']['client_version'] = array(
-			'label' => __( 'Client version' ),
-			'value' => $client_version,
-		);
+			$info['wp-database']['fields']['server_version'] = array(
+				'label' => __( 'Server version' ),
+				'value' => $server,
+			);
 
-		$info['wp-database']['fields']['database_user'] = array(
-			'label'   => __( 'Database username' ),
-			'value'   => $wpdb->dbuser,
-			'private' => true,
-		);
+			$info['wp-database']['fields']['client_version'] = array(
+				'label' => __( 'Client version' ),
+				'value' => $client_version,
+			);
 
-		$info['wp-database']['fields']['database_host'] = array(
-			'label'   => __( 'Database host' ),
-			'value'   => $wpdb->dbhost,
-			'private' => true,
-		);
+			$info['wp-database']['fields']['database_user'] = array(
+				'label'   => __( 'Database username' ),
+				'value'   => $wpdb->dbuser,
+				'private' => true,
+			);
 
-		$info['wp-database']['fields']['database_name'] = array(
-			'label'   => __( 'Database name' ),
-			'value'   => $wpdb->dbname,
-			'private' => true,
-		);
+			$info['wp-database']['fields']['database_host'] = array(
+				'label'   => __( 'Database host' ),
+				'value'   => $wpdb->dbhost,
+				'private' => true,
+			);
+
+			$info['wp-database']['fields']['database_name'] = array(
+				'label'   => __( 'Database name' ),
+				'value'   => $wpdb->dbname,
+				'private' => true,
+			);
+		} elseif ( 'sqlite' === $db_engine ) {
+			$info['wp-database']['fields']['database_version'] = array(
+				'label' => __( 'SQLite version' ),
+				'value' => class_exists( 'SQLite3' ) ? SQLite3::version()['versionString'] : null,
+			);
+
+			$info['wp-database']['fields']['database_file'] = array(
+				'label'   => __( 'Database file' ),
+				'value'   => FQDB,
+				'private' => true,
+			);
+
+			$info['wp-database']['fields']['database_size'] = array(
+				'label' => __( 'Database size' ),
+				'value' => size_format( filesize( FQDB ) ),
+			);
+		}
 
 		$info['wp-database']['fields']['database_prefix'] = array(
 			'label'   => __( 'Table prefix' ),
@@ -915,27 +944,29 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
-		$info['wp-database']['fields']['database_charset'] = array(
-			'label'   => __( 'Database charset' ),
-			'value'   => $wpdb->charset,
-			'private' => true,
-		);
+		if ( 'mysql' === $db_engine ) {
+			$info['wp-database']['fields']['database_charset'] = array(
+				'label'   => __( 'Database charset' ),
+				'value'   => $wpdb->charset,
+				'private' => true,
+			);
 
-		$info['wp-database']['fields']['database_collate'] = array(
-			'label'   => __( 'Database collation' ),
-			'value'   => $wpdb->collate,
-			'private' => true,
-		);
+			$info['wp-database']['fields']['database_collate'] = array(
+				'label'   => __( 'Database collation' ),
+				'value'   => $wpdb->collate,
+				'private' => true,
+			);
 
-		$info['wp-database']['fields']['max_allowed_packet'] = array(
-			'label' => __( 'Max allowed packet size' ),
-			'value' => self::get_mysql_var( 'max_allowed_packet' ),
-		);
+			$info['wp-database']['fields']['max_allowed_packet'] = array(
+				'label' => __( 'Max allowed packet size' ),
+				'value' => self::get_mysql_var( 'max_allowed_packet' ),
+			);
 
-		$info['wp-database']['fields']['max_connections'] = array(
-			'label' => __( 'Max connections number' ),
-			'value' => self::get_mysql_var( 'max_connections' ),
-		);
+			$info['wp-database']['fields']['max_connections'] = array(
+				'label' => __( 'Max connections number' ),
+				'value' => self::get_mysql_var( 'max_connections' ),
+			);
+		}
 
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();

@@ -226,7 +226,7 @@
 	#############################################################################
 	SELECTIVE EXCLUSIONS
 	Exclude specific files for specific sniffs and/or exclude sub-groups in sniffs.
-	
+
 	These exclusions are listed ordered by alphabetic sniff name.
 	#############################################################################
 	-->
@@ -290,6 +290,10 @@
 	<rule ref="WordPress.DB.RestrictedFunctions">
 		<exclude-pattern>/src/wp-includes/class-wpdb\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/db/charset\.php</exclude-pattern>
+	</rule>
+
+	<rule ref="WordPress.DB.RestrictedClasses">
+		<exclude-pattern>/src/wp-includes/sqlite/*\.php</exclude-pattern>
 	</rule>
 
 	<!-- Allow the WP DB related tests for issues with prepared SQL placeholders

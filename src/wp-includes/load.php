@@ -671,6 +671,10 @@ function require_wp_db() {
 
 	require_once ABSPATH . WPINC . '/class-wpdb.php';
 
+	if ( defined( 'DB_ENGINE' ) && 'sqlite' === DB_ENGINE ) {
+		require_once ABSPATH . WPINC . '/sqlite/db.php';
+	}
+
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
 		require_once WP_CONTENT_DIR . '/db.php';
 	}
