@@ -1653,18 +1653,21 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return false;
 		}
 
+		// Accounts for attachments with an inherit status on trashed and deleted parents.
+		$post_status = get_post_status( $post );
+
 		// Is the post readable?
-		if ( 'publish' === $post->post_status || current_user_can( 'read_post', $post->ID ) ) {
+		if ( 'publish' === $post_status || current_user_can( 'read_post', $post->ID ) ) {
 			return true;
 		}
 
-		$post_status_obj = get_post_status_object( $post->post_status );
+		$post_status_obj = get_post_status_object( $post_status );
 		if ( $post_status_obj && $post_status_obj->public ) {
 			return true;
 		}
 
 		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
+		if ( 'inherit' === $post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
 			if ( $parent ) {
 				return $this->check_read_permission( $parent );
@@ -1675,7 +1678,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * If there isn't a parent, but the status is set to inherit, assume
 		 * it's published (as per get_post_status()).
 		 */
-		if ( 'inherit' === $post->post_status ) {
+		if ( 'inherit' === $post_status ) {
 			return true;
 		}
 
