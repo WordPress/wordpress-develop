@@ -345,22 +345,12 @@ class MagpieRSS {
 		}
 	}
 
-	function is_rss () {
-		if ( $this->feed_type == RSS ) {
-			return $this->feed_version;
-		}
-		else {
-			return false;
-		}
+	function is_rss() {
+		return false;
 	}
 
 	function is_atom() {
-		if ( $this->feed_type == ATOM ) {
-			return $this->feed_version;
-		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
 	function map_attrs($k, $v) {
