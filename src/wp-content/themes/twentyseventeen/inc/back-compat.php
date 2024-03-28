@@ -37,7 +37,7 @@ add_action( 'after_switch_theme', 'twentyseventeen_switch_theme' );
  */
 function twentyseventeen_upgrade_notice() {
 	printf(
-		'<div class="error"><p>%s</p></div>',
+		'<div class="notice notice-error"><p>%s</p></div>',
 		sprintf(
 			/* translators: %s: The current WordPress version. */
 			__( 'Twenty Seventeen requires at least WordPress version 4.7. You are running version %s. Please upgrade and try again.', 'twentyseventeen' ),

@@ -514,7 +514,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 		</p>
 		<?php
 		wp_admin_notice(
-			'<p class="error"></p>',
+			'<p class="notice notice-error"></p>',
 			array(
 				'type'               => 'error',
 				'additional_classes' => array( 'notice-alt', 'inline', 'hidden' ),
