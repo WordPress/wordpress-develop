@@ -432,9 +432,10 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'editor' => true,
-				'author' => true,
-				'title'  => true,
+				'editor'   => true,
+				'author'   => true,
+				'title'    => true,
+				'autosave' => true,
 			),
 			$_wp_post_type_features['foo']
 		);

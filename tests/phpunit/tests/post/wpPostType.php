@@ -24,8 +24,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertSameSets(
 			array(
-				'title'  => true,
-				'editor' => true,
+				'title'    => true,
+				'editor'   => true,
+				'autosave' => true,
 			),
 			$post_type_supports
 		);
@@ -56,6 +57,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 				'editor'    => true,
 				'comments'  => true,
 				'revisions' => true,
+				'autosave'  => true,
 			),
 			$post_type_supports
 		);
