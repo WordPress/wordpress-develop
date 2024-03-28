@@ -1074,8 +1074,9 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 	$comments = array();
 
 	$comments_query = array(
-		'number' => $total_items * 5,
-		'offset' => 0,
+		'number'    => $total_items * 5,
+		'offset'    => 0,
+		'post_type' => array_keys( get_post_types() ),
 	);
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
