@@ -2017,6 +2017,37 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the naming behavior of REST media uploads matches core media uploads.
+	 *
+	 * In particular, filenames with spaces should maintain the spaces rather than
+	 * replacing them with hyphens.
+	 *
+	 * @ticket 57957
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 */
+	public function test_rest_upload_filename_spaces() {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file2 ),
+					'name'     => 'Filename With Spaces.jpg',
+					'size'     => filesize( self::$test_file2 ),
+					'tmp_name' => self::$test_file2,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 201, $response->get_status(), 'The file was not uploaded.' );
+		$this->assertSame( 'Filename With Spaces', $data['title']['raw'], 'An incorrect filename was returned.' );
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are updated.
 	 *
