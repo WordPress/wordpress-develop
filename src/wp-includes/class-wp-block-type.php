@@ -361,9 +361,10 @@ class WP_Block_Type {
 	 * @return string|string[]|null|void The value read from the new property if the first item in the array provided,
 	 *                                   null when value not found, or void when unknown property name provided.
 	 */
-	public function __get( $name ) {
+	public function &__get( $name ) {
 		if ( 'variations' === $name ) {
-			return $this->get_variations();
+			$this->variations = $this->get_variations();
+			return $this->variations;
 		}
 
 		if ( 'uses_context' === $name ) {
