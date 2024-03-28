@@ -802,4 +802,67 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertWPError( $found );
 		$this->assertSame( 'invalid_term', $found->get_error_code() );
 	}
+
+	/**
+	 * Tests a directly modified property of a term object gets properly updated.
+	 *
+	 * @ticket 58087
+	 */
+	public function test_description_updates_after_directly_changing_object_description() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create_and_get(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'slug'        => 'test',
+				'description' => 'Test',
+			)
+		);
+
+		$expected_description = 'Did it update to this description?';
+		$t->description       = 'Test directly changing the description property';
+
+		$found = wp_update_term(
+			$t->term_id,
+			'wptests_tax',
+			array(
+				'description' => $expected_description,
+			)
+		);
+
+		$term = get_term( $found['term_id'], 'wptests_tax' );
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertSame( $expected_description, $term->description );
+	}
+
+	/**
+	 * @ticket 58087
+	 */
+	public function test_term_properties_update() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy'    => 'wptests_tax',
+				'slug'        => 'test',
+				'description' => 'Test',
+			)
+		);
+
+		$found = wp_update_term(
+			$t,
+			'wptests_tax',
+			array(
+				'name'        => 'Updated test',
+				'slug'        => 'updated-test',
+				'description' => 'Updated description',
+			)
+		);
+
+		$term = get_term( $found['term_id'], 'wptests_tax' );
+		_unregister_taxonomy( 'wptests_tax' );
+
+		$this->assertSame( 'Updated test', $term->name, 'The term name should update' );
+		$this->assertSame( 'updated-test', $term->slug, 'The term slug should update' );
+		$this->assertSame( 'Updated description', $term->description, 'The term description should update' );
+	}
 }
