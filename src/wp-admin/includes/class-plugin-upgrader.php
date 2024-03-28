@@ -476,7 +476,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $source;
 		}
 
-		// Check that the folder contains at least 1 valid plugin.
+        $working_directory = trailingslashit( $working_directory );
+
+        // Check that the folder contains at least 1 valid plugin.
 		$files = glob( $working_directory . '*.php' );
 		if ( $files ) {
 			foreach ( $files as $file ) {
