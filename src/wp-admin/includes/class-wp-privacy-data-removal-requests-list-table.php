@@ -7,10 +7,6 @@
  * @since 4.9.6
  */
 
-if ( ! class_exists( 'WP_Privacy_Requests_Table' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-requests-table.php';
-}
-
 /**
  * WP_Privacy_Data_Removal_Requests_List_Table class.
  *

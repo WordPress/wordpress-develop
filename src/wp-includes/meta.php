@@ -10,8 +10,6 @@
  * @subpackage Meta
  */
 
-require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
-
 /**
  * Adds metadata for the specified object.
  *

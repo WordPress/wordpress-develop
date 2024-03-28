@@ -14,8 +14,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public $editor_engine = 'WP_Image_Editor_Imagick';
 
 	public function set_up() {
-		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
-		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
 		// This needs to come after the mock image editor class is loaded.

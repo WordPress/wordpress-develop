@@ -2349,7 +2349,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @since 5.5.0
 	 */
 	protected function setup_mock_editor() {
-		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		add_filter(

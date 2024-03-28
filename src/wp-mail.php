@@ -28,9 +28,6 @@ if ( 'mail.example.com' === $mailserver_url || empty( $mailserver_url ) ) {
  */
 do_action( 'wp-mail.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-/** Get the POP3 class with which to access the mailbox. */
-require_once ABSPATH . WPINC . '/class-pop3.php';
-
 /** Only check at this interval for new messages. */
 if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
 	define( 'WP_MAIL_INTERVAL', 5 * MINUTE_IN_SECONDS );

@@ -30,6 +30,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
+require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
+
 require ABSPATH . 'wp-settings.php';
 
 /** Load WordPress Administration Upgrade API */

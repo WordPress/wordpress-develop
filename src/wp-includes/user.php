@@ -2934,7 +2934,6 @@ function get_password_reset_key( $user ) {
 
 	// Now insert the key, hashed, into the DB.
 	if ( empty( $wp_hasher ) ) {
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 		$wp_hasher = new PasswordHash( 8, true );
 	}
 
@@ -2990,7 +2989,6 @@ function check_password_reset_key( $key, $login ) {
 	}
 
 	if ( empty( $wp_hasher ) ) {
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 		$wp_hasher = new PasswordHash( 8, true );
 	}
 
@@ -4834,7 +4832,6 @@ function wp_generate_user_request_key( $request_id ) {
 
 	// Return the key, hashed.
 	if ( empty( $wp_hasher ) ) {
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 		$wp_hasher = new PasswordHash( 8, true );
 	}
 
@@ -4881,7 +4878,6 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	}
 
 	if ( empty( $wp_hasher ) ) {
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 		$wp_hasher = new PasswordHash( 8, true );
 	}
 

@@ -2959,7 +2959,6 @@ function _custom_header_background_just_in_time() {
 		}
 
 		if ( is_admin() ) {
-			require_once ABSPATH . 'wp-admin/includes/class-custom-image-header.php';
 			$custom_image_header = new Custom_Image_Header( $args[0]['admin-head-callback'], $args[0]['admin-preview-callback'] );
 		}
 	}
@@ -2972,7 +2971,6 @@ function _custom_header_background_just_in_time() {
 		add_action( 'wp_head', $args[0]['wp-head-callback'] );
 
 		if ( is_admin() ) {
-			require_once ABSPATH . 'wp-admin/includes/class-custom-background.php';
 			$custom_background = new Custom_Background( $args[0]['admin-head-callback'], $args[0]['admin-preview-callback'] );
 		}
 	}
@@ -3604,7 +3602,6 @@ function _wp_customize_include() {
 	);
 	$settings_previewed       = ! $is_customize_save_action;
 
-	require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 	$GLOBALS['wp_customize'] = new WP_Customize_Manager(
 		compact(
 			'changeset_uuid',
@@ -3644,7 +3641,6 @@ function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_p
 	}
 
 	if ( empty( $wp_customize ) ) {
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$wp_customize = new WP_Customize_Manager(
 			array(
 				'changeset_uuid'     => $changeset_post->post_name,

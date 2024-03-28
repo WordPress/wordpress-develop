@@ -9,15 +9,6 @@
 
 #[AllowDynamicProperties]
 class WP_Site_Health_Auto_Updates {
-	/**
-	 * WP_Site_Health_Auto_Updates constructor.
-	 *
-	 * @since 5.2.0
-	 */
-	public function __construct() {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	}
-
 
 	/**
 	 * Runs tests to determine if auto-updates can run.
@@ -135,10 +126,6 @@ class WP_Site_Health_Auto_Updates {
 	 * @return array|false The test results. False if auto-updates are enabled.
 	 */
 	public function test_wp_automatic_updates_disabled() {
-		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
-		}
-
 		$auto_updates = new WP_Automatic_Updater();
 
 		if ( ! $auto_updates->is_disabled() ) {

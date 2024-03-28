@@ -16,20 +16,8 @@
  * @package WordPress
  */
 
-/** WordPress Dependency Class */
-require ABSPATH . WPINC . '/class-wp-dependency.php';
-
-/** WordPress Dependencies Class */
-require ABSPATH . WPINC . '/class-wp-dependencies.php';
-
-/** WordPress Scripts Class */
-require ABSPATH . WPINC . '/class-wp-scripts.php';
-
 /** WordPress Scripts Functions */
 require ABSPATH . WPINC . '/functions.wp-scripts.php';
-
-/** WordPress Styles Class */
-require ABSPATH . WPINC . '/class-wp-styles.php';
 
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
@@ -1988,8 +1976,6 @@ function wp_localize_community_events() {
 	if ( ! wp_script_is( 'dashboard' ) ) {
 		return;
 	}
-
-	require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
 
 	$user_id            = get_current_user_id();
 	$saved_location     = get_user_option( 'community-events-location', $user_id );

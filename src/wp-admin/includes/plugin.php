@@ -2439,11 +2439,6 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
 		);
 		return;
 	}
-
-	if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
-	}
-
 	WP_Privacy_Policy_Content::add( $plugin_name, $policy_text );
 }
 

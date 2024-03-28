@@ -1882,8 +1882,6 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
 
 	mbstring_binary_safe_encoding();
 
-	require_once ABSPATH . 'wp-admin/includes/class-pclzip.php';
-
 	$archive = new PclZip( $file );
 
 	$archive_files = $archive->extract( PCLZIP_OPT_EXTRACT_AS_STRING );
@@ -2175,8 +2173,6 @@ function move_dir( $from, $to, $overwrite = false ) {
  */
 function WP_Filesystem( $args = false, $context = false, $allow_relaxed_file_ownership = false ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	global $wp_filesystem;
-
-	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 
 	$method = get_filesystem_method( $args, $context, $allow_relaxed_file_ownership );
 

@@ -669,8 +669,6 @@ function wp_set_lang_dir() {
 function require_wp_db() {
 	global $wpdb;
 
-	require_once ABSPATH . WPINC . '/class-wpdb.php';
-
 	if ( file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
 		require_once WP_CONTENT_DIR . '/db.php';
 	}
@@ -1489,16 +1487,7 @@ function wp_load_translations_early() {
 	require ABSPATH . WPINC . '/version.php';
 
 	// Translation and localization.
-	require_once ABSPATH . WPINC . '/pomo/mo.php';
-	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
-	require_once ABSPATH . WPINC . '/l10n/class-wp-translations.php';
-	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file.php';
-	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-mo.php';
-	require_once ABSPATH . WPINC . '/l10n/class-wp-translation-file-php.php';
 	require_once ABSPATH . WPINC . '/l10n.php';
-	require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
-	require_once ABSPATH . WPINC . '/class-wp-locale.php';
-	require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
 	// General libraries.
 	require_once ABSPATH . WPINC . '/plugin.php';

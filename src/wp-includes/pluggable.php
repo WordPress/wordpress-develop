@@ -2537,7 +2537,6 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		global $wp_hasher;
 
 		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
 			// By default, use the portable hash from phpass.
 			$wp_hasher = new PasswordHash( 8, true );
 		}
@@ -2599,7 +2598,6 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 		 * presume the new style phpass portable hash.
 		 */
 		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
 			// By default, use the portable hash from phpass.
 			$wp_hasher = new PasswordHash( 8, true );
 		}
@@ -3051,10 +3049,6 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 			'show_split_view' => true,
 		);
 		$args     = wp_parse_args( $args, $defaults );
-
-		if ( ! class_exists( 'WP_Text_Diff_Renderer_Table', false ) ) {
-			require ABSPATH . WPINC . '/wp-diff.php';
-		}
 
 		$left_string  = normalize_whitespace( $left_string );
 		$right_string = normalize_whitespace( $right_string );

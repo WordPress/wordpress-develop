@@ -38,7 +38,6 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-phpass.php';
 	}
 
 	public function test_submitting_comment_to_invalid_post_returns_error() {

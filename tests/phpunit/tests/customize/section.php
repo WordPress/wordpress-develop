@@ -21,7 +21,6 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 	}
@@ -222,7 +221,6 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	}
 }
 
-require_once ABSPATH . WPINC . '/class-wp-customize-section.php';
 class Custom_Section_Test extends WP_Customize_Section {
 	public $type = 'titleless';
 

@@ -846,7 +846,6 @@ function wp_update_themes( $extra_stats = array() ) {
  */
 function wp_maybe_auto_update() {
 	require_once ABSPATH . 'wp-admin/includes/admin.php';
-	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
 	$upgrader = new WP_Automatic_Updater();
 	$upgrader->run();

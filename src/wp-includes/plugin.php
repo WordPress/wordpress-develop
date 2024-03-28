@@ -21,8 +21,7 @@
  * @since 1.5.0
  */
 
-// Initialize the filter globals.
-require __DIR__ . '/class-wp-hook.php';
+require_once ABSPATH . 'wp-includes/class-wp-autoload.php';
 
 /** @var WP_Hook[] $wp_filter */
 global $wp_filter;

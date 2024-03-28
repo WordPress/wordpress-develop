@@ -26,7 +26,6 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 		parent::set_up();
 
 		/** Walker_Nav_Menu class */
-		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
 		$this->walker = new Walker_Nav_Menu();
 
 		$this->orig_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
