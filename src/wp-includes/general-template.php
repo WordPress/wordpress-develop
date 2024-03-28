@@ -3559,6 +3559,38 @@ function wp_resource_hints() {
 }
 
 /**
+ * Specify resources to preload.
+ *
+ * @global array $wp_preload_resources
+ * @since 6.1.0
+ *
+ * @param array  $preload_resources {
+ *     Array of resources and their attributes, or URLs to print for resource preloads.
+ *
+ *     @type array ...$0 {
+ *         Array of resource attributes.
+ *
+ *         @type string $href        URL to include in resource preloads. Required.
+ *         @type string $as          How the browser should treat the resource
+ *                                   (`script`, `style`, `image`, `document`, etc).
+ *         @type string $crossorigin Indicates the CORS policy of the specified resource.
+ *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+ *         @type string $media       Accepts media types or media queries. Allows responsive preloading.
+ *         @type string $imagesizes  Responsive source size to the source Set.
+ *         @type string $imagesrcset Responsive image sources to the source set.
+ *     }
+ * }
+ */
+function wp_add_preload_resources( $preload_resources ) {
+	global $wp_preload_resources;
+
+	if ( ! is_array( $wp_preload_resources ) ) {
+		$wp_preload_resources = array();
+	}
+	$wp_preload_resources = array_merge( $wp_preload_resources, $preload_resources );
+}
+
+/**
  * Prints resource preloads directives to browsers.
  *
  * Gives directive to browsers to preload specific resources that website will
@@ -3572,9 +3604,11 @@ function wp_resource_hints() {
  * @link https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload
  * @link https://web.dev/preload-responsive-images/
  *
+ * @global array $wp_preload_resources
  * @since 6.1.0
  */
 function wp_preload_resources() {
+	global $wp_preload_resources;
 	/**
 	 * Filters domains and URLs for resource preloads.
 	 *
@@ -3599,8 +3633,7 @@ function wp_preload_resources() {
 	 *     }
 	 * }
 	 */
-	$preload_resources = apply_filters( 'wp_preload_resources', array() );
-
+	$preload_resources = apply_filters( 'wp_preload_resources', is_array( $wp_preload_resources ) ? $wp_preload_resources : array() );
 	if ( ! is_array( $preload_resources ) ) {
 		return;
 	}
