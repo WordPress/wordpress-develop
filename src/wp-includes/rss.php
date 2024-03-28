@@ -445,115 +445,12 @@ function _fetch_remote_file($url, $headers = "" ) {
 	return $response;
 }
 
-/**
- * Retrieve
- *
- * @since 1.5.0
- * @package External
- * @subpackage MagpieRSS
- *
- * @param array $resp
- * @return MagpieRSS|bool
- */
-function _response_to_rss ($resp) {
-	$rss = new MagpieRSS( $resp->results );
-
-	// if RSS parsed successfully
-	if ( $rss && (!isset($rss->ERROR) || !$rss->ERROR) ) {
-
-		// find Etag, and Last-Modified
-		foreach ( (array) $resp->headers as $h) {
-			// 2003-03-02 - Nicola Asuni (www.tecnick.com) - fixed bug "Undefined offset: 1"
-			if (strpos($h, ": ")) {
-				list($field, $val) = explode(": ", $h, 2);
-			}
-			else {
-				$field = $h;
-				$val = "";
-			}
-
-			if ( $field == 'etag' ) {
-				$rss->etag = $val;
-			}
-
-			if ( $field == 'last-modified' ) {
-				$rss->last_modified = $val;
-			}
-		}
-
-		return $rss;
-	} // else construct error message
-	else {
-		$errormsg = "Failed to parse RSS file.";
-
-		if ($rss) {
-			$errormsg .= " (" . $rss->ERROR . ")";
-		}
-		// error($errormsg);
-
-		return false;
-	} // end if ($rss and !$rss->error)
+function _response_to_rss() {
+	return false;
 }
 
-/**
- * Set up constants with default values, unless user overrides.
- *
- * @since 1.5.0
- * 
- * @global string $wp_version The WordPress version string.
- * 
- * @package External
- * @subpackage MagpieRSS
- */
-function init () {
-	if ( defined('MAGPIE_INITALIZED') ) {
-		return;
-	}
-	else {
-		define('MAGPIE_INITALIZED', 1);
-	}
-
-	if ( !defined('MAGPIE_CACHE_ON') ) {
-		define('MAGPIE_CACHE_ON', 1);
-	}
-
-	if ( !defined('MAGPIE_CACHE_DIR') ) {
-		define('MAGPIE_CACHE_DIR', './cache');
-	}
-
-	if ( !defined('MAGPIE_CACHE_AGE') ) {
-		define('MAGPIE_CACHE_AGE', 60*60); // one hour
-	}
-
-	if ( !defined('MAGPIE_CACHE_FRESH_ONLY') ) {
-		define('MAGPIE_CACHE_FRESH_ONLY', 0);
-	}
-
-		if ( !defined('MAGPIE_DEBUG') ) {
-		define('MAGPIE_DEBUG', 0);
-	}
-
-	if ( !defined('MAGPIE_USER_AGENT') ) {
-		$ua = 'WordPress/' . $GLOBALS['wp_version'];
-
-		if ( MAGPIE_CACHE_ON ) {
-			$ua = $ua . ')';
-		}
-		else {
-			$ua = $ua . '; No cache)';
-		}
-
-		define('MAGPIE_USER_AGENT', $ua);
-	}
-
-	if ( !defined('MAGPIE_FETCH_TIME_OUT') ) {
-		define('MAGPIE_FETCH_TIME_OUT', 2);	// 2 second timeout
-	}
-
-	// use gzip encoding to fetch rss files if supported?
-	if ( !defined('MAGPIE_USE_GZIP') ) {
-		define('MAGPIE_USE_GZIP', true);
-	}
+function init() {
+	return;
 }
 
 function is_info ($sc) {
