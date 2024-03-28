@@ -3540,7 +3540,21 @@ function convert_smilies( $text ) {
 /**
  * Verifies that an email is valid.
  *
- * Does not grok i18n domains. Not RFC compliant.
+ * The mostly matches what people think is the format of email
+ * addresses, and is close to all three current specifications.
+ *
+ * Email address syntax is specified in RFC 5322 for ASCII-only email
+ * and in RFC 6532 for unicode email (both unicode domains and
+ * localparts). In addition, the HTML WHATWG specification contains a
+ * third syntax which is used for HTML form input (except that major
+ * browsers deviate a little from the WHATWG specification).
+ *
+ * This function matches the WHATWG and RFC 6532 specifications fairly
+ * well, although there are some differences.  " "@example.com (quote
+ * space quote at ...) is allowed by the RFCs and rejected by this
+ * code, while ..@example.com is allowed by this code and prohibited
+ * by the RFCs. info@grå.org is allowed by this code and major
+ * browsers, but prohibited by WHATWG's regex (as of April 2023).
  *
  * @since 0.71
  *
@@ -3584,7 +3598,8 @@ function is_email( $email, $deprecated = false ) {
 	 * LOCAL PART
 	 * Test for invalid characters.
 	 */
-	if ( ! preg_match( '/^[a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) ) {
+	if ( ! ( preg_match( '/^[a-zA-Z0-9\x80-\xff!#$%&\'*+\/=?^_`{|}~\.-]+$/', $local ) &&
+		 preg_match( '/^\X+$/', $local ) ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'local_invalid_chars' );
 	}
@@ -3622,7 +3637,8 @@ function is_email( $email, $deprecated = false ) {
 		}
 
 		// Test for invalid characters.
-		if ( ! preg_match( '/^[a-z0-9-]+$/i', $sub ) ) {
+		if ( ! ( preg_match( '/^[a-z0-9\x80-\xff-]+$/i', $sub ) &&
+			 preg_match( '/^\X+$/', $sub ) ) ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			return apply_filters( 'is_email', false, $email, 'sub_invalid_chars' );
 		}
@@ -3798,7 +3814,7 @@ function sanitize_email( $email ) {
 	 * LOCAL PART
 	 * Test for invalid characters.
 	 */
-	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.-]/', '', $local );
+	$local = preg_replace( '/[^a-zA-Z0-9!#$%&\'*+\/=?^_`{|}~\.\x80-\xff-]/', '', $local );
 	if ( '' === $local ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'local_invalid_chars' );
@@ -3839,7 +3855,7 @@ function sanitize_email( $email ) {
 		$sub = trim( $sub, " \t\n\r\0\x0B-" );
 
 		// Test for invalid characters.
-		$sub = preg_replace( '/[^a-z0-9-]+/i', '', $sub );
+		$sub = preg_replace( '/[^a-z0-9\x80-\xff-]+/i', '', $sub );
 
 		// If there's anything left, add it to the valid subs.
 		if ( '' !== $sub ) {
