@@ -754,7 +754,23 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return $response;
+		/**
+		 * Filters the data for a REST API response.
+		 *
+		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `rest_prepare_wp_template`
+		 *  - `rest_prepare_wp_template_part`
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param WP_REST_Response  $response The response object.
+		 * @param WP_Block_Template $template Template object.
+		 * @param WP_REST_Request   $request Request object.
+		 */
+		return apply_filters( "rest_prepare_{$this->post_type}", $response, $template, $request );
 	}
 
 	/**
