@@ -1452,6 +1452,26 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58871
+	 *
+	 * @covers wpdb::determine_charset
+	 */
+	public function test_collate_switched_to_uca1400() {
+		global $wpdb;
+
+		if ( ! $wpdb->has_cap( 'uca1400' ) ) {
+			$this->markTestSkipped( 'This test requires uca1400 support.' );
+		}
+
+		$charset = 'utf8';
+		$collate = 'utf8_general_ci';
+
+		$result = $wpdb->determine_charset( $charset, $collate );
+
+		$this->assertSame( 'uca1400_ai_ci', $result['collate'] );
+	}
+
+	/**
 	 * @ticket 32105
 	 * @ticket 36917
 	 */
@@ -1460,6 +1480,10 @@ class Tests_DB extends WP_UnitTestCase {
 
 		if ( ! $wpdb->has_cap( 'utf8mb4_520' ) ) {
 			$this->markTestSkipped( 'This test requires utf8mb4_520 support.' );
+		}
+
+		if ( $wpdb->has_cap( 'uca1400' ) ) {
+			$this->markTestSkipped( 'This test requires uca1400 to not be supported.' );
 		}
 
 		$charset = 'utf8';
