@@ -23,8 +23,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 	/**
 	 * @ticket 60671
-	 *
-	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template() {
 		register_block_type(
@@ -53,8 +51,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 	/**
 	 * @ticket 60671
-	 *
-	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part() {
 		register_block_type(
@@ -83,8 +79,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 	/**
 	 * @ticket 60754
-	 *
-	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_applies_filter_correctly() {
 		$action = new MockAction();
@@ -140,8 +134,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 	/**
 	 * @ticket 60754
-	 *
-	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_template_part_applies_filter_correctly() {
 		$action = new MockAction();
@@ -204,8 +196,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 	/**
 	 * @ticket 60754
-	 *
-	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_file_based_template_applies_filter_correctly() {
 		$action = new MockAction();
@@ -258,8 +248,6 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 
 	/**
 	 * @ticket 60754
-	 *
-	 * @covers inject_ignored_hooked_blocks_metadata_attributes
 	 */
 	public function test_inject_ignored_hooked_blocks_metadata_attributes_into_file_based_template_part_applies_filter_correctly() {
 		$action = new MockAction();
