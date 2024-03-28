@@ -206,6 +206,9 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		$changes->post_type    = 'wp_template';
 		$changes->post_status  = 'publish';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->meta_input   = array(
+			'origin' => 'theme',
+		);
 		$changes->tax_input    = array(
 			'wp_theme' => get_stylesheet(),
 		);
@@ -244,6 +247,11 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 			$context->has_theme_file,
 			'The has_theme_file field of the context passed to the hooked_block_types filter isn\'t set to true.'
 		);
+		$this->assertSame(
+			$changes->meta_input['origin'],
+			$context->origin,
+			'The origin field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
+		);
 	}
 
 	/**
@@ -258,6 +266,9 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		$changes->post_type    = 'wp_template_part';
 		$changes->post_status  = 'publish';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
+		$changes->meta_input   = array(
+			'origin' => 'theme',
+		);
 		$changes->tax_input    = array(
 			'wp_theme' => get_stylesheet(),
 		);
@@ -297,6 +308,11 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		$this->assertTrue(
 			$context->has_theme_file,
 			'The has_theme_file field of the context passed to the hooked_block_types filter isn\'t set to true.'
+		);
+		$this->assertSame(
+			$changes->meta_input['origin'],
+			$context->origin,
+			'The origin field of the context passed to the hooked_block_types filter doesn\'t match the template changes.'
 		);
 		$this->assertSame(
 			$changes->tax_input['wp_template_part_area'],
