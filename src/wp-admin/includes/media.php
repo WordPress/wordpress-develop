@@ -93,7 +93,7 @@ function the_media_upload_tabs() {
 		foreach ( $tabs as $callback => $text ) {
 			$class = '';
 
-			if ( $current == $callback ) {
+			if ( $current === $callback ) {
 				$class = " class='current'";
 			}
 
@@ -773,7 +773,7 @@ function media_upload_form_handler() {
 				$post['menu_order'] = $attachment['menu_order'];
 			}
 
-			if ( isset( $send_id ) && $attachment_id == $send_id ) {
+			if ( isset( $send_id ) && (int) $attachment_id === $send_id ) {
 				if ( isset( $attachment['post_parent'] ) ) {
 					$post['post_parent'] = $attachment['post_parent'];
 				}
@@ -807,7 +807,9 @@ function media_upload_form_handler() {
 				unset( $post['errors'] );
 			}
 
-			if ( $post != $_post ) {
+			// The == operator (equal, not identical) was used intentionally.
+			// See http://php.net/manual/en/language.operators.array.php
+			if ( $post != $_post ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 				wp_update_post( $post );
 			}
 
@@ -1172,7 +1174,7 @@ function image_align_input_fields( $post, $checked = '' ) {
 	foreach ( $alignments as $name => $label ) {
 		$name     = esc_attr( $name );
 		$output[] = "<input type='radio' name='attachments[{$post->ID}][align]' id='image-align-{$name}-{$post->ID}' value='$name'" .
-			( $checked == $name ? " checked='checked'" : '' ) .
+			( $checked === $name ? " checked='checked'" : '' ) .
 			" /><label for='image-align-{$name}-{$post->ID}' class='align image-align-{$name}-label'>$label</label>";
 	}
 
@@ -1222,7 +1224,7 @@ function image_size_input_fields( $post, $check = '' ) {
 		$css_id  = "image-size-{$size}-{$post->ID}";
 
 		// If this size is the default but that's not available, don't select it.
-		if ( $size == $check ) {
+		if ( $size === $check ) {
 			if ( $enabled ) {
 				$checked = " checked='checked'";
 			} else {
@@ -1761,7 +1763,7 @@ function get_media_item( $attachment_id, $args = null ) {
 	if ( 'image' === $type && $calling_post_id
 		&& current_theme_supports( 'post-thumbnails', get_post_type( $calling_post_id ) )
 		&& post_type_supports( get_post_type( $calling_post_id ), 'thumbnail' )
-		&& get_post_thumbnail_id( $calling_post_id ) != $attachment_id
+		&& get_post_thumbnail_id( $calling_post_id ) !== $attachment_id
 	) {
 
 		$calling_post             = get_post( $calling_post_id );
@@ -2852,20 +2854,20 @@ function media_upload_library_form( $errors ) {
 		$month_count    = count( $arc_result );
 		$selected_month = isset( $_GET['m'] ) ? $_GET['m'] : 0;
 
-		if ( $month_count && ! ( 1 == $month_count && 0 == $arc_result[0]->mmonth ) ) {
+		if ( $month_count && ! ( 1 === $month_count && 0 === (int) $arc_result[0]->mmonth ) ) {
 			?>
 			<select name='m'>
 			<option<?php selected( $selected_month, 0 ); ?> value='0'><?php _e( 'All dates' ); ?></option>
 			<?php
 
 			foreach ( $arc_result as $arc_row ) {
-				if ( 0 == $arc_row->yyear ) {
+				if ( 0 === (int) $arc_row->yyear ) {
 					continue;
 				}
 
 				$arc_row->mmonth = zeroise( $arc_row->mmonth, 2 );
 
-				if ( $arc_row->yyear . $arc_row->mmonth == $selected_month ) {
+				if ( (int) $arc_row->yyear . $arc_row->mmonth === (int) $selected_month ) {
 					$default = ' selected="selected"';
 				} else {
 					$default = '';

@@ -40,7 +40,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	global $wpdb;
 
 	// If manual moderation is enabled, skip all checks and return false.
-	if ( 1 == get_option( 'comment_moderation' ) ) {
+	if ( 1 === (int) get_option( 'comment_moderation' ) ) {
 		return false;
 	}
 
@@ -126,7 +126,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 * as well as whether there are any moderation keywords (if set) present in the author
 	 * email address. If both checks pass, return true. Otherwise, return false.
 	 */
-	if ( 1 == get_option( 'comment_previously_approved' ) ) {
+	if ( 1 === (int) get_option( 'comment_previously_approved' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
 			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
 			if ( ! empty( $comment_user->ID ) ) {
@@ -135,8 +135,10 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 				// expected_slashed ($author, $email)
 				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
 			}
-			if ( ( 1 == $ok_to_comment ) &&
-				( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
+
+			if ( ( 1 === (int) $ok_to_comment )
+				&& ( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) )
+			) {
 					return true;
 			} else {
 				return false;
@@ -781,7 +783,9 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		);
 	}
 
-	if ( isset( $user ) && ( $commentdata['user_id'] == $post_author || $user->has_cap( 'moderate_comments' ) ) ) {
+	if ( isset( $user )
+		&& ( (int) $commentdata['user_id'] === (int) $post_author || $user->has_cap( 'moderate_comments' ) )
+	) {
 		// The author and the admins get respect.
 		$approved = 1;
 	} else {
@@ -1105,7 +1109,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		}
 
 		// Find this comment's top-level parent if threading is enabled.
-		if ( $args['max_depth'] > 1 && 0 != $comment->comment_parent ) {
+		if ( $args['max_depth'] > 1 && '0' !== $comment->comment_parent ) {
 			return get_page_of_comment( $comment->comment_parent, $args );
 		}
 
@@ -1165,7 +1169,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 		$older_comment_count = $comment_query->query( $comment_args );
 
 		// No older comments? Then it's page #1.
-		if ( 0 == $older_comment_count ) {
+		if ( 0 === $older_comment_count ) {
 			$page = 1;
 
 			// Divide comments older than this one by comments per page to get this comment's page number.
@@ -1498,7 +1502,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	do_action( 'deleted_comment', $comment->comment_ID, $comment );
 
 	$post_id = $comment->comment_post_ID;
-	if ( $post_id && 1 == $comment->comment_approved ) {
+	if ( $post_id && '1' === $comment->comment_approved ) {
 		wp_update_comment_count( $post_id );
 	}
 
@@ -1732,11 +1736,11 @@ function wp_get_comment_status( $comment_id ) {
 
 	$approved = $comment->comment_approved;
 
-	if ( null == $approved ) {
+	if ( null === $approved ) {
 		return false;
-	} elseif ( '1' == $approved ) {
+	} elseif ( '1' === $approved ) {
 		return 'approved';
-	} elseif ( '0' == $approved ) {
+	} elseif ( '0' === $approved ) {
 		return 'unapproved';
 	} elseif ( 'spam' === $approved ) {
 		return 'spam';
@@ -1785,7 +1789,7 @@ function wp_transition_comment_status( $new_status, $old_status, $comment ) {
 	}
 
 	// Call the hooks.
-	if ( $new_status != $old_status ) {
+	if ( (string) $new_status !== (string) $old_status ) {
 		/**
 		 * Fires when the comment status is in transition.
 		 *
@@ -2040,7 +2044,7 @@ function wp_insert_comment( $commentdata ) {
 
 	$id = (int) $wpdb->insert_id;
 
-	if ( 1 == $comment_approved ) {
+	if ( 1 === (int) $comment_approved ) {
 		wp_update_comment_count( $comment_post_id );
 
 		$data = array();
@@ -2334,7 +2338,7 @@ function wp_new_comment_notify_moderator( $comment_id ) {
 	$comment = get_comment( $comment_id );
 
 	// Only send notifications for pending comments.
-	$maybe_notify = ( '0' == $comment->comment_approved );
+	$maybe_notify = ( '0' === $comment->comment_approved );
 
 	/** This filter is documented in wp-includes/pluggable.php */
 	$maybe_notify = apply_filters( 'notify_moderator', $maybe_notify, $comment_id );
@@ -2382,7 +2386,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	}
 
 	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' != $comment->comment_approved ) {
+	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
 		return false;
 	}
 
@@ -3081,7 +3085,7 @@ function pingback( $content, $post ) {
 	 */
 	foreach ( (array) $post_links_temp as $link_test ) {
 		// If we haven't pung it already and it isn't a link to itself.
-		if ( ! in_array( $link_test, $pung, true ) && ( url_to_postid( $link_test ) != $post->ID )
+		if ( ! in_array( $link_test, $pung, true ) && ( url_to_postid( $link_test ) !== $post->ID )
 			// Also, let's never ping local attachments.
 			&& ! is_local_attachment( $link_test )
 		) {
@@ -3139,7 +3143,9 @@ function pingback( $content, $post ) {
 			// When set to true, this outputs debug messages by itself.
 			$client->debug = false;
 
-			if ( $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto ) || ( isset( $client->error->code ) && 48 == $client->error->code ) ) { // Already registered.
+			if ( $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto )
+				|| ( isset( $client->error->code ) && 48 === (int) $client->error->code )
+			) { // Already registered.
 				add_ping( $post, $pagelinkedto );
 			}
 		}
@@ -3155,7 +3161,7 @@ function pingback( $content, $post ) {
  * @return mixed Empty string if blog is not public, returns $sites, if site is public.
  */
 function privacy_ping_filter( $sites ) {
-	if ( '0' != get_option( 'blog_public' ) ) {
+	if ( '0' !== get_option( 'blog_public' ) ) {
 		return $sites;
 	} else {
 		return '';
@@ -3629,7 +3635,7 @@ function wp_handle_comment_submission( $comment_data ) {
 	$comment_type = 'comment';
 
 	if ( get_option( 'require_name_email' ) && ! $user->exists() ) {
-		if ( '' == $comment_author_email || '' == $comment_author ) {
+		if ( '' === $comment_author_email || '' === $comment_author ) {
 			return new WP_Error( 'require_name_email', __( '<strong>Error:</strong> Please fill the required fields.' ), 200 );
 		} elseif ( ! is_email( $comment_author_email ) ) {
 			return new WP_Error( 'require_valid_email', __( '<strong>Error:</strong> Please enter a valid email address.' ), 200 );
