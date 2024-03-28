@@ -307,8 +307,20 @@ p.has-drop-cap:not(:focus)::first-letter {
 	border-spacing: 0;
 	font-size: 14px;
 	line-height: 2;
-	margin: 0 0 20px;
-	width: 100%;
+	margin-bottom: 20px;
+}
+
+/* Aligns bottom border when table block is aligned center in editor. */
+.wp-block[data-align=center] > .wp-block-table {
+	clear: both;
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Aligns bottom margin when table block is aligned center in editor. */
+.wp-block[data-align=center] > .wp-block-table table {
+	margin-bottom: 24px;
 }
 
 .editor-styles-wrapper .has-text-color th {
