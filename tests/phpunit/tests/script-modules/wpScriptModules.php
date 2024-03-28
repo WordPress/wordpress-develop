@@ -128,7 +128,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 
 	/**
-	 * Tests that a script module can be deregistered
+	 * Tests that a script module can be removed
 	 * after being enqueued, and that will be removed
 	 * from the enqueue list too.
 	 *
@@ -136,15 +136,15 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 *
 	 * @covers ::register()
 	 * @covers ::enqueue()
-	 * @covers ::deregister()
+	 * @covers ::remove()
 	 * @covers ::get_enqueued_script_modules()
 	 */
-	public function test_wp_deregister_script_module() {
+	public function test_wp_remove_script_module() {
 		$this->script_modules->register( 'foo', '/foo.js' );
 		$this->script_modules->register( 'bar', '/bar.js' );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'bar' );
-		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$this->script_modules->remove( 'foo' ); // Dequeued.
 
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
@@ -154,17 +154,17 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a script module is not deregistered
+	 * Tests that a script module is not removed
 	 * if it has not been registered before, causing
 	 * no errors.
 	 *
 	 * @ticket 60463
 	 *
-	 * @covers ::deregister()
+	 * @covers ::remove()
 	 * @covers ::get_enqueued_script_modules()
 	 */
-	public function test_wp_deregister_unexistent_script_module() {
-		$this->script_modules->deregister( 'unexistent' );
+	public function test_wp_remove_unexistent_script_module() {
+		$this->script_modules->remove( 'unexistent' );
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
@@ -172,27 +172,27 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a script module is not deregistered
-	 * if it has been deregistered previously, causing
+	 * Tests that a script module is not removed
+	 * if it has been removed previously, causing
 	 * no errors.
 	 *
 	 * @ticket 60463
 	 *
 	 * @covers ::get_enqueued_script_modules()
 	 * @covers ::register()
-	 * @covers ::deregister()
+	 * @covers ::remove()
 	 * @covers ::enqueue()
 	 */
-	public function test_wp_deregister_already_deregistered_script_module() {
+	public function test_wp_remove_already_removed_script_module() {
 		$this->script_modules->register( 'foo', '/foo.js' );
 		$this->script_modules->enqueue( 'foo' );
-		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$this->script_modules->remove( 'foo' ); // Dequeued.
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
 		$this->assertFalse( isset( $enqueued_script_modules['foo'] ) );
 
-		$this->script_modules->deregister( 'foo' ); // Dequeued.
+		$this->script_modules->remove( 'foo' ); // Dequeued.
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 0, $enqueued_script_modules );
