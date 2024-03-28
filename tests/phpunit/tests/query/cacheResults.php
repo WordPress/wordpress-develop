@@ -1529,4 +1529,66 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		// No additional queries expected.
 		$this->assertSame( 0, $num_queries, 'Unexpected number of queries during second query of term meta.' );
 	}
+
+	/**
+	 * @ticket 59442
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 * @dataProvider data_duplicate_query_when_sticky_post
+	 */
+	public function test_duplicate_query_when_sticky_post( $is_cached_prior, $expected_num_queries ) {
+		global $wpdb;
+
+		// create a few post.
+		self::factory()->post->create_many( 5, array( 'post_type' => 'post' ) );
+
+		$sticky_post_id = self::factory()->post->create();
+		$sticky_posts   = get_option( 'sticky_posts', array() );
+		$sticky_posts[] = $sticky_post_id;
+		update_option( 'sticky_posts', $sticky_posts );
+
+		// This block replicates the cache state prior to the main query.
+		if ( $is_cached_prior ) {
+			// Do a call to cache the sticky query.
+			new WP_Query(
+				array(
+					'post_type'      => 'post',
+					'post_status'    => 'publish',
+					'posts__in'      => array( $sticky_post_id ),
+					'posts_per_page' => 1,
+				)
+			);
+		}
+
+		$num_queries_start = get_num_queries();
+		// `get_posts()` call without `post_type` argument leads to a call to sticky post `get_posts()` query.
+		get_posts(
+			array(
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+			)
+		);
+		$num_queries = get_num_queries() - $num_queries_start;
+
+		// Only the original post query should be executed if sticky query is set.
+		$this->assertSame( $expected_num_queries, $num_queries, 'Number of queries executed is different from expected.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_duplicate_query_when_sticky_post() {
+		return array(
+			'sticky_post_query_cached_prior'     => array(
+				true,
+				1, // only the original post query is executed if sticky query was already cached.
+			),
+			'sticky_post_query_not_cached_prior' => array(
+				false,
+				4, // currently leads to 4 sub query if sticky query was not previously cached.
+			),
+		);
+	}
 }
