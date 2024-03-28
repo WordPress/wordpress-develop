@@ -808,8 +808,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @param array|string $data Data to store
 	 * @return bool Return value from wp_cache_add()
 	 */
-	private function cache_add( $key, $data ) {
-		return wp_cache_add( $key . '-' . $this->cache_hash, $data, 'themes', self::$cache_expiration );
+	public function cache_add( $key, $data, $group = 'themes' ) {
+		return wp_cache_add( $key . '-' . $this->cache_hash, $data, $group, self::$cache_expiration );
 	}
 
 	/**
@@ -822,8 +822,8 @@ final class WP_Theme implements ArrayAccess {
 	 * @param string $key Type of data to retrieve (theme, screenshot, headers, post_templates)
 	 * @return mixed Retrieved data
 	 */
-	private function cache_get( $key ) {
-		return wp_cache_get( $key . '-' . $this->cache_hash, 'themes' );
+	public function cache_get( $key, $group = 'themes' ) {
+		return wp_cache_get( $key . '-' . $this->cache_hash, $group );
 	}
 
 	/**
@@ -835,6 +835,8 @@ final class WP_Theme implements ArrayAccess {
 		foreach ( array( 'theme', 'screenshot', 'headers', 'post_templates' ) as $key ) {
 			wp_cache_delete( $key . '-' . $this->cache_hash, 'themes' );
 		}
+		$this->delete_theme_json_cache();
+
 		$this->template               = null;
 		$this->textdomain_loaded      = null;
 		$this->theme_root_uri         = null;
@@ -847,6 +849,27 @@ final class WP_Theme implements ArrayAccess {
 		$this->headers                = array();
 		$this->__construct( $this->stylesheet, $this->theme_root );
 		$this->delete_pattern_cache();
+	}
+
+	/**
+	 * This method is used to delete the cached theme JSON data for certain keys
+	 * that are stored in the 'theme_json' cache group.
+	 *
+	 * @since x.x.x
+	 */
+	public function delete_theme_json_cache() {
+		$keys = array(
+			'wp_get_global_stylesheet',
+			'wp_get_global_styles_svg_filters',
+			'wp_get_global_settings_custom',
+			'wp_get_global_settings_theme',
+			'wp_get_global_styles_custom_css',
+			'wp_get_theme_data_template_parts',
+		);
+
+		foreach ( $keys as $key ) {
+			wp_cache_delete( $key . '-' . $this->cache_hash, 'theme_json' );
+		}
 	}
 
 	/**
