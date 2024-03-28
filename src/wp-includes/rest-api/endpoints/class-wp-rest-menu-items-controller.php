@@ -42,6 +42,12 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		if ( isset( $request['menu'] ) ) {
+			$check = $this->check_permission_menu( $request['menu'] );
+			if ( $check ) {
+				return $check;
+			}
+		}
 		$has_permission = parent::get_items_permissions_check( $request );
 
 		if ( true !== $has_permission ) {
@@ -60,6 +66,14 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object or false otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
+		$post = $this->get_post( $request['id'] );
+		if ( ! is_wp_error( $post ) ) {
+			$menu_id = $this->get_menu_id( $request['id'] );
+			$check   = $this->check_permission_menu( $menu_id );
+			if ( $check ) {
+				return $check;
+			}
+		}
 		$permission_check = parent::get_item_permissions_check( $request );
 
 		if ( true !== $permission_check ) {
@@ -67,6 +81,15 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $this->check_has_read_only_access( $request );
+	}
+
+	public function check_permission_menu( $menu_id ) {
+		$nav_term = wp_get_nav_menu_object( $menu_id );
+		if ( $nav_term && isset( $nav_term->show_in_rest ) && $nav_term->show_in_rest ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
