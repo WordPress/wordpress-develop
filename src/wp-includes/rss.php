@@ -453,28 +453,28 @@ function init() {
 	return;
 }
 
-function is_info ($sc) {
-	return $sc >= 100 && $sc < 200;
+function is_info() {
+	return false;
 }
 
-function is_success ($sc) {
-	return $sc >= 200 && $sc < 300;
+function is_success() {
+	return false;
 }
 
-function is_redirect ($sc) {
-	return $sc >= 300 && $sc < 400;
+function is_redirect() {
+	return false;
 }
 
-function is_error ($sc) {
-	return $sc >= 400 && $sc < 600;
+function is_error() {
+	return false;
 }
 
-function is_client_error ($sc) {
-	return $sc >= 400 && $sc < 500;
+function is_client_error() {
+	return false;
 }
 
-function is_server_error ($sc) {
-	return $sc >= 500 && $sc < 600;
+function is_server_error() {
+	return false;
 }
 
 class RSSCache {
