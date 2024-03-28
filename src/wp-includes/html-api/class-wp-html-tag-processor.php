@@ -2893,15 +2893,16 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * For boolean attributes special handling is provided:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
-	 *  - When `false` is passed, the attribute gets removed if it existed before.
+	 *  - When `false` or `null` is passed, the attribute gets removed if it existed before.
 	 *
 	 * For string attributes, the value is escaped using the `esc_attr` function.
 	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
+	 * @since 6.5.0 Allows passing `null` to remove attribute.
 	 *
-	 * @param string      $name  The attribute name to target.
-	 * @param string|bool $value The new attribute value.
+	 * @param string           $name  The attribute name to target.
+	 * @param string|bool|null $value The new attribute value.
 	 * @return bool Whether an attribute value was set.
 	 */
 	public function set_attribute( $name, $value ) {
@@ -2961,7 +2962,7 @@ class WP_HTML_Tag_Processor {
 		 * > To represent a false value, the attribute has to be omitted altogether.
 		 *     - HTML5 spec, https://html.spec.whatwg.org/#boolean-attributes
 		 */
-		if ( false === $value ) {
+		if ( null === $value || false === $value ) {
 			return $this->remove_attribute( $name );
 		}
 

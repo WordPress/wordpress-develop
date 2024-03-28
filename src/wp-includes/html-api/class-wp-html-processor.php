@@ -1715,6 +1715,165 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 
 	/**
+	 * Returns whether a given element is an HTML tag name.
+	 *
+	 * @todo Verify this list.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $tag_name Tag name to check.
+	 * @return bool Whether the element is defined in the HTML specification.
+	 */
+	public static function is_html_tag( $tag_name ) {
+		$tag_name = strtoupper( $tag_name );
+
+		return (
+			'A' === $tag_name ||
+			'ABBR' === $tag_name ||
+			'ACRONYM' === $tag_name || // Neutralized.
+			'ADDRESS' === $tag_name ||
+			'APPLET' === $tag_name || // Deprecated.
+			'AREA' === $tag_name ||
+			'ARTICLE' === $tag_name ||
+			'ASIDE' === $tag_name ||
+			'AUDIO' === $tag_name ||
+			'B' === $tag_name ||
+			'BASE' === $tag_name ||
+			'BDI' === $tag_name ||
+			'BDO' === $tag_name ||
+			'BGSOUND' === $tag_name || // Deprecated; self-closing if self-closing flag provided, otherwise normal.
+			'BIG' === $tag_name ||
+			'BLINK' === $tag_name || // Deprecated.
+			'BLOCKQUOTE' === $tag_name ||
+			'BODY' === $tag_name ||
+			'BR' === $tag_name ||
+			'BUTTON' === $tag_name ||
+			'CANVAS' === $tag_name ||
+			'CAPTION' === $tag_name ||
+			'CENTER' === $tag_name || // Neutralized.
+			'CITE' === $tag_name ||
+			'CODE' === $tag_name ||
+			'COL' === $tag_name ||
+			'COLGROUP' === $tag_name ||
+			'DATA' === $tag_name ||
+			'DATALIST' === $tag_name ||
+			'DD' === $tag_name ||
+			'DEL' === $tag_name ||
+			'DETAILS' === $tag_name ||
+			'DFN' === $tag_name ||
+			'DIALOG' === $tag_name ||
+			'DIR' === $tag_name ||
+			'DIV' === $tag_name ||
+			'DL' === $tag_name ||
+			'DT' === $tag_name ||
+			'EM' === $tag_name ||
+			'EMBED' === $tag_name ||
+			'FIELDSET' === $tag_name ||
+			'FIGCAPTION' === $tag_name ||
+			'FIGURE' === $tag_name ||
+			'FONT' === $tag_name ||
+			'FOOTER' === $tag_name ||
+			'FORM' === $tag_name ||
+			'FRAME' === $tag_name ||
+			'FRAMESET' === $tag_name ||
+			'H1' === $tag_name ||
+			'H2' === $tag_name ||
+			'H3' === $tag_name ||
+			'H4' === $tag_name ||
+			'H5' === $tag_name ||
+			'H6' === $tag_name ||
+			'HEAD' === $tag_name ||
+			'HEADER' === $tag_name ||
+			'HGROUP' === $tag_name ||
+			'HR' === $tag_name ||
+			'HTML' === $tag_name ||
+			'I' === $tag_name ||
+			'IFRAME' === $tag_name ||
+			'IMAGE' === $tag_name ||
+			'IMG' === $tag_name ||
+			'INPUT' === $tag_name ||
+			'INS' === $tag_name ||
+			'ISINDEX' === $tag_name || // Deprecated.
+			'KBD' === $tag_name ||
+			'KEYGEN' === $tag_name || // Deprecated; void.
+			'LABEL' === $tag_name ||
+			'LEGEND' === $tag_name ||
+			'LI' === $tag_name ||
+			'LINK' === $tag_name ||
+			'LISTING' === $tag_name || // Deprecated, use PRE instead.
+			'MAIN' === $tag_name ||
+			'MAP' === $tag_name ||
+			'MARK' === $tag_name ||
+			'MARQUEE' === $tag_name || // Deprecated.
+			'MATH' === $tag_name ||
+			'MENU' === $tag_name ||
+			'META' === $tag_name ||
+			'METER' === $tag_name ||
+			'MULTICOL' === $tag_name || // Deprecated.
+			'NAV' === $tag_name ||
+			'NEXTID' === $tag_name || // Deprecated.
+			'NOBR' === $tag_name || // Neutralized.
+			'NOEMBED' === $tag_name || // Neutralized.
+			'NOFRAMES' === $tag_name || // Neutralized.
+			'NOSCRIPT' === $tag_name ||
+			'OBJECT' === $tag_name ||
+			'OL' === $tag_name ||
+			'OPTGROUP' === $tag_name ||
+			'OPTION' === $tag_name ||
+			'OUTPUT' === $tag_name ||
+			'P' === $tag_name ||
+			'PARAM' === $tag_name ||
+			'PICTURE' === $tag_name ||
+			'PLAINTEXT' === $tag_name || // Neutralized.
+			'PRE' === $tag_name ||
+			'PROGRESS' === $tag_name ||
+			'Q' === $tag_name ||
+			'RB' === $tag_name || // Neutralized.
+			'RP' === $tag_name ||
+			'RT' === $tag_name ||
+			'RTC' === $tag_name || // Neutralized.
+			'RUBY' === $tag_name ||
+			'S' === $tag_name ||
+			'SAMP' === $tag_name ||
+			'SCRIPT' === $tag_name ||
+			'SEARCH' === $tag_name ||
+			'SECTION' === $tag_name ||
+			'SELECT' === $tag_name ||
+			'SLOT' === $tag_name ||
+			'SMALL' === $tag_name ||
+			'SOURCE' === $tag_name ||
+			'SPACER' === $tag_name || // Deprecated.
+			'SPAN' === $tag_name ||
+			'STRIKE' === $tag_name ||
+			'STRONG' === $tag_name ||
+			'STYLE' === $tag_name ||
+			'SUB' === $tag_name ||
+			'SUMMARY' === $tag_name ||
+			'SUP' === $tag_name ||
+			'SVG' === $tag_name ||
+			'TABLE' === $tag_name ||
+			'TBODY' === $tag_name ||
+			'TD' === $tag_name ||
+			'TEMPLATE' === $tag_name ||
+			'TEXTAREA' === $tag_name ||
+			'TFOOT' === $tag_name ||
+			'TH' === $tag_name ||
+			'THEAD' === $tag_name ||
+			'TIME' === $tag_name ||
+			'TITLE' === $tag_name ||
+			'TR' === $tag_name ||
+			'TRACK' === $tag_name ||
+			'TT' === $tag_name ||
+			'U' === $tag_name ||
+			'UL' === $tag_name ||
+			'VAR' === $tag_name ||
+			'VIDEO' === $tag_name ||
+			'WBR' === $tag_name ||
+			'XMP' === $tag_name // Deprecated, use PRE instead.
+		);
+	}
+
+	/**
 	 * Returns whether an element of a given name is in the HTML special category.
 	 *
 	 * @since 6.4.0
