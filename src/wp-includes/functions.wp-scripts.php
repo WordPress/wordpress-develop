@@ -224,13 +224,12 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
  * @return bool True if the script was successfully localized, false otherwise.
  */
 function wp_localize_script( $handle, $object_name, $l10n ) {
-	global $wp_scripts;
+	$wp_scripts = wp_scripts();
 
 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
 		_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 		return false;
 	}
-
 	return $wp_scripts->localize( $handle, $object_name, $l10n );
 }
 
