@@ -11,7 +11,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_head_request() {
 		// This URL gives a direct 200 response.
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/canola.jpg';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
