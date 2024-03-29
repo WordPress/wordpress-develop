@@ -408,6 +408,22 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		/*
+		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
+		 * the rendered HTML of all its inner blocks, including any interactive block.
+		 */
+		static $root_interactive_block = null;
+		if (
+			$root_interactive_block === null &&
+			(
+				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
+				! empty( $this->block_type->supports['interactivity']['interactive'] )
+			)
+		) {
+			$root_interactive_block = $this;
+		}
+
 		$options = wp_parse_args(
 			$options,
 			array(
@@ -532,6 +548,12 @@ class WP_Block {
 		 * @param WP_Block $instance      The block instance.
 		 */
 		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
+
+		if ( $root_interactive_block === $this ) {
+			// The root interactive block has finished rendering. Time to process directives.
+			$block_content = wp_interactivity_process_directives( $block_content );
+			$root_interactive_block = null;
+		}
 
 		return $block_content;
 	}
