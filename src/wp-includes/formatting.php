@@ -2175,25 +2175,20 @@ function sanitize_user( $username, $strict = false ) {
  * dashes, and underscores are allowed.
  *
  * @since 3.0.0
- * @since 6.6.0 $key can be mixed instead of string.
  *
  * @param mixed $key Key to sanitize.
  * @return string Sanitized key.
  */
 function sanitize_key( $key ) {
-	$raw_key = $key;
 	if ( is_string( $key ) ) {
 		$sanitized_key = strtolower( $key );
 		$sanitized_key = (string) preg_replace( '/[^a-z\d_-]/', '', $sanitized_key );
 	} elseif ( is_int( $key ) || is_float( $key ) ) {
-		$key = (string) $key;
-		$sanitized_key = (string) preg_replace( '/[^a-z\d_-]/', '', $key );
+		$sanitized_key = (string) preg_replace( '/[^a-z\d_-]/', '', (string) $key );
 	} elseif ( true === $key ) {
 		// legacy
-		$key = '1';
 		$sanitized_key = '1';
 	} else {
-		$key = '';
 		$sanitized_key = '';
 	}
 
@@ -2201,13 +2196,11 @@ function sanitize_key( $key ) {
 	 * Filters a sanitized key string.
 	 *
 	 * @since 3.0.0
-	 * @since 6.6.0 $raw_key added.
 	 *
 	 * @param string $sanitized_key Sanitized key.
-	 * @param string $key           The key prior to sanitization.
-	 * @param mixed  $raw_key       The key prior to possibly changing it to string.
+	 * @param mixed  $key           The key prior to sanitization.
 	 */
-	return apply_filters( 'sanitize_key', $sanitized_key, $key, $raw_key );
+	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
 
 /**
@@ -2220,7 +2213,6 @@ function sanitize_key( $key ) {
  * If `$title` is empty and `$fallback_title` is set, the latter will be used.
  *
  * @since 1.0.0
- * @since 6.6.0 $title can be mixed instead of string.
  *
  * @param mixed  $title          The data to be sanitized.
  * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
@@ -2230,7 +2222,8 @@ function sanitize_key( $key ) {
  * @return string The sanitized string.
  */
 function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
-	$mixed_title = $title;
+	$raw_title = $title;
+
 	if ( is_string( $title ) ) {
 		// fallthrough - faster than reversing the conditions
 	} elseif ( is_int( $title ) || is_float( $title ) ) {
@@ -2238,8 +2231,6 @@ function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	} else {
 		$title = '';
 	}
-
-	$raw_title = $title;
 
 	if ( 'save' === $context ) {
 		$title = remove_accents( $title );
@@ -2249,14 +2240,12 @@ function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	 * Filters a sanitized title string.
 	 *
 	 * @since 1.2.0
-	 * @since 6.6.0 $mixed_title added.
 	 *
 	 * @param string $title       Sanitized title.
-	 * @param string $raw_title   The title prior to sanitization.
+	 * @param mixed $raw_title    The title prior to sanitization.
 	 * @param string $context     The context for which the title is being sanitized.
-	 * @param mixed  $mixed_title The title prior to possibly changing it to string.
 	 */
-	$title = apply_filters( 'sanitize_title', $title, $raw_title, $context, $mixed_title );
+	$title = apply_filters( 'sanitize_title', $title, $raw_title, $context );
 
 	if ( '' === $title || false === $title ) {
 		$title = $fallback_title;
@@ -5603,7 +5592,6 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
  * - Strips percent-encoded characters
  *
  * @since 2.9.0
- * @since 6.6.0 $str can be mixed instead of string.
  *
  * @see sanitize_textarea_field()
  * @see wp_check_invalid_utf8()
@@ -5613,28 +5601,17 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
  * @return string Sanitized string.
  */
 function sanitize_text_field( $str ) {
-	$raw_str = $str;
-	if ( is_string( $str ) ) {
-		// fallthrough - faster than reversing the conditions
-	} elseif ( is_int( $str ) || is_float( $str ) ) {
-		$str = (string) $str;
-	} else {
-		$str = '';
-	}
-
 	$filtered = _sanitize_text_fields( $str, false );
 
 	/**
 	 * Filters a sanitized text field string.
 	 *
 	 * @since 2.9.0
-	 * @since 6.6.0 $raw_str added.
 	 *
 	 * @param string $filtered The sanitized string.
-	 * @param string $str      The string prior to being sanitized.
-	 * @param mixed  $raw_str  The input prior to possibly changing it to string.
+	 * @param mixed  $str      The string prior to being sanitized.
 	 */
-	return apply_filters( 'sanitize_text_field', $filtered, $str, $raw_str );
+	return apply_filters( 'sanitize_text_field', $filtered, $str );
 }
 
 /**
@@ -5647,34 +5624,22 @@ function sanitize_text_field( $str ) {
  * @see sanitize_text_field()
  *
  * @since 4.7.0
- * @since 6.6.0 $str can be mixed instead of string.
  *
  * @param mixed $str Data to sanitize as textarea field.
  * @return string Sanitized string.
  */
 function sanitize_textarea_field( $str ) {
-	$raw_str = $str;
-	if ( is_string( $str ) ) {
-		// fallthrough - faster than reversing the conditions
-	} elseif ( is_int( $str ) || is_float( $str ) ) {
-		$str = (string) $str;
-	} else {
-		$str = '';
-	}
-
 	$filtered = _sanitize_text_fields( $str, true );
 
 	/**
 	 * Filters a sanitized textarea field string.
 	 *
 	 * @since 4.7.0
-	 * @since 6.6.0 $raw_str added.
 	 *
 	 * @param string $filtered The sanitized string.
-	 * @param string $str      The string prior to being sanitized.
-	 * @param mixed  $raw_str  The input prior to possibly changing it to string.
+	 * @param mixed  $str      The string prior to being sanitized.
 	 */
-	return apply_filters( 'sanitize_textarea_field', $filtered, $str, $raw_str );
+	return apply_filters( 'sanitize_textarea_field', $filtered, $str );
 }
 
 /**
@@ -5683,16 +5648,21 @@ function sanitize_textarea_field( $str ) {
  * @since 4.7.0
  * @access private
  *
- * @param string $str           String to sanitize.
+ * @param mixed $str            Data to sanitize.
  * @param bool   $keep_newlines Optional. Whether to keep newlines. Default: false.
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
-	if ( is_object( $str ) || is_array( $str ) ) {
-		return '';
+	if ( is_string( $str ) ) {
+		// fallthrough - faster than reversing the conditions
+	} elseif ( is_int( $str ) || is_float( $str ) ) {
+		$str = (string) $str;
+	} elseif ( true === $str ) {
+		// legacy
+		$sanitized_key = '1';
+	} else {
+		$str = '';
 	}
-
-	$str = (string) $str;
 
 	$filtered = wp_check_invalid_utf8( $str );
 
