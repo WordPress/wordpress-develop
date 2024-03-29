@@ -1418,7 +1418,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
-		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 
 		update_option( 'sticky_posts', array( $id1, $id2 ) );
 
@@ -1434,7 +1434,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$post  = $posts[0];
 		$this->assertSame( $id1, $post['id'] );
 
-		$this->assertPostsWhere( " AND {posts}.ID IN ($id1) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID IN ($id1) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 	}
 
 	public function test_get_items_sticky_no_sticky_posts() {
@@ -1449,7 +1449,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
-		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 	}
 
 	public function test_get_items_sticky_with_include_no_sticky_posts() {
@@ -1467,7 +1467,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
-		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 	}
 
 	public function test_get_items_not_sticky() {
@@ -1489,7 +1489,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$post  = $posts[0];
 		$this->assertSame( $id1, $post['id'] );
 
-		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id2) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 	}
 
 	public function test_get_items_not_sticky_with_exclude() {
@@ -1515,7 +1515,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id2, $ids );
 		$this->assertNotContains( $id3, $ids );
 
-		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 	}
 
 	public function test_get_items_not_sticky_with_exclude_no_sticky_posts() {
@@ -1541,7 +1541,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( $id2, $ids );
 		$this->assertNotContains( $id3, $ids );
 
-		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND (({posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))))" );
 	}
 
 	/**
