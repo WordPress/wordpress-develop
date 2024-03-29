@@ -415,7 +415,7 @@ class WP_Block {
 		 */
 		static $root_interactive_block = null;
 		if (
-			$root_interactive_block === null &&
+			null === $root_interactive_block &&
 			(
 				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
 				! empty( $this->block_type->supports['interactivity']['interactive'] )
