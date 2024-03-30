@@ -41,7 +41,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_head
 	 */
 	public function test_head_404() {
-		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/dsc20040724_152504.jpg';
+		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/dsc20040724_1525042.jpg';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
