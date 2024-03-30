@@ -71,6 +71,7 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://localhost', esc_url( 'localhost' ) );
 		$this->assertSame( 'http://example.com/foo', esc_url( 'example.com/foo' ) );
 		$this->assertSame( 'http://баба.org/баба', esc_url( 'баба.org/баба' ) );
+		$this->assertSame( 'http://example.com/?query=date&lt;123456', esc_url( 'http://example.com/?query=date<123456' ) );
 	}
 
 	/**
@@ -259,7 +260,7 @@ EOT;
 	 * @covers ::sanitize_url
 	 */
 	public function test_invalid_charaters() {
-		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );
+		$this->assertEmpty( sanitize_url( PHP_EOL . PHP_EOL ) );
 	}
 
 	/**
