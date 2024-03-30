@@ -11,7 +11,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_head_request() {
 		// This URL gives a direct 200 response.
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/canola.jpg';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
@@ -21,7 +21,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $response );
 
 		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
+		$this->assertSame( '98333', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -41,7 +41,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_head
 	 */
 	public function test_head_404() {
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/awefasdfawef.jpg';
+		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/dsc20040724_152504.jpg';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
