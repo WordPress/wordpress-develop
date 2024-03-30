@@ -4603,7 +4603,8 @@ function esc_url_raw( $url, $protocols = null ) {
 }
 
 /**
- * Sanitizes a URL for database or redirect usage.
+ * Sanitizes a URL for database use.
+ * This will not produce valid URLs for HTTP redirects.
  *
  * @since 2.3.1
  * @since 2.8.0 Deprecated in favor of esc_url_raw().

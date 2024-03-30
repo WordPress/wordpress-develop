@@ -1443,7 +1443,8 @@ endif;
 
 if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 	/**
-	 * Sanitizes a URL for use in a redirect.
+	 * Sanitizes a URL for use as a URI
+	 * e.g. for HTTP redirects or in HTML href attributes with double quotes.
 	 *
 	 * @since 2.3.0
 	 *
@@ -1455,7 +1456,6 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 		$location = str_replace( ' ', '%20', $location );
 
 		$regex    = '/
-		(
 			(?: [\xC2-\xDF][\x80-\xBF]        # double-byte sequences   110xxxxx 10xxxxxx
 			|   \xE0[\xA0-\xBF][\x80-\xBF]    # triple-byte sequences   1110xxxx 10xxxxxx * 2
 			|   [\xE1-\xEC][\x80-\xBF]{2}
@@ -1465,9 +1465,9 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 			|   [\xF1-\xF3][\x80-\xBF]{3}
 			|   \xF4[\x80-\x8F][\x80-\xBF]{2}
 		){1,40}                              # ...one or more times
-		)/x';
+		/x';
 		$location = preg_replace_callback( $regex, '_wp_sanitize_utf8_in_redirect', $location );
-		$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!*\[\]()@]|i', '', $location );
+		$location = preg_replace_callback( '|[^a-z0-9-~+_.?#=!&;,/:%@$*\'[\]()]|i', '_wp_sanitize_utf8_in_redirect', $location );
 		$location = wp_kses_no_null( $location );
 
 		// Remove %0D and %0A from location.
@@ -1488,7 +1488,7 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 	 * @return string URL-encoded version of the first RegEx match.
 	 */
 	function _wp_sanitize_utf8_in_redirect( $matches ) {
-		return urlencode( $matches[0] );
+		return rawurlencode( $matches[0] );
 	}
 endif;
 
