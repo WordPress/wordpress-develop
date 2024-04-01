@@ -103,40 +103,6 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 59600
-	 *
-	 * @covers WP_Theme::delete_pattern_cache
-	 */
-	public function test_delete_pattern_cache_non_obj_cache() {
-		// Ensure object cache is disabled.
-		wp_using_ext_object_cache( false );
-
-		$theme = wp_get_theme( 'block-theme-patterns' );
-
-		$this->assertTrue( $theme->exists(), 'The test theme could not be found.' );
-
-		$theme->get_block_patterns();
-
-		$this->assertSameSets(
-			array(
-				'cta.php' => array(
-					'title'       => 'Centered Call To Action',
-					'slug'        => 'block-theme-patterns/cta',
-					'description' => '',
-					'categories'  => array( 'call-to-action' ),
-				),
-			),
-			$this->get_pattern_cache( $theme ),
-			'The cache for block theme patterns should match the expected.'
-		);
-		$theme->delete_pattern_cache();
-		$this->assertFalse(
-			$this->get_pattern_cache( $theme ),
-			'The cache for block theme patterns should have been cleared.'
-		);
-	}
-
-	/**
 	 * @ticket 59490
 	 * @group ms-excluded
 	 */
@@ -246,6 +212,106 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$this->assertFalse(
 			$this->get_pattern_cache( $theme ),
 			'The cache for block theme patterns should have been cleared due to theme development mode.'
+		);
+	}
+
+	/**
+	 * @ticket 59600
+	 *
+	 * @covers WP_Theme::delete_pattern_cache
+	 */
+	public function test_delete_pattern_cache_non_obj_cache() {
+		// Ensure object cache is disabled.
+		wp_using_ext_object_cache( false );
+
+		$theme = wp_get_theme( 'block-theme-patterns' );
+
+		$this->assertTrue( $theme->exists(), 'The test theme could not be found.' );
+
+		$theme->get_block_patterns();
+
+		$this->assertSameSets(
+			array(
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
+				),
+			),
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns should match the expected.'
+		);
+		$theme->delete_pattern_cache();
+		$this->assertFalse(
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns should have been cleared.'
+		);
+	}
+
+	/**
+	 * Check if the pattern cache is stored in transient if object cache is not present.
+	 *
+	 * @ticket 59600
+	 */
+	public function test_pattern_cache_in_transient() {
+		// Ensure object cache is disabled.
+		wp_using_ext_object_cache( false );
+
+		$theme = wp_get_theme( 'block-theme-patterns' );
+		$theme->get_block_patterns();
+
+		$cache_key = 'theme_files_wp_theme_patterns_' . get_stylesheet();
+		$this->assertSameSets(
+			array(
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
+				),
+			),
+			get_transient( $cache_key ),
+			'The transient value should match the expected.'
+		);
+
+		$this->assertNotEmpty(
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns is empty.'
+		);
+	}
+
+	/**
+	 * Check if the pattern cache is stored in transient if object cache is not present.
+	 *
+	 * @ticket 59600
+	 */
+	public function test_wp_cache_theme_files_persistently_for_pattern() {
+		// Ensure object cache is disabled.
+		wp_using_ext_object_cache( false );
+
+		$theme = wp_get_theme( 'block-theme-patterns' );
+		$theme->get_block_patterns();
+
+		$transient_key   = 'theme_files_wp_theme_patterns_' . $theme->get_stylesheet();
+		$transient_value = get_site_transient( $transient_key );
+
+		$this->assertSameSets(
+			array(
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
+				),
+			),
+			$transient_value['patterns'],
+			'The transient value should match the expected.'
+		);
+
+		$this->assertNotEmpty(
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns is empty.'
 		);
 	}
 }
