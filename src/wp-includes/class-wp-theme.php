@@ -2012,7 +2012,7 @@ final class WP_Theme implements ArrayAccess {
 		 */
 		$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', self::$cache_expiration, 'theme_block_patterns' );
 
-		if ( ! false === $cache_expiration ) {
+		if ( false !== $cache_expiration ) {
 			if ( wp_using_ext_object_cache() ) {
 				wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files', $cache_expiration );
 			} else {
