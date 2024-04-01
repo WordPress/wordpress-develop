@@ -1358,13 +1358,16 @@ function wp_generate_block_templates_export_file() {
  */
 function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '' ) {
 	if ( 'index' === $slug ) {
-		return array( 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'index_template_hierarchy', array( 'index' ) );
 	}
 	if ( $is_custom ) {
-		return array( 'page', 'singular', 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'page_template_hierarchy', array( 'page', 'singular', 'index' ) );
 	}
 	if ( 'front-page' === $slug ) {
-		return array( 'front-page', 'home', 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'frontpage_template_hierarchy', array( 'front-page', 'home', 'index' ) );
 	}
 
 	$matches = array();
