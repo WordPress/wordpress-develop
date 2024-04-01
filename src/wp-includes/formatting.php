@@ -2176,15 +2176,20 @@ function sanitize_user( $username, $strict = false ) {
  *
  * @since 3.0.0
  *
- * @param string $key String key.
+ * @param mixed $key Key to sanitize.
  * @return string Sanitized key.
  */
 function sanitize_key( $key ) {
-	$sanitized_key = '';
-
-	if ( is_scalar( $key ) ) {
+	if ( is_string( $key ) ) {
 		$sanitized_key = strtolower( $key );
-		$sanitized_key = preg_replace( '/[^a-z0-9_\-]/', '', $sanitized_key );
+		$sanitized_key = (string) preg_replace( '/[^a-z\d_-]/', '', $sanitized_key );
+	} elseif ( is_int( $key ) || is_float( $key ) ) {
+		$sanitized_key = (string) preg_replace( '/[^a-z\d_-]/', '', (string) $key );
+	} elseif ( true === $key ) {
+		// legacy
+		$sanitized_key = '1';
+	} else {
+		$sanitized_key = '';
 	}
 
 	/**
@@ -2193,7 +2198,7 @@ function sanitize_key( $key ) {
 	 * @since 3.0.0
 	 *
 	 * @param string $sanitized_key Sanitized key.
-	 * @param string $key           The key prior to sanitization.
+	 * @param mixed  $key           The key prior to sanitization.
 	 */
 	return apply_filters( 'sanitize_key', $sanitized_key, $key );
 }
@@ -2209,7 +2214,7 @@ function sanitize_key( $key ) {
  *
  * @since 1.0.0
  *
- * @param string $title          The string to be sanitized.
+ * @param mixed  $title          The data to be sanitized.
  * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
  * @param string $context        Optional. The operation for which the string is sanitized.
  *                               When set to 'save', the string runs through remove_accents().
@@ -2218,6 +2223,14 @@ function sanitize_key( $key ) {
  */
 function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	$raw_title = $title;
+
+	if ( is_string( $title ) ) {
+		// fallthrough - faster than reversing the conditions
+	} elseif ( is_int( $title ) || is_float( $title ) ) {
+		$title = (string) $title;
+	} else {
+		$title = '';
+	}
 
 	if ( 'save' === $context ) {
 		$title = remove_accents( $title );
@@ -2228,9 +2241,9 @@ function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	 *
 	 * @since 1.2.0
 	 *
-	 * @param string $title     Sanitized title.
-	 * @param string $raw_title The title prior to sanitization.
-	 * @param string $context   The context for which the title is being sanitized.
+	 * @param string $title       Sanitized title.
+	 * @param mixed $raw_title    The title prior to sanitization.
+	 * @param string $context     The context for which the title is being sanitized.
 	 */
 	$title = apply_filters( 'sanitize_title', $title, $raw_title, $context );
 
@@ -3762,11 +3775,16 @@ function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
  * Strips out all characters that are not allowable in an email.
  *
  * @since 1.5.0
+ * @since 6.6.0 $email can be mixed instead of string.
  *
- * @param string $email Email address to filter.
+ * @param mixed $email Email address to filter.
  * @return string Filtered email address.
  */
 function sanitize_email( $email ) {
+	if ( ! is_string( $email ) ) {
+		return '';
+	}
+
 	// Test for the minimum length the email can be.
 	if ( strlen( $email ) < 6 ) {
 		/**
@@ -4608,15 +4626,20 @@ function esc_url_raw( $url, $protocols = null ) {
  * @since 2.3.1
  * @since 2.8.0 Deprecated in favor of esc_url_raw().
  * @since 5.9.0 Restored (un-deprecated).
+ * @since 6.6.0 $url can be mixed instead of string.
  *
  * @see esc_url()
  *
- * @param string   $url       The URL to be cleaned.
+ * @param mixed    $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
  *                            Defaults to return value of wp_allowed_protocols().
  * @return string The cleaned URL after esc_url() is run with the 'db' context.
  */
 function sanitize_url( $url, $protocols = null ) {
+	if ( ! is_string( $url ) ) {
+		return '';
+	}
+
 	return esc_url( $url, $protocols, 'db' );
 }
 
@@ -5574,7 +5597,7 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
  * @see wp_check_invalid_utf8()
  * @see wp_strip_all_tags()
  *
- * @param string $str String to sanitize.
+ * @param mixed $str Data to sanitize as text field.
  * @return string Sanitized string.
  */
 function sanitize_text_field( $str ) {
@@ -5586,7 +5609,7 @@ function sanitize_text_field( $str ) {
 	 * @since 2.9.0
 	 *
 	 * @param string $filtered The sanitized string.
-	 * @param string $str      The string prior to being sanitized.
+	 * @param mixed  $str      The string prior to being sanitized.
 	 */
 	return apply_filters( 'sanitize_text_field', $filtered, $str );
 }
@@ -5602,7 +5625,7 @@ function sanitize_text_field( $str ) {
  *
  * @since 4.7.0
  *
- * @param string $str String to sanitize.
+ * @param mixed $str Data to sanitize as textarea field.
  * @return string Sanitized string.
  */
 function sanitize_textarea_field( $str ) {
@@ -5614,7 +5637,7 @@ function sanitize_textarea_field( $str ) {
 	 * @since 4.7.0
 	 *
 	 * @param string $filtered The sanitized string.
-	 * @param string $str      The string prior to being sanitized.
+	 * @param mixed  $str      The string prior to being sanitized.
 	 */
 	return apply_filters( 'sanitize_textarea_field', $filtered, $str );
 }
@@ -5625,16 +5648,21 @@ function sanitize_textarea_field( $str ) {
  * @since 4.7.0
  * @access private
  *
- * @param string $str           String to sanitize.
+ * @param mixed $str            Data to sanitize.
  * @param bool   $keep_newlines Optional. Whether to keep newlines. Default: false.
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
-	if ( is_object( $str ) || is_array( $str ) ) {
-		return '';
+	if ( is_string( $str ) ) {
+		// fallthrough - faster than reversing the conditions
+	} elseif ( is_int( $str ) || is_float( $str ) ) {
+		$str = (string) $str;
+	} elseif ( true === $str ) {
+		// legacy
+		$sanitized_key = '1';
+	} else {
+		$str = '';
 	}
-
-	$str = (string) $str;
 
 	$filtered = wp_check_invalid_utf8( $str );
 
@@ -5717,11 +5745,16 @@ function capital_P_dangit( $text ) {
  * Sanitizes a mime type
  *
  * @since 3.1.3
+ * @since 6.6.0 $mime_type can be mixed instead of string.
  *
- * @param string $mime_type Mime type.
+ * @param mixed $mime_type Mime type.
  * @return string Sanitized mime type.
  */
 function sanitize_mime_type( $mime_type ) {
+	if ( ! is_string( $mime_type ) ) {
+		return '';
+	}
+
 	$sani_mime_type = preg_replace( '/[^-+*.a-zA-Z0-9\/]/', '', $mime_type );
 	/**
 	 * Filters a mime type following sanitization.
