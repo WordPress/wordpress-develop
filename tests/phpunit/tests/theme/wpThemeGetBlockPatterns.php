@@ -254,39 +254,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 *
 	 * @ticket 59600
 	 */
-	public function test_pattern_cache_in_transient() {
-		// Ensure object cache is disabled.
-		wp_using_ext_object_cache( false );
-
-		$theme = wp_get_theme( 'block-theme-patterns' );
-		$theme->get_block_patterns();
-
-		$cache_key = 'theme_files_wp_theme_patterns_' . get_stylesheet();
-		$this->assertSameSets(
-			array(
-				'cta.php' => array(
-					'title'       => 'Centered Call To Action',
-					'slug'        => 'block-theme-patterns/cta',
-					'description' => '',
-					'categories'  => array( 'call-to-action' ),
-				),
-			),
-			get_transient( $cache_key ),
-			'The transient value should match the expected.'
-		);
-
-		$this->assertNotEmpty(
-			$this->get_pattern_cache( $theme ),
-			'The cache for block theme patterns is empty.'
-		);
-	}
-
-	/**
-	 * Check if the pattern cache is stored in transient if object cache is not present.
-	 *
-	 * @ticket 59600
-	 */
-	public function test_wp_cache_theme_files_persistently_for_pattern() {
+	public function test_pattern_transient_cache_for_non_cache_site() {
 		// Ensure object cache is disabled.
 		wp_using_ext_object_cache( false );
 
@@ -312,6 +280,21 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$this->assertNotEmpty(
 			$this->get_pattern_cache( $theme ),
 			'The cache for block theme patterns is empty.'
+		);
+	}
+
+	/**
+	 * @ticket 59600
+	 */
+	public function test_wp_cache_theme_files_persistently_disable_cache() {
+		add_filter( 'wp_cache_theme_files_persistently', '__return_false' );
+		$theme = wp_get_theme( 'block-theme-patterns' );
+		$theme->delete_pattern_cache();
+		$theme->get_block_patterns();
+
+		$this->assertFalse(
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns should have been empty.'
 		);
 	}
 }
