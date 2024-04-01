@@ -12,6 +12,24 @@
  * @covers WP_Theme::get_block_patterns
  */
 class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
+	/**
+	 * The initial cache object.
+	 *
+	 * @var object
+	 */
+	private $initial_cache_object;
+
+	function set_up() {
+		parent::set_up();
+
+		$this->initial_cache_object = wp_using_ext_object_cache();
+	}
+
+	function tear_down() {
+		parent::tear_down();
+
+		wp_using_ext_object_cache( $this->initial_cache_object );
+	}
 
 	public static function wpSetUpBeforeClass() {
 		// Ensure development mode is reset before running these tests.
@@ -59,6 +77,40 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 * @covers WP_Theme::delete_pattern_cache
 	 */
 	public function test_delete_pattern_cache() {
+		$theme = wp_get_theme( 'block-theme-patterns' );
+
+		$this->assertTrue( $theme->exists(), 'The test theme could not be found.' );
+
+		$theme->get_block_patterns();
+
+		$this->assertSameSets(
+			array(
+				'cta.php' => array(
+					'title'       => 'Centered Call To Action',
+					'slug'        => 'block-theme-patterns/cta',
+					'description' => '',
+					'categories'  => array( 'call-to-action' ),
+				),
+			),
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns should match the expected.'
+		);
+		$theme->delete_pattern_cache();
+		$this->assertFalse(
+			$this->get_pattern_cache( $theme ),
+			'The cache for block theme patterns should have been cleared.'
+		);
+	}
+
+	/**
+	 * @ticket 59600
+	 *
+	 * @covers WP_Theme::delete_pattern_cache
+	 */
+	public function test_delete_pattern_cache_non_obj_cache() {
+		// Ensure object cache is disabled.
+		wp_using_ext_object_cache( false );
+
 		$theme = wp_get_theme( 'block-theme-patterns' );
 
 		$this->assertTrue( $theme->exists(), 'The test theme could not be found.' );
