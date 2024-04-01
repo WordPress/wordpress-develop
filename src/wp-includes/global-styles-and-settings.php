@@ -492,7 +492,6 @@ function wp_get_theme_data_template_parts() {
 	$metadata = false;
 	if ( $can_use_cached ) {
 		$metadata = wp_cache_get( $cache_key, $cache_group );
-
 		if ( false !== $metadata ) {
 			return $metadata;
 		}
