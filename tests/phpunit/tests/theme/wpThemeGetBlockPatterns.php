@@ -19,13 +19,13 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 */
 	private $initial_cache_object;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 
 		$this->initial_cache_object = wp_using_ext_object_cache();
 	}
 
-	function tear_down() {
+	public function tear_down() {
 		parent::tear_down();
 
 		wp_using_ext_object_cache( $this->initial_cache_object );
