@@ -429,15 +429,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 9568
 	 */
 	public function test_log_in_using_email() {
-		$user_args = array(
-			'user_login' => 'johndoe',
-			'user_email' => 'mail@example.com',
-			'user_pass'  => 'password',
-		);
-		self::factory()->user->create( $user_args );
-
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_EMAIL, self::USER_PASS ) );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
 	}
 
 	/**
