@@ -2083,6 +2083,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 6.3.0 Added the `item_trashed` label.
  * @since 6.4.0 Changed default values for the `add_new` label to include the type of content.
  *              This matches `add_new_item` and provides more context for better accessibility.
+ * @since 6.6.0 Added the `template_name` label.
  *
  * @access private
  *
@@ -2165,6 +2166,11 @@ function _get_custom_object_labels( $data_object, $nohier_vs_hier_defaults ) {
 
 	if ( ! isset( $data_object->labels['archives'] ) && isset( $data_object->labels['all_items'] ) ) {
 		$data_object->labels['archives'] = $data_object->labels['all_items'];
+	}
+
+	if ( ! isset( $data_object->labels['template_name'] ) && isset( $data_object->labels['singular_name'] ) ) {
+		/* translators: %s: Post type name. */
+		$data_object->labels['template_name'] = sprintf( __( 'Single item: %s' ), $data_object->labels['singular_name'] );
 	}
 
 	$defaults = array();

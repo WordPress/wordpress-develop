@@ -645,6 +645,7 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  * @since 5.9.0 Added the `name_field_description`, `slug_field_description`,
  *              `parent_field_description`, and `desc_field_description` labels.
+ * @since 6.6.0 Added the `template_name` label.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
