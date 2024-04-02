@@ -79,10 +79,9 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		$changes->post_status  = 'publish';
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 		$changes->tax_input    = array(
-			'wp_theme' => get_stylesheet(),
+			'wp_theme'              => get_stylesheet(),
+			'wp_template_part_area' => WP_TEMPLATE_PART_AREA_HEADER,
 		);
-
-		$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_HEADER;
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
@@ -196,10 +195,9 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 			'origin' => 'theme',
 		);
 		$changes->tax_input    = array(
-			'wp_theme' => get_stylesheet(),
+			'wp_theme'              => get_stylesheet(),
+			'wp_template_part_area' => WP_TEMPLATE_PART_AREA_HEADER,
 		);
-
-		$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_HEADER;
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
@@ -314,7 +312,9 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 		$changes->ID           = self::$template_part_post->ID;
 		$changes->post_content = '<!-- wp:tests/anchor-block -->Hello<!-- /wp:tests/anchor-block -->';
 
-		$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_FOOTER;
+		$changes->tax_input = array(
+			'wp_template_part_area' => WP_TEMPLATE_PART_AREA_FOOTER,
+		);
 
 		inject_ignored_hooked_blocks_metadata_attributes( $changes );
 
