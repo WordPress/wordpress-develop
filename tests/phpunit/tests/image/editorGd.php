@@ -51,6 +51,18 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/gif' ) );
 	}
 
+	public function test_supports_mime_type_webp() {
+		$gd_image_editor = new WP_Image_Editor_GD( null );
+		$expected        = (bool) ( imagetypes() & IMG_WEBP );
+		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/webp' ) );
+	}
+
+	public function test_supports_mime_type_avif() {
+		$gd_image_editor = new WP_Image_Editor_GD( null );
+		$expected        = (bool) ( imagetypes() & IMG_AVIF );
+		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/avif' ) );
+	}
+
 	/**
 	 * Tests resizing an image, not using crop.
 	 *
