@@ -531,7 +531,13 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $addl_path;
 			}
 
-			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
+			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'];
+
+			if ( ! empty( $redirect['port'] ) ) {
+				$redirect_url .= ':' . $redirect['port'];
+			}
+
+			$redirect_url .= $redirect['path'];
 		}
 
 		if ( 'wp-register.php' === basename( $redirect['path'] ) ) {
