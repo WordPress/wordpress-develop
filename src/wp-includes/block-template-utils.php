@@ -1500,7 +1500,11 @@ function inject_ignored_hooked_blocks_metadata_attributes_for_response( $respons
 	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
 
 	$blocks = parse_blocks( $template->content );
-	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
-	return $template;
+	if( isset( $response->data['content']['raw'] ) ) {
+		$response->data['content']['raw'] = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+	
+	}
+
+	return $response;
 }
