@@ -725,7 +725,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
 }
 
 /**
- * Build a block template object from a post object.
+ * Builds a block template object from a post object.
  *
  * This is a helper function that creates a block template object from a given post object.
  * It is self-sufficient in that it only uses information passed as arguments; it does not
