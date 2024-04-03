@@ -518,7 +518,7 @@ function wp_registration_url() {
  */
 function wp_login_form( $args = array() ) {
 	$defaults = array(
-		'echo'           => true,
+		'echo'              => true,
 		// Default 'redirect' value takes the user back to the request URI.
 		'redirect'          => ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
 		'form_id'           => 'loginform',
