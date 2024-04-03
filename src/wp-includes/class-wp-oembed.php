@@ -4,7 +4,7 @@
  *
  * Used internally by the WP_Embed class, but is designed to be generic.
  *
- * @link https://wordpress.org/documentation/article/embeds/
+ * @link https://developer.wordpress.org/advanced-administration/wordpress/oembed/
  * @link http://oembed.com/
  *
  * @package WordPress
@@ -620,9 +620,10 @@ class WP_oEmbed {
 		}
 
 		if ( PHP_VERSION_ID < 80000 ) {
-			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
-			// is disabled by default, so this function is no longer needed to protect against XXE attacks.
-			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+			/*
+			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
+			 * is disabled by default, so this function is no longer needed to protect against XXE attacks.
+			 */
 			$loader = libxml_disable_entity_loader( true );
 		}
 

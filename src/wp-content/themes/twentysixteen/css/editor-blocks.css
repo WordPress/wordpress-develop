@@ -325,6 +325,10 @@ Description: Used to style blocks in the editor.
 	line-height: 1.75;
 }
 
+.wp-block-quote.has-text-color .wp-block-quote__citation {
+	color: inherit;
+}
+
 .wp-block-quote__citation:before {
 	content: "\2014\00a0";
 }
@@ -560,6 +564,11 @@ Description: Used to style blocks in the editor.
 	text-transform: uppercase;
 }
 
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
+}
+
 .wp-block-button__link {
 	background: #1a1a1a;
 	color: #fff;
@@ -623,6 +632,13 @@ Description: Used to style blocks in the editor.
 
 .edit-post-visual-editor .wp-block-latest-posts.is-grid li {
 	margin-bottom: 16px;
+}
+
+/* Avatar & Post Author */
+
+.editor-styles-wrapper .avatar,
+.wp-block-post-author__avatar img {
+	border-radius: 50%;
 }
 
 /*--------------------------------------------------------------

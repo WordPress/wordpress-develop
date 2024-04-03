@@ -92,7 +92,7 @@ function ms_site_check() {
 
 	$blog = get_site();
 
-	if ( '1' == $blog->deleted ) {
+	if ( '1' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-deleted.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-deleted.php';
 		} else {
@@ -100,7 +100,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '2' == $blog->deleted ) {
+	if ( '2' === $blog->deleted ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-inactive.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-inactive.php';
 		} else {
@@ -115,7 +115,7 @@ function ms_site_check() {
 		}
 	}
 
-	if ( '1' == $blog->archived || '1' == $blog->spam ) {
+	if ( '1' === $blog->archived || '1' === $blog->spam ) {
 		if ( file_exists( WP_CONTENT_DIR . '/blog-suspended.php' ) ) {
 			return WP_CONTENT_DIR . '/blog-suspended.php';
 		} else {
@@ -226,8 +226,10 @@ function get_site_by_path( $domain, $path, $segments = null ) {
 	 * then cache whether we can just always ignore paths.
 	 */
 
-	// Either www or non-www is supported, not both. If a www domain is requested,
-	// query for both to provide the proper redirect.
+	/*
+	 * Either www or non-www is supported, not both. If a www domain is requested,
+	 * query for both to provide the proper redirect.
+	 */
 	$domains = array( $domain );
 	if ( str_starts_with( $domain, 'www.' ) ) {
 		$domains[] = substr( $domain, 4 );
@@ -310,8 +312,10 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 		if ( 0 === strcasecmp( $current_site->domain, $domain ) && 0 === strcasecmp( $current_site->path, $path ) ) {
 			$current_blog = get_site_by_path( $domain, $path );
 		} elseif ( '/' !== $current_site->path && 0 === strcasecmp( $current_site->domain, $domain ) && 0 === stripos( $path, $current_site->path ) ) {
-			// If the current network has a path and also matches the domain and path of the request,
-			// we need to look for a site using the first path segment following the network's path.
+			/*
+			 * If the current network has a path and also matches the domain and path of the request,
+			 * we need to look for a site using the first path segment following the network's path.
+			 */
 			$current_blog = get_site_by_path( $domain, $path, 1 + count( explode( '/', trim( $current_site->path, '/' ) ) ) );
 		} else {
 			// Otherwise, use the first path segment (as usual).
@@ -373,7 +377,7 @@ function ms_load_current_site_and_network( $domain, $path, $subdomain = false ) 
 	}
 
 	// The network declared by the site trumps any constants.
-	if ( $current_blog && $current_blog->site_id != $current_site->id ) {
+	if ( $current_blog && (int) $current_blog->site_id !== $current_site->id ) {
 		$current_site = WP_Network::get_instance( $current_blog->site_id );
 	}
 
@@ -493,7 +497,7 @@ function ms_not_installed( $domain, $path ) {
 	$msg .= sprintf(
 		/* translators: %s: Documentation URL. */
 		__( 'Read the <a href="%s" target="_blank">Debugging a WordPress Network</a> article. Some of the suggestions there may help you figure out what went wrong.' ),
-		__( 'https://wordpress.org/documentation/article/debugging-a-wordpress-network/' )
+		__( 'https://developer.wordpress.org/advanced-administration/debug/debug-network/' )
 	);
 	$msg .= ' ' . __( 'If you are still stuck with this message, then check that your database contains the following tables:' ) . '</p><ul>';
 	foreach ( $wpdb->tables( 'global' ) as $t => $table ) {

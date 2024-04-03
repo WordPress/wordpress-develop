@@ -2,7 +2,8 @@
 /**
  * @group http
  * @group external-http
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_remote_fopen
  */
 class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
@@ -26,7 +27,7 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 */
 	public function test_wp_remote_fopen() {
 		// This URL gives a direct 200 response.
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2007/09/2007-06-30-dsc_4700-1.jpg';
 		$response = wp_remote_fopen( $url );
 
 		$this->assertIsString( $response );

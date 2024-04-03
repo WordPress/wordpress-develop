@@ -4,7 +4,8 @@
  *
  * @since 5.2.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::is_new_day
  */
 class Tests_Functions_IsNewDate extends WP_UnitTestCase {
@@ -26,6 +27,11 @@ class Tests_Functions_IsNewDate extends WP_UnitTestCase {
 		$this->assertSame( $expected, is_new_day() );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
 	public function data_is_new_date() {
 		return array(
 			array( '21.05.19', '21.05.19', 0 ),
@@ -33,5 +39,4 @@ class Tests_Functions_IsNewDate extends WP_UnitTestCase {
 			array( '21.05.19', false, 1 ),
 		);
 	}
-
 }

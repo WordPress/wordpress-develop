@@ -187,7 +187,7 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 
 		add_filter(
 			'get_edit_term_link',
-			function( $location, $term ) {
+			function ( $location, $term ) {
 				$this->assertIsInt( $term );
 			},
 			10,

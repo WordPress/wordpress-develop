@@ -342,7 +342,14 @@ function update_nag() {
 		);
 	}
 
-	echo "<div class='update-nag notice notice-warning inline'>$msg</div>";
+	wp_admin_notice(
+		$msg,
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'update-nag', 'inline' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 }
 
 /**
@@ -884,7 +891,14 @@ function maintenance_nag() {
 		$msg = __( 'An automated WordPress update has failed to complete! Please notify the site administrator.' );
 	}
 
-	echo "<div class='update-nag notice notice-warning inline'>$msg</div>";
+	wp_admin_notice(
+		$msg,
+		array(
+			'type'               => 'warning',
+			'additional_classes' => array( 'update-nag', 'inline' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 }
 
 /**
@@ -1049,19 +1063,12 @@ function wp_recovery_mode_nag() {
 	$url = add_query_arg( 'action', WP_Recovery_Mode::EXIT_ACTION, $url );
 	$url = wp_nonce_url( $url, WP_Recovery_Mode::EXIT_ACTION );
 
-	?>
-	<div class="notice notice-info">
-		<p>
-			<?php
-			printf(
-				/* translators: %s: Recovery Mode exit link. */
-				__( 'You are in recovery mode. This means there may be an error with a theme or plugin. To exit recovery mode, log out or use the Exit button. <a href="%s">Exit Recovery Mode</a>' ),
-				esc_url( $url )
-			);
-			?>
-		</p>
-	</div>
-	<?php
+	$message = sprintf(
+		/* translators: %s: Recovery Mode exit link. */
+		__( 'You are in recovery mode. This means there may be an error with a theme or plugin. To exit recovery mode, log out or use the Exit button. <a href="%s">Exit Recovery Mode</a>' ),
+		esc_url( $url )
+	);
+	wp_admin_notice( $message, array( 'type' => 'info' ) );
 }
 
 /**
@@ -1069,7 +1076,7 @@ function wp_recovery_mode_nag() {
  *
  * @since 5.5.0
  *
- * @param string $type The type of update being checked: 'theme' or 'plugin'.
+ * @param string $type The type of update being checked: Either 'theme' or 'plugin'.
  * @return bool True if auto-updates are enabled for `$type`, false otherwise.
  */
 function wp_is_auto_update_enabled_for_type( $type ) {
@@ -1109,7 +1116,7 @@ function wp_is_auto_update_enabled_for_type( $type ) {
  *
  * @since 5.6.0
  *
- * @param string    $type   The type of update being checked: 'theme' or 'plugin'.
+ * @param string    $type   The type of update being checked: Either 'theme' or 'plugin'.
  * @param bool|null $update Whether to update. The value of null is internally used
  *                          to detect whether nothing has hooked into this filter.
  * @param object    $item   The update offer.

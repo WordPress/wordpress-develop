@@ -255,8 +255,10 @@ class WP_Locale_Switcher {
 				continue;
 			}
 
-			// Unload current text domain but allow them to be reloaded
-			// after switching back or to another locale.
+			/*
+			 * Unload current text domain but allow them to be reloaded
+			 * after switching back or to another locale.
+			 */
 			unload_textdomain( $domain, true );
 			get_translations_for_domain( $domain );
 		}
@@ -280,6 +282,8 @@ class WP_Locale_Switcher {
 		$this->load_translations( $locale );
 
 		$wp_locale = new WP_Locale();
+
+		WP_Translation_Controller::get_instance()->set_locale( $locale );
 
 		/**
 		 * Fires when the locale is switched to or restored.

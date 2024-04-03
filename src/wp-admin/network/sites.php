@@ -43,7 +43,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/">Documentation on Site Management</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
 );
 
@@ -358,7 +358,14 @@ if ( isset( $_GET['updated'] ) ) {
 	}
 
 	if ( ! empty( $msg ) ) {
-		$msg = '<div id="message" class="notice notice-success is-dismissible"><p>' . $msg . '</p></div>';
+		$msg = wp_get_admin_notice(
+			$msg,
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+				'id'          => 'message',
+			)
+		);
 	}
 }
 
@@ -371,7 +378,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php _e( 'Sites' ); ?></h1>
 
 <?php if ( current_user_can( 'create_sites' ) ) : ?>
-	<a href="<?php echo esc_url( network_admin_url( 'site-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'site' ); ?></a>
+	<a href="<?php echo esc_url( network_admin_url( 'site-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add New Site' ); ?></a>
 <?php endif; ?>
 
 <?php

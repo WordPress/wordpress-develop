@@ -186,7 +186,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		wp_print_styles();
 		$this->assertSame( $expected, $wp_styles->print_html );
-
 	}
 
 	/**
@@ -279,7 +278,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		// No styles left to print.
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -304,7 +302,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( 'handle', $style );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -319,7 +316,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**

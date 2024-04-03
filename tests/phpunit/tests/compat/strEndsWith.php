@@ -26,15 +26,7 @@ class Tests_Compat_StrEndsWith extends WP_UnitTestCase {
 	 * @param string $needle   The substring to search for at the end of `$haystack`.
 	 */
 	public function test_str_ends_with( $expected, $haystack, $needle ) {
-		if ( ! function_exists( 'str_ends_with' ) ) {
-			$this->markTestSkipped( 'str_ends_with() is not available.' );
-		} else {
-			$this->assertSame(
-				$expected,
-				str_ends_with( $haystack, $needle )
-			);
-		}
-
+		$this->assertSame( $expected, str_ends_with( $haystack, $needle ) );
 	}
 
 	/**

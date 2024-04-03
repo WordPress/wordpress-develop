@@ -247,7 +247,16 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 					),
 				),
 			),
+			'fetchpriority'          => array(
+				'expected'  => "<link rel='preload' href='https://example.com/image.jpg' as='image' fetchpriority='high' />\n",
+				'resources' => array(
+					array(
+						'href'          => 'https://example.com/image.jpg',
+						'as'            => 'image',
+						'fetchpriority' => 'high',
+					),
+				),
+			),
 		);
 	}
-
 }

@@ -27,6 +27,14 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	public $callbacks = array();
 
 	/**
+	 * Priorities list.
+	 *
+	 * @since 6.4.0
+	 * @var array
+	 */
+	protected $priorities = array();
+
+	/**
 	 * The priority keys of actively running iterations of a hook.
 	 *
 	 * @since 4.7.0
@@ -78,13 +86,15 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 		$this->callbacks[ $priority ][ $idx ] = array(
 			'function'      => $callback,
-			'accepted_args' => $accepted_args,
+			'accepted_args' => (int) $accepted_args,
 		);
 
 		// If we're adding a new priority to the list, put them back in sorted order.
 		if ( ! $priority_existed && count( $this->callbacks ) > 1 ) {
 			ksort( $this->callbacks, SORT_NUMERIC );
 		}
+
+		$this->priorities = array_keys( $this->callbacks );
 
 		if ( $this->nesting_level > 0 ) {
 			$this->resort_active_iterations( $priority, $priority_existed );
@@ -102,7 +112,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                                    filter was added. Default false.
 	 */
 	private function resort_active_iterations( $new_priority = false, $priority_existed = false ) {
-		$new_priorities = array_keys( $this->callbacks );
+		$new_priorities = $this->priorities;
 
 		// If there are no remaining hooks, clear out all running iterations.
 		if ( ! $new_priorities ) {
@@ -187,6 +197,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			if ( ! $this->callbacks[ $priority ] ) {
 				unset( $this->callbacks[ $priority ] );
 
+				$this->priorities = array_keys( $this->callbacks );
+
 				if ( $this->nesting_level > 0 ) {
 					$this->resort_active_iterations();
 				}
@@ -262,9 +274,11 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		}
 
 		if ( false === $priority ) {
-			$this->callbacks = array();
+			$this->callbacks  = array();
+			$this->priorities = array();
 		} elseif ( isset( $this->callbacks[ $priority ] ) ) {
 			unset( $this->callbacks[ $priority ] );
+			$this->priorities = array_keys( $this->callbacks );
 		}
 
 		if ( $this->nesting_level > 0 ) {
@@ -289,7 +303,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 
 		$nesting_level = $this->nesting_level++;
 
-		$this->iterations[ $nesting_level ] = array_keys( $this->callbacks );
+		$this->iterations[ $nesting_level ] = $this->priorities;
 
 		$num_args = count( $args );
 
@@ -304,12 +318,12 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				}
 
 				// Avoid the array_slice() if possible.
-				if ( 0 == $the_['accepted_args'] ) {
+				if ( 0 === $the_['accepted_args'] ) {
 					$value = call_user_func( $the_['function'] );
 				} elseif ( $the_['accepted_args'] >= $num_args ) {
 					$value = call_user_func_array( $the_['function'], $args );
 				} else {
-					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, (int) $the_['accepted_args'] ) );
+					$value = call_user_func_array( $the_['function'], array_slice( $args, 0, $the_['accepted_args'] ) );
 				}
 			}
 		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
@@ -317,7 +331,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		unset( $this->iterations[ $nesting_level ] );
 		unset( $this->current_priority[ $nesting_level ] );
 
-		$this->nesting_level--;
+		--$this->nesting_level;
 
 		return $value;
 	}
@@ -348,7 +362,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 */
 	public function do_all_hook( &$args ) {
 		$nesting_level                      = $this->nesting_level++;
-		$this->iterations[ $nesting_level ] = array_keys( $this->callbacks );
+		$this->iterations[ $nesting_level ] = $this->priorities;
 
 		do {
 			$priority = current( $this->iterations[ $nesting_level ] );
@@ -359,7 +373,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		} while ( false !== next( $this->iterations[ $nesting_level ] ) );
 
 		unset( $this->iterations[ $nesting_level ] );
-		$this->nesting_level--;
+		--$this->nesting_level;
 	}
 
 	/**
@@ -481,6 +495,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		} else {
 			$this->callbacks[ $offset ] = $value;
 		}
+
+		$this->priorities = array_keys( $this->callbacks );
 	}
 
 	/**
@@ -495,6 +511,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
 		unset( $this->callbacks[ $offset ] );
+		$this->priorities = array_keys( $this->callbacks );
 	}
 
 	/**
@@ -564,5 +581,4 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	public function rewind() {
 		reset( $this->callbacks );
 	}
-
 }

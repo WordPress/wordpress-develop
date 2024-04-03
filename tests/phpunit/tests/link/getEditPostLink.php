@@ -131,4 +131,29 @@ class Tests_Link_GetEditPostLink extends WP_UnitTestCase {
 		$this->assertSame( $link_default_context, get_edit_post_link( $template_part_post ), 'Second argument `$context` has a default context of `"display"`.' );
 		$this->assertSame( $link_custom_context, get_edit_post_link( $template_part_post, 'something-else' ), 'Pass non-default value in second argument.' );
 	}
+
+	/**
+	 * Tests getting the edit post link for a wp_navigation post type.
+	 *
+	 * @ticket 58589
+	 * */
+	public function test_get_edit_post_link_for_wp_navigation_post_type() {
+		$navigation_post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_navigation',
+				'post_name'    => 'my_navigation',
+				'post_title'   => 'My Navigation',
+				'post_content' => '<!-- wp:navigation-link {"label":"WordPress","type":"custom","url":"http://www.wordpress.org/","kind":"custom"} /-->',
+				'post_excerpt' => 'Description of my Navigation',
+			)
+		);
+
+		$post_type_object = get_post_type_object( $navigation_post->post_type );
+
+		$link_default_context = admin_url( sprintf( $post_type_object->_edit_link, $navigation_post->ID ) );
+		$link_custom_context  = admin_url( sprintf( $post_type_object->_edit_link, $navigation_post->ID ) );
+
+		$this->assertSame( $link_default_context, get_edit_post_link( $navigation_post ), 'Second argument `$context` has a default context of `"display"`.' );
+		$this->assertSame( $link_custom_context, get_edit_post_link( $navigation_post, 'something-else' ), 'Pass non-default value in second argument.' );
+	}
 }

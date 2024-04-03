@@ -303,7 +303,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 */
 	public function do_example_shortcode() {
 		$this->post_during_shortcode = get_post();
-		$this->shortcode_render_count++;
+		++$this->shortcode_render_count;
 		return $this->example_shortcode_content;
 	}
 

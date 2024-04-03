@@ -26,6 +26,8 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 *
 	 * @ticket 56467
 	 * @ticket 58549
+	 * @ticket 58590
+	 * @ticket 60175
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -182,6 +184,37 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_aspect_ratio_style'              => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'aspectRatio' => '4/3',
+						'minHeight'   => 'unset',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'aspect-ratio:4/3;min-height:unset;',
+					'declarations' => array(
+						'aspect-ratio' => '4/3',
+						'min-height'   => 'unset',
+					),
+					'classnames'   => 'has-aspect-ratio',
+				),
+			),
+
+			'inline_valid_shadow_style'                    => array(
+				'block_styles'    => array(
+					'shadow' => 'inset 5em 1em gold',
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'box-shadow:inset 5em 1em gold;',
+					'declarations' => array(
+						'box-shadow' => 'inset 5em 1em gold',
+					),
+				),
+			),
+
 			'inline_valid_typography_style'                => array(
 				'block_styles'    => array(
 					'typography' => array(
@@ -238,19 +271,26 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 
 			'elements_with_css_var_value'                  => array(
 				'block_styles'    => array(
-					'color' => array(
+					'color'      => array(
 						'text' => 'var:preset|color|my-little-pony',
+					),
+					'typography' => array(
+						'fontSize'   => 'var:preset|font-size|cabbage-patch',
+						'fontFamily' => 'var:preset|font-family|transformers',
 					),
 				),
 				'options'         => array(
 					'selector' => '.wp-selector',
 				),
 				'expected_output' => array(
-					'css'          => '.wp-selector{color:var(--wp--preset--color--my-little-pony);}',
+					'css'          => '.wp-selector{color:var(--wp--preset--color--my-little-pony);font-size:var(--wp--preset--font-size--cabbage-patch);font-family:var(--wp--preset--font-family--transformers);}',
 					'declarations' => array(
-						'color' => 'var(--wp--preset--color--my-little-pony)',
+						'color'       => 'var(--wp--preset--color--my-little-pony)',
+						'font-size'   => 'var(--wp--preset--font-size--cabbage-patch)',
+						'font-family' => 'var(--wp--preset--font-family--transformers)',
+
 					),
-					'classnames'   => 'has-text-color has-my-little-pony-color',
+					'classnames'   => 'has-text-color has-my-little-pony-color has-cabbage-patch-font-size has-transformers-font-family',
 				),
 			),
 
@@ -495,6 +535,29 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					),
 				),
 			),
+
+			'inline_background_image_url_with_background_size' => array(
+				'block_styles'    => array(
+					'background' => array(
+						'backgroundImage'    => array(
+							'url' => 'https://example.com/image.jpg',
+						),
+						'backgroundPosition' => 'center',
+						'backgroundRepeat'   => 'no-repeat',
+						'backgroundSize'     => 'cover',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;",
+					'declarations' => array(
+						'background-image'    => "url('https://example.com/image.jpg')",
+						'background-position' => 'center',
+						'background-repeat'   => 'no-repeat',
+						'background-size'     => 'cover',
+					),
+				),
+			),
 		);
 	}
 
@@ -640,6 +703,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	/**
 	 * Tests that incoming styles are deduped and merged.
 	 *
+	 * @ticket 58811
 	 * @ticket 56467
 	 *
 	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
@@ -683,6 +747,6 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
-		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore,.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
+		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore{color:grey;height:90px;border-style:dotted;}.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
 	}
 }

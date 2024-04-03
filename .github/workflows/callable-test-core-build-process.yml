@@ -1,0 +1,92 @@
+##
+# A callable workflow that tests the WordPress Core build process.
+##
+name: Test the WordPress Build Process
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-latest'
+      directory:
+        description: 'Directory to run WordPress from. Valid values are `src` or `build`'
+        required: false
+        type: 'string'
+        default: 'src'
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Verifies that installing npm dependencies and building WordPress works as expected.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Builds WordPress to run from the desired location (src or build).
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Creates a ZIP of the built WordPress files (when building to the build directory).
+  # - Cleans up after building WordPress.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
+  build-process-tests:
+    name: Core running from ${{ inputs.directory }} / ${{ inputs.os == 'macos-latest' && 'MacOS' || inputs.os == 'windows-latest' && 'Windows' || 'Linux' }}
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          check-latest: true
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Run Emoji precommit task
+        run: npm run grunt precommit:emoji
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build WordPress to run from ${{ inputs.directory }}
+        run: npm run build${{ inputs.directory == 'src' && ':dev' || '' }}
+
+      - name: Ensure version-controlled files are not modified or deleted during building
+        run: git diff --exit-code
+
+      - name: Create ZIP of built files
+        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        run: zip -r wordpress.zip build/.
+
+      - name: Clean after building to run from ${{ inputs.directory }}
+        run: npm run grunt clean${{ inputs.directory == 'src' && ' -- --dev' || '' }}
+
+      - name: Ensure version-controlled files are not modified or deleted during cleaning
+        run: git diff --exit-code
+
+      - name: Upload ZIP as a GitHub Actions artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        with:
+          name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
+          path: wordpress.zip
+          if-no-files-found: error
