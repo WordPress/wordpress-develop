@@ -108,7 +108,6 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
-          docker compose -v
           docker compose run --rm mysql mysql --version
           docker compose run --rm php php --version
           docker compose run --rm php php -m

@@ -123,7 +123,6 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
-          docker compose -v
 
       - name: Start Docker environment
         run: |
