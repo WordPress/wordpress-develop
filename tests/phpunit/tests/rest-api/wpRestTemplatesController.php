@@ -965,7 +965,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			)
 		);
 
-		add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
+		add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
