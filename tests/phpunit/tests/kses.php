@@ -2140,7 +2140,7 @@ HTML;
 			// $allowedentitynames values testing.
 			'nbsp'               => array(
 				'input'    => array( '', 'nbsp' ),
-				'expected' => utf8_encode( chr( 160 ) ),
+				'expected' => "\u{00A0}",
 			),
 			'iexcl'              => array(
 				'input'    => array( '', 'iexcl' ),
