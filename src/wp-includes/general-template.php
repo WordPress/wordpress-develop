@@ -520,20 +520,24 @@ function wp_login_form( $args = array() ) {
 	$defaults = array(
 		'echo'           => true,
 		// Default 'redirect' value takes the user back to the request URI.
-		'redirect'       => ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
-		'form_id'        => 'loginform',
-		'label_username' => __( 'Username or Email Address' ),
-		'label_password' => __( 'Password' ),
-		'label_remember' => __( 'Remember Me' ),
-		'label_log_in'   => __( 'Log In' ),
-		'id_username'    => 'user_login',
-		'id_password'    => 'user_pass',
-		'id_remember'    => 'rememberme',
-		'id_submit'      => 'wp-submit',
-		'remember'       => true,
-		'value_username' => '',
+		'redirect'          => ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+		'form_id'           => 'loginform',
+		'label_username'    => __( 'Username or Email Address' ),
+		'label_password'    => __( 'Password' ),
+		'label_remember'    => __( 'Remember Me' ),
+		'label_log_in'      => __( 'Log In' ),
+		'id_username'       => 'user_login',
+		'id_password'       => 'user_pass',
+		'id_remember'       => 'rememberme',
+		'id_submit'         => 'wp-submit',
+		'remember'          => true,
+		'value_username'    => '',
 		// Set 'value_remember' to true to default the "Remember me" checkbox to checked.
-		'value_remember' => false,
+		'value_remember'    => false,
+		//set 'required_username' to true to add required attribute to username field
+		'required_username' => false,
+		//set 'required_password' to true to add required attribute to password field
+		'required_password' => false,
 	);
 
 	/**
@@ -594,19 +598,21 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-username">
 				<label for="%1$s">%2$s</label>
-				<input type="text" name="log" id="%1$s" autocomplete="username" class="input" value="%3$s" size="20" />
+				<input type="text" name="log" id="%1$s" autocomplete="username" class="input" value="%3$s" size="20"%4$s />
 			</p>',
 			esc_attr( $args['id_username'] ),
 			esc_html( $args['label_username'] ),
-			esc_attr( $args['value_username'] )
+			esc_attr( $args['value_username'] ),
+			( $args['required_username'] ? ' required="required"' : '' )
 		) .
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20"%3$s />
 			</p>',
 			esc_attr( $args['id_password'] ),
-			esc_html( $args['label_password'] )
+			esc_html( $args['label_password'] ),
+			( $args['required_password'] ? ' required="required"' : '' )
 		) .
 		$login_form_middle .
 		( $args['remember'] ?
