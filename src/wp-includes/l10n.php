@@ -729,7 +729,7 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	$l10n_unloaded = (array) $l10n_unloaded;
 
 	if ( ! is_string( $domain ) ) {
-		$domain = 'default';
+		return false;
 	}
 
 	/**
@@ -994,7 +994,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 	global $wp_textdomain_registry;
 
 	if ( ! is_string( $domain ) ) {
-		$domain = 'default';
+		return false;
 	}
 
 	/**
@@ -1046,7 +1046,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	global $wp_textdomain_registry;
 
 	if ( ! is_string( $domain ) ) {
-		$domain = 'default';
+		return false;
 	}
 
 	/** This filter is documented in wp-includes/l10n.php */
@@ -1089,7 +1089,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 	global $wp_textdomain_registry;
 
 	if ( ! is_string( $domain ) ) {
-		$domain = 'default';
+		return false;
 	}
 
 	/**
