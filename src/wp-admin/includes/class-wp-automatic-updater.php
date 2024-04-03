@@ -1703,9 +1703,9 @@ Thanks! -- The WordPress Team"
 			return false;
 		}
 
-		$scrape_key    = md5( $upgrading );
-		$scrape_nonce  = (string) $upgrading;
-		$transient     = 'scrape_key_' . $scrape_key;
+		$scrape_key   = md5( $upgrading );
+		$scrape_nonce = (string) $upgrading;
+		$transient    = 'scrape_key_' . $scrape_key;
 		set_transient( $transient, $scrape_nonce, 30 );
 
 		$cookies       = wp_unslash( $_COOKIE );
@@ -1747,7 +1747,7 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
 		}
-               delete_transient( $transient );
+				delete_transient( $transient );
 		// Only fatal errors will result in a 'type' key.
 		return isset( $result['type'] );
 	}
