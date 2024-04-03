@@ -403,7 +403,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$total_posts = $count_query->found_posts;
 		}
 
-		$max_pages = ceil( $total_posts / (int) $posts_query->query_vars['posts_per_page'] );
+		$max_pages = (int) ceil( $total_posts / (int) $posts_query->query_vars['posts_per_page'] );
 
 		if ( $page > $max_pages && $total_posts > 0 ) {
 			return new WP_Error(
@@ -1742,6 +1742,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param WP_Post         $item    Post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
@@ -2375,6 +2377,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'comments',
 				'revisions',
 				'custom-fields',
+				'thumbnail',
 			),
 		);
 

@@ -38,7 +38,7 @@ class WP_Query {
 	 * Taxonomy query, as passed to get_tax_sql().
 	 *
 	 * @since 3.1.0
-	 * @var WP_Tax_Query A taxonomy query instance.
+	 * @var WP_Tax_Query|null A taxonomy query instance.
 	 */
 	public $tax_query;
 
@@ -1027,7 +1027,7 @@ class WP_Query {
 		}
 
 		if ( ! ( $this->is_singular || $this->is_archive || $this->is_search || $this->is_feed
-				|| ( defined( 'REST_REQUEST' ) && REST_REQUEST && $this->is_main_query() )
+				|| ( wp_is_serving_rest_request() && $this->is_main_query() )
 				|| $this->is_trackback || $this->is_404 || $this->is_admin || $this->is_robots || $this->is_favicon ) ) {
 			$this->is_home = true;
 		}
@@ -3104,14 +3104,14 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		$old_request = "
-			SELECT $found_rows $distinct $fields
-			FROM {$wpdb->posts} $join
-			WHERE 1=1 $where
-			$groupby
-			$orderby
-			$limits
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$old_request =
+			"SELECT $found_rows $distinct $fields
+			 FROM {$wpdb->posts} $join
+			 WHERE 1=1 $where
+			 $groupby
+			 $orderby
+			 $limits";
 
 		$this->request = $old_request;
 
@@ -3307,14 +3307,14 @@ class WP_Query {
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
 
-				$this->request = "
-					SELECT $found_rows $distinct {$wpdb->posts}.ID
-					FROM {$wpdb->posts} $join
-					WHERE 1=1 $where
-					$groupby
-					$orderby
-					$limits
-				";
+				// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+				$this->request =
+					"SELECT $found_rows $distinct {$wpdb->posts}.ID
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where
+					 $groupby
+					 $orderby
+					 $limits";
 
 				/**
 				 * Filters the Post IDs SQL request before sending.
@@ -3624,7 +3624,7 @@ class WP_Query {
 		$this->found_posts = (int) apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
 
 		if ( ! empty( $limits ) ) {
-			$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
+			$this->max_num_pages = (int) ceil( $this->found_posts / $q['posts_per_page'] );
 		}
 	}
 
@@ -4661,7 +4661,7 @@ class WP_Query {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @global WP_Query $wp_query WordPress Query object.
+	 * @global WP_Query $wp_the_query WordPress Query object.
 	 *
 	 * @return bool Whether the query is the main query.
 	 */
