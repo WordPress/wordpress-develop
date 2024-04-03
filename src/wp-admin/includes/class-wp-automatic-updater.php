@@ -1690,7 +1690,7 @@ Thanks! -- The WordPress Team"
 	 *
 	 * @return bool Whether a fatal error was detected.
 	 */
-	protected function has_fatal_error( $nonce ) {
+	protected function has_fatal_error() {
 		global $upgrading;
 
 		$maintenance_file = ABSPATH . '.maintenance';
@@ -1698,13 +1698,17 @@ Thanks! -- The WordPress Team"
 			return false;
 		}
 
-		require_once $maintenance_file;
+		require $maintenance_file;
 		if ( ! is_int( $upgrading ) ) {
 			return false;
 		}
 
 		$scrape_key    = md5( $upgrading );
 		$scrape_nonce  = (string) $upgrading;
+		$transient     = 'scrape_key_' . $scrape_key;
+		set_transient( $transient, $scrape_nonce, 30 );
+
+		$cookies       = wp_unslash( $_COOKIE );
 		$scrape_params = array(
 			'wp_scrape_key'   => $scrape_key,
 			'wp_scrape_nonce' => $scrape_nonce,
@@ -1743,7 +1747,7 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
 		}
-
+               delete_transient( $transient );
 		// Only fatal errors will result in a 'type' key.
 		return isset( $result['type'] );
 	}
