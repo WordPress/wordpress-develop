@@ -4,6 +4,10 @@
  * @group scripts
  */
 class Tests_Dependencies extends WP_UnitTestCase {
+
+	/**
+	 * @covers WP_Dependencies::add
+	 */
 	public function test_add() {
 		$dep = new WP_Dependencies();
 
@@ -17,6 +21,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertFalse( $dep->add( 'one', '' ) );
 	}
 
+	/**
+	 * @covers WP_Dependencies::remove
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::query
+	 */
 	public function test_remove() {
 		$dep = new WP_Dependencies();
 
@@ -29,6 +38,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertInstanceOf( '_WP_Dependency', $dep->query( 'two' ) );
 	}
 
+	/**
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::query
+	 */
 	public function test_enqueue() {
 		$dep = new WP_Dependencies();
 
@@ -45,6 +59,12 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertTrue( $dep->query( 'two', 'queue' ) );
 	}
 
+	/**
+	 * @covers WP_Dependencies::dequeue
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::query
+	 */
 	public function test_dequeue() {
 		$dep = new WP_Dependencies();
 
@@ -65,6 +85,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertFalse( $dep->query( 'two', 'queue' ) );
 	}
 
+	/**
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::query
+	 */
 	public function test_enqueue_args() {
 		$dep = new WP_Dependencies();
 
@@ -83,6 +108,12 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertSame( 'arg', $dep->args['two'] );
 	}
 
+	/**
+	 * @covers WP_Dependencies::dequeue
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::query
+	 */
 	public function test_dequeue_args() {
 		$dep = new WP_Dependencies();
 
@@ -109,6 +140,11 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21741
+	 *
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::dequeue
+	 * @covers WP_Dependencies::remove
 	 */
 	public function test_query_and_registered_enqueued() {
 		$dep = new WP_Dependencies();
@@ -135,6 +171,9 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$this->assertFalse( $dep->query( 'one' ) );
 	}
 
+	/**
+	 * @covers WP_Dependencies::enqueue
+	 */
 	public function test_enqueue_before_register() {
 		$dep = new WP_Dependencies();
 

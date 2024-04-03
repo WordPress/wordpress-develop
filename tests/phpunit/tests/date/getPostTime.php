@@ -4,9 +4,6 @@
  * @group date
  * @group datetime
  * @group post
- *
- * @covers ::get_post_time
- * @covers ::get_post_modified_time
  */
 class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
@@ -22,6 +19,8 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
+	 *
+	 * @covers ::get_post_time
 	 */
 	public function test_get_post_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
@@ -31,6 +30,8 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
+	 *
+	 * @covers ::get_post_time
 	 */
 	public function test_get_post_time_returns_false_with_null_or_non_existing_post() {
 		$this->assertFalse( get_post_time() );
@@ -41,6 +42,8 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
+	 *
+	 * @covers ::get_post_modified_time
 	 */
 	public function test_get_post_modified_time_returns_correct_time_with_post_id() {
 		$post_id = self::factory()->post->create( array( 'post_date' => '2014-03-01 16:35:00' ) );
@@ -50,6 +53,8 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
+	 *
+	 * @covers ::get_post_modified_time
 	 */
 	public function test_get_post_modified_time_returns_false_with_null_or_non_existing_post() {
 		$this->assertFalse( get_post_modified_time() );
@@ -60,6 +65,9 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25002
+	 *
+	 * @covers ::get_post_time
+	 * @covers ::get_post_modified_time
 	 */
 	public function test_should_return_wp_timestamp() {
 		$timezone = 'Europe/Helsinki';
@@ -89,6 +97,9 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25002
+	 *
+	 * @covers ::get_post_time
+	 * @covers ::get_post_modified_time
 	 */
 	public function test_should_return_time() {
 		$timezone = 'Europe/Helsinki';
@@ -117,6 +128,9 @@ class Tests_Date_GetPostTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48384
+	 *
+	 * @covers ::get_post_time
+	 * @covers ::get_post_modified_time
 	 */
 	public function test_should_keep_utc_time_on_timezone_change() {
 		$timezone = 'UTC';
