@@ -1485,11 +1485,16 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  * @since 6.5.0
  * @access private
  *
- * @param stdClass $changes  An object representing a template or template part
- *                           prepared for inserting or updating the database.
+ * @param stdClass        $changes    An object representing a template or template part
+ *                                    prepared for inserting or updating the database.
+ * @param WP_REST_Request $deprecated Deprecated. Not used.
  * @return stdClass|WP_Error The updated object representing a template or template part.
  */
-function inject_ignored_hooked_blocks_metadata_attributes( $changes ) {
+function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '6.5.1' );
+	}
+
 	$hooked_blocks = get_hooked_blocks();
 	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
 		return $changes;
