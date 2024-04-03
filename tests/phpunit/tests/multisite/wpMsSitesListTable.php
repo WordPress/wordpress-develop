@@ -87,6 +87,10 @@ if ( is_multisite() ) :
 			}
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_default_items() {
 			$this->table->prepare_items();
 
@@ -96,6 +100,10 @@ if ( is_multisite() ) :
 			$this->assertSameSets( array( 1 ) + self::$site_ids, $items );
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_subdirectory_path_search_items() {
 			if ( is_subdomain_install() ) {
 				$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );
@@ -122,6 +130,10 @@ if ( is_multisite() ) :
 			$this->assertSameSets( $expected, $items );
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_subdirectory_multiple_path_search_items() {
 			if ( is_subdomain_install() ) {
 				$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );
@@ -144,6 +156,10 @@ if ( is_multisite() ) :
 			$this->assertSameSets( $expected, $items );
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_invalid_path_search_items() {
 			$_REQUEST['s'] = 'foobar';
 
@@ -157,6 +173,10 @@ if ( is_multisite() ) :
 			$this->assertEmpty( $items );
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_subdomain_domain_search_items() {
 			if ( ! is_subdomain_install() ) {
 				$this->markTestSkipped( 'Domain search is not available for subdirectory configurations.' );
@@ -181,6 +201,10 @@ if ( is_multisite() ) :
 			$this->assertSameSets( $expected, $items );
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_subdomain_domain_search_items_with_trailing_wildcard() {
 			if ( ! is_subdomain_install() ) {
 				$this->markTestSkipped( 'Domain search is not available for subdirectory configurations.' );
@@ -205,6 +229,10 @@ if ( is_multisite() ) :
 			$this->assertSameSets( $expected, $items );
 		}
 
+		/**
+		 * @covers WP_MS_Sites_List_Table::prepare_items
+		 * @covers WP_MS_Sites_List_Table::items
+		 */
 		public function test_ms_sites_list_table_subdirectory_path_search_items_with_trailing_wildcard() {
 			if ( is_subdomain_install() ) {
 				$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );

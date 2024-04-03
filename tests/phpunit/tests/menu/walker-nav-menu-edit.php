@@ -3,6 +3,8 @@
 /**
  * @group menu
  * @group walker
+ *
+ * @covers Walker_Nav_Menu::start_el
  */
 class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 

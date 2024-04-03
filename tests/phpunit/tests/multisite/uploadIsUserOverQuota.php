@@ -9,6 +9,8 @@ if ( is_multisite() ) :
 	 * most cases as those are tested elsewhere.
 	 *
 	 * @group multisite
+	 *
+	 * @covers ::upload_is_user_over_quota
 	 */
 	class Tests_Multisite_UploadIsUserOverQuota extends WP_UnitTestCase {
 

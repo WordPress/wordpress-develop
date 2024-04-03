@@ -40,6 +40,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data.
+	 *
+	 * @covers ::add_magic_quotes
 	 */
 	public function test_edit_post() {
 		$post_id = self::$post_id;
@@ -117,6 +119,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the legacy model function that expects slashed data.
+	 *
+	 * @covers ::add_post_meta
 	 */
 	public function test_add_post_meta() {
 		$post_id = self::$post_id;
@@ -132,6 +136,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the legacy model function that expects slashed data.
+	 *
+	 * @covers ::update_post_meta
 	 */
 	public function test_update_post_meta() {
 		$post_id = self::$post_id;
@@ -147,6 +153,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::add_comment_meta
 	 */
 	public function test_add_comment_meta() {
 		$comment_id = self::$comment_id;
@@ -170,6 +178,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::update_comment_meta
 	 */
 	public function test_update_comment_meta() {
 		$comment_id = self::$comment_id;
@@ -197,6 +207,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::add_user_meta
 	 */
 	public function test_add_user_meta() {
 		$user_id = self::$user_id;
@@ -220,6 +232,8 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::update_user_meta
 	 */
 	public function test_update_user_meta() {
 		$user_id = self::$user_id;
