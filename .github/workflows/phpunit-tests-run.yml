@@ -130,7 +130,6 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
-          docker-compose -v
 
       - name: Start Docker environment
         run: |
@@ -141,11 +140,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker-compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker compose run --rm mysql ${{ env.LOCAL_DB_TYPE }} --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
 
       - name: Install WordPress
         run: npm run env:install
@@ -184,4 +183,4 @@ jobs:
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/trunk' && inputs.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
-        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+        run: docker compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
