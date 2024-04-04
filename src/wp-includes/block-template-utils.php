@@ -1576,9 +1576,8 @@ function inject_ignored_hooked_blocks_metadata_attributes_for_response( $respons
 
 	$blocks = parse_blocks( $template->content );
 
-	if( isset( $response->data['content']['raw'] ) ) {
+	if ( isset( $response->data['content']['raw'] ) ) {
 		$response->data['content']['raw'] = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-	
 	}
 
 	return $response;
