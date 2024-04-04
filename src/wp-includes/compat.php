@@ -333,6 +333,11 @@ if ( ! function_exists( 'hash_equals' ) ) :
 	}
 endif;
 
+// sodium_crypto_box() was introduced in PHP 7.2.
+if ( ! function_exists( 'sodium_crypto_box' ) ) {
+	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
+}
+
 if ( ! function_exists( 'is_countable' ) ) {
 	/**
 	 * Polyfill for is_countable() function added in PHP 7.3.

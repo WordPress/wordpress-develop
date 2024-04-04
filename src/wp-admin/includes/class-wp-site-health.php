@@ -941,6 +941,11 @@ class WP_Site_Health {
 				'function' => 'mysqli_connect',
 				'required' => false,
 			),
+			'libsodium' => array(
+				'constant'            => 'SODIUM_LIBRARY_VERSION',
+				'required'            => false,
+				'php_bundled_version' => '7.2.0',
+			),
 			'openssl'   => array(
 				'function' => 'openssl_encrypt',
 				'required' => false,
@@ -973,6 +978,11 @@ class WP_Site_Health {
 			'intl'      => array(
 				'extension' => 'intl',
 				'required'  => false,
+			),
+			'mcrypt'    => array(
+				'extension'    => 'mcrypt',
+				'required'     => false,
+				'fallback_for' => 'libsodium',
 			),
 			'simplexml' => array(
 				'extension'    => 'simplexml',
