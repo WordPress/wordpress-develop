@@ -1,9 +1,9 @@
 === Twenty Twenty-Four ===
 Contributors: wordpressdotorg
 Requires at least: 6.4
-Tested up to: 6.4
+Tested up to: 6.5
 Requires PHP: 7.0
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,6 +12,11 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Twenty Twenty-Four is designed to be flexible, versatile and applicable to any website. Its collection of templates and patterns tailor to different needs, such as presenting a business, blogging and writing or showcasing work. A multitude of possibilities open up with just a few adjustments to color and typography. Twenty Twenty-Four comes with style variations and full page designs to help speed up the site building process, is fully compatible with the site editor, and takes advantage of new design tools introduced in WordPress 6.4.
 
 == Changelog ==
+
+= 1.1 =
+* Released: April 2, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-four-changelog/#Version_1.1
 
 = 1.0 =
 * Released: November 7, 2023
@@ -33,7 +38,33 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
+
+This theme bundles the following third-party resources:
+
+=== Fonts ===
+
+Cardo Font
+Copyright (c) 2002-2011, David J. Perry (hospes02@scholarsfonts.net)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: http://scholarsfonts.net
+
+Instrument Sans Font
+Copyright 2022 The Instrument Sans Project Authors.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://github.com/Instrument/instrument-sans
+
+Inter Font
+Copyright 2020 The Inter Project Authors.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://github.com/rsms/inter
+
+Jost Font
+Copyright 2020 The Jost Project Authors.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://github.com/indestructible-type/Jost
+
 === Images ===
+
 License: CC0 https://creativecommons.org/publicdomain/zero/1.0/
 
 museum.webp - https://www.rawpixel.com/image/3297419/free-photo-image-interior-hallway-architecture

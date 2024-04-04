@@ -111,6 +111,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'webp-lossless.webp',
 			'webp-lossy.webp',
 			'webp-transparent.webp',
+			'avif-animated.avif',
+			'avif-lossless.avif',
+			'avif-lossy.avif',
+			'avif-transparent.avif',
 		);
 
 		return $this->text_array_to_dataprovider( $files );
@@ -184,6 +188,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$files[] = 'webp-lossless.webp';
 			$files[] = 'webp-lossy.webp';
 			$files[] = 'webp-transparent.webp';
+		}
+
+		// Add AVIF images if the image editor supports them.
+		$file   = DIR_TESTDATA . '/images/avif-lossless.avif';
+		$editor = wp_get_image_editor( $file );
+
+		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/avif' ) ) {
+			$files[] = 'avif-animated.avif';
+			$files[] = 'avif-lossless.avif';
+			$files[] = 'avif-lossy.avif';
+			$files[] = 'avif-transparent.avif';
 		}
 
 		return $this->text_array_to_dataprovider( $files );
@@ -623,7 +638,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+			'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/canola.jpg',
 			0,
 			0,
 			100,
@@ -672,7 +687,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+			'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/canoladoesnotexist.jpg',
 			0,
 			0,
 			100,
