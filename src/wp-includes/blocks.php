@@ -858,11 +858,11 @@ function get_hooked_blocks() {
  * @since 6.5.0
  * @access private
  *
- * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
- * @param string                  $relative_position   The relative position of the hooked blocks.
- *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
- * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                          $relative_position   The relative position of the hooked blocks.
+ *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                           $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
  * @return string
  */
 function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
@@ -949,12 +949,12 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
  * @since 6.5.0
  * @access private
  *
- * @param array                   $parsed_anchor_block The anchor block, in parsed block array format.
- * @param string                  $relative_position   The relative position of the hooked blocks.
- *                                                     Can be one of 'before', 'after', 'first_child', or 'last_child'.
- * @param array                   $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
- * @param WP_Block_Template|array $context             The block template, template part, or pattern that the anchor block belongs to.
- * @return string An empty string.
+ * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                          $relative_position   The relative position of the hooked blocks.
+ *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                           $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string
  */
 function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
 	$anchor_block_type  = $parsed_anchor_block['blockName'];
@@ -1003,6 +1003,29 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
 }
 
 /**
+ * Returns the markup for blocks hooked to the given anchor block in a specific relative position and then
+ * adds a list of hooked block types to an anchor block's ignored hooked block types.
+ *
+ * This function is meant for internal use only.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
+ * @param string                          $relative_position   The relative position of the hooked blocks.
+ *                                                             Can be one of 'before', 'after', 'first_child', or 'last_child'.
+ * @param array                           $hooked_blocks       An array of hooked block types, grouped by anchor block and relative position.
+ * @param WP_Block_Template|WP_Post|array $context             The block template, template part, or pattern that the anchor block belongs to.
+ * @return string
+ */
+function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
+	$markup = insert_hooked_blocks( $parsed_anchor_block, $relative_position, $hooked_blocks, $context );
+	$markup .= set_ignored_hooked_blocks_metadata( $parsed_anchor_block, $relative_position, $hooked_blocks, $context );
+
+	return $markup;
+}
+
+/**
  * Returns a function that injects the theme attribute into, and hooked blocks before, a given block.
  *
  * The returned function can be used as `$pre_callback` argument to `traverse_and_serialize_block(s)`,
@@ -1020,11 +1043,11 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
  *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks'.
+ *                                                       Default: 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
+function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -1077,11 +1100,11 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
  *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks'.
+ *                                                       Default: 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
+function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
