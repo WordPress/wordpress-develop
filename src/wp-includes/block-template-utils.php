@@ -243,7 +243,7 @@ function _get_block_templates_paths( $base_directory ) {
 	} else {
 		$template_path_list[ $base_directory ] = array();
 	}
-	return $path_list;
+	return $template_path_list[ $base_directory ];
 }
 
 /**
