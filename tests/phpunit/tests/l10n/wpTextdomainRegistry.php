@@ -19,10 +19,10 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/foobar/' ), 'translations' );
-		wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/plugins/' ), 'translations' );
-		wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/themes/' ), 'translations' );
-		wp_cache_delete( 'cached_mo_files_' . md5( WP_LANG_DIR . '/' ), 'translations' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/foobar/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' );
+		wp_cache_delete( md5( WP_LANG_DIR . '/' ), 'translation_files' );
 
 		parent::tear_down();
 	}
@@ -49,7 +49,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			'Custom path for textdomain not returned'
 		);
 		$this->assertNotFalse(
-			wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/bar/' ), 'translations' ),
+			wp_cache_get( md5( WP_LANG_DIR . '/bar/' ), 'translation_files' ),
 			'List of files in custom path not cached'
 		);
 	}
@@ -89,10 +89,10 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/themes/' );
 		$this->instance->get_language_files_from_path( WP_LANG_DIR . '/' );
 
-		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/plugins/' ), 'translations' ) );
-		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/themes/' ), 'translations' ) );
-		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/foobar/' ), 'translations' ) );
-		$this->assertNotFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/' ), 'translations' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/foobar/' ), 'translation_files' ) );
+		$this->assertNotFalse( wp_cache_get( md5( WP_LANG_DIR . '/' ), 'translation_files' ) );
 	}
 
 	/**
@@ -103,7 +103,7 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 		$result = $this->instance->get_language_files_from_path( WP_LANG_DIR . '/plugins/' );
 		remove_filter( 'pre_get_language_files_from_path', '__return_empty_array' );
 
-		$cache = wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/plugins/' ), 'translations' );
+		$cache = wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' );
 
 		$this->assertEmpty( $result );
 		$this->assertFalse( $cache );
@@ -144,42 +144,52 @@ class Tests_L10n_wpTextdomainRegistry extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/plugins/' ), 'translations' ) );
-		$this->assertFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/themes/' ), 'translations' ) );
-		$this->assertFalse( wp_cache_get( 'cached_mo_files_' . md5( WP_LANG_DIR . '/' ), 'translations' ) );
+		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/plugins/' ), 'translation_files' ) );
+		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/themes/' ), 'translation_files' ) );
+		$this->assertFalse( wp_cache_get( md5( WP_LANG_DIR . '/' ), 'translation_files' ) );
 	}
 
 	public function data_domains_locales() {
 		return array(
-			'Non-existent plugin'            => array(
+			'Non-existent plugin'                      => array(
 				'unknown-plugin',
 				'en_US',
 				false,
 			),
-			'Non-existent plugin with de_DE' => array(
+			'Non-existent plugin with de_DE'           => array(
 				'unknown-plugin',
 				'de_DE',
 				false,
 			),
-			'Available de_DE translations'   => array(
+			'Available de_DE translations'             => array(
 				'internationalized-plugin',
 				'de_DE',
 				WP_LANG_DIR . '/plugins/',
 			),
-			'Available es_ES translations'   => array(
+			'Available es_ES translations'             => array(
 				'internationalized-plugin',
 				'es_ES',
 				WP_LANG_DIR . '/plugins/',
 			),
-			'Unavailable fr_FR translations' => array(
+			'Unavailable fr_FR translations'           => array(
 				'internationalized-plugin',
 				'fr_FR',
 				false,
 			),
-			'Unavailable en_US translations' => array(
+			'Unavailable en_US translations'           => array(
 				'internationalized-plugin',
 				'en_US',
 				false,
+			),
+			'Available de_DE translations (.l10n.php)' => array(
+				'internationalized-plugin-2',
+				'de_DE',
+				WP_LANG_DIR . '/plugins/',
+			),
+			'Available es_ES translations (.l10n.php)' => array(
+				'internationalized-plugin-2',
+				'es_ES',
+				WP_LANG_DIR . '/plugins/',
 			),
 		);
 	}
