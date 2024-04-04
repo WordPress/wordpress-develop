@@ -429,15 +429,8 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 9568
 	 */
 	public function test_log_in_using_email() {
-		$user_args = array(
-			'user_login' => 'johndoe',
-			'user_email' => 'mail@example.com',
-			'user_pass'  => 'password',
-		);
-		self::factory()->user->create( $user_args );
-
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_EMAIL, self::USER_PASS ) );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
 	}
 
 	/**
@@ -836,6 +829,28 @@ class Tests_Auth extends WP_UnitTestCase {
 		} else {
 			$this->assertSame( 0, $current );
 		}
+	}
+
+	/**
+	 * @ticket 52529
+	 */
+	public function test_reset_password_with_apostrophe_in_email() {
+		$user_args = array(
+			'user_email' => "jo'hn@example.com",
+			'user_pass'  => 'password',
+		);
+
+		$user_id = self::factory()->user->create( $user_args );
+
+		$user = get_userdata( $user_id );
+		$key  = get_password_reset_key( $user );
+
+		// A correctly saved key should be accepted.
+		$check = check_password_reset_key( $key, $user->user_login );
+
+		$this->assertNotWPError( $check );
+		$this->assertInstanceOf( 'WP_User', $check );
+		$this->assertSame( $user_id, $check->ID );
 	}
 
 	public function data_application_passwords_can_use_capability_checks_to_determine_feature_availability() {

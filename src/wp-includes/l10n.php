@@ -728,6 +728,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/**
 	 * Filters whether to short-circuit loading .mo file.
 	 *
@@ -989,6 +993,10 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/**
 	 * Filters a plugin's locale.
 	 *
@@ -1037,6 +1045,10 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/** This filter is documented in wp-includes/l10n.php */
 	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
 
@@ -1075,6 +1087,10 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 function load_theme_textdomain( $domain, $path = false ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
+
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
 
 	/**
 	 * Filters a theme's locale.
@@ -1189,7 +1205,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
 
-		$languages_path = WP_LANG_DIR . '/' . $relative[0];
+		$languages_path = WP_LANG_DIR . '/plugins';
 
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );
@@ -1435,19 +1451,20 @@ function translate_user_role( $name, $domain = 'default' ) {
 }
 
 /**
- * Gets all available languages based on the presence of *.mo files in a given directory.
+ * Gets all available languages based on the presence of *.mo and *.l10n.php files in a given directory.
  *
  * The default directory is WP_LANG_DIR.
  *
  * @since 3.0.0
  * @since 4.7.0 The results are now filterable with the {@see 'get_available_languages'} filter.
+ * @since 6.5.0 The initial file list is now cached and also takes into account *.l10n.php files.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $dir A directory to search for language files.
  *                    Default WP_LANG_DIR.
  * @return string[] An array of language codes or an empty array if no languages are present.
- *                  Language codes are formed by stripping the .mo extension from the language file names.
+ *                  Language codes are formed by stripping the file extension from the language file names.
  */
 function get_available_languages( $dir = null ) {
 	global $wp_textdomain_registry;
@@ -1460,6 +1477,8 @@ function get_available_languages( $dir = null ) {
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
+			$lang_file = basename( $lang_file, '.l10n.php' );
+
 			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
 				! str_starts_with( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
@@ -1475,7 +1494,7 @@ function get_available_languages( $dir = null ) {
 	 * @param string[] $languages An array of available language codes.
 	 * @param string   $dir       The directory where the language files were found.
 	 */
-	return apply_filters( 'get_available_languages', $languages, $dir );
+	return apply_filters( 'get_available_languages', array_unique( $languages ), $dir );
 }
 
 /**

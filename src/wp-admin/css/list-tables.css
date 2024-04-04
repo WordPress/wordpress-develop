@@ -1149,6 +1149,17 @@ ul.cat-checklist {
 	overflow-y: scroll;
 }
 
+ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
+	content: '';
+	border-top: 2px solid grey;
+	width: 65%;
+	height: 2px;
+	position: absolute;
+	top: calc( 50% + 1px );
+	left: 50%;
+	transform: translate( -50%, -50% );
+}
+
 #bulk-titles .ntdelbutton,
 #bulk-titles .ntdeltitle,
 .inline-edit-row fieldset ul.cat-checklist label {
@@ -1580,22 +1591,12 @@ div.action-links,
 	margin-top: 0;
 }
 
-.plugin-card .column-description .authors {
-	order: 1;
-}
-
-.plugin-card .column-description .plugin-dependencies {
-	order: 2;
-}
-
 .plugin-card .column-description p:empty {
 	display: none;
 }
 
-.plugin-card .plugin-dependencies {
-	background-color: #e5f5fa;
-	border-left: 3px solid #72aee6;
-	margin-bottom: .5em;
+.plugin-card .notice.plugin-dependencies {
+	margin: auto 20px 20px;
 	padding: 15px;
 }
 
@@ -1632,8 +1633,6 @@ div.action-links,
 @media (max-width: 939px) {
 	.plugin-card .plugin-dependency-name {
 		flex-basis: 69%;
-	}
-	.plugin-card .plugin-dependency .more-details-link {
 	}
 }
 

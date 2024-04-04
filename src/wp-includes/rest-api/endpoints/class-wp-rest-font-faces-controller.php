@@ -856,25 +856,25 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function handle_font_file_upload( $file ) {
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		add_filter( 'upload_dir', 'wp_get_font_dir' );
+		// Filter the upload directory to return the fonts directory.
+		add_filter( 'upload_dir', '_wp_filter_font_directory' );
 
 		$overrides = array(
 			'upload_error_handler' => array( $this, 'handle_font_file_upload_error' ),
-			// Arbitrary string to avoid the is_uploaded_file() check applied
-			// when using 'wp_handle_upload'.
-			'action'               => 'wp_handle_font_upload',
 			// Not testing a form submission.
 			'test_form'            => false,
-			// Seems mime type for files that are not images cannot be tested.
-			// See wp_check_filetype_and_ext().
-			'test_type'            => true,
 			// Only allow uploading font files for this request.
 			'mimes'                => WP_Font_Utils::get_allowed_font_mime_types(),
 		);
 
+		// Bypasses is_uploaded_file() when running unit tests.
+		if ( defined( 'DIR_TESTDATA' ) && DIR_TESTDATA ) {
+			$overrides['action'] = 'wp_handle_mock_upload';
+		}
+
 		$uploaded_file = wp_handle_upload( $file, $overrides );
 
-		remove_filter( 'upload_dir', 'wp_get_font_dir' );
+		remove_filter( 'upload_dir', '_wp_filter_font_directory' );
 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		return $uploaded_file;
@@ -902,16 +902,16 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	* Returns relative path to an uploaded font file.
-	*
-	* The path is relative to the current fonts directory.
-	*
-	* @since 6.5.0
-	* @access private
-	*
-	* @param string $path Full path to the file.
-	* @return string Relative path on success, unchanged path on failure.
-	*/
+	 * Returns relative path to an uploaded font file.
+	 *
+	 * The path is relative to the current fonts directory.
+	 *
+	 * @since 6.5.0
+	 * @access private
+	 *
+	 * @param string $path Full path to the file.
+	 * @return string Relative path on success, unchanged path on failure.
+	 */
 	protected function relative_fonts_path( $path ) {
 		$new_path = $path;
 
