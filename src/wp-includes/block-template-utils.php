@@ -228,22 +228,16 @@ function _get_block_templates_paths( $base_directory ) {
 	if ( isset( $template_path_list[ $base_directory ] ) ) {
 		return $template_path_list[ $base_directory ];
 	}
+	$path_list = array();
 	if ( is_dir( $base_directory ) ) {
-		$path_list = array();
-		try {
-			$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
-			$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
-			foreach ( $nested_html_files as $path => $file ) {
-				$path_list[] = $path;
-			}
-		} catch ( Exception $e ) {
-			// Do nothing.
+		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
+		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
+		foreach ( $nested_html_files as $path => $file ) {
+			$path_list[] = $path;
 		}
-		$template_path_list[ $base_directory ] = $path_list;
-	} else {
-		$template_path_list[ $base_directory ] = array();
 	}
-	return $template_path_list[ $base_directory ];
+	$template_path_list[ $base_directory ] = $path_list;
+	return $path_list;
 }
 
 /**
