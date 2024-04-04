@@ -1113,15 +1113,27 @@ function update_core( $from, $to ) {
 		);
 	}
 
-	// Add a warning when the JSON PHP extension is missing.
-	if ( ! extension_loaded( 'json' ) ) {
+	$required_extensions = array(
+		'json',
+		'mbstring',
+	);
+	$missing_extensions  = array();
+
+	foreach ( $required_extensions as $extension ) {
+		if ( ! extension_loaded( $extension ) ) {
+			$missing_extensions[] = $extension;
+		}
+	}
+
+	// Add a warning when the required PHP extensions are missing.
+	foreach ( $missing_extensions as $missing_extension ) {
 		return new WP_Error(
-			'php_not_compatible_json',
+			sprintf( 'php_not_compatible_%s', $missing_extension ),
 			sprintf(
 				/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
 				__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
 				$wp_version,
-				'JSON'
+				'<code>' . $missing_extension . '</code>'
 			)
 		);
 	}
