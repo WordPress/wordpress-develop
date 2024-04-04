@@ -66,34 +66,22 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<h3><?php _e( 'Add and manage fonts across your site' ); ?></h3>
-				<p><?php _e( 'The new Font Library puts you in control of an essential piece of your site&#8217;s design—typography—without coding or extra steps. Effortlessly install, remove, and activate local and Google Fonts across your site regardless of your active theme. The ability to include custom typography collections gives site creators and publishers even more choice.' ); ?></p>
+				<p><?php _e( 'The new Font Library puts you in control of an essential piece of your site&#8217;s design—typography—without coding or extra steps. Effortlessly install, remove, and activate local and Google Fonts across your site for any block theme. The ability to include custom typography collections gives site creators and publishers even more choice.' ); ?></p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Override specific content in synced patterns' ); ?></h3>
-				<p><?php _e( 'Keep your design consistent while bringing more flexibility to the content within. Choose to override content for Paragraph, Image, Heading, and Button blocks and make specified changes in each instance of a synced pattern. Use it for templated pieces with recurring elements to frame unique content, like recipes, testimonials, or case studies. You can expect more blocks to gain this option in future releases.' ); ?></p>
+				<h3><?php _e( 'Get more details from your style revisions' ); ?></h3>
+				<p><?php _e( 'Work through creative projects with a more comprehensive picture of what&#8217;s been done—and what you can fall back on. Get details like time stamps, quick summaries, and a paginated list of total revisions. View revisions from the Style Book to see changes outside of what you&#8217;re working on. Revisions are also now available for templates and template parts.' ); ?></p>
 			</div>
-			<div class="column is-vertically-aligned-center">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/2-patterns-override-content.webp" alt="" height="436" width="436" />
-				</div>
-			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
 					<img src="https://s.w.org/images/core/6.5/3-style-revisions.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
-			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Get more details from your style revisions' ); ?></h3>
-				<p><?php _e( 'Work through creative projects with a more comprehensive picture of what&#8217;s been done—and what you can fall back on. Get details like time stamps, quick summaries, and a paginated list of total revisions. View revisions from the Style Book to see changes outside of what you&#8217;re working on. Revisions are also now available for templates and template parts.' ); ?></p>
-			</div>
 		</div>
-		
+
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
@@ -124,7 +112,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<img src="https://s.w.org/images/core/6.5/7-data-views.webp" alt="" height="270" width="270" />
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Discover new Data Views' ); ?></h3>
-				<p><?php _e( 'Make fast, informed changes with data views for pages, templates, patterns, and template parts. Arrange data in a table or grid view and enjoy a new UI for toggling fields and making bulk changes.' ); ?></p>
+				<p><?php _e( 'Find and organize your data however you like with data views for pages, templates, patterns, and template parts. Arrange it in a table or grid view with the option to toggle fields and make bulk changes.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -187,7 +175,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Explore improvements to the plugin experience' ); ?></h3>
-				<p><?php _e( 'There&#8217;s now an easier way to manage plugin dependencies. Plugin authors can supply a new <code>Requires Plugins</code> header with a comma-separated list of required plugin slugs, presenting users with links to install and activate those plugins first.' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Requires Plugins */
+						__( 'There&#8217;s now an easier way to manage plugin dependencies. Plugin authors can supply a new %s header with a comma-separated list of required plugin slugs, presenting users with links to install and activate those plugins first.' ),
+						'<code lang="en">Requires Plugins</code>'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 
@@ -204,7 +200,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Performance updates' ); ?></h3>
-				<p><?php _e( 'This release includes 110+ performance updates, with an impressive increase in speed and efficiency across the Post Editor and Site Editor. Loading, input processing, and Site Editor navigation each see an increase in speed between two to six times faster than before. Translated sites see up to 25% improvement in load time for this release.' ); ?></p>
+				<p><?php _e( 'This release includes 110+ performance updates, with an impressive increase in speed and efficiency across the Post Editor and Site Editor. Loading is over two times faster than in 6.4, with input processing speed up to five times faster than the previous release. Translated sites see up to 25% improvement in load time for this release.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
@@ -260,7 +256,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: 1: WordPress Field Guide link, 2: WordPress version number. */
 						__( 'Explore the <a href="%1$s">WordPress %2$s Field Guide</a>. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
-						( '#' ),
+						esc_url( __( 'https://make.wordpress.org/core/wordpress-6-5-field-guide/' ) ),
 						'6.5'
 					);
 					?>
