@@ -1008,7 +1008,7 @@ function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_po
  *
  * This function is meant for internal use only.
  *
- * @since 6.5.0
+ * @since 6.5.1
  * @access private
  *
  * @param array                           $parsed_anchor_block The anchor block, in parsed block array format.
