@@ -54,7 +54,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_get_request() {
-		$url = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2007/09/2007-06-30-dsc_4700-1.jpg';
 
 		$response = wp_remote_get( $url );
 
