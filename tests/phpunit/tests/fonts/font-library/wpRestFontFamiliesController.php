@@ -487,7 +487,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 * @param string $settings Font family settings to test.
 	 * @param string $expected Expected settings result.
 	 */
-	public function test_create_item_santize_font_family_settings( $settings, $expected ) {
+	public function test_create_item_sanitize_font_family_settings( $settings, $expected ) {
 		$settings = array_merge( self::$default_settings, $settings );
 		$expected = array_merge( self::$default_settings, $expected );
 
@@ -681,7 +681,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 
 		$settings = array(
 			'name'       => 'Open Sans',
-			'fontFamily' => '"Open Sans, "Noto Sans", sans-serif',
+			'fontFamily' => 'Open Sans, "Noto Sans", sans-serif',
 			'preview'    => 'https://s.w.org/images/fonts/16.9/previews/open-sans/open-sans-400-normal.svg',
 		);
 
@@ -700,7 +700,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$expected_settings = array(
 			'name'       => $settings['name'],
 			'slug'       => 'open-sans-2',
-			'fontFamily' => $settings['fontFamily'],
+			'fontFamily' => '"Open Sans", "Noto Sans", sans-serif',
 			'preview'    => $settings['preview'],
 		);
 		$this->assertSame( $expected_settings, $data['font_family_settings'], 'The response font_family_settings should match expected settings.' );
@@ -752,7 +752,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 * @param string $settings Font family settings to test.
 	 * @param string $expected Expected settings result.
 	 */
-	public function test_update_item_santize_font_family_settings( $settings, $expected ) {
+	public function test_update_item_sanitize_font_family_settings( $settings, $expected ) {
 		// Unset/modify slug from the data provider, since we're updating rather than creating.
 		unset( $settings['slug'] );
 		$initial_settings = array( 'slug' => 'open-sans-update' );

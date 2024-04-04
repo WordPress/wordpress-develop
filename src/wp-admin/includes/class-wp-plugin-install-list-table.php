@@ -525,8 +525,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			// Remove any HTML from the description.
 			$description = strip_tags( $plugin['short_description'] );
 
-			$description .= $this->get_dependencies_notice( $plugin );
-
 			/**
 			 * Filters the plugin card description on the Add Plugins screen.
 			 *
@@ -676,6 +674,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<p class="authors"><?php echo $author; ?></p>
 				</div>
 			</div>
+			<?php
+			$dependencies_notice = $this->get_dependencies_notice( $plugin );
+			if ( ! empty( $dependencies_notice ) ) {
+				echo $dependencies_notice;
+			}
+			?>
 			<div class="plugin-card-bottom">
 				<div class="vers column-rating">
 					<?php
@@ -781,7 +785,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 
 		$dependencies_notice = sprintf(
-			'<div class="plugin-dependencies"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
+			'<div class="plugin-dependencies notice notice-alt notice-info inline"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
 			'<strong>' . __( 'Additional plugins are required' ) . '</strong>',
 			$dependencies_list
 		);

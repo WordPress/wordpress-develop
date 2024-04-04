@@ -1591,22 +1591,12 @@ div.action-links,
 	margin-top: 0;
 }
 
-.plugin-card .column-description .authors {
-	order: 1;
-}
-
-.plugin-card .column-description .plugin-dependencies {
-	order: 2;
-}
-
 .plugin-card .column-description p:empty {
 	display: none;
 }
 
-.plugin-card .plugin-dependencies {
-	background-color: #e5f5fa;
-	border-left: 3px solid #72aee6;
-	margin-bottom: .5em;
+.plugin-card .notice.plugin-dependencies {
+	margin: auto 20px 20px;
 	padding: 15px;
 }
 
@@ -1643,8 +1633,6 @@ div.action-links,
 @media (max-width: 939px) {
 	.plugin-card .plugin-dependency-name {
 		flex-basis: 69%;
-	}
-	.plugin-card .plugin-dependency .more-details-link {
 	}
 }
 

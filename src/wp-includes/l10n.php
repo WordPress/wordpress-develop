@@ -728,6 +728,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/**
 	 * Filters whether to short-circuit loading .mo file.
 	 *
@@ -989,6 +993,10 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/**
 	 * Filters a plugin's locale.
 	 *
@@ -1037,6 +1045,10 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/** This filter is documented in wp-includes/l10n.php */
 	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
 
@@ -1075,6 +1087,10 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 function load_theme_textdomain( $domain, $path = false ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
+
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
 
 	/**
 	 * Filters a theme's locale.
@@ -1189,7 +1205,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
 
-		$languages_path = WP_LANG_DIR . '/' . $relative[0];
+		$languages_path = WP_LANG_DIR . '/plugins';
 
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );

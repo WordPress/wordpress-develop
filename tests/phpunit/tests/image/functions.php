@@ -638,7 +638,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_with_url() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+			'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/canola.jpg',
 			0,
 			0,
 			100,
@@ -687,7 +687,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
 		$file = wp_crop_image(
-			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+			'https://asdftestblog1.wordpress.com/wp-content/uploads/2008/04/canoladoesnotexist.jpg',
 			0,
 			0,
 			100,
