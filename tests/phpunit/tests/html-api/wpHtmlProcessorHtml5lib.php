@@ -15,7 +15,7 @@
  * @package WordPress
  * @subpackage HTML-API
  *
- * @since 6.5.0
+ * @since 6.6.0
  *
  * @group html-api
  * @group html-api-html5lib-tests
