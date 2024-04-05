@@ -31,7 +31,6 @@ concurrency:
 permissions: {}
 
 jobs:
-  #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
   test-with-mysql:
