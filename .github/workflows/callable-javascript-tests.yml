@@ -17,7 +17,7 @@ jobs:
   # - Run the WordPress QUnit tests.
   # - Ensures version-controlled files are not modified or deleted.
   test-js:
-    name: QUnit Tests
+    name: Run QUnit tests
     runs-on: ubuntu-latest
     permissions:
       contents: read

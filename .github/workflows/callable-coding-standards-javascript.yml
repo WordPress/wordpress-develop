@@ -6,6 +6,9 @@ name: JavaScript coding standards
 on:
   workflow_call:
 
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
 jobs:
   # Runs the JavaScript coding standards checks.
   #
@@ -19,13 +22,11 @@ jobs:
   # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
   jshint:
-    name: JavaScript coding standards
+    name: Run coding standards checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
     timeout-minutes: 20
-    env:
-      PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
     steps:
       - name: Checkout repository

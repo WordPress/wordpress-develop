@@ -23,7 +23,7 @@ jobs:
   # - Generate a report for displaying `test` directory issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
   phpcs:
-    name: PHP coding standards
+    name: Run coding standards checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
