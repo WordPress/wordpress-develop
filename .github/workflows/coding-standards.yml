@@ -42,51 +42,12 @@ concurrency:
 
 jobs:
   # Runs the JavaScript coding standards checks.
-  #
-  # JSHint violations are not currently reported inline with annotations.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs NodeJS.
-  # - Logs updated debug information.
-  # _ Installs npm dependencies.
-  # - Run the WordPress JSHint checks.
   jshint:
     name: JavaScript coding standards
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    uses: desrosj/wordpress-develop/.github/workflows/callable-coding-standards-javascript.yml@try/make-workflows-callable
+    permissions:
+      contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    env:
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-          svn --version
-
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run JSHint
-        run: npm run grunt jshint
 
   slack-notifications:
     name: Slack Notifications
