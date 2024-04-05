@@ -21,17 +21,12 @@ jobs:
   # - Runs the PHP compatibility tests.
   # - Generate a report for displaying issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
-  e2e-tests:
+  php-compatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
     permissions:
       contents: read
     timeout-minutes: 20
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        LOCAL_SCRIPT_DEBUG: [ true, false ]
 
     steps:
       - name: Checkout repository
