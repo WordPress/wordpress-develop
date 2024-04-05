@@ -6,6 +6,10 @@ name: End-to-end Tests
 on:
   workflow_call:
 
+env:
+  LOCAL_DIR: build
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
 jobs:
   # Runs the end-to-end test suite.
   #

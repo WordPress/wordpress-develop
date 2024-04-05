@@ -22,7 +22,7 @@ jobs:
   # - Generate a report for displaying issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
   php-compatibility:
-    name: Check PHP compatibility
+    name: Run compatibility checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
