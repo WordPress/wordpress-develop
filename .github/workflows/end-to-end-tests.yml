@@ -37,6 +37,7 @@ env:
 jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
+    name: E2E Tests
     uses: desrosj/wordpress-develop/.github/workflows/callable-end-to-end-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
