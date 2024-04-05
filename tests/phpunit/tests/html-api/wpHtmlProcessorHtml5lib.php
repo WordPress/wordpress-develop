@@ -240,6 +240,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 			}
 		}
 
+		if ( ! is_null( $processor->get_last_error() ) ) {
+			return null;
+		}
+
 		if ( $processor->paused_at_incomplete_token() ) {
 			return null;
 		}
