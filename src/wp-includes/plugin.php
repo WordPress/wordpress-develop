@@ -773,6 +773,7 @@ function plugin_basename( $file ) {
 	foreach ( $wp_plugin_paths as $dir => $realdir ) {
 		if ( str_starts_with( $file, $realdir ) ) {
 			$file = $dir . substr( $file, strlen( $realdir ) );
+			break;
 		}
 	}
 
@@ -780,9 +781,8 @@ function plugin_basename( $file ) {
 	$mu_plugin_dir = wp_normalize_path( WPMU_PLUGIN_DIR );
 
 	// Get relative path from plugins directory.
-	$file = preg_replace( '#^' . preg_quote( $plugin_dir, '#' ) . '/|^' . preg_quote( $mu_plugin_dir, '#' ) . '/#', '', $file );
-	$file = trim( $file, '/' );
-	return $file;
+	$file = preg_replace( '#^(?>' . preg_quote( $plugin_dir, '#' ) . '|' . preg_quote( $mu_plugin_dir, '#' ) . ')/#', '', $file, 1 );
+	return trim( $file, '/' );
 }
 
 /**
