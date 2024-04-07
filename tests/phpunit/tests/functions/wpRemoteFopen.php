@@ -26,10 +26,10 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 */
 	public function test_wp_remote_fopen() {
 		// This URL gives a direct 200 response.
-		$url      = 'https://asdftestblog1.wordpress.com/wp-content/uploads/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_fopen( $url );
 
 		$this->assertIsString( $response );
-		$this->assertSame( 31325, strlen( $response ) );
+		$this->assertSame( 153204, strlen( $response ) );
 	}
 }
