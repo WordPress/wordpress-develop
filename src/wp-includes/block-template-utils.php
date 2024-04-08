@@ -596,7 +596,7 @@ function _get_block_template_file_content( $template_file_path ) {
 function _build_block_template_result_from_file( $template_file, $template_type ) {
 	$default_template_types = get_default_block_template_types();
 	$theme                  = get_stylesheet();
-	$default_template_types = _get_block_template_file_content( $template_file['path'] );
+	$file_content           = _get_block_template_file_content( $template_file['path'] );
 
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
@@ -631,7 +631,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template );
 		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template );
 	}
-	$blocks            = parse_blocks( $default_template_types );
+	$blocks            = parse_blocks( $file_content );
 	$template->content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
 
 	return $template;
