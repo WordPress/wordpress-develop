@@ -1976,10 +1976,11 @@ final class WP_Theme implements ArrayAccess {
 			return false;
 		}
 
+		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
 		if ( wp_using_ext_object_cache() ) {
-			$pattern_data = wp_cache_get( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+			$pattern_data = wp_cache_get( $cache_key, 'theme_files' );
 		} else {
-			$pattern_data = get_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
+			$pattern_data = get_site_transient( 'theme_files_' . $cache_key );
 		}
 
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
@@ -2002,22 +2003,14 @@ final class WP_Theme implements ArrayAccess {
 			'patterns' => $patterns,
 		);
 
-		/**
-		 * Filters whether to cache theme files persistently.
-		 *
-		 * @since 6.6.0
-		 *
-		 * @param bool   $cache_expiration Expiration time for the cache. Setting a value to `false` would bypass caching. Default `WP_Theme::$cache_expiration`.
-		 * @param string $context          Additional context for better cache control.
-		 */
-		$cache_expiration = apply_filters( 'wp_cache_theme_files_persistently', self::$cache_expiration, 'theme_block_patterns' );
+		/** This filter is documented in wp-includes/theme.php */
+		$cache_expiration = apply_filters( 'wp_cache_themes_persistently', self::$cache_expiration, 'theme_block_patterns' );
 
-		if ( false !== $cache_expiration ) {
-			if ( wp_using_ext_object_cache() ) {
-				wp_cache_set( 'wp_theme_patterns_' . $this->stylesheet, $pattern_data, 'theme_files', $cache_expiration );
-			} else {
-				set_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet, $pattern_data, $cache_expiration );
-			}
+		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_set( $cache_key, $pattern_data, 'theme_files', $cache_expiration );
+		} else {
+			set_site_transient( 'theme_files_' . $cache_key, $pattern_data, $cache_expiration );
 		}
 	}
 
@@ -2028,10 +2021,11 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.6.0 Adds support for transient caching.
 	 */
 	public function delete_pattern_cache() {
+		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
 		if ( wp_using_ext_object_cache() ) {
-			wp_cache_delete( 'wp_theme_patterns_' . $this->stylesheet, 'theme_files' );
+			wp_cache_delete( $cache_key, 'theme_files' );
 		} else {
-			delete_site_transient( 'theme_files_wp_theme_patterns_' . $this->stylesheet );
+			delete_site_transient( 'theme_files_' . $cache_key );
 		}
 	}
 

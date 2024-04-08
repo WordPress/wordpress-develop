@@ -261,7 +261,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$theme = wp_get_theme( 'block-theme-patterns' );
 		$theme->get_block_patterns();
 
-		$transient_key   = 'theme_files_wp_theme_patterns_' . $theme->get_stylesheet();
+		$transient_key   = 'theme_files_wp_theme_patterns_' . md5( $theme->get_stylesheet() );
 		$transient_value = get_site_transient( $transient_key );
 
 		$this->assertSameSets(
@@ -280,21 +280,6 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$this->assertNotEmpty(
 			$this->get_pattern_cache( $theme ),
 			'The cache for block theme patterns is empty.'
-		);
-	}
-
-	/**
-	 * @ticket 59600
-	 */
-	public function test_wp_cache_theme_files_persistently_disable_cache() {
-		add_filter( 'wp_cache_theme_files_persistently', '__return_false' );
-		$theme = wp_get_theme( 'block-theme-patterns' );
-		$theme->delete_pattern_cache();
-		$theme->get_block_patterns();
-
-		$this->assertFalse(
-			$this->get_pattern_cache( $theme ),
-			'The cache for block theme patterns should have been empty.'
 		);
 	}
 }
