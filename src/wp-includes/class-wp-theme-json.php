@@ -1388,6 +1388,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.3.0 Reduced specificity for layout margin rules.
+	 * @since 6.5.1 Only output rules referencing content and wide sizes when values exist.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
 	 * @return string Layout styles for the block.
