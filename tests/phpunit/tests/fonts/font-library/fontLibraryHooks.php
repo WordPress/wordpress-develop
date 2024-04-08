@@ -73,13 +73,13 @@ class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 		$font_file_path = DIR_TESTDATA . '/fonts/' . $font_filename;
 
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		add_filter( 'upload_dir', 'wp_get_font_dir' );
+		add_filter( 'upload_dir', '_wp_filter_font_directory' );
 		$font_file = wp_upload_bits(
 			$font_filename,
 			null,
 			file_get_contents( $font_file_path )
 		);
-		remove_filter( 'upload_dir', 'wp_get_font_dir' );
+		remove_filter( 'upload_dir', '_wp_filter_font_directory' );
 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		return $font_file;
