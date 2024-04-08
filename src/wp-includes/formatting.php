@@ -4491,8 +4491,19 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 		return $url;
 	}
 
+	// html encode the url - what's encoded for HTML is valid in a URL displayed in HTML
+	// this ensures that e.g. /?date<today won't break
+	// basically this is what sanitize_text_field does too
+	$url = esc_html( $url );
+
 	$url = str_replace( ' ', '%20', ltrim( $url ) );
-	$url = preg_replace( '|[^a-z0-9-~+_.?#=!&;,/:%@$\|*\'()\[\]\\x80-\\xff]|i', '', $url );
+
+	// In <= HTML 4 href URIs must be escaped http://www.w3.org/TR/html4/appendix/notes.html#non-ascii-chars
+	// https://www.rfc-editor.org/rfc/rfc3987#section-3.1 or http://www.w3.org/TR/html4/appendix/notes.html#non-ascii-chars
+	// however this ship has sailed, since it was never correctly supported by WP
+	// in HTML 5 IRIs are allowed if Content-Encoding is UTF-8/16 https://www.w3.org/TR/2011/WD-html5-20110525/urls.html
+	// the browser will do the percent-encoding for us
+	$url = preg_replace( '|[^a-z0-9-~+_.?#=!&;,/:%@$*\'[\]()\\x80-\\xff]|i', '', $url );
 
 	if ( '' === $url ) {
 		return $url;
@@ -4603,7 +4614,8 @@ function esc_url_raw( $url, $protocols = null ) {
 }
 
 /**
- * Sanitizes a URL for database or redirect usage.
+ * Sanitizes a URL for database use.
+ * This will not produce valid URLs for HTTP redirects.
  *
  * @since 2.3.1
  * @since 2.8.0 Deprecated in favor of esc_url_raw().
