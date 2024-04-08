@@ -149,6 +149,7 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 /*
  * Improves spacing for the legacy Post Comments block.
  * https://core.trac.wordpress.org/ticket/57560
+ * https://core.trac.wordpress.org/ticket/59334
  */
 
 .wp-block-post-comments ol.commentlist ul.children {
@@ -158,4 +159,11 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
 
 .wp-block-post-comments ol.commentlist li.comment:not(:last-child) {
 	margin-bottom: 1rem;
+}
+
+.wp-block-post-comments .comment-reply-title > small::before {
+	content: "";
+	display: inline-block;
+	width: 0.5em;
+	height: 1em;
 }
