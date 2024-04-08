@@ -2004,7 +2004,7 @@ final class WP_Theme implements ArrayAccess {
 		);
 
 		/** This filter is documented in wp-includes/theme.php */
-		$cache_expiration = apply_filters( 'wp_cache_themes_persistently', self::$cache_expiration, 'theme_block_patterns' );
+		$cache_expiration = (int) apply_filters( 'wp_cache_themes_persistently', self::$cache_expiration, 'theme_block_patterns' );
 
 		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
 		if ( wp_using_ext_object_cache() ) {
