@@ -89,7 +89,7 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'       => array( 'wp-polyfill' ),
+		'react',
 		'react-dom'   => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
