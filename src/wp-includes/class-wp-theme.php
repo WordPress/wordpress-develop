@@ -1976,12 +1976,7 @@ final class WP_Theme implements ArrayAccess {
 			return false;
 		}
 
-		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
-		if ( wp_using_ext_object_cache() ) {
-			$pattern_data = wp_cache_get( $cache_key, 'theme_files' );
-		} else {
-			$pattern_data = get_site_transient( 'theme_files_' . $cache_key );
-		}
+		$pattern_data = get_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );
 
 		if ( is_array( $pattern_data ) && $pattern_data['version'] === $this->get( 'Version' ) ) {
 			return $pattern_data['patterns'];
@@ -2003,15 +1998,32 @@ final class WP_Theme implements ArrayAccess {
 			'patterns' => $patterns,
 		);
 
-		/** This filter is documented in wp-includes/theme.php */
-		$cache_expiration = (int) apply_filters( 'wp_cache_themes_persistently', self::$cache_expiration, 'theme_block_patterns' );
+		/**
+		 * Filters the cache expiration time for theme files.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param int    $cache_expiration Cache expiration time in seconds.
+		 * @param string $cache_type       Type of cache being set.
+		 */
+		$cache_expiration = apply_filters( 'wp_theme_files_cache_ttl', self::$cache_expiration, 'theme_block_patterns' );
 
-		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
-		if ( wp_using_ext_object_cache() ) {
-			wp_cache_set( $cache_key, $pattern_data, 'theme_files', $cache_expiration );
-		} else {
-			set_site_transient( 'theme_files_' . $cache_key, $pattern_data, $cache_expiration );
+		// We don't want to cache patterns infinitely.
+		if ( ! is_int( $cache_expiration ) || $cache_expiration <= 0 ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %1$s: The filter name.*/
+					__( 'The %1$s filter must return an integer value greater than 0.' ),
+					'<code>wp_theme_files_cache_ttl</code>',
+				),
+				'6.6.0'
+			);
+
+			$cache_expiration = self::$cache_expiration;
 		}
+
+		set_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash, $pattern_data, $cache_expiration );
 	}
 
 	/**
@@ -2021,12 +2033,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.6.0 Adds support for transient caching.
 	 */
 	public function delete_pattern_cache() {
-		$cache_key = 'wp_theme_patterns_' . md5( $this->stylesheet );
-		if ( wp_using_ext_object_cache() ) {
-			wp_cache_delete( $cache_key, 'theme_files' );
-		} else {
-			delete_site_transient( 'theme_files_' . $cache_key );
-		}
+		delete_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );
 	}
 
 	/**

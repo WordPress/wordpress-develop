@@ -58,6 +58,20 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test helper to access the private cache_hash method of a theme.
+	 *
+	 * @param WP_Theme $wp_theme A WP_Theme object.
+	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
+	 */
+	private function get_cache_hash( $wp_theme ) {
+		$reflection = new ReflectionProperty( get_class( $wp_theme ), 'cache_hash' );
+		$reflection->setAccessible( true );
+		$cache_hash = $reflection->getValue( $wp_theme );
+		$reflection->setAccessible( false );
+		return $cache_hash;
+	}
+
+	/**
 	 * @ticket 59490
 	 *
 	 * @dataProvider data_get_block_patterns
@@ -261,7 +275,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 		$theme = wp_get_theme( 'block-theme-patterns' );
 		$theme->get_block_patterns();
 
-		$transient_key   = 'theme_files_wp_theme_patterns_' . md5( $theme->get_stylesheet() );
+		$transient_key   = 'wp_theme_files_patterns-' . $this->get_cache_hash( $theme );
 		$transient_value = get_site_transient( $transient_key );
 
 		$this->assertSameSets(
