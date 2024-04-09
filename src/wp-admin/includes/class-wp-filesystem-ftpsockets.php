@@ -33,7 +33,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		$this->errors = new WP_Error();
 
 		// Check if possible to use ftp functions.
-		if ( ! include_once ABSPATH . 'wp-admin/includes/class-ftp.php' ) {
+		if ( ! require_once ABSPATH . 'wp-admin/includes/class-ftp.php' ) {
 			return;
 		}
 
@@ -368,13 +368,20 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * Moves a file.
+	 * Moves a file or directory.
+	 *
+	 * After moving files or directories, OPcache will need to be invalidated.
+	 *
+	 * If moving a directory fails, `copy_dir()` can be used for a recursive copy.
+	 *
+	 * Use `move_dir()` for moving directories with OPcache invalidation and a
+	 * fallback to `copy_dir()`.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $source      Path to the source file.
-	 * @param string $destination Path to the destination file.
-	 * @param bool   $overwrite   Optional. Whether to overwrite the destination file if it exists.
+	 * @param string $source      Path to the source file or directory.
+	 * @param string $destination Path to the destination file or directory.
+	 * @param bool   $overwrite   Optional. Whether to overwrite the destination if it exists.
 	 *                            Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -414,11 +421,22 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * Checks if a file or directory exists.
 	 *
 	 * @since 2.5.0
+	 * @since 6.3.0 Returns false for an empty path.
 	 *
 	 * @param string $path Path to file or directory.
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
+		/*
+		 * Check for empty path. If ftp::nlist() receives an empty path,
+		 * it checks the current working directory and may return true.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/33058.
+		 */
+		if ( '' === $path ) {
+			return false;
+		}
+
 		$list = $this->ftp->nlist( $path );
 
 		if ( empty( $list ) && $this->is_dir( $path ) ) {
@@ -605,18 +623,28 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @param bool   $recursive      Optional. Whether to recursively include file details in nested directories.
 	 *                               Default false.
 	 * @return array|false {
-	 *     Array of files. False if unable to list directory contents.
+	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type string $name        Name of the file or directory.
-	 *     @type string $perms       *nix representation of permissions.
-	 *     @type string $permsn      Octal representation of permissions.
-	 *     @type string $owner       Owner name or ID.
-	 *     @type int    $size        Size of file in bytes.
-	 *     @type int    $lastmodunix Last modified unix timestamp.
-	 *     @type mixed  $lastmod     Last modified month (3 letter) and day (without leading 0).
-	 *     @type int    $time        Last modified time.
-	 *     @type string $type        Type of resource. 'f' for file, 'd' for directory.
-	 *     @type mixed  $files       If a directory and `$recursive` is true, contains another array of files.
+	 *     @type array ...$0 {
+	 *         Array of file information. Note that some elements may not be available on all filesystems.
+	 *
+	 *         @type string           $name        Name of the file or directory.
+	 *         @type string           $perms       *nix representation of permissions.
+	 *         @type string           $permsn      Octal representation of permissions.
+	 *         @type int|string|false $number      File number. May be a numeric string. False if not available.
+	 *         @type string|false     $owner       Owner name or ID, or false if not available.
+	 *         @type string|false     $group       File permissions group, or false if not available.
+	 *         @type int|string|false $size        Size of file in bytes. May be a numeric string.
+	 *                                             False if not available.
+	 *         @type int|string|false $lastmodunix Last modified unix timestamp. May be a numeric string.
+	 *                                             False if not available.
+	 *         @type string|false     $lastmod     Last modified month (3 letters) and day (without leading 0), or
+	 *                                             false if not available.
+	 *         @type string|false     $time        Last modified time, or false if not available.
+	 *         @type string           $type        Type of resource. 'f' for file, 'd' for directory, 'l' for link.
+	 *         @type array|false      $files       If a directory and `$recursive` is true, contains another array of
+	 *                                             files. False if unable to list directory contents.
+	 *     }
 	 * }
 	 */
 	public function dirlist( $path = '.', $include_hidden = true, $recursive = false ) {
@@ -638,7 +666,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return false;
 		}
 
-		$ret = array();
+		$path = trailingslashit( $path );
+		$ret  = array();
 
 		foreach ( $list as $struc ) {
 
@@ -656,7 +685,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 			if ( 'd' === $struc['type'] ) {
 				if ( $recursive ) {
-					$struc['files'] = $this->dirlist( $path . '/' . $struc['name'], $include_hidden, $recursive );
+					$struc['files'] = $this->dirlist( $path . $struc['name'], $include_hidden, $recursive );
 				} else {
 					$struc['files'] = array();
 				}

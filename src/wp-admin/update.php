@@ -107,7 +107,7 @@ if ( isset( $_GET['action'] ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
 		}
 
-		include_once ABSPATH . 'wp-admin/includes/plugin-install.php'; // For plugins_api().
+		require_once ABSPATH . 'wp-admin/includes/plugin-install.php'; // For plugins_api().
 
 		check_admin_referer( 'install-plugin_' . $plugin );
 		$api = plugins_api(
@@ -153,6 +153,10 @@ if ( isset( $_GET['action'] ) ) {
 		}
 
 		check_admin_referer( 'plugin-upload' );
+
+		if ( isset( $_FILES['pluginzip']['name'] ) && ! str_ends_with( strtolower( $_FILES['pluginzip']['name'] ), '.zip' ) ) {
+			wp_die( __( 'Only .zip archives may be uploaded.' ) );
+		}
 
 		$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
 
@@ -258,7 +262,7 @@ if ( isset( $_GET['action'] ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
 		}
 
-		include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php'; // For themes_api().
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php'; // For themes_api().
 
 		check_admin_referer( 'install-theme_' . $theme );
 		$api = themes_api(
@@ -301,6 +305,10 @@ if ( isset( $_GET['action'] ) ) {
 		}
 
 		check_admin_referer( 'theme-upload' );
+
+		if ( isset( $_FILES['themezip']['name'] ) && ! str_ends_with( strtolower( $_FILES['themezip']['name'] ), '.zip' ) ) {
+			wp_die( __( 'Only .zip archives may be uploaded.' ) );
+		}
 
 		$file_upload = new File_Upload_Upgrader( 'themezip', 'package' );
 

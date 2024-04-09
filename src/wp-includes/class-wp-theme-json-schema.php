@@ -138,11 +138,9 @@ class WP_Theme_JSON_Schema {
 	 *
 	 * @param array $settings Reference to the current settings array.
 	 * @param array $path Path to the property to be removed.
-	 *
-	 * @return void
 	 */
 	private static function unset_setting_by_path( &$settings, $path ) {
-		$tmp_settings = &$settings; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		$tmp_settings = &$settings;
 		$last_key     = array_pop( $path );
 		foreach ( $path as $key ) {
 			$tmp_settings = &$tmp_settings[ $key ];
