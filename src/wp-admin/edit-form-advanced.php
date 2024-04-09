@@ -529,6 +529,16 @@ do_action( 'edit_form_top', $post );
 <div id="poststuff">
 <div id="post-body" class="metabox-holder columns-<?php echo ( 1 === get_current_screen()->get_columns() ) ? '1' : '2'; ?>">
 <div id="post-body-content">
+<?php
+/**
+ * Fires before the title field.
+ *
+ * @since 6.5.1
+ *
+ * @param WP_Post $post Post object.
+ */
+do_action( 'edit_form_before_title', $post );
+?>
 
 <?php if ( post_type_supports( $post_type, 'title' ) ) { ?>
 <div id="titlediv">
