@@ -1613,6 +1613,8 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
+			'build/wp-includes/js/dist/block-editor.js',
+			'build/wp-includes/js/dist/block-editor.min.js',
 			'build/wp-includes/js/dist/components.js'
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
