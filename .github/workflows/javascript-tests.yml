@@ -79,6 +79,56 @@ jobs:
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
 
+  test-build-dev:
+    name: Test building for development
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Build WordPress for development
+        run: npm run grunt build:dev
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+  test-build:
+    name: Test building for production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run grunt build
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
   slack-notifications:
     name: Slack Notifications
     uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
