@@ -103,7 +103,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
 		'wp-polyfill-inert',
-		'wp-polyfill' => array( 'wp-polyfill-inert', 'regenerator-runtime' ),
+		'wp-polyfill' => array( 'regenerator-runtime' ),
 	);
 
 	$vendor_scripts_versions = array(
