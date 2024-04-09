@@ -23,7 +23,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const dynamicBlockFolders = [
 		'archives',
-		'avatar',
 		'block',
 		'calendar',
 		'categories',
