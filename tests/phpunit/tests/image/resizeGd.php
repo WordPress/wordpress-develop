@@ -5,6 +5,8 @@
  * @group media
  * @group upload
  * @group resize
+ *
+ * @requires function imagejpeg
  */
 require_once __DIR__ . '/resize.php';
 
@@ -17,12 +19,12 @@ class Test_Image_Resize_GD extends WP_Tests_Image_Resize_UnitTestCase {
 	 */
 	public $editor_engine = 'WP_Image_Editor_GD';
 
-	public function setUp() {
+	public function set_up() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
 		// This needs to come after the mock image editor class is loaded.
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**
@@ -36,5 +38,4 @@ class Test_Image_Resize_GD extends WP_Tests_Image_Resize_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $image );
 		$this->assertSame( 'invalid_image', $image->get_error_code() );
 	}
-
 }

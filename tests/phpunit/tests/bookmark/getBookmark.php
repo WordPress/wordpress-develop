@@ -33,9 +33,9 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * Reset globals after each test.
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		unset( $GLOBALS['link'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -228,8 +228,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$actual_bookmark = get_bookmark( ...$args );
 
 		/*
-		 * For non-array output type, use assetEquals. Why? The object pulled from cache will have the same
-		 * property values but will be a different object than the expected object.
+		 * For non-array output type, use assertEquals(). Why? The object pulled from the cache
+		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
@@ -286,8 +286,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$actual_bookmark = get_bookmark( ...$args );
 
 		/*
-		 * For non-array output type, use assetEquals. Why? The object pulled from the database will have the same
-		 * property values but will be a different object than the expected object.
+		 * For non-array output type, use assertEquals(). Why? The object pulled from the database
+		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
@@ -338,6 +338,20 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	/**
+	 * @ticket 53235
+	 */
+	public function test_numeric_properties_should_be_cast_to_ints() {
+		$contexts = array( 'raw', 'edit', 'db', 'display', 'attribute', 'js' );
+
+		foreach ( $contexts as $context ) {
+			$bookmark = get_bookmark( self::$bookmark->link_id, OBJECT, $context );
+
+			$this->assertIsInt( $bookmark->link_id );
+			$this->assertIsInt( $bookmark->link_rating );
+		}
 	}
 
 	/**

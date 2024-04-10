@@ -2,8 +2,16 @@
 
 /**
  * @group comment
+ *
+ * @covers ::comment_form
  */
 class Tests_Comment_CommentForm extends WP_UnitTestCase {
+	public static $post_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$post_id = $factory->post->create();
+	}
+
 	public function test_default_markup_for_submit_button_and_wrapper() {
 		$p = self::factory()->post->create();
 
@@ -18,7 +26,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertRegExp( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	public function test_custom_submit_button() {
@@ -35,7 +43,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$form = get_echo( 'comment_form', array( $args, $p ) );
 
 		$button = '<input name="custom-foo-name" type="submit" id="custom-foo-id" class="custom-foo-class" value="custom-foo-label" />';
-		$this->assertContains( $button, $form );
+		$this->assertStringContainsString( $button, $form );
 	}
 
 	public function test_custom_submit_field() {
@@ -53,7 +61,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertRegExp( '|<p class="my\-custom\-submit\-field">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="my\-custom\-submit\-field">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	/**
@@ -75,7 +83,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$button = '<input name="foo-name" type="submit" id="foo-id" class="foo-class" value="foo-label" />';
 		$hidden = get_comment_id_fields( $p );
-		$this->assertRegExp( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="form\-submit">\s*' . $button . '\s*' . $hidden . '\s*|', $form );
 	}
 
 	public function filter_comment_form_defaults( $defaults ) {
@@ -102,7 +110,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		remove_filter( 'option_show_comments_cookies_opt_in', '__return_true' );
 
-		$this->assertRegExp( '|<p class="comment\-form\-cookies\-consent">.*?</p>|', $form );
+		$this->assertMatchesRegularExpression( '|<p class="comment\-form\-cookies\-consent">.*?</p>|', $form );
 	}
 
 	/**
@@ -113,7 +121,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$form_with_aria = get_echo( 'comment_form', array( array(), $p ) );
 
-		$this->assertContains( 'aria-describedby="email-notes"', $form_with_aria );
+		$this->assertStringContainsString( 'aria-describedby="email-notes"', $form_with_aria );
 
 		$args = array(
 			'comment_notes_before' => '',
@@ -121,6 +129,68 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		$form_without_aria = get_echo( 'comment_form', array( $args, $p ) );
 
-		$this->assertNotContains( 'aria-describedby="email-notes"', $form_without_aria );
+		$this->assertStringNotContainsString( 'aria-describedby="email-notes"', $form_without_aria );
+	}
+
+	/**
+	 * @ticket 32767
+	 */
+	public function test_when_thread_comments_enabled() {
+		update_option( 'thread_comments', true );
+
+		$form     = get_echo( 'comment_form', array( array(), self::$post_id ) );
+		$expected = '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Cancel reply</a>';
+		$this->assertStringContainsString( $expected, $form );
+	}
+
+	/**
+	 * @ticket 32767
+	 */
+	public function test_when_thread_comments_disabled() {
+		delete_option( 'thread_comments' );
+
+		$form     = get_echo( 'comment_form', array( array(), self::$post_id ) );
+		$expected = '<a rel="nofollow" id="cancel-comment-reply-link" href="#respond" style="display:none;">Cancel reply</a>';
+		$this->assertStringNotContainsString( $expected, $form );
+	}
+
+	/**
+	 * @ticket 56243
+	 */
+	public function test_comment_form_should_not_display_for_global_post_when_called_with_invalid_id() {
+		// Go to permalink to ensure global post ID is set.
+		$this->go_to( get_permalink( self::$post_id ) );
+
+		$impossibly_high_post_id = PHP_INT_MAX;
+
+		$form = get_echo( 'comment_form', array( array(), $impossibly_high_post_id ) );
+		$this->assertEmpty( $form );
+	}
+
+	/**
+	 * @ticket 56243
+	 */
+	public function test_comment_form_should_display_for_global_post_with_falsey_post_id() {
+		$post_id = self::$post_id;
+		$this->go_to( get_permalink( $post_id ) );
+
+		$form = get_echo( 'comment_form', array( array(), false ) );
+		$this->assertNotEmpty( $form );
+
+		$post_hidden_field = "<input type='hidden' name='comment_post_ID' value='{$post_id}' id='comment_post_ID' />";
+		$this->assertStringContainsString( $post_hidden_field, $form );
+	}
+
+	/**
+	 * @ticket 56243
+	 */
+	public function test_comment_form_should_display_for_specified_post_when_passed_a_valid_post_id() {
+		$post_id = self::$post_id;
+
+		$form = get_echo( 'comment_form', array( array(), $post_id ) );
+		$this->assertNotEmpty( $form );
+
+		$post_hidden_field = "<input type='hidden' name='comment_post_ID' value='{$post_id}' id='comment_post_ID' />";
+		$this->assertStringContainsString( $post_hidden_field, $form );
 	}
 }

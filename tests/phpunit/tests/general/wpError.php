@@ -20,8 +20,8 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	/**
 	 * Set up.
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->wp_error = new WP_Error();
 	}

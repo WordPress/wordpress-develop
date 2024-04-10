@@ -13,8 +13,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		'args'        => array(),
 	);
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -94,7 +94,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
 		$actual = update_term_meta( $t, 'foo', 'bar' );
-		$this->assertInternalType( 'int', $actual );
+		$this->assertIsInt( $actual );
 		$this->assertNotEmpty( $actual );
 
 		$meta = get_term_meta( $t, 'foo', true );
@@ -114,11 +114,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	}
 
 	public function test_term_meta_should_be_lazy_loaded_for_all_terms_in_wp_query_loop() {
-		global $wpdb;
-
-		// Clear any previous term IDs from the queue.
-		wp_metadata_lazyloader()->reset_queue( 'term' );
-
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -142,20 +137,20 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				the_post();
 
 				// First request will hit the database.
-				$num_queries = $wpdb->num_queries;
+				$num_queries = get_num_queries();
 				$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
-				$num_queries++;
-				$this->assertSame( $num_queries, $wpdb->num_queries );
+				++$num_queries;
+				$this->assertSame( $num_queries, get_num_queries() );
 
 				// Second and third requests should be in cache.
 				$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
 				$this->assertSame( 'bar', get_term_meta( $terms[2], 'foo', true ) );
-				$this->assertSame( $num_queries, $wpdb->num_queries );
+				$this->assertSame( $num_queries, get_num_queries() );
 
 				// Querying a term not primed should result in a hit.
-				$num_queries++;
+				++$num_queries;
 				$this->assertSame( 'bar', get_term_meta( $orphan_term, 'foo', true ) );
-				$this->assertSame( $num_queries, $wpdb->num_queries );
+				$this->assertSame( $num_queries, get_num_queries() );
 			}
 		}
 	}
@@ -189,8 +184,6 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 	 * @ticket 36593
 	 */
 	public function test_lazy_load_term_meta_false() {
-		global $wpdb;
-
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -199,7 +192,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		foreach ( $terms as $t ) {
 			add_term_meta( $t, 'foo', 'bar' );
 		}
-
+		$this->reset_lazyload_queue();
 		$q = new WP_Query(
 			array(
 				'cache_results'          => true,
@@ -213,14 +206,14 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				$q->the_post();
 
 				// Requests will hit the database.
-				$num_queries = $wpdb->num_queries;
+				$num_queries = get_num_queries();
 				$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
-				$num_queries++;
-				$this->assertSame( $num_queries, $wpdb->num_queries );
+				++$num_queries;
+				$this->assertSame( $num_queries, get_num_queries() );
 
 				$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
-				$num_queries++;
-				$this->assertSame( $num_queries, $wpdb->num_queries );
+				++$num_queries;
+				$this->assertSame( $num_queries, get_num_queries() );
 			}
 		}
 	}
@@ -455,7 +448,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$term_meta_id = add_term_meta( $t, 'foo', 'bar' );
 		$meta         = has_term_meta( $t );
 
-		$this->assertSame( 1, count( $meta ) );
+		$this->assertCount( 1, $meta );
 
 		$expected = array(
 			'meta_key'   => 'foo',
@@ -549,7 +542,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 
-		$this->assertInternalType( 'integer', add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertIsInt( add_metadata( 'term', $term_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
 	}
 
@@ -561,7 +554,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 
-		$this->assertInternalType( 'integer', update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertIsInt( update_metadata( 'term', $term_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
 	}
 

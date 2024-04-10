@@ -25,6 +25,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		$widget_ops = array(
 			'description'                 => __( 'Add a navigation menu to your sidebar.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		parent::__construct( 'nav_menu', __( 'Navigation Menu' ), $widget_ops );
 	}
@@ -170,8 +171,12 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 				$url = admin_url( 'nav-menus.php' );
 			}
 
-			/* translators: %s: URL to create a new menu. */
-			printf( __( 'No menus have been created yet. <a href="%s">Create some</a>.' ), esc_attr( $url ) );
+			printf(
+				/* translators: %s: URL to create a new menu. */
+				__( 'No menus have been created yet. <a href="%s">Create some</a>.' ),
+				// The URL can be a `javascript:` link, so esc_attr() is used here instead of esc_url().
+				esc_attr( $url )
+			);
 			?>
 		</p>
 		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>

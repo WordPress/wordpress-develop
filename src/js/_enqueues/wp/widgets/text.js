@@ -161,7 +161,7 @@ wp.textWidgets = ( function( $ ) {
 					control.fields.text.val( syncInput.val() );
 				}
 			} else if ( control.editor && ! control.editorFocused && syncInput.val() !== control.fields.text.val() ) {
-				control.editor.setContent( wp.editor.autop( syncInput.val() ) );
+				control.editor.setContent( wp.oldEditor.autop( syncInput.val() ) );
 			}
 		},
 
@@ -237,7 +237,7 @@ wp.textWidgets = ( function( $ ) {
 
 				// The user has disabled TinyMCE.
 				if ( typeof window.tinymce === 'undefined' ) {
-					wp.editor.initialize( id, {
+					wp.oldEditor.initialize( id, {
 						quicktags: true,
 						mediaButtons: true
 					});
@@ -248,7 +248,7 @@ wp.textWidgets = ( function( $ ) {
 				// Destroy any existing editor so that it can be re-initialized after a widget-updated event.
 				if ( tinymce.get( id ) ) {
 					restoreTextMode = tinymce.get( id ).isHidden();
-					wp.editor.remove( id );
+					wp.oldEditor.remove( id );
 				}
 
 				// Add or enable the `wpview` plugin.
@@ -262,7 +262,7 @@ wp.textWidgets = ( function( $ ) {
 					}
 				} );
 
-				wp.editor.initialize( id, {
+				wp.oldEditor.initialize( id, {
 					tinymce: {
 						wpautop: true
 					},
@@ -291,7 +291,7 @@ wp.textWidgets = ( function( $ ) {
 				onInit = function() {
 
 					// When a widget is moved in the DOM the dynamically-created TinyMCE iframe will be destroyed and has to be re-built.
-					$( editor.getWin() ).on( 'unload', function() {
+					$( editor.getWin() ).on( 'pagehide', function() {
 						_.defer( buildEditor );
 					});
 

@@ -4,12 +4,10 @@
  *
  * Also generates the fixture data used by the wp-api.js QUnit tests.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST API
- * @since      5.6.0
- */
-
-/**
+ * @since 5.6.0
+ *
  * @group restapi
  */
 class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
@@ -98,5 +96,50 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 		wp_set_current_user( self::$admin );
 		$response = rest_do_request( '/wp-site-health/v1/tests/dotorg-communication' );
 		$this->assertSame( 'dotorg_communication', $response->get_data()['test'] );
+	}
+
+	/**
+	 * Tests Page Cache Rest endpoint registration.
+	 *
+	 * @ticket 56041
+	 */
+	public function test_page_cache_endpoint() {
+		$server = rest_get_server();
+		$routes = $server->get_routes();
+
+		$endpoint = '/wp-site-health/v1/tests/page-cache';
+		$this->assertArrayHasKey( $endpoint, $routes );
+
+		$route = $routes[ $endpoint ];
+		$this->assertCount( 1, $route );
+
+		$route = current( $route );
+		$this->assertSame(
+			array( WP_REST_Server::READABLE => true ),
+			$route['methods']
+		);
+
+		$this->assertSame(
+			'test_page_cache',
+			$route['callback'][1]
+		);
+
+		$this->assertIsCallable( $route['permission_callback'] );
+
+		if ( current_user_can( 'view_site_health_checks' ) ) {
+			$this->assertTrue( call_user_func( $route['permission_callback'] ) );
+		} else {
+			$this->assertFalse( call_user_func( $route['permission_callback'] ) );
+		}
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		$this->assertFalse( call_user_func( $route['permission_callback'] ) );
+
+		$user = wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		if ( is_multisite() ) {
+			// Site health cap is only available for super admins in Multi sites.
+			grant_super_admin( $user->ID );
+		}
+		$this->assertTrue( call_user_func( $route['permission_callback'] ) );
 	}
 }

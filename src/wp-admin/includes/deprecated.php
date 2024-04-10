@@ -77,11 +77,11 @@ function get_udims( $width, $height ) {
  *
  * @global int $post_ID
  *
- * @param int $default       Unused.
- * @param int $parent        Unused.
- * @param array $popular_ids Unused.
+ * @param int   $default_category Unused.
+ * @param int   $category_parent  Unused.
+ * @param array $popular_ids      Unused.
  */
-function dropdown_categories( $default = 0, $parent = 0, $popular_ids = array() ) {
+function dropdown_categories( $default_category = 0, $category_parent = 0, $popular_ids = array() ) {
 	_deprecated_function( __FUNCTION__, '2.6.0', 'wp_category_checklist()' );
 	global $post_ID;
 	wp_category_checklist( $post_ID );
@@ -96,9 +96,9 @@ function dropdown_categories( $default = 0, $parent = 0, $popular_ids = array() 
  *
  * @global int $link_id
  *
- * @param int $default Unused.
+ * @param int $default_link_category Unused.
  */
-function dropdown_link_categories( $default = 0 ) {
+function dropdown_link_categories( $default_link_category = 0 ) {
 	_deprecated_function( __FUNCTION__, '2.6.0', 'wp_link_category_checklist()' );
 	global $link_id;
 	wp_link_category_checklist( $link_id );
@@ -127,28 +127,28 @@ function get_real_file_to_edit( $file ) {
  * @deprecated 3.0.0 Use wp_dropdown_categories()
  * @see wp_dropdown_categories()
  *
- * @param int $currentcat    Optional. ID of the current category. Default 0.
- * @param int $currentparent Optional. Current parent category ID. Default 0.
- * @param int $parent        Optional. Parent ID to retrieve categories for. Default 0.
- * @param int $level         Optional. Number of levels deep to display. Default 0.
- * @param array $categories  Optional. Categories to include in the control. Default 0.
+ * @param int $current_cat     Optional. ID of the current category. Default 0.
+ * @param int $current_parent  Optional. Current parent category ID. Default 0.
+ * @param int $category_parent Optional. Parent ID to retrieve categories for. Default 0.
+ * @param int $level           Optional. Number of levels deep to display. Default 0.
+ * @param array $categories    Optional. Categories to include in the control. Default 0.
  * @return void|false Void on success, false if no categories were found.
  */
-function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $level = 0, $categories = 0 ) {
+function wp_dropdown_cats( $current_cat = 0, $current_parent = 0, $category_parent = 0, $level = 0, $categories = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_dropdown_categories()' );
 	if (!$categories )
 		$categories = get_categories( array('hide_empty' => 0) );
 
 	if ( $categories ) {
 		foreach ( $categories as $category ) {
-			if ( $currentcat != $category->term_id && $parent == $category->parent) {
+			if ( $current_cat != $category->term_id && $category_parent == $category->parent) {
 				$pad = str_repeat( '&#8211; ', $level );
 				$category->name = esc_html( $category->name );
 				echo "\n\t<option value='$category->term_id'";
-				if ( $currentparent == $category->term_id )
+				if ( $current_parent == $category->term_id )
 					echo " selected='selected'";
 				echo ">$pad$category->name</option>";
-				wp_dropdown_cats( $currentcat, $currentparent, $category->term_id, $level +1, $categories );
+				wp_dropdown_cats( $current_cat, $current_parent, $category->term_id, $level +1, $categories );
 			}
 		}
 	} else {
@@ -163,11 +163,11 @@ function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $le
  * @deprecated 3.0.0 Use register_setting()
  * @see register_setting()
  *
- * @param string $option_group A settings group name. Should correspond to an allowed option key name.
- *                             Default allowed option key names include 'general', 'discussion', 'media',
- *                             'reading', 'writing', 'misc', 'options', and 'privacy'.
- * @param string $option_name The name of an option to sanitize and save.
- * @param callable $sanitize_callback A callback function that sanitizes the option's value.
+ * @param string   $option_group      A settings group name. Should correspond to an allowed option key name.
+ *                                    Default allowed option key names include 'general', 'discussion', 'media',
+ *                                    'reading', 'writing', and 'options'.
+ * @param string   $option_name       The name of an option to sanitize and save.
+ * @param callable $sanitize_callback Optional. A callback function that sanitizes the option's value.
  */
 function add_option_update_handler( $option_group, $option_name, $sanitize_callback = '' ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'register_setting()' );
@@ -181,9 +181,9 @@ function add_option_update_handler( $option_group, $option_name, $sanitize_callb
  * @deprecated 3.0.0 Use unregister_setting()
  * @see unregister_setting()
  *
- * @param string $option_group
- * @param string $option_name
- * @param callable $sanitize_callback
+ * @param string   $option_group      The settings group name used during registration.
+ * @param string   $option_name       The name of the option to unregister.
+ * @param callable $sanitize_callback Optional. Deprecated.
  */
 function remove_option_update_handler( $option_group, $option_name, $sanitize_callback = '' ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'unregister_setting()' );
@@ -197,17 +197,17 @@ function remove_option_update_handler( $option_group, $option_name, $sanitize_ca
  * @deprecated 3.0.0
  *
  * @param string $filename
-**/
+ */
 function codepress_get_lang( $filename ) {
 	_deprecated_function( __FUNCTION__, '3.0.0' );
 }
 
 /**
- * Adds JavaScript required to make CodePress work on the theme/plugin editors.
+ * Adds JavaScript required to make CodePress work on the theme/plugin file editors.
  *
  * @since 2.8.0
  * @deprecated 3.0.0
-**/
+ */
 function codepress_footer_js() {
 	_deprecated_function( __FUNCTION__, '3.0.0' );
 }
@@ -217,7 +217,7 @@ function codepress_footer_js() {
  *
  * @since 2.8.0
  * @deprecated 3.0.0
-**/
+ */
 function use_codepress() {
 	_deprecated_function( __FUNCTION__, '3.0.0' );
 }
@@ -493,7 +493,7 @@ class WP_User_Search {
 	 * @return WP_User_Search
 	 */
 	function __construct( $search_term = '', $page = '', $role = '' ) {
-		_deprecated_function( __FUNCTION__, '3.1.0', 'WP_User_Query' );
+		_deprecated_class( 'WP_User_Search', '3.1.0', 'WP_User_Query' );
 
 		$this->search_term = wp_unslash( $search_term );
 		$this->raw_page = ( '' == $page ) ? false : (int) $page;
@@ -516,6 +516,7 @@ class WP_User_Search {
 	 * @return WP_User_Search
 	 */
 	public function WP_User_Search( $search_term = '', $page = '', $role = '' ) {
+		_deprecated_constructor( 'WP_User_Search', '3.1.0', get_class( $this ) );
 		self::__construct( $search_term, $page, $role );
 	}
 
@@ -524,6 +525,8 @@ class WP_User_Search {
 	 *
 	 * @since 2.1.0
 	 * @access public
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function prepare_query() {
 		global $wpdb;
@@ -562,6 +565,8 @@ class WP_User_Search {
 	 *
 	 * @since 2.1.0
 	 * @access public
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
 	public function query() {
 		global $wpdb;
@@ -1147,7 +1152,7 @@ function wp_nav_menu_locations_meta_box() {
 /**
  * This was once used to kick-off the Core Updater.
  *
- * Deprecated in favor of instantating a Core_Upgrader instance directly,
+ * Deprecated in favor of instantiating a Core_Upgrader instance directly,
  * and calling the 'upgrade' method.
  *
  * @since 2.7.0
@@ -1169,7 +1174,7 @@ function wp_update_core($current, $feedback = '') {
 /**
  * This was once used to kick-off the Plugin Updater.
  *
- * Deprecated in favor of instantating a Plugin_Upgrader instance directly,
+ * Deprecated in favor of instantiating a Plugin_Upgrader instance directly,
  * and calling the 'upgrade' method.
  * Unused since 2.8.0.
  *
@@ -1361,7 +1366,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 			// Is this random plugin's slug already installed? If so, try again.
 			reset( $plugin_slugs );
 			foreach ( $plugin_slugs as $plugin_slug ) {
-				if ( $slug == substr( $plugin_slug, 0, strlen( $slug ) ) ) {
+				if ( str_starts_with( $plugin_slug, $slug ) ) {
 					unset( $items[$item_key] );
 					continue 2;
 				}
@@ -1372,7 +1377,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		}
 
 		// Eliminate some common badly formed plugin descriptions.
-		while ( ( null !== $item_key = array_rand($items) ) && false !== strpos( $items[$item_key]->get_description(), 'Plugin Name:' ) )
+		while ( ( null !== $item_key = array_rand($items) ) && str_contains( $items[$item_key]->get_description(), 'Plugin Name:' ) )
 			unset($items[$item_key]);
 
 		if ( !isset($items[$item_key]) )
@@ -1426,18 +1431,18 @@ function _relocate_children( $old_ID, $new_ID ) {
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   The function to be called to output the content for this page.
- * @param string   $icon_url   The url to the icon to be used for this menu.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
+ * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
  * @return string The resulting page's hook_suffix.
  */
-function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '') {
+function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
 
 	global $_wp_last_object_menu;
 
 	$_wp_last_object_menu++;
 
-	return add_menu_page($page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $_wp_last_object_menu);
+	return add_menu_page($page_title, $menu_title, $capability, $menu_slug, $callback, $icon_url, $_wp_last_object_menu);
 }
 
 /**
@@ -1459,18 +1464,18 @@ function add_object_page( $page_title, $menu_title, $capability, $menu_slug, $fu
  * @param string   $menu_title The text to be used for the menu.
  * @param string   $capability The capability required for this menu to be displayed to the user.
  * @param string   $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
- * @param callable $function   The function to be called to output the content for this page.
- * @param string   $icon_url   The url to the icon to be used for this menu.
+ * @param callable $callback   Optional. The function to be called to output the content for this page.
+ * @param string   $icon_url   Optional. The URL to the icon to be used for this menu.
  * @return string The resulting page's hook_suffix.
  */
-function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $function = '', $icon_url = '') {
+function add_utility_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '') {
 	_deprecated_function( __FUNCTION__, '4.5.0', 'add_menu_page()' );
 
 	global $_wp_last_utility_menu;
 
 	$_wp_last_utility_menu++;
 
-	return add_menu_page($page_title, $menu_title, $capability, $menu_slug, $function, $icon_url, $_wp_last_utility_menu);
+	return add_menu_page($page_title, $menu_title, $capability, $menu_slug, $callback, $icon_url, $_wp_last_utility_menu);
 }
 
 /**
@@ -1507,7 +1512,7 @@ function post_form_autocomplete_off() {
 function options_permalink_add_js() {
 	?>
 	<script type="text/javascript">
-		jQuery(document).ready(function() {
+		jQuery( function() {
 			jQuery('.permalink-structure input:radio').change(function() {
 				if ( 'custom' == this.value )
 					return;
@@ -1516,7 +1521,7 @@ function options_permalink_add_js() {
 			jQuery( '#permalink_structure' ).on( 'click input', function() {
 				jQuery( '#custom_selection' ).prop( 'checked', true );
 			});
-		});
+		} );
 	</script>
 	<?php
 }
@@ -1566,4 +1571,21 @@ class WP_Privacy_Data_Removal_Requests_Table extends WP_Privacy_Data_Removal_Req
  */
 function _wp_privacy_requests_screen_options() {
 	_deprecated_function( __FUNCTION__, '5.3.0' );
+}
+
+/**
+ * Was used to filter input from media_upload_form_handler() and to assign a default
+ * post_title from the file name if none supplied.
+ *
+ * @since 2.5.0
+ * @deprecated 6.0.0
+ *
+ * @param array $post       The WP_Post attachment object converted to an array.
+ * @param array $attachment An array of attachment metadata.
+ * @return array Attachment post object converted to an array.
+ */
+function image_attachment_fields_to_save( $post, $attachment ) {
+	_deprecated_function( __FUNCTION__, '6.0.0' );
+
+	return $post;
 }

@@ -354,6 +354,21 @@ window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
 window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
 
 /**
+ * Removed in 6.5.0, needed for back-compatibility.
+ *
+ * @since 4.5.0
+ * @deprecated 6.5.0
+ */
+window.uiAutocompleteL10n = window.uiAutocompleteL10n || {
+	noResults: '',
+	oneResult: '',
+	manyResults: '',
+	itemSelected: ''
+};
+
+window.uiAutocompleteL10n = deprecateL10nObject( 'uiAutocompleteL10n', window.uiAutocompleteL10n, '6.5.0' );
+
+/**
  * Removed in 3.3.0, needed for back-compatibility.
  *
  * @since 2.7.0
@@ -617,7 +632,7 @@ window.screenMeta = {
 		 * @return {void}
 		 */
 		panel.slideDown( 'fast', function() {
-			panel.trigger( 'focus' );
+			panel.removeClass( 'hidden' ).trigger( 'focus' );
 			button.addClass( 'screen-meta-active' ).attr( 'aria-expanded', true );
 		});
 
@@ -646,6 +661,7 @@ window.screenMeta = {
 			button.removeClass( 'screen-meta-active' ).attr( 'aria-expanded', false );
 			$('.screen-meta-toggle').css('visibility', '');
 			panel.parent().hide();
+			panel.addClass( 'hidden' );
 		});
 
 		$document.trigger( 'screen:options:close' );
@@ -751,8 +767,14 @@ $availableStructureTags.on( 'click', function() {
 	    selectionStart          = $permalinkStructure[ 0 ].selectionStart,
 	    selectionEnd            = $permalinkStructure[ 0 ].selectionEnd,
 	    textToAppend            = $( this ).text().trim(),
-	    textToAnnounce          = $( this ).attr( 'data-added' ),
+	    textToAnnounce,
 	    newSelectionStart;
+
+	if ( $( this ).hasClass( 'active' ) ) {
+		textToAnnounce = $( this ).attr( 'data-removed' );
+	} else {
+		textToAnnounce = $( this ).attr( 'data-added' );
+	}
 
 	// Remove structure tag if already part of the structure.
 	if ( -1 !== permalinkStructureValue.indexOf( textToAppend ) ) {
@@ -854,7 +876,7 @@ $( function() {
 		// Reset any compensation for submenus near the bottom of the screen.
 		$('#adminmenu div.wp-submenu').css('margin-top', '');
 
-		if ( viewportWidth < 960 ) {
+		if ( viewportWidth <= 960 ) {
 			if ( $body.hasClass('auto-fold') ) {
 				$body.removeClass('auto-fold').removeClass('folded');
 				setUserSetting('unfold', 1);
@@ -931,7 +953,7 @@ $( function() {
 			adjustment = maxtop;
 		}
 
-		if ( adjustment > 1 ) {
+		if ( adjustment > 1 && $('#wp-admin-bar-menu-toggle').is(':hidden') ) {
 			$submenu.css( 'margin-top', '-' + adjustment + 'px' );
 		} else {
 			$submenu.css( 'margin-top', '' );
@@ -1147,7 +1169,7 @@ $( function() {
 		lastClicked = this;
 
 		// Toggle the "Select all" checkboxes depending if the other ones are all checked or not.
-		var unchecked = $(this).closest('tbody').find(':checkbox').filter(':visible:enabled').not(':checked');
+		var unchecked = $(this).closest('tbody').find('tr.iedit').find(':checkbox').filter(':visible:enabled').not(':checked');
 
 		/**
 		 * Determines if all checkboxes are checked.
@@ -1309,7 +1331,7 @@ $( function() {
 	});
 
 	/**
-	 * Handles tab keypresses in theme and plugin editor textareas.
+	 * Handles tab keypresses in theme and plugin file editor textareas.
 	 *
 	 * @param {Event} e The event object.
 	 *
@@ -1400,8 +1422,8 @@ $( function() {
 	 * @return {void}
  	 */
 	$('#contextual-help-link, #show-settings-link').on( 'focus.scroll-into-view', function(e){
-		if ( e.target.scrollIntoView )
-			e.target.scrollIntoView(false);
+		if ( e.target.scrollIntoViewIfNeeded )
+			e.target.scrollIntoViewIfNeeded(false);
 	});
 
 	/**
@@ -1695,6 +1717,46 @@ $( function() {
 				}
 			} );
 
+			// Close sidebar when target moves outside of toggle and sidebar.
+			$( document ).on( 'click', function( event ) {
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) || ! document.hasFocus() ) {
+					return;
+				}
+
+				var focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], event.target );
+				var focusIsInSidebar = $.contains( $( '#adminmenuwrap' )[0], event.target );
+
+				if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+					$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+				}
+			} );
+
+			// Close sidebar when a keypress completes outside of toggle and sidebar.
+			$( document ).on( 'keyup', function( event ) {
+				var toggleButton   = $( '#wp-admin-bar-menu-toggle' )[0];
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
+				    return;
+				}
+				if ( 27 === event.keyCode ) {
+					$( toggleButton ).trigger( 'click.wp-responsive' );
+					$( toggleButton ).find( 'a' ).trigger( 'focus' );
+				} else {
+					if ( 9 === event.keyCode ) {
+						var sidebar        = $( '#adminmenuwrap' )[0];
+						var focusedElement = event.relatedTarget || document.activeElement;
+						// A brief delay is required to allow focus to switch to another element.
+						setTimeout( function() {
+							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
+							var focusIsInSidebar = $.contains( sidebar, focusedElement );
+							
+							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+								$( toggleButton ).trigger( 'click.wp-responsive' );
+							}
+						}, 10 );
+					}
+				}
+			});
+
 			// Add menu events.
 			$adminmenu.on( 'click.wp-responsive', 'li.wp-has-submenu > a', function( event ) {
 				if ( ! $adminmenu.data('wp-responsive') ) {
@@ -1702,13 +1764,14 @@ $( function() {
 				}
 
 				$( this ).parent( 'li' ).toggleClass( 'selected' );
+				$( this ).trigger( 'focus' );
 				event.preventDefault();
 			});
 
 			self.trigger();
 			$document.on( 'wp-window-resized.wp-responsive', this.trigger.bind( this ) );
 
-			// This needs to run later as UI Sortable may be initialized later on $(document).ready().
+			// This needs to run later as UI Sortable may be initialized when the document is ready.
 			$window.on( 'load.wp-responsive', this.maybeDisableSortables );
 			$document.on( 'postbox-toggled', this.maybeDisableSortables );
 
@@ -2077,3 +2140,123 @@ $( function( $ ) {
 })();
 
 }( jQuery, window ));
+
+/**
+ * Freeze animated plugin icons when reduced motion is enabled.
+ *
+ * When the user has enabled the 'prefers-reduced-motion' setting, this module
+ * stops animations for all GIFs on the page with the class 'plugin-icon' or
+ * plugin icon images in the update plugins table.
+ *
+ * @since 6.4.0
+ */
+(function() {
+	// Private variables and methods.
+	var priv = {},
+		pub = {},
+		mediaQuery;
+
+	// Initialize pauseAll to false; it will be set to true if reduced motion is preferred.
+	priv.pauseAll = false;
+	if ( window.matchMedia ) {
+		mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+		if ( ! mediaQuery || mediaQuery.matches ) {
+			priv.pauseAll = true;
+		}
+	}
+
+	// Method to replace animated GIFs with a static frame.
+	priv.freezeAnimatedPluginIcons = function( img ) {
+		var coverImage = function() {
+			var width = img.width;
+			var height = img.height;
+			var canvas = document.createElement( 'canvas' );
+
+			// Set canvas dimensions.
+			canvas.width = width;
+			canvas.height = height;
+
+			// Copy classes from the image to the canvas.
+			canvas.className = img.className;
+
+			// Check if the image is inside a specific table.
+			var isInsideUpdateTable = img.closest( '#update-plugins-table' );
+
+			if ( isInsideUpdateTable ) {
+				// Transfer computed styles from image to canvas.
+				var computedStyles = window.getComputedStyle( img ),
+					i, max;
+				for ( i = 0, max = computedStyles.length; i < max; i++ ) {
+					var propName = computedStyles[ i ];
+					var propValue = computedStyles.getPropertyValue( propName );
+					canvas.style[ propName ] = propValue;
+				}
+			}
+
+			// Draw the image onto the canvas.
+			canvas.getContext( '2d' ).drawImage( img, 0, 0, width, height );
+
+			// Set accessibility attributes on canvas.
+			canvas.setAttribute( 'aria-hidden', 'true' );
+			canvas.setAttribute( 'role', 'presentation' );
+
+			// Insert canvas before the image and set the image to be near-invisible.
+			var parent = img.parentNode;
+			parent.insertBefore( canvas, img );
+			img.style.opacity = 0.01;
+			img.style.width = '0px';
+			img.style.height = '0px';
+		};
+
+		// If the image is already loaded, apply the coverImage function.
+		if ( img.complete ) {
+			coverImage();
+		} else {
+			// Otherwise, wait for the image to load.
+			img.addEventListener( 'load', coverImage, true );
+		}
+	};
+
+	// Public method to freeze all relevant GIFs on the page.
+	pub.freezeAll = function() {
+		var images = document.querySelectorAll( '.plugin-icon, #update-plugins-table img' );
+		for ( var x = 0; x < images.length; x++ ) {
+			if ( /\.gif(?:\?|$)/i.test( images[ x ].src ) ) {
+				priv.freezeAnimatedPluginIcons( images[ x ] );
+			}
+		}
+	};
+
+	// Only run the freezeAll method if the user prefers reduced motion.
+	if ( true === priv.pauseAll ) {
+		pub.freezeAll();
+	}
+
+	// Listen for jQuery AJAX events.
+	( function( $ ) {
+		if ( window.pagenow === 'plugin-install' ) {
+			// Only listen for ajaxComplete if this is the plugin-install.php page.
+			$( document ).ajaxComplete( function( event, xhr, settings ) {
+
+				// Check if this is the 'search-install-plugins' request.
+				if ( settings.data && typeof settings.data === 'string' && settings.data.includes( 'action=search-install-plugins' ) ) {
+					// Recheck if the user prefers reduced motion.
+					if ( window.matchMedia ) {
+						var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+						if ( mediaQuery.matches ) {
+							pub.freezeAll();
+						}
+					} else {
+						// Fallback for browsers that don't support matchMedia.
+						if ( true === priv.pauseAll ) {
+							pub.freezeAll();
+						}
+					}
+				}
+			} );
+		}
+	} )( jQuery );
+
+	// Expose public methods.
+	return pub;
+})();

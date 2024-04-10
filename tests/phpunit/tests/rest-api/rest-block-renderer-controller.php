@@ -1,15 +1,9 @@
 <?php
 /**
- * WP_REST_Block_Renderer_Controller tests.
+ * Unit tests covering WP_REST_Block_Renderer_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.0.0
- */
-
-/**
- * Tests for WP_REST_Block_Renderer_Controller.
- *
  * @since 5.0.0
  *
  * @covers WP_REST_Block_Renderer_Controller
@@ -132,8 +126,8 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @since 5.0.0
 	 */
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		$this->register_test_block();
 		$this->register_post_context_test_block();
@@ -146,12 +140,12 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$dynamic_block_with_boolean_attributes_block_name );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -421,7 +415,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$data = $response->get_data();
 
 		$this->assertSame( $expected_attributes, json_decode( $data['rendered'], true ) );
-		$this->assertEquals(
+		$this->assertEqualSetsWithIndex(
 			json_decode( $block_type->render( $attributes ), true ),
 			json_decode( $data['rendered'], true )
 		);
@@ -435,7 +429,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	public function test_get_item_with_pre_render_block_filter() {
 		wp_set_current_user( self::$user_id );
 
-		$pre_render_filter = function( $output, $block ) {
+		$pre_render_filter = static function ( $output, $block ) {
 			if ( $block['blockName'] === self::$block_name ) {
 				return '<p>Alternate content.</p>';
 			}
@@ -478,7 +472,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertTrue( empty( $data['rendered'] ) );
+		$this->assertEmpty( $data['rendered'] );
 
 		// Now test with post ID.
 		$request->set_param( 'post_id', self::$post_id );
@@ -501,12 +495,12 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$attributes       = array( 'some_string' => $string_attribute );
 		$request          = new WP_REST_Request( 'POST', self::$rest_api_route . self::$block_name );
 		$request->set_param( 'context', 'edit' );
-		$request->set_header( 'content-type', 'application/json' );
+		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( compact( 'attributes' ) ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertContains( $string_attribute, $response->get_data()['rendered'] );
+		$this->assertStringContainsString( $string_attribute, $response->get_data()['rendered'] );
 	}
 
 	/**
@@ -614,43 +608,55 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 
 	/**
 	 * The update_item() method does not exist for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not implement update_item().' );
+		// Controller does not implement update_item().
 	}
 
 	/**
 	 * The create_item() method does not exist for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not implement create_item().' );
+		// Controller does not implement create_item().
 	}
 
 	/**
 	 * The delete_item() method does not exist for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not implement delete_item().' );
+		// Controller does not implement delete_item().
 	}
 
 	/**
 	 * The get_items() method does not exist for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		$this->markTestSkipped( 'Controller does not implement get_items().' );
+		// Controller does not implement get_items().
 	}
 
 	/**
-	 * The context_param() method does not exist for block rendering.
+	 * The get_context_param() method is not used for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_context_param() {
-		$this->markTestSkipped( 'Controller does not implement context_param().' );
+		// Controller does not use get_context_param().
 	}
 
 	/**
 	 * The prepare_item() method does not exist for block rendering.
+	 *
+	 * @doesNotPerformAssertions
 	 */
 	public function test_prepare_item() {
-		$this->markTestSkipped( 'Controller does not implement prepare_item().' );
+		// Controller does not implement prepare_item().
 	}
 }

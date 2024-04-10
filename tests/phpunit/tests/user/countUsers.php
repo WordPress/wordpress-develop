@@ -53,7 +53,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$count = count_users( $strategy );
 
 		$this->assertSame( 8, $count['total_users'] );
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'administrator' => 2,
 				'editor'        => 1,
@@ -64,7 +64,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -133,7 +132,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$count = count_users( $strategy );
 
 		$this->assertSame( 8, $count['total_users'] );
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'administrator' => 2,
 				'editor'        => 1,
@@ -151,7 +150,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$this->assertSame( 2, $count['total_users'] );
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'administrator' => 1,
 				'editor'        => 1,
@@ -166,7 +165,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$this->assertSame( 2, $count['total_users'] );
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'administrator' => 1,
 				'contributor'   => 1,
@@ -174,7 +173,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -239,7 +237,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$count = count_users( $strategy );
 
 		$this->assertSame( 3, $count['total_users'] );
-		$this->assertEquals(
+		$this->assertSameSetsWithIndex(
 			array(
 				'administrator' => 2,
 				'editor'        => 1,
@@ -248,7 +246,6 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 			$count['avail_roles']
 		);
-
 	}
 
 	/**
@@ -281,7 +278,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$this->assertSameSets( $count, $count2 );
 	}
 
-	function data_count_users_strategies() {
+	public function data_count_users_strategies() {
 		return array(
 			array(
 				'time',
@@ -291,5 +288,4 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

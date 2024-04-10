@@ -1,20 +1,14 @@
 <?php
 /**
- * Block rendering tests.
+ * Tests for block rendering functions.
  *
  * @package WordPress
  * @subpackage Blocks
  * @since 5.0.0
- */
-
-/**
- * Tests for block rendering functions
- *
- * @since 5.0.0
  *
  * @group blocks
  */
-class WP_Test_Block_Render extends WP_UnitTestCase {
+class Tests_Blocks_Render extends WP_UnitTestCase {
 	/**
 	 * The location of the fixtures to test with.
 	 *
@@ -37,7 +31,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		$this->test_block_instance_number = 0;
 
 		$registry = WP_Block_Type_Registry::get_instance();
@@ -47,8 +41,11 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		if ( $registry->is_registered( 'core/dynamic' ) ) {
 			$registry->unregister( 'core/dynamic' );
 		}
+		if ( $registry->is_registered( 'tests/notice' ) ) {
+			$registry->unregister( 'tests/notice' );
+		}
 
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -83,14 +80,14 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( trim( $classic_filtered_content ), trim( $block_filtered_content ) );
 	}
 
-	function handle_shortcode( $atts, $content ) {
+	public function handle_shortcode( $atts, $content ) {
 		return $content;
 	}
 
 	/**
 	 * @ticket 45495
 	 */
-	function test_nested_calls_to_the_content() {
+	public function test_nested_calls_to_the_content() {
 		register_block_type(
 			'core/test',
 			array(
@@ -108,7 +105,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( $content, $the_content );
 	}
 
-	function dynamic_the_content_call( $attrs, $content ) {
+	public function dynamic_the_content_call( $attrs, $content ) {
 		apply_filters( 'the_content', '' );
 		return $content;
 	}
@@ -219,15 +216,40 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 			}
 		}
 
-		$html          = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
-		$expected_html = self::strip_r( file_get_contents( $server_html_path ) );
+		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
+		// If blocks opt into Gutenberg's layout implementation
+		// the container will receive an additional, unique classname based on "wp-container-[blockname]-layout"
+		// so we need to normalize the random id.
+		$normalized_html = preg_replace( '/wp-container-[a-z-]+\d+/', 'wp-container-1', $html );
+
+		// The gallery block uses a unique class name of `wp_unique_id( 'wp-block-gallery-' )`
+		// so we need to normalize the random id.
+		$normalized_html = preg_replace( '/wp-block-gallery-\d+/', 'wp-block-gallery-1', $normalized_html );
+		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
+
+		// Convert HTML to be white space insensitive.
+		$normalized_html = preg_replace( '/(\s+$)/m', '', $normalized_html );
+		$expected_html   = preg_replace( '/(\s+$)/m', '', $expected_html );
 
 		$this->assertSame(
 			$expected_html,
-			$html,
+			$normalized_html,
 			"File '$html_path' does not match expected value"
 		);
 	}
+
+	/**
+	 * @ticket 53148
+	 */
+	public function test_render_field_in_block_json() {
+		$result = register_block_type(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+
+		$actual_content = do_blocks( '<!-- wp:tests/notice {"message":"Hello from the test"} --><!-- /wp:tests/notice -->' );
+		$this->assertSame( '<p class="wp-block-tests-notice">Hello from the test</p>', trim( $actual_content ) );
+	}
+
 
 	/**
 	 * @ticket 45109
@@ -304,7 +326,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		);
 		$comments = do_blocks( '<!-- wp:latest-comments {"commentsToShow":1,"displayExcerpt":true} /-->' );
 
-		$this->assertNotContains( $comment_text, $comments );
+		$this->assertStringNotContainsString( $comment_text, $comments );
 	}
 
 	/**
@@ -324,7 +346,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$rendered = $block_type->render();
 
 		$this->assertSame( '10', $rendered );
-		$this->assertInternalType( 'string', $rendered );
+		$this->assertIsString( $rendered );
 	}
 
 	public function test_dynamic_block_gets_inner_html() {
@@ -499,5 +521,4 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 		return $content;
 	}
-
 }

@@ -41,7 +41,7 @@ function wp_paused_themes() {
  *
  * @since 5.2.0
  *
- * @param array $error Error details {@see error_get_last()}
+ * @param array $error Error details from `error_get_last()`.
  * @return string Formatted error description.
  */
 function wp_get_extension_error_description( $error ) {
@@ -50,7 +50,7 @@ function wp_get_extension_error_description( $error ) {
 	$core_errors = array();
 
 	foreach ( $constants as $constant => $value ) {
-		if ( 0 === strpos( $constant, 'E_' ) ) {
+		if ( str_starts_with( $constant, 'E_' ) ) {
 			$core_errors[ $value ] = $constant;
 		}
 	}

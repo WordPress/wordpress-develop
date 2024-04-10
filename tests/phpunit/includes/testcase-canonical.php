@@ -1,6 +1,6 @@
 <?php
 
-class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
+abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	public static $old_current_user;
 	public static $author_id;
 	public static $post_ids    = array();
@@ -23,8 +23,8 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		self::delete_shared_fixtures();
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		update_option( 'page_comments', true );
 		update_option( 'comments_per_page', 5 );
@@ -37,7 +37,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Generate fixtures to be shared between canonical tests.
 	 *
-	 * Abstracted here because it's invoked by setUpBeforeClass() in more than one class.
+	 * Abstracted here because it's invoked by wpSetUpBeforeClass() in more than one class.
 	 *
 	 * @since 4.1.0
 	 */
@@ -46,7 +46,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		self::$author_id        = $factory->user->create( array( 'user_login' => 'canonical-author' ) );
 
 		/*
-		 * Also set in self::setUp(), but we must configure here to make sure that
+		 * Also set in self::set_up(), but we must configure here to make sure that
 		 * post authorship is properly attributed for fixtures.
 		 */
 		wp_set_current_user( self::$author_id );

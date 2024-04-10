@@ -55,8 +55,8 @@ if ( isset( $_POST['deletepost'] ) ) {
 
 $sendback = wp_get_referer();
 if ( ! $sendback ||
-	false !== strpos( $sendback, 'post.php' ) ||
-	false !== strpos( $sendback, 'post-new.php' ) ) {
+	str_contains( $sendback, 'post.php' ) ||
+	str_contains( $sendback, 'post-new.php' ) ) {
 	if ( 'attachment' === $post_type ) {
 		$sendback = admin_url( 'upload.php' );
 	} else {
@@ -97,7 +97,7 @@ switch ( $action ) {
 		$_POST['ping_status']    = get_default_comment_status( $post->post_type, 'pingback' );
 
 		// Wrap Quick Draft content in the Paragraph block.
-		if ( false === strpos( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
+		if ( ! str_contains( $_POST['content'], '<!-- wp:paragraph -->' ) ) {
 			$_POST['content'] = sprintf(
 				'<!-- wp:paragraph -->%s<!-- /wp:paragraph -->',
 				str_replace( array( "\r\n", "\r", "\n" ), '<br />', $_POST['content'] )
@@ -124,7 +124,7 @@ switch ( $action ) {
 		}
 
 		if ( ! $post ) {
-			wp_die( __( 'You attempted to edit an item that doesn&#8217;t exist. Perhaps it was deleted?' ) );
+			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ) );
 		}
 
 		if ( ! $post_type_object ) {
@@ -140,7 +140,7 @@ switch ( $action ) {
 		}
 
 		if ( 'trash' === $post->post_status ) {
-			wp_die( __( 'You can&#8217;t edit this item because it is in the Trash. Please restore it and try again.' ) );
+			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ) );
 		}
 
 		if ( ! empty( $_GET['get-post-lock'] ) ) {

@@ -60,7 +60,7 @@
 				name: response.name,
 				password: response.password
 			} ) );
-			$( '.new-application-password-notice' ).trigger( 'focus' );
+			$( '.new-application-password-notice' ).attr( 'tabindex', '-1' ).trigger( 'focus' );
 
 			$appPassTbody.prepend( tmplAppPassRow( response ) );
 
@@ -148,6 +148,13 @@
 				$newAppPassField.trigger( 'focus' );
 			} );
 		} );
+	} );
+
+	$newAppPassField.on( 'keypress', function ( e ) {
+		if ( 13 === e.which ) {
+			e.preventDefault();
+			$newAppPassButton.trigger( 'click' );
+		}
 	} );
 
 	// If there are no items, don't display the table yet.  If there are, show it.

@@ -7,21 +7,7 @@ if ( is_multisite() ) :
 	 *
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Space_Allowed extends WP_UnitTestCase {
-		protected $suppress = false;
-
-		public function setUp() {
-			global $wpdb;
-			parent::setUp();
-			$this->suppress = $wpdb->suppress_errors();
-		}
-
-		public function tearDown() {
-			global $wpdb;
-
-			$wpdb->suppress_errors( $this->suppress );
-			parent::tearDown();
-		}
+	class Tests_Multisite_GetSpaceAllowed extends WP_UnitTestCase {
 
 		/**
 		 * When no option exists for the site or the network, a fallback of

@@ -8,7 +8,7 @@
  */
 class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 
-	function get_script_tag_type_set() {
+	public function get_script_tag_type_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -41,7 +41,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_get_script_tag
 	 */
-	function test_get_script_tag_type_not_set() {
+	public function test_get_script_tag_type_not_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -61,10 +61,10 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 	/**
 	 * @covers ::wp_print_script_tag
 	 */
-	function test_print_script_tag_prints_get_script_tag() {
+	public function test_print_script_tag_prints_get_script_tag() {
 		add_filter(
 			'wp_script_attributes',
-			function ( $attributes ) {
+			static function ( $attributes ) {
 				if ( isset( $attributes['id'] ) && 'utils-js-extra' === $attributes['id'] ) {
 					$attributes['async'] = true;
 				}

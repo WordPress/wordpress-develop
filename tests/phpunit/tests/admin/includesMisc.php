@@ -3,8 +3,12 @@
 /**
  * @group admin
  */
-class Tests_Admin_includesMisc extends WP_UnitTestCase {
-	function test_shorten_url() {
+class Tests_Admin_IncludesMisc extends WP_UnitTestCase {
+
+	/**
+	 * @covers ::url_shorten
+	 */
+	public function test_shorten_url() {
 		$tests = array(
 			'wordpress\.org/about/philosophy'
 				=> 'wordpress\.org/about/philosophy',     // No longer strips slashes.
@@ -22,5 +26,31 @@ class Tests_Admin_includesMisc extends WP_UnitTestCase {
 		foreach ( $tests as $k => $v ) {
 			$this->assertSame( $v, url_shorten( $k ) );
 		}
+	}
+
+	/**
+	 * @ticket 59520
+	 */
+	public function test_new_admin_email_subject_filter() {
+		// Default value.
+		$mailer = tests_retrieve_phpmailer_instance();
+		update_option_new_admin_email( 'old@example.com', 'new@example.com' );
+		$this->assertSame( '[Test Blog] New Admin Email Address', $mailer->get_sent()->subject );
+
+		// Filtered value.
+		add_filter(
+			'new_admin_email_subject',
+			function () {
+				return 'Filtered Admin Email Address';
+			},
+			10,
+			1
+		);
+
+		$mailer->mock_sent = array();
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		update_option_new_admin_email( 'old@example.com', 'new@example.com' );
+		$this->assertSame( 'Filtered Admin Email Address', $mailer->get_sent()->subject );
 	}
 }
