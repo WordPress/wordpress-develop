@@ -2015,7 +2015,7 @@ final class WP_Theme implements ArrayAccess {
 				sprintf(
 					/* translators: %1$s: The filter name.*/
 					__( 'The %1$s filter must return an integer value greater than 0.' ),
-					'<code>wp_theme_files_cache_ttl</code>',
+					'<code>wp_theme_files_cache_ttl</code>'
 				),
 				'6.6.0'
 			);
