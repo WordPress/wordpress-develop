@@ -90,7 +90,7 @@ function wp_default_packages_vendor( $scripts ) {
 
 	$vendor_scripts = array(
 		'react',
-		'react-dom'   => array( 'react' ),
+		'react-dom' => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
 		'lodash',
@@ -103,7 +103,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
 		'wp-polyfill-inert',
-		'wp-polyfill' => array( 'regenerator-runtime' ),
+		'wp-polyfill',
 	);
 
 	$vendor_scripts_versions = array(
