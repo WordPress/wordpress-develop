@@ -32,7 +32,7 @@ if ( ! is_multisite() ) {
 		'<p>' . sprintf(
 			/* translators: %s: Documentation URL. */
 			__( 'Though the terms refer to two different concepts, in practice, they can be the same address or different. For example, you can have the core WordPress installation files in the root directory (<code>https://example.com</code>), in which case the two URLs would be the same. Or the <a href="%s">WordPress files can be in a subdirectory</a> (<code>https://example.com/wordpress</code>). In that case, the WordPress URL and the site URL would be different.' ),
-			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		) . '</p>' .
 		'<p>' . sprintf(
 			/* translators: 1: http://, 2: https:// */
@@ -107,34 +107,70 @@ $tagline_description = sprintf(
 
 	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
 	$classes_for_update_button = 'button';
+	$classes_for_wrapper       = '';
 
-	$classes_for_avatar = 'avatar avatar-150';
 	if ( has_site_icon() ) {
-		$classes_for_avatar          .= ' has-site-icon';
+		$classes_for_wrapper         .= ' has-site-icon';
 		$classes_for_button           = $classes_for_update_button;
 		$classes_for_button_on_change = $classes_for_upload_button;
 	} else {
-		$classes_for_avatar          .= ' hidden';
+		$classes_for_wrapper         .= ' hidden';
 		$classes_for_button           = $classes_for_upload_button;
 		$classes_for_button_on_change = $classes_for_update_button;
 	}
 
+	// Handle alt text for site icon on page load.
+	$site_icon_id           = (int) get_option( 'site_icon' );
+	$app_icon_alt_value     = '';
+	$browser_icon_alt_value = '';
 
+	if ( $site_icon_id ) {
+		$img_alt            = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
+		$filename           = wp_basename( get_site_icon_url() );
+		$app_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		$browser_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		if ( $img_alt ) {
+			$app_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'App icon preview: Current image: %s' ),
+				$img_alt
+			);
+
+			$browser_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'Browser icon preview: Current image: %s' ),
+				$img_alt
+			);
+		}
+	}
 	?>
-	<div id="site-icon-preview" class="site-icon-preview wp-clearfix <?php echo esc_attr( $classes_for_avatar ); ?>">
+
+
+	<div id="site-icon-preview" class="site-icon-preview wp-clearfix settings-page-preview <?php echo esc_attr( $classes_for_wrapper ); ?>">
 		<div class="favicon-preview">
 			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
 			<div class="favicon">
-				<img src="<?php site_icon_url(); ?>" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>">
+				<img id="browser-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $browser_icon_alt_value ); ?>">
 			</div>
-			<span class="browser-title" aria-hidden="true"><?php echo get_bloginfo( 'name' ); ?></span>
+			<span id="site-icon-preview-site-title" class="browser-title" aria-hidden="true"><?php bloginfo( 'name' ); ?></span>
 		</div>
-		<img class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>">
+		<img id="app-icon-preview" class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>">
 	</div>
+
 	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
 	<div class="action-buttons">
 		<button type="button"
-			id="choose-from-library-link"
+			id="choose-from-library-button"
 			type="button"
 			class="<?php echo esc_attr( $classes_for_button ); ?>"
 			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
@@ -161,12 +197,9 @@ $tagline_description = sprintf(
 	</div>
 
 	<p class="description">
-		<?php _e( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ); ?>
-	</p>
-	<p class="description">
 		<?php
 			/* translators: %s: Site Icon size in pixels. */
-			printf( __( 'Site Icons should be square and at least %s pixels.' ), '<strong>512 &times; 512</strong>' );
+			printf( __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s pixels.' ), '<code>512 &times; 512</code>' );
 		?>
 	</p>
 
@@ -202,7 +235,7 @@ if ( ! is_multisite() ) {
 		printf(
 			/* translators: %s: Documentation URL. */
 			__( 'Enter the same address here unless you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
-			__( 'https://wordpress.org/documentation/article/giving-wordpress-its-own-directory/' )
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		);
 		?>
 </p>
@@ -321,7 +354,7 @@ if ( str_contains( $tzstring, 'Etc/GMT' ) ) {
 
 if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	$check_zone_info = false;
-	if ( 0 == $current_offset ) {
+	if ( 0 === (int) $current_offset ) {
 		$tzstring = 'UTC+0';
 	} elseif ( $current_offset < 0 ) {
 		$tzstring = 'UTC' . $current_offset;
@@ -521,7 +554,7 @@ foreach ( $time_formats as $format ) {
 global $wp_locale;
 
 for ( $day_index = 0; $day_index <= 6; $day_index++ ) :
-	$selected = ( get_option( 'start_of_week' ) == $day_index ) ? 'selected="selected"' : '';
+	$selected = ( (int) get_option( 'start_of_week' ) === $day_index ) ? 'selected="selected"' : '';
 	echo "\n\t<option value='" . esc_attr( $day_index ) . "' $selected>" . $wp_locale->get_weekday( $day_index ) . '</option>';
 endfor;
 ?>
