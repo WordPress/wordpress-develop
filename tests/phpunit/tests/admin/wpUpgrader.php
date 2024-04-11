@@ -797,11 +797,17 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 			'empty object'                   => array( 'path' => new stdClass() ),
 			'populated object'               => array( 'path' => (object) array( '/' ) ),
 
-			// Ensures that `trim()` is run.
+			// Ensures that `trim()` is run triggering an empty array.
 			'a string with spaces'           => array( 'path' => '   ' ),
 			'a string with tabs'             => array( 'path' => "\t\t" ),
 			'a string with new lines'        => array( 'path' => "\n\n" ),
 			'a string with carriage returns' => array( 'path' => "\r\r" ),
+
+			// Ensure that strings with leading/trailing whitespace are invalid.
+			'a path with a leading space'    => array( 'path' => ' /path' ),
+			'a path with a trailing space'   => array( 'path' => '/path ' ),
+			'a path with a leading tab'      => array( 'path' => "\t/path" ),
+			'a path with a trailing tab'     => array( 'path' => "/path\t" ),
 		);
 	}
 
