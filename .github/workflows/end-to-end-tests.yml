@@ -37,11 +37,17 @@ env:
 jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
-    name: E2E Tests
+    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     uses: desrosj/wordpress-develop/.github/workflows/callable-end-to-end-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        LOCAL_SCRIPT_DEBUG: [ true, false ]
+    with:
+      LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
 
   slack-notifications:
     name: Slack Notifications

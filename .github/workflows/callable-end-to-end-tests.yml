@@ -5,6 +5,12 @@ name: End-to-end Tests
 
 on:
   workflow_call:
+    inputs:
+      LOCAL_SCRIPT_DEBUG:
+        description: 'Whether to enable script debugging.'
+        required: false
+        type: 'boolean'
+        default: false
 
 env:
   LOCAL_DIR: build
@@ -29,15 +35,11 @@ jobs:
   # - Run the E2E tests.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    name: Test with SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        LOCAL_SCRIPT_DEBUG: [ true, false ]
 
     steps:
       - name: Configure environment variables
@@ -91,7 +93,7 @@ jobs:
 
       - name: Install WordPress
         env:
-          LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+          LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
         run: npm run env:install
 
       - name: Install Gutenberg
@@ -104,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         if: always()
         with:
-          name: failures-artifacts${{ matrix.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
+          name: failures-artifacts${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
 
