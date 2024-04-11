@@ -35,7 +35,7 @@ jobs:
   # - Run the E2E tests.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: Test with SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    name: Run E2E tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
