@@ -2348,6 +2348,7 @@ function wp_get_upload_dir() {
  * @param bool   $create_dir Optional. Whether to check and create the uploads directory.
  *                           Default true for backward compatibility.
  * @param bool   $refresh_cache Optional. Whether to refresh the cache. Default false.
+ * @param string $subdir Optional. Sub directories to override default time formatted in 'yyyy/mm'. Default empty.
  * @return array {
  *     Array of information about the upload directory.
  *
@@ -2359,13 +2360,13 @@ function wp_get_upload_dir() {
  *     @type string|false $error   False or error message.
  * }
  */
-function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false ) {
+function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false, $subdir = '' ) {
 	static $cache = array(), $tested_paths = array();
 
 	$key = sprintf( '%d-%s', get_current_blog_id(), (string) $time );
 
 	if ( $refresh_cache || empty( $cache[ $key ] ) ) {
-		$cache[ $key ] = _wp_upload_dir( $time );
+		$cache[ $key ] = _wp_upload_dir( $time, $subdir );
 	}
 
 	/**

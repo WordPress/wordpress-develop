@@ -126,45 +126,7 @@ function wp_get_font_dir() {
  * }
  */
 function wp_font_dir( $create_dir = true ) {
-	/*
-	 * Allow extenders to manipulate the font directory consistently.
-	 *
-	 * Ensures the upload_dir filter is fired both when calling this function
-	 * directly and when the upload directory is filtered in the Font Face
-	 * REST API endpoint.
-	 */
-	add_filter( 'upload_dir', '_wp_filter_font_directory' );
-	$font_dir = wp_upload_dir( null, $create_dir, false );
-	remove_filter( 'upload_dir', '_wp_filter_font_directory' );
-	return $font_dir;
-}
-
-/**
- * A callback function for use in the {@see 'upload_dir'} filter.
- *
- * This function is intended for internal use only and should not be used by plugins and themes.
- * Use wp_get_font_dir() instead.
- *
- * @since 6.5.0
- * @access private
- *
- * @param string $font_dir The font directory.
- * @return string The modified font directory.
- */
-function _wp_filter_font_directory( $font_dir ) {
-	if ( doing_filter( 'font_dir' ) ) {
-		// Avoid an infinite loop.
-		return $font_dir;
-	}
-
-	$font_dir = array(
-		'path'    => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
-		'url'     => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
-		'subdir'  => '',
-		'basedir' => untrailingslashit( $font_dir['basedir'] ) . '/fonts',
-		'baseurl' => untrailingslashit( $font_dir['baseurl'] ) . '/fonts',
-		'error'   => false,
-	);
+	$font_dir = wp_upload_dir( null, $create_dir, false, '/fonts' );
 
 	/**
 	 * Filters the fonts directory data.
@@ -185,6 +147,27 @@ function _wp_filter_font_directory( $font_dir ) {
 	 * }
 	 */
 	return apply_filters( 'font_dir', $font_dir );
+}
+
+/**
+ * A callback function for use in the {@see 'upload_dir'} filter.
+ *
+ * This function is intended for internal use only and should not be used by plugins and themes.
+ * Use wp_get_font_dir() instead.
+ *
+ * @since 6.5.0
+ * @access private
+ *
+ * @param string $font_dir The font directory.
+ * @return string The modified font directory.
+ */
+function _wp_filter_font_directory( $font_dir ) {
+	if ( doing_filter( 'font_dir' ) ) {
+		// Avoid an infinite loop.
+		return $font_dir;
+	}
+
+	return wp_get_font_dir();
 }
 
 /**
