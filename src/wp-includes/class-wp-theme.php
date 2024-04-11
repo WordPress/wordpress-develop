@@ -2030,7 +2030,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Clears block pattern cache.
 	 *
 	 * @since 6.4.0
-	 * @since 6.6.0 Adds support for transient caching.
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 */
 	public function delete_pattern_cache() {
 		delete_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );
