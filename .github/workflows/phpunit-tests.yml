@@ -31,12 +31,11 @@ concurrency:
 permissions: {}
 
 jobs:
-  #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/callable-phpunit-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
     secrets: inherit
@@ -88,7 +87,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/phpunit-tests-run.yml@trunk
+    uses: desrosj/wordpress-develop/.github/workflows/callable-phpunit-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
     secrets: inherit
