@@ -487,7 +487,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 * @param string $settings Font family settings to test.
 	 * @param string $expected Expected settings result.
 	 */
-	public function test_create_item_santize_font_family_settings( $settings, $expected ) {
+	public function test_create_item_sanitize_font_family_settings( $settings, $expected ) {
 		$settings = array_merge( self::$default_settings, $settings );
 		$expected = array_merge( self::$default_settings, $expected );
 
@@ -752,7 +752,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 * @param string $settings Font family settings to test.
 	 * @param string $expected Expected settings result.
 	 */
-	public function test_update_item_santize_font_family_settings( $settings, $expected ) {
+	public function test_update_item_sanitize_font_family_settings( $settings, $expected ) {
 		// Unset/modify slug from the data provider, since we're updating rather than creating.
 		unset( $settings['slug'] );
 		$initial_settings = array( 'slug' => 'open-sans-update' );
