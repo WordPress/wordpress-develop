@@ -58,7 +58,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test helper to access the private cache_hash method of a theme.
+	 * Test helper to access the private cache_hash propery of a theme.
 	 *
 	 * @param WP_Theme $wp_theme A WP_Theme object.
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
