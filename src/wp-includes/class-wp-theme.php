@@ -2006,10 +2006,10 @@ final class WP_Theme implements ArrayAccess {
 		 * @param int    $cache_expiration Cache expiration time in seconds.
 		 * @param string $cache_type       Type of cache being set.
 		 */
-		$cache_expiration = apply_filters( 'wp_theme_files_cache_ttl', self::$cache_expiration, 'theme_block_patterns' );
+		$cache_expiration = (int) apply_filters( 'wp_theme_files_cache_ttl', self::$cache_expiration, 'theme_block_patterns' );
 
 		// We don't want to cache patterns infinitely.
-		if ( ! is_int( $cache_expiration ) || $cache_expiration <= 0 ) {
+		if ( $cache_expiration <= 0 ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
