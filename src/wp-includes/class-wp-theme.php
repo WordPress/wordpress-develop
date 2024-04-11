@@ -1967,7 +1967,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Gets block pattern cache.
 	 *
 	 * @since 6.4.0
-	 * @since 6.6.0 Adds support for transient caching.
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 *
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
@@ -1988,7 +1988,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Sets block pattern cache.
 	 *
 	 * @since 6.4.0
-	 * @since 6.6.0 Adds support for transient caching.
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 *
 	 * @param array $patterns Block patterns data to set in cache.
 	 */
