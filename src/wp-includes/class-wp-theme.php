@@ -1972,7 +1972,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Gets block pattern cache.
 	 *
 	 * @since 6.4.0
-	 * @since 6.6.0 Adds support for transient caching.
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 *
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
 	 */
@@ -1993,7 +1993,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Sets block pattern cache.
 	 *
 	 * @since 6.4.0
-	 * @since 6.6.0 Adds support for transient caching.
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 *
 	 * @param array $patterns Block patterns data to set in cache.
 	 */
@@ -2011,10 +2011,10 @@ final class WP_Theme implements ArrayAccess {
 		 * @param int    $cache_expiration Cache expiration time in seconds.
 		 * @param string $cache_type       Type of cache being set.
 		 */
-		$cache_expiration = apply_filters( 'wp_theme_files_cache_ttl', self::$cache_expiration, 'theme_block_patterns' );
+		$cache_expiration = (int) apply_filters( 'wp_theme_files_cache_ttl', self::$cache_expiration, 'theme_block_patterns' );
 
 		// We don't want to cache patterns infinitely.
-		if ( ! is_int( $cache_expiration ) || $cache_expiration <= 0 ) {
+		if ( $cache_expiration <= 0 ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
@@ -2035,7 +2035,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Clears block pattern cache.
 	 *
 	 * @since 6.4.0
-	 * @since 6.6.0 Adds support for transient caching.
+	 * @since 6.6.0 Uses transients to cache regardless of site environment.
 	 */
 	public function delete_pattern_cache() {
 		delete_site_transient( 'wp_theme_files_patterns-' . $this->cache_hash );

@@ -26,9 +26,8 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		parent::tear_down();
-
 		wp_using_ext_object_cache( $this->initial_cache_object );
+		parent::tear_down();
 	}
 
 	public static function wpSetUpBeforeClass() {
@@ -58,7 +57,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test helper to access the private cache_hash method of a theme.
+	 * Test helper to access the private cache_hash propery of a theme.
 	 *
 	 * @param WP_Theme $wp_theme A WP_Theme object.
 	 * @return array|false Returns an array of patterns if cache is found, otherwise false.
