@@ -1804,6 +1804,37 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
+	 * Returns the metadata for the template parts defined by the theme.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return array Associative array of `$part_name => $part_data` pairs,
+	 *               with `$part_data` having "title" and "area" fields.
+	 */
+	public function get_template_parts() {
+		$cache_group    = 'theme_json';
+		$cache_key      = 'wp_theme_json_data_template_parts';
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+
+		$metadata = false;
+		if ( $can_use_cached ) {
+			$metadata = get_site_transient( $cache_key );
+			if ( false !== $metadata ) {
+				return $metadata;
+			}
+		}
+
+		if ( false === $metadata ) {
+			$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+			if ( $can_use_cached ) {
+				set_site_transient( $cache_key, $metadata, self::$cache_expiration );
+			}
+		}
+
+		return $metadata;
+	}
+
+	/**
 	 * Gets block pattern data for a specified theme.
 	 * Each pattern is defined as a PHP file and defines
 	 * its metadata using plugin-style headers. The minimum required definition is:
