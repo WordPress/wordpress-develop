@@ -26,9 +26,8 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		parent::tear_down();
-
 		wp_using_ext_object_cache( $this->initial_cache_object );
+		parent::tear_down();
 	}
 
 	public static function wpSetUpBeforeClass() {
