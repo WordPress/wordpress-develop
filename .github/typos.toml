@@ -15,6 +15,7 @@ extend-exclude = [
 	"src/wp-includes/sodium_compat",
 	"src/wp-includes/Text/Diff",
 	"src/js/_enqueues/vendor/*",
+	"tests/phpunit/data/feed/wordpress-org-news.xml",
 	"tests/phpunit/data/formatting/whole-posts.php",
 	"tests/phpunit/tests/formatting/convertSmilies.php",
 	"tests/phpunit/tests/formatting/wpTrimWords.php",

@@ -2004,7 +2004,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket       50244
 	 * @dataProvider data_batch_v1_opt_in
 	 */
-	public function test_batch_v1_optin( $allow_batch, $allowed ) {
+	public function test_batch_v1_opt_in( $allow_batch, $allowed ) {
 		$args = array(
 			'methods'             => 'POST',
 			'callback'            => static function () {
