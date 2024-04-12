@@ -4,7 +4,7 @@ extend-exclude = [
 	"src/wp-admin/includes/class-ftp-pure.php",
 	"src/wp-admin/includes/class-ftp-sockets.php",
 	"src/wp-admin/includes/ms.php",
-	"src/wp-includes/assets/script-loader-packages.min.php"
+	"src/wp-includes/assets/script-loader-packages.min.php",
 	"src/wp-includes/SimplePie/*",
 	"src/wp-includes/ID3/*",
 	"src/wp-includes/IXR/*",
