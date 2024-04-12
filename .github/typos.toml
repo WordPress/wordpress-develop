@@ -1,10 +1,13 @@
 [files]
 extend-exclude = [
+	"*.css.map",
+	"*.js.map",
 	"src/wp-admin/includes/class-ftp.php",
 	"src/wp-admin/includes/class-ftp-pure.php",
 	"src/wp-admin/includes/class-ftp-sockets.php",
 	"src/wp-admin/includes/ms.php",
 	"src/wp-includes/assets/script-loader-packages.min.php",
+	"src/wp-includes/formatting.php",
 	"src/wp-includes/SimplePie/*",
 	"src/wp-includes/ID3/*",
 	"src/wp-includes/IXR/*",
@@ -15,8 +18,10 @@ extend-exclude = [
 	"tests/phpunit/data/formatting/whole-posts.php",
 	"tests/phpunit/tests/formatting/convertSmilies.php",
 	"tests/phpunit/tests/formatting/wpTrimWords.php",
+	"tests/phpunit/tests/functions/wpToKebabCase.php",
 	"tests/phpunit/tests/l10n/*",
 	"tests/phpunit/tests/multisite/isEmailAddressUnsafe.php",
+	"tests/phpunit/tests/multisite/wpmuValidateBlogSignup.php",
 	"tests/phpunit/tests/pomo/*",
 	"tests/qunit/wp-admin/js/password-strength-meter.js"
 ]
@@ -36,3 +41,6 @@ struc = "struc"
 Invokable = "Invokable"
 # disposition-parm / disp-ext-parm
 parm = "parm"
+# Atom feeds
+thr = "thr"
+

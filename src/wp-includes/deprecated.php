@@ -612,7 +612,7 @@ function get_autotoggle($id = 0) {
  * @deprecated 2.1.0 Use wp_list_categories()
  * @see wp_list_categories()
  *
- * @param int $optionall
+ * @param int $optional
  * @param string $all
  * @param string $sort_column
  * @param string $sort_order
@@ -637,7 +637,7 @@ function list_cats($optional = 1, $all = 'All', $sort_column = 'ID', $sort_order
 				$recurse=0, $feed = '', $feed_image = '', $exclude = '', $hierarchical=false) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_categories()' );
 
-	$query = compact('optionall', 'all', 'sort_column', 'sort_order', 'file', 'list', 'optiondates', 'optioncount', 'hide_empty', 'use_desc_for_title', 'children',
+	$query = compact('optional', 'all', 'sort_column', 'sort_order', 'file', 'list', 'optiondates', 'optioncount', 'hide_empty', 'use_desc_for_title', 'children',
 		'child_of', 'categories', 'recurse', 'feed', 'feed_image', 'exclude', 'hierarchical');
 	return wp_list_cats($query);
 }
@@ -658,7 +658,7 @@ function wp_list_cats($args = '') {
 	$parsed_args = wp_parse_args( $args );
 
 	// Map to new names.
-	if ( isset($parsed_args['optionall']) && isset($parsed_args['all']))
+	if ( isset($parsed_args['optional']) && isset($parsed_args['all']))
 		$parsed_args['show_option_all'] = $parsed_args['all'];
 	if ( isset($parsed_args['sort_column']) )
 		$parsed_args['orderby'] = $parsed_args['sort_column'];
@@ -682,7 +682,7 @@ function wp_list_cats($args = '') {
  * @deprecated 2.1.0 Use wp_dropdown_categories()
  * @see wp_dropdown_categories()
  *
- * @param int $optionall
+ * @param int $optional
  * @param string $all
  * @param string $orderby
  * @param string $order

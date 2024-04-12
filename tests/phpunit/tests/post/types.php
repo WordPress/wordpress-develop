@@ -586,7 +586,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 34010
 	 */
-	public function test_get_post_types_by_support_non_existant_feature() {
+	public function test_get_post_types_by_support_non_existent_feature() {
 		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
 	}
 }

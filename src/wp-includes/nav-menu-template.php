@@ -341,9 +341,9 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 				if ( is_array( $terms ) ) {
 					$possible_object_parents = array_merge( $possible_object_parents, $terms );
 					$term_to_ancestor        = array();
-					foreach ( (array) $term_hierarchy as $anc => $descs ) {
-						foreach ( (array) $descs as $desc ) {
-							$term_to_ancestor[ $desc ] = $anc;
+					foreach ( (array) $term_hierarchy as $ancestor => $descendents ) {
+						foreach ( (array) $descendents as $desc ) {
+							$term_to_ancestor[ $desc ] = $ancestor;
 						}
 					}
 
@@ -365,9 +365,9 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 	} elseif ( ! empty( $queried_object->taxonomy ) && is_taxonomy_hierarchical( $queried_object->taxonomy ) ) {
 		$term_hierarchy   = _get_term_hierarchy( $queried_object->taxonomy );
 		$term_to_ancestor = array();
-		foreach ( (array) $term_hierarchy as $anc => $descs ) {
-			foreach ( (array) $descs as $desc ) {
-				$term_to_ancestor[ $desc ] = $anc;
+		foreach ( (array) $term_hierarchy as $ancestor => $descendents ) {
+			foreach ( (array) $descendents as $desc ) {
+				$term_to_ancestor[ $desc ] = $ancestor;
 			}
 		}
 		$desc = $queried_object->term_id;

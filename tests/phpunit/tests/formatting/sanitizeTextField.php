@@ -103,7 +103,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			),
 			array(
 				'%AB%BC%DE', // Just octets.
-				'',          // Emtpy as we strip all the octets out.
+				'',          // Empty as we strip all the octets out.
 			),
 			array(
 				'Invalid octets remain %II',

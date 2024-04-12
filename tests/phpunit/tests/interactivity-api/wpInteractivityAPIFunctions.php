@@ -87,7 +87,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_process_directives_of_multiple_interactive_blocks_in_paralell() {
+	public function test_process_directives_of_multiple_interactive_blocks_in_parallel() {
 		$post_content    = '
 			<!-- wp:test/interactive-block { "block": 1 } /-->
 			<!-- wp:test/interactive-block-2 { "block": 2 } /-->
@@ -133,7 +133,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_process_directives_of_multple_interactive_blocks_inside_non_interactive_block() {
+	public function test_process_directives_of_multiple_interactive_blocks_inside_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
@@ -156,7 +156,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 *
 	 * @covers wp_interactivity_process_directives_of_interactive_blocks
 	 */
-	public function test_process_directives_of_interactive_block_inside_multple_non_interactive_block() {
+	public function test_process_directives_of_interactive_block_inside_multiple_non_interactive_block() {
 		$post_content    = '
 			<!-- wp:test/non-interactive-block { "block": 1 } -->
 				<!-- wp:test/interactive-block { "block": 2 } /-->
