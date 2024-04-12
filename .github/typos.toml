@@ -1,5 +1,6 @@
 [files]
 extend-exclude = [
+	"src/wp-admin/includes/class-ftp-sockets.php",
 	"src/wp-includes/SimplePie/*",
 	"src/wp-includes/ID3/*",
 	"src/js/_enqueues/vendor/*",
@@ -21,4 +22,4 @@ Skelton = "Skelton"
 # Post stati functions need to be preserved for back compat.
 stati = "stati"
 # Just a variable name
-struc = "struct"
+struc = "struc"
