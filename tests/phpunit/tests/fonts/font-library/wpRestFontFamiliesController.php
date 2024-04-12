@@ -382,8 +382,8 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$this->assertSame( 201, $response->get_status(), 'The response status should be 201.' );
 		$this->check_font_family_data( $data, $data['id'], $response->get_links() );
 
-		$reponse_settings = $data['font_family_settings'];
-		$this->assertSame( $settings, $reponse_settings, 'The expected settings should exist in the font_family_settings data.' );
+		$response_settings = $data['font_family_settings'];
+		$this->assertSame( $settings, $response_settings, 'The expected settings should exist in the font_family_settings data.' );
 		$this->assertEmpty( $data['font_faces'], 'The font_faces should be empty or not exist in the response data.' );
 	}
 

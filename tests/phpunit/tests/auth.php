@@ -149,8 +149,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = "pass with new line \n";
 		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
 
-		$password = "pass with vertial tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertial tab o_O', wp_hash_password( $password ) ) );
+		$password = "pass with vertical tab o_O\x0B";
+		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
 	}
 
 	/**

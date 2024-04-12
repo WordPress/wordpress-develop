@@ -631,18 +631,18 @@ function _response_to_rss ($resp) {
  * Set up constants with default values, unless user overrides.
  *
  * @since 1.5.0
- * 
+ *
  * @global string $wp_version The WordPress version string.
- * 
+ *
  * @package External
  * @subpackage MagpieRSS
  */
 function init () {
-	if ( defined('MAGPIE_INITALIZED') ) {
+	if ( defined('MAGPIE_INITIALIZED') ) {
 		return;
 	}
 	else {
-		define('MAGPIE_INITALIZED', 1);
+		define('MAGPIE_INITIALIZED', 1);
 	}
 
 	if ( !defined('MAGPIE_CACHE_ON') ) {
