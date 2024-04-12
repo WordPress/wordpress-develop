@@ -98,7 +98,7 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test WP Query with an invalid post type in a mutiple post type query.
+	 * Test WP Query with an invalid post type in a multiple post type query.
 	 *
 	 * @ticket 48556
 	 */

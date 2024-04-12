@@ -915,7 +915,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -947,7 +947,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1112,7 +1112,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1137,7 +1137,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
