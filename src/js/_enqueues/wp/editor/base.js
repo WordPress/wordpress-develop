@@ -265,7 +265,7 @@ window.wp = window.wp || {};
 		}
 
 		/**
-		 * Gets a list of unique shortcodes or shortcode-look-alikes in the content.
+		 * Gets a list of unique shortcodes or shortcode-lookalikes in the content.
 		 *
 		 * @param {string} content The content we want to scan for shortcodes.
 		 */

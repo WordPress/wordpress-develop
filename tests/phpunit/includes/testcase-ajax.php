@@ -133,7 +133,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * Sets up the test fixture.
 	 *
-	 * Overrides wp_die(), pretends to be Ajax, and suppresses E_WARNINGs.
+	 * Overrides wp_die(), pretends to be Ajax, and suppresses warnings.
 	 */
 	public function set_up() {
 		parent::set_up();

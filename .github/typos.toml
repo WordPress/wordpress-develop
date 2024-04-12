@@ -43,4 +43,9 @@ Invokable = "Invokable"
 parm = "parm"
 # Atom feeds
 thr = "thr"
-
+# HTML entity
+curren = "curren"
+# setted_site_transient.
+setted = "setted"
+# odf file extension.
+odf = "odf"
