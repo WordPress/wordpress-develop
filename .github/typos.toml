@@ -1,0 +1,23 @@
+[files]
+extend-exclude = [
+	"src/wp-includes/ID3/*",
+	"src/js/_enqueues/vendor/*",
+	"tests/phpunit/tests/formatting/convertSmilies.php",
+	"tests/phpunit/tests/formatting/wpTrimWords.php",
+	"tests/phpunit/tests/l10n/*",
+	"tests/phpunit/tests/multisite/isEmailAddressUnsafe.php",
+	"tests/phpunit/tests/pomo/*",
+	"tests/qunit/wp-admin/js/password-strength-meter.js"
+]
+
+[type.po]
+extend-glob = ["*.po", "*.l10n.php"]
+check-file = false
+
+[default.extend-words]
+# Don't correct the surname "Skelton"
+Skelton = "Skelton"
+# Post stati functions need to be preserved for back compat.
+stati = "stati"
+# Just a variable name
+struc = "struct"
