@@ -87,6 +87,19 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after each test.
+	 *
+	 * @since 6.5.0
+	 */
+	public function tear_down() {
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
+			unregister_block_type( 'tests/hooked-block' );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 59338
 	 *
 	 * @covers ::_inject_theme_attribute_in_template_part_block

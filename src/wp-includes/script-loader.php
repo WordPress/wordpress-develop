@@ -89,8 +89,8 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'       => array( 'wp-polyfill' ),
-		'react-dom'   => array( 'react' ),
+		'react',
+		'react-dom' => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
 		'lodash',
@@ -103,7 +103,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
 		'wp-polyfill-inert',
-		'wp-polyfill' => array( 'wp-polyfill-inert', 'regenerator-runtime' ),
+		'wp-polyfill',
 	);
 
 	$vendor_scripts_versions = array(
@@ -849,7 +849,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-lists', "/wp-includes/js/wp-lists$suffix.js", array( 'wp-ajax-response', 'jquery-color' ), false, 1 );
 
-	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery', 'jcrop' ), false, 1 );
+	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery' ), false, 1 );
+	$scripts->set_translations( 'site-icon' );
 
 	// WordPress no longer uses or bundles Prototype or script.aculo.us. These are now pulled from an external source.
 	$scripts->add( 'prototype', 'https://ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js', array(), '1.7.1' );
@@ -3391,6 +3392,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 	} else {
 		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
 		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
-		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
+		return sprintf(
+			'console.error(%s)',
+			wp_json_encode(
+				sprintf(
+					/* translators: %s: wp_remove_surrounding_empty_script_tags() */
+					__( 'Function %s used incorrectly in PHP.' ),
+					'wp_remove_surrounding_empty_script_tags()'
+				) . ' ' . $error_message
+			)
+		);
 	}
 }
