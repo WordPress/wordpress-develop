@@ -1,5 +1,6 @@
 [files]
 extend-exclude = [
+	"src/wp-includes/SimplePie/*",
 	"src/wp-includes/ID3/*",
 	"src/js/_enqueues/vendor/*",
 	"tests/phpunit/tests/formatting/convertSmilies.php",

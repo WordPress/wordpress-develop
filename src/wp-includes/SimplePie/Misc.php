@@ -42,7 +42,7 @@
  */
 
 /**
- * Miscellaneous utilities
+ * Miscellanous utilities
  *
  * @package SimplePie
  */
@@ -308,15 +308,15 @@ class SimplePie_Misc
 		// We fail to fail on non US-ASCII bytes
 		if ($input === 'US-ASCII')
 		{
-			static $non_ascii_octets = '';
-			if (!$non_ascii_octets)
+			static $non_ascii_octects = '';
+			if (!$non_ascii_octects)
 			{
 				for ($i = 0x80; $i <= 0xFF; $i++)
 				{
-					$non_ascii_octets .= chr($i);
+					$non_ascii_octects .= chr($i);
 				}
 			}
-			$data = substr($data, 0, strcspn($data, $non_ascii_octets));
+			$data = substr($data, 0, strcspn($data, $non_ascii_octects));
 		}
 
 		// This is first, as behaviour of this is completely predictable
