@@ -46,7 +46,7 @@ wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	execSync( `docker-compose run --rm cli ${cmd}`, { stdio: 'inherit' } );
+	execSync( `docker compose run --rm cli ${cmd}`, { stdio: 'inherit' } );
 }
 
 /**
@@ -55,6 +55,6 @@ function wp_cli( cmd ) {
 function install_wp_importer() {
 	const testPluginDirectory = 'tests/phpunit/data/plugins/wordpress-importer';
 
-	execSync( `docker-compose exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
-	execSync( `docker-compose exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
+	execSync( `docker compose exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
+	execSync( `docker compose exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
 }
