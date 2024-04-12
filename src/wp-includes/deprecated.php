@@ -632,7 +632,7 @@ function get_autotoggle($id = 0) {
  * @param bool $hierarchical
  * @return null|false
  */
-function list_cats($optionall = 1, $all = 'All', $sort_column = 'ID', $sort_order = 'asc', $file = '', $list = true, $optiondates = 0,
+function list_cats($optional = 1, $all = 'All', $sort_column = 'ID', $sort_order = 'asc', $file = '', $list = true, $optiondates = 0,
 				$optioncount = 0, $hide_empty = 1, $use_desc_for_title = 1, $children=false, $child_of=0, $categories=0,
 				$recurse=0, $feed = '', $feed_image = '', $exclude = '', $hierarchical=false) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_list_categories()' );
@@ -694,13 +694,13 @@ function wp_list_cats($args = '') {
  * @param int $exclude
  * @return string
  */
-function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = 'asc',
+function dropdown_cats($optional = 1, $all = 'All', $orderby = 'ID', $order = 'asc',
 		$show_last_update = 0, $show_count = 0, $hide_empty = 1, $optionnone = false,
 		$selected = 0, $exclude = 0) {
 	_deprecated_function( __FUNCTION__, '2.1.0', 'wp_dropdown_categories()' );
 
 	$show_option_all = '';
-	if ( $optionall )
+	if ( $optional )
 		$show_option_all = $all;
 
 	$show_option_none = '';

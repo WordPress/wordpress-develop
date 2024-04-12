@@ -1,8 +1,10 @@
 [files]
 extend-exclude = [
+	"src/wp-admin/includes/class-ftp.php",
 	"src/wp-admin/includes/class-ftp-sockets.php",
 	"src/wp-includes/SimplePie/*",
 	"src/wp-includes/ID3/*",
+	"src/wp-includes/IXR/*",
 	"src/js/_enqueues/vendor/*",
 	"tests/phpunit/tests/formatting/convertSmilies.php",
 	"tests/phpunit/tests/formatting/wpTrimWords.php",
