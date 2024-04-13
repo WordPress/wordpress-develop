@@ -434,6 +434,16 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 60700
+	 */
+	public function test_authenticate_filter() {
+		add_filter( 'authenticate', '__return_null', 20 );
+		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+		add_filter( 'authenticate', '__return_false', 20 );
+		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+	}
+
+	/**
 	 * @ticket 36476
 	 */
 	public function test_wp_authenticate_username_password_with_wp_user_object() {
