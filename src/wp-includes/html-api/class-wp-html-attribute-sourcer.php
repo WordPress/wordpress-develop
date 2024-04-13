@@ -48,8 +48,6 @@
  *     video
  */
 
-require_once __DIR__ . '/class-wp-html-processor.php';
-
 /*
  * @see PHP docs for array_is_list: user-contributed polyfill
  */
