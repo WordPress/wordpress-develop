@@ -218,6 +218,10 @@ class WP_Unified_Block_Parser {
 		}
 	}
 
+	public function get_depth() {
+		return count( $this->blocks );
+	}
+
 	public function step() {
 		if ( ! $this->processor->next_token() ) {
 			return false;
@@ -282,6 +286,14 @@ class WP_Unified_Block_Parser {
 	/**
 	 * Parses a comment's modifiable text to determine if it represents
 	 * a valid block comment delimiter, and if so, returns the block meta.
+	 *
+	 * Example:
+	 *
+	 *     $block = parse_block_comment_text( ' wp:paragraph {"dropCaps":true} ' );
+	 *     $block === WP_Lazy_Parsed_Block( 'core', 'paragraph', WP_Lazy_JSON_Object( '{"dropCaps":true}' ) );
+	 *
+	 *     $block = parse_block_comment_text( '[IF[IE>6]]' );
+	 *     $block === null;
 	 *
 	 * @since {WP_VERSION}
 	 *
@@ -472,7 +484,7 @@ class WP_Unified_Block_Parser {
 		 *       be rejected or should it only return broken attributes? By avoiding
 		 *       the parse for now it can defer the parsing costs until they are read.
 		 */
-		$attributes = $is_closer ? null : new WP_Lazy_JSON_Object( $json_region );
+		$attributes = $is_closer ? null : new WP_Lazy_JSON_Object( $text, $at, $length - $at - ( $is_void ? 1 : 0 ) );
 		return new WP_Parsed_Block_Comment( $delimiter_type, $namespace, $block_name, $attributes );
 	}
 }
