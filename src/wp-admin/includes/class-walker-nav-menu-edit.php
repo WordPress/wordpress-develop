@@ -196,7 +196,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<p class="field-url description description-wide">
 						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
 							<?php _e( 'URL' ); ?><br />
-							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->url ); ?>" />
+							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code form-required edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->url ); ?>" placeholder="https://" />
 						</label>
 					</p>
 				<?php endif; ?>

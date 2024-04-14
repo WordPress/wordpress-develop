@@ -589,8 +589,11 @@
 		},
 
 		initPreviewing : function() {
+
+			const menuToEdit = $( '#menu-to-edit' );
+
 			// Update the item handle title when the navigation label is changed.
-			$( '#menu-to-edit' ).on( 'change input', '.edit-menu-item-title', function(e) {
+			menuToEdit.on( 'change input', '.edit-menu-item-title', function(e) {
 				var input = $( e.currentTarget ), title, titleEl;
 				title = input.val();
 				titleEl = input.closest( '.menu-item' ).find( '.menu-item-title' );
@@ -599,6 +602,26 @@
 					titleEl.text( title ).removeClass( 'no-title' );
 				} else {
 					titleEl.text( wp.i18n._x( '(no label)', 'missing menu item navigation label' ) ).addClass( 'no-title' );
+				}
+			} );
+
+			// Show warning when url is empty/invalid in custom menu item type.
+			menuToEdit.on( 'change input', '.edit-menu-item-url', function( e ) {
+
+				const input = $( e.currentTarget );
+				const url = input.val();
+				const urlEl = input.closest( '.menu-item' ).find( '.field-url' );
+
+				if ( '' === url || 'https://' === url || 'http://' === url ) {
+
+					urlEl.addClass( 'form-invalid' );
+					urlEl.attr( 'placeholder', 'https://' );
+
+				} else {
+
+					urlEl.removeClass( 'form-invalid' );
+					urlEl.attr( 'placeholder', '' );
+
 				}
 			} );
 		},
@@ -1063,12 +1086,35 @@
 		},
 
 		attachMenuSaveSubmitListeners : function() {
+			const updateNavMenuEl = $( '#update-nav-menu' );
+
 			/*
 			 * When a navigation menu is saved, store a JSON representation of all form data
 			 * in a single input to avoid PHP `max_input_vars` limitations. See #14134.
 			 */
-			$( '#update-nav-menu' ).on( 'submit', function() {
-				var navMenuData = $( '#update-nav-menu' ).serializeArray();
+			updateNavMenuEl.on( 'submit', function() {
+
+				// Stop saving of menu if it has invalid field.
+				if ( updateNavMenuEl.has( '.form-invalid' ).length > 0 ) {
+
+					updateNavMenuEl.find( '.form-invalid' ).each( function () {
+
+						const menuItem = $( this ).closest( '.menu-item' );
+
+						// Open all the menu items containing invalid fields.
+						if( menuItem.hasClass( 'menu-item-edit-inactive' ) ) {
+
+							menuItem.find( '.menu-item-settings' ).slideDown( 'fast' );
+							menuItem.removeClass('menu-item-edit-inactive')
+								.addClass('menu-item-edit-active');
+
+						}
+					} );
+
+					return false;
+				}
+
+				var navMenuData = updateNavMenuEl.serializeArray();
 				$( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
 			});
 		},
