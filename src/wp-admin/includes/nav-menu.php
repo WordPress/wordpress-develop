@@ -1427,7 +1427,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 
 			// Menu item URL can't be blank.
 			if ( isset( $_POST['menu-item-type'][ $_key ] ) && 'custom' === $_POST['menu-item-type'][ $_key ] && '' === $_POST['menu-item-url'][ $_key ] ) {
-                continue;
+				continue;
 			}
 
 			$args = array();
