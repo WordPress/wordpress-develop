@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Class letting us trap JSON ranges without parsing them, so that if we never
+ * need the values we don't pay the parsing cost.
+ *
+ * Might not want to trap the parsed value to avoid holding onto it for a long time.
+ */
 class WP_Lazy_JSON_Object {
 	/**
 	 * Contains the input document as a string.
@@ -17,6 +23,8 @@ class WP_Lazy_JSON_Object {
 
 	/**
 	 * If set, contains the parsed value of the JSON string.
+	 *
+	 * This is the thing we may not want to hold onto to avoid memory leaks.
 	 *
 	 * @var ?mixed.
 	 */
@@ -54,6 +62,10 @@ class WP_Lazy_JSON_Object {
 	}
 }
 
+/**
+ * This holds references to the source text where the block is found. It also stores basic information
+ * in a class/Record type for performance over arrays as well as inline documentation and autocomplete.
+ */
 class WP_Lazy_Parsed_Block {
 	/**
 	 * The block's namespace.
@@ -120,6 +132,9 @@ class WP_Lazy_Parsed_Block {
 	}
 }
 
+/**
+ * This was used to communicate up. It could probably go away.
+ */
 class WP_Parsed_Block_Comment {
 	/**
 	 * The block's namespace.
@@ -164,6 +179,12 @@ class WP_Parsed_Block_Comment {
 
 	const VOID = 'void';
 }
+
+
+///
+/// ACTUAL CODE
+///
+
 
 class WP_Unified_Block_Parser {
 	/** @var WP_HTML_Processor */
@@ -281,6 +302,28 @@ class WP_Unified_Block_Parser {
 				return $block_comment;
 			}
 		}
+	}
+
+	/**
+	 * Hypothetical function to find block comments without relying on the HTML API.
+	 *
+	 * @param $html
+	 * @param $at
+	 *
+	 * @return false|void
+	 */
+	function find_comment( $html, $at ) {
+		$next_at = strpos( $html, '<!--', $at );
+		if ( false === $next_at ) {
+			return false;
+		}
+
+		$closer_at = strpos( $html, '-->', $next_at + 4 );
+		if ( false === $next_at ) {
+			return false;
+		}
+
+		$block = self::parse_block_comment_text( $html, $next_at + 4, $closer_at - $next_at - 4 );
 	}
 
 	/**
