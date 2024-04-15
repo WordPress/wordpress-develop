@@ -4865,6 +4865,7 @@ class WP_Query {
 				$args['post_type'] = 'post';
 			}
 		}
+		$args['post_type'] = (array) $args['post_type'];
 
 		if ( ! isset( $q['orderby'] ) ) {
 			$args['orderby'] = 'date';
