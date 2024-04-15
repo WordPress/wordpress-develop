@@ -2054,10 +2054,9 @@ class WP_Theme_JSON {
 		}
 
 		// The global settings can include dynamic data related to typography. We need evaluate it so that the cache is invalidated when it changes.
-		$cache_args  = array( func_get_args(), wp_get_global_settings() ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
-		$cache_key   = 'compute_style_properties_' . md5( wp_json_encode( $cache_args ) );
-		$cache_group = 'theme_json';
-		$cache       = wp_cache_get( $cache_key, $cache_group );
+		$cache_args = array( func_get_args(), wp_get_global_settings() ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
+		$cache_key  = 'theme_json_compute_style_properties_' . md5( wp_json_encode( $cache_args ) );
+		$cache      = get_site_transient( $cache_key );
 
 		if ( $cache ) {
 			return $cache;
@@ -2138,7 +2137,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		wp_cache_set( $cache_key, $declarations, $cache_group );
+		set_site_transient( $cache_key, $declarations, HOUR_IN_SECONDS );
 
 		return $declarations;
 	}
