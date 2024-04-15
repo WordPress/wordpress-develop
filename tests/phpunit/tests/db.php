@@ -573,10 +573,10 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * Test the `get_col()` method.
 	 *
-	 * @param string|null        $query       The query to run.
-	 * @param string|array       $expected    The expected resulting value.
-	 * @param arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
-	 * @param int|string         $column      The column index to retrieve.
+	 * @param string|null       $query       The query to run.
+	 * @param string|array      $expected    The expected resulting value.
+	 * @param array|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 * @param int|string        $column      The column index to retrieve.
 	 *
 	 * @dataProvider data_get_col
 	 *
@@ -607,10 +607,10 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @return array {
 	 *     Arguments for testing `get_col()`.
 	 *
-	 *     @type string|null        $query       The query to run.
-	 *     @type string|array       $expected    The resulting expected value.
-	 *     @type arrray|string|null $last_result The value to assign to `$wpdb->last_result`.
-	 *     @type int|string         $column      The column index to retrieve.
+	 *     @type string|null       $query       The query to run.
+	 *     @type string|array      $expected    The resulting expected value.
+	 *     @type array|string|null $last_result The value to assign to `$wpdb->last_result`.
+	 *     @type int|string        $column      The column index to retrieve.
 	 */
 	public function data_get_col() {
 		global $wpdb;
