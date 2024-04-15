@@ -311,9 +311,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() requires openssl.' );
 		}
 
-		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
+		$file = wp_crop_image( 'https://s.w.org/screenshots/3.9/dashboard.png',
 							  0, 0, 100, 100, 100, 100, false,
-							  DIR_TESTDATA . '/images/' . __FUNCTION__ . '.jpg' );
+							  DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png' );
 		$this->assertNotInstanceOf( 'WP_Error', $file );
 		$this->assertFileExists( $file );
 		$image = wp_get_image_editor( $file );
@@ -335,7 +335,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url_not_exist() requires openssl.' );
 		}
 
-		$file = wp_crop_image( 'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
+		$file = wp_crop_image( 'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
 							  0, 0, 100, 100, 100, 100 );
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
