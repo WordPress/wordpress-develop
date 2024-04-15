@@ -963,6 +963,7 @@ function wp_kses_version() {
  * It also matches stray `>` characters.
  *
  * @since 1.0.0
+ * @since 6.6.0 Allow certain kinds of invalid HTML comments.
  *
  * @global array[]|string $pass_allowed_html      An array of allowed HTML elements and attributes,
  *                                                or a context name such as 'post'.
@@ -981,7 +982,18 @@ function wp_kses_split( $content, $allowed_html, $allowed_protocols ) {
 	$pass_allowed_html      = $allowed_html;
 	$pass_allowed_protocols = $allowed_protocols;
 
-	return preg_replace_callback( '%(<!--.*?(-->|$))|(<[^>]*(>|$)|>)%', '_wp_kses_split_callback', $content );
+	$token_pattern = <<<REGEX
+~
+	(                         # Detect comments of various flavors before attempting to find tags.
+		(?:<!--.*?(--!?>|$))  # Well-formed HTML comments like `<!-- ... -->` and also with invalid `--!>` closer.
+		|
+		</[^a-zA-Z][^>]*>     # Closing tags with invalid tag names.
+	)
+	|
+	(<[^>]*(>|$)|>)           # Tag-like spans of text.
+~sx
+REGEX;
+	return preg_replace_callback( $token_pattern, '_wp_kses_split_callback', $content );
 }
 
 /**
@@ -1080,12 +1092,37 @@ function _wp_kses_split_callback( $matches ) {
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	$content = wp_kses_stripslashes( $content );
 
-	// It matched a ">" character.
+	/*
+	 * The regex pattern used to split HTML into chunks attempts
+	 * to split on HTML token boundaries. This function should
+	 * thus receive chunks that _either_ start with meaningful
+	 * syntax tokens, like a tag `<div>` or a comment `<!-- ... -->`.
+	 *
+	 * If the first character of the `$content` chunk _isn't_ one
+	 * of these syntax elements, which always starts with `<`, then
+	 * the match had to be for the final alternation of `>`. In such
+	 * case, it's probably standing on its own and could be encoded
+	 * with a character reference to remove ambiguity.
+	 *
+	 * In other words, if this chunk isn't from a match of a syntax
+	 * token, it's just a plaintext greater-than (`>`) sign.
+	 */
 	if ( ! str_starts_with( $content, '<' ) ) {
 		return '&gt;';
 	}
 
-	// Allow HTML comments.
+	/*
+	 * Preserve funky comments.
+	 *
+	 * When a closing tag appears with a name that isn't a valid tag name,
+	 * it should be interpreted as an HTML comment. It extends until the
+	 * first `>` character after the initial opening `</`.
+	 */
+	if ( 1 === preg_match( '~</[^a-zA-Z][^>]*>~', $content ) ) {
+		return $content;
+	}
+
+	// Preserve HTML comments.
 	if ( str_starts_with( $content, '<!--' ) ) {
 		$content = str_replace( array( '<!--', '-->' ), '', $content );
 
