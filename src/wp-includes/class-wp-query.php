@@ -4856,6 +4856,20 @@ class WP_Query {
 			$args['suppress_filters']
 		);
 
+		if ( empty( $args['post_type'] ) ) {
+			if ( $this->is_attachment ) {
+				$args['post_type'] = 'attachment';
+			} elseif ( $this->is_page ) {
+				$args['post_type'] = 'page';
+			} else {
+				$args['post_type'] = 'post';
+			}
+		}
+
+		if ( ! isset( $q['orderby'] ) ) {
+			$args['orderby'] = 'date';
+		}
+
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(
 			$args,
@@ -4873,6 +4887,8 @@ class WP_Query {
 				}
 			}
 		);
+
+		ksort( $args );
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
