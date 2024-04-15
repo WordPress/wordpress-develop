@@ -529,8 +529,8 @@ class WP_Upgrader {
 		}
 
 		if (
-			( ! is_string( $source ) || '' === trim( $source ) || trim( $source ) !== $source ) ||
-			( ! is_string( $destination ) || '' === trim( $destination ) || trim( $destination ) !== $destination )
+			( ! is_string( $source ) || '' === $source || trim( $source ) !== $source ) ||
+			( ! is_string( $destination ) || '' === $destination || trim( $destination ) !== $destination )
 		) {
 			return new WP_Error( 'bad_request', $this->strings['bad_request'] );
 		}
