@@ -2643,7 +2643,7 @@
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$pluginFilter.on( 'click', '.activate-now', function( event ) {
+		$( '#plugin-information-footer' ).on( 'click', '.activate-now', function( event ) {
 			var $activateButton = $( event.target );
 
 			event.preventDefault();
