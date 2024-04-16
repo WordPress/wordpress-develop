@@ -1739,6 +1739,7 @@ Thanks! -- The WordPress Team"
 			error_log( 'Loopback request failed: ' . $response->get_error_message() );
 			return true;
 		}
+
 		// If this outputs `true` in the log, it means there were no fatal errors detected.
 		error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
 
@@ -1751,7 +1752,9 @@ Thanks! -- The WordPress Team"
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
 		}
-				delete_transient( $transient );
+
+		delete_transient( $transient );
+
 		// Only fatal errors will result in a 'type' key.
 		return isset( $result['type'] );
 	}
