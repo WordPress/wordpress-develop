@@ -549,7 +549,7 @@ SCRIPT_TAG;
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_doesnt_fail_with_unknown_directives() {
-		$html           = '<div data-wp-uknown="">Text</div>';
+		$html           = '<div data-wp-unknown="">Text</div>';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$this->assertEquals( $html, $processed_html );
 	}
