@@ -178,12 +178,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	public function test_generate_cache_key_normalize( $query_vars1, $query_vars2 ) {
 		global $wpdb;
 
-		$fields = "{$wpdb->posts}.ID";
+		$fields   = "{$wpdb->posts}.ID";
 		$query1   = new WP_Query( $query_vars1 );
-		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request);
+		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
 
 		$query2   = new WP_Query( $query_vars2 );
-		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request);
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
 		$reflection->setAccessible( true );
