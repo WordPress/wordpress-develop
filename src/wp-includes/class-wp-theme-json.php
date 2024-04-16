@@ -743,7 +743,10 @@ class WP_Theme_JSON {
 			}
 		}
 
-		$this->get_compute_style_properties_cache();
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached ) {
+			$this->get_compute_style_properties_cache();
+		}
 	}
 
 	/**
