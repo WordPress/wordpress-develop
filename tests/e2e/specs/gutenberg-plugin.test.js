@@ -3,6 +3,11 @@
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+/**
+ * External depencencies
+ */
+import semver from 'semver';
+
 test.describe( 'Gutenberg plugin', () => {
 	// Increasing timeout to 5 minutes because potential plugin install could take longer.
 	test.setTimeout( 300_000 );
@@ -26,6 +31,12 @@ test.describe( 'Gutenberg plugin', () => {
 		let plugin = await requestUtils.rest( {
 			path: 'wp/v2/plugins/gutenberg/gutenberg',
 		} );
+
+		const wordPressVersion = require( '../../../package.json' ).version;
+		test.skip(
+			semver.lt( wordPressVersion, semver.coerce( plugin.requires_wp ) ),
+			'Skip Gutenberg plugin activation test as WP version doesn\'t support it'
+		);
 
 		expect( plugin.status ).toBe( 'inactive' );
 
