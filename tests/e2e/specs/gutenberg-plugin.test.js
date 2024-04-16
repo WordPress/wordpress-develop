@@ -32,9 +32,9 @@ test.describe( 'Gutenberg plugin', () => {
 			path: 'wp/v2/plugins/gutenberg/gutenberg',
 		} );
 
-		const wpVersion = require( '../../../package.json' ).version;
+		const wordPressVersion = require( '../../../package.json' ).version;
 		test.skip(
-			semver.lt( wpVersion, semver.coerce( plugin.requires_wp ) ),
+			semver.lt( wordPressVersion, semver.coerce( plugin.requires_wp ) ),
 			'Skip Gutenberg plugin activation test as WP version doesn\'t support it'
 		);
 
