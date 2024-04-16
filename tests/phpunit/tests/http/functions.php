@@ -27,8 +27,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$headers = wp_remote_retrieve_headers( $response );
 
 		$this->assertInternalType( 'array', $headers, "Reply wasn't array." );
-		$this->assertSame( 'image/png', $headers['Content-Type'] );
-		$this->assertSame( '153204', $headers['Content-Length'] );
+		$this->assertSame( 'image/png', $headers['content-type'] );
+		$this->assertSame( '153204', $headers['content-length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -72,8 +72,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		// Should return the same headers as a HEAD request.
 		$this->assertInternalType( 'array', $headers, "Reply wasn't array." );
-		$this->assertSame( 'image/png', $headers['Content-Type'] );
-		$this->assertSame( '153204', $headers['Content-Length'] );
+		$this->assertSame( 'image/png', $headers['content-type'] );
+		$this->assertSame( '153204', $headers['content-length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -94,8 +94,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		// Should return the same headers as a HEAD request.
 		$this->assertInternalType( 'array', $headers, "Reply wasn't array." );
-		$this->assertSame( 'image/png', $headers['Content-Type'] );
-		$this->assertSame( '153204', $headers['Content-Length'] );
+		$this->assertSame( 'image/png', $headers['content-type'] );
+		$this->assertSame( '153204', $headers['content-length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
