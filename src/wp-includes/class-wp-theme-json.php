@@ -742,11 +742,6 @@ class WP_Theme_JSON {
 				}
 			}
 		}
-
-		$can_use_cached = ! wp_is_development_mode( 'theme' );
-		if ( $can_use_cached ) {
-			$this->get_compute_style_properties_cache();
-		}
 	}
 
 	/**
@@ -2190,10 +2185,15 @@ class WP_Theme_JSON {
 	 * @return array The cached declarations.
 	 */
 	private static function get_compute_style_properties_cache() {
-		self::$cached_compute_style_properties = get_site_transient( 'wp_compute_style_properties' );
+		if ( ! isset( self::$cached_compute_style_properties ) ) {
+			self::$cached_compute_style_properties = get_site_transient( 'wp_compute_style_properties' );
+		}
+
 		if ( ! is_array( self::$cached_compute_style_properties ) ) {
 			self::$cached_compute_style_properties = array();
 		}
+
+		return self::$cached_compute_style_properties;
 	}
 
 	/**
