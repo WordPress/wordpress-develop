@@ -2199,6 +2199,7 @@ class WP_Theme_JSON {
 	 * @since 6.6.0
 	 */
 	public static function clear_compute_style_properties_cache() {
+		self::$cached_compute_style_properties = array();
 		delete_site_transient( 'wp_compute_style_properties' );
 	}
 

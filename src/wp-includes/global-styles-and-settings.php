@@ -451,6 +451,8 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );
 	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
+	// Indirectly `compute_style_properties_cache` relies on `theme_json` cache group for cache key. So clear it.
+	WP_Theme_JSON::clear_compute_style_properties_cache();
 }
 
 /**
