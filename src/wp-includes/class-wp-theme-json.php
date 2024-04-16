@@ -42,9 +42,9 @@ class WP_Theme_JSON {
 	 * Holds the cache of computed style properties for the theme.json.
 	 *
 	 * @since 6.6.0
-	 * @var array
+	 * @var array|null
 	 */
-	private static $cached_compute_style_properties = array();
+	private static $cached_compute_style_properties = null;
 
 	/**
 	 * The CSS selector for the top-level styles.
@@ -2075,6 +2075,9 @@ class WP_Theme_JSON {
 			* Computing global settings hash is costly, so we cache it in a non-persistent cache.
 			*/
 			$cache_key = "{$func_args_hash}_" . self::wp_get_global_settings_hash();
+			if ( ! isset( self::$cached_compute_style_properties ) ) {
+				self::get_compute_style_properties_cache();
+			}
 
 			if ( isset( self::$cached_compute_style_properties[ $cache_key ] ) ) {
 				return self::$cached_compute_style_properties[ $cache_key ];
@@ -2186,7 +2189,7 @@ class WP_Theme_JSON {
 	 *
 	 * @return array The cached declarations.
 	 */
-	private function get_compute_style_properties_cache() {
+	private static function get_compute_style_properties_cache() {
 		self::$cached_compute_style_properties = get_site_transient( 'wp_compute_style_properties' );
 		if ( ! is_array( self::$cached_compute_style_properties ) ) {
 			self::$cached_compute_style_properties = array();
@@ -2199,7 +2202,7 @@ class WP_Theme_JSON {
 	 * @since 6.6.0
 	 */
 	public static function clear_compute_style_properties_cache() {
-		self::$cached_compute_style_properties = array();
+		self::$cached_compute_style_properties = null;
 		delete_site_transient( 'wp_compute_style_properties' );
 	}
 
