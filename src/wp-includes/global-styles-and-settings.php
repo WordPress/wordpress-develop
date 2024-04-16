@@ -445,6 +445,7 @@ function wp_theme_has_theme_json() {
 function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_global_stylesheet', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_svg_filters', 'theme_json' );
+	wp_cache_delete( 'wp_get_global_settings_hash', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_custom', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_theme', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_styles_custom_css', 'theme_json' );

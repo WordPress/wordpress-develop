@@ -2053,13 +2053,20 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		// The global settings can include dynamic data related to typography. We need evaluate it so that the cache is invalidated when it changes.
-		$cache_args = array( func_get_args(), wp_get_global_settings() ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
-		$cache_key  = 'theme_json_compute_style_properties_' . md5( wp_json_encode( $cache_args ) );
-		$cache      = get_site_transient( $cache_key );
+		$can_use_cached = ! wp_is_development_mode( 'theme' );
+		if ( $can_use_cached ) {
+			$func_args_hash = md5( wp_json_encode( func_get_args() ) ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
+			/*
+			* The global settings can include dynamic data related to typography.
+			* We need to evaluate it so that the cache is invalidated when it changes.
+			* Computing global settings hash is costly, so we cache it in a non-persistent cache.
+			*/
+			$cache_key = "compute_style_properties_{$func_args_hash}_" . $this->wp_get_global_settings_hash();
+			$cache     = get_site_transient( $cache_key );
 
-		if ( $cache ) {
-			return $cache;
+			if ( $cache ) {
+				return $cache;
+			}
 		}
 
 		$root_variable_duplicates = array();
@@ -2137,9 +2144,31 @@ class WP_Theme_JSON {
 			}
 		}
 
-		set_site_transient( $cache_key, $declarations, HOUR_IN_SECONDS );
+		if ( $can_use_cached ) {
+			set_site_transient( $cache_key, $declarations, HOUR_IN_SECONDS );
+		}
 
 		return $declarations;
+	}
+
+	/**
+	 * Gets the hash of the global settings.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return string The hash of the global settings.
+	 */
+	private function wp_get_global_settings_hash() {
+		$cache_group = 'theme_json';
+		$cache_key   = 'wp_get_global_settings_hash';
+		$cache       = wp_cache_get( $cache_key, $cache_group );
+		if ( $cache ) {
+			return $cache;
+		}
+
+		$hash = md5( wp_json_encode( $cache_args ) );
+		wp_cache_set( $cache_key, $hash, $cache_group );
+		return $hash;
 	}
 
 	/**
