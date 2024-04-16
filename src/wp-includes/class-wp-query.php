@@ -2542,6 +2542,8 @@ class WP_Query {
 				$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
 			}
 		} elseif ( ! empty( $post_type ) && is_array( $post_type ) ) {
+			// Sort post types to ensure same cache key generation.
+			sort( $post_type );
 			$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
 		} elseif ( ! empty( $post_type ) ) {
 			$post_type_where  = $wpdb->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
@@ -3106,12 +3108,12 @@ class WP_Query {
 
 		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
 		$old_request =
-					"SELECT $found_rows $distinct $fields
-					 FROM {$wpdb->posts} $join
-					 WHERE 1=1 $where
-					 $groupby
-					 $orderby
-					 $limits";
+			"SELECT $found_rows $distinct $fields
+			 FROM {$wpdb->posts} $join
+			 WHERE 1=1 $where
+			 $groupby
+			 $orderby
+			 $limits";
 
 		$this->request = $old_request;
 
@@ -4866,7 +4868,10 @@ class WP_Query {
 			}
 		}
 		$args['post_type'] = (array) $args['post_type'];
+		// Sort post types to ensure same cache key generation.
+		sort( $args['post_type'] );
 
+		// Add a default orderby value of date to ensure same cache key generation.
 		if ( ! isset( $q['orderby'] ) ) {
 			$args['orderby'] = 'date';
 		}
