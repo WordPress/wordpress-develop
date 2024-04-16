@@ -11,21 +11,10 @@ test.describe( 'Gutenberg plugin', () => {
 		// Install Gutenberg plugin if it's not yet installed.
 		const pluginsMap = await requestUtils.getPluginsMap();
 		if ( ! pluginsMap.gutenberg ) {
-			try {
-				await requestUtils.rest( {
-					method: 'POST',
-					path: 'wp/v2/plugins?slug=gutenberg',
-				} );
-			} catch ( error ) {
-				if (
-					typeof error === 'object' &&
-					error !== null &&
-					Object.prototype.hasOwnProperty.call( error, 'code' ) &&
-					error.code === 'incompatible_wp_required_version'
-				) {
-					test.skip();
-				}
-			}
+			await requestUtils.rest( {
+				method: 'POST',
+				path: 'wp/v2/plugins?slug=gutenberg',
+			} );
 		}
 
 		// Refetch installed plugin details. It avoids stale values when the test installs the plugin.
