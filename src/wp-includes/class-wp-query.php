@@ -3106,12 +3106,12 @@ class WP_Query {
 
 		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
 		$old_request =
-			"SELECT $found_rows $distinct $fields
-			 FROM {$wpdb->posts} $join
-			 WHERE 1=1 $where
-			 $groupby
-			 $orderby
-			 $limits";
+					"SELECT $found_rows $distinct $fields
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where
+					 $groupby
+					 $orderby
+					 $limits";
 
 		$this->request = $old_request;
 

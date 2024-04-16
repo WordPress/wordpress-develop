@@ -176,17 +176,22 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 * @dataProvider data_query_cache_duplicate
 	 */
 	public function test_generate_cache_key_normalize( $query_vars1, $query_vars2 ) {
-		$query1 = new WP_Query();
-		$query1->query( array() );
+		global $wpdb;
 
-		$request    = $query1->request;
+		$fields = "{$wpdb->posts}.ID";
+		$query1   = new WP_Query( $query_vars1 );
+		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request);
+
+		$query2   = new WP_Query( $query_vars2 );
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request);
+
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
 		$reflection->setAccessible( true );
 
-		$cache_key_1 = $reflection->invoke( $query1, $query_vars1, $request );
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars1, $request1 );
+		$cache_key_2 = $reflection->invoke( $query2, $query_vars2, $request2 );
 
-		$cache_key_2 = $reflection->invoke( $query1, $query_vars2, $request );
-
+		$this->assertSame( $request1, $request2, 'Database queries should match' );
 		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
 	}
 
@@ -242,8 +247,8 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				'query_vars2' => array( 'post_type' => 'post' ),
 			),
 			'post type array'           => array(
-				'query_vars1' => array( 'post_type' => array( 'post' ) ),
-				'query_vars2' => array( 'post_type' => 'post' ),
+				'query_vars1' => array( 'post_type' => array( 'page' ) ),
+				'query_vars2' => array( 'post_type' => 'page' ),
 			),
 			'orderby empty'             => array(
 				'query_vars1' => array( 'orderby' => null ),
