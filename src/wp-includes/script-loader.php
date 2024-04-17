@@ -77,8 +77,8 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'       => array( 'wp-polyfill' ),
-		'react-dom'   => array( 'react' ),
+		'react',
+		'react-dom' => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
 		'lodash',
@@ -91,7 +91,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
 		'wp-polyfill-inert',
-		'wp-polyfill' => array( 'wp-polyfill-inert', 'regenerator-runtime' ),
+		'wp-polyfill',
 	);
 
 	$vendor_scripts_versions = array(
