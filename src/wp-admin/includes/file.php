@@ -879,7 +879,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 
 	// You may define your own subdirectory and pass the name in $overrides['subdir'].
 	$subdir = isset( $overrides['subdir'] ) ? $overrides['subdir'] : '';
-	
+
 	/*
 	 * This may not have originally been intended to be overridable,
 	 * but historically has been.

@@ -864,7 +864,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 			// Only allow uploading font files for this request.
 			'mimes'                => WP_Font_Utils::get_allowed_font_mime_types(),
 			// Only allow uploading font files to the fonts directory.
-			'subdir'               => '/fonts'
+			'subdir'               => '/fonts',
 		);
 
 		// Bypasses is_uploaded_file() when running unit tests.
