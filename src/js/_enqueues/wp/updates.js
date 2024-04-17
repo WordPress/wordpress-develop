@@ -1105,10 +1105,10 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object} response             Response from the server.
-	 * @param {string} response.slug        Slug of the activated plugin.
-	 * @param {string} response.pluginName  Name of the activated plugin.
-	 * @param {string} response.plugin      The plugin file, relative to the plugins directory.
+	 * @param {Object} response            Response from the server.
+	 * @param {string} response.slug       Slug of the activated plugin.
+	 * @param {string} response.pluginName Name of the activated plugin.
+	 * @param {string} response.plugin     The plugin file, relative to the plugins directory.
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
@@ -1117,7 +1117,17 @@
 				/* translators: %s: The plugin name. */
 				'%s activated successfully.',
 				response.pluginName
-			);
+			),
+			noticeData = {
+				id: 'plugin-activated-successfully',
+				className: 'notice notice-success',
+				message: sprintf(
+					/* translators: %s: The plugin's name. */
+					__( '%s was activated successfully. Some changes may not occur until you refresh the page.' ),
+					response.pluginName
+				)
+			},
+			noticeTarget;
 
 		wp.a11y.speak( __( 'Activation completed successfully.' ) );
 		$document.trigger( 'wp-plugin-activate-success', response );
@@ -1139,6 +1149,18 @@
 					ariaLabel: ariaLabel
 				}
 			);
+
+			noticeTarget = window.parent === window ? null : window.parent;
+
+			$.support.postMessage = !! window.postMessage;
+			if ( false !== $.support.postMessage && null !== noticeTarget && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
+				noticeTarget.postMessage(
+					JSON.stringify( noticeData ),
+					window.location.origin
+				);
+			}
+		} else {
+			wp.updates.addAdminNotice( noticeData );
 		}
 
 		setTimeout( function() {
@@ -3223,6 +3245,11 @@
 			}
 
 			if ( ! message ) {
+				return;
+			}
+
+			if ( 'undefined' !== typeof message.id && 'plugin-activated-successfully' === message.id ) {
+				wp.updates.addAdminNotice( message );
 				return;
 			}
 
