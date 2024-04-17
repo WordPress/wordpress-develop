@@ -42,7 +42,7 @@ class Tests_Ajax_wpAjaxParseMediaShortcode extends WP_Ajax_UnitTestCase {
 
 		$_POST = array_merge(
 			array(
-				'action' => 'paser-media-shortcode',
+				'action' => 'parse-media-shortcode',
 				'type'   => '',
 			),
 			$payload
