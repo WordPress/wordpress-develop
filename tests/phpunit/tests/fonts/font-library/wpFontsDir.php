@@ -117,8 +117,6 @@ class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
 		 * This emulates the approach a plugin developer may take to
 		 * add the filter when extending the font library functionality.
 		 */
-		add_filter( 'upload_dir', '_wp_filter_font_directory' );
-
 		add_filter(
 			'upload_dir',
 			function ( $upload_dir ) {
