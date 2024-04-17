@@ -162,6 +162,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Test retrieving a collection of themes.
 	 *
 	 * @ticket 45016
+	 * @ticket 61021
 	 */
 	public function test_get_items() {
 		$response = self::perform_active_theme_request();
@@ -182,8 +183,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'screenshot',
 			'status',
 			'stylesheet',
+			'stylesheet_uri',
 			'tags',
 			'template',
+			'template_uri',
 			'textdomain',
 			'theme_supports',
 			'theme_uri',
@@ -198,6 +201,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Test retrieving a collection of inactive themes.
 	 *
 	 * @ticket 50152
+	 * @ticket 61021
 	 */
 	public function test_get_items_inactive() {
 		wp_set_current_user( self::$admin_id );
@@ -221,8 +225,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'screenshot',
 			'status',
 			'stylesheet',
+			'stylesheet_uri',
 			'tags',
 			'template',
+			'template_uri',
 			'textdomain',
 			'theme_uri',
 			'version',
@@ -347,12 +353,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Verify the theme schema.
 	 *
 	 * @ticket 45016
+	 * @ticket 61021
 	 */
 	public function test_get_item_schema() {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 16, $properties );
+		$this->assertCount( 18, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -377,6 +384,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'screenshot', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
+		$this->assertArrayHasKey( 'stylesheet_uri', $properties );
 
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['tags']['properties'] );
@@ -384,6 +392,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'rendered', $properties['tags']['properties'] );
 
 		$this->assertArrayHasKey( 'template', $properties );
+		$this->assertArrayHasKey( 'template_uri', $properties );
 		$this->assertArrayHasKey( 'textdomain', $properties );
 		$this->assertArrayHasKey( 'theme_supports', $properties );
 
@@ -535,6 +544,17 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 61021
+	 */
+	public function test_theme_stylesheet_uri() {
+		$response      = self::perform_active_theme_request();
+		$result        = $response->get_data();
+		$current_theme = wp_get_theme();
+		$this->assertArrayHasKey( 'stylesheet_uri', $result[0] );
+		$this->assertSame( $current_theme->get_stylesheet_directory_uri(), $result[0]['stylesheet_uri'] );
+	}
+
+	/**
 	 * @ticket 49906
 	 */
 	public function test_theme_tags() {
@@ -553,6 +573,17 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'template', $result[0] );
 		$this->assertSame( 'default', $result[0]['template'] );
+	}
+
+	/**
+	 * @ticket 61021
+	 */
+	public function test_theme_template_uri() {
+		$response      = self::perform_active_theme_request();
+		$result        = $response->get_data();
+		$current_theme = wp_get_theme();
+		$this->assertArrayHasKey( 'template_uri', $result[0] );
+		$this->assertSame( $current_theme->get_template_directory_uri(), $result[0]['template_uri'] );
 	}
 
 	/**
@@ -1273,8 +1304,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'screenshot',
 			'status',
 			'stylesheet',
+			'stylesheet_uri',
 			'tags',
 			'template',
+			'template_uri',
 			'textdomain',
 			'theme_uri',
 			'version',
