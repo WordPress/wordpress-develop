@@ -333,11 +333,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'stylesheet_uri', $fields ) ) {
-			$data['stylesheet_uri'] = get_stylesheet_directory_uri();
+			$data['stylesheet_uri'] = $theme->get_stylesheet_directory_uri();
 		}
 
 		if ( rest_is_field_included( 'template_uri', $fields ) ) {
-			$data['template_uri'] = get_template_directory_uri();
+			$data['template_uri'] = $theme->get_template_directory_uri();
 		}
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
