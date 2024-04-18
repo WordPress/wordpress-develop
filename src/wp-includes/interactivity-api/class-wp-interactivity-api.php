@@ -265,6 +265,11 @@ final class WP_Interactivity_API {
 				continue;
 			}
 
+			if ( null !== $p->get_attribute( 'data-wp-ignore' ) ) {
+				$p->skip_to_tag_closer();
+				continue;
+			}
+
 			if ( $p->is_tag_closer() ) {
 				list( $opening_tag_name, $directives_prefixes ) = end( $tag_stack );
 
