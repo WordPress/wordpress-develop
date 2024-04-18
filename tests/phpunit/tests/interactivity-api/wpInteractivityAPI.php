@@ -838,6 +838,13 @@ JSON;
 
 					public function offsetUnset( $offset ): void {}
 				},
+				'derived'   => function ( $store ) {
+					return 'Derived state: ' .
+						$store['state']['key'] .
+						"\n" .
+						'Derived context: ' .
+						$store['context']['key'];
+				},
 			);
 		};
 		$this->interactivity->state( 'myPlugin', $generate_state( 'myPlugin-state' ) );
@@ -966,6 +973,18 @@ JSON;
 
 		$result = $this->evaluate( 'path', '{}' );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests the `evaluate` method for derived state functions.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::evaluate
+	 */
+	public function test_evaluate_derived_state() {
+		$result = $this->evaluate( 'state.derived' );
+		$this->assertEquals( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
 	}
 
 	/**
