@@ -649,7 +649,7 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
                     <action type="Rewrite" url="' . $iis_rewrite_base . '{R:1}" />
                 </rule>
                 <rule name="WordPress Rule 5" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . '(?:[_0-9a-zA-Z-]+/)?(.*\.php)$" ignoreCase="false" />
+                    <match url="^' . $iis_subdir_match . '([_0-9a-zA-Z-]+/)?(.*\.php)$" ignoreCase="false" />
                     <action type="Rewrite" url="' . $iis_rewrite_base . '{R:2}" />
                 </rule>
                 <rule name="WordPress Rule 6" stopProcessing="true">
