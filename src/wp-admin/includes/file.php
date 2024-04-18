@@ -786,6 +786,9 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *     @type bool     $test_size                Whether to test that the file size is greater than zero bytes.
  *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
  *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
+ *     @type string[] $upload_dir               Array of the uploads directory data as returned by
+ *                                              {@see wp_upload_dir()} or {@see wp_font_dir()}. If not set the function
+ *                                              will use {@see wp_upload_dir()}.
  * }
  * @param string      $time      Time formatted in 'yyyy/mm'.
  * @param string      $action    Expected value for `$_POST['action']`.
@@ -972,11 +975,16 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		$type = '';
 	}
 
+	if ( isset( $overrides['upload_dir'] ) ) {
+		$uploads = $overrides['upload_dir'];
+	} else {
+		$uploads = wp_upload_dir( $time );
+	}
+
 	/*
 	 * A writable uploads dir will pass this test. Again, there's no point
 	 * overriding this one.
 	 */
-	$uploads = wp_upload_dir( $time );
 	if ( ! ( $uploads && false === $uploads['error'] ) ) {
 		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
 	}
