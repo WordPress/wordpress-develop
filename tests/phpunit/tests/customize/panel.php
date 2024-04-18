@@ -237,5 +237,4 @@ class Custom_Panel_Test extends WP_Customize_Panel {
 		</li>
 		<?php
 	}
-
 }

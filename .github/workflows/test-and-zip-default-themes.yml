@@ -1,0 +1,243 @@
+name: Test Default Themes & Create ZIPs
+
+on:
+  push:
+    branches:
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      # Changing the preferred version of Node.js could affect themes with build processes.
+      - '.nvm'
+      # Changes to any themes with a build script should be confirmed.
+      - 'src/wp-content/themes/twentynineteen/**'
+      - 'src/wp-content/themes/twentytwenty/**'
+      - 'src/wp-content/themes/twentytwentyone/**'
+      # Changes to this workflow file should always verify success.
+      - '.github/workflows/test-and-zip-default-themes.yml'
+  pull_request:
+    branches:
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      # Changing the preferred version of Node.js could affect themes with build processes.
+      - '.nvm'
+      # Changes to any themes with a build script should be confirmed.
+      - 'src/wp-content/themes/twentynineteen/**'
+      - 'src/wp-content/themes/twentytwenty/**'
+      - 'src/wp-content/themes/twentytwentyone/**'
+      # Changes to this workflow file should always verify success.
+      - '.github/workflows/test-and-zip-default-themes.yml'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to create ZIP files from'
+        required: true
+        type: string
+        default: 'trunk'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Checks for zero-byte files.
+  #
+  # Occasionally, binary files such as images and fonts are added to themes incorrectly.
+  # This checks that all files contain contents.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Checks for zero-byte (empty) files.
+  check-for-empty-files:
+    name: ${{ matrix.theme }} empty file check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [
+          'twentytwentyfour',
+          'twentytwentythree',
+          'twentytwentytwo',
+          'twentytwentyone',
+          'twentytwenty',
+          'twentynineteen',
+          'twentyseventeen',
+          'twentysixteen',
+          'twentyfifteen',
+          'twentyfourteen',
+          'twentythirteen',
+          'twentytwelve',
+          'twentyeleven',
+          'twentyten'
+        ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Check for zero-byte (empty) files
+        run: |
+          [[ ! $(find src/wp-content/themes/${{ matrix.theme }} -empty) ]]
+
+  # Tests the build script for themes that have one.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Installs npm dependencies.
+  # - Runs the theme build script.
+  # - Ensures version-controlled files are not modified or deleted.
+  test-build-scripts:
+    name: Test ${{ matrix.theme }} build script
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [
+            'twentytwentyone',
+            'twentytwenty',
+            'twentynineteen',
+        ]
+
+    defaults:
+      run:
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build theme
+        run: npm run build
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
+
+  # Prepares bundled themes for release.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
+  bundle-theme:
+    name: Create ${{ matrix.theme }} ZIP file
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: [ check-for-empty-files, test-build-scripts ]
+    timeout-minutes: 10
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [
+            'twentytwentyfour',
+            'twentytwentythree',
+            'twentytwentytwo',
+            'twentytwentyone',
+            'twentytwenty',
+            'twentynineteen',
+            'twentyseventeen',
+            'twentysixteen',
+            'twentyfifteen',
+            'twentyfourteen',
+            'twentythirteen',
+            'twentytwelve',
+            'twentyeleven',
+            'twentyten'
+        ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Upload theme ZIP as an artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          if-no-files-found: error
+          name: ${{ matrix.theme }}
+          path: src/wp-content/themes/${{ matrix.theme }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    permissions:
+      actions: read
+      contents: read
+    needs: [ check-for-empty-files, bundle-theme, test-build-scripts ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: '${{ github.run_id }}'
+              }
+            });

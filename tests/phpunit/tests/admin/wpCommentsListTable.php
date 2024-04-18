@@ -10,7 +10,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	 */
 	protected $table;
 
-	function set_up() {
+	public function set_up() {
 		parent::set_up();
 		$this->table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
 	}
@@ -96,7 +96,7 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	public function test_bulk_action_menu_supports_options_and_optgroups() {
 		add_filter(
 			'bulk_actions-edit-comments',
-			static function() {
+			static function () {
 				return array(
 					'delete'       => 'Delete',
 					'Change State' => array(
@@ -213,5 +213,4 @@ OPTIONS;
 		);
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
-
 }

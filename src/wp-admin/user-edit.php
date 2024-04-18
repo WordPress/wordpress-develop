@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/** WordPress Translation Installation API */
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+
 wp_reset_vars( array( 'action', 'user_id', 'wp_http_referer' ) );
 
 $user_id      = (int) $user_id;
@@ -71,8 +74,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/users-your-profile-screen/">Documentation on User Profiles</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/users-your-profile-screen/">Documentation on User Profiles</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 $wp_http_referer = remove_query_arg( array( 'update', 'delete_count', 'user_id' ), $wp_http_referer );
@@ -104,7 +107,7 @@ if ( is_multisite()
 if ( IS_PROFILE_PAGE && isset( $_GET['newuseremail'] ) && $current_user->ID ) {
 	$new_email = get_user_meta( $current_user->ID, '_new_email', true );
 	if ( $new_email && hash_equals( $new_email['hash'], $_GET['newuseremail'] ) ) {
-		$user             = new stdClass;
+		$user             = new stdClass();
 		$user->ID         = $current_user->ID;
 		$user->user_email = esc_html( trim( $new_email['newemail'] ) );
 		if ( is_multisite() && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", $current_user->user_login ) ) ) {
@@ -197,36 +200,58 @@ switch ( $action ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 
-		<?php if ( ! IS_PROFILE_PAGE && is_super_admin( $profile_user->ID ) && current_user_can( 'manage_network_options' ) ) : ?>
-			<div class="notice notice-info"><p><strong><?php _e( 'Important:' ); ?></strong> <?php _e( 'This user has super admin privileges.' ); ?></p></div>
-		<?php endif; ?>
+		<?php
+		if ( ! IS_PROFILE_PAGE && is_super_admin( $profile_user->ID ) && current_user_can( 'manage_network_options' ) ) :
+			$message = '<strong>' . __( 'Important:' ) . '</strong> ' . __( 'This user has super admin privileges.' );
+			wp_admin_notice(
+				$message,
+				array(
+					'type' => 'info',
+				)
+			);
+		endif;
 
-		<?php if ( isset( $_GET['updated'] ) ) : ?>
-			<div id="message" class="updated notice is-dismissible">
-				<?php if ( IS_PROFILE_PAGE ) : ?>
-					<p><strong><?php _e( 'Profile updated.' ); ?></strong></p>
-				<?php else : ?>
-					<p><strong><?php _e( 'User updated.' ); ?></strong></p>
-				<?php endif; ?>
-				<?php if ( $wp_http_referer && false === strpos( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
-					<p><a href="<?php echo esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
-				<?php endif; ?>
-			</div>
-		<?php endif; ?>
+		if ( isset( $_GET['updated'] ) ) :
+			if ( IS_PROFILE_PAGE ) :
+				$message = '<strong>' . __( 'Profile updated.' ) . '</strong>';
+			else :
+				$message = '<strong>' . __( 'User updated.' ) . '</strong>';
+			endif;
+			if ( $wp_http_referer && ! str_contains( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) :
+				$message .= '<a href="' . esc_url( wp_validate_redirect( sanitize_url( $wp_http_referer ), self_admin_url( 'users.php' ) ) ) . '">' . __( '&larr; Go to Users' ) . '</a>';
+			endif;
+			wp_admin_notice(
+				$message,
+				array(
+					'id'                 => 'message',
+					'dismissible'        => true,
+					'additional_classes' => array( 'updated' ),
+				)
+			);
+		endif;
 
-		<?php if ( isset( $_GET['error'] ) ) : ?>
-			<div class="notice notice-error">
-			<?php if ( 'new-email' === $_GET['error'] ) : ?>
-				<p><?php _e( 'Error while saving the new email address. Please try again.' ); ?></p>
-			<?php endif; ?>
-			</div>
-		<?php endif; ?>
+		if ( isset( $_GET['error'] ) ) :
+			$message = '';
+			if ( 'new-email' === $_GET['error'] ) :
+				$message = __( 'Error while saving the new email address. Please try again.' );
+			endif;
+			wp_admin_notice(
+				$message,
+				array(
+					'type' => 'error',
+				)
+			);
+		endif;
 
-		<?php if ( isset( $errors ) && is_wp_error( $errors ) ) : ?>
-			<div class="error">
-				<p><?php echo implode( "</p>\n<p>", $errors->get_error_messages() ); ?></p>
-			</div>
-		<?php endif; ?>
+		if ( isset( $errors ) && is_wp_error( $errors ) ) {
+			wp_admin_notice(
+				implode( "</p>\n<p>", $errors->get_error_messages() ),
+				array(
+					'additional_classes' => array( 'error' ),
+				)
+			);
+		}
+		?>
 
 		<div class="wrap" id="profile-page">
 			<h1 class="wp-heading-inline">
@@ -235,9 +260,9 @@ switch ( $action ) {
 
 			<?php if ( ! IS_PROFILE_PAGE ) : ?>
 				<?php if ( current_user_can( 'create_users' ) ) : ?>
-					<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add New', 'user' ); ?></a>
+					<a href="user-new.php" class="page-title-action"><?php echo esc_html__( 'Add New User' ); ?></a>
 				<?php elseif ( is_multisite() && current_user_can( 'promote_users' ) ) : ?>
-					<a href="user-new.php" class="page-title-action"><?php echo esc_html_x( 'Add Existing', 'user' ); ?></a>
+					<a href="user-new.php" class="page-title-action"><?php echo esc_html__( 'Add Existing User' ); ?></a>
 				<?php endif; ?>
 			<?php endif; ?>
 
@@ -330,7 +355,7 @@ switch ( $action ) {
 								<input type="checkbox" name="comment_shortcuts" id="comment_shortcuts" value="true" <?php checked( 'true', $profile_user->comment_shortcuts ); ?> />
 								<?php _e( 'Enable keyboard shortcuts for comment moderation.' ); ?>
 							</label>
-							<?php _e( '<a href="https://wordpress.org/support/article/keyboard-shortcuts/" target="_blank">More information</a>' ); ?>
+							<?php _e( '<a href="https://wordpress.org/documentation/article/keyboard-shortcuts-classic-editor/#keyboard-shortcuts-for-comments">Documentation on Keyboard Shortcuts</a>' ); ?>
 						</td>
 					</tr>
 					<?php endif; ?>
@@ -345,8 +370,11 @@ switch ( $action ) {
 						</td>
 					</tr>
 
-					<?php $languages = get_available_languages(); ?>
-					<?php if ( $languages ) : ?>
+					<?php
+					$languages                = get_available_languages();
+					$can_install_translations = current_user_can( 'install_languages' ) && wp_can_install_language_pack();
+					?>
+					<?php if ( $languages || $can_install_translations ) : ?>
 					<tr class="user-language-wrap">
 						<th scope="row">
 							<?php /* translators: The user language selection field label. */ ?>
@@ -368,7 +396,7 @@ switch ( $action ) {
 									'id'        => 'locale',
 									'selected'  => $user_locale,
 									'languages' => $languages,
-									'show_available_translations' => false,
+									'show_available_translations' => $can_install_translations,
 									'show_option_site_default' => true,
 								)
 							);
@@ -518,25 +546,28 @@ switch ( $action ) {
 								</p>
 							<?php endif; ?>
 
-							<?php $new_email = get_user_meta( $current_user->ID, '_new_email', true ); ?>
-							<?php if ( $new_email && $new_email['newemail'] !== $current_user->user_email && $profile_user->ID === $current_user->ID ) : ?>
-							<div class="updated inline">
-								<p>
-									<?php
-									printf(
-										/* translators: %s: New email. */
-										__( 'There is a pending change of your email to %s.' ),
-										'<code>' . esc_html( $new_email['newemail'] ) . '</code>'
-									);
-									printf(
-										' <a href="%1$s">%2$s</a>',
-										esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
-										__( 'Cancel' )
-									);
-									?>
-								</p>
-							</div>
-							<?php endif; ?>
+							<?php
+							$new_email = get_user_meta( $current_user->ID, '_new_email', true );
+							if ( $new_email && $new_email['newemail'] !== $current_user->user_email && $profile_user->ID === $current_user->ID ) :
+
+								$pending_change_message = sprintf(
+									/* translators: %s: New email. */
+									__( 'There is a pending change of your email to %s.' ),
+									'<code>' . esc_html( $new_email['newemail'] ) . '</code>'
+								);
+								$pending_change_message .= sprintf(
+									' <a href="%1$s">%2$s</a>',
+									esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
+									__( 'Cancel' )
+								);
+								wp_admin_notice(
+									$pending_change_message,
+									array(
+										'additional_classes' => array( 'updated', 'inline' ),
+									)
+								);
+							endif;
+							?>
 						</td>
 					</tr>
 
@@ -634,12 +665,13 @@ switch ( $action ) {
 							<tr id="password" class="user-pass1-wrap">
 								<th><label for="pass1"><?php _e( 'New Password' ); ?></label></th>
 								<td>
-									<input class="hidden" value=" " /><!-- #24364 workaround -->
+									<input type="hidden" value=" " /><!-- #24364 workaround -->
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
-										<span class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
-										</span>
+										<div class="password-input-wrapper">
+											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
+										</div>
 										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
@@ -648,14 +680,13 @@ switch ( $action ) {
 											<span class="dashicons dashicons-no" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Cancel' ); ?></span>
 										</button>
-										<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 									</div>
 								</td>
 							</tr>
 							<tr class="user-pass2-wrap hide-if-js">
 								<th scope="row"><label for="pass2"><?php _e( 'Repeat New Password' ); ?></label></th>
 								<td>
-								<input name="pass2" type="password" id="pass2" class="regular-text" value="" autocomplete="new-password" aria-describedby="pass2-desc" />
+								<input type="password" name="pass2" id="pass2" class="regular-text" value="" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc" />
 									<?php if ( IS_PROFILE_PAGE ) : ?>
 										<p class="description" id="pass2-desc"><?php _e( 'Type your new password again.' ); ?></p>
 									<?php else : ?>
@@ -675,7 +706,7 @@ switch ( $action ) {
 							<?php endif; // End Show Password Fields. ?>
 
 							<?php // Allow admins to send reset password link. ?>
-							<?php if ( ! IS_PROFILE_PAGE ) : ?>
+							<?php if ( ! IS_PROFILE_PAGE && true === wp_is_password_reset_allowed_for_user( $profile_user ) ) : ?>
 								<tr class="user-generate-reset-link-wrap hide-if-no-js">
 									<th><?php _e( 'Password Reset' ); ?></th>
 									<td>
@@ -779,7 +810,7 @@ switch ( $action ) {
 									<div class="create-application-password form-wrap">
 										<div class="form-field">
 											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
+											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
@@ -796,11 +827,17 @@ switch ( $action ) {
 
 										<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add New Application Password' ); ?></button>
 									</div>
-								<?php else : ?>
-									<div class="notice notice-error inline">
-										<p><?php _e( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ); ?></p>
-									</div>
-								<?php endif; ?>
+									<?php
+								else :
+									wp_admin_notice(
+										__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
+										array(
+											'type' => 'error',
+											'additional_classes' => array( 'inline' ),
+										)
+									);
+								endif;
+								?>
 
 								<div class="application-passwords-list-table-wrapper">
 									<?php
@@ -911,9 +948,24 @@ switch ( $action ) {
 	}
 </script>
 
+<script type="text/javascript">
+	jQuery( function( $ ) {
+		var languageSelect = $( '#locale' );
+		$( 'form' ).on( 'submit', function() {
+			/*
+			 * Don't show a spinner for English and installed languages,
+			 * as there is nothing to download.
+			 */
+			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
+				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
+			}
+		});
+	} );
+</script>
+
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
-		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="-1">
+		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert">
 			<p class="application-password-display">
 				<label for="new-application-password-value">
 					<?php
@@ -928,7 +980,12 @@ switch ( $action ) {
 			</p>
 			<p><?php _e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			<button type="button" class="notice-dismiss">
-				<span class="screen-reader-text"><?php _e( 'Dismiss this notice.' ); ?></span>
+				<span class="screen-reader-text">
+					<?php
+					/* translators: Hidden accessibility text. */
+					_e( 'Dismiss this notice.' );
+					?>
+				</span>
 			</button>
 		</div>
 	</script>
