@@ -1128,23 +1128,23 @@ class WP_SQLite_Translator {
 		 * This mode allows the use of `NULL` when NOT NULL is set on a column that falls back to DEFAULT.
 		 * SQLite does not support this behavior, so we need to add the `ON CONFLICT REPLACE` clause to the column definition.
 		 */
-		if ($field->not_null) {
+		if ( $field->not_null ) {
 			$definition .= ' ON CONFLICT REPLACE';
 		}
 		/**
 		 * The value of DEFAULT can be NULL. PHP would print this as an empty string, so we need a special case for it.
 		 */
-		if (null === $field->default) {
+		if ( null === $field->default ) {
 			$definition .= ' DEFAULT NULL';
-		} else if (false !== $field->default) {
+		} elseif ( false !== $field->default ) {
 			$definition .= ' DEFAULT ' . $field->default;
-		} else if ($field->not_null) {
+		} elseif ( $field->not_null ) {
 			/**
 			 * If the column is NOT NULL, we need to provide a default value to match WPDB behavior caused by removing the STRICT_TRANS_TABLES mode.
 			 */
-			if ('text' === $field->sqlite_data_type) {
+			if ( 'text' === $field->sqlite_data_type ) {
 				$definition .= ' DEFAULT \'\'';
-			} else if (in_array($field->sqlite_data_type, array('integer', 'real'), true)) {
+			} elseif ( in_array( $field->sqlite_data_type, array( 'integer', 'real' ), true ) ) {
 				$definition .= ' DEFAULT 0';
 			}
 		}
@@ -3211,19 +3211,19 @@ class WP_SQLite_Translator {
 			case 'TABLE STATUS':  // FROM `database`.
 				// Match the optional [{FROM | IN} db_name]
 				$database_expression = $this->rewriter->consume();
-				if ( $database_expression->token === 'FROM' || $database_expression->token === 'IN' ) {
+				if ( 'FROM' === $database_expression->token || 'IN' === $database_expression->token ) {
 					$this->rewriter->consume();
 					$database_expression = $this->rewriter->consume();
 				}
 
 				$pattern = '%';
 				// [LIKE 'pattern' | WHERE expr]
-				if($database_expression->token === 'LIKE') {
+				if ( 'LIKE' === $database_expression->token ) {
 					$pattern = $this->rewriter->consume()->value;
-				} else if($database_expression->token === 'WHERE') {
+				} elseif ( 'WHERE' === $database_expression->token ) {
 					// @TODO Support me please.
-				} else if($database_expression->token !== ';') {
-					throw new Exception( 'Syntax error: Unexpected token ' . $database_expression->token .' in query '. $this->mysql_query );
+				} elseif ( ';' !== $database_expression->token ) {
+					throw new Exception( 'Syntax error: Unexpected token ' . $database_expression->token . ' in query ' . $this->mysql_query );
 				}
 
 				$database_expression = $this->rewriter->skip();
@@ -3252,12 +3252,11 @@ class WP_SQLite_Translator {
 						type='table'
 						AND name LIKE :pattern
 					ORDER BY name",
-
 					array(
 						':pattern' => $pattern,
 					)
 				);
-				$tables = $this->strip_sqlite_system_tables( $stmt->fetchAll( $this->pdo_fetch_mode ) );
+				$tables              = $this->strip_sqlite_system_tables( $stmt->fetchAll( $this->pdo_fetch_mode ) );
 				foreach ( $tables as $table ) {
 					$table_name  = $table->Name; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 					$stmt        = $this->execute_sqlite_query( "SELECT COUNT(1) as `Rows` FROM $table_name" );
