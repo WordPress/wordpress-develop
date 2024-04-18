@@ -100,6 +100,14 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
+	 * Holds sanitized term data.
+	 *
+	 * @since 6.6.0
+	 * @var stdClass|null
+	 */
+	protected $data;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
@@ -231,15 +239,62 @@ final class WP_Term {
 	 * @return mixed Property value.
 	 */
 	public function __get( $key ) {
-		switch ( $key ) {
-			case 'data':
-				$data    = new stdClass();
-				$columns = array( 'term_id', 'name', 'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description', 'parent', 'count' );
-				foreach ( $columns as $column ) {
-					$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
-				}
-
-				return sanitize_term( $data, $data->taxonomy, 'raw' );
+		if ( 'data' !== $key ) {
+			trigger_error(
+				sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+				E_USER_DEPRECATED
+			);
+			return null;
 		}
+
+		$this->data = new stdClass();
+		$columns    = array(
+			'term_id',
+			'name',
+			'slug',
+			'term_group',
+			'term_taxonomy_id',
+			'taxonomy',
+			'description',
+			'parent',
+			'count'
+		);
+		foreach ( $columns as $column ) {
+			$this->data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+		}
+
+		return sanitize_term( $this->data, $this->data->taxonomy, 'raw' );
+	}
+
+	public function __isset( $key ) {
+		if ( 'data' === $key ) {
+			return isset( $this->data );
+		}
+
+		return false;
+	}
+
+	public function __set( $key, $value ) {
+		if ( 'data' === $key ) {
+			$this->data = $value;
+			return;
+		}
+
+		trigger_error(
+			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
+	}
+
+	public function __unset( $key ) {
+		if ( 'data' === $key ) {
+			unset( $this->$key );
+			return;
+		}
+
+		trigger_error(
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated', $key, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
 	}
 }
