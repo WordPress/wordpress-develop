@@ -547,11 +547,23 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 61021
 	 */
 	public function test_theme_stylesheet_uri() {
-		$response      = self::perform_active_theme_request();
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', array( 'active', 'inactive' ) );
+
+		$response      = rest_get_server()->dispatch( $request );
 		$result        = $response->get_data();
 		$current_theme = wp_get_theme();
-		$this->assertArrayHasKey( 'stylesheet_uri', $result[0] );
-		$this->assertSame( $current_theme->get_stylesheet_directory_uri(), $result[0]['stylesheet_uri'] );
+
+		foreach ( $result as $theme_result ) {
+			$this->assertArrayHasKey( 'stylesheet_uri', $theme_result );
+			if ( 'active' === $theme_result['status'] ) {
+				$this->assertSame( get_stylesheet_directory_uri(), $theme_result['stylesheet_uri'] );
+			} else {
+				$theme = wp_get_theme( $theme_result['stylesheet'] );
+				$this->assertSame( $theme->get_stylesheet_directory_uri(), $theme_result['stylesheet_uri'] );
+			}
+		}
 	}
 
 	/**
@@ -579,11 +591,23 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 61021
 	 */
 	public function test_theme_template_uri() {
-		$response      = self::perform_active_theme_request();
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', array( 'active', 'inactive' ) );
+
+		$response      = rest_get_server()->dispatch( $request );
 		$result        = $response->get_data();
 		$current_theme = wp_get_theme();
-		$this->assertArrayHasKey( 'template_uri', $result[0] );
-		$this->assertSame( $current_theme->get_template_directory_uri(), $result[0]['template_uri'] );
+
+		foreach ( $result as $theme_result ) {
+			$this->assertArrayHasKey( 'template_uri', $theme_result );
+			if ( 'active' === $theme_result['status'] ) {
+				$this->assertSame( get_template_directory_uri(), $theme_result['template_uri'] );
+			} else {
+				$theme = wp_get_theme( $theme_result['stylesheet'] );
+				$this->assertSame( $theme->get_template_directory_uri(), $theme_result['template_uri'] );
+			}
+		}
 	}
 
 	/**
