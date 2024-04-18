@@ -1465,8 +1465,7 @@ function wp_page_reload_on_back_button_js() {
  * @return void
  */
 function add_option_new_admin_email( $option, $new_email ) {
-	$old_email = get_option( 'admin_email' );
-	update_option_new_admin_email( $old_email, $new_email );
+	update_option_new_admin_email( get_option( 'admin_email' ), $new_email );
 }
 
 /**
