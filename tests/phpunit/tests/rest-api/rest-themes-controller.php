@@ -558,10 +558,18 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		foreach ( $result as $theme_result ) {
 			$this->assertArrayHasKey( 'stylesheet_uri', $theme_result );
 			if ( 'active' === $theme_result['status'] ) {
-				$this->assertSame( get_stylesheet_directory_uri(), $theme_result['stylesheet_uri'] );
+				$this->assertSame(
+					get_stylesheet_directory_uri(),
+					$theme_result['stylesheet_uri'],
+					'stylesheet_uri for an active theme should be the same as the global get_stylesheet_directory_uri()'
+				);
 			} else {
 				$theme = wp_get_theme( $theme_result['stylesheet'] );
-				$this->assertSame( $theme->get_stylesheet_directory_uri(), $theme_result['stylesheet_uri'] );
+				$this->assertSame(
+					$theme->get_stylesheet_directory_uri(),
+					$theme_result['stylesheet_uri'],
+					"stylesheet_uri for an inactive theme should be the same as the theme's get_stylesheet_directory_uri() method"
+				);
 			}
 		}
 	}
@@ -602,10 +610,18 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		foreach ( $result as $theme_result ) {
 			$this->assertArrayHasKey( 'template_uri', $theme_result );
 			if ( 'active' === $theme_result['status'] ) {
-				$this->assertSame( get_template_directory_uri(), $theme_result['template_uri'] );
+				$this->assertSame(
+					get_template_directory_uri(),
+					$theme_result['template_uri'],
+					'template_uri for an active theme should be the same as the global get_template_directory_uri()'
+				);
 			} else {
 				$theme = wp_get_theme( $theme_result['stylesheet'] );
-				$this->assertSame( $theme->get_template_directory_uri(), $theme_result['template_uri'] );
+				$this->assertSame(
+					$theme->get_template_directory_uri(),
+					$theme_result['template_uri'],
+					"template_uri for an inactive theme should be the same as the theme's get_template_directory_uri() method"
+				);
 			}
 		}
 	}
