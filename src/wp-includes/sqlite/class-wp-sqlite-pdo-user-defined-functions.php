@@ -76,6 +76,7 @@ class WP_SQLite_PDO_User_Defined_Functions {
 		'release_lock'   => 'release_lock',
 		'ucase'          => 'ucase',
 		'lcase'          => 'lcase',
+		'unhex'          => 'unhex',
 		'inet_ntoa'      => 'inet_ntoa',
 		'inet_aton'      => 'inet_aton',
 		'datediff'       => 'datediff',
@@ -631,6 +632,21 @@ class WP_SQLite_PDO_User_Defined_Functions {
 	 */
 	public function lcase( $content ) {
 		return "lower($content)";
+	}
+
+	/**
+	 * Method to emulate MySQL UNHEX() function.
+	 *
+	 * For a string argument str, UNHEX(str) interprets each pair of characters
+	 * in the argument as a hexadecimal number and converts it to the byte represented
+	 * by the number. The return value is a binary string.
+	 *
+	 * @param string $number Number to be unhexed.
+	 *
+	 * @return string Binary string
+	 */
+	public function unhex( $number ) {
+		return pack( 'H*', $number );
 	}
 
 	/**

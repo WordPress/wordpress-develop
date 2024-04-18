@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is a port of the Lexer & Tokens_List classes from the PHPMyAdmin/sql-parser library.
+ * This file is a port of the Lexer & TokensList classes from the PHPMyAdmin/sql-parser library.
  *
  * @package wp-sqlite-integration
  * @see https://github.com/phpmyadmin/sql-parser
@@ -33,7 +33,7 @@ class WP_SQLite_Lexer {
 	 *
 	 * @var string[]
 	 */
-	public static $parser_methods = array(
+	const PARSER_METHODS = array(
 		// It is best to put the parsers in order of their complexity
 		// (ascending) and their occurrence rate (descending).
 		//
@@ -77,7 +77,7 @@ class WP_SQLite_Lexer {
 	 *
 	 * @var string[]
 	 */
-	public $keyword_name_indicators = array(
+	const KEYWORD_NAME_INDICATORS = array(
 		'FROM',
 		'SET',
 		'WHERE',
@@ -89,7 +89,7 @@ class WP_SQLite_Lexer {
 	 *
 	 * @var string[]
 	 */
-	public $operator_name_indicators = array(
+	const OPERATOR_NAME_INDICATORS = array(
 		',',
 		'.',
 	);
@@ -1486,7 +1486,7 @@ class WP_SQLite_Lexer {
 			 */
 			$token = null;
 
-			foreach ( static::$parser_methods as $method ) {
+			foreach ( self::PARSER_METHODS as $method ) {
 				$token = $this->$method();
 
 				if ( $token ) {
@@ -1668,10 +1668,10 @@ class WP_SQLite_Lexer {
 			$next = $this->tokens_get_next();
 			if (
 				( WP_SQLite_Token::TYPE_KEYWORD !== $next->type
-					|| ! in_array( $next->value, $this->keyword_name_indicators, true )
+					|| ! in_array( $next->value, self::KEYWORD_NAME_INDICATORS, true )
 				)
 				&& ( WP_SQLite_Token::TYPE_OPERATOR !== $next->type
-					|| ! in_array( $next->value, $this->operator_name_indicators, true )
+					|| ! in_array( $next->value, self::OPERATOR_NAME_INDICATORS, true )
 				)
 				&& ( null !== $next->value )
 			) {
@@ -2068,7 +2068,7 @@ class WP_SQLite_Lexer {
 				} elseif (
 					$this->last + 1 < $this->string_length
 					&& '0' === $this->str[ $this->last ]
-					&& ( 'x' === $this->str[ $this->last + 1 ] || 'X' === $this->str[ $this->last + 1 ] )
+					&& 'x' === $this->str[ $this->last + 1 ]
 				) {
 					$token .= $this->str[ $this->last++ ];
 					$state  = 2;
@@ -2260,7 +2260,7 @@ class WP_SQLite_Lexer {
 			if ( null === $str ) {
 				$str = $this->parse_unknown();
 
-				if ( null === $str ) {
+				if ( null === $str && ! ( $flags & WP_SQLite_Token::FLAG_SYMBOL_PARAMETER ) ) {
 					$this->error( 'Variable name was expected.', $this->str[ $this->last ], $this->last );
 				}
 			}
@@ -2514,15 +2514,10 @@ class WP_SQLite_Lexer {
 	 * Constructor.
 	 *
 	 * @param stdClass[] $tokens The initial array of tokens.
-	 * @param int        $count  The count of tokens in the initial array.
 	 */
-	public function tokens( array $tokens = array(), $count = -1 ) {
-		if ( empty( $tokens ) ) {
-			return;
-		}
-
+	public function tokens( array $tokens = array() ) {
 		$this->tokens       = $tokens;
-		$this->tokens_count = -1 === $count ? count( $tokens ) : $count;
+		$this->tokens_count = count( $tokens );
 	}
 
 	/**

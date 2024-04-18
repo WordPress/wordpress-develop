@@ -161,7 +161,7 @@ class WP_SQLite_Token {
 	 *
 	 * @var mixed|string|null
 	 */
-	public $keyword;
+	public $keyword = null;
 
 	/**
 	 * The type of this token.
@@ -195,11 +195,10 @@ class WP_SQLite_Token {
 	 * @param int    $flags The flags of the token.
 	 */
 	public function __construct( $token, $type = 0, $flags = 0 ) {
-		$this->token   = $token;
-		$this->type    = $type;
-		$this->flags   = $flags;
-		$this->keyword = null;
-		$this->value   = $this->extract();
+		$this->token = $token;
+		$this->type  = $type;
+		$this->flags = $flags;
+		$this->value = $this->extract();
 	}
 
 	/**
@@ -262,8 +261,8 @@ class WP_SQLite_Token {
 			case self::TYPE_NUMBER:
 				$ret = str_replace( '--', '', $this->token ); // e.g. ---42 === -42.
 				if ( $this->flags & self::FLAG_NUMBER_HEX ) {
+					$ret = str_replace( array( '-', '+' ), '', $this->token );
 					if ( $this->flags & self::FLAG_NUMBER_NEGATIVE ) {
-						$ret = str_replace( '-', '', $this->token );
 						$ret = -hexdec( $ret );
 					} else {
 						$ret = hexdec( $ret );

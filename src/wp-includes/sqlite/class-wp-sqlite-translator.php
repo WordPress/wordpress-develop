@@ -1040,7 +1040,7 @@ class WP_SQLite_Translator {
 		$result->name             = '';
 		$result->sqlite_data_type = '';
 		$result->not_null         = false;
-		$result->default          = null;
+		$result->default          = false;
 		$result->auto_increment   = false;
 		$result->primary_key      = false;
 
@@ -1054,7 +1054,7 @@ class WP_SQLite_Translator {
 		$result->sqlite_data_type   = $skip_mysql_data_type_parts[0];
 		$result->mysql_data_type    = $skip_mysql_data_type_parts[1];
 
-		// Look for the NOT NULL and AUTO_INCREMENT flags.
+		// Look for the NOT NULL, PRIMARY KEY, DEFAULT, and AUTO_INCREMENT flags.
 		while ( true ) {
 			$token = $this->rewriter->skip();
 			if ( ! $token ) {
@@ -1123,8 +1123,30 @@ class WP_SQLite_Translator {
 		if ( $field->not_null ) {
 			$definition .= ' NOT NULL';
 		}
-		if ( null !== $field->default ) {
+		/**
+		 * WPDB removes the STRICT_TRANS_TABLES mode from MySQL queries.
+		 * This mode allows the use of `NULL` when NOT NULL is set on a column that falls back to DEFAULT.
+		 * SQLite does not support this behavior, so we need to add the `ON CONFLICT REPLACE` clause to the column definition.
+		 */
+		if ($field->not_null) {
+			$definition .= ' ON CONFLICT REPLACE';
+		}
+		/**
+		 * The value of DEFAULT can be NULL. PHP would print this as an empty string, so we need a special case for it.
+		 */
+		if (null === $field->default) {
+			$definition .= ' DEFAULT NULL';
+		} else if (false !== $field->default) {
 			$definition .= ' DEFAULT ' . $field->default;
+		} else if ($field->not_null) {
+			/**
+			 * If the column is NOT NULL, we need to provide a default value to match WPDB behavior caused by removing the STRICT_TRANS_TABLES mode.
+			 */
+			if ('text' === $field->sqlite_data_type) {
+				$definition .= ' DEFAULT \'\'';
+			} else if (in_array($field->sqlite_data_type, array('integer', 'real'), true)) {
+				$definition .= ' DEFAULT 0';
+			}
 		}
 
 		/*
@@ -1824,6 +1846,7 @@ class WP_SQLite_Translator {
 			|| $this->capture_group_by( $token )
 			|| $this->translate_ungrouped_having( $token )
 			|| $this->translate_like_escape( $token )
+			|| $this->translate_left_function( $token )
 		);
 	}
 
@@ -2022,6 +2045,41 @@ class WP_SQLite_Translator {
 
 		$this->rewriter->skip();
 		$this->rewriter->add( new WP_SQLite_Token( 'DATETIME', WP_SQLite_Token::TYPE_KEYWORD, WP_SQLite_Token::FLAG_KEYWORD_FUNCTION ) );
+		return true;
+	}
+
+	/**
+	 * Translate the LEFT() function.
+	 *
+	 * > Returns the leftmost len characters from the string str, or NULL if any argument is NULL.
+	 *
+	 * https://dev.mysql.com/doc/refman/8.3/en/string-functions.html#function_left
+	 *
+	 * @param WP_SQLite_Token $token The token to translate.
+	 *
+	 * @return bool
+	 */
+	private function translate_left_function( $token ) {
+		if (
+			! $token->matches(
+				WP_SQLite_Token::TYPE_KEYWORD,
+				WP_SQLite_Token::FLAG_KEYWORD_FUNCTION,
+				array( 'LEFT' )
+			)
+		) {
+			return false;
+		}
+
+		$this->rewriter->skip();
+		$this->rewriter->add( new WP_SQLite_Token( 'SUBSTRING', WP_SQLite_Token::TYPE_KEYWORD, WP_SQLite_Token::FLAG_KEYWORD_FUNCTION ) );
+		$this->rewriter->consume(
+			array(
+				'type'  => WP_SQLite_Token::TYPE_OPERATOR,
+				'value' => ',',
+			)
+		);
+		$this->rewriter->add( new WP_SQLite_Token( 1, WP_SQLite_Token::TYPE_NUMBER ) );
+		$this->rewriter->add( new WP_SQLite_Token( ',', WP_SQLite_Token::TYPE_OPERATOR ) );
 		return true;
 	}
 
@@ -3026,6 +3084,16 @@ class WP_SQLite_Translator {
 				$this->results = true;
 				return;
 
+			case 'GRANTS FOR':
+				$this->set_results_from_fetched_data(
+					array(
+						(object) array(
+							'Grants for root@localhost' => 'GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, SHUTDOWN, PROCESS, FILE, REFERENCES, INDEX, ALTER, SHOW DATABASES, SUPER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER, CREATE TABLESPACE, CREATE ROLE, DROP ROLE ON *.* TO `root`@`localhost` WITH GRANT OPTION',
+						),
+					)
+				);
+				return;
+
 			case 'FULL COLUMNS':
 				$this->rewriter->consume();
 				// Fall through.
@@ -3141,12 +3209,54 @@ class WP_SQLite_Translator {
 				return;
 
 			case 'TABLE STATUS':  // FROM `database`.
-				$this->rewriter->skip();
+				// Match the optional [{FROM | IN} db_name]
+				$database_expression = $this->rewriter->consume();
+				if ( $database_expression->token === 'FROM' || $database_expression->token === 'IN' ) {
+					$this->rewriter->consume();
+					$database_expression = $this->rewriter->consume();
+				}
+
+				$pattern = '%';
+				// [LIKE 'pattern' | WHERE expr]
+				if($database_expression->token === 'LIKE') {
+					$pattern = $this->rewriter->consume()->value;
+				} else if($database_expression->token === 'WHERE') {
+					// @TODO Support me please.
+				} else if($database_expression->token !== ';') {
+					throw new Exception( 'Syntax error: Unexpected token ' . $database_expression->token .' in query '. $this->mysql_query );
+				}
+
 				$database_expression = $this->rewriter->skip();
 				$stmt                = $this->execute_sqlite_query(
-					"SELECT name as `Name`, 'myisam' as `Engine`, 0 as `Data_length`, 0 as `Index_length`, 0 as `Data_free` FROM sqlite_master WHERE type='table' ORDER BY name"
-				);
+					"SELECT
+						name as `Name`,
+						'myisam' as `Engine`,
+						10 as `Version`,
+						'Fixed' as `Row_format`,
+						0 as `Rows`,
+						0 as `Avg_row_length`,
+						0 as `Data_length`,
+						0 as `Max_data_length`,
+						0 as `Index_length`,
+						0 as `Data_free` ,
+						0 as `Auto_increment`,
+						'2024-03-20 15:33:20' as `Create_time`,
+						'2024-03-20 15:33:20' as `Update_time`,
+						null as `Check_time`,
+						null as `Collation`,
+						null as `Checksum`,
+						'' as `Create_options`,
+						'' as `Comment`
+					FROM sqlite_master
+					WHERE
+						type='table'
+						AND name LIKE :pattern
+					ORDER BY name",
 
+					array(
+						':pattern' => $pattern,
+					)
+				);
 				$tables = $this->strip_sqlite_system_tables( $stmt->fetchAll( $this->pdo_fetch_mode ) );
 				foreach ( $tables as $table ) {
 					$table_name  = $table->Name; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
