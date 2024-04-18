@@ -2072,7 +2072,7 @@ HTML
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill-inert,regenerator-runtime,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
@@ -3102,6 +3102,36 @@ HTML
 		$this->assertEqualMarkup( $expected_footer, $footer, 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
 		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
+	}
+
+	/**
+	 * Test that get_script_polyfill() returns the correct polyfill.
+	 *
+	 * @ticket 60348
+	 *
+	 * @covers ::wp_get_script_polyfill
+	 *
+	 * @global WP_Scripts $wp_scripts WP_Scripts instance.
+	 */
+	public function test_wp_get_script_polyfill() {
+		global $wp_scripts;
+		$script_name = 'wp-polyfill-importmap';
+		$test_script = 'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")';
+		$script_url  = 'https://example.com/wp-polyfill-importmap.js';
+		wp_register_script( $script_name, $script_url );
+
+		$polyfill = wp_get_script_polyfill(
+			$wp_scripts,
+			array(
+				$test_script => $script_name,
+			)
+		);
+
+		wp_deregister_script( $script_name );
+
+		$expected = '( ' . $test_script . ' ) || document.write( \'<script src="' . $script_url . '"></scr\' + \'ipt>\' );';
+
+		$this->assertEquals( $expected, $polyfill );
 	}
 
 	/**

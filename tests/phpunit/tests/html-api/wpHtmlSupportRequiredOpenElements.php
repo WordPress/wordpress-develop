@@ -44,9 +44,9 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 	 * @param string $tag_name the HTML Processor should abort when encountering this tag, e.g. "BUTTON".
 	 */
 	private function ensure_support_is_added_everywhere( $tag_name ) {
-		$p = WP_HTML_Processor::create_fragment( "<$tag_name>" );
+		$processor = WP_HTML_Processor::create_fragment( "<$tag_name>" );
 
-		$this->assertFalse( $p->step(), "Must support terminating elements in specific scope check before adding support for the {$tag_name} element." );
+		$this->assertFalse( $processor->step(), "Must support terminating elements in specific scope check before adding support for the {$tag_name} element." );
 	}
 
 	/**
@@ -120,13 +120,6 @@ class Tests_HtmlApi_WpHtmlSupportRequiredOpenElements extends WP_UnitTestCase {
 		 * FOREIGNOBJECT, DESC, TITLE.
 		 */
 		$this->ensure_support_is_added_everywhere( 'SVG' );
-
-		// These elements are specific to list item scope.
-		$this->ensure_support_is_added_everywhere( 'OL' );
-		$this->ensure_support_is_added_everywhere( 'UL' );
-
-		// This element is the only element that depends on list item scope.
-		$this->ensure_support_is_added_everywhere( 'LI' );
 	}
 
 	/**
