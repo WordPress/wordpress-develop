@@ -826,10 +826,10 @@ function wp_restore_image( $post_id ) {
 				}
 			} elseif ( isset( $meta['width'], $meta['height'] ) ) {
 				$backup_sizes[ "full-$suffix" ] = array(
-					'width'  => $meta['width'],
-					'height' => $meta['height'],
+					'width'    => $meta['width'],
+					'height'   => $meta['height'],
 					'filesize' => $meta['filesize'],
-					'file'   => $parts['basename'],
+					'file'     => $parts['basename'],
 				);
 			}
 		}
@@ -837,9 +837,9 @@ function wp_restore_image( $post_id ) {
 		$restored_file = path_join( $parts['dirname'], $data['file'] );
 		$restored      = update_attached_file( $post_id, $restored_file );
 
-		$meta['file']   = _wp_relative_upload_path( $restored_file );
-		$meta['width']  = $data['width'];
-		$meta['height'] = $data['height'];
+		$meta['file']     = _wp_relative_upload_path( $restored_file );
+		$meta['width']    = $data['width'];
+		$meta['height']   = $data['height'];
 		$meta['filesize'] = $data['filesize'];
 	}
 
