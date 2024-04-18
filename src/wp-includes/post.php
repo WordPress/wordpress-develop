@@ -346,7 +346,7 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_template',
 		array(
-			'labels'                => array(
+			'labels'                          => array(
 				'name'                  => _x( 'Templates', 'post type general name' ),
 				'singular_name'         => _x( 'Template', 'post type singular name' ),
 				'add_new'               => __( 'Add New Template' ),
@@ -366,19 +366,22 @@ function create_initial_post_types() {
 				'items_list_navigation' => __( 'Templates list navigation' ),
 				'items_list'            => __( 'Templates list' ),
 			),
-			'description'           => __( 'Templates to include in your theme.' ),
-			'public'                => false,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
-			'has_archive'           => false,
-			'show_ui'               => false,
-			'show_in_menu'          => false,
-			'show_in_rest'          => true,
-			'rewrite'               => false,
-			'rest_base'             => 'templates',
-			'rest_controller_class' => 'WP_REST_Templates_Controller',
-			'capability_type'       => array( 'template', 'templates' ),
-			'capabilities'          => array(
+			'description'                     => __( 'Templates to include in your theme.' ),
+			'public'                          => false,
+			'_builtin'                        => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'                      => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'                     => false,
+			'show_ui'                         => false,
+			'show_in_menu'                    => false,
+			'show_in_rest'                    => true,
+			'rewrite'                         => false,
+			'rest_base'                       => 'templates',
+			'rest_controller_class'           => 'WP_REST_Templates_Controller',
+			'autosave_rest_controller_class'  => 'WP_REST_Template_Autosaves_Controller',
+			'revisions_rest_controller_class' => 'WP_REST_Template_Revisions_Controller',
+			'late_route_registration'         => true,
+			'capability_type'                 => array( 'template', 'templates' ),
+			'capabilities'                    => array(
 				'create_posts'           => 'edit_theme_options',
 				'delete_posts'           => 'edit_theme_options',
 				'delete_others_posts'    => 'edit_theme_options',
@@ -392,8 +395,8 @@ function create_initial_post_types() {
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 			),
-			'map_meta_cap'          => true,
-			'supports'              => array(
+			'map_meta_cap'                    => true,
+			'supports'                        => array(
 				'title',
 				'slug',
 				'excerpt',
@@ -407,7 +410,7 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_template_part',
 		array(
-			'labels'                => array(
+			'labels'                          => array(
 				'name'                  => _x( 'Template Parts', 'post type general name' ),
 				'singular_name'         => _x( 'Template Part', 'post type singular name' ),
 				'add_new'               => __( 'Add New Template Part' ),
@@ -427,19 +430,22 @@ function create_initial_post_types() {
 				'items_list_navigation' => __( 'Template parts list navigation' ),
 				'items_list'            => __( 'Template parts list' ),
 			),
-			'description'           => __( 'Template parts to include in your templates.' ),
-			'public'                => false,
-			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'            => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
-			'has_archive'           => false,
-			'show_ui'               => false,
-			'show_in_menu'          => false,
-			'show_in_rest'          => true,
-			'rewrite'               => false,
-			'rest_base'             => 'template-parts',
-			'rest_controller_class' => 'WP_REST_Templates_Controller',
-			'map_meta_cap'          => true,
-			'capabilities'          => array(
+			'description'                     => __( 'Template parts to include in your templates.' ),
+			'public'                          => false,
+			'_builtin'                        => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'                      => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'                     => false,
+			'show_ui'                         => false,
+			'show_in_menu'                    => false,
+			'show_in_rest'                    => true,
+			'rewrite'                         => false,
+			'rest_base'                       => 'template-parts',
+			'rest_controller_class'           => 'WP_REST_Templates_Controller',
+			'autosave_rest_controller_class'  => 'WP_REST_Template_Autosaves_Controller',
+			'revisions_rest_controller_class' => 'WP_REST_Template_Revisions_Controller',
+			'late_route_registration'         => true,
+			'map_meta_cap'                    => true,
+			'capabilities'                    => array(
 				'create_posts'           => 'edit_theme_options',
 				'delete_posts'           => 'edit_theme_options',
 				'delete_others_posts'    => 'edit_theme_options',
@@ -453,7 +459,7 @@ function create_initial_post_types() {
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 			),
-			'supports'              => array(
+			'supports'                        => array(
 				'title',
 				'slug',
 				'excerpt',
@@ -555,6 +561,72 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 			),
+		)
+	);
+
+	register_post_type(
+		'wp_font_family',
+		array(
+			'labels'                         => array(
+				'name'          => __( 'Font Families' ),
+				'singular_name' => __( 'Font Family' ),
+			),
+			'public'                         => false,
+			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'                   => false,
+			'capabilities'                   => array(
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+			),
+			'map_meta_cap'                   => true,
+			'query_var'                      => false,
+			'rewrite'                        => false,
+			'show_in_rest'                   => true,
+			'rest_base'                      => 'font-families',
+			'rest_controller_class'          => 'WP_REST_Font_Families_Controller',
+			// Disable autosave endpoints for font families.
+			'autosave_rest_controller_class' => 'stdClass',
+		)
+	);
+
+	register_post_type(
+		'wp_font_face',
+		array(
+			'labels'                         => array(
+				'name'          => __( 'Font Faces' ),
+				'singular_name' => __( 'Font Face' ),
+			),
+			'public'                         => false,
+			'_builtin'                       => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'                   => false,
+			'capabilities'                   => array(
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+				'create_posts'           => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+			),
+			'map_meta_cap'                   => true,
+			'query_var'                      => false,
+			'rewrite'                        => false,
+			'show_in_rest'                   => true,
+			'rest_base'                      => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
+			'rest_controller_class'          => 'WP_REST_Font_Faces_Controller',
+			// Disable autosave endpoints for font faces.
+			'autosave_rest_controller_class' => 'stdClass',
 		)
 	);
 
@@ -1528,7 +1600,7 @@ function get_post_type_object( $post_type ) {
  *
  * @param array|string $args     Optional. An array of key => value arguments to match against
  *                               the post type objects. Default empty array.
- * @param string       $output   Optional. The type of output to return. Accepts post type 'names'
+ * @param string       $output   Optional. The type of output to return. Either 'names'
  *                               or 'objects'. Default 'names'.
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one
  *                               element from the array needs to match; 'and' means all elements
@@ -1575,85 +1647,90 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * @param array|string $args {
  *     Array or string of arguments for registering a post type.
  *
- *     @type string       $label                 Name of the post type shown in the menu. Usually plural.
- *                                               Default is value of $labels['name'].
- *     @type string[]     $labels                An array of labels for this post type. If not set, post
- *                                               labels are inherited for non-hierarchical types and page
- *                                               labels for hierarchical ones. See get_post_type_labels() for a full
- *                                               list of supported labels.
- *     @type string       $description           A short descriptive summary of what the post type is.
- *                                               Default empty.
- *     @type bool         $public                Whether a post type is intended for use publicly either via
- *                                               the admin interface or by front-end users. While the default
- *                                               settings of $exclude_from_search, $publicly_queryable, $show_ui,
- *                                               and $show_in_nav_menus are inherited from $public, each does not
- *                                               rely on this relationship and controls a very specific intention.
- *                                               Default false.
- *     @type bool         $hierarchical          Whether the post type is hierarchical (e.g. page). Default false.
- *     @type bool         $exclude_from_search   Whether to exclude posts with this post type from front end search
- *                                               results. Default is the opposite value of $public.
- *     @type bool         $publicly_queryable    Whether queries can be performed on the front end for the post type
- *                                               as part of parse_request(). Endpoints would include:
- *                                               * ?post_type={post_type_key}
- *                                               * ?{post_type_key}={single_post_slug}
- *                                               * ?{post_type_query_var}={single_post_slug}
- *                                               If not set, the default is inherited from $public.
- *     @type bool         $show_ui               Whether to generate and allow a UI for managing this post type in the
- *                                               admin. Default is value of $public.
- *     @type bool|string  $show_in_menu          Where to show the post type in the admin menu. To work, $show_ui
- *                                               must be true. If true, the post type is shown in its own top level
- *                                               menu. If false, no menu is shown. If a string of an existing top
- *                                               level menu ('tools.php' or 'edit.php?post_type=page', for example), the
- *                                               post type will be placed as a sub-menu of that.
- *                                               Default is value of $show_ui.
- *     @type bool         $show_in_nav_menus     Makes this post type available for selection in navigation menus.
- *                                               Default is value of $public.
- *     @type bool         $show_in_admin_bar     Makes this post type available via the admin bar. Default is value
- *                                               of $show_in_menu.
- *     @type bool         $show_in_rest          Whether to include the post type in the REST API. Set this to true
- *                                               for the post type to be available in the block editor.
- *     @type string       $rest_base             To change the base URL of REST API route. Default is $post_type.
- *     @type string       $rest_namespace        To change the namespace URL of REST API route. Default is wp/v2.
- *     @type string       $rest_controller_class REST API controller class name. Default is 'WP_REST_Posts_Controller'.
- *     @type int          $menu_position         The position in the menu order the post type should appear. To work,
- *                                               $show_in_menu must be true. Default null (at the bottom).
- *     @type string       $menu_icon             The URL to the icon to be used for this menu. Pass a base64-encoded
- *                                               SVG using a data URI, which will be colored to match the color scheme
- *                                               -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
- *                                               of a Dashicons helper class to use a font icon, e.g.
- *                                               'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
- *                                               so an icon can be added via CSS. Defaults to use the posts icon.
- *     @type string|array $capability_type       The string to use to build the read, edit, and delete capabilities.
- *                                               May be passed as an array to allow for alternative plurals when using
- *                                               this argument as a base to construct the capabilities, e.g.
- *                                               array('story', 'stories'). Default 'post'.
- *     @type string[]     $capabilities          Array of capabilities for this post type. $capability_type is used
- *                                               as a base to construct capabilities by default.
- *                                               See get_post_type_capabilities().
- *     @type bool         $map_meta_cap          Whether to use the internal default meta capability handling.
- *                                               Default false.
- *     @type array        $supports              Core feature(s) the post type supports. Serves as an alias for calling
- *                                               add_post_type_support() directly. Core features include 'title',
- *                                               'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
- *                                               'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
- *                                               Additionally, the 'revisions' feature dictates whether the post type
- *                                               will store revisions, and the 'comments' feature dictates whether the
- *                                               comments count will show on the edit screen. A feature can also be
- *                                               specified as an array of arguments to provide additional information
- *                                               about supporting that feature.
- *                                               Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
- *                                               Default is an array containing 'title' and 'editor'.
- *     @type callable     $register_meta_box_cb  Provide a callback function that sets up the meta boxes for the
- *                                               edit form. Do remove_meta_box() and add_meta_box() calls in the
- *                                               callback. Default null.
- *     @type string[]     $taxonomies            An array of taxonomy identifiers that will be registered for the
- *                                               post type. Taxonomies can be registered later with register_taxonomy()
- *                                               or register_taxonomy_for_object_type().
- *                                               Default empty array.
- *     @type bool|string  $has_archive           Whether there should be post type archives, or if a string, the
- *                                               archive slug to use. Will generate the proper rewrite rules if
- *                                               $rewrite is enabled. Default false.
- *     @type bool|array   $rewrite               {
+ *     @type string       $label                           Name of the post type shown in the menu. Usually plural.
+ *                                                         Default is value of $labels['name'].
+ *     @type string[]     $labels                          An array of labels for this post type. If not set, post
+ *                                                         labels are inherited for non-hierarchical types and page
+ *                                                         labels for hierarchical ones. See get_post_type_labels() for a full
+ *                                                         list of supported labels.
+ *     @type string       $description                     A short descriptive summary of what the post type is.
+ *                                                         Default empty.
+ *     @type bool         $public                          Whether a post type is intended for use publicly either via
+ *                                                         the admin interface or by front-end users. While the default
+ *                                                         settings of $exclude_from_search, $publicly_queryable, $show_ui,
+ *                                                         and $show_in_nav_menus are inherited from $public, each does not
+ *                                                         rely on this relationship and controls a very specific intention.
+ *                                                         Default false.
+ *     @type bool         $hierarchical                    Whether the post type is hierarchical (e.g. page). Default false.
+ *     @type bool         $exclude_from_search             Whether to exclude posts with this post type from front end search
+ *                                                         results. Default is the opposite value of $public.
+ *     @type bool         $publicly_queryable              Whether queries can be performed on the front end for the post type
+ *                                                         as part of parse_request(). Endpoints would include:
+ *                                                          * ?post_type={post_type_key}
+ *                                                          * ?{post_type_key}={single_post_slug}
+ *                                                          * ?{post_type_query_var}={single_post_slug}
+ *                                                         If not set, the default is inherited from $public.
+ *     @type bool         $show_ui                         Whether to generate and allow a UI for managing this post type in the
+ *                                                         admin. Default is value of $public.
+ *     @type bool|string  $show_in_menu                    Where to show the post type in the admin menu. To work, $show_ui
+ *                                                         must be true. If true, the post type is shown in its own top level
+ *                                                         menu. If false, no menu is shown. If a string of an existing top
+ *                                                         level menu ('tools.php' or 'edit.php?post_type=page', for example), the
+ *                                                         post type will be placed as a sub-menu of that.
+ *                                                         Default is value of $show_ui.
+ *     @type bool         $show_in_nav_menus               Makes this post type available for selection in navigation menus.
+ *                                                         Default is value of $public.
+ *     @type bool         $show_in_admin_bar               Makes this post type available via the admin bar. Default is value
+ *                                                         of $show_in_menu.
+ *     @type bool         $show_in_rest                    Whether to include the post type in the REST API. Set this to true
+ *                                                         for the post type to be available in the block editor.
+ *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.
+ *     @type string       $rest_namespace                  To change the namespace URL of REST API route. Default is wp/v2.
+ *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.
+ *     @type string|bool  $autosave_rest_controller_class  REST API controller class name. Default is 'WP_REST_Autosaves_Controller'.
+ *     @type string|bool  $revisions_rest_controller_class REST API controller class name. Default is 'WP_REST_Revisions_Controller'.
+ *     @type bool         $late_route_registration         A flag to direct the REST API controllers for autosave / revisions
+ *                                                         should be registered before/after the post type controller.
+ *     @type int          $menu_position                   The position in the menu order the post type should appear. To work,
+ *                                                         $show_in_menu must be true. Default null (at the bottom).
+ *     @type string       $menu_icon                       The URL to the icon to be used for this menu. Pass a base64-encoded
+ *                                                         SVG using a data URI, which will be colored to match the color scheme
+ *                                                         -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
+ *                                                         of a Dashicons helper class to use a font icon, e.g.
+ *                                                        'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
+ *                                                         so an icon can be added via CSS. Defaults to use the posts icon.
+ *     @type string|array $capability_type                 The string to use to build the read, edit, and delete capabilities.
+ *                                                         May be passed as an array to allow for alternative plurals when using
+ *                                                         this argument as a base to construct the capabilities, e.g.
+ *                                                         array('story', 'stories'). Default 'post'.
+ *     @type string[]     $capabilities                    Array of capabilities for this post type. $capability_type is used
+ *                                                         as a base to construct capabilities by default.
+ *                                                         See get_post_type_capabilities().
+ *     @type bool         $map_meta_cap                    Whether to use the internal default meta capability handling.
+ *                                                         Default false.
+ *     @type array|false  $supports                        Core feature(s) the post type supports. Serves as an alias for calling
+ *                                                         add_post_type_support() directly. Core features include 'title',
+ *                                                         'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
+ *                                                         'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
+ *                                                         Additionally, the 'revisions' feature dictates whether the post type
+ *                                                         will store revisions, and the 'comments' feature dictates whether the
+ *                                                         comments count will show on the edit screen. A feature can also be
+ *                                                         specified as an array of arguments to provide additional information
+ *                                                         about supporting that feature.
+ *                                                         Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
+ *                                                         If false, no features will be added.
+ *                                                         Default is an array containing 'title' and 'editor'.
+ *     @type callable     $register_meta_box_cb            Provide a callback function that sets up the meta boxes for the
+ *                                                         edit form. Do remove_meta_box() and add_meta_box() calls in the
+ *                                                         callback. Default null.
+ *     @type string[]     $taxonomies                      An array of taxonomy identifiers that will be registered for the
+ *                                                         post type. Taxonomies can be registered later with register_taxonomy()
+ *                                                         or register_taxonomy_for_object_type().
+ *                                                         Default empty array.
+ *     @type bool|string  $has_archive                     Whether there should be post type archives, or if a string, the
+ *                                                         archive slug to use. Will generate the proper rewrite rules if
+ *                                                         $rewrite is enabled. Default false.
+ *     @type bool|array   $rewrite                         {
  *         Triggers the handling of rewrites for this post type. To prevent rewrite, set to false.
  *         Defaults to true, using $post_type as slug. To specify rewrite rules, an array can be
  *         passed with any of these keys:
@@ -1668,32 +1745,32 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                  inherits from $permalink_epmask. If not specified and permalink_epmask
  *                                  is not set, defaults to EP_PERMALINK.
  *     }
- *     @type string|bool  $query_var             Sets the query_var key for this post type. Defaults to $post_type
- *                                               key. If false, a post type cannot be loaded at
- *                                               ?{query_var}={post_slug}. If specified as a string, the query
- *                                               ?{query_var_string}={post_slug} will be valid.
- *     @type bool         $can_export            Whether to allow this post type to be exported. Default true.
- *     @type bool         $delete_with_user      Whether to delete posts of this type when deleting a user.
- *                                               * If true, posts of this type belonging to the user will be moved
- *                                                 to Trash when the user is deleted.
- *                                               * If false, posts of this type belonging to the user will *not*
- *                                                 be trashed or deleted.
- *                                               * If not set (the default), posts are trashed if post type supports
- *                                                 the 'author' feature. Otherwise posts are not trashed or deleted.
- *                                               Default null.
- *     @type array        $template              Array of blocks to use as the default initial state for an editor
- *                                               session. Each item should be an array containing block name and
- *                                               optional attributes. Default empty array.
- *     @type string|false $template_lock         Whether the block template should be locked if $template is set.
- *                                               * If set to 'all', the user is unable to insert new blocks,
- *                                                 move existing blocks and delete blocks.
- *                                               * If set to 'insert', the user is able to move existing blocks
- *                                                 but is unable to insert new blocks and delete blocks.
- *                                               Default false.
- *     @type bool         $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
- *                                               "built-in" post_type. Default false.
- *     @type string       $_edit_link            FOR INTERNAL USE ONLY! URL segment to use for edit link of
- *                                               this post type. Default 'post.php?post=%d'.
+ *     @type string|bool  $query_var                      Sets the query_var key for this post type. Defaults to $post_type
+ *                                                        key. If false, a post type cannot be loaded at
+ *                                                        ?{query_var}={post_slug}. If specified as a string, the query
+ *                                                        ?{query_var_string}={post_slug} will be valid.
+ *     @type bool         $can_export                     Whether to allow this post type to be exported. Default true.
+ *     @type bool         $delete_with_user               Whether to delete posts of this type when deleting a user.
+ *                                                          * If true, posts of this type belonging to the user will be moved
+ *                                                            to Trash when the user is deleted.
+ *                                                          * If false, posts of this type belonging to the user will *not*
+ *                                                            be trashed or deleted.
+ *                                                          * If not set (the default), posts are trashed if post type supports
+ *                                                            the 'author' feature. Otherwise posts are not trashed or deleted.
+ *                                                        Default null.
+ *     @type array        $template                       Array of blocks to use as the default initial state for an editor
+ *                                                        session. Each item should be an array containing block name and
+ *                                                        optional attributes. Default empty array.
+ *     @type string|false $template_lock                  Whether the block template should be locked if $template is set.
+ *                                                        * If set to 'all', the user is unable to insert new blocks,
+ *                                                          move existing blocks and delete blocks.
+ *                                                       * If set to 'insert', the user is able to move existing blocks
+ *                                                         but is unable to insert new blocks and delete blocks.
+ *                                                         Default false.
+ *     @type bool         $_builtin                     FOR INTERNAL USE ONLY! True if this post type is a native or
+ *                                                      "built-in" post_type. Default false.
+ *     @type string       $_edit_link                   FOR INTERNAL USE ONLY! URL segment to use for edit link of
+ *                                                      this post type. Default 'post.php?post=%d'.
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
@@ -3326,7 +3403,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 		$post_mime_types = array_map( 'trim', explode( ',', $post_mime_types ) );
 	}
 
-	$wheres = array();
+	$where_clauses = array();
 
 	foreach ( (array) $post_mime_types as $mime_type ) {
 		$mime_type = preg_replace( '/\s/', '', $mime_type );
@@ -3354,14 +3431,14 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 		}
 
 		if ( str_contains( $mime_pattern, '%' ) ) {
-			$wheres[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
+			$where_clauses[] = empty( $table_alias ) ? "post_mime_type LIKE '$mime_pattern'" : "$table_alias.post_mime_type LIKE '$mime_pattern'";
 		} else {
-			$wheres[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
+			$where_clauses[] = empty( $table_alias ) ? "post_mime_type = '$mime_pattern'" : "$table_alias.post_mime_type = '$mime_pattern'";
 		}
 	}
 
-	if ( ! empty( $wheres ) ) {
-		$where = ' AND (' . implode( ' OR ', $wheres ) . ') ';
+	if ( ! empty( $where_clauses ) ) {
+		$where = ' AND (' . implode( ' OR ', $where_clauses ) . ') ';
 	}
 
 	return $where;
@@ -3383,15 +3460,15 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
- * @param int  $postid       Optional. Post ID. Default 0.
+ * @param int  $post_id      Optional. Post ID. Default 0.
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
-function wp_delete_post( $postid = 0, $force_delete = false ) {
+function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	global $wpdb;
 
-	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $postid ) );
+	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
 	if ( ! $post ) {
 		return $post;
@@ -3399,12 +3476,15 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 
 	$post = get_post( $post );
 
-	if ( ! $force_delete && ( 'post' === $post->post_type || 'page' === $post->post_type ) && 'trash' !== get_post_status( $postid ) && EMPTY_TRASH_DAYS ) {
-		return wp_trash_post( $postid );
+	if ( ! $force_delete
+		&& ( 'post' === $post->post_type || 'page' === $post->post_type )
+		&& 'trash' !== get_post_status( $post_id ) && EMPTY_TRASH_DAYS
+	) {
+		return wp_trash_post( $post_id );
 	}
 
 	if ( 'attachment' === $post->post_type ) {
-		return wp_delete_attachment( $postid, $force_delete );
+		return wp_delete_attachment( $post_id, $force_delete );
 	}
 
 	/**
@@ -3429,30 +3509,39 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @see wp_delete_post()
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'before_delete_post', $postid, $post );
+	do_action( 'before_delete_post', $post_id, $post );
 
-	delete_post_meta( $postid, '_wp_trash_meta_status' );
-	delete_post_meta( $postid, '_wp_trash_meta_time' );
+	delete_post_meta( $post_id, '_wp_trash_meta_status' );
+	delete_post_meta( $post_id, '_wp_trash_meta_time' );
 
-	wp_delete_object_term_relationships( $postid, get_object_taxonomies( $post->post_type ) );
+	wp_delete_object_term_relationships( $post_id, get_object_taxonomies( $post->post_type ) );
 
 	$parent_data  = array( 'post_parent' => $post->post_parent );
-	$parent_where = array( 'post_parent' => $postid );
+	$parent_where = array( 'post_parent' => $post_id );
 
 	if ( is_post_type_hierarchical( $post->post_type ) ) {
 		// Point children of this page to its parent, also clean the cache of affected children.
-		$children_query = $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s", $postid, $post->post_type );
-		$children       = $wpdb->get_results( $children_query );
+		$children_query = $wpdb->prepare(
+			"SELECT * FROM $wpdb->posts WHERE post_parent = %d AND post_type = %s",
+			$post_id,
+			$post->post_type
+		);
+
+		$children = $wpdb->get_results( $children_query );
+
 		if ( $children ) {
 			$wpdb->update( $wpdb->posts, $parent_data, $parent_where + array( 'post_type' => $post->post_type ) );
 		}
 	}
 
 	// Do raw query. wp_get_post_revisions() is filtered.
-	$revision_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'revision'", $postid ) );
+	$revision_ids = $wpdb->get_col(
+		$wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_parent = %d AND post_type = 'revision'", $post_id )
+	);
+
 	// Use wp_delete_post (via wp_delete_post_revision) again. Ensures any meta/misplaced data gets cleaned up.
 	foreach ( $revision_ids as $revision_id ) {
 		wp_delete_post_revision( $revision_id );
@@ -3463,14 +3552,20 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 
 	wp_defer_comment_counting( true );
 
-	$comment_ids = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $postid ) );
+	$comment_ids = $wpdb->get_col(
+		$wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_ID DESC", $post_id )
+	);
+
 	foreach ( $comment_ids as $comment_id ) {
 		wp_delete_comment( $comment_id, true );
 	}
 
 	wp_defer_comment_counting( false );
 
-	$post_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $postid ) );
+	$post_meta_ids = $wpdb->get_col(
+		$wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE post_id = %d ", $post_id )
+	);
+
 	foreach ( $post_meta_ids as $mid ) {
 		delete_metadata_by_mid( 'post', $mid );
 	}
@@ -3478,15 +3573,28 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	/**
 	 * Fires immediately before a post is deleted from the database.
 	 *
+	 * The dynamic portion of the hook name, `$post->post_type`, refers to
+	 * the post type slug.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 */
+	do_action( "delete_post_{$post->post_type}", $post_id, $post );
+
+	/**
+	 * Fires immediately before a post is deleted from the database.
+	 *
 	 * @since 1.2.0
 	 * @since 5.5.0 Added the `$post` parameter.
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'delete_post', $postid, $post );
+	do_action( 'delete_post', $post_id, $post );
 
-	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $postid ) );
+	$result = $wpdb->delete( $wpdb->posts, array( 'ID' => $post_id ) );
 	if ( ! $result ) {
 		return false;
 	}
@@ -3494,13 +3602,26 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	/**
 	 * Fires immediately after a post is deleted from the database.
 	 *
+	 * The dynamic portion of the hook name, `$post->post_type`, refers to
+	 * the post type slug.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 */
+	do_action( "deleted_post_{$post->post_type}", $post_id, $post );
+
+	/**
+	 * Fires immediately after a post is deleted from the database.
+	 *
 	 * @since 2.2.0
 	 * @since 5.5.0 Added the `$post` parameter.
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'deleted_post', $postid, $post );
+	do_action( 'deleted_post', $post_id, $post );
 
 	clean_post_cache( $post );
 
@@ -3510,7 +3631,7 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 		}
 	}
 
-	wp_clear_scheduled_hook( 'publish_future_post', array( $postid ) );
+	wp_clear_scheduled_hook( 'publish_future_post', array( $post_id ) );
 
 	/**
 	 * Fires after a post is deleted, at the conclusion of wp_delete_post().
@@ -3520,10 +3641,10 @@ function wp_delete_post( $postid = 0, $force_delete = false ) {
 	 *
 	 * @see wp_delete_post()
 	 *
-	 * @param int     $postid Post ID.
-	 * @param WP_Post $post   Post object.
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
 	 */
-	do_action( 'after_delete_post', $postid, $post );
+	do_action( 'after_delete_post', $post_id, $post );
 
 	return $post;
 }
@@ -3850,7 +3971,7 @@ function wp_untrash_post_comments( $post = null ) {
 	}
 
 	foreach ( $group_by_status as $status => $comments ) {
-		// Sanity check. This shouldn't happen.
+		// Confidence check. This shouldn't happen.
 		if ( 'post-trashed' === $status ) {
 			$status = '0';
 		}
@@ -6654,9 +6775,9 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
  *
  * @since 4.2.0
  *
- * @param string      $type Attachment type. Accepts 'image', 'audio', or 'video'.
+ * @param string      $type Attachment type. Accepts `image`, `audio`, `video`, or a file extension.
  * @param int|WP_Post $post Optional. Attachment ID or object. Default is global $post.
- * @return bool True if one of the accepted types, false otherwise.
+ * @return bool True if an accepted type or a matching file extension, false otherwise.
  */
 function wp_attachment_is( $type, $post = null ) {
 	$post = get_post( $post );
@@ -6689,7 +6810,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp', 'avif' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':
@@ -6725,11 +6846,13 @@ function wp_attachment_is_image( $post = null ) {
  * Retrieves the icon for a MIME type or attachment.
  *
  * @since 2.1.0
+ * @since 6.5.0 Added the `$preferred_ext` parameter.
  *
- * @param string|int $mime MIME type or attachment ID.
+ * @param string|int $mime          MIME type or attachment ID.
+ * @param string     $preferred_ext File format to prefer in return. Default '.png'.
  * @return string|false Icon, false otherwise.
  */
-function wp_mime_type_icon( $mime = 0 ) {
+function wp_mime_type_icon( $mime = 0, $preferred_ext = '.png' ) {
 	if ( ! is_numeric( $mime ) ) {
 		$icon = wp_cache_get( "mime_type_icon_$mime" );
 	}
@@ -6789,6 +6912,7 @@ function wp_mime_type_icon( $mime = 0 ) {
 			 */
 			$dirs       = apply_filters( 'icon_dirs', array( $icon_dir => $icon_dir_uri ) );
 			$icon_files = array();
+			$all_icons  = array();
 			while ( $dirs ) {
 				$keys = array_keys( $dirs );
 				$dir  = array_shift( $keys );
@@ -6802,16 +6926,23 @@ function wp_mime_type_icon( $mime = 0 ) {
 						}
 
 						$ext = strtolower( substr( $file, -4 ) );
-						if ( ! in_array( $ext, array( '.png', '.gif', '.jpg' ), true ) ) {
+						if ( ! in_array( $ext, array( '.svg', '.png', '.gif', '.jpg' ), true ) ) {
 							if ( is_dir( "$dir/$file" ) ) {
 								$dirs[ "$dir/$file" ] = "$uri/$file";
 							}
 							continue;
 						}
-						$icon_files[ "$dir/$file" ] = "$uri/$file";
+						$all_icons[ "$dir/$file" ] = "$uri/$file";
+						if ( $ext === $preferred_ext ) {
+							$icon_files[ "$dir/$file" ] = "$uri/$file";
+						}
 					}
 					closedir( $dh );
 				}
+			}
+			// If directory only contained icons of a non-preferred format, return those.
+			if ( empty( $icon_files ) ) {
+				$icon_files = $all_icons;
 			}
 			wp_cache_add( 'icon_files', $icon_files, 'default', 600 );
 		}
@@ -7261,8 +7392,8 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_delete( $post->ID, 'posts' );
+	wp_cache_delete( 'post_parent:' . (string) $post->ID, 'posts' );
 	wp_cache_delete( $post->ID, 'post_meta' );
-	wp_cache_delete( $post->ID, 'post_parent' );
 
 	clean_object_term_cache( $post->ID, $post->post_type );
 
@@ -7797,26 +7928,48 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 }
 
 /**
- * Prime post parent caches.
+ * Prime the cache containing the parent ID of various post objects.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
+ * @since 6.4.0
+ *
  * @param int[] $ids ID list.
  */
-function _prime_post_parents_caches( array $ids ) {
+function _prime_post_parent_id_caches( array $ids ) {
 	global $wpdb;
 
-	$non_cached_ids = _get_non_cached_ids( $ids, 'post_parent' );
+	$ids = array_filter( $ids, '_validate_cache_id' );
+	$ids = array_unique( array_map( 'intval', $ids ), SORT_NUMERIC );
+
+	if ( empty( $ids ) ) {
+		return;
+	}
+
+	$cache_keys = array();
+	foreach ( $ids as $id ) {
+		$cache_keys[ $id ] = 'post_parent:' . (string) $id;
+	}
+
+	$cached_data = wp_cache_get_multiple( array_values( $cache_keys ), 'posts' );
+
+	$non_cached_ids = array();
+	foreach ( $cache_keys as $id => $cache_key ) {
+		if ( false === $cached_data[ $cache_key ] ) {
+			$non_cached_ids[] = $id;
+		}
+	}
+
 	if ( ! empty( $non_cached_ids ) ) {
 		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.ID, $wpdb->posts.post_parent FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
 		if ( $fresh_posts ) {
 			$post_parent_data = array();
 			foreach ( $fresh_posts as $fresh_post ) {
-				$post_parent_data[ (int) $fresh_post->ID ] = (int) $fresh_post->post_parent;
+				$post_parent_data[ 'post_parent:' . (string) $fresh_post->ID ] = (int) $fresh_post->post_parent;
 			}
 
-			wp_cache_add_multiple( $post_parent_data, 'post_parent' );
+			wp_cache_add_multiple( $post_parent_data, 'posts' );
 		}
 	}
 }

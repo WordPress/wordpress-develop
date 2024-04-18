@@ -359,7 +359,7 @@ if ( 'post' === $post_type ) {
 
 if ( 'post' === $post_type || 'page' === $post_type ) {
 	$inserting_media  = '<p>' . __( 'You can upload and insert media (images, audio, documents, etc.) by clicking the Add Media button. You can select from the images and files already uploaded to the Media Library, or upload new media to add to your page or post. To create an image gallery, select the images to add and click the &#8220;Create a new gallery&#8221; button.' ) . '</p>';
-	$inserting_media .= '<p>' . __( 'You can also embed media from many popular websites including Twitter, YouTube, Flickr and others by pasting the media URL on its own line into the content of your post/page. <a href="https://wordpress.org/documentation/article/embeds/">Learn more about embeds</a>.' ) . '</p>';
+	$inserting_media .= '<p>' . __( 'You can also embed media from many popular websites including Twitter, YouTube, Flickr and others by pasting the media URL on its own line into the content of your post/page. <a href="https://developer.wordpress.org/advanced-administration/wordpress/oembed/">Learn more about embeds</a>.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
 		array(
@@ -377,7 +377,7 @@ if ( 'post' === $post_type ) {
 	'</li>';
 
 	if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) ) {
-		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Your theme could enable all or some of 10 possible formats. <a href="https://wordpress.org/documentation/article/post-formats/#supported-formats">Learn more about each post format</a>.' ) . '</li>';
+		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Your theme could enable all or some of 10 possible formats. <a href="https://developer.wordpress.org/advanced-administration/wordpress/post-formats/#supported-formats">Learn more about each post format</a>.' ) . '</li>';
 	}
 
 	if ( current_theme_supports( 'post-thumbnails' ) && post_type_supports( 'post', 'thumbnail' ) ) {
@@ -649,11 +649,20 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		echo '<span id="last-edit">';
 		$last_user = get_userdata( get_post_meta( $post->ID, '_edit_last', true ) );
 		if ( $last_user ) {
-			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
-			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
+				__( 'Last edited by %1$s on %2$s at %3$s' ),
+				esc_html( $last_user->display_name ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		} else {
-			/* translators: 1: Post edited date, 2: Post edited time. */
-			printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Post edited date, 2: Post edited time. */
+				__( 'Last edited on %1$s at %2$s' ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		}
 		echo '</span>';
 	}

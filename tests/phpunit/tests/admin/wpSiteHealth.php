@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group admin
  * @group site-health
  *
  * @coversDefaultClass WP_Site_Health

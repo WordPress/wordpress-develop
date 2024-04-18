@@ -30,11 +30,13 @@ concurrency:
 permissions: {}
 
 env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
   # Performance testing should be performed in an environment reflecting a standard production environment.
-  WP_DEBUG: false
-  SCRIPT_DEBUG: false
-  SAVEQUERIES : false
-  WP_DEVELOPMENT_MODE: ''
+  LOCAL_WP_DEBUG: false
+  LOCAL_SCRIPT_DEBUG: false
+  LOCAL_SAVEQUERIES: false
+  LOCAL_WP_DEVELOPMENT_MODE: "''"
 
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
@@ -56,6 +58,7 @@ jobs:
   # - Set up Node.js.
   # - Log debug information.
   # - Install npm dependencies.
+  # - Install Playwright browsers.
   # - Build WordPress.
   # - Start Docker environment.
   # - Log running Docker containers.
@@ -68,12 +71,17 @@ jobs:
   # - Run performance tests (current commit).
   # - Print performance tests results.
   # - Check out target commit (target branch or previous commit).
+  # - Switch Node.js versions if necessary.
   # - Install npm dependencies.
   # - Build WordPress.
+  # - Run any database upgrades.
   # - Run performance tests (previous/target commit).
   # - Print target performance tests results.
   # - Reset to original commit.
+  # - Switch Node.js versions if necessary.
+  # - Install npm dependencies.
   # - Set the environment to the baseline version.
+  # - Run any database upgrades.
   # - Run baseline performance tests.
   # - Print baseline performance tests results.
   # - Compare results with base.
@@ -88,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
 
     steps:
       - name: Configure environment variables
@@ -97,12 +105,12 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Checkout repository
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -113,11 +121,13 @@ jobs:
           node --version
           curl --version
           git --version
-          svn --version
           locale -a
 
       - name: Install npm dependencies
         run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Build WordPress
         run: npm run build
@@ -132,12 +142,11 @@ jobs:
       - name: Docker debug information
         run: |
           docker -v
-          docker-compose -v
-          docker-compose run --rm mysql mysql --version
-          docker-compose run --rm php php --version
-          docker-compose run --rm php php -m
-          docker-compose run --rm php php -i
-          docker-compose run --rm php locale -a
+          docker compose run --rm mysql mysql --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
 
       - name: Install WordPress
         run: npm run env:install
@@ -154,6 +163,12 @@ jobs:
       - name: Update permalink structure
         run: |
           npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Install additional languages
+        run: |
+          npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install MU plugin
         run: |
@@ -175,31 +190,60 @@ jobs:
           fi
           git reset --hard $TARGET_SHA
 
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
       - name: Install npm dependencies
         run: npm ci
 
       - name: Build WordPress
         run: npm run build
 
+      - name: Run any database upgrades
+        run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run target performance tests (base/previous commit)
-        run: npm run test:performance -- --prefix=before
+        env:
+          TEST_RESULTS_PREFIX: before
+        run: npm run test:performance
 
       - name: Print target performance tests results
-        run: node ./tests/performance/results.js --prefix=before
+        env:
+          TEST_RESULTS_PREFIX: before
+        run: node ./tests/performance/results.js
 
       - name: Reset to original commit
         run: git reset --hard $GITHUB_SHA
+
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
 
       - name: Set the environment to the baseline version
         run: |
           npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
+      - name: Run any database upgrades
+        run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run baseline performance tests
-        run: npm run test:performance -- --prefix=base
+        env:
+          TEST_RESULTS_PREFIX: base
+        run: npm run test:performance
 
       - name: Print baseline performance tests results
-        run: node ./tests/performance/results.js --prefix=base
+        env:
+          TEST_RESULTS_PREFIX: base
+        run: node ./tests/performance/results.js
 
       - name: Compare results with base
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
@@ -210,7 +254,7 @@ jobs:
       - name: Set the base sha
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: base-sha
         with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -221,7 +265,7 @@ jobs:
       - name: Set commit details
         # Only needed when publishing results.
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: commit-timestamp
         with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -276,7 +320,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

@@ -906,17 +906,12 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 			break;
 	}
 
-	$url = true;
-
-	if ( ! str_contains( $show, 'url' )
-		&& ! str_contains( $show, 'directory' )
-		&& ! str_contains( $show, 'home' )
-	) {
-		$url = false;
-	}
-
 	if ( 'display' === $filter ) {
-		if ( $url ) {
+		if (
+			str_contains( $show, 'url' )
+			|| str_contains( $show, 'directory' )
+			|| str_contains( $show, 'home' )
+		) {
 			/**
 			 * Filters the URL returned by get_bloginfo().
 			 *
@@ -1324,7 +1319,7 @@ function _wp_render_title_tag() {
  * @param string $sep         Optional. How to separate the various items within the page title.
  *                            Default '&raquo;'.
  * @param bool   $display     Optional. Whether to display or retrieve title. Default true.
- * @param string $seplocation Optional. Location of the separator ('left' or 'right').
+ * @param string $seplocation Optional. Location of the separator (either 'left' or 'right').
  * @return string|void String when `$display` is false, nothing otherwise.
  */
 function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
@@ -1444,7 +1439,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	 *
 	 * @param string $title       Page title.
 	 * @param string $sep         Title separator.
-	 * @param string $seplocation Location of the separator ('left' or 'right').
+	 * @param string $seplocation Location of the separator (either 'left' or 'right').
 	 */
 	$title = apply_filters( 'wp_title', $title, $sep, $seplocation );
 
@@ -1715,12 +1710,15 @@ function get_the_archive_title() {
 		$title  = get_the_author();
 		$prefix = _x( 'Author:', 'author archive title prefix' );
 	} elseif ( is_year() ) {
+		/* translators: See https://www.php.net/manual/datetime.format.php */
 		$title  = get_the_date( _x( 'Y', 'yearly archives date format' ) );
 		$prefix = _x( 'Year:', 'date archive title prefix' );
 	} elseif ( is_month() ) {
+		/* translators: See https://www.php.net/manual/datetime.format.php */
 		$title  = get_the_date( _x( 'F Y', 'monthly archives date format' ) );
 		$prefix = _x( 'Month:', 'date archive title prefix' );
 	} elseif ( is_day() ) {
+		/* translators: See https://www.php.net/manual/datetime.format.php */
 		$title  = get_the_date( _x( 'F j, Y', 'daily archives date format' ) );
 		$prefix = _x( 'Day:', 'date archive title prefix' );
 	} elseif ( is_tax( 'post_format' ) ) {
@@ -3443,7 +3441,7 @@ function wp_site_icon() {
 
 /**
  * Prints resource hints to browsers for pre-fetching, pre-rendering
- * and pre-connecting to web sites.
+ * and pre-connecting to websites.
  *
  * Gives hints to browsers to prefetch specific pages or render them
  * in the background, to perform DNS lookups or to begin the connection
@@ -3465,7 +3463,7 @@ function wp_resource_hints() {
 		$unique_urls = array();
 
 		/**
-		 * Filters domains and URLs for resource hints of relation type.
+		 * Filters domains and URLs for resource hints of the given relation type.
 		 *
 		 * @since 4.6.0
 		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
@@ -3485,8 +3483,8 @@ function wp_resource_hints() {
 		 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
 		 *     }
 		 * }
-		 * @param string $relation_type The relation type the URLs are printed for,
-		 *                              e.g. 'preconnect' or 'prerender'.
+		 * @param string $relation_type The relation type the URLs are printed for. One of
+		 *                              'dns-prefetch', 'preconnect', 'prefetch', or 'prerender'.
 		 */
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
@@ -3581,6 +3579,7 @@ function wp_preload_resources() {
 	 * Filters domains and URLs for resource preloads.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added the `$fetchpriority` attribute.
 	 *
 	 * @param array  $preload_resources {
 	 *     Array of resources and their attributes, or URLs to print for resource preloads.
@@ -3588,14 +3587,15 @@ function wp_preload_resources() {
 	 *     @type array ...$0 {
 	 *         Array of resource attributes.
 	 *
-	 *         @type string $href        URL to include in resource preloads. Required.
-	 *         @type string $as          How the browser should treat the resource
-	 *                                   (`script`, `style`, `image`, `document`, etc).
-	 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
-	 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
-	 *         @type string $media       Accepts media types or media queries. Allows responsive preloading.
-	 *         @type string $imagesizes  Responsive source size to the source Set.
-	 *         @type string $imagesrcset Responsive image sources to the source set.
+	 *         @type string $href          URL to include in resource preloads. Required.
+	 *         @type string $as            How the browser should treat the resource
+	 *                                     (`script`, `style`, `image`, `document`, etc).
+	 *         @type string $crossorigin   Indicates the CORS policy of the specified resource.
+	 *         @type string $type          Type of the resource (`text/html`, `text/css`, etc).
+	 *         @type string $media         Accepts media types or media queries. Allows responsive preloading.
+	 *         @type string $imagesizes    Responsive source size to the source Set.
+	 *         @type string $imagesrcset   Responsive image sources to the source set.
+	 *         @type string $fetchpriority Fetchpriority value for the resource.
 	 *     }
 	 * }
 	 */
@@ -3643,7 +3643,7 @@ function wp_preload_resources() {
 			}
 
 			// Ignore non-supported attributes.
-			$non_supported_attributes = array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media' );
+			$non_supported_attributes = array( 'as', 'crossorigin', 'href', 'imagesrcset', 'imagesizes', 'type', 'media', 'fetchpriority' );
 			if ( ! in_array( $resource_key, $non_supported_attributes, true ) && ! is_numeric( $resource_key ) ) {
 				continue;
 			}
@@ -3759,12 +3759,12 @@ function user_can_richedit() {
 /**
  * Finds out which editor should be displayed by default.
  *
- * Works out which of the two editors to display as the current editor for a
+ * Works out which of the editors to display as the current editor for a
  * user. The 'html' setting is for the "Text" editor tab.
  *
  * @since 2.5.0
  *
- * @return string Either 'tinymce', or 'html', or 'test'
+ * @return string Either 'tinymce', 'html', or 'test'
  */
 function wp_default_editor() {
 	$r = user_can_richedit() ? 'tinymce' : 'html'; // Defaults.

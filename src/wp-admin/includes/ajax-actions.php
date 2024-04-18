@@ -274,7 +274,7 @@ function wp_ajax_imgedit_preview() {
  *
  * @since 3.1.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  */
 function wp_ajax_oembed_cache() {
 	$GLOBALS['wp_embed']->cache_oembed( $_GET['post'] );
@@ -561,8 +561,8 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 				'postId'               => $comment ? $comment->comment_post_ID : '',
 				/* translators: %s: Number of comments. */
 				'total_items_i18n'     => sprintf( _n( '%s item', '%s items', $total ), number_format_i18n( $total ) ),
-				'total_pages'          => ceil( $total / $per_page ),
-				'total_pages_i18n'     => number_format_i18n( ceil( $total / $per_page ) ),
+				'total_pages'          => (int) ceil( $total / $per_page ),
+				'total_pages_i18n'     => number_format_i18n( (int) ceil( $total / $per_page ) ),
 				'total'                => $total,
 				'time'                 => $time,
 				'in_moderation'        => $counts->moderated,
@@ -1628,8 +1628,13 @@ function wp_ajax_add_meta() {
 			$post_data['post_type']   = $post->post_type;
 			$post_data['post_status'] = 'draft';
 			$now                      = time();
-			/* translators: 1: Post creation date, 2: Post creation time. */
-			$post_data['post_title'] = sprintf( __( 'Draft created on %1$s at %2$s' ), gmdate( __( 'F j, Y' ), $now ), gmdate( __( 'g:i a' ), $now ) );
+
+			$post_data['post_title'] = sprintf(
+				/* translators: 1: Post creation date, 2: Post creation time. */
+				__( 'Draft created on %1$s at %2$s' ),
+				gmdate( __( 'F j, Y' ), $now ),
+				gmdate( __( 'g:i a' ), $now )
+			);
 
 			$pid = edit_post( $post_data );
 
@@ -3084,10 +3089,10 @@ function wp_ajax_query_attachments() {
 
 	$posts_per_page = (int) $attachments_query->get( 'posts_per_page' );
 
-	$max_pages = $posts_per_page ? ceil( $total_posts / $posts_per_page ) : 0;
+	$max_pages = $posts_per_page ? (int) ceil( $total_posts / $posts_per_page ) : 0;
 
 	header( 'X-WP-Total: ' . (int) $total_posts );
-	header( 'X-WP-TotalPages: ' . (int) $max_pages );
+	header( 'X-WP-TotalPages: ' . $max_pages );
 
 	wp_send_json_success( $posts );
 }
@@ -3376,7 +3381,7 @@ function wp_ajax_send_attachment_to_editor() {
  * @since 3.5.0
  *
  * @global WP_Post  $post     Global post object.
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  */
 function wp_ajax_send_link_to_editor() {
 	global $post, $wp_embed;
@@ -3728,8 +3733,8 @@ function wp_ajax_query_themes() {
  *
  * @since 4.0.0
  *
- * @global WP_Post    $post       Global post object.
- * @global WP_Embed   $wp_embed   Embed API instance.
+ * @global WP_Post    $post          Global post object.
+ * @global WP_Embed   $wp_embed      WordPress Embed object.
  * @global WP_Scripts $wp_scripts
  * @global int        $content_width
  */
@@ -3882,13 +3887,29 @@ function wp_ajax_parse_media_shortcode() {
 
 	$shortcode = wp_unslash( $_POST['shortcode'] );
 
+	// Only process previews for media related shortcodes:
+	$found_shortcodes = get_shortcode_tags_in_content( $shortcode );
+	$media_shortcodes = array(
+		'audio',
+		'embed',
+		'playlist',
+		'video',
+		'gallery',
+	);
+
+	$other_shortcodes = array_diff( $found_shortcodes, $media_shortcodes );
+
+	if ( ! empty( $other_shortcodes ) ) {
+		wp_send_json_error();
+	}
+
 	if ( ! empty( $_POST['post_ID'] ) ) {
 		$post = get_post( (int) $_POST['post_ID'] );
 	}
 
 	// The embed shortcode requires a post.
 	if ( ! $post || ! current_user_can( 'edit_post', $post->ID ) ) {
-		if ( 'embed' === $shortcode ) {
+		if ( in_array( 'embed', $found_shortcodes, true ) ) {
 			wp_send_json_error();
 		}
 	} else {
@@ -4014,9 +4035,10 @@ function wp_ajax_crop_image() {
 			}
 
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
-			$cropped    = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
-			$attachment = $wp_site_icon->create_attachment_object( $cropped, $attachment_id );
-			unset( $attachment['ID'] );
+			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
+
+			// Copy attachment properties.
+			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
 
 			// Update the attachment.
 			add_filter( 'intermediate_image_sizes_advanced', array( $wp_site_icon, 'additional_sizes' ) );
@@ -4044,46 +4066,8 @@ function wp_ajax_crop_image() {
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 
-			$parent_url      = wp_get_attachment_url( $attachment_id );
-			$parent_basename = wp_basename( $parent_url );
-			$url             = str_replace( $parent_basename, wp_basename( $cropped ), $parent_url );
-
-			$size       = wp_getimagesize( $cropped );
-			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
-
-			// Get the original image's post to pre-populate the cropped image.
-			$original_attachment  = get_post( $attachment_id );
-			$sanitized_post_title = sanitize_file_name( $original_attachment->post_title );
-			$use_original_title   = (
-				( '' !== trim( $original_attachment->post_title ) ) &&
-				/*
-				 * Check if the original image has a title other than the "filename" default,
-				 * meaning the image had a title when originally uploaded or its title was edited.
-				 */
-				( $parent_basename !== $sanitized_post_title ) &&
-				( pathinfo( $parent_basename, PATHINFO_FILENAME ) !== $sanitized_post_title )
-			);
-			$use_original_description = ( '' !== trim( $original_attachment->post_content ) );
-
-			$attachment = array(
-				'post_title'     => $use_original_title ? $original_attachment->post_title : wp_basename( $cropped ),
-				'post_content'   => $use_original_description ? $original_attachment->post_content : $url,
-				'post_mime_type' => $image_type,
-				'guid'           => $url,
-				'context'        => $context,
-			);
-
-			// Copy the image caption attribute (post_excerpt field) from the original image.
-			if ( '' !== trim( $original_attachment->post_excerpt ) ) {
-				$attachment['post_excerpt'] = $original_attachment->post_excerpt;
-			}
-
-			// Copy the image alt text attribute from the original image.
-			if ( '' !== trim( $original_attachment->_wp_attachment_image_alt ) ) {
-				$attachment['meta_input'] = array(
-					'_wp_attachment_image_alt' => wp_slash( $original_attachment->_wp_attachment_image_alt ),
-				);
-			}
+			// Copy attachment properties.
+			$attachment = wp_copy_parent_attachment_properties( $cropped, $attachment_id, $context );
 
 			$attachment_id = wp_insert_attachment( $attachment, $cropped );
 			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
@@ -4552,6 +4536,56 @@ function wp_ajax_install_plugin() {
 
 	if ( is_multisite() && current_user_can( 'manage_network_plugins' ) && 'import' !== $pagenow ) {
 		$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
+	}
+
+	wp_send_json_success( $status );
+}
+
+/**
+ * Handles activating a plugin via AJAX.
+ *
+ * @since 6.5.0
+ */
+function wp_ajax_activate_plugin() {
+	check_ajax_referer( 'updates' );
+
+	if ( empty( $_POST['name'] ) || empty( $_POST['slug'] ) || empty( $_POST['plugin'] ) ) {
+		wp_send_json_error(
+			array(
+				'slug'         => '',
+				'pluginName'   => '',
+				'plugin'       => '',
+				'errorCode'    => 'no_plugin_specified',
+				'errorMessage' => __( 'No plugin specified.' ),
+			)
+		);
+	}
+
+	$status = array(
+		'activate'   => 'plugin',
+		'slug'       => wp_unslash( $_POST['slug'] ),
+		'pluginName' => wp_unslash( $_POST['name'] ),
+		'plugin'     => wp_unslash( $_POST['plugin'] ),
+	);
+
+	if ( ! current_user_can( 'activate_plugin', $status['plugin'] ) ) {
+		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate plugins on this site.' );
+		wp_send_json_error( $status );
+	}
+
+	if ( is_plugin_active( $status['plugin'] ) ) {
+		$status['errorMessage'] = sprintf(
+			/* translators: %s: Plugin name. */
+			__( '%s is already active.' ),
+			$status['pluginName']
+		);
+	}
+
+	$activated = activate_plugin( $status['plugin'] );
+
+	if ( is_wp_error( $activated ) ) {
+		$status['errorMessage'] = $activated->get_error_message();
+		wp_send_json_error( $status );
 	}
 
 	wp_send_json_success( $status );

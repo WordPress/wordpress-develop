@@ -14,7 +14,7 @@
  *
  * @since 2.9.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param string   $id       An internal ID/name for the handler. Needs to be unique.
  * @param string   $regex    The regex that will be used to see if this handler should be used for a URL.
@@ -32,7 +32,7 @@ function wp_embed_register_handler( $id, $regex, $callback, $priority = 10 ) {
  *
  * @since 2.9.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param string $id       The handler ID that should be removed.
  * @param int    $priority Optional. The priority of the handler to be removed. Default 10.
@@ -73,7 +73,7 @@ function wp_embed_defaults( $url = '' ) {
 		$width = 500;
 	}
 
-	$height = min( ceil( $width * 1.5 ), 1000 );
+	$height = min( (int) ceil( $width * 1.5 ), 1000 );
 
 	/**
 	 * Filters the default array of embed dimensions.
@@ -230,7 +230,7 @@ function wp_maybe_load_embeds() {
  *
  * @since 4.0.0
  *
- * @global WP_Embed $wp_embed
+ * @global WP_Embed $wp_embed WordPress Embed object.
  *
  * @param array  $matches The RegEx matches from the provided regex when calling
  *                        wp_embed_register_handler().
@@ -244,7 +244,7 @@ function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
 	$embed = $wp_embed->autoembed( sprintf( 'https://youtube.com/watch?v=%s', urlencode( $matches[2] ) ) );
 
 	/**
-	 * Filters the YoutTube embed output.
+	 * Filters the YouTube embed output.
 	 *
 	 * @since 4.0.0
 	 *
@@ -577,7 +577,7 @@ function get_oembed_response_data( $post, $width ) {
 	);
 
 	$width  = min( max( $min_max_width['min'], $width ), $min_max_width['max'] );
-	$height = max( ceil( $width / 16 * 9 ), 200 );
+	$height = max( (int) ceil( $width / 16 * 9 ), 200 );
 
 	$data = array(
 		'version'       => '1.0',

@@ -333,6 +333,7 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		return $input_user;
 	}
 
+	// The 'REST_REQUEST' check here may happen too early for the constant to be available.
 	$is_api_request = ( ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) );
 
 	/**
@@ -2095,6 +2096,9 @@ function wp_insert_user( $userdata ) {
 			return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
 		}
 
+		// Slash current user email to compare it later with slashed new user email.
+		$old_user_data->user_email = wp_slash( $old_user_data->user_email );
+
 		// Hashed in wp_update_user(), plaintext if called directly.
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
 	} else {
@@ -2875,7 +2879,7 @@ function wp_get_password_hint() {
  *
  * @since 4.4.0
  *
- * @global PasswordHash $wp_hasher Portable PHP password hashing framework.
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param WP_User $user User to retrieve password reset key for.
  * @return string|WP_Error Password reset key on success. WP_Error on error.
@@ -3047,8 +3051,8 @@ function check_password_reset_key( $key, $login ) {
  * @since 2.5.0
  * @since 5.7.0 Added `$user_login` parameter.
  *
- * @global wpdb         $wpdb       WordPress database abstraction object.
- * @global PasswordHash $wp_hasher  Portable PHP password hashing framework.
+ * @global wpdb         $wpdb      WordPress database abstraction object.
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $user_login Optional. Username to send a password retrieval email for.
  *                           Defaults to `$_POST['user_login']` if not set.
@@ -4817,6 +4821,8 @@ All at ###SITENAME###
  *
  * @since 4.9.6
  *
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
+ *
  * @param int $request_id Request ID.
  * @return string Confirmation key.
  */
@@ -4847,6 +4853,8 @@ function wp_generate_user_request_key( $request_id ) {
  * Validates a user request by comparing the key with the request's key.
  *
  * @since 4.9.6
+ *
+ * @global PasswordHash $wp_hasher Portable PHP password hashing framework instance.
  *
  * @param string $request_id ID of the request being confirmed.
  * @param string $key        Provided key to validate.

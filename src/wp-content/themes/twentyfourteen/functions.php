@@ -81,7 +81,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		$font_stylesheet = str_replace(
 			array( get_template_directory_uri() . '/', get_stylesheet_directory_uri() . '/' ),
 			'',
-			twentyfourteen_font_url()
+			(string) twentyfourteen_font_url()
 		);
 		add_editor_style( array( 'css/editor-style.css', $font_stylesheet, 'genericons/genericons.css' ) );
 
@@ -167,7 +167,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 
 		/*
 		 * Enable support for Post Formats.
-		 * See https://wordpress.org/documentation/article/post-formats/
+		 * See: https://developer.wordpress.org/advanced-administration/wordpress/post-formats/
 		 */
 		add_theme_support(
 			'post-formats',
@@ -345,7 +345,7 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20230808' );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20240402' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20230630' );
@@ -542,7 +542,7 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 		/**
 		 * Filters query arguments for listing authors.
 		 *
-		 * @since 3.3
+		 * @since Twenty Fourteen 3.3
 		 *
 		 * @param array $args Query arguments.
 		 */

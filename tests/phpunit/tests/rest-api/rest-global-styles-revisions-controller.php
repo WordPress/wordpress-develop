@@ -226,6 +226,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 	/**
 	 * @ticket 58524
+	 * @ticket 59810
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::register_routes
 	 */
@@ -235,6 +236,11 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions',
 			$routes,
 			'Global style revisions based on the given parentID route does not exist.'
+		);
+		$this->assertArrayHasKey(
+			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
+			$routes,
+			'Single global style revisions based on the given parentID and revision ID route does not exist.'
 		);
 	}
 
@@ -302,6 +308,38 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 
 		$this->assertSame( $this->revision_1_id, $data[2]['id'] );
 		$this->check_get_revision_response( $data[2], $this->revision_1 );
+	}
+
+	/**
+	 * @ticket 59810
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 */
+	public function test_get_item() {
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->check_get_revision_response( $data, $this->revision_1 );
+	}
+
+	/**
+	 * @ticket 59810
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_revision
+	 */
+	public function test_get_item_invalid_revision_id_should_error() {
+		wp_set_current_user( self::$admin_id );
+
+		$expected_error  = 'rest_post_invalid_id';
+		$expected_status = 404;
+		$request         = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/20000001' );
+		$response        = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( $expected_error, $response, $expected_status );
 	}
 
 	/**
@@ -552,13 +590,13 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests that the default query should fetch all revisions.
 	 *
-	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_default_query_should_fetch_all_revisons
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_default_query_should_fetch_all_revisions
 	 *
 	 * @ticket 58524
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
 	 */
-	public function test_get_items_default_query_should_fetch_all_revisons() {
+	public function test_get_items_default_query_should_fetch_all_revisions() {
 		wp_set_current_user( self::$admin_id );
 
 		$expected_count = $this->total_revisions;
@@ -792,13 +830,6 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 */
 	public function test_context_param() {
 		// Controller does not implement test_context_param().
-	}
-
-	/**
-	 * @doesNotPerformAssertions
-	 */
-	public function test_get_item() {
-		// Controller does not implement get_item().
 	}
 
 	/**

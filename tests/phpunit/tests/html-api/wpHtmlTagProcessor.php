@@ -22,9 +22,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_tag
 	 */
 	public function test_get_tag_returns_null_before_finding_tags() {
-		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
 
-		$this->assertNull( $p->get_tag(), 'Calling get_tag() without selecting a tag did not return null' );
+		$this->assertNull( $processor->get_tag(), 'Calling get_tag() without selecting a tag did not return null' );
 	}
 
 	/**
@@ -33,10 +33,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_tag
 	 */
 	public function test_get_tag_returns_null_when_not_in_open_tag() {
-		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
 
-		$this->assertFalse( $p->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
-		$this->assertNull( $p->get_tag(), 'Accessing a non-existing tag did not return null' );
+		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
+		$this->assertNull( $processor->get_tag(), 'Accessing a non-existing tag did not return null' );
 	}
 
 	/**
@@ -45,10 +45,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_tag
 	 */
 	public function test_get_tag_returns_open_tag_name() {
-		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
 
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertSame( 'DIV', $p->get_tag(), 'Accessing an existing tag name did not return "div"' );
+		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertSame( 'DIV', $processor->get_tag(), 'Accessing an existing tag name did not return "div"' );
 	}
 
 	/**
@@ -62,13 +62,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @param bool $flag_is_set Whether the input HTML's first tag contains the self-closing flag.
 	 */
 	public function test_has_self_closing_flag_matches_input_html( $html, $flag_is_set ) {
-		$p = new WP_HTML_Tag_Processor( $html );
-		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 
 		if ( $flag_is_set ) {
-			$this->assertTrue( $p->has_self_closing_flag(), 'Did not find the self-closing tag when it was present.' );
+			$this->assertTrue( $processor->has_self_closing_flag(), 'Did not find the self-closing tag when it was present.' );
 		} else {
-			$this->assertFalse( $p->has_self_closing_flag(), 'Found the self-closing tag when it was absent.' );
+			$this->assertFalse( $processor->has_self_closing_flag(), 'Found the self-closing tag when it was absent.' );
 		}
 	}
 
@@ -77,7 +77,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_has_self_closing_flag() {
+	public static function data_has_self_closing_flag() {
 		return array(
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
 			'Self-closing flag on non-void HTML element' => array( '<div />', true ),
@@ -107,9 +107,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_before_finding_tags() {
-		$p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 
-		$this->assertNull( $p->get_attribute( 'class' ), 'Accessing an attribute without selecting a tag did not return null' );
+		$this->assertNull( $processor->get_attribute( 'class' ), 'Accessing an attribute without selecting a tag did not return null' );
 	}
 
 	/**
@@ -118,10 +118,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_when_not_in_open_tag() {
-		$p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 
-		$this->assertFalse( $p->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
-		$this->assertNull( $p->get_attribute( 'class' ), 'Accessing an attribute of a non-existing tag did not return null' );
+		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
+		$this->assertNull( $processor->get_attribute( 'class' ), 'Accessing an attribute of a non-existing tag did not return null' );
 	}
 
 	/**
@@ -130,11 +130,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_when_in_closing_tag() {
-		$p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Querying an existing closing tag did not return true' );
-		$this->assertNull( $p->get_attribute( 'class' ), 'Accessing an attribute of a closing tag did not return null' );
+		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), 'Querying an existing closing tag did not return true' );
+		$this->assertNull( $processor->get_attribute( 'class' ), 'Accessing an attribute of a closing tag did not return null' );
 	}
 
 	/**
@@ -143,10 +143,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_null_when_attribute_missing() {
-		$p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertNull( $p->get_attribute( 'test-id' ), 'Accessing a non-existing attribute did not return null' );
+		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertNull( $processor->get_attribute( 'test-id' ), 'Accessing a non-existing attribute did not return null' );
 	}
 
 	/**
@@ -155,10 +155,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_attribute_value() {
-		$p = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="test">Test</div>' );
 
-		$this->assertTrue( $p->next_tag( 'div' ), 'Querying an existing tag did not return true' );
-		$this->assertSame( 'test', $p->get_attribute( 'class' ), 'Accessing a class="test" attribute value did not return "test"' );
+		$this->assertTrue( $processor->next_tag( 'div' ), 'Querying an existing tag did not return true' );
+		$this->assertSame( 'test', $processor->get_attribute( 'class' ), 'Accessing a class="test" attribute value did not return "test"' );
 	}
 
 	/**
@@ -167,10 +167,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_true_for_boolean_attribute() {
-		$p = new WP_HTML_Tag_Processor( '<div enabled class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div enabled class="test">Test</div>' );
 
-		$this->assertTrue( $p->next_tag( array( 'class_name' => 'test' ) ), 'Querying an existing tag did not return true' );
-		$this->assertTrue( $p->get_attribute( 'enabled' ), 'Accessing a boolean "enabled" attribute value did not return true' );
+		$this->assertTrue( $processor->next_tag( array( 'class_name' => 'test' ) ), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->get_attribute( 'enabled' ), 'Accessing a boolean "enabled" attribute value did not return true' );
 	}
 
 	/**
@@ -179,12 +179,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_string_for_truthy_attributes() {
-		$p = new WP_HTML_Tag_Processor( '<div enabled=enabled checked=1 hidden="true" class="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div enabled=enabled checked=1 hidden="true" class="test">Test</div>' );
 
-		$this->assertTrue( $p->next_tag(), 'Querying an existing tag did not return true' );
-		$this->assertSame( 'enabled', $p->get_attribute( 'enabled' ), 'Accessing a boolean "enabled" attribute value did not return true' );
-		$this->assertSame( '1', $p->get_attribute( 'checked' ), 'Accessing a checked=1 attribute value did not return "1"' );
-		$this->assertSame( 'true', $p->get_attribute( 'hidden' ), 'Accessing a hidden="true" attribute value did not return "true"' );
+		$this->assertTrue( $processor->next_tag(), 'Querying an existing tag did not return true' );
+		$this->assertSame( 'enabled', $processor->get_attribute( 'enabled' ), 'Accessing a boolean "enabled" attribute value did not return true' );
+		$this->assertSame( '1', $processor->get_attribute( 'checked' ), 'Accessing a checked=1 attribute value did not return "1"' );
+		$this->assertSame( 'true', $processor->get_attribute( 'hidden' ), 'Accessing a hidden="true" attribute value did not return "true"' );
 	}
 
 	/**
@@ -193,10 +193,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_decodes_html_character_references() {
-		$p = new WP_HTML_Tag_Processor( '<div id="the &quot;grande&quot; is &lt; &#x033;&#50;oz&dagger;"></div>' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div id="the &quot;grande&quot; is &lt; &#x033;&#50;oz&dagger;"></div>' );
+		$processor->next_tag();
 
-		$this->assertSame( 'the "grande" is < 32oz†', $p->get_attribute( 'id' ), 'HTML Attribute value was returned without decoding character references' );
+		$this->assertSame( 'the "grande" is < 32oz†', $processor->get_attribute( 'id' ), 'HTML Attribute value was returned without decoding character references' );
 	}
 
 	/**
@@ -205,14 +205,14 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_attributes_parser_treats_slash_as_attribute_separator() {
-		$p = new WP_HTML_Tag_Processor( '<div a/b/c/d/e="test">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div a/b/c/d/e="test">Test</div>' );
 
-		$this->assertTrue( $p->next_tag(), 'Querying an existing tag did not return true' );
-		$this->assertTrue( $p->get_attribute( 'a' ), 'Accessing an existing attribute did not return true' );
-		$this->assertTrue( $p->get_attribute( 'b' ), 'Accessing an existing attribute did not return true' );
-		$this->assertTrue( $p->get_attribute( 'c' ), 'Accessing an existing attribute did not return true' );
-		$this->assertTrue( $p->get_attribute( 'd' ), 'Accessing an existing attribute did not return true' );
-		$this->assertSame( 'test', $p->get_attribute( 'e' ), 'Accessing an existing e="test" did not return "test"' );
+		$this->assertTrue( $processor->next_tag(), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->get_attribute( 'a' ), 'Accessing an existing attribute did not return true' );
+		$this->assertTrue( $processor->get_attribute( 'b' ), 'Accessing an existing attribute did not return true' );
+		$this->assertTrue( $processor->get_attribute( 'c' ), 'Accessing an existing attribute did not return true' );
+		$this->assertTrue( $processor->get_attribute( 'd' ), 'Accessing an existing attribute did not return true' );
+		$this->assertSame( 'test', $processor->get_attribute( 'e' ), 'Accessing an existing e="test" did not return "test"' );
 	}
 
 	/**
@@ -225,12 +225,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @param string $attribute_name Name of data-enabled attribute with case variations.
 	 */
 	public function test_get_attribute_is_case_insensitive_for_attributes_with_values( $attribute_name ) {
-		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
+		$processor->next_tag();
 
 		$this->assertSame(
 			'true',
-			$p->get_attribute( $attribute_name ),
+			$processor->get_attribute( $attribute_name ),
 			'Accessing an attribute by a differently-cased name did not return its value'
 		);
 	}
@@ -245,11 +245,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @param string $attribute_name Name of data-enabled attribute with case variations.
 	 */
 	public function test_attributes_parser_is_case_insensitive_for_attributes_without_values( $attribute_name ) {
-		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled>Test</div>' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div DATA-enabled>Test</div>' );
+		$processor->next_tag();
 
 		$this->assertTrue(
-			$p->get_attribute( $attribute_name ),
+			$processor->get_attribute( $attribute_name ),
 			'Accessing an attribute by a differently-cased name did not return its value'
 		);
 	}
@@ -259,7 +259,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_attribute_name_case_variants() {
+	public static function data_attribute_name_case_variants() {
 		return array(
 			array( 'DATA-enabled' ),
 			array( 'data-enabled' ),
@@ -274,11 +274,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
 	public function test_remove_attribute_is_case_insensitive() {
-		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
-		$p->next_tag();
-		$p->remove_attribute( 'data-enabled' );
+		$processor = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'data-enabled' );
 
-		$this->assertSame( '<div >Test</div>', $p->get_updated_html(), 'A case-insensitive remove_attribute call did not remove the attribute' );
+		$this->assertSame( '<div >Test</div>', $processor->get_updated_html(), 'A case-insensitive remove_attribute call did not remove the attribute' );
 	}
 
 	/**
@@ -287,11 +287,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_is_case_insensitive() {
-		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
-		$p->next_tag();
-		$p->set_attribute( 'data-enabled', 'abc' );
+		$processor = new WP_HTML_Tag_Processor( '<div DATA-enabled="true">Test</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-enabled', 'abc' );
 
-		$this->assertSame( '<div data-enabled="abc">Test</div>', $p->get_updated_html(), 'A case-insensitive set_attribute call did not update the existing attribute' );
+		$this->assertSame( '<div data-enabled="abc">Test</div>', $processor->get_updated_html(), 'A case-insensitive set_attribute call did not update the existing attribute' );
 	}
 
 	/**
@@ -300,9 +300,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_before_finding_tags() {
-		$p = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
 		$this->assertNull(
-			$p->get_attribute_names_with_prefix( 'data-' ),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
 			'Accessing attributes by their prefix did not return null when no tag was selected'
 		);
 	}
@@ -313,9 +313,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_when_not_in_open_tag() {
-		$p = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
-		$p->next_tag( 'p' );
-		$this->assertNull( $p->get_attribute_names_with_prefix( 'data-' ), 'Accessing attributes of a non-existing tag did not return null' );
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor->next_tag( 'p' );
+		$this->assertNull( $processor->get_attribute_names_with_prefix( 'data-' ), 'Accessing attributes of a non-existing tag did not return null' );
 	}
 
 	/**
@@ -324,11 +324,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_null_when_in_closing_tag() {
-		$p = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
-		$p->next_tag( 'div' );
-		$p->next_tag( array( 'tag_closers' => 'visit' ) );
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor->next_tag( 'div' );
+		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
 
-		$this->assertNull( $p->get_attribute_names_with_prefix( 'data-' ), 'Accessing attributes of a closing tag did not return null' );
+		$this->assertNull( $processor->get_attribute_names_with_prefix( 'data-' ), 'Accessing attributes of a closing tag did not return null' );
 	}
 
 	/**
@@ -337,10 +337,10 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_empty_array_when_no_attributes_present() {
-		$p = new WP_HTML_Tag_Processor( '<div>Test</div>' );
-		$p->next_tag( 'div' );
+		$processor = new WP_HTML_Tag_Processor( '<div>Test</div>' );
+		$processor->next_tag( 'div' );
 
-		$this->assertSame( array(), $p->get_attribute_names_with_prefix( 'data-' ), 'Accessing the attributes on a tag without any did not return an empty array' );
+		$this->assertSame( array(), $processor->get_attribute_names_with_prefix( 'data-' ), 'Accessing the attributes on a tag without any did not return an empty array' );
 	}
 
 	/**
@@ -349,12 +349,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_matching_attribute_names_in_lowercase() {
-		$p = new WP_HTML_Tag_Processor( '<div DATA-enabled class="test" data-test-ID="14">Test</div>' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div DATA-enabled class="test" data-test-ID="14">Test</div>' );
+		$processor->next_tag();
 
 		$this->assertSame(
 			array( 'data-enabled', 'data-test-id' ),
-			$p->get_attribute_names_with_prefix( 'data-' ),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
 			'Accessing attributes by their prefix did not return their lowercase names'
 		);
 	}
@@ -365,18 +365,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_attribute_added_by_set_attribute() {
-		$p = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
-		$p->next_tag();
-		$p->set_attribute( 'data-test-id', '14' );
+		$processor = new WP_HTML_Tag_Processor( '<div data-foo="bar">Test</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-test-id', '14' );
 
 		$this->assertSame(
 			'<div data-test-id="14" data-foo="bar">Test</div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Updated HTML doesn't include attribute added via set_attribute"
 		);
 		$this->assertSame(
 			array( 'data-test-id', 'data-foo' ),
-			$p->get_attribute_names_with_prefix( 'data-' ),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
 			"Accessing attribute names doesn't find attribute added via set_attribute"
 		);
 	}
@@ -387,17 +387,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::__toString
 	 */
 	public function test_to_string_returns_updated_html() {
-		$p = new WP_HTML_Tag_Processor( '<hr id="remove" /><div enabled class="test">Test</div><span id="span-id"></span>' );
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( '<hr id="remove" /><div enabled class="test">Test</div><span id="span-id"></span>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
-		$p->next_tag();
-		$p->set_attribute( 'id', 'div-id-1' );
-		$p->add_class( 'new_class_1' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'div-id-1' );
+		$processor->add_class( 'new_class_1' );
 
 		$this->assertSame(
-			$p->get_updated_html(),
-			(string) $p,
+			$processor->get_updated_html(),
+			(string) $processor,
 			'get_updated_html() returned a different value than __toString()'
 		);
 	}
@@ -408,35 +408,35 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
 	 */
 	public function test_get_updated_html_applies_the_updates_so_far_and_keeps_the_processor_on_the_current_tag() {
-		$p = new WP_HTML_Tag_Processor( '<hr id="remove" /><div enabled class="test">Test</div><span id="span-id"></span>' );
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( '<hr id="remove" /><div enabled class="test">Test</div><span id="span-id"></span>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
-		$p->next_tag();
-		$p->set_attribute( 'id', 'div-id-1' );
-		$p->add_class( 'new_class_1' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'div-id-1' );
+		$processor->add_class( 'new_class_1' );
 
 		$this->assertSame(
 			'<hr  /><div id="div-id-1" enabled class="test new_class_1">Test</div><span id="span-id"></span>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Calling get_updated_html after updating the attributes of the second tag returned different HTML than expected'
 		);
 
-		$p->set_attribute( 'id', 'div-id-2' );
-		$p->add_class( 'new_class_2' );
+		$processor->set_attribute( 'id', 'div-id-2' );
+		$processor->add_class( 'new_class_2' );
 
 		$this->assertSame(
 			'<hr  /><div id="div-id-2" enabled class="test new_class_1 new_class_2">Test</div><span id="span-id"></span>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Calling get_updated_html after updating the attributes of the second tag for the second time returned different HTML than expected'
 		);
 
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
 		$this->assertSame(
 			'<hr  /><div id="div-id-2" enabled class="test new_class_1 new_class_2">Test</div><span ></span>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Calling get_updated_html after removing the id attribute of the third tag returned different HTML than expected'
 		);
 	}
@@ -447,11 +447,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
 	 */
 	public function test_get_updated_html_without_updating_any_attributes_returns_the_original_html() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 
 		$this->assertSame(
 			self::HTML_SIMPLE,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Casting WP_HTML_Tag_Processor to a string without performing any updates did not return the initial HTML snippet'
 		);
 	}
@@ -463,17 +463,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 58160
 	 */
 	public function test_get_updated_html_applies_updates_to_content_after_seeking_to_before_parsed_bytes() {
-		$p = new WP_HTML_Tag_Processor( '<div><img hidden></div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div><img hidden></div>' );
 
-		$p->next_tag();
-		$p->set_attribute( 'wonky', true );
-		$p->next_tag();
-		$p->set_bookmark( 'here' );
+		$processor->next_tag();
+		$processor->set_attribute( 'wonky', true );
+		$processor->next_tag();
+		$processor->set_bookmark( 'here' );
 
-		$p->next_tag( array( 'tag_closers' => 'visit' ) );
-		$p->seek( 'here' );
+		$processor->next_tag( array( 'tag_closers' => 'visit' ) );
+		$processor->seek( 'here' );
 
-		$this->assertSame( '<div wonky><img hidden></div>', $p->get_updated_html() );
+		$this->assertSame( '<div wonky><img hidden></div>', $processor->get_updated_html() );
 	}
 
 	/**
@@ -482,9 +482,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 */
 	public function test_next_tag_with_no_arguments_should_find_the_next_existing_tag() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 
-		$this->assertTrue( $p->next_tag(), 'Querying an existing tag did not return true' );
+		$this->assertTrue( $processor->next_tag(), 'Querying an existing tag did not return true' );
 	}
 
 	/**
@@ -493,9 +493,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 */
 	public function test_next_tag_should_return_false_for_a_non_existing_tag() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 
-		$this->assertFalse( $p->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
 	}
 
 	/**
@@ -504,9 +504,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 */
 	public function test_next_tag_matches_decoded_class_names() {
-		$p = new WP_HTML_Tag_Processor( '<div class="&lt;egg&gt;">' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="&lt;egg&gt;">' );
 
-		$this->assertTrue( $p->next_tag( array( 'class_name' => '<egg>' ) ), 'Failed to find tag with HTML-encoded class name.' );
+		$this->assertTrue( $processor->next_tag( array( 'class_name' => '<egg>' ) ), 'Failed to find tag with HTML-encoded class name.' );
 	}
 
 	/**
@@ -517,22 +517,22 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
 	 */
 	public function test_next_tag_should_stop_on_closers_only_when_requested() {
-		$p = new WP_HTML_Tag_Processor( '<div><img /></div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div><img /></div>' );
 
-		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'div' ) ), 'Did not find desired tag opener' );
-		$this->assertFalse( $p->next_tag( array( 'tag_name' => 'div' ) ), 'Visited an unwanted tag, a tag closer' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'div' ) ), 'Did not find desired tag opener' );
+		$this->assertFalse( $processor->next_tag( array( 'tag_name' => 'div' ) ), 'Visited an unwanted tag, a tag closer' );
 
-		$p = new WP_HTML_Tag_Processor( '<div><img /></div>' );
-		$p->next_tag(
+		$processor = new WP_HTML_Tag_Processor( '<div><img /></div>' );
+		$processor->next_tag(
 			array(
 				'tag_name'    => 'div',
 				'tag_closers' => 'visit',
 			)
 		);
 
-		$this->assertFalse( $p->is_tag_closer(), 'Indicated a tag opener is a tag closer' );
+		$this->assertFalse( $processor->is_tag_closer(), 'Indicated a tag opener is a tag closer' );
 		$this->assertTrue(
-			$p->next_tag(
+			$processor->next_tag(
 				array(
 					'tag_name'    => 'div',
 					'tag_closers' => 'visit',
@@ -540,11 +540,11 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			),
 			'Did not stop at desired tag closer'
 		);
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a tag closer is a tag opener' );
+		$this->assertTrue( $processor->is_tag_closer(), 'Indicated a tag closer is a tag opener' );
 
-		$p = new WP_HTML_Tag_Processor( '<div>' );
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
-		$this->assertFalse( $p->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), "Did not find a tag opener when tag_closers was set to 'visit'" );
+		$this->assertFalse( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), "Found a closer where there wasn't one" );
 	}
 
 	/**
@@ -554,32 +554,38 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
 	 */
 	public function test_next_tag_should_stop_on_rcdata_and_script_tag_closers_when_requested() {
-		$p = new WP_HTML_Tag_Processor( '<script>abc</script>' );
+		$processor = new WP_HTML_Tag_Processor( '<script>abc</script>' );
 
-		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer' );
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <script> tag opener is a tag closer' );
+		$processor->next_tag();
+		$this->assertFalse(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			'Should not have found closing SCRIPT tag when closing an opener.'
+		);
 
-		$p = new WP_HTML_Tag_Processor( 'abc</script>' );
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer when there was no tag opener' );
+		$processor = new WP_HTML_Tag_Processor( 'abc</script>' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </script> tag closer when there was no tag opener' );
 
-		$p = new WP_HTML_Tag_Processor( '<textarea>abc</textarea>' );
+		$processor = new WP_HTML_Tag_Processor( '<textarea>abc</textarea>' );
 
-		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer' );
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <textarea> tag opener is a tag closer' );
+		$processor->next_tag();
+		$this->assertFalse(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			'Should not have found closing TEXTAREA when closing an opener.'
+		);
 
-		$p = new WP_HTML_Tag_Processor( 'abc</textarea>' );
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer when there was no tag opener' );
+		$processor = new WP_HTML_Tag_Processor( 'abc</textarea>' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </textarea> tag closer when there was no tag opener' );
 
-		$p = new WP_HTML_Tag_Processor( '<title>abc</title>' );
+		$processor = new WP_HTML_Tag_Processor( '<title>abc</title>' );
 
-		$p->next_tag();
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer' );
-		$this->assertTrue( $p->is_tag_closer(), 'Indicated a <title> tag opener is a tag closer' );
+		$processor->next_tag();
+		$this->assertFalse(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			'Should not have found closing TITLE when closing an opener.'
+		);
 
-		$p = new WP_HTML_Tag_Processor( 'abc</title>' );
-		$this->assertTrue( $p->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
+		$processor = new WP_HTML_Tag_Processor( 'abc</title>' );
+		$this->assertTrue( $processor->next_tag( array( 'tag_closers' => 'visit' ) ), 'Did not find the </title> tag closer when there was no tag opener' );
 	}
 
 	/**
@@ -614,16 +620,16 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_on_a_non_existing_tag_does_not_change_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
 
-		$this->assertFalse( $p->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
-		$this->assertFalse( $p->next_tag( 'div' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $processor->next_tag( 'p' ), 'Querying a non-existing tag did not return false' );
+		$this->assertFalse( $processor->next_tag( 'div' ), 'Querying a non-existing tag did not return false' );
 
-		$p->set_attribute( 'id', 'primary' );
+		$processor->set_attribute( 'id', 'primary' );
 
 		$this->assertSame(
 			self::HTML_SIMPLE,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Calling get_updated_html after updating a non-existing tag returned an HTML that was different from the original HTML'
 		);
 	}
@@ -637,31 +643,31 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_class
 	 */
 	public function test_attribute_ops_on_tag_closer_do_not_change_the_markup() {
-		$p = new WP_HTML_Tag_Processor( '<div id=3></div invalid-id=4>' );
-		$p->next_tag(
+		$processor = new WP_HTML_Tag_Processor( '<div id=3></div invalid-id=4>' );
+		$processor->next_tag(
 			array(
 				'tag_name'    => 'div',
 				'tag_closers' => 'visit',
 			)
 		);
 
-		$this->assertFalse( $p->is_tag_closer(), 'Skipped tag opener' );
+		$this->assertFalse( $processor->is_tag_closer(), 'Skipped tag opener' );
 
-		$p->next_tag(
+		$processor->next_tag(
 			array(
 				'tag_name'    => 'div',
 				'tag_closers' => 'visit',
 			)
 		);
 
-		$this->assertTrue( $p->is_tag_closer(), 'Skipped tag closer' );
-		$this->assertFalse( $p->set_attribute( 'id', 'test' ), "Allowed setting an attribute on a tag closer when it shouldn't have" );
-		$this->assertFalse( $p->remove_attribute( 'invalid-id' ), "Allowed removing an attribute on a tag closer when it shouldn't have" );
-		$this->assertFalse( $p->add_class( 'sneaky' ), "Allowed adding a class on a tag closer when it shouldn't have" );
-		$this->assertFalse( $p->remove_class( 'not-appearing-in-this-test' ), "Allowed removing a class on a tag closer when it shouldn't have" );
+		$this->assertTrue( $processor->is_tag_closer(), 'Skipped tag closer' );
+		$this->assertFalse( $processor->set_attribute( 'id', 'test' ), "Allowed setting an attribute on a tag closer when it shouldn't have" );
+		$this->assertFalse( $processor->remove_attribute( 'invalid-id' ), "Allowed removing an attribute on a tag closer when it shouldn't have" );
+		$this->assertFalse( $processor->add_class( 'sneaky' ), "Allowed adding a class on a tag closer when it shouldn't have" );
+		$this->assertFalse( $processor->remove_class( 'not-appearing-in-this-test' ), "Allowed removing a class on a tag closer when it shouldn't have" );
 		$this->assertSame(
 			'<div id=3></div invalid-id=4>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Calling get_updated_html after updating a non-existing tag returned an HTML that was different from the original HTML'
 		);
 	}
@@ -670,9 +676,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Passing a double quote inside of an attribute value could lead to an XSS attack as follows:
 	 *
 	 * ```php
-	 *     $p = new WP_HTML_Tag_Processor( '<div class="header"></div>' );
-	 *     $p->next_tag();
-	 *     $p->set_attribute('class', '" onclick="alert');
+	 *     $processor = new WP_HTML_Tag_Processor( '<div class="header"></div>' );
+	 *     $processor->next_tag();
+	 *     $processor->set_attribute('class', '" onclick="alert');
 	 *     echo $p;
 	 *     // <div class="" onclick="alert"></div>
 	 * ```
@@ -691,9 +697,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @param string $attribute_value A value with potential XSS exploit.
 	 */
 	public function test_set_attribute_prevents_xss( $attribute_value ) {
-		$p = new WP_HTML_Tag_Processor( '<div></div>' );
-		$p->next_tag();
-		$p->set_attribute( 'test', $attribute_value );
+		$processor = new WP_HTML_Tag_Processor( '<div></div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'test', $attribute_value );
 
 		/*
 		 * Testing the escaping is hard using tools that properly parse
@@ -707,7 +713,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		 * content and (b) looks at the raw values.
 		 */
 		$match = null;
-		preg_match( '~^<div test=(.*)></div>$~', $p->get_updated_html(), $match );
+		preg_match( '~^<div test=(.*)></div>$~', $processor->get_updated_html(), $match );
 		list( , $actual_value ) = $match;
 
 		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
@@ -718,7 +724,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return string[][].
 	 */
-	public function data_set_attribute_prevents_xss() {
+	public static function data_set_attribute_prevents_xss() {
 		return array(
 			array( '"' ),
 			array( '&quot;' ),
@@ -738,18 +744,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_with_a_non_existing_attribute_adds_a_new_attribute_to_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'test-attribute', 'test-value' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'test-attribute', 'test-value' );
 
 		$this->assertSame(
 			'<div test-attribute="test-value" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include attribute added via set_attribute()'
 		);
 		$this->assertSame(
 			'test-value',
-			$p->get_attribute( 'test-attribute' ),
+			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called after get_updated_html()) did not return attribute added via set_attribute()'
 		);
 	}
@@ -760,18 +766,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_updated_values_before_they_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'test-attribute', 'test-value' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'test-attribute', 'test-value' );
 
 		$this->assertSame(
 			'test-value',
-			$p->get_attribute( 'test-attribute' ),
+			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called before get_updated_html()) did not return attribute added via set_attribute()'
 		);
 		$this->assertSame(
 			'<div test-attribute="test-value" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include attribute added via set_attribute()'
 		);
 	}
@@ -782,18 +788,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_returns_updated_values_before_they_are_applied_with_different_name_casing() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'test-ATTribute', 'test-value' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'test-ATTribute', 'test-value' );
 
 		$this->assertSame(
 			'test-value',
-			$p->get_attribute( 'test-attribute' ),
+			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called before get_updated_html()) did not return attribute added via set_attribute()'
 		);
 		$this->assertSame(
 			'<div test-ATTribute="test-value" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include attribute added via set_attribute()'
 		);
 	}
@@ -804,18 +810,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_added_class_names_before_they_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->add_class( 'my-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->add_class( 'my-class' );
 
 		$this->assertSame(
 			'my-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			'get_attribute() (called before get_updated_html()) did not return class name added via add_class()'
 		);
 		$this->assertSame(
 			'<div class="my-class" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include class name added via add_class()'
 		);
 	}
@@ -826,26 +832,26 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_added_class_names_before_they_are_applied_and_retains_classes_from_previous_add_class_calls() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->add_class( 'my-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->add_class( 'my-class' );
 
 		$this->assertSame(
 			'my-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			'get_attribute() (called before get_updated_html()) did not return class name added via add_class()'
 		);
 
-		$p->add_class( 'my-other-class' );
+		$processor->add_class( 'my-other-class' );
 
 		$this->assertSame(
 			'my-class my-other-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			'get_attribute() (called before get_updated_html()) did not return class names added via subsequent add_class() calls'
 		);
 		$this->assertSame(
 			'<div class="my-class my-other-class" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include class names added via subsequent add_class() calls'
 		);
 	}
@@ -856,17 +862,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_removed_attribute_before_it_is_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
 		$this->assertNull(
-			$p->get_attribute( 'id' ),
+			$processor->get_attribute( 'id' ),
 			'get_attribute() (called before get_updated_html()) returned attribute that was removed by remove_attribute()'
 		);
 		$this->assertSame(
 			'<div ><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes attribute that was removed by remove_attribute()'
 		);
 	}
@@ -877,18 +883,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_adding_and_then_removing_an_attribute_before_those_updates_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'test-attribute', 'test-value' );
-		$p->remove_attribute( 'test-attribute' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'test-attribute', 'test-value' );
+		$processor->remove_attribute( 'test-attribute' );
 
 		$this->assertNull(
-			$p->get_attribute( 'test-attribute' ),
+			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called before get_updated_html()) returned attribute that was added via set_attribute() and then removed by remove_attribute()'
 		);
 		$this->assertSame(
 			self::HTML_SIMPLE,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes attribute that was added via set_attribute() and then removed by remove_attribute()'
 		);
 	}
@@ -899,18 +905,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_setting_and_then_removing_an_existing_attribute_before_those_updates_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'id', 'test-value' );
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'test-value' );
+		$processor->remove_attribute( 'id' );
 
 		$this->assertNull(
-			$p->get_attribute( 'id' ),
+			$processor->get_attribute( 'id' ),
 			'get_attribute() (called before get_updated_html()) returned attribute that was overwritten by set_attribute() and then removed by remove_attribute()'
 		);
 		$this->assertSame(
 			'<div ><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes attribute that was overwritten by set_attribute() and then removed by remove_attribute()'
 		);
 	}
@@ -921,18 +927,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_removed_class_names_before_they_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->remove_class( 'with-border' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
 			'main',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			'get_attribute() (called before get_updated_html()) returned the wrong attribute after calling remove_attribute()'
 		);
 		$this->assertSame(
 			'<div class="main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes wrong attribute after calling remove_attribute()'
 		);
 	}
@@ -943,19 +949,19 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_setting_and_then_removing_a_class_name_before_those_updates_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'foo-class' );
-		$p->remove_class( 'foo-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'foo-class' );
+		$processor->remove_class( 'foo-class' );
 
 		$this->assertSame(
 			'main with-border',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			'get_attribute() (called before get_updated_html()) returned class name that was added via add_class() and then removed by remove_class()'
 		);
 		$this->assertSame(
 			self::HTML_WITH_CLASSES,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes class that was added via add_class() and then removed by remove_class()'
 		);
 	}
@@ -966,19 +972,19 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_attribute
 	 */
 	public function test_get_attribute_reflects_duplicating_and_then_removing_an_existing_class_name_before_those_updates_are_applied() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'with-border' );
-		$p->remove_class( 'with-border' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'with-border' );
+		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
 			'main',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			'get_attribute() (called before get_updated_html()) returned class name that was duplicated via add_class() and then removed by remove_class()'
 		);
 		$this->assertSame(
 			'<div class="main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes class that was duplicated via add_class() and then removed by remove_class()'
 		);
 	}
@@ -992,13 +998,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_update_first_attribute_when_duplicated_attributes_exist() {
-		$p = new WP_HTML_Tag_Processor( '<div id="update-me" id="ignored-id"><span id="second">Text</span></div>' );
-		$p->next_tag();
-		$p->set_attribute( 'id', 'updated-id' );
+		$processor = new WP_HTML_Tag_Processor( '<div id="update-me" id="ignored-id"><span id="second">Text</span></div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'updated-id' );
 
 		$this->assertSame(
 			'<div id="updated-id" id="ignored-id"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Proper (first) appearance of attribute was not updated when duplicates exist'
 		);
 	}
@@ -1009,12 +1015,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_with_an_existing_attribute_name_updates_its_value_in_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'id', 'new-id' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'new-id' );
 		$this->assertSame(
 			'<div id="new-id"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Existing attribute was not updated'
 		);
 	}
@@ -1028,13 +1034,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_with_case_variants_updates_only_the_original_first_copy() {
-		$p = new WP_HTML_Tag_Processor( '<div data-enabled="5">' );
-		$p->next_tag();
-		$p->set_attribute( 'DATA-ENABLED', 'canary' );
-		$p->set_attribute( 'Data-Enabled', 'canary' );
-		$p->set_attribute( 'dATa-EnABled', 'canary' );
+		$processor = new WP_HTML_Tag_Processor( '<div data-enabled="5">' );
+		$processor->next_tag();
+		$processor->set_attribute( 'DATA-ENABLED', 'canary' );
+		$processor->set_attribute( 'Data-Enabled', 'canary' );
+		$processor->set_attribute( 'dATa-EnABled', 'canary' );
 
-		$this->assertSame( '<div data-enabled="canary">', strtolower( $p->get_updated_html() ) );
+		$this->assertSame( '<div data-enabled="canary">', strtolower( $processor->get_updated_html() ) );
 	}
 
 	/**
@@ -1044,14 +1050,14 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_next_tag_and_set_attribute_in_a_loop_update_all_tags_in_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		while ( $p->next_tag() ) {
-			$p->set_attribute( 'data-foo', 'bar' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		while ( $processor->next_tag() ) {
+			$processor->set_attribute( 'data-foo', 'bar' );
 		}
 
 		$this->assertSame(
 			'<div data-foo="bar" id="first"><span data-foo="bar" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Not all tags were updated when looping with next_tag() and set_attribute()'
 		);
 	}
@@ -1067,13 +1073,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
 	public function test_remove_first_when_duplicated_attribute() {
-		$p = new WP_HTML_Tag_Processor( '<div id="update-me" id="ignored-id"><span id="second">Text</span></div>' );
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( '<div id="update-me" id="ignored-id"><span id="second">Text</span></div>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
 		$this->assertStringNotContainsString(
 			'update-me',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'First attribute (when duplicates exist) was not removed'
 		);
 	}
@@ -1084,13 +1090,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
 	public function test_remove_attribute_with_an_existing_attribute_name_removes_it_from_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
 		$this->assertSame(
 			'<div ><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Attribute was not removed'
 		);
 	}
@@ -1105,16 +1111,16 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_html_with_duplicated_attributes
 	 */
 	public function test_remove_attribute_with_duplicated_attributes_removes_all_of_them( $html_with_duplicate_attributes, $attribute_to_remove ) {
-		$p = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
+		$processor->next_tag();
 
-		$p->remove_attribute( $attribute_to_remove );
-		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
+		$processor->remove_attribute( $attribute_to_remove );
+		$this->assertNull( $processor->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
 
 		// Recreate a tag processor with the updated HTML after removing the attribute.
-		$p = new WP_HTML_Tag_Processor( $p->get_updated_html() );
-		$p->next_tag();
-		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
+		$processor = new WP_HTML_Tag_Processor( $processor->get_updated_html() );
+		$processor->next_tag();
+		$this->assertNull( $processor->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
 	}
 
 	/**
@@ -1125,12 +1131,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
 	public function test_previous_duplicated_attributes_are_not_removed_on_successive_tag_removal() {
-		$p = new WP_HTML_Tag_Processor( '<span id=one id=two id=three><span id=four>' );
-		$p->next_tag();
-		$p->next_tag();
-		$p->remove_attribute( 'id' );
+		$processor = new WP_HTML_Tag_Processor( '<span id=one id=two id=three><span id=four>' );
+		$processor->next_tag();
+		$processor->next_tag();
+		$processor->remove_attribute( 'id' );
 
-		$this->assertSame( '<span id=one id=two id=three><span >', $p->get_updated_html() );
+		$this->assertSame( '<span id=one id=two id=three><span >', $processor->get_updated_html() );
 	}
 
 	/**
@@ -1140,7 +1146,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public function data_html_with_duplicated_attributes() {
+	public static function data_html_with_duplicated_attributes() {
 		return array(
 			'Double attributes'               => array( '<div id=one id=two>', 'id' ),
 			'Triple attributes'               => array( '<div id=one id=two id=three>', 'id' ),
@@ -1156,13 +1162,13 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
 	public function test_remove_attribute_with_a_non_existing_attribute_name_does_not_change_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->remove_attribute( 'no-such-attribute' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->remove_attribute( 'no-such-attribute' );
 
 		$this->assertSame(
 			self::HTML_SIMPLE,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Content was changed when attempting to remove an attribute that did not exist'
 		);
 	}
@@ -1173,18 +1179,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_creates_a_class_attribute_when_there_is_none() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->add_class( 'foo-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->add_class( 'foo-class' );
 
 		$this->assertSame(
 			'<div class="foo-class" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include class name added via add_class()'
 		);
 		$this->assertSame(
 			'foo-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) did not return class name added via add_class()"
 		);
 	}
@@ -1195,19 +1201,19 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_calling_add_class_twice_creates_a_class_attribute_with_both_class_names_when_there_is_no_class_attribute() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->add_class( 'foo-class' );
-		$p->add_class( 'bar-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->add_class( 'foo-class' );
+		$processor->add_class( 'bar-class' );
 
 		$this->assertSame(
 			'<div class="foo-class bar-class" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not include class names added via subsequent add_class() calls'
 		);
 		$this->assertSame(
 			'foo-class bar-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) did not return class names added via subsequent add_class() calls"
 		);
 	}
@@ -1218,17 +1224,17 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_class
 	 */
 	public function test_remove_class_does_not_change_the_markup_when_there_is_no_class_attribute() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->remove_class( 'foo-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->remove_class( 'foo-class' );
 
 		$this->assertSame(
 			self::HTML_SIMPLE,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML includes class name that was removed by remove_class()'
 		);
 		$this->assertNull(
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) did not return null for class name that was removed by remove_class()"
 		);
 	}
@@ -1239,19 +1245,19 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_appends_class_names_to_the_existing_class_attribute_when_one_already_exists() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'foo-class' );
-		$p->add_class( 'bar-class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'foo-class' );
+		$processor->add_class( 'bar-class' );
 
 		$this->assertSame(
 			'<div class="main with-border foo-class bar-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect class names added to existing class attribute via subsequent add_class() calls'
 		);
 		$this->assertSame(
 			'main with-border foo-class bar-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class names added to existing class attribute via subsequent add_class() calls"
 		);
 	}
@@ -1262,18 +1268,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_class
 	 */
 	public function test_remove_class_removes_a_single_class_from_the_class_attribute_when_one_exists() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->remove_class( 'main' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->remove_class( 'main' );
 
 		$this->assertSame(
 			'<div class=" with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect class name removed from existing class attribute via remove_class()'
 		);
 		$this->assertSame(
 			' with-border',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class name removed from existing class attribute via remove_class()"
 		);
 	}
@@ -1284,18 +1290,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_class
 	 */
 	public function test_calling_remove_class_with_all_listed_class_names_removes_the_existing_class_attribute_from_the_markup() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->remove_class( 'main' );
-		$p->remove_class( 'with-border' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->remove_class( 'main' );
+		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
 			'<div  id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect class attribute removed via subesequent remove_class() calls'
 		);
 		$this->assertNull(
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) did not return null for class attribute removed via subesequent remove_class() calls"
 		);
 	}
@@ -1306,18 +1312,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_does_not_add_duplicate_class_names() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'with-border' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'with-border' );
 
 		$this->assertSame(
 			'<div class="main with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect deduplicated class name added via add_class()'
 		);
 		$this->assertSame(
 			'main with-border',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect deduplicated class name added via add_class()"
 		);
 	}
@@ -1328,18 +1334,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_preserves_class_name_order_when_a_duplicate_class_name_is_added() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'main' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'main' );
 
 		$this->assertSame(
 			'<div class="main with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect class name order after adding duplicated class name via add_class()'
 		);
 		$this->assertSame(
 			'main with-border',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class name order after adding duplicated class name added via add_class()"
 		);
 	}
@@ -1350,20 +1356,20 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_when_there_is_a_class_attribute_with_excessive_whitespaces() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<div class="   main   with-border   " id="first"><span class="not-main bold with-border" id="second">Text</span></div>'
 		);
-		$p->next_tag();
-		$p->add_class( 'foo-class' );
+		$processor->next_tag();
+		$processor->add_class( 'foo-class' );
 
 		$this->assertSame(
 			'<div class="   main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after adding class name via add_class()'
 		);
 		$this->assertSame(
 			'   main   with-border foo-class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after adding class name via add_class()"
 		);
 	}
@@ -1374,20 +1380,20 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_class
 	 */
 	public function test_remove_class_preserves_whitespaces_when_there_is_a_class_attribute_with_excessive_whitespaces() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<div class="   main   with-border   " id="first"><span class="not-main bold with-border" id="second">Text</span></div>'
 		);
-		$p->next_tag();
-		$p->remove_class( 'with-border' );
+		$processor->next_tag();
+		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
 			'<div class="   main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after removing class name via remove_class()'
 		);
 		$this->assertSame(
 			'   main',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after removing class name via removing_class()"
 		);
 	}
@@ -1398,19 +1404,19 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::remove_class
 	 */
 	public function test_removing_all_classes_removes_the_existing_class_attribute_from_the_markup_even_when_excessive_whitespaces_are_present() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<div class="   main   with-border   " id="first"><span class="not-main bold with-border" id="second">Text</span></div>'
 		);
-		$p->next_tag();
-		$p->remove_class( 'main' );
-		$p->remove_class( 'with-border' );
+		$processor->next_tag();
+		$processor->remove_class( 'main' );
+		$processor->remove_class( 'with-border' );
 		$this->assertSame(
 			'<div  id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Updated HTML does not reflect removed class attribute after removing all class names via remove_class()'
 		);
 		$this->assertNull(
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) did not return null after removing all class names via remove_class()"
 		);
 	}
@@ -1429,33 +1435,33 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_takes_priority_over_add_class() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'add_class' );
-		$p->set_attribute( 'class', 'set_attribute' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'add_class' );
+		$processor->set_attribute( 'class', 'set_attribute' );
 		$this->assertSame(
 			'<div class="set_attribute" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Calling get_updated_html after updating first tag's attributes did not return the expected HTML"
 		);
 		$this->assertSame(
 			'set_attribute',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"Calling get_attribute after updating first tag's attributes did not return the expected class name"
 		);
 
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->set_attribute( 'class', 'set_attribute' );
-		$p->add_class( 'add_class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->set_attribute( 'class', 'set_attribute' );
+		$processor->add_class( 'add_class' );
 		$this->assertSame(
 			'<div class="set_attribute add_class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Calling get_updated_html after updating first tag's attributes did not return the expected HTML"
 		);
 		$this->assertSame(
 			'set_attribute add_class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"Calling get_attribute after updating first tag's attributes did not return the expected class name"
 		);
 	}
@@ -1476,33 +1482,33 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_takes_priority_over_add_class_even_before_updating() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->add_class( 'add_class' );
-		$p->set_attribute( 'class', 'set_attribute' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->add_class( 'add_class' );
+		$processor->set_attribute( 'class', 'set_attribute' );
 		$this->assertSame(
 			'set_attribute',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"Calling get_attribute after updating first tag's attributes did not return the expected class name"
 		);
 		$this->assertSame(
 			'<div class="set_attribute" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Calling get_updated_html after updating first tag's attributes did not return the expected HTML"
 		);
 
-		$p = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
-		$p->next_tag();
-		$p->set_attribute( 'class', 'set_attribute' );
-		$p->add_class( 'add_class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_WITH_CLASSES );
+		$processor->next_tag();
+		$processor->set_attribute( 'class', 'set_attribute' );
+		$processor->add_class( 'add_class' );
 		$this->assertSame(
 			'set_attribute add_class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"Calling get_attribute after updating first tag's attributes did not return the expected class name"
 		);
 		$this->assertSame(
 			'<div class="set_attribute add_class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Calling get_updated_html after updating first tag's attributes did not return the expected HTML"
 		);
 	}
@@ -1513,18 +1519,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_overrides_boolean_class_attribute() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'class', true );
-		$p->add_class( 'add_class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'class', true );
+		$processor->add_class( 'add_class' );
 		$this->assertSame(
 			'<div class="add_class" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Updated HTML doesn't reflect class added via add_class that was originally set as boolean attribute"
 		);
 		$this->assertSame(
 			'add_class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute (called after get_updated_html()) doesn't reflect class added via add_class that was originally set as boolean attribute"
 		);
 	}
@@ -1535,18 +1541,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::add_class
 	 */
 	public function test_add_class_overrides_boolean_class_attribute_even_before_updating() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
-		$p->next_tag();
-		$p->set_attribute( 'class', true );
-		$p->add_class( 'add_class' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_SIMPLE );
+		$processor->next_tag();
+		$processor->set_attribute( 'class', true );
+		$processor->add_class( 'add_class' );
 		$this->assertSame(
 			'add_class',
-			$p->get_attribute( 'class' ),
+			$processor->get_attribute( 'class' ),
 			"get_attribute (called before get_updated_html()) doesn't reflect class added via add_class that was originally set as boolean attribute"
 		);
 		$this->assertSame(
 			'<div class="add_class" id="first"><span id="second">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			"Updated HTML doesn't reflect class added via add_class that was originally set as boolean attribute"
 		);
 	}
@@ -1607,12 +1613,12 @@ HTML;
 </div>
 HTML;
 
-		$p = new WP_HTML_Tag_Processor( $input );
-		$this->assertTrue( $p->next_tag( 'div' ), 'Did not find first DIV tag in input.' );
-		$p->set_attribute( 'data-details', '{ "key": "value" }' );
-		$p->add_class( 'is-processed' );
+		$processor = new WP_HTML_Tag_Processor( $input );
+		$this->assertTrue( $processor->next_tag( 'div' ), 'Did not find first DIV tag in input.' );
+		$processor->set_attribute( 'data-details', '{ "key": "value" }' );
+		$processor->add_class( 'is-processed' );
 		$this->assertTrue(
-			$p->next_tag(
+			$processor->next_tag(
 				array(
 					'tag_name'   => 'div',
 					'class_name' => 'BtnGroup',
@@ -1620,11 +1626,11 @@ HTML;
 			),
 			'Did not find the first BtnGroup DIV tag'
 		);
-		$p->remove_class( 'BtnGroup' );
-		$p->add_class( 'button-group' );
-		$p->add_class( 'Another-Mixed-Case' );
+		$processor->remove_class( 'BtnGroup' );
+		$processor->add_class( 'button-group' );
+		$processor->add_class( 'Another-Mixed-Case' );
 		$this->assertTrue(
-			$p->next_tag(
+			$processor->next_tag(
 				array(
 					'tag_name'   => 'div',
 					'class_name' => 'BtnGroup',
@@ -1632,11 +1638,11 @@ HTML;
 			),
 			'Did not find the second BtnGroup DIV tag'
 		);
-		$p->remove_class( 'BtnGroup' );
-		$p->add_class( 'button-group' );
-		$p->add_class( 'Another-Mixed-Case' );
+		$processor->remove_class( 'BtnGroup' );
+		$processor->add_class( 'button-group' );
+		$processor->add_class( 'Another-Mixed-Case' );
 		$this->assertTrue(
-			$p->next_tag(
+			$processor->next_tag(
 				array(
 					'tag_name'     => 'button',
 					'class_name'   => 'btn',
@@ -1645,10 +1651,10 @@ HTML;
 			),
 			'Did not find third BUTTON tag with "btn" CSS class'
 		);
-		$p->remove_attribute( 'class' );
-		$this->assertFalse( $p->next_tag( 'non-existent' ), "Found a {$p->get_tag()} tag when none should have been found." );
-		$p->set_attribute( 'class', 'test' );
-		$this->assertSame( $expected_output, $p->get_updated_html(), 'Calling get_updated_html after updating the attributes did not return the expected HTML' );
+		$processor->remove_attribute( 'class' );
+		$this->assertFalse( $processor->next_tag( 'non-existent' ), "Found a {$processor->get_tag()} tag when none should have been found." );
+		$processor->set_attribute( 'class', 'test' );
+		$this->assertSame( $expected_output, $processor->get_updated_html(), 'Calling get_updated_html after updating the attributes did not return the expected HTML' );
 	}
 
 	/**
@@ -1657,26 +1663,26 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::next_tag
 	 */
 	public function test_correctly_parses_html_attributes_wrapped_in_single_quotation_marks() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<div id=\'first\'><span id=\'second\'>Text</span></div>'
 		);
-		$p->next_tag(
+		$processor->next_tag(
 			array(
 				'tag_name' => 'div',
 				'id'       => 'first',
 			)
 		);
-		$p->remove_attribute( 'id' );
-		$p->next_tag(
+		$processor->remove_attribute( 'id' );
+		$processor->next_tag(
 			array(
 				'tag_name' => 'span',
 				'id'       => 'second',
 			)
 		);
-		$p->set_attribute( 'id', 'single-quote' );
+		$processor->set_attribute( 'id', 'single-quote' );
 		$this->assertSame(
 			'<div ><span id="single-quote">Text</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not remove single-quoted attribute'
 		);
 	}
@@ -1687,14 +1693,14 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_set_attribute_with_value_equal_to_true_adds_a_boolean_html_attribute_with_implicit_value() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<form action="/action_page.php"><input type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>'
 		);
-		$p->next_tag( 'input' );
-		$p->set_attribute( 'checked', true );
+		$processor->next_tag( 'input' );
+		$processor->set_attribute( 'checked', true );
 		$this->assertSame(
 			'<form action="/action_page.php"><input checked type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not add "checked" as an expected boolean attribute'
 		);
 	}
@@ -1705,14 +1711,14 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_a_boolean_attribute_to_false_removes_it_from_the_markup() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<form action="/action_page.php"><input checked type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>'
 		);
-		$p->next_tag( 'input' );
-		$p->set_attribute( 'checked', false );
+		$processor->next_tag( 'input' );
+		$processor->set_attribute( 'checked', false );
 		$this->assertSame(
 			'<form action="/action_page.php"><input  type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not remove boolean attribute when set to false'
 		);
 	}
@@ -1724,12 +1730,12 @@ HTML;
 	 */
 	public function test_setting_a_missing_attribute_to_false_does_not_change_the_markup() {
 		$html_input = '<form action="/action_page.php"><input type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>';
-		$p          = new WP_HTML_Tag_Processor( $html_input );
-		$p->next_tag( 'input' );
-		$p->set_attribute( 'checked', false );
+		$processor  = new WP_HTML_Tag_Processor( $html_input );
+		$processor->next_tag( 'input' );
+		$processor->set_attribute( 'checked', false );
 		$this->assertSame(
 			$html_input,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Changed the markup unexpectedly when setting a non-existing attribute to false'
 		);
 	}
@@ -1740,14 +1746,14 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_setting_a_boolean_attribute_to_a_string_value_adds_explicit_value_to_the_markup() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<form action="/action_page.php"><input checked type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>'
 		);
-		$p->next_tag( 'input' );
-		$p->set_attribute( 'checked', 'checked' );
+		$processor->next_tag( 'input' );
+		$processor->set_attribute( 'checked', 'checked' );
 		$this->assertSame(
 			'<form action="/action_page.php"><input checked="checked" type="checkbox" name="vehicle" value="Bike"><label for="vehicle">I have a bike</label></form>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not add string value to existing boolean attribute'
 		);
 	}
@@ -1756,12 +1762,21 @@ HTML;
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 */
 	public function test_unclosed_script_tag_should_not_cause_an_infinite_loop() {
-		$p = new WP_HTML_Tag_Processor( '<script>' );
-		$p->next_tag();
-		$this->assertSame( 'SCRIPT', $p->get_tag(), 'Did not find script tag' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<script><div>' );
+		$this->assertFalse(
+			$processor->next_tag(),
+			'Should not have stopped on an opening SCRIPT tag without a proper closing tag in the document.'
+		);
+		$this->assertTrue(
+			$processor->paused_at_incomplete_token(),
+			"Should have paused the parser because of the incomplete SCRIPT tag but didn't."
+		);
+
+		// Run this to ensure that the test ends (not in an infinite loop).
+		$processor->next_tag();
 	}
 
 	/**
@@ -1774,11 +1789,11 @@ HTML;
 	 * @param string $script_then_div HTML to test.
 	 */
 	public function test_next_tag_ignores_script_tag_contents( $script_then_div ) {
-		$p = new WP_HTML_Tag_Processor( $script_then_div );
-		$p->next_tag();
-		$this->assertSame( 'SCRIPT', $p->get_tag(), 'The first found tag was not "script"' );
-		$p->next_tag();
-		$this->assertSame( 'DIV', $p->get_tag(), 'The second found tag was not "div"' );
+		$processor = new WP_HTML_Tag_Processor( $script_then_div );
+		$processor->next_tag();
+		$this->assertSame( 'SCRIPT', $processor->get_tag(), 'The first found tag was not "script"' );
+		$processor->next_tag();
+		$this->assertSame( 'DIV', $processor->get_tag(), 'The second found tag was not "div"' );
 	}
 
 	/**
@@ -1786,7 +1801,7 @@ HTML;
 	 *
 	 * @return array[].
 	 */
-	public function data_next_tag_ignores_script_tag_contents() {
+	public static function data_next_tag_ignores_script_tag_contents() {
 		return array(
 			'Simple script tag'                          => array(
 				'<script><span class="d-none d-md-inline">Back to notifications</span></script><div></div>',
@@ -1851,11 +1866,11 @@ HTML;
 	 *                                  element after contain the "start" and "end" CSS classes.
 	 */
 	public function test_next_tag_ignores_invalid_first_character_of_tag_name_comments( $html_with_markers ) {
-		$p = new WP_HTML_Tag_Processor( $html_with_markers );
-		$p->next_tag( array( 'class_name' => 'start' ) );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( $html_with_markers );
+		$processor->next_tag( array( 'class_name' => 'start' ) );
+		$processor->next_tag();
 
-		$this->assertSame( 'end', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'end', $processor->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -1863,7 +1878,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
+	public static function data_next_tag_ignores_invalid_first_character_of_tag_name_comments() {
 		return array(
 			'Invalid tag openers as normal text'           => array(
 				'<ul><li><div class=start>I <3 when outflow > inflow</div><img class=end></li></ul>',
@@ -1890,11 +1905,11 @@ HTML;
 	 * @param string $rcdata_tag      RCDATA tag.
 	 */
 	public function test_next_tag_ignores_contents_of_rcdata_tag( $rcdata_then_div, $rcdata_tag ) {
-		$p = new WP_HTML_Tag_Processor( $rcdata_then_div );
-		$p->next_tag();
-		$this->assertSame( $rcdata_tag, $p->get_tag(), "The first found tag was not '$rcdata_tag'" );
-		$p->next_tag();
-		$this->assertSame( 'DIV', $p->get_tag(), "The second found tag was not 'div'" );
+		$processor = new WP_HTML_Tag_Processor( $rcdata_then_div );
+		$processor->next_tag();
+		$this->assertSame( $rcdata_tag, $processor->get_tag(), "The first found tag was not '$rcdata_tag'" );
+		$processor->next_tag();
+		$this->assertSame( 'DIV', $processor->get_tag(), "The second found tag was not 'div'" );
 	}
 
 	/**
@@ -1902,7 +1917,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_next_tag_ignores_contents_of_rcdata_tag() {
+	public static function data_next_tag_ignores_contents_of_rcdata_tag() {
 		return array(
 			'simple textarea'                          => array(
 				'rcdata_then_div' => '<textarea><span class="d-none d-md-inline">Back to notifications</span></textarea><div></div>',
@@ -1932,6 +1947,30 @@ HTML;
 	}
 
 	/**
+	 * Ensures matching elements inside NOSCRIPT elements.
+	 *
+	 * In a browser when the scripting flag is enabled, everything inside
+	 * the NOSCRIPT element will be ignored and treated at RAW TEXT. This
+	 * means that it's valid to send what looks like incomplete or partial
+	 * HTML syntax without impacting a rendered page. The Tag Processor is
+	 * a parser with the scripting flag disabled, however, and needs to
+	 * expose all the potential content that some code might want to modify.
+	 *
+	 * Were it not for this then the NOSCRIPT tag would be handled like the
+	 * other tags in the RAW TEXT special group, e.g. NOEMBED or STYLE.
+	 *
+	 * @ticket 60122
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_processes_inside_of_noscript_elements() {
+		$processor = new WP_HTML_Tag_Processor( '<noscript><input type="submit"></noscript><div>' );
+
+		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'Failed to find INPUT element inside NOSCRIPT element.' );
+		$this->assertTrue( $processor->next_tag( 'DIV' ), 'Failed to find DIV element after NOSCRIPT element.' );
+	}
+
+	/**
 	 * @ticket 59292
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -1957,12 +1996,11 @@ HTML;
 	 *
 	 * @return array[].
 	 */
-	public function data_next_tag_ignores_contents_of_rawtext_tags() {
+	public static function data_next_tag_ignores_contents_of_rawtext_tags() {
 		return array(
 			'IFRAME'           => array( '<iframe><section>Inside</section></iframe><section target>' ),
 			'NOEMBED'          => array( '<noembed><p></p></noembed><div target>' ),
 			'NOFRAMES'         => array( '<noframes><p>Check the rules here.</p></noframes><div target>' ),
-			'NOSCRIPT'         => array( '<noscript><span>This assumes that scripting mode is enabled.</span></noscript><p target>' ),
 			'STYLE'            => array( '<style>* { margin: 0 }</style><div target>' ),
 			'STYLE hiding DIV' => array( '<style>li::before { content: "<div non-target>" }</style><div target>' ),
 		);
@@ -1974,11 +2012,11 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_empty_when_missing_class() {
-		$p = new WP_HTML_Tag_Processor( '<div>' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
 
 		$found_classes = false;
-		foreach ( $p->class_list() as $class ) {
+		foreach ( $processor->class_list() as $class ) {
 			$found_classes = true;
 		}
 
@@ -1991,11 +2029,11 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_empty_when_class_is_boolean() {
-		$p = new WP_HTML_Tag_Processor( '<div class>' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div class>' );
+		$processor->next_tag();
 
 		$found_classes = false;
-		foreach ( $p->class_list() as $class ) {
+		foreach ( $processor->class_list() as $class ) {
 			$found_classes = true;
 		}
 
@@ -2008,11 +2046,11 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_empty_when_class_is_empty() {
-		$p = new WP_HTML_Tag_Processor( '<div class="">' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div class="">' );
+		$processor->next_tag();
 
 		$found_classes = false;
-		foreach ( $p->class_list() as $class ) {
+		foreach ( $processor->class_list() as $class ) {
 			$found_classes = true;
 		}
 
@@ -2025,11 +2063,11 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_visits_each_class_in_order() {
-		$p = new WP_HTML_Tag_Processor( '<div class="one two three">' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div class="one two three">' );
+		$processor->next_tag();
 
 		$found_classes = array();
-		foreach ( $p->class_list() as $class ) {
+		foreach ( $processor->class_list() as $class ) {
 			$found_classes[] = $class;
 		}
 
@@ -2042,11 +2080,11 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_decodes_class_names() {
-		$p = new WP_HTML_Tag_Processor( '<div class="&notin;-class &lt;egg&gt; &#xff03;">' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div class="&notin;-class &lt;egg&gt; &#xff03;">' );
+		$processor->next_tag();
 
 		$found_classes = array();
-		foreach ( $p->class_list() as $class ) {
+		foreach ( $processor->class_list() as $class ) {
 			$found_classes[] = $class;
 		}
 
@@ -2059,11 +2097,11 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::class_list
 	 */
 	public function test_class_list_visits_unique_class_names_only_once() {
-		$p = new WP_HTML_Tag_Processor( '<div class="one one &#x6f;ne">' );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( '<div class="one one &#x6f;ne">' );
+		$processor->next_tag();
 
 		$found_classes = array();
-		foreach ( $p->class_list() as $class ) {
+		foreach ( $processor->class_list() as $class ) {
 			$found_classes[] = $class;
 		}
 
@@ -2082,13 +2120,13 @@ HTML;
 	 * @param bool   $has_class    Whether the sought class exists in the given HTML.
 	 */
 	public function test_has_class_handles_expected_class_name_variations( $html, $sought_class, $has_class ) {
-		$p = new WP_HTML_Tag_Processor( $html );
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
 
 		if ( $has_class ) {
-			$this->assertTrue( $p->has_class( $sought_class ), "Failed to find expected class {$sought_class}." );
+			$this->assertTrue( $processor->has_class( $sought_class ), "Failed to find expected class {$sought_class}." );
 		} else {
-			$this->assertFalse( $p->has_class( $sought_class ), "Found class {$sought_class} when it doesn't exist." );
+			$this->assertFalse( $processor->has_class( $sought_class ), "Found class {$sought_class} when it doesn't exist." );
 		}
 	}
 
@@ -2097,7 +2135,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_html_with_variations_of_class_values_and_sought_class_names() {
+	public static function data_html_with_variations_of_class_values_and_sought_class_names() {
 		return array(
 			'Tag without any classes'      => array( '<div>', 'foo', false ),
 			'Tag with boolean class'       => array( '<img class>', 'foo', false ),
@@ -2121,16 +2159,16 @@ HTML;
 	 *
 	 */
 	public function test_allows_incorrectly_closed_comments() {
-		$p = new WP_HTML_Tag_Processor( '<img id=before><!-- <img id=inside> --!><img id=after>--><img id=final>' );
+		$processor = new WP_HTML_Tag_Processor( '<img id=before><!-- <img id=inside> --!><img id=after>--><img id=final>' );
 
-		$p->next_tag();
-		$this->assertSame( 'before', $p->get_attribute( 'id' ), 'Did not find starting tag.' );
+		$processor->next_tag();
+		$this->assertSame( 'before', $processor->get_attribute( 'id' ), 'Did not find starting tag.' );
 
-		$p->next_tag();
-		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not properly close improperly-closed comment.' );
+		$processor->next_tag();
+		$this->assertSame( 'after', $processor->get_attribute( 'id' ), 'Did not properly close improperly-closed comment.' );
 
-		$p->next_tag();
-		$this->assertSame( 'final', $p->get_attribute( 'id' ), 'Did not skip over unopened comment-closer.' );
+		$processor->next_tag();
+		$this->assertSame( 'final', $processor->get_attribute( 'id' ), 'Did not skip over unopened comment-closer.' );
 	}
 
 	/**
@@ -2139,15 +2177,24 @@ HTML;
 	 * @ticket 58007
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 *
 	 * @dataProvider data_html_with_unclosed_comments
 	 *
-	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed
+	 * @param string $html_ending_before_comment_close HTML with opened comments that aren't closed.
 	 */
 	public function test_documents_may_end_with_unclosed_comment( $html_ending_before_comment_close ) {
-		$p = new WP_HTML_Tag_Processor( $html_ending_before_comment_close );
+		$processor = new WP_HTML_Tag_Processor( $html_ending_before_comment_close );
 
-		$this->assertFalse( $p->next_tag() );
+		$this->assertFalse(
+			$processor->next_tag(),
+			"Should not have found any tag, but found {$processor->get_tag()}."
+		);
+
+		$this->assertTrue(
+			$processor->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
 	}
 
 	/**
@@ -2155,7 +2202,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_html_with_unclosed_comments() {
+	public static function data_html_with_unclosed_comments() {
 		return array(
 			'Shortest open valid comment'      => array( '<!--' ),
 			'Basic truncated comment'          => array( '<!-- this ends --' ),
@@ -2178,11 +2225,11 @@ HTML;
 	 * @param string $html_with_after_marker HTML to test with "id=after" on element immediately following an abruptly closed comment.
 	 */
 	public function test_closes_abrupt_closing_of_empty_comment( $html_with_after_marker ) {
-		$p = new WP_HTML_Tag_Processor( $html_with_after_marker );
-		$p->next_tag();
-		$p->next_tag();
+		$processor = new WP_HTML_Tag_Processor( $html_with_after_marker );
+		$processor->next_tag();
+		$processor->next_tag();
 
-		$this->assertSame( 'after', $p->get_attribute( 'id' ), 'Did not find tag after closing abruptly-closed comment' );
+		$this->assertSame( 'after', $processor->get_attribute( 'id' ), 'Did not find tag after closing abruptly-closed comment' );
 	}
 
 	/**
@@ -2190,7 +2237,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_abruptly_closed_empty_comments() {
+	public static function data_abruptly_closed_empty_comments() {
 		return array(
 			'Empty comment with two dashes only' => array( '<hr><!--><hr id=after>' ),
 			'Empty comment with two dashes only, improperly closed' => array( '<hr><!--!><hr id=inside>--><hr id=after>' ),
@@ -2215,11 +2262,11 @@ HTML;
 	 * @param $input_html HTML with multiple divs, one of which carries the "target" attribute.
 	 */
 	public function test_skips_contents_of_script_and_rcdata_regions( $input_html ) {
-		$p = new WP_HTML_Tag_Processor( $input_html );
-		$p->next_tag( 'div' );
+		$processor = new WP_HTML_Tag_Processor( $input_html );
+		$processor->next_tag( 'div' );
 
 		$this->assertTrue(
-			$p->get_attribute( 'target' ),
+			$processor->get_attribute( 'target' ),
 			'Did not properly skip over script and rcdata regions; incorrectly found tags inside'
 		);
 	}
@@ -2229,7 +2276,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_skips_contents_of_script_and_rcdata_regions() {
+	public static function data_skips_contents_of_script_and_rcdata_regions() {
 		return array(
 			'Balanced SCRIPT tags'                => array( '<script>console.log("<div>");</script><div target><div>' ),
 			'Unexpected SCRIPT closer after DIV'  => array( 'console.log("<div target>")</script><div><div>' ),
@@ -2248,16 +2295,16 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_can_query_and_update_wrongly_nested_tags() {
-		$p = new WP_HTML_Tag_Processor(
+		$processor = new WP_HTML_Tag_Processor(
 			'<span>123<p>456</span>789</p>'
 		);
-		$p->next_tag( 'span' );
-		$p->set_attribute( 'class', 'span-class' );
-		$p->next_tag( 'p' );
-		$p->set_attribute( 'class', 'p-class' );
+		$processor->next_tag( 'span' );
+		$processor->set_attribute( 'class', 'span-class' );
+		$processor->next_tag( 'p' );
+		$processor->set_attribute( 'class', 'p-class' );
 		$this->assertSame(
 			'<span class="span-class">123<p class="p-class">456</span>789</p>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not find overlapping p tag'
 		);
 	}
@@ -2269,28 +2316,40 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 */
 	public function test_removing_specific_attributes_in_malformed_html() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_MALFORMED );
-		$p->next_tag( 'span' );
-		$p->remove_attribute( 'Notifications<' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_MALFORMED );
+		$processor->next_tag( 'span' );
+		$processor->remove_attribute( 'Notifications<' );
 		$this->assertSame(
 			'<div><span class="d-md-none" /span><span class="d-none d-md-inline">Back to notifications</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not remove "Notifications<" attribute in malformed input'
 		);
 	}
 
 	/**
-	 * @ticket 58637
+	 * Ensures that no tags are matched in a document containing only non-tag content.
+	 *
+	 * @ticket 60122
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
 	 *
-	 * @dataProvider data_incomplete_syntax_elements
+	 * @dataProvider data_html_without_tags
 	 *
-	 * @param string $incomplete_html HTML text containing some kind of incomplete syntax.
+	 * @param string $html_without_tags HTML without any tags in it.
 	 */
-	public function test_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
-		$p = new WP_HTML_Tag_Processor( $incomplete_html );
-		$this->assertFalse( $p->next_tag() );
+	public function test_next_tag_returns_false_when_there_are_no_tags( $html_without_tags ) {
+		$processor = new WP_HTML_Tag_Processor( $html_without_tags );
+
+		$this->assertFalse(
+			$processor->next_tag(),
+			"Shouldn't have found any tags but found {$processor->get_tag()}."
+		);
+
+		$this->assertFalse(
+			$processor->paused_at_incomplete_token(),
+			'Should have indicated that end of document was reached without evidence that elements were truncated.'
+		);
 	}
 
 	/**
@@ -2298,9 +2357,51 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_incomplete_syntax_elements() {
+	public static function data_html_without_tags() {
 		return array(
-			'No tags'                              => array( 'this is nothing more than a text node' ),
+			'DOCTYPE declaration'    => array( '<!DOCTYPE html>Just some HTML' ),
+			'No tags'                => array( 'this is nothing more than a text node' ),
+			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
+			'Empty tag closer'       => array( '</>' ),
+			'CDATA as HTML comment'  => array( '<![CDATA[this closes at the first &gt;]>' ),
+			'Processing instruction' => array( '<?xml version="1.0"?>' ),
+			'Combination XML-like'   => array( '<!DOCTYPE xml><?xml version=""?><!-- this is not a real document. --><![CDATA[it only serves as a test]]>' ),
+		);
+	}
+
+	/**
+	 * Ensures that the processor doesn't attempt to match an incomplete token.
+	 *
+	 * @ticket 58637
+	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 * @covers WP_HTML_Tag_Processor::paused_at_incomplete_token
+	 *
+	 * @dataProvider data_incomplete_syntax_elements
+	 *
+	 * @param string $incomplete_html HTML text containing some kind of incomplete syntax.
+	 */
+	public function test_next_tag_returns_false_for_incomplete_syntax_elements( $incomplete_html ) {
+		$processor = new WP_HTML_Tag_Processor( $incomplete_html );
+
+		$this->assertFalse(
+			$processor->next_tag(),
+			"Shouldn't have found any tags but found {$processor->get_tag()}."
+		);
+
+		$this->assertTrue(
+			$processor->paused_at_incomplete_token(),
+			"Should have indicated that the parser found an incomplete token but didn't."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_incomplete_syntax_elements() {
+		return array(
 			'Incomplete tag name'                  => array( '<swit' ),
 			'Incomplete tag (no attributes)'       => array( '<div' ),
 			'Incomplete tag (attributes)'          => array( '<div inert title="test"' ),
@@ -2313,10 +2414,25 @@ HTML;
 			'Incomplete comment (bogus comment)'   => array( '</3 is not a tag' ),
 			'Incomplete DOCTYPE'                   => array( '<!DOCTYPE html' ),
 			'Partial DOCTYPE'                      => array( '<!DOCTY' ),
-			'Incomplete CDATA'                     => array( '<[CDATA[something inside of here needs to get out' ),
-			'Partial CDATA'                        => array( '<[CDA' ),
-			'Partially closed CDATA]'              => array( '<[CDATA[cannot escape]' ),
-			'Partially closed CDATA]>'             => array( '<[CDATA[cannot escape]>' ),
+			'Incomplete CDATA'                     => array( '<![CDATA[something inside of here needs to get out' ),
+			'Partial CDATA'                        => array( '<![CDA' ),
+			'Partially closed CDATA]'              => array( '<![CDATA[cannot escape]' ),
+			'Unclosed IFRAME'                      => array( '<iframe><div>' ),
+			'Unclosed NOEMBED'                     => array( '<noembed><div>' ),
+			'Unclosed NOFRAMES'                    => array( '<noframes><div>' ),
+			'Unclosed SCRIPT'                      => array( '<script><div>' ),
+			'Unclosed STYLE'                       => array( '<style><div>' ),
+			'Unclosed TEXTAREA'                    => array( '<textarea><div>' ),
+			'Unclosed TITLE'                       => array( '<title><div>' ),
+			'Unclosed XMP'                         => array( '<xmp><div>' ),
+			'Partially closed IFRAME'              => array( '<iframe><div></iframe' ),
+			'Partially closed NOEMBED'             => array( '<noembed><div></noembed' ),
+			'Partially closed NOFRAMES'            => array( '<noframes><div></noframes' ),
+			'Partially closed SCRIPT'              => array( '<script><div></script' ),
+			'Partially closed STYLE'               => array( '<style><div></style' ),
+			'Partially closed TEXTAREA'            => array( '<textarea><div></textarea' ),
+			'Partially closed TITLE'               => array( '<title><div></title' ),
+			'Partially closed XMP'                 => array( '<xmp><div></xmp' ),
 		);
 	}
 
@@ -2326,14 +2442,14 @@ HTML;
 	 * @covers WP_HTML_Tag_Processor::set_attribute
 	 */
 	public function test_updating_specific_attributes_in_malformed_html() {
-		$p = new WP_HTML_Tag_Processor( self::HTML_MALFORMED );
-		$p->next_tag( 'span' );
-		$p->set_attribute( 'id', 'first' );
-		$p->next_tag( 'span' );
-		$p->set_attribute( 'id', 'second' );
+		$processor = new WP_HTML_Tag_Processor( self::HTML_MALFORMED );
+		$processor->next_tag( 'span' );
+		$processor->set_attribute( 'id', 'first' );
+		$processor->next_tag( 'span' );
+		$processor->set_attribute( 'id', 'second' );
 		$this->assertSame(
 			'<div><span id="first" class="d-md-none" Notifications</span><span id="second" class="d-none d-md-inline">Back to notifications</span></div>',
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not add id attributes properly to malformed input'
 		);
 	}
@@ -2350,16 +2466,16 @@ HTML;
 	 * @param string $expected Expected updated HTML.
 	 */
 	public function test_updating_attributes( $html, $expected ) {
-		$p = new WP_HTML_Tag_Processor( $html );
-		$p->next_tag();
-		$p->set_attribute( 'foo', 'bar' );
-		$p->add_class( 'firstTag' );
-		$p->next_tag();
-		$p->add_class( 'secondTag' );
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
+		$processor->set_attribute( 'foo', 'bar' );
+		$processor->add_class( 'firstTag' );
+		$processor->next_tag();
+		$processor->add_class( 'secondTag' );
 
 		$this->assertSame(
 			$expected,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not properly add attributes and class names'
 		);
 	}
@@ -2369,7 +2485,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_updating_attributes() {
+	public static function data_updating_attributes() {
 		return array(
 			'tags inside of a comment' => array(
 				'input'    => '<!-- this is a comment. no <strong>tags</strong> allowed --><span>test</span>',
@@ -2397,7 +2513,7 @@ HTML;
 			),
 			'tag inside of CDATA'      => array(
 				'input'    => '<![CDATA[This <is> a <strong id="yes">HTML Tag</strong>]]><span>test</span>',
-				'expected' => '<![CDATA[This <is> a <strong id="yes">HTML Tag</strong>]]><span class="firstTag" foo="bar">test</span>',
+				'expected' => '<![CDATA[This <is> a <strong class="firstTag" foo="bar" id="yes">HTML Tag</strong>]]><span class="secondTag">test</span>',
 			),
 		);
 	}
@@ -2414,16 +2530,16 @@ HTML;
 	 * @param string $expected Expected updated HTML.
 	 */
 	public function test_updating_attributes_in_malformed_html( $html, $expected ) {
-		$p = new WP_HTML_Tag_Processor( $html );
-		$p->next_tag();
-		$p->set_attribute( 'foo', 'bar' );
-		$p->add_class( 'firstTag' );
-		$p->next_tag();
-		$p->add_class( 'secondTag' );
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), 'Could not find first tag.' );
+		$processor->set_attribute( 'foo', 'bar' );
+		$processor->add_class( 'firstTag' );
+		$processor->next_tag();
+		$processor->add_class( 'secondTag' );
 
 		$this->assertSame(
 			$expected,
-			$p->get_updated_html(),
+			$processor->get_updated_html(),
 			'Did not properly update attributes and classnames given malformed input'
 		);
 	}
@@ -2433,9 +2549,7 @@ HTML;
 	 *
 	 * @return array[]
 	 */
-	public function data_updating_attributes_in_malformed_html() {
-		$null_byte = chr( 0 );
-
+	public static function data_updating_attributes_in_malformed_html() {
 		return array(
 			'Invalid entity inside attribute value'        => array(
 				'input'    => '<img src="https://s0.wp.com/i/atat.png" title="&; First &lt;title&gt; is &notit;" TITLE="second title" title="An Imperial &imperial; AT-AT"><span>test</span>',
@@ -2494,8 +2608,8 @@ HTML;
 				'expected' => '<hr class="firstTag" foo="bar" id"quo="test"><span class="secondTag">test</span>',
 			),
 			'id without double quotation marks around null byte' => array(
-				'input'    => '<hr id' . $null_byte . 'zero="test"><span>test</span>',
-				'expected' => '<hr class="firstTag" foo="bar" id' . $null_byte . 'zero="test"><span class="secondTag">test</span>',
+				'input'    => "<hr id\x00zero=\"test\"><span>test</span>",
+				'expected' => "<hr class=\"firstTag\" foo=\"bar\" id\x00zero=\"test\"><span class=\"secondTag\">test</span>",
 			),
 			'Unexpected > before an attribute'             => array(
 				'input'    => '<hr >id="test"><span>test</span>',
@@ -2581,6 +2695,81 @@ HTML
 				'input'    => '<hr id a  =5><span>test</span>',
 				'expected' => '<hr class="firstTag" foo="bar" id a  =5><span class="secondTag">test</span>',
 			),
+		);
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_open_short_html() {
+		$processor = new WP_HTML_Tag_Processor( '<' );
+		$result    = $processor->next_tag();
+		$this->assertFalse( $result, 'Did not handle "<" html properly.' );
+	}
+
+	/**
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_handles_malformed_taglike_close_short_html() {
+		$processor = new WP_HTML_Tag_Processor( '</ ' );
+		$result    = $processor->next_tag();
+		$this->assertFalse( $result, 'Did not handle "</ " html properly.' );
+	}
+
+	/**
+	 * Ensures that non-tag syntax starting with `<` is consumed inside a text node.
+	 *
+	 * @ticket 60385
+	 */
+	public function test_single_text_node_with_taglike_text() {
+		$processor = new WP_HTML_Tag_Processor( 'test< /A>' );
+		$processor->next_token();
+		$this->assertSame( '#text', $processor->get_token_type(), 'Did not find text node.' );
+		$this->assertSame( 'test< /A>', $processor->get_modifiable_text(), 'Did not find complete text node.' );
+	}
+
+	/**
+	 * Ensures that updates which are enqueued in front of the cursor
+	 * are applied before moving forward in the document.
+	 *
+	 * @ticket 60697
+	 */
+	public function test_applies_updates_before_proceeding() {
+		$html = '<div><img></div><div><img></div>';
+
+		$subclass = new class( $html ) extends WP_HTML_Tag_Processor {
+			/**
+			 * Inserts raw text after the current token.
+			 *
+			 * @param string $new_html Raw text to insert.
+			 */
+			public function insert_after( $new_html ) {
+				$this->set_bookmark( 'here' );
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$this->bookmarks['here']->start + $this->bookmarks['here']->length + 1,
+					0,
+					$new_html
+				);
+			}
+		};
+
+		$subclass->next_tag( 'img' );
+		$subclass->insert_after( '<p>snow-capped</p>' );
+
+		$subclass->next_tag();
+		$this->assertSame(
+			'P',
+			$subclass->get_tag(),
+			'Should have matched inserted HTML as next tag.'
+		);
+
+		$subclass->next_tag( 'img' );
+		$subclass->set_attribute( 'alt', 'mountain' );
+
+		$this->assertSame(
+			'<div><img><p>snow-capped</p></div><div><img alt="mountain"></div>',
+			$subclass->get_updated_html(),
+			'Should have properly applied the update from in front of the cursor.'
 		);
 	}
 }

@@ -79,6 +79,9 @@ CAP;
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
 	public function tear_down() {
+		global $_wp_current_template_id, $_wp_current_template_content;
+		unset( $_wp_current_template_id, $_wp_current_template_content );
+
 		parent::tear_down();
 
 		$this->reset_content_media_count();
@@ -396,7 +399,7 @@ https://w.org</a>',
 		$this->assertSame( '', $prepped['subtype'] );
 		// #21963, there will be a GUID always, so there will be a URL.
 		$this->assertNotEquals( '', $prepped['url'] );
-		$this->assertSame( site_url( 'wp-includes/images/media/default.png' ), $prepped['icon'] );
+		$this->assertSame( site_url( 'wp-includes/images/media/default.svg' ), $prepped['icon'] );
 
 		// Fake a mime.
 		$post->post_mime_type = 'image/jpeg';
@@ -431,7 +434,7 @@ https://w.org</a>',
 	 * @ticket 38965
 	 */
 	public function test_wp_prepare_attachment_for_js_without_image_sizes() {
-		// Create the attachement post.
+		// Create the attachment post.
 		$id = wp_insert_attachment(
 			array(
 				'post_title'     => 'Attachment Title',
@@ -3972,7 +3975,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_image_in_block_theme() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query, $post;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -4001,6 +4004,8 @@ EOF;
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id      = get_stylesheet() . '//single';
 		$_wp_current_template_content = '<!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
@@ -4020,7 +4025,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_first_featured_image_in_block_theme() {
-		global $_wp_current_template_content, $wp_query, $wp_the_query, $post;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_query, $wp_the_query, $post;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -4069,6 +4074,8 @@ EOF;
 		$wp_the_query = $wp_query;
 		$post         = get_post( self::$post_ids['publish'] );
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id      = get_stylesheet() . '//single';
 		$_wp_current_template_content = '<!-- wp:post-featured-image /--> <!-- wp:post-content /-->';
 
 		$html = get_the_block_template_html();
@@ -4087,7 +4094,7 @@ EOF;
 	 * @covers ::wp_get_loading_optimization_attributes
 	 */
 	public function test_wp_filter_content_tags_does_not_lazy_load_images_in_header() {
-		global $_wp_current_template_content;
+		global $_wp_current_template_id, $_wp_current_template_content;
 
 		// Do not add srcset, sizes, or decoding attributes as they are irrelevant for this test.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -4122,6 +4129,8 @@ EOF;
 		wp_set_post_terms( $footer_post_id, WP_TEMPLATE_PART_AREA_FOOTER, 'wp_template_part_area' );
 		wp_set_post_terms( $footer_post_id, get_stylesheet(), 'wp_theme' );
 
+		// Force a template ID that is for the current stylesheet.
+		$_wp_current_template_id      = get_stylesheet() . '//single';
 		$_wp_current_template_content = '<!-- wp:template-part {"slug":"header","theme":"' . get_stylesheet() . '","tagName":"header"} /--><!-- wp:template-part {"slug":"footer","theme":"' . get_stylesheet() . '","tagName":"footer"} /-->';
 
 		// Header image should not be lazy-loaded, footer image should be lazy-loaded.

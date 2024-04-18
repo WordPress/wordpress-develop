@@ -45,9 +45,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
+        db-version: [ '5.7', '8.0', '8.1', '8.2', '8.3' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -97,9 +97,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '10.4', '10.6', '10.11', '11.0' ]
+        db-version: [ '10.4', '10.6', '10.11', '11.2' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -108,13 +108,13 @@ jobs:
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.0'
+          db-version: '11.2'
           multisite: false
           memcached: true
         - os: ubuntu-latest
           php: '7.4'
           db-type: 'mariadb'
-          db-version: '11.0'
+          db-version: '11.2'
           multisite: true
           memcached: true
     with:
@@ -161,7 +161,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           retries: 2
           retry-exempt-status-codes: 418

@@ -52,6 +52,7 @@
 	<exclude-pattern>/src/wp-admin/includes/ms-deprecated\.php</exclude-pattern>
 
 	<exclude-pattern>/src/wp-includes/atomlib\.php</exclude-pattern>
+	<exclude-pattern>/src/wp-includes/class-avif-info\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-IXR\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-json\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/class-phpass\.php</exclude-pattern>
@@ -215,6 +216,7 @@
 				<element value="gzuncompress"/>
 				<element value="gzdecode"/>
 				<element value="imagecreatefromwebp"/>
+				<element value="imagecreatefromavif"/>
 			</property>
 		</properties>
 	</rule>
@@ -248,6 +250,15 @@
 		<exclude-pattern>/wp-config-sample\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config\.php</exclude-pattern>
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
+	</rule>
+
+	<!-- Exclude forbidding goto in the HTML Processor, which mimics algorithms that are written
+	     this way in the HTML specification, and these particular algorithms are complex and
+	     highly imperative. Avoiding the goto introduces a number of risks that could make it
+	     more difficult to maintain the relationship to the standard, lead to subtle differences
+	     in the parsing, and distance the code from its standard. -->
+	<rule ref="Generic.PHP.DiscourageGoto.Found">
+		<exclude-pattern>/wp-includes/html-api/class-wp-html-processor\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude sample config from modernization to prevent breaking CI workflows based on WP-CLI scaffold.
@@ -336,18 +347,6 @@
 	<!-- Translator comments aren't needed in unit tests. -->
 	<rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
 		<exclude-pattern>/tests/*</exclude-pattern>
-	</rule>
-
-	<!-- Allow non-snake-case vars & properties for block-related classes. -->
-	<rule ref="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase">
-		<exclude-pattern>/src/wp-includes/class-wp-block-parser-block\.php</exclude-pattern>
 	</rule>
 
 </ruleset>

@@ -257,7 +257,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 
 				$errors .= '</ul>';
 			} else {
-				$errors .= '<p>' . $error_message . '</p>';
+				$errors .= '<p>' . $error_list[0] . '</p>';
 			}
 
 			/**
@@ -265,9 +265,10 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 			 *
 			 * @since 2.1.0
 			 *
-			 * @param string $errors Login error message.
+			 * @param string $errors Login error messages.
 			 */
 			$errors = apply_filters( 'login_errors', $errors );
+
 			wp_admin_notice(
 				$errors,
 				array(
@@ -287,6 +288,7 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 			 * @param string $messages Login messages.
 			 */
 			$messages = apply_filters( 'login_messages', $messages );
+
 			wp_admin_notice(
 				$messages,
 				array(
@@ -362,7 +364,7 @@ function login_footer( $input_id = '' ) {
 		if ( ! empty( $languages ) ) {
 			?>
 			<div class="language-switcher">
-				<form id="language-switcher" action="" method="get">
+				<form id="language-switcher" method="get">
 
 					<label for="language-switcher-locales">
 						<span class="dashicons dashicons-translation" aria-hidden="true"></span>
@@ -1315,7 +1317,7 @@ switch ( $action ) {
 					sprintf(
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
 						__( '<strong>Error:</strong> Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
-						__( 'https://wordpress.org/documentation/article/cookies/' ),
+						__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/' ),
 						__( 'https://wordpress.org/support/forums/' )
 					)
 				);
@@ -1326,7 +1328,7 @@ switch ( $action ) {
 					sprintf(
 						/* translators: %s: Browser cookie documentation URL. */
 						__( '<strong>Error:</strong> Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
-						__( 'https://wordpress.org/documentation/article/cookies/#enable-cookies-in-your-browser' )
+						__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/#enable-cookies-in-your-browser' )
 					)
 				);
 			}

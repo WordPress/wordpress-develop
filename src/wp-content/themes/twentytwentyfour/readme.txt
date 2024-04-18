@@ -1,8 +1,9 @@
 === Twenty Twenty-Four ===
 Contributors: wordpressdotorg
-Requires at least: 6.2
-Tested up to: 6.4
+Requires at least: 6.4
+Tested up to: 6.5
 Requires PHP: 7.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,10 +13,15 @@ Twenty Twenty-Four is designed to be flexible, versatile and applicable to any w
 
 == Changelog ==
 
+= 1.1 =
+* Released: April 2, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-four-changelog/#Version_1.1
+
 = 1.0 =
 * Released: November 7, 2023
 
-https://wordpress.org/support/article/twenty-twenty-four-changelog#Version_1.0
+https://wordpress.org/documentation/article/twenty-twenty-four-changelog/#Version_1.0
 
 == Copyright ==
 
@@ -32,20 +38,44 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
+
+This theme bundles the following third-party resources:
+
+=== Fonts ===
+
+Cardo Font
+Copyright (c) 2002-2011, David J. Perry (hospes02@scholarsfonts.net)
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: http://scholarsfonts.net
+
+Instrument Sans Font
+Copyright 2022 The Instrument Sans Project Authors.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://github.com/Instrument/instrument-sans
+
+Inter Font
+Copyright 2020 The Inter Project Authors.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://github.com/rsms/inter
+
+Jost Font
+Copyright 2020 The Jost Project Authors.
+License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
+Source: https://github.com/indestructible-type/Jost
+
 === Images ===
+
 License: CC0 https://creativecommons.org/publicdomain/zero/1.0/
 
-about.webp - https://www.rawpixel.com/image/3297419/free-photo-image-interior-hallway-architecture
-business-app.webp - https://www.rawpixel.com/image/5928004/photo-image-public-domain-hand-person
-business-hero.webp - https://www.rawpixel.com/image/430335/free-photo-image-architecture-building-roof
-home.webp - https://www.rawpixel.com/image/3286615/free-photo-image-texture-architecture-building
-left-aligned-cta.webp - https://www.rawpixel.com/image/3283970/free-photo-image-pattern-artwork-abstract
-project-1.webp - https://www.rawpixel.com/image/3289063/free-photo-image-architectural-detail-architecture
-project-2.webp - https://www.rawpixel.com/image/430585/free-photo-image-stairs-staircase-concrete
-project-overview.webp - https://www.rawpixel.com/image/3286187/free-photo-image-person-stairs-architecture
-rsvp.webp - https://www.rawpixel.com/image/430558/free-photo-image-abstract-architecture-art-public-domain
-services.webp - https://www.rawpixel.com/image/5928302/photo-image-public-domain-person-construction
-tt4_projectoverview.jpg - https://www.rawpixel.com/image/3286725/free-photo-image-black-and-white-background-photos
+museum.webp - https://www.rawpixel.com/image/3297419/free-photo-image-interior-hallway-architecture
+tourist-and-building.webp - https://www.rawpixel.com/image/5928004/photo-image-public-domain-hand-person
+building-exterior.webp - https://www.rawpixel.com/image/430335/free-photo-image-architecture-building-roof
+windows.webp - https://www.rawpixel.com/image/3286615/free-photo-image-texture-architecture-building
+abstract-geometric-art.webp - https://www.rawpixel.com/image/3283970/free-photo-image-pattern-artwork-abstract
+angular-roof.webp - https://www.rawpixel.com/image/3289063/free-photo-image-architectural-detail-architecture
+art-gallery.webp - https://www.rawpixel.com/image/3286187/free-photo-image-person-stairs-architecture
+green-staircase.webp - https://www.rawpixel.com/image/430558/free-photo-image-abstract-architecture-art-public-domain
+hotel-facade.webp - https://www.rawpixel.com/image/3286725/free-photo-image-black-and-white-background-photos
 
 License: UNICODE LICENSE V3 https://www.unicode.org/license.txt
 icon-message.webp

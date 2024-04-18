@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group  comment
+ * @group comment
  *
  * @covers ::wp_update_comment_count_now
  */

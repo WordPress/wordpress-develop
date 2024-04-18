@@ -17,7 +17,7 @@ class WP_Site_Health {
 	public $is_mariadb                   = false;
 	private $mysql_server_version        = '';
 	private $mysql_required_version      = '5.5';
-	private $mysql_recommended_version   = '5.7';
+	private $mysql_recommended_version   = '8.0';
 	private $mariadb_recommended_version = '10.4';
 
 	public $php_memory_limit;
@@ -1284,124 +1284,6 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if the database server is capable of using utf8mb4.
-	 *
-	 * @since 5.2.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @return array The test results.
-	 */
-	public function get_test_utf8mb4_support() {
-		global $wpdb;
-
-		if ( ! $this->mysql_server_version ) {
-			$this->prepare_sql_data();
-		}
-
-		$result = array(
-			'label'       => __( 'UTF8MB4 is supported' ),
-			'status'      => 'good',
-			'badge'       => array(
-				'label' => __( 'Performance' ),
-				'color' => 'blue',
-			),
-			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'UTF8MB4 is the character set WordPress prefers for database storage because it safely supports the widest set of characters and encodings, including Emoji, enabling better support for non-English languages.' )
-			),
-			'actions'     => '',
-			'test'        => 'utf8mb4_support',
-		);
-
-		if ( ! $this->is_mariadb ) {
-			if ( version_compare( $this->mysql_server_version, '5.5.3', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a MySQL update' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: Version number. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL version %s or greater. Please contact your server administrator.' ),
-						'5.5.3'
-					)
-				);
-			} else {
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					__( 'Your MySQL version supports utf8mb4.' )
-				);
-			}
-		} else { // MariaDB introduced utf8mb4 support in 5.5.0.
-			if ( version_compare( $this->mysql_server_version, '5.5.0', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a MariaDB update' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: Version number. */
-						__( 'WordPress&#8217; utf8mb4 support requires MariaDB version %s or greater. Please contact your server administrator.' ),
-						'5.5.0'
-					)
-				);
-			} else {
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					__( 'Your MariaDB version supports utf8mb4.' )
-				);
-			}
-		}
-
-		// phpcs:ignore WordPress.DB.RestrictedFunctions.mysql_mysqli_get_client_info
-		$mysql_client_version = mysqli_get_client_info();
-
-		/*
-		 * libmysql has supported utf8mb4 since 5.5.3, same as the MySQL server.
-		 * mysqlnd has supported utf8mb4 since 5.0.9.
-		 */
-		if ( str_contains( $mysql_client_version, 'mysqlnd' ) ) {
-			$mysql_client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $mysql_client_version );
-			if ( version_compare( $mysql_client_version, '5.0.9', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a newer client library' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: Name of the library, 2: Number of version. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL client library (%1$s) version %2$s or newer. Please contact your server administrator.' ),
-						'mysqlnd',
-						'5.0.9'
-					)
-				);
-			}
-		} else {
-			if ( version_compare( $mysql_client_version, '5.5.3', '<' ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'utf8mb4 requires a newer client library' );
-
-				$result['description'] .= sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: 1: Name of the library, 2: Number of version. */
-						__( 'WordPress&#8217; utf8mb4 support requires MySQL client library (%1$s) version %2$s or newer. Please contact your server administrator.' ),
-						'libmysql',
-						'5.5.3'
-					)
-				);
-			}
-		}
-
-		return $result;
-	}
-
-	/**
 	 * Tests if the site can communicate with WordPress.org.
 	 *
 	 * @since 5.2.0
@@ -1493,7 +1375,7 @@ class WP_Site_Health {
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Documentation explaining debugging in WordPress. */
-				esc_url( __( 'https://wordpress.org/documentation/article/debugging-in-wordpress/' ) ),
+				esc_url( __( 'https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
@@ -2508,7 +2390,7 @@ class WP_Site_Health {
 			'label'       => '',
 			'actions'     => sprintf(
 				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				__( 'https://wordpress.org/documentation/article/optimization/#Caching' ),
+				__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#Caching' ),
 				__( 'Learn more about page cache' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
@@ -2617,7 +2499,7 @@ class WP_Site_Health {
 		$action_url = apply_filters(
 			'site_status_persistent_object_cache_url',
 			/* translators: Localized Support reference. */
-			__( 'https://wordpress.org/documentation/article/optimization/#persistent-object-cache' )
+			__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#persistent-object-cache' )
 		);
 
 		$result = array(
@@ -2742,10 +2624,6 @@ class WP_Site_Health {
 				'sql_server'                   => array(
 					'label' => __( 'Database Server version' ),
 					'test'  => 'sql_server',
-				),
-				'utf8mb4_support'              => array(
-					'label' => __( 'MySQL utf8mb4 support' ),
-					'test'  => 'utf8mb4_support',
 				),
 				'ssl_support'                  => array(
 					'label' => __( 'Secure communication' ),

@@ -1,8 +1,8 @@
 /*
 Theme Name: Twenty Twenty
 Text Domain: twentytwenty
-Version: 2.3
-Tested up to: 6.3
+Version: 2.6
+Tested up to: 6.5
 Requires at least: 4.7
 Requires PHP: 5.2.4
 Description: Our default theme for 2020 is designed to take full advantage of the flexibility of the block editor. Organizations and businesses have the ability to create dynamic landing pages with endless layouts using the group and column blocks. The centered content column and fine-tuned typography also makes it perfect for traditional blogs. Complete editor styles give you a good idea of what your content will look like, even before you publish. You can give your site a personal touch by changing the background colors and the accent color in the Customizer. The colors of all elements on your site are automatically calculated based on the colors you pick, ensuring a high, accessible color contrast for your visitors.
@@ -3376,6 +3376,10 @@ hr.wp-block-separator {
 
 /* Block: Table ------------------------------ */
 
+.wp-block-table table:where(:not(.has-text-color)) * {
+	border-color: inherit;
+}
+
 .wp-block-table.is-style-stripes tbody tr:nth-child(odd) {
 	background: #dcd7ca;
 }
@@ -4525,12 +4529,12 @@ ul.footer-social li {
 }
 
 .footer-copyright a,
-.privacy-policy a,
+.footer-credits .privacy-policy a,
 .powered-by-wordpress a {
 	color: inherit;
 }
 
-.privacy-policy,
+.footer-credits .privacy-policy,
 .powered-by-wordpress,
 .to-the-top {
 	color: #6d6d6d;
@@ -4555,7 +4559,7 @@ a.to-the-top > * {
 	margin: 0 0 0 2.4rem;
 }
 
-.privacy-policy {
+.footer-credits .privacy-policy {
 	margin: 1.2rem 0 0;
 }
 
@@ -5677,7 +5681,7 @@ a.to-the-top > * {
 		font-weight: 700;
 	}
 
-	.privacy-policy {
+	.footer-credits .privacy-policy {
 		margin: 0 0 0 2.4rem;
 	}
 

@@ -938,6 +938,8 @@ EOF;
 	 * @ticket 55966
 	 * @ticket 56122
 	 * @ticket 58551
+	 * @ticket 60132
+	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
 	 * @param string $css      A string of CSS rules.
@@ -952,8 +954,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
@@ -1346,6 +1348,11 @@ EOF;
 				'css'      => 'writing-mode: vertical-rl',
 				'expected' => 'writing-mode: vertical-rl',
 			),
+			// `background-repeat` introduced in 6.5.
+			array(
+				'css'      => 'background-repeat: no-repeat',
+				'expected' => 'background-repeat: no-repeat',
+			),
 		);
 	}
 
@@ -1355,7 +1362,7 @@ EOF;
 	 * @ticket 33121
 	 */
 	public function test_wp_kses_attr_data_attribute_is_allowed() {
-		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invaild="gone"  data-also-invaild-="gone" data-two-hyphens="remains">Pens and pencils</div>';
+		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invalid="gone"  data-also-invalid-="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
 
 		$this->assertSame( $expected, wp_kses_post( $test ) );
@@ -1614,8 +1621,8 @@ EOF;
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $css      A string of CSS rules.
-	 *         @string string $expected Expected string of CSS rules.
+	 *         @type string $css      A string of CSS rules.
+	 *         @type string $expected Expected string of CSS rules.
 	 *     }
 	 * }
 	 */
@@ -2133,7 +2140,7 @@ HTML;
 			// $allowedentitynames values testing.
 			'nbsp'               => array(
 				'input'    => array( '', 'nbsp' ),
-				'expected' => utf8_encode( chr( 160 ) ),
+				'expected' => "\u{00A0}",
 			),
 			'iexcl'              => array(
 				'input'    => array( '', 'iexcl' ),

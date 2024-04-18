@@ -84,7 +84,7 @@ function twentyseventeen_setup() {
 	/*
 	 * Enable support for Post Formats.
 	 *
-	 * See: https://wordpress.org/documentation/article/post-formats/
+	 * See: https://developer.wordpress.org/advanced-administration/wordpress/post-formats/
 	 */
 	add_theme_support(
 		'post-formats',
@@ -120,7 +120,7 @@ function twentyseventeen_setup() {
 	$font_stylesheet = str_replace(
 		array( get_template_directory_uri() . '/', get_stylesheet_directory_uri() . '/' ),
 		'',
-		twentyseventeen_fonts_url()
+		(string) twentyseventeen_fonts_url()
 	);
 	add_editor_style( array( 'assets/css/editor-style.css', $font_stylesheet ) );
 
@@ -452,7 +452,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20230808' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20240402' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20220912' );

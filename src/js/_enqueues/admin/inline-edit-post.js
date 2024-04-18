@@ -180,7 +180,6 @@ window.wp = window.wp || {};
 		var te = '', type = this.type, c = true;
 		var checkedPosts = $( 'tbody th.check-column input[type="checkbox"]:checked' );
 		var categories = {};
-		var indeterminatePostCategoryField = $( '<input type="hidden" name="indeterminate_post_category[]">' );
 		this.revert();
 
 		$( '#bulk-edit td' ).attr( 'colspan', $( 'th:visible, td:visible', '.widefat:first thead' ).length );
@@ -234,25 +233,24 @@ window.wp = window.wp || {};
 
 		// Compute initial states.
 		$( '.inline-edit-categories input[name="post_category[]"]' ).each( function() {
-			// Clear indeterminate states.
-			$( '<input type="hidden" name="indeterminate_post_category[]">' ).remove();
-
 			if ( categories[ $( this ).val() ] == checkedPosts.length ) {
 				// If the number of checked categories matches the number of selected posts, then all posts are in this category.
 				$( this ).prop( 'checked', true );
 			} else if ( categories[ $( this ).val() ] > 0 ) {
 				// If the number is less than the number of selected posts, then it's indeterminate.
 				$( this ).prop( 'indeterminate', true );
-
-				// Set indeterminate states for the backend.
-				indeterminatePostCategoryField.val( $( this ).val() );
-				$( this ).after( indeterminatePostCategoryField );
+				if ( ! $( this ).parent().find( 'input[name="indeterminate_post_category[]"]' ).length ) {
+					// Get the term label text.
+					var label = $( this ).parent().text();
+					// Set indeterminate states for the backend. Add accessible text for indeterminate inputs. 
+					$( this ).after( '<input type="hidden" name="indeterminate_post_category[]" value="' + $( this ).val() + '">' ).attr( 'aria-label', label.trim() + ': ' + wp.i18n.__( 'Some selected posts have this category' ) );
+				}
 			}
 		} );
 
-		$( '.inline-edit-categories input[name="post_category[]"]' ).on( 'change', function() {
-			// Remove the indeterminate flags as there was a specific state change.
-			$( this ).parent().find( 'input[name="indeterminate_post_category[]"]' ).remove();
+		$( '.inline-edit-categories input[name="post_category[]"]:indeterminate' ).on( 'change', function() {
+			// Remove accessible label text. Remove the indeterminate flags as there was a specific state change.
+			$( this ).removeAttr( 'aria-label' ).parent().find( 'input[name="indeterminate_post_category[]"]' ).remove();
 		} );
 
 		$( '.inline-edit-save button' ).on( 'click', function() {
@@ -270,6 +268,7 @@ window.wp = window.wp || {};
 				$prev = $this.parent().prev().children( '.ntdelbutton' ),
 				$next = $this.parent().next().children( '.ntdelbutton' );
 
+			$( 'input#cb-select-all-1, input#cb-select-all-2' ).prop( 'checked', false );
 			$( 'table.widefat input[value="' + id + '"]' ).prop( 'checked', false );
 			$( '#_' + id ).parent().remove();
 			wp.a11y.speak( wp.i18n.__( 'Item removed.' ), 'assertive' );
@@ -491,13 +490,6 @@ window.wp = window.wp || {};
 		};
 
 		fields = $('#edit-'+id).find(':input').serialize();
-
-		var status = $(':input[name="_status"]').val();
-
-		if ( [ 'draft', 'pending', 'auto-draft' ].includes( status ) ) {
-			params.edit_date = 'false';
-		}
-
 		params = fields + '&' + $.param(params);
 
 		// Make Ajax request.

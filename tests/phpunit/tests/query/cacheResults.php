@@ -738,8 +738,15 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query1 = new WP_Query();
 		$query1->query( $args );
 
-		$post_ids = wp_list_pluck( $query1->posts, 'ID' );
-		wp_cache_delete_multiple( $post_ids, 'post_parent' );
+		$post_ids   = wp_list_pluck( $query1->posts, 'ID' );
+		$cache_keys = array_map(
+			function ( $post_id ) {
+				return "post_parent:{$post_id}";
+			},
+			$post_ids
+		);
+
+		wp_cache_delete_multiple( $cache_keys, 'posts' );
 
 		$queries_before = get_num_queries();
 		$query2         = new WP_Query();
