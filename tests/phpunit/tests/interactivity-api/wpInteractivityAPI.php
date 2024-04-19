@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Interactivity_API
  */
-class Tests_WP_Interactivity_API extends WP_UnitTestCase {
+class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *
@@ -236,7 +236,113 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 		$this->assertEquals( array( 'config' => array( 'myPlugin' => array( 'a' => 1 ) ) ), $result );
 	}
 
+	/**
+	 * Tests that empty state objects are pruned from printed data.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_not_printed_when_empty_array() {
+		$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
+		$this->interactivity->state( 'pluginWithState_include', array( 'value' => 'excellent' ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"state":{"pluginWithState_include":{"value":"excellent"}}}
+</script>
 
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that data consisting of only empty state objects is not printed.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_not_printed_when_only_empty_arrays() {
+		$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$this->assertSame( '', $printed_script );
+	}
+
+	/**
+	 * Tests that nested empty state objects are printed correctly.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_printed_correctly_with_nested_empty_array() {
+		$this->interactivity->state( 'myPlugin', array( 'emptyArray' => array() ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"state":{"myPlugin":{"emptyArray":[]}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that empty config objects are pruned from printed data.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_not_printed_when_empty_array() {
+		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+		$this->interactivity->config( 'pluginWithConfig_include', array( 'value' => 'excellent' ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"config":{"pluginWithConfig_include":{"value":"excellent"}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that data consisting of only empty config objects is not printed.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_not_printed_when_only_empty_arrays() {
+		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$this->assertSame( '', $printed_script );
+	}
+
+	/**
+	 * Tests that nested empty config objects are printed correctly.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_printed_correctly_with_nested_empty_array() {
+		$this->interactivity->config( 'myPlugin', array( 'emptyArray' => array() ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"config":{"myPlugin":{"emptyArray":[]}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
 
 	/**
 	 * Tests that special characters in the initial state and configuration are
@@ -443,7 +549,7 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_doesnt_fail_with_unknown_directives() {
-		$html           = '<div data-wp-uknown="">Text</div>';
+		$html           = '<div data-wp-unknown="">Text</div>';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$this->assertEquals( $html, $processed_html );
 	}
@@ -508,50 +614,131 @@ class Tests_WP_Interactivity_API extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `process_directives` returns the same HTML if it finds an
-	 * SVG tag.
+	 * Tests that the `process_directives` process the HTML outside a SVG tag.
 	 *
-	 * @ticket 60356
+	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_svgs() {
-		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
+	public function test_process_directives_changes_html_if_contains_svgs() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'id'    => 'some-id',
+				'width' => '100',
+			)
+		);
 		$html           = '
-			<div data-wp-bind--id="myPlugin::state.id">
-				<svg height="100" width="100">
+			<header>
+				<svg height="100" data-wp-bind--width="myPlugin::state.width">
+					<title>Red Circle</title>
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
-				</svg> 
-			</div>
+				</svg>
+				<div data-wp-bind--id="myPlugin::state.id"></div>
+				<div data-wp-bind--id="myPlugin::state.width"></div>
+			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag();
+		$p->next_tag( 'svg' );
+		$this->assertNull( $p->get_attribute( 'width' ) );
+		$p->next_tag( 'div' );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+		$p->next_tag( 'div' );
+		$this->assertEquals( '100', $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Tests that the `process_directives` does not process the HTML
+	 * inside SVG tags.
+	 *
+	 * @ticket 60517
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_process_directives_does_not_change_inner_html_in_svgs() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'id' => 'some-id',
+			)
+		);
+		$html           = '
+			<header>
+				<svg height="100">
+					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+					<g data-wp-bind--id="myPlugin::state.id" />
+				</svg>
+			</header>
+		';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'div' );
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
 
 	/**
-	 * Tests that the `process_directives` returns the same HTML if it finds an
+	 * Tests that the `process_directives` process the HTML outside the
 	 * MathML tag.
 	 *
-	 * @ticket 60356
+	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_math() {
-		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
+	public function test_process_directives_change_html_if_contains_math() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'id'   => 'some-id',
+				'math' => 'ml-id',
+			)
+		);
 		$html           = '
-			<div data-wp-bind--id="myPlugin::state.id">
-				<math>
+			<header>
+				<math data-wp-bind--id="myPlugin::state.math">
 					<mi>x</mi>
 					<mo>=</mo>
 					<mi>1</mi>
 				</math>
-			</div>
+				<div data-wp-bind--id="myPlugin::state.id"></div>
+			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag();
+		$p->next_tag( 'math' );
+		$this->assertNull( $p->get_attribute( 'id' ) );
+		$p->next_tag( 'div' );
+		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
+	}
+
+	/**
+	 * Tests that the `process_directives` does not process the HTML
+	 * inside MathML tags.
+	 *
+	 * @ticket 60517
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_process_directives_does_not_change_inner_html_in_math() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'id' => 'some-id',
+			)
+		);
+		$html           = '
+			<header>
+				<math data-wp-bind--id="myPlugin::state.math">
+					<mrow data-wp-bind--id="myPlugin::state.id" />
+					<mi>x</mi>
+					<mo>=</mo>
+					<mi>1</mi>
+				</math>
+			</header>
+		';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'div' );
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
 

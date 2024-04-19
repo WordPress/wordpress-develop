@@ -89,8 +89,8 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'       => array( 'wp-polyfill' ),
-		'react-dom'   => array( 'react' ),
+		'react',
+		'react-dom' => array( 'react' ),
 		'regenerator-runtime',
 		'moment',
 		'lodash',
@@ -103,7 +103,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
 		'wp-polyfill-inert',
-		'wp-polyfill' => array( 'wp-polyfill-inert', 'regenerator-runtime' ),
+		'wp-polyfill',
 	);
 
 	$vendor_scripts_versions = array(
@@ -849,7 +849,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-lists', "/wp-includes/js/wp-lists$suffix.js", array( 'wp-ajax-response', 'jquery-color' ), false, 1 );
 
-	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery', 'jcrop' ), false, 1 );
+	$scripts->add( 'site-icon', '/wp-admin/js/site-icon.js', array( 'jquery' ), false, 1 );
+	$scripts->set_translations( 'site-icon' );
 
 	// WordPress no longer uses or bundles Prototype or script.aculo.us. These are now pulled from an external source.
 	$scripts->add( 'prototype', 'https://ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js', array(), '1.7.1' );
@@ -931,20 +932,6 @@ function wp_default_scripts( $scripts ) {
 	 */
 	$scripts->add( 'jquery-ui-position', false, array( 'jquery-ui-core' ), '1.13.2', 1 );
 	$scripts->add( 'jquery-ui-widget', false, array( 'jquery-ui-core' ), '1.13.2', 1 );
-
-	// Strings for 'jquery-ui-autocomplete' live region messages.
-	did_action( 'init' ) && $scripts->localize(
-		'jquery-ui-autocomplete',
-		'uiAutocompleteL10n',
-		array(
-			'noResults'    => __( 'No results found.' ),
-			/* translators: Number of results found when using jQuery UI Autocomplete. */
-			'oneResult'    => __( '1 result found. Use up and down arrow keys to navigate.' ),
-			/* translators: %d: Number of results found when using jQuery UI Autocomplete. */
-			'manyResults'  => __( '%d results found. Use up and down arrow keys to navigate.' ),
-			'itemSelected' => __( 'Item selected.' ),
-		)
-	);
 
 	// Deprecated, not used in core, most functionality is included in jQuery 1.3.
 	$scripts->add( 'jquery-form', "/wp-includes/js/jquery/jquery.form$suffix.js", array( 'jquery' ), '4.3.0', 1 );
@@ -1247,7 +1234,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'admin-bar', "/wp-includes/js/admin-bar$suffix.js", array( 'hoverintent-js' ), false, 1 );
 
-	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'jquery', 'wp-a11y' ), false, 1 );
+	$scripts->add( 'wplink', "/wp-includes/js/wplink$suffix.js", array( 'common', 'jquery', 'wp-a11y', 'wp-i18n' ), false, 1 );
+	$scripts->set_translations( 'wplink' );
 	did_action( 'init' ) && $scripts->localize(
 		'wplink',
 		'wpLinkL10n',
@@ -1425,7 +1413,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'tags-box', "/wp-admin/js/tags-box$suffix.js", array( 'jquery', 'tags-suggest' ), false, 1 );
 		$scripts->set_translations( 'tags-box' );
 
-		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'jquery-ui-autocomplete', 'wp-a11y' ), false, 1 );
+		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'common', 'jquery-ui-autocomplete', 'wp-a11y', 'wp-i18n' ), false, 1 );
 		$scripts->set_translations( 'tags-suggest' );
 
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
@@ -3366,7 +3354,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  * This is a helper meant to be used for literal script tag construction
  * within `wp_get_inline_script_tag()` or `wp_print_inline_script_tag()`.
  * It removes the literal values of "<script>" and "</script>" from
- * around an inline script after trimming whitespace. Typlically this
+ * around an inline script after trimming whitespace. Typically this
  * is used in conjunction with output buffering, where `ob_get_clean()`
  * is passed as the `$contents` argument.
  *
@@ -3404,6 +3392,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 	} else {
 		$error_message = __( 'Expected string to start with script tag (without attributes) and end with script tag, with optional whitespace.' );
 		_doing_it_wrong( __FUNCTION__, $error_message, '6.4' );
-		return sprintf( 'console.error(%s)', wp_json_encode( __( 'Function wp_remove_surrounding_empty_script_tags() used incorrectly in PHP.' ) . ' ' . $error_message ) );
+		return sprintf(
+			'console.error(%s)',
+			wp_json_encode(
+				sprintf(
+					/* translators: %s: wp_remove_surrounding_empty_script_tags() */
+					__( 'Function %s used incorrectly in PHP.' ),
+					'wp_remove_surrounding_empty_script_tags()'
+				) . ' ' . $error_message
+			)
+		);
 	}
 }

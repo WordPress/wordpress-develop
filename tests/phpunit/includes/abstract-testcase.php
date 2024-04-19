@@ -190,6 +190,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		 */
 		$GLOBALS['wp_sitemaps'] = null;
 
+		// Reset template globals.
+		$GLOBALS['wp_stylesheet_path'] = null;
+		$GLOBALS['wp_template_path']   = null;
+
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -412,6 +416,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 				'site-options',
 				'site-queries',
 				'site-transient',
+				'theme_files',
 				'rss',
 				'users',
 				'user-queries',
@@ -1637,7 +1642,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Touches the given file and its directory if it doesn't already exist.
 	 *
-	 * This can be used to ensure a file that is implictly relied on in a test exists
+	 * This can be used to ensure a file that is implicitly relied on in a test exists
 	 * without it having to be built.
 	 *
 	 * @param string $file The file name.

@@ -792,7 +792,7 @@ switch ( $action ) {
 
 		wp_logout();
 
-		if ( ! empty( $_REQUEST['redirect_to'] ) ) {
+		if ( ! empty( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
 			$redirect_to           = $_REQUEST['redirect_to'];
 			$requested_redirect_to = $redirect_to;
 		} else {
@@ -1296,7 +1296,7 @@ switch ( $action ) {
 			}
 		}
 
-		if ( isset( $_REQUEST['redirect_to'] ) ) {
+		if ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
 			$redirect_to = $_REQUEST['redirect_to'];
 			// Redirect to HTTPS if user wants SSL.
 			if ( $secure_cookie && str_contains( $redirect_to, 'wp-admin' ) ) {
@@ -1317,7 +1317,7 @@ switch ( $action ) {
 					sprintf(
 						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
 						__( '<strong>Error:</strong> Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
-						__( 'https://wordpress.org/documentation/article/cookies/' ),
+						__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/' ),
 						__( 'https://wordpress.org/support/forums/' )
 					)
 				);
@@ -1328,13 +1328,14 @@ switch ( $action ) {
 					sprintf(
 						/* translators: %s: Browser cookie documentation URL. */
 						__( '<strong>Error:</strong> Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
-						__( 'https://wordpress.org/documentation/article/cookies/#enable-cookies-in-your-browser' )
+						__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/#enable-cookies-in-your-browser' )
 					)
 				);
 			}
 		}
 
-		$requested_redirect_to = isset( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+		$requested_redirect_to = isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+
 		/**
 		 * Filters the login redirect URL.
 		 *
@@ -1438,7 +1439,9 @@ switch ( $action ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
 			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
-			} elseif ( isset( $_GET['redirect_to'] ) && str_contains( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
+			} elseif ( isset( $_GET['redirect_to'] ) && is_string( $_GET['redirect_to'] )
+				&& str_contains( $_GET['redirect_to'], 'wp-admin/authorize-application.php' )
+			) {
 				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
 				$query           = array();
 				if ( $query_component ) {

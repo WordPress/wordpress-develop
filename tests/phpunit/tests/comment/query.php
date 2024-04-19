@@ -3988,7 +3988,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 3, $q->found_comments );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -4017,7 +4017,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 3, $q->found_comments );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -5349,5 +5349,27 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		global $wpdb;
 		$this->assertNotSame( "Column 'comment_ID' in where clause is ambiguous", $wpdb->last_error );
 		$this->assertStringNotContainsString( ' comment_ID ', $wpdb->last_query );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'user_id'         => 7,
+			)
+		);
+
+		$q = new WP_Comment_Query();
+		$q->query(
+			array(
+				'count'   => true,
+				'orderby' => 'none',
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }
