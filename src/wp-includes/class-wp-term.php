@@ -270,7 +270,7 @@ final class WP_Term {
 
 	/**
 	 * Checks if the "data" class property exists.
-	 * Returns false for dynamic class properties since they are deprecated.
+	 * Returns false for dynamic class properties since dynamic class properties are deprecated.
 	 *
 	 * @since 6.6.0
 	 *
@@ -287,7 +287,8 @@ final class WP_Term {
 
 	/**
 	 * Sets the "data" class property.
-	 * Triggers an error when attempting to set a dynamic class property since they are deprecated.
+	 * Triggers an error when attempting to set a dynamic class property since dynamic class
+	 * properties are deprecated.
 	 *
 	 * @since 6.6.0
 	 *
@@ -307,13 +308,23 @@ final class WP_Term {
 		);
 	}
 
+	/**
+	 * Unsets the "data" class property.
+	 * Triggers an error when attempting to unset a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $key The name of the property to unset.
+	 */
 	public function __unset( $key ) {
 		if ( 'data' === $key ) {
 			unset( $this->$key );
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated', $key, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
