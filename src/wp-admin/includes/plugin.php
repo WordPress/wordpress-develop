@@ -1476,6 +1476,24 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
 		$_registered_pages, $_parent_pages;
 
+	/*
+	 * Check that the slug parameters are strings to prevent type errors with
+	 * plugin_basename(). The error message refers to the first five parameters
+	 * in case any of the other three might need validation in the future.
+	 */
+	if ( ! is_string( $parent_slug ) || ! is_string( $menu_slug ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: add_submenu_page() */
+				__( 'The first five parameters passed to %s should be strings.' ),
+				'<code>add_submenu_page()</code>'
+			),
+			'6.6.0'
+		);
+		return false;
+	}
+
 	$menu_slug   = plugin_basename( $menu_slug );
 	$parent_slug = plugin_basename( $parent_slug );
 
