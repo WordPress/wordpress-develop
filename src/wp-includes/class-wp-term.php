@@ -237,7 +237,7 @@ final class WP_Term {
 	 * @since 6.6.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $key Property to get.
-	 * @return mixed Property value.
+	 * @return object|null Property value.
 	 */
 	public function __get( $key ) {
 		if ( 'data' !== $key ) {
@@ -292,8 +292,8 @@ final class WP_Term {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $key The name of the property to set.
-	 * @param mixed $value The value to set.
+	 * @param string $key   The name of the property to set.
+	 * @param mixed  $value The value to set.
 	 */
 	public function __set( $key, $value ) {
 		if ( 'data' === $key ) {
@@ -325,7 +325,7 @@ final class WP_Term {
 
 		wp_trigger_error(
 			__METHOD__,
-			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated', $key, __CLASS__ ),
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
 	}
