@@ -1692,7 +1692,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		} else {
 			$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 			$this->assertTrue( user_can_for_blog( $user->ID, $blog_id, 'edit_posts' ) );
-			$this->assertFalse( user_can_for_blog( $user->ID, $blog_id, 'foo_the_bar' ) );	
+			$this->assertFalse( user_can_for_blog( $user->ID, $blog_id, 'foo_the_bar' ) );
 		}
 
 		$suppress = $wpdb->suppress_errors();
