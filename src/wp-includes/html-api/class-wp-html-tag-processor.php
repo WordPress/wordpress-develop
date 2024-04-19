@@ -1891,7 +1891,7 @@ class WP_HTML_Tag_Processor {
 					return false;
 				}
 
-				$closer_at = strpos( $html, '>', $at + 3 );
+				$closer_at = strpos( $html, '>', $at + 2 );
 				if ( false === $closer_at ) {
 					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
 
