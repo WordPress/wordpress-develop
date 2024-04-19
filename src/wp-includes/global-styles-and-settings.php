@@ -473,7 +473,22 @@ function wp_get_theme_directory_pattern_slugs() {
  *               with `$template_data` having "title" and "postTypes" fields.
  */
 function wp_get_theme_data_custom_templates() {
-	return WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+	$can_use_cached = ! wp_is_development_mode( 'theme' );
+	$cache_group    = 'theme_json';
+	$cache_key      = 'wp_get_theme_data_custom_templates';
+	if ( $can_use_cached ) {
+		$cached = wp_cache_get( $cache_key, $cache_group );
+		if ( $cached ) {
+			return $cached;
+		}
+	}
+
+	$custom_templates = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_custom_templates();
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $custom_templates, $cache_group );
+	}
+
+	return $custom_templates;
 }
 
 /**
