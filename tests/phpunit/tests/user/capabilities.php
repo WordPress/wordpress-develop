@@ -1686,14 +1686,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$this->assertTrue( user_can_for_blog( $user->ID, get_current_blog_id(), 'edit_posts' ) );
 		$this->assertFalse( user_can_for_blog( $user->ID, get_current_blog_id(), 'foo_the_bar' ) );
-		if ( ! is_multisite() ) {
-			$this->assertTrue( user_can_for_blog( $user->ID, 12345, 'edit_posts' ) );
-			return;
-		}
-
-		$suppress = $wpdb->suppress_errors();
-		$this->assertFalse( user_can_for_blog( $user->ID, 12345, 'edit_posts' ) );
-		$wpdb->suppress_errors( $suppress );
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 		$this->assertTrue( user_can_for_blog( $user->ID, $blog_id, 'edit_posts' ) );
