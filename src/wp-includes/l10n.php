@@ -1942,3 +1942,39 @@ function wp_get_word_count_type() {
 
 	return $wp_locale->get_word_count_type();
 }
+
+/**
+ * Retrieves the W3C Web Accessibility Initiative (WAI) language code for a
+ * specified locale.
+ *
+ * @since 6.6.0
+ *
+ * @param string $locale The locale code from which to extract the language
+ * code, like 'de_DE' or 'ko_KR'.
+ *
+ * @return string Returns a two-letter WAI language code if the input locale
+ * matches one of the supported languages. If the locale doesn't match, is too
+ * short or empty, it returns an empty string.
+ */
+function get_w3_wai_language_code( $locale ) {
+	$locale = strtolower( $locale );
+
+	if ( strlen( $locale ) < 2 ) {
+		return '';
+	}
+
+	$lang_code     = substr( $locale, 0, 2 );
+	$wai_languages = array(
+		'de', // German
+		'fr', // French
+		'id', // Indonesian
+		'ja', // Japanese
+		'ko', // Korean
+	);
+
+	if ( in_array( $lang_code, $wai_languages, true ) ) {
+		return $lang_code;
+	}
+
+	return '';
+}

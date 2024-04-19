@@ -156,10 +156,16 @@ function wp_underscore_video_template() {
 function wp_print_media_templates() {
 	$class = 'media-modal wp-core-ui';
 
+	$url          = 'https://www.w3.org/WAI/tutorials/images/decision-tree';
+	$wai_language = get_w3_wai_language_code( get_locale() );
+	if ( '' !== $wai_language ) {
+		$url .= '/' . $wai_language;
+	}
+
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
-		esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
+		esc_url( $url ),
 		'target="_blank" rel="noopener"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
