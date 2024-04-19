@@ -234,13 +234,15 @@ final class WP_Term {
 	 * Getter.
 	 *
 	 * @since 4.4.0
+	 * @since 6.6.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $key Property to get.
 	 * @return mixed Property value.
 	 */
 	public function __get( $key ) {
 		if ( 'data' !== $key ) {
-			trigger_error(
+			wp_trigger_error(
+				__METHOD__,
 				sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
 				E_USER_DEPRECATED
 			);
