@@ -285,13 +285,23 @@ final class WP_Term {
 		return false;
 	}
 
+	/**
+	 * Sets the "data" class property.
+	 * Triggers an error when attempting to set a dynamic class property since they are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $key The name of the property to set.
+	 * @param mixed $value The value to set.
+	 */
 	public function __set( $key, $value ) {
 		if ( 'data' === $key ) {
 			$this->data = $value;
 			return;
 		}
 
-		trigger_error(
+		wp_trigger_error(
+			__METHOD__,
 			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
