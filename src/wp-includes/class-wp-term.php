@@ -268,6 +268,15 @@ final class WP_Term {
 		return sanitize_term( $this->data, $this->data->taxonomy, 'raw' );
 	}
 
+	/**
+	 * Checks if the "data" class property exists.
+	 * Returns false for dynamic class properties since they are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $key Property to check.
+	 * @return bool True if the property exists, false otherwise.
+	 */
 	public function __isset( $key ) {
 		if ( 'data' === $key ) {
 			return isset( $this->data );
