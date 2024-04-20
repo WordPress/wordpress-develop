@@ -56,6 +56,10 @@ class Tests_Canonical_PageOnFront extends WP_Canonical_UnitTestCase {
 			array( '/page/1/', '/', 35344 ),
 			array( '/?page=1', '/', 35344 ),
 
+			// Check against redirecting non-existing paginated states of the front page.
+			array( '/page/666654/', '/', 50163 ),
+			array( '/?page=666654', '/', 50163 ),
+
 			// The page designated as the front page should redirect to the front of the site.
 			array( '/front-page/', '/', 20385 ),
 			// The front page supports the <!--nextpage--> pagination.
