@@ -729,14 +729,16 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( ! $template_name ) {
 			continue;
 		}
-		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) ) {
+		$template_compat = ABSPATH . WPINC . '/theme-compat/' . $template_name;
+
+		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) && 0 === validate_file( $wp_stylesheet_path ) ) {
 			$located = $wp_stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) ) {
+		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) && 0 === validate_file( $wp_template_path ) ) {
 			$located = $wp_template_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( ABSPATH . WPINC . '/theme-compat/' . $template_name ) ) {
-			$located = ABSPATH . WPINC . '/theme-compat/' . $template_name;
+		} elseif ( file_exists( $template_compat ) && 0 === validate_file( $template_compat ) ) {
+			$located = $template_compat;
 			break;
 		}
 	}
