@@ -731,13 +731,13 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		}
 		$template_compat = ABSPATH . WPINC . '/theme-compat/' . $template_name;
 
-		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) && 3 !== validate_file( $wp_stylesheet_path, array( TEMPLATEPATH ) ) ) {
+		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) && 0 === validate_file( $wp_stylesheet_path ) && 0 === strpos( $wp_stylesheet_path, TEMPLATEPATH ) ) {
 			$located = $wp_stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) && 3 !== validate_file( $wp_template_path, array( TEMPLATEPATH ) ) ) {
+		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) && 0 === validate_file( $wp_template_path ) && 0 === strpos( $wp_template_path, TEMPLATEPATH ) ) {
 			$located = $wp_template_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( $template_compat ) && 3 !== validate_file( $template_compat, array( TEMPLATEPATH ) ) ) {
+		} elseif ( file_exists( $template_compat ) && 0 === validate_file( $template_compat ) && 0 === strpos( $template_compat, TEMPLATEPATH ) ) {
 			$located = $template_compat;
 			break;
 		}
