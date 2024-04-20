@@ -737,8 +737,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( file_exists( $stylesheet ) && 0 === strpos( wp_normalize_path( $stylesheet ), wp_normalize_path( STYLESHEETPATH ) ) ) {
 			$located = $stylesheet;
 			break;
-		} elseif ( $is_child_theme && file_exists( $template ) && 0 === strpos( wp_normalize_path( $template ), wp_normalize_path( TEMPLATEPATH ) ) ) {
-			$located = $template;
+		} elseif ( $is_child_theme && file_exists( $template ) && ( ( 'index.php' === $template_name ) || 0 === strpos( wp_normalize_path( $template ), wp_normalize_path( TEMPLATEPATH ) ) ) ) {			$located = $template;
 			break;
 		} elseif ( file_exists( $template_compat ) && 0 === strpos( wp_normalize_path( $template_compat ), wp_normalize_path( ABSPATH . WPINC . '/theme-compat/' ) ) ) {
 			$located = $template_compat;
