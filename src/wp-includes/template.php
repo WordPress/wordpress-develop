@@ -734,10 +734,10 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) && 3 !== validate_file( $wp_stylesheet_path, get_page_templates() ) ) {
 			$located = $wp_stylesheet_path . '/' . $template_name;
 			break;
-		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) && 3 !== validate_file( $wp_stylesheet_path, get_page_templates() ) ) {
+		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) && 3 !== validate_file( $wp_template_path, get_page_templates() ) ) {
 			$located = $wp_template_path . '/' . $template_name;
 			break;
-		} elseif ( file_exists( $template_compat ) && 3 !== validate_file( $wp_stylesheet_path, get_page_templates() ) ) {
+		} elseif ( file_exists( $template_compat ) && 3 !== validate_file( $template_compat, get_page_templates() ) ) {
 			$located = $template_compat;
 			break;
 		}
