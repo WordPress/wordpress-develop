@@ -153,6 +153,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.1.0
 	 * @since 6.3.0 Ignore empty templates.
+	 * @since 6.5.3 Return a 404 error if no fallback templates are found.
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 * @return WP_REST_Response|WP_Error
@@ -164,6 +165,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$fallback_template = resolve_block_template( $request['slug'], $hierarchy, '' );
 			array_shift( $hierarchy );
 		} while ( ! empty( $hierarchy ) && empty( $fallback_template->content ) );
+
+		if ( ! $fallback_template ) {
+			return new WP_Error( 'rest_template_not_found', __( 'No fallback templates exist for that slug.' ), array( 'status' => 404 ) );
+		}
 
 		$response = $this->prepare_item_for_response( $fallback_template, $request );
 

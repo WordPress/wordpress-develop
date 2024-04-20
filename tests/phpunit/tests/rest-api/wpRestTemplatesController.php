@@ -910,6 +910,18 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 60909
+	 * @covers WP_REST_Templates_Controller::get_template_fallback
+	 */
+	public function test_get_template_fallback_not_found() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
+		$request->set_param( 'slug', 'not-found' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
+	}
+
+	/**
 	 * @ticket 57851
 	 *
 	 * @covers WP_REST_Templates_Controller::prepare_item_for_database
