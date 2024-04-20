@@ -729,15 +729,18 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( ! $template_name ) {
 			continue;
 		}
+
+		$stylesheet = $wp_stylesheet_path . '/' . $template_name;
+		$template = $wp_template_path . '/' . $template_name;
 		$template_compat = ABSPATH . WPINC . '/theme-compat/' . $template_name;
 
-		if ( file_exists( $wp_stylesheet_path . '/' . $template_name ) && 0 === validate_file( $wp_stylesheet_path ) && 0 === strpos( $wp_stylesheet_path, TEMPLATEPATH ) ) {
-			$located = $wp_stylesheet_path . '/' . $template_name;
+		if ( file_exists( $stylesheet ) && 0 === strpos( wp_normalize_path( $stylesheet ), wp_normalize_path( STYLESHEETPATH ) ) ) {
+			$located = $stylesheet;
 			break;
-		} elseif ( $is_child_theme && file_exists( $wp_template_path . '/' . $template_name ) && 0 === validate_file( $wp_template_path ) && 0 === strpos( $wp_template_path, TEMPLATEPATH ) ) {
-			$located = $wp_template_path . '/' . $template_name;
+		} elseif ( $is_child_theme && file_exists( $template ) && 0 === strpos( wp_normalize_path( $template ), wp_normalize_path( TEMPLATEPATH ) ) ) {
+			$located = $template;
 			break;
-		} elseif ( file_exists( $template_compat ) && 0 === validate_file( $template_compat ) && 0 === strpos( $template_compat, TEMPLATEPATH ) ) {
+		} elseif ( file_exists( $template_compat ) && 0 === strpos( wp_normalize_path( $template_compat ), wp_normalize_path( ABSPATH . WPINC . '/theme-compat/' ) ) ) {
 			$located = $template_compat;
 			break;
 		}
