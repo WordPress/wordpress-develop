@@ -800,12 +800,14 @@ HTML
 	 */
 	public static function data_various_funky_comments() {
 		return array(
-			'Short-bang'     => array( '</!>', '!' ),
-			'Short-slash'    => array( '<//>', '/' ),
-			'Bit (no attrs)' => array( '<//wp:post-meta>', '/wp:post-meta' ),
-			'Curly-wrapped'  => array( '</{json}>', '{json}' ),
-			'Before P'       => array( '</1><p>', '1' ),
-			'After P'        => array( '<p></__("Read more")></p>', '__("Read more")' ),
+			'Space'             => array( '</ >', ' ' ),
+			'Short-bang'        => array( '</!>', '!' ),
+			'Short-slash'       => array( '<//>', '/' ),
+			'Bit (no attrs)'    => array( '<//wp:post-meta>', '/wp:post-meta' ),
+			'Curly-wrapped'     => array( '</{json}>', '{json}' ),
+			'Before P'          => array( '</1><p>', '1' ),
+			'After P'           => array( '<p></__("Read more")></p>', '__("Read more")' ),
+			'Markup Decl. Like' => array( '</?>', '?' ),
 		);
 	}
 
