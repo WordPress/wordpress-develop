@@ -2185,4 +2185,68 @@ class Tests_User extends WP_UnitTestCase {
 
 		return $additional_profile_data;
 	}
+
+	/**
+	 * Test if the use_ssl is not written unneccesarily.
+	 *
+	 * @ticket 60299
+	 */
+	public function test_unnecessary_assignment_of_use_ssl_in_meta() {
+		// Create a new user with some default data
+		$userdata = array(
+			'role'       => 'subscriber',
+			'email'      => 'test1@example.com',
+			'user_login' => 'test_user',
+			'nickname'   => 'nickname1',
+			'user_pass'  => 'test_password',
+		);
+	
+		// Insert the user into the database
+		$user_id = wp_insert_user( $userdata );
+		// Add in DB to be able to use in another method.
+		add_option( 'test_user_id_meta_ssl_type', $user_id );
+
+		// Data type of the use_ssl saved in the DB.
+		$type_in_db = gettype( get_user_meta( $user_id, 'use_ssl', true ) );
+
+		add_filter( 'insert_user_meta', array($this, 'save_use_ssl_meta_type'), 10, 3 );
+
+		$_POST                 = array();
+		$_GET                  = array();
+		$_REQUEST              = array();
+		$_POST['role']         = 'subscriber';
+		$_POST['email']        = 'test1@example.com';
+		$_POST['user_login']   = 'test_user';
+		$_POST['first_name']   = 'first_name1';
+		$_POST['last_name']    = 'last_name1';
+		$_POST['nickname']     = 'nickname1';
+		$_POST['display_name'] = 'display_name1';
+		// Set Use SSL to false.
+		$_POST['use_ssl']      = 0;
+		$_POST['pass1']        = 'password';
+		$_POST['pass2']        = 'password';
+
+		$user_id = edit_user( $user_id );
+
+		$this->assertIsInt( $user_id );
+
+		// Data type of the use_ssl saved in the Meta array while eidting the user.
+		$type_in_meta = get_option( 'test_user_meta_ssl_data_type' );
+
+		$this->assertSame( $type_in_db, $type_in_meta );
+	}
+
+	/**
+	 * Hook a filter to get the $meta when editing an user.
+	 * This hook is used in `test_unnecessary_assignment_of_use_ssl_in_meta()`.
+	 */
+	public function save_use_ssl_meta_data_type( $meta, $user, $update ) {
+		$user_id = get_option( 'test_user_id_meta_ssl_type' );
+
+		if ( $user->ID == $user_id ) {
+			add_option( 'test_user_meta_ssl_data_type', gettype( $meta['use_ssl'] ) );
+		}
+
+		return $meta;
+	}
 }
