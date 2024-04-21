@@ -776,12 +776,12 @@ HTML
 	 */
 	public function test_various_funky_comments( $funky_comment_html, $modifiable_text ) {
 		$processor = new WP_HTML_Tag_Processor( $funky_comment_html );
-		while ( '#funky-comment' !== $processor->get_token_type() && $processor->next_token() ) {
+		while ( '#comment' !== $processor->get_token_type() && $processor->next_token() ) {
 			continue;
 		}
 
 		$this->assertSame(
-			'#funky-comment',
+			'#comment',
 			$processor->get_token_type(),
 			'Failed to find the expected funky comment.'
 		);
@@ -800,12 +800,12 @@ HTML
 	 */
 	public static function data_various_funky_comments() {
 		return array(
-			array( '</!>', '!' ),
-			array( '<//>', '/' ),
-			array( '<//wp:post-meta>', '/wp:post-meta' ),
-			array( '</{json}>', '{json}' ),
-			array( '</1><p>', '1' ),
-			array( '<p></__("Read more")></p>', '__("Read more")' ),
+			'Short-bang'     => array( '</!>', '!' ),
+			'Short-slash'    => array( '<//>', '/' ),
+			'Bit (no attrs)' => array( '<//wp:post-meta>', '/wp:post-meta' ),
+			'Curly-wrapped'  => array( '</{json}>', '{json}' ),
+			'Before P'       => array( '</1><p>', '1' ),
+			'After P'        => array( '<p></__("Read more")></p>', '__("Read more")' ),
 		);
 	}
 
