@@ -28,9 +28,9 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 	}
 
 	public function test_redirect_missing_front_page_pagination_canonical() {
-		
+
 		update_option( 'show_on_front', 'page' );
-		
+
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'front-page-1',
@@ -43,6 +43,7 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 
 		$link = parse_url( get_permalink( $post_id ), PHP_URL_PATH );
 
+		// Non-existing front page canonical should redirect to the front page.
 		$this->assertCanonical( $link . '/page/3/', $link );
 	}
 }
