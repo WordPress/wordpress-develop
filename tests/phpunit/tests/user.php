@@ -2221,8 +2221,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_POST['last_name']    = 'last_name1';
 		$_POST['nickname']     = 'nickname1';
 		$_POST['display_name'] = 'display_name1';
-		// Set Use SSL to false.
-		$_POST['use_ssl']      = 0;
+		$_POST['use_ssl']      = 0; // Set Use SSL to false.
 		$_POST['pass1']        = 'password';
 		$_POST['pass2']        = 'password';
 
@@ -2243,7 +2242,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function save_use_ssl_meta_data_type( $meta, $user, $update ) {
 		$user_id = get_option( 'test_user_id_meta_ssl_type' );
 
-		if ( $user->ID == $user_id ) {
+		if ( $user->ID === $user_id ) {
 			add_option( 'test_user_meta_ssl_data_type', gettype( $meta['use_ssl'] ) );
 		}
 
