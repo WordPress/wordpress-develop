@@ -27,6 +27,11 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $link . '4/', $link );
 	}
 
+	/**
+	* Test if it redirects to the front page for non-existing pagination canonical.
+	*
+	* @ticket 50163
+	*/
 	public function test_redirect_missing_front_page_pagination_canonical() {
 
 		update_option( 'show_on_front', 'page' );
