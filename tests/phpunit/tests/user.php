@@ -2209,7 +2209,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Data type of the use_ssl saved in the DB.
 		$type_in_db = gettype( get_user_meta( $user_id, 'use_ssl', true ) );
 
-		add_filter( 'insert_user_meta', array( $this, 'save_use_ssl_meta_type' ), 10, 3 );
+		add_filter( 'insert_user_meta', array( $this, 'save_use_ssl_meta_data_type' ), 10, 3 );
 
 		$_POST                 = array();
 		$_GET                  = array();
