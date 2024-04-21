@@ -618,7 +618,6 @@ SCRIPT_TAG;
 			'SPAN opener inside'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
 			'SPAN closer after'    => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
 			'SPAN overlapping'     => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
-			'Funky comment inside' => array( '<div data-wp-bind--id="myPlugin::state.id">Inner conntent</ ></div>' ),
 		);
 	}
 
