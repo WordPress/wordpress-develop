@@ -776,12 +776,12 @@ HTML
 	 */
 	public function test_various_funky_comments( $funky_comment_html, $modifiable_text ) {
 		$processor = new WP_HTML_Tag_Processor( $funky_comment_html );
-		while ( '#comment' !== $processor->get_token_type() && $processor->next_token() ) {
+		while ( '#funky-comment' !== $processor->get_token_type() && $processor->next_token() ) {
 			continue;
 		}
 
 		$this->assertSame(
-			'#comment',
+			'#funky-comment',
 			$processor->get_token_type(),
 			'Failed to find the expected funky comment.'
 		);

@@ -1629,7 +1629,7 @@ class WP_HTML_Tag_Processor {
 			 * `<!` transitions to markup declaration open state
 			 * https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 			 */
-			if ( '!' === $html[ $at + 1 ] ) {
+			if ( ! $this->is_closing_tag && '!' === $html[ $at + 1 ] ) {
 				/*
 				 * `<!--` transitions to a comment state – apply further comment rules.
 				 * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
