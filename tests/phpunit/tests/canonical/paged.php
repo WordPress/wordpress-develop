@@ -43,6 +43,6 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 
 		$link = parse_url( get_permalink( $post_id ), PHP_URL_PATH );
 
-		$this->assertCanonical( $link . '3/', $link );
+		$this->assertCanonical( $link . '/page/3/', $link );
 	}
 }
