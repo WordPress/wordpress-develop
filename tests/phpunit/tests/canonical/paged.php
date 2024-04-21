@@ -26,4 +26,23 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 		// Non-existing page should redirect to the permalink.
 		$this->assertCanonical( $link . '4/', $link );
 	}
+
+	public function test_redirect_missing_front_page_pagination_canonical() {
+		
+		update_option( 'show_on_front', 'page' );
+		
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'front-page-1',
+				'post_type'    => 'page',
+				'post_content' => "Front Page 1\n<!--nextpage-->\nPage 2",
+			)
+		);
+
+		update_option( 'page_on_front', $post_id );
+
+		$link = parse_url( get_permalink( $post_id ), PHP_URL_PATH );
+
+		$this->assertCanonical( $link . '3/', $link );
+	}
 }
