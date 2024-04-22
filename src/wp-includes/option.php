@@ -259,7 +259,12 @@ function get_option( $option, $default_value = false ) {
 function wp_prime_network_option_caches( $network_id = null, array $options = array() ) {
 	global $wpdb;
 
-	if ( ! is_multisite() || wp_installing() ) {
+	if ( wp_installing() ) {
+		return;
+	}
+
+	if ( ! is_multisite() ) {
+		wp_prime_option_caches( $options );
 		return;
 	}
 
