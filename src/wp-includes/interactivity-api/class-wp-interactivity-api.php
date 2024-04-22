@@ -273,7 +273,7 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 The function now adds a warning when the HTML contains unbalanced
-	 * tags orSVG/Math with directives.
+	 * tags or SVG/Math with directives.
 	 *
 	 * @param string $html            The HTML content to process.
 	 * @param array  $context_stack   The reference to the array used to keep track of contexts during processing.
@@ -318,7 +318,7 @@ final class WP_Interactivity_API {
 					 */
 					$unbalanced = true;
 					/* translators: 1: Tag that caused the error, could by any HTML tag. */
-					$message = sprintf( 'Due to an unbalanced %1s tag in the processed HTML, the Server-Side Rendering directives processing will not function correctly.', $tag_name );
+					$message = sprintf( 'Due to an unbalanced %1s tag in the processed HTML, the directives will not be server side processed, JS runtime still work, but there will be a layout shift.', $tag_name );
 					_doing_it_wrong( __METHOD__, $message, '6.6' );
 					break;
 				} else {
