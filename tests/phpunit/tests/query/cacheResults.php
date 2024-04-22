@@ -298,6 +298,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				'query_vars1' => array( 'post_type' => 'any' ),
 				'query_vars2' => array( 'post_type' => 'any' ),
 			),
+			'any and post types'        => array(
+				'query_vars1' => array( 'post_type' => 'any' ),
+				'query_vars2' => array( 'post_type' => array( 'post', 'page', 'attachment' ) ),
+			),
 			'different order post type' => array(
 				'query_vars1' => array( 'post_type' => array( 'post', 'page' ) ),
 				'query_vars2' => array( 'post_type' => array( 'page', 'post' ) ),
