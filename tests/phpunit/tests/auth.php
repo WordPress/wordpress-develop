@@ -149,8 +149,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		$password = "pass with new line \n";
 		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
 
-		$password = "pass with vertial tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertial tab o_O', wp_hash_password( $password ) ) );
+		$password = "pass with vertical tab o_O\x0B";
+		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
 	}
 
 	/**
@@ -429,15 +429,18 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 9568
 	 */
 	public function test_log_in_using_email() {
-		$user_args = array(
-			'user_login' => 'johndoe',
-			'user_email' => 'mail@example.com',
-			'user_pass'  => 'password',
-		);
-		self::factory()->user->create( $user_args );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_EMAIL, self::USER_PASS ) );
+		$this->assertInstanceOf( 'WP_User', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+	}
 
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_email'], $user_args['user_pass'] ) );
-		$this->assertInstanceOf( 'WP_User', wp_authenticate( $user_args['user_login'], $user_args['user_pass'] ) );
+	/**
+	 * @ticket 60700
+	 */
+	public function test_authenticate_filter() {
+		add_filter( 'authenticate', '__return_null', 20 );
+		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+		add_filter( 'authenticate', '__return_false', 20 );
+		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
 	}
 
 	/**
