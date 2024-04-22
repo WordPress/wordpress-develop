@@ -121,11 +121,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'No editor available for lossless WebP images.' );
 		}
 
-		// Don't test the mock editor.
-		if ( 'WP_Image_Editor_Mock' === get_class( $editor ) ) {
-			$this->markTestSkipped( 'Mock editor does not support WebP lossless.' );
-		}
-
 		// Ensure the quality is set to 100 for lossless WebP images.
 		$this->assertSame( 100, $editor->get_quality() );
 	}
