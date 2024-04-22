@@ -75,6 +75,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        if: ${{ inputs.PUPPETEER_SKIP_DOWNLOAD }}
         run: npx playwright install --with-deps
 
       - name: Build WordPress
