@@ -100,7 +100,7 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
-	 * Holds sanitized term data.
+	 * Stores the sanitized term data.
 	 *
 	 * @since 6.6.0
 	 * @var stdClass|null
