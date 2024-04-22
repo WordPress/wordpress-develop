@@ -1,5 +1,8 @@
 ##
 # A callable workflow that runs end-to-end tests.
+#
+# Branches 6.3 and earlier used Puppeteer instead of Playwright.
+# Use https://github.com/WordPress/wordpress-develop/tree/6.3/.github/workflows/callable-end-to-end-tests.yml instead.
 ##
 name: End-to-end Tests
 
