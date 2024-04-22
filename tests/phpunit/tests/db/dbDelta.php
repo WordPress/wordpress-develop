@@ -735,7 +735,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	/**
 	 * @ticket 20263
 	 */
-	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indicies() {
+	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indices() {
 		global $wpdb;
 
 		$schema = "
