@@ -274,10 +274,21 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 
 	$cached_options = wp_cache_get_multiple( $cache_keys, 'site-options' );
 
+	$notoptions_key = "$network_id:notoptions";
+	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
+
+	if ( ! is_array( $notoptions ) ) {
+		$notoptions = array();
+	}
+
 	// Filter options that are not in the cache.
 	$options_to_prime = array();
 	foreach ( $options as $option ) {
-		if ( ! isset( $cached_options[ $option ] ) || false === $cached_options[ $option ] ) {
+		$cache_key = "{$network_id}:{$option}";
+		if (
+			( ! isset( $cached_options[ $cache_key ] ) || false === $cached_options[ $cache_key ] )
+			&& ! isset( $notoptions[ $option ] )
+		) {
 			$options_to_prime[] = $option;
 		}
 	}
@@ -290,15 +301,37 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 	$core_options_in = "'" . implode( "', '", $options_to_prime ) . "'";
 	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
 
-	$data = array();
+	$data          = array();
+	$options_found = array();
 	foreach ( $options as $option ) {
 		$key                = $option->meta_key;
 		$cache_key          = "{$network_id}:$key";
 		$option->meta_value = maybe_unserialize( $option->meta_value );
 
 		$data[ $cache_key ] = $option->meta_value;
+		$options_found[]    = $key;
 	}
 	wp_cache_set_multiple( $data, 'site-options' );
+	// If all options were found, no need to update `notoptions` cache.
+	if ( count( $options_found ) === count( $options_to_prime ) ) {
+		return;
+	}
+
+	$options_not_found = array_diff( $options_to_prime, $options_found );
+
+	// Add the options that were not found to the cache.
+	$update_notoptions = false;
+	foreach ( $options_not_found as $option_name ) {
+		if ( ! isset( $notoptions[ $option_name ] ) ) {
+			$notoptions[ $option_name ] = true;
+			$update_notoptions          = true;
+		}
+	}
+
+	// Only update the cache if it was modified.
+	if ( $update_notoptions ) {
+		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
+	}
 }
 
 /**
