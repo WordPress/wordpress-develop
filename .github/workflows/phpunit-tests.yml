@@ -56,12 +56,14 @@ jobs:
           # Include jobs for PHP 7.4 with memcached.
           - os: ubuntu-latest
             php: '7.4'
-            db-type: '5.7'
+            db-type: 'mysql'
+            db-version: '5.7'
             multisite: false
             memcached: true
           - os: ubuntu-latest
             php: '7.4'
-            db-type: '5.7'
+            db-type: 'mysql'
+            db-version: '5.7'
             multisite: true
             memcached: true
           # Report the results of the PHP 7.4 without memcached job.
