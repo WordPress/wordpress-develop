@@ -5,6 +5,12 @@ name: PHP coding standards
 
 on:
   workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version to run PHPCS with.'
+        required: false
+        type: 'string'
+        default: 'latest'
 
 jobs:
   # Runs PHP coding standards checks.
@@ -38,7 +44,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
         with:
-          php-version: 'latest'
+          php-version: ${{ inputs.php-version }}
           coverage: none
           tools: cs2pr
 
