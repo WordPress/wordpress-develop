@@ -173,6 +173,35 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Query::generate_cache_key
+	 * @ticket 59442
+	 */
+	public function test_generate_cache_key_unregister_post_type() {
+		global $wpdb;
+		register_post_type(
+			'wptests_pt',
+			array(
+				'exclude_from_search' => false,
+			)
+		);
+		$query_vars = array(
+			'post_type' => 'any',
+		);
+		$fields     = "{$wpdb->posts}.ID";
+		$query1     = new WP_Query( $query_vars );
+		$request1   = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request1 );
+		unregister_post_type( 'wptests_pt' );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request1 );
+
+		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differs when after unregister post type.' );
+	}
+
+	/**
+	 * @covers WP_Query::generate_cache_key
 	 * @dataProvider data_query_cache_duplicate
 	 * @ticket 59442
 	 */
@@ -264,6 +293,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'same args'                 => array(
 				'query_vars1' => array( 'post_type' => 'post' ),
 				'query_vars2' => array( 'post_type' => 'post' ),
+			),
+			'same args any'             => array(
+				'query_vars1' => array( 'post_type' => 'any' ),
+				'query_vars2' => array( 'post_type' => 'any' ),
 			),
 			'different order post type' => array(
 				'query_vars1' => array( 'post_type' => array( 'post', 'page' ) ),

@@ -4866,6 +4866,8 @@ class WP_Query {
 			} else {
 				$args['post_type'] = 'post';
 			}
+		} elseif ( 'any' === $args['post_type'] ) {
+			$args['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
 		}
 		$args['post_type'] = (array) $args['post_type'];
 		// Sort post types to ensure same cache key generation.
