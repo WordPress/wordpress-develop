@@ -44,47 +44,12 @@ permissions: {}
 
 jobs:
   # Runs the QUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Run the WordPress QUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
   test-js:
     name: QUnit Tests
-    runs-on: ubuntu-latest
+    uses: desrosj/wordpress-develop/.github/workflows/callable-javascript-tests.yml@try/make-workflows-callable
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-          svn --version
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Run QUnit tests
-        run: npm run grunt qunit:compiled
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
 
   slack-notifications:
     name: Slack Notifications
