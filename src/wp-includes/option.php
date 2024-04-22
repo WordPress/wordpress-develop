@@ -253,7 +253,6 @@ function get_option( $option, $default_value = false ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- *
  * @param string[] $options An array of option names to be loaded.
  */
 function wp_prime_network_option_caches( $network_id = null, array $options = array() ) {
@@ -274,13 +273,14 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 
 	$cache_keys = array();
 	foreach ( $options as $option ) {
-		$cache_keys[] = "{$network_id}:{$option}";
+		$cache_keys[ $option ] = "{$network_id}:{$option}";
 	}
 
-	$cached_options = wp_cache_get_multiple( $cache_keys, 'site-options' );
+	$cache_group    = 'site-options';
+	$cached_options = wp_cache_get_multiple( array_values( $cache_keys ), $cache_group );
 
 	$notoptions_key = "$network_id:notoptions";
-	$notoptions     = wp_cache_get( $notoptions_key, 'site-options' );
+	$notoptions     = wp_cache_get( $notoptions_key, $cache_group );
 
 	if ( ! is_array( $notoptions ) ) {
 		$notoptions = array();
@@ -288,8 +288,7 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 
 	// Filter options that are not in the cache.
 	$options_to_prime = array();
-	foreach ( $options as $option ) {
-		$cache_key = "{$network_id}:{$option}";
+	foreach ( $cache_keys as $option => $cache_key ) {
 		if (
 			( ! isset( $cached_options[ $cache_key ] ) || false === $cached_options[ $cache_key ] )
 			&& ! isset( $notoptions[ $option ] )
@@ -310,13 +309,11 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 	$options_found = array();
 	foreach ( $options as $option ) {
 		$key                = $option->meta_key;
-		$cache_key          = "{$network_id}:$key";
-		$option->meta_value = maybe_unserialize( $option->meta_value );
-
-		$data[ $cache_key ] = $option->meta_value;
+		$cache_key          = $cache_keys[ $key ];
+		$data[ $cache_key ] = maybe_unserialize( $option->meta_value );
 		$options_found[]    = $key;
 	}
-	wp_cache_set_multiple( $data, 'site-options' );
+	wp_cache_set_multiple( $data, $cache_group );
 	// If all options were found, no need to update `notoptions` cache.
 	if ( count( $options_found ) === count( $options_to_prime ) ) {
 		return;
@@ -335,7 +332,7 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 
 	// Only update the cache if it was modified.
 	if ( $update_notoptions ) {
-		wp_cache_set( $notoptions_key, $notoptions, 'site-options' );
+		wp_cache_set( $notoptions_key, $notoptions, $cache_group );
 	}
 }
 
@@ -739,8 +736,7 @@ function wp_load_alloptions( $force_cache = false ) {
  *
  * @since 3.0.0
  * @since 6.3.0 Also prime caches for network options when persistent object cache is enabled.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @since 6.6.0 Uses wp_prime_network_option_caches.
  *
  * @param int $network_id Optional. Network ID of network for which to prime network options cache. Defaults to current network.
  */
