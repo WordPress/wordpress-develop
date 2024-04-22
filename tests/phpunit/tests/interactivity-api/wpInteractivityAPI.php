@@ -20,11 +20,31 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	protected $interactivity;
 
 	/**
+	 * Array of expected `_doing_it_wrong()` calls.
+	 *
+	 * @var string[]
+	 */
+	protected $expected_doing_it_wrong;
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
 		parent::set_up();
-		$this->interactivity = new WP_Interactivity_API();
+		$this->interactivity           = new WP_Interactivity_API();
+		$this->expected_doing_it_wrong = array();
+	}
+
+	/**
+	 * Declares an expected `_doing_it_wrong()` call from within a test.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param string $doing_it_wrong Name of the function, method, or class that appears in
+	 *                               the first argument of the source `_doing_it_wrong()` call.
+	 */
+	public function setExpectedIncorrectUsage( $doing_it_wrong ) {
+		$this->expected_doing_it_wrong[] = $doing_it_wrong;
 	}
 
 	public function charset_iso_8859_1() {
@@ -705,7 +725,8 @@ JSON;
 			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
-		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::process_directives_args' );
+		$p = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'svg' );
 		$this->assertNull( $p->get_attribute( 'width' ) );
 		$p->next_tag( 'div' );
@@ -770,7 +791,8 @@ JSON;
 			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
-		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::process_directives_args' );
+		$p = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'math' );
 		$this->assertNull( $p->get_attribute( 'id' ) );
 		$p->next_tag( 'div' );
@@ -803,7 +825,8 @@ JSON;
 			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
-		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::process_directives_args' );
+		$p = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'div' );
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
