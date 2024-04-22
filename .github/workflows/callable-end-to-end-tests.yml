@@ -11,15 +11,9 @@ on:
         required: false
         type: 'boolean'
         default: false
-      PUPPETEER_SKIP_DOWNLOAD:
-        description: 'Whether to skip downloading Puppeteer'
-        required: false
-        type: 'boolean'
-        default: true
 
 env:
   LOCAL_DIR: build
-  PUPPETEER_SKIP_DOWNLOAD: ${{ inputs.PUPPETEER_SKIP_DOWNLOAD }}
 
 jobs:
   # Runs the end-to-end test suite.
@@ -75,7 +69,6 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        if: ${{ inputs.PUPPETEER_SKIP_DOWNLOAD }}
         run: npx playwright install --with-deps
 
       - name: Build WordPress
