@@ -227,7 +227,11 @@ final class WP_Term {
 	 * @return array Object as array.
 	 */
 	public function to_array() {
-		return get_object_vars( $this );
+		$object_data = get_object_vars( $this );
+		// Don't return the "data" class property to ensure backward compatibility.
+		unset ( $object_data['data'] );
+
+		return $object_data;
 	}
 
 	/**
