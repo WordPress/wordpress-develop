@@ -201,9 +201,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Query::generate_cache_key
-	 * @dataProvider data_query_cache_duplicate
 	 * @ticket 59442
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @dataProvider data_query_cache_duplicate
 	 */
 	public function test_generate_cache_key_normalize( $query_vars1, $query_vars2 ) {
 		global $wpdb;
@@ -266,7 +268,12 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_query_cache_duplicate() {
+	/**
+	 * Data provider for test_generate_cache_key_normalize().
+	 *
+	 * @return array[]
+	 */
+	 public function data_query_cache_duplicate() {
 		return array(
 			'post type empty'           => array(
 				'query_vars1' => array( 'post_type' => '' ),
