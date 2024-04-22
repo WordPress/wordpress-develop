@@ -2304,6 +2304,67 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if any of the WordPress Core classes are overriden.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return array
+	 */
+	public static function get_test_core_classes_paths() {
+		$overriden_classes    = array();
+		foreach ( WP_Autoload::CLASSES_PATHS as $class_name => $class_path ) {
+			$default_path = ABSPATH . $class_path;
+
+			/*
+			 * Init a Reflection class to get the real path of the class.
+			 * This is performend inside an output buffer to avoid any errors
+			 * that might be thrown by the ReflectionClass constructor.
+			 */
+			ob_start();
+			$reflection = new \ReflectionClass( $class_name );
+			ob_end_clean();
+
+			if ( $default_path !== $reflection->getFileName() ) {
+				$overriden_classes[ $reflection->getName() ] = $reflection->getFileName();
+			}
+		}
+
+		$result = array(
+			'label'       => __( 'All WordPress Core classes can be properly loaded.' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Plugins and Themes should not override the default WordPress Core classes, as that might lead to unexpected side-effects on your site.' )
+			),
+			'actions'     => '',
+			'test'        => 'core_classes_paths',
+		);
+
+		if ( ! empty( $overriden_classes ) ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'WordPress Core classes are being overriden' );
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'The following WordPress Core classes are being overriden:' )
+			);
+
+			$result['description'] .= '<table class="widefat striped health-check-table">';
+			foreach ( $overriden_classes as $class_name => $class_path ) {
+				$result['description'] .= '<tr>';
+				$result['description'] .= '<th><code>' . esc_html( $class_name ) . '</code></th>';
+				$result['description'] .= '<td><code>' . esc_html( $class_path ) . '</code></td>';
+			}
+			$result['description'] .= '</table>';
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Tests if the Authorization header has the expected values.
 	 *
 	 * @since 5.6.0
@@ -2712,6 +2773,12 @@ class WP_Site_Health {
 				'test'  => 'persistent_object_cache',
 			);
 		}
+
+		// Check for Core classes being overriden.
+		$tests['direct']['core_classes_paths'] = array(
+			'label' => __( 'Core classes paths' ),
+			'test'  => 'core_classes_paths',
+		);
 
 		/**
 		 * Filters which site status tests are run on a site.
