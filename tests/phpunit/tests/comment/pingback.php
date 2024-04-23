@@ -5,20 +5,19 @@
 /**
  * @group comment
  */
-class Tests_Comment_Pingback extends WP_UnitTestCase
-{
+class Tests_Comment_Pingback extends WP_UnitTestCase {
 
 	protected static $post_id;
-	protected $response = [];
+	protected $response = array();
+
 	public function set_up() {
 		parent::set_up();
 
-		add_filter('pre_http_request', [$this, 'request_response']);
+		add_filter( 'pre_http_request', array( $this, 'request_response' ) );
 	}
 
-	public function tear_down()
-	{
-		remove_filter('pre_http_request', [$this, 'request_response']);
+	public function tear_down() {
+		remove_filter( 'pre_http_request', array( $this, 'request_response' ) );
 		parent::tear_down();
 	}
 
@@ -33,14 +32,17 @@ HTML;
 			<a rel="pingback" href="https://example1.org/test/pingback">test</a>
 BODY;
 
-		$this->response = [ 'body' => $body, 'response' => ['code' => 200 ]];
-
-		self::$post_id = self::factory()->post->create(
-			['post_content' => $content]
+		$this->response = array(
+			'body'     => $body,
+			'response' => array( 'code' => 200 ),
 		);
 
-		$post = get_post( self::$post_id);
-		$this->assertEquals(['http://example1.org/test' => false], pingback($post->post_content , self::$post_id));
+		self::$post_id = self::factory()->post->create(
+			array( 'post_content' => $content )
+		);
+
+		$post = get_post( self::$post_id );
+		$this->assertEquals( array( 'http://example1.org/test' => false ), pingback( $post->post_content, self::$post_id ) );
 	}
 
 	public function test_pingback_no_ping_back() {
@@ -54,14 +56,17 @@ HTML;
 			<a href="https://example1.org/test">test</a>
 BODY;
 
-		$this->response = [ 'body' => $body, 'response' => ['code' => 200 ]];
-
-		self::$post_id = self::factory()->post->create(
-			['post_content' => $content]
+		$this->response = array(
+			'body'     => $body,
+			'response' => array( 'code' => 200 ),
 		);
 
-		$post = get_post( self::$post_id);
-		$this->assertEquals([], pingback($post->post_content , self::$post_id));
+		self::$post_id = self::factory()->post->create(
+			array( 'post_content' => $content )
+		);
+
+		$post = get_post( self::$post_id );
+		$this->assertEquals( array(), pingback( $post->post_content, self::$post_id ) );
 	}
 
 	public function test_pingback_error_response() {
@@ -74,11 +79,11 @@ HTML;
 		$this->response = new WP_Error();
 
 		self::$post_id = self::factory()->post->create(
-			['post_content' => $content]
+			array( 'post_content' => $content )
 		);
 
-		$post = get_post( self::$post_id);
-		$this->assertEquals([], pingback($post->post_content , self::$post_id));
+		$post = get_post( self::$post_id );
+		$this->assertEquals( array(), pingback( $post->post_content, self::$post_id ) );
 	}
 
 	public function request_response() {
