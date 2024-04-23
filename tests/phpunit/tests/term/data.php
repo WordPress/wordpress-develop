@@ -34,6 +34,29 @@ class Tests_Term_Data extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Term::__get
+	 * @ticket 58087
+	 */
+	public function test_data_should_reflect_changes_in_the_term_object() {
+		// Check if initial term names match.
+		$this->assertSame(
+			$this->term->data->name,
+			$this->term->name,
+			'Initial term name should match the name in term data object.'
+		);
+
+		// Modify the term name.
+		$this->term->name = 'foo';
+
+		// Check if modified term names match.
+		$this->assertSame(
+			$this->term->data->name,
+			$this->term->name,
+			'Modified term name should be updated in the term data object.'
+		);
+	}
+
+	/**
 	 * @covers WP_Term::__isset
 	 * @ticket 58087
 	 */
