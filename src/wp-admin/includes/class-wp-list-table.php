@@ -390,8 +390,10 @@ class WP_List_Table {
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
 			if ( is_array( $_REQUEST['orderby'] ) ) {
 				foreach ( $_REQUEST['orderby'] as $key => $value ) {
-					// Because arrays in query parameters are not standardized, the orderby parameter can be an associative or a non-associative array.
-					// So in the latter case, we have to make sure we're passing a string to the escape function later on.
+					/*
+					 * Orderby can be either an associative array or non-associative array.
+					 * In the latter case, this makes sure the key is a string before calling esc_attr().
+					 */
 					$key = (string) $key;
 					echo '<input type="hidden" name="orderby[' . esc_attr( $key ) . ']" value="' . esc_attr( $value ) . '" />';
 				}
