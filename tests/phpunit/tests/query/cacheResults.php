@@ -273,7 +273,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	 public function data_query_cache_duplicate() {
+	public function data_query_cache_duplicate() {
 		return array(
 			'post type empty'           => array(
 				'query_vars1' => array( 'post_type' => '' ),
