@@ -2065,10 +2065,10 @@ class WP_Theme_JSON {
 		if ( $can_use_cached ) {
 			$func_args_hash = md5( wp_json_encode( func_get_args() ) ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
 			/*
-			* The global settings can include dynamic data related to typography.
-			* We need to evaluate it so that the cache is invalidated when it changes.
-			* Computing global settings hash is costly, so we cache it in a non-persistent cache.
-			*/
+			 * The global settings can include dynamic data related to typography.
+			 * We need to evaluate it so that the cache is invalidated when it changes.
+			 * Computing global settings hash is costly, so we cache it in a non-persistent cache.
+			 */
 			$cache_key = "{$func_args_hash}_" . self::wp_get_global_settings_hash();
 			if ( ! isset( self::$cached_compute_style_properties ) ) {
 				self::get_compute_style_properties_cache();
