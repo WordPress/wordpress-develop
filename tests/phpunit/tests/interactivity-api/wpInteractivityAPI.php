@@ -609,15 +609,15 @@ SCRIPT_TAG;
 	 */
 	public static function data_html_with_unbalanced_tags() {
 		return array(
-			'DIV closer after'     => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>' ),
-			'DIV opener after'     => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>' ),
-			'DIV opener before'    => array( '<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
-			'DIV closer before'    => array( '</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
-			'DIV opener inside'    => array( '<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>' ),
-			'DIV closer inside'    => array( '<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>' ),
-			'SPAN opener inside'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
-			'SPAN closer after'    => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
-			'SPAN overlapping'     => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
+			'DIV closer after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>' ),
+			'DIV opener after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>' ),
+			'DIV opener before'  => array( '<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV closer before'  => array( '</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV opener inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>' ),
+			'DIV closer inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>' ),
+			'SPAN opener inside' => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
+			'SPAN closer after'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
+			'SPAN overlapping'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
 		);
 	}
 
