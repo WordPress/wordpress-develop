@@ -2749,12 +2749,12 @@ function wp_update_comment_count_now( $post_id ) {
 		$bad_parents = array();
 		$_bad_parents = $wpdb->get_col( "SELECT comment_ID from $wpdb->comments WHERE comment_post_ID = $post_id AND comment_approved != '1'" );
 
-		if( ! empty( $_bad_parents ) ) {
+		if ( ! empty( $_bad_parents ) ) {
 			do {
-				$children = $wpdb->get_col("SELECT comment_ID from $wpdb->comments WHERE comment_post_ID = $post_id AND comment_parent IN (" . implode(',', array_map('intval', $_bad_parents ) ) . ")");
-				$bad_parents = array_merge($bad_parents, $_bad_parents, $children);
-				$_bad_parents = array_unique($children);
-			} while ($children);
+				$children = $wpdb->get_col( "SELECT comment_ID from $wpdb->comments WHERE comment_post_ID = $post_id AND comment_parent IN (" . implode(',', array_map( 'intval', $_bad_parents ) ) . ")");
+				$bad_parents = array_merge( $bad_parents, $_bad_parents, $children );
+				$_bad_parents = array_unique( $children );
+			} while ( $children );
 		}
 
 		$bad_parent_query = null;
