@@ -108,6 +108,14 @@ final class WP_Term {
 	protected $data;
 
 	/**
+	 * Stores the object ID.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $object_id;
+
+	/**
 	 * Retrieve WP_Term instance.
 	 *
 	 * @since 4.4.0
