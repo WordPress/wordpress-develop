@@ -668,7 +668,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 40510
 	 */
-	public function test_get_items_default_query_should_fetch_all_revisons() {
+	public function test_get_items_default_query_should_fetch_all_revisions() {
 		wp_set_current_user( self::$editor_id );
 
 		$expected_count = $this->total_revisions;

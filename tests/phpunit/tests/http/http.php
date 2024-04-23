@@ -47,7 +47,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			array( '../file-in-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-parent.ext' ),
 			array( '../file-in-parent.ext', 'http://example.com/directory/filename', 'http://example.com/file-in-parent.ext' ),
 
-			// Location provided in muliple levels higher, including impossible to reach (../ below DOCROOT).
+			// Location provided in multiple levels higher, including impossible to reach (../ below DOCROOT).
 			array( '../../file-in-grand-parent.ext', 'http://example.com', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/filename', 'http://example.com/file-in-grand-parent.ext' ),
 			array( '../../file-in-grand-parent.ext', 'http://example.com/directory/', 'http://example.com/file-in-grand-parent.ext' ),

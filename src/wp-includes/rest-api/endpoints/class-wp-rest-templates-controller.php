@@ -532,7 +532,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass Changes to pass to wp_update_post.
+	 * @return stdClass|WP_Error Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
@@ -619,7 +619,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_author = $post_author;
 		}
 
-		return $changes;
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+		return apply_filters( "rest_pre_insert_{$this->post_type}", $changes, $request );
 	}
 
 	/**
