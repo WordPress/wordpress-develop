@@ -82,9 +82,9 @@ class Tests_Term_Data extends WP_UnitTestCase {
 	 * @ticket 58087
 	 */
 	public function test_unsetting_class_properties_should_work_correctly() {
-		unset ( $this->term->data );
+		unset( $this->term->data );
 		$this->expect_deprecation_message( 'WP_Term::__unset(): Unsetting the dynamic property "foo" on WP_Term is deprecated.' );
-		unset ( $this->term->foo );
+		unset( $this->term->foo );
 	}
 
 	/**

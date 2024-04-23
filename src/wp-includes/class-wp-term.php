@@ -229,7 +229,7 @@ final class WP_Term {
 	public function to_array() {
 		$object_data = get_object_vars( $this );
 		// Don't return the "data" class property to ensure backward compatibility.
-		unset ( $object_data['data'] );
+		unset( $object_data['data'] );
 
 		return $object_data;
 	}
@@ -263,7 +263,7 @@ final class WP_Term {
 			'taxonomy',
 			'description',
 			'parent',
-			'count'
+			'count',
 		);
 		foreach ( $columns as $column ) {
 			$this->data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
