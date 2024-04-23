@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: Set up PHP ${{ inputs.php }}
-        uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
+        uses: shivammathur/setup-php@efffd0e4f2504f936fcfe3b69293d31ce0e2fd7a # v2.30.3
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
