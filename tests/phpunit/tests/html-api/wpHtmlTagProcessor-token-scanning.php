@@ -765,7 +765,7 @@ HTML
 	 *
 	 * @ticket 60170
 	 *
-	 * @since 6.5.6
+	 * @since 6.6.6
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_token
 	 *
@@ -802,12 +802,14 @@ HTML
 		return array(
 			'Space'             => array( '</ >', ' ' ),
 			'Short-bang'        => array( '</!>', '!' ),
+			'Markup Decl. Like' => array( '</?>', '?' ),
 			'Short-slash'       => array( '<//>', '/' ),
 			'Bit (no attrs)'    => array( '<//wp:post-meta>', '/wp:post-meta' ),
+			'Bit (attrs)'       => array( '<//wp:post-meta key=isbn>', '/wp:post-meta key=isbn' ),
 			'Curly-wrapped'     => array( '</{json}>', '{json}' ),
 			'Before P'          => array( '</1><p>', '1' ),
 			'After P'           => array( '<p></__("Read more")></p>', '__("Read more")' ),
-			'Markup Decl. Like' => array( '</?>', '?' ),
+			'References'        => array( '</&gt;>', '&gt;' ),
 		);
 	}
 
