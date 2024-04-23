@@ -850,7 +850,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		}
 
 		$term = get_term( $t );
-		$this->assertObjectNotHasProperty( 'object_id', $term );
+		$this->assertNull( $term->object_id, 'object_id should not be cached along with the term object.' );
 	}
 
 	/**
