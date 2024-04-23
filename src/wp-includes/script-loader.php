@@ -509,43 +509,6 @@ function wp_default_packages_inline_scripts( $scripts ) {
 }
 
 /**
- * Adds script configuration data WordPress JavaScript packages may read.
- *
- * @since 6.6.0
- */
-function wp_default_packages_print_script_configuration_data(  ) {
-	$scripts = wp_scripts();
-
-	// echo '<plaintext>';
-	// var_dump(
-// $scripts->query( 'wp-api-fetch', 'enqueued' ),
-// $scripts->query( 'wp-api-fetch', 'done' ),
-	// );
-	// die();
-
-	if (
-		$scripts->query( 'wp-api-fetch', 'enqueued' ) ||
-		$scripts->query( 'wp-api-fetch', 'done' )
-	) {
-		wp_print_inline_script_tag(
-			wp_json_encode(
-				array(
-					'rootURL'                             => sanitize_url( get_rest_url() ),
-					'nonce'                               => wp_installing() ? '' : wp_create_nonce( 'wp_rest' ),
-					'shouldRegisterMediaUploadMiddleware' => true,
-					'nonceEndpoint'                       => admin_url( 'admin-ajax.php?action=rest-nonce' ),
-				),
-				JSON_HEX_TAG | JSON_HEX_AMP
-			),
-			array(
-				'type' => 'application/json',
-				'id'   => 'wp-apifetch-config-data',
-			)
-		);
-	}
-}
-
-/**
  * Adds inline scripts required for the TinyMCE in the block editor.
  *
  * These TinyMCE init settings are used to extend and override the default settings
@@ -707,8 +670,6 @@ function wp_default_packages( $scripts ) {
 	if ( did_action( 'init' ) ) {
 		wp_default_packages_inline_scripts( $scripts );
 	}
-
-	add_action( 'wp_footer', 'wp_default_packages_print_script_configuration_data' );
 }
 
 /**

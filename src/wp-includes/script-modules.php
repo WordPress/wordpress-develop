@@ -123,3 +123,22 @@ function wp_dequeue_script_module( string $id ) {
 function wp_deregister_script_module( string $id ) {
 	wp_script_modules()->deregister( $id );
 }
+
+
+function wp_register_default_script_modules(): void {
+	add_filter(
+		'scriptmoduleconfig_@wordpress/api-fetch',
+		function ( $data ) {
+			return array_merge(
+				$data,
+				array(
+					'rootURL'                             => sanitize_url( get_rest_url() ),
+					'nonce'                               => wp_installing() ? '' : wp_create_nonce( 'wp_rest' ),
+					'shouldRegisterMediaUploadMiddleware' => true,
+					'nonceEndpoint'                       => admin_url( 'admin-ajax.php?action=rest-nonce' ),
+				)
+			);
+		}
+	);
+}
+add_action( 'init', 'wp_register_default_script_modules', 0 );

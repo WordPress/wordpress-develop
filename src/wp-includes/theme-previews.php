@@ -53,6 +53,18 @@ function wp_attach_theme_preview_middleware() {
 		),
 		'after'
 	);
+
+	add_filter(
+		'scriptmoduleconfig_@wordpress/api-fetch',
+		function ( $data ) {
+			return array_merge(
+				$data,
+				array(
+					'themePreviewPath' => sanitize_text_field( wp_unslash( $_GET['wp_theme_preview'] ) ),
+				)
+			);
+		}
+	);
 }
 
 /**
