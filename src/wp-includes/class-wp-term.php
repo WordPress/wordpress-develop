@@ -100,20 +100,20 @@ final class WP_Term {
 	public $filter = 'raw';
 
 	/**
-	 * Stores the sanitized term data.
-	 *
-	 * @since 6.6.0
-	 * @var stdClass|null
-	 */
-	private $data;
-
-	/**
 	 * Stores the object ID.
 	 *
 	 * @since 6.6.0
 	 * @var int|null
 	 */
 	public $object_id;
+
+	/**
+	 * Stores the sanitized term data.
+	 *
+	 * @since 6.6.0
+	 * @var stdClass|null
+	 */
+	private $data;
 
 	/**
 	 * Retrieve WP_Term instance.
