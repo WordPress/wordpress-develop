@@ -105,7 +105,7 @@ final class WP_Term {
 	 * @since 6.6.0
 	 * @var stdClass|null
 	 */
-	protected $data;
+	private $data;
 
 	/**
 	 * Stores the object ID.
