@@ -28,7 +28,6 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		global $wpdb;
 		// Crude but effective: make sure there's no residual data in the main tables.
 		foreach ( array( 'posts', 'postmeta', 'comments', 'terms', 'term_taxonomy', 'term_relationships', 'users', 'usermeta' ) as $table ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query( "DELETE FROM {$wpdb->$table}" );
 		}
 	}
@@ -62,8 +61,8 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'author@example.org', $author->user_email );
 
 		// Check that terms were imported correctly.
-		$this->assertEquals( 30, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
-		$this->assertEquals( 3, wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
+		$this->assertSame( '30', wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( '3', wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
 		$foo = get_term_by( 'slug', 'foo', 'category' );
 		$this->assertSame( 0, $foo->parent );
 		$bar     = get_term_by( 'slug', 'bar', 'category' );
@@ -72,11 +71,11 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 
 		// Check that posts/pages were imported correctly.
 		$post_count = wp_count_posts( 'post' );
-		$this->assertEquals( 5, $post_count->publish );
-		$this->assertEquals( 1, $post_count->private );
+		$this->assertSame( '5', $post_count->publish );
+		$this->assertSame( '1', $post_count->private );
 		$page_count = wp_count_posts( 'page' );
-		$this->assertEquals( 4, $page_count->publish );
-		$this->assertEquals( 1, $page_count->draft );
+		$this->assertSame( '4', $page_count->publish );
+		$this->assertSame( '1', $page_count->draft );
 		$comment_count = wp_count_comments();
 		$this->assertSame( 1, $comment_count->total_comments );
 
@@ -230,8 +229,8 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'author', $author->user_login );
 		$this->assertSame( 'author@example.org', $author->user_email );
 
-		$this->assertEquals( 30, wp_count_terms( array( 'taxonomy' => 'category' ) ) );
-		$this->assertEquals( 3, wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
+		$this->assertSame( '30', wp_count_terms( array( 'taxonomy' => 'category' ) ) );
+		$this->assertSame( '3', wp_count_terms( array( 'taxonomy' => 'post_tag' ) ) );
 		$foo = get_term_by( 'slug', 'foo', 'category' );
 		$this->assertSame( 0, $foo->parent );
 		$bar     = get_term_by( 'slug', 'bar', 'category' );
@@ -239,11 +238,11 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( $bar->term_id, $foo_bar->parent );
 
 		$post_count = wp_count_posts( 'post' );
-		$this->assertEquals( 5, $post_count->publish );
-		$this->assertEquals( 1, $post_count->private );
+		$this->assertSame( '5', $post_count->publish );
+		$this->assertSame( '1', $post_count->private );
 		$page_count = wp_count_posts( 'page' );
-		$this->assertEquals( 4, $page_count->publish );
-		$this->assertEquals( 1, $page_count->draft );
+		$this->assertSame( '4', $page_count->publish );
+		$this->assertSame( '1', $page_count->draft );
 		$comment_count = wp_count_comments();
 		$this->assertSame( 1, $comment_count->total_comments );
 	}

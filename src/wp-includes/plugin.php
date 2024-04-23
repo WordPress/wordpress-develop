@@ -167,7 +167,7 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  *
  * @param string $hook_name The name of the filter hook.
  * @param mixed  $value     The value to filter.
- * @param mixed  ...$args   Additional parameters to pass to the callback functions.
+ * @param mixed  ...$args   Optional. Additional parameters to pass to the callback functions.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters( $hook_name, $value, ...$args ) {
@@ -575,7 +575,7 @@ function do_action_ref_array( $hook_name, $args ) {
  *
  * @since 2.5.0
  *
- * @see has_filter() has_action() is an alias of has_filter().
+ * @see has_filter() This function is an alias of has_filter().
  *
  * @param string                      $hook_name The name of the action hook.
  * @param callable|string|array|false $callback  Optional. The callback to check for.
@@ -707,6 +707,7 @@ function did_action( $hook_name ) {
  * @param string $version     The version of WordPress that deprecated the hook.
  * @param string $replacement Optional. The hook that should have been used. Default empty.
  * @param string $message     Optional. A message regarding the change. Default empty.
+ * @return mixed The filtered value after all hooked functions are applied to it.
  */
 function apply_filters_deprecated( $hook_name, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_filter( $hook_name ) ) {
@@ -770,7 +771,7 @@ function plugin_basename( $file ) {
 	arsort( $wp_plugin_paths );
 
 	foreach ( $wp_plugin_paths as $dir => $realdir ) {
-		if ( strpos( $file, $realdir ) === 0 ) {
+		if ( str_starts_with( $file, $realdir ) ) {
 			$file = $dir . substr( $file, strlen( $realdir ) );
 		}
 	}
@@ -964,18 +965,7 @@ function _wp_call_all_hook( $args ) {
 }
 
 /**
- * Builds Unique ID for storage and retrieval.
- *
- * The old way to serialize the callback caused issues and this function is the
- * solution. It works by checking for objects and creating a new property in
- * the class to keep track of the object and new objects of the same class that
- * need to be added.
- *
- * It also allows for the removal of actions and filters for objects after they
- * change class properties. It is possible to include the property $wp_filter_id
- * in your class and set it to "null" or a number to bypass the workaround.
- * However this will prevent you from adding new classes and any new classes
- * will overwrite the previous hook by the same class.
+ * Builds a unique string ID for a hook callback function.
  *
  * Functions and static method callbacks are just returned as strings and
  * shouldn't have any speed penalty.

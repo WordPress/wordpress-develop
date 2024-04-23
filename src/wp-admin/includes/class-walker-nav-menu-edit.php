@@ -61,7 +61,8 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		global $_wp_nav_menu_max_depth;
 
 		// Restores the more descriptive, specific name for use within this method.
-		$menu_item              = $data_object;
+		$menu_item = $data_object;
+
 		$_wp_nav_menu_max_depth = $depth > $_wp_nav_menu_max_depth ? $depth : $_wp_nav_menu_max_depth;
 
 		ob_start();
@@ -180,8 +181,9 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						printf(
 							'<a class="item-edit" id="edit-%s" href="%s" aria-label="%s"><span class="screen-reader-text">%s</span></a>',
 							$item_id,
-							$edit_url,
+							esc_url( $edit_url ),
 							esc_attr__( 'Edit menu item' ),
+							/* translators: Hidden accessibility text. */
 							__( 'Edit' )
 						);
 						?>
@@ -318,5 +320,4 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		<?php
 		$output .= ob_get_clean();
 	}
-
 }

@@ -568,7 +568,7 @@ function wp_list_categories( $args = '' ) {
 	}
 
 	// Descendants of exclusions should be excluded too.
-	if ( true == $parsed_args['hierarchical'] ) {
+	if ( $parsed_args['hierarchical'] ) {
 		$exclude_tree = array();
 
 		if ( $parsed_args['exclude_tree'] ) {
@@ -881,7 +881,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		}
 	} elseif ( isset( $args['single_text'] ) && isset( $args['multiple_text'] ) ) {
 		// If no callback exists, look for the old-style single_text and multiple_text arguments.
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
 		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] );
 	} else {
 		// This is the default for when no callback, plural, or argument is passed in.
@@ -1084,10 +1084,11 @@ function _wp_object_name_sort_cb( $a, $b ) {
  *
  * @param object $a The first object to compare.
  * @param object $b The second object to compare.
- * @return bool Whether the count value for `$a` is greater than the count value for `$b`.
+ * @return int Negative number if `$a->count` is less than `$b->count`, zero if they are equal,
+ *             or greater than zero if `$a->count` is greater than `$b->count`.
  */
 function _wp_object_count_sort_cb( $a, $b ) {
-	return ( $a->count > $b->count );
+	return ( $a->count - $b->count );
 }
 
 //
@@ -1110,7 +1111,7 @@ function _wp_object_count_sort_cb( $a, $b ) {
 function walk_category_tree( ...$args ) {
 	// The user's options are the third parameter.
 	if ( empty( $args[2]['walker'] ) || ! ( $args[2]['walker'] instanceof Walker ) ) {
-		$walker = new Walker_Category;
+		$walker = new Walker_Category();
 	} else {
 		/**
 		 * @var Walker $walker
@@ -1136,7 +1137,7 @@ function walk_category_tree( ...$args ) {
 function walk_category_dropdown_tree( ...$args ) {
 	// The user's options are the third parameter.
 	if ( empty( $args[2]['walker'] ) || ! ( $args[2]['walker'] instanceof Walker ) ) {
-		$walker = new Walker_CategoryDropdown;
+		$walker = new Walker_CategoryDropdown();
 	} else {
 		/**
 		 * @var Walker $walker

@@ -336,7 +336,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	color: #fff;
 	font-size: 12px;
 	font-weight: 700;
-	line-height: normal;
+	line-height: 1.25;
 	padding: 10px 30px 11px;
 	text-transform: uppercase;
 	vertical-align: bottom;
@@ -364,8 +364,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Pullquote */
 
 .wp-block-pullquote {
-	border: 0;
 	margin: 0;
+}
+
+.editor-styles-wrapper .wp-block-pullquote {
+	border: 0;
 }
 
 .wp-block-pullquote .wp-block-pullquote__citation {
@@ -374,6 +377,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-weight: 400;
 	margin-top: 0;
 	text-transform: none;
+}
+
+.wp-block-pullquote.has-text-color blockquote,
+.wp-block-pullquote.has-background blockquote,
+.has-background .wp-block-pullquote blockquote,
+.wp-block-pullquote.has-text-color cite,
+.has-background .wp-block-pullquote cite,
+.has-text-color .wp-block-pullquote__citation {
+	color: inherit;
 }
 
 .wp-block-pullquote.alignleft blockquote > .editor-rich-text p,
@@ -406,9 +418,15 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-button .wp-block-button__link {
 	font-size: 12px;
 	font-weight: 700;
+	line-height: 1.25;
 	padding: 10px 30px 11px;
 	text-transform: uppercase;
 	vertical-align: bottom;
+}
+
+.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
+.wp-block-button[style*="text-transform"] .wp-block-button__link {
+	text-transform: inherit;
 }
 
 .wp-block-button__link {

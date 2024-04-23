@@ -1,20 +1,14 @@
 <?php
 /**
- * Define a class to test `wp_privacy_generate_personal_data_export_file()`.
+ * Test cases for the `wp_privacy_generate_personal_data_export_file()` function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.2.0
- */
-
-/**
- * Test cases for `wp_privacy_generate_personal_data_export_file()`.
  *
  * @group privacy
  * @covers ::wp_privacy_generate_personal_data_export_file
  * @requires extension zip
- *
- * @since 5.2.0
  */
 class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
 	/**
@@ -67,7 +61,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	/**
 	 * Set up the test fixture.
 	 *
-	 * Override `wp_die()`, pretend to be Ajax, and suppress `E_WARNING`s.
+	 * Override `wp_die()`, pretend to be Ajax, and suppress warnings.
 	 *
 	 * @since 5.2.0
 	 */

@@ -25,14 +25,25 @@ $timezone_format = _x( 'Y-m-d H:i:s', 'timezone date format' );
 add_action( 'admin_head', 'options_general_add_js' );
 
 $options_help = '<p>' . __( 'The fields on this screen determine some of the basics of your site setup.' ) . '</p>' .
-	'<p>' . __( 'Most themes display the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. The tagline is also displayed by many themes.' ) . '</p>';
+	'<p>' . __( 'Most themes show the site title at the top of every page, in the title bar of the browser, and as the identifying name for syndicated feeds. Many themes also show the tagline.' ) . '</p>';
 
 if ( ! is_multisite() ) {
-	$options_help .= '<p>' . __( 'The WordPress URL and the site URL can be the same (example.com) or different; for example, having the WordPress core files (example.com/wordpress) in a subdirectory instead of the root directory.' ) . '</p>' .
-		'<p>' . __( 'If you want site visitors to be able to register themselves, as opposed to by the site administrator, check the membership box. A default user role can be set for all new users, whether self-registered or registered by the site admin.' ) . '</p>';
+	$options_help .= '<p>' . __( 'Two terms you will want to know are the WordPress URL and the site URL. The WordPress URL is where the core WordPress installation files are, and the site URL is the address a visitor uses in the browser to go to your site.' ) . '</p>' .
+		'<p>' . sprintf(
+			/* translators: %s: Documentation URL. */
+			__( 'Though the terms refer to two different concepts, in practice, they can be the same address or different. For example, you can have the core WordPress installation files in the root directory (<code>https://example.com</code>), in which case the two URLs would be the same. Or the <a href="%s">WordPress files can be in a subdirectory</a> (<code>https://example.com/wordpress</code>). In that case, the WordPress URL and the site URL would be different.' ),
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
+		) . '</p>' .
+		'<p>' . sprintf(
+			/* translators: 1: http://, 2: https:// */
+			__( 'Both WordPress URL and site URL can start with either %1$s or %2$s. A URL starting with %2$s requires an SSL certificate, so be sure that you have one before changing to %2$s. With %2$s, a padlock will appear next to the address in the browser address bar. Both %2$s and the padlock signal that your site meets some basic security requirements, which can build trust with your visitors and with search engines.' ),
+			'<code>http://</code>',
+			'<code>https://</code>'
+		) . '</p>' .
+		'<p>' . __( 'If you want site visitors to be able to register themselves, check the membership box. If you want the site administrator to register every new user, leave the box unchecked. In either case, you can set a default user role for all new users.' ) . '</p>';
 }
 
-$options_help .= '<p>' . __( 'You can set the language, and the translation files will be automatically downloaded and installed (available if your filesystem is writable).' ) . '</p>' .
+$options_help .= '<p>' . __( 'You can set the language, and WordPress will automatically download and install the translation files (available if your filesystem is writable).' ) . '</p>' .
 	'<p>' . __( 'UTC means Coordinated Universal Time.' ) . '</p>' .
 	'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>';
 
@@ -46,8 +57,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-general-screen/">Documentation on General Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-general-screen/">Documentation on General Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -67,20 +78,138 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 </tr>
 
 <?php
-/* translators: Site tagline. */
-$sample_tagline = __( 'Just another WordPress site' );
-if ( is_multisite() ) {
+if ( ! is_multisite() ) {
+	/* translators: Site tagline. */
+	$sample_tagline = __( 'Just another WordPress site' );
+} else {
 	/* translators: %s: Network title. */
 	$sample_tagline = sprintf( __( 'Just another %s site' ), get_network()->site_name );
 }
+$tagline_description = sprintf(
+	/* translators: %s: Site tagline example. */
+	__( 'In a few words, explain what this site is about. Example: &#8220;%s.&#8221;' ),
+	$sample_tagline
+);
 ?>
 <tr>
 <th scope="row"><label for="blogdescription"><?php _e( 'Tagline' ); ?></label></th>
-<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" placeholder="<?php echo $sample_tagline; ?>" />
-<p class="description" id="tagline-description"><?php _e( 'In a few words, explain what this site is about.' ); ?></p></td>
+<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" />
+<p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
-<?php
+<?php if ( current_user_can( 'upload_files' ) ) : ?>
+<tr class="hide-if-no-js site-icon-section">
+<th scope="row"><?php _e( 'Site Icon' ); ?></th>
+<td>
+	<?php
+	wp_enqueue_media();
+	wp_enqueue_script( 'site-icon' );
+
+	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
+	$classes_for_update_button = 'button';
+	$classes_for_wrapper       = '';
+
+	if ( has_site_icon() ) {
+		$classes_for_wrapper         .= ' has-site-icon';
+		$classes_for_button           = $classes_for_update_button;
+		$classes_for_button_on_change = $classes_for_upload_button;
+	} else {
+		$classes_for_wrapper         .= ' hidden';
+		$classes_for_button           = $classes_for_upload_button;
+		$classes_for_button_on_change = $classes_for_update_button;
+	}
+
+	// Handle alt text for site icon on page load.
+	$site_icon_id           = (int) get_option( 'site_icon' );
+	$app_icon_alt_value     = '';
+	$browser_icon_alt_value = '';
+
+	if ( $site_icon_id ) {
+		$img_alt            = get_post_meta( $site_icon_id, '_wp_attachment_image_alt', true );
+		$filename           = wp_basename( get_site_icon_url() );
+		$app_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'App icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		$browser_icon_alt_value = sprintf(
+			/* translators: %s: The selected image filename. */
+			__( 'Browser icon preview: The current image has no alternative text. The file name is: %s' ),
+			$filename
+		);
+
+		if ( $img_alt ) {
+			$app_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'App icon preview: Current image: %s' ),
+				$img_alt
+			);
+
+			$browser_icon_alt_value = sprintf(
+				/* translators: %s: The selected image alt text. */
+				__( 'Browser icon preview: Current image: %s' ),
+				$img_alt
+			);
+		}
+	}
+	?>
+
+
+	<div id="site-icon-preview" class="site-icon-preview wp-clearfix settings-page-preview <?php echo esc_attr( $classes_for_wrapper ); ?>">
+		<div class="favicon-preview">
+			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" alt="">
+			<div class="favicon">
+				<img id="browser-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $browser_icon_alt_value ); ?>">
+			</div>
+			<span id="site-icon-preview-site-title" class="browser-title" aria-hidden="true"><?php bloginfo( 'name' ); ?></span>
+		</div>
+		<img id="app-icon-preview" class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>">
+	</div>
+
+	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
+	<div class="action-buttons">
+		<button type="button"
+			id="choose-from-library-button"
+			type="button"
+			class="<?php echo esc_attr( $classes_for_button ); ?>"
+			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
+			data-size="512"
+			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
+			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
+			data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
+			data-state="<?php echo esc_attr( has_site_icon() ); ?>"
+
+		>
+			<?php if ( has_site_icon() ) : ?>
+				<?php _e( 'Change Site Icon' ); ?>
+			<?php else : ?>
+				<?php _e( 'Choose a Site Icon' ); ?>
+			<?php endif; ?>
+		</button>
+		<button
+			id="js-remove-site-icon"
+			type="button"
+			<?php echo has_site_icon() ? 'class="button button-secondary reset"' : 'class="button button-secondary reset hidden"'; ?>
+		>
+			<?php _e( 'Remove Site Icon' ); ?>
+		</button>
+	</div>
+
+	<p class="description">
+		<?php
+			/* translators: %s: Site Icon size in pixels. */
+			printf( __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least %s pixels.' ), '<code>512 &times; 512</code>' );
+		?>
+	</p>
+
+</td>
+</tr>
+
+	<?php
+endif;
+	/* End Site Icon */
+
 if ( ! is_multisite() ) {
 	$wp_site_url_class = '';
 	$wp_home_class     = '';
@@ -105,8 +234,8 @@ if ( ! is_multisite() ) {
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
-			__( 'Enter the address here if you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
-			__( 'https://wordpress.org/support/article/giving-wordpress-its-own-directory/' )
+			__( 'Enter the same address here unless you <a href="%s">want your site home page to be different from your WordPress installation directory</a>.' ),
+			__( 'https://developer.wordpress.org/advanced-administration/server/wordpress-in-directory/' )
 		);
 		?>
 </p>
@@ -122,25 +251,25 @@ if ( ! is_multisite() ) {
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
-if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
-	?>
-	<div class="updated inline">
-	<p>
-	<?php
-		printf(
-			/* translators: %s: New admin email. */
-			__( 'There is a pending change of the admin email to %s.' ),
-			'<code>' . esc_html( $new_admin_email ) . '</code>'
-		);
-		printf(
-			' <a href="%1$s">%2$s</a>',
-			esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
-			__( 'Cancel' )
-		);
-	?>
-	</p>
-	</div>
-<?php endif; ?>
+if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
+	$pending_admin_email_message = sprintf(
+		/* translators: %s: New admin email. */
+		__( 'There is a pending change of the admin email to %s.' ),
+		'<code>' . esc_html( $new_admin_email ) . '</code>'
+	);
+	$pending_admin_email_message .= sprintf(
+		' <a href="%1$s">%2$s</a>',
+		esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
+		__( 'Cancel' )
+	);
+	wp_admin_notice(
+		$pending_admin_email_message,
+		array(
+			'additional_classes' => array( 'updated', 'inline' ),
+		)
+	);
+}
+?>
 </td>
 </tr>
 
@@ -148,7 +277,12 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) :
 
 <tr>
 <th scope="row"><?php _e( 'Membership' ); ?></th>
-<td> <fieldset><legend class="screen-reader-text"><span><?php _e( 'Membership' ); ?></span></legend><label for="users_can_register">
+<td> <fieldset><legend class="screen-reader-text"><span>
+	<?php
+	/* translators: Hidden accessibility text. */
+	_e( 'Membership' );
+	?>
+</span></legend><label for="users_can_register">
 <input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?> />
 	<?php _e( 'Anyone can register' ); ?></label>
 </fieldset></td>
@@ -214,13 +348,13 @@ $tzstring       = get_option( 'timezone_string' );
 $check_zone_info = true;
 
 // Remove old Etc mappings. Fallback to gmt_offset.
-if ( false !== strpos( $tzstring, 'Etc/GMT' ) ) {
+if ( str_contains( $tzstring, 'Etc/GMT' ) ) {
 	$tzstring = '';
 }
 
 if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	$check_zone_info = false;
-	if ( 0 == $current_offset ) {
+	if ( 0 === (int) $current_offset ) {
 		$tzstring = 'UTC+0';
 	} elseif ( $current_offset < 0 ) {
 		$tzstring = 'UTC' . $current_offset;
@@ -314,7 +448,12 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 <tr>
 <th scope="row"><?php _e( 'Date Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Date Format' ); ?></span></legend>
+	<fieldset><legend class="screen-reader-text"><span>
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Date Format' );
+		?>
+	</span></legend>
 <?php
 	/**
 	 * Filters the default date formats.
@@ -339,8 +478,14 @@ foreach ( $date_formats as $format ) {
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
-	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' . __( 'enter a custom date format in the following field' ) . '</span></span></label>' .
-		'<label for="date_format_custom" class="screen-reader-text">' . __( 'Custom date format:' ) . '</label>' .
+	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
+			/* translators: Hidden accessibility text. */
+			__( 'enter a custom date format in the following field' ) .
+		'</span></span></label>' .
+		'<label for="date_format_custom" class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'Custom date format:' ) .
+		'</label>' .
 		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'date_format' ) ) . '</span>' .
@@ -352,7 +497,12 @@ foreach ( $date_formats as $format ) {
 <tr>
 <th scope="row"><?php _e( 'Time Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Time Format' ); ?></span></legend>
+	<fieldset><legend class="screen-reader-text"><span>
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Time Format' );
+		?>
+	</span></legend>
 <?php
 	/**
 	 * Filters the default time formats.
@@ -376,14 +526,20 @@ foreach ( $time_formats as $format ) {
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
-	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' . __( 'enter a custom time format in the following field' ) . '</span></span></label>' .
-		'<label for="time_format_custom" class="screen-reader-text">' . __( 'Custom time format:' ) . '</label>' .
+	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
+			/* translators: Hidden accessibility text. */
+			__( 'enter a custom time format in the following field' ) .
+		'</span></span></label>' .
+		'<label for="time_format_custom" class="screen-reader-text">' .
+			/* translators: Hidden accessibility text. */
+			__( 'Custom time format:' ) .
+		'</label>' .
 		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .
 		'<br />' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'time_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
 
-	echo "\t<p class='date-time-doc'>" . __( '<a href="https://wordpress.org/support/article/formatting-date-and-time/">Documentation on date and time formatting</a>.' ) . "</p>\n";
+	echo "\t<p class='date-time-doc'>" . __( '<a href="https://wordpress.org/documentation/article/customize-date-and-time-format/">Documentation on date and time formatting</a>.' ) . "</p>\n";
 ?>
 	</fieldset>
 </td>
@@ -398,7 +554,7 @@ foreach ( $time_formats as $format ) {
 global $wp_locale;
 
 for ( $day_index = 0; $day_index <= 6; $day_index++ ) :
-	$selected = ( get_option( 'start_of_week' ) == $day_index ) ? 'selected="selected"' : '';
+	$selected = ( (int) get_option( 'start_of_week' ) === $day_index ) ? 'selected="selected"' : '';
 	echo "\n\t<option value='" . esc_attr( $day_index ) . "' $selected>" . $wp_locale->get_weekday( $day_index ) . '</option>';
 endfor;
 ?>
