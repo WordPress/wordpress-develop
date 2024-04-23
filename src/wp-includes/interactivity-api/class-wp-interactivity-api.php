@@ -297,7 +297,7 @@ final class WP_Interactivity_API {
 			 * We still process the rest of the HTML.
 			 */
 			if ( 'SVG' === $tag_name || 'MATH' === $tag_name ) {
-				if ( $p->get_attribute_names_with_prefix( 'data-wp-' ) ) {
+				if ( $p->get_attribute_names_with_prefix( 'data-wp-' ) || str_contains( $p->get_updated_html(), 'data-wp-' ) ) {
 					/* translators: 1: SVG or MATH HTML tag. */
 					$message = sprintf( '%1s tags are currently incompatible with the directives processing. Please refrain from adding directives to them.', $tag_name );
 					_doing_it_wrong( __METHOD__, $message, '6.6' );
@@ -392,6 +392,7 @@ final class WP_Interactivity_API {
 				}
 			}
 		}
+
 		/*
 		 * It returns null if the HTML is unbalanced because unbalanced HTML is
 		 * not safe to process. In that case, the Interactivity API runtime will

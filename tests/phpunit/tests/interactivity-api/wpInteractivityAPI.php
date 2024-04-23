@@ -759,7 +759,8 @@ JSON;
 			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
-		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::process_directives_args' );
+		$p = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'div' );
 		$this->assertNull( $p->get_attribute( 'id' ) );
 	}
