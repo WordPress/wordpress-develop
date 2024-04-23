@@ -127,7 +127,7 @@ function wp_deregister_script_module( string $id ) {
 
 function wp_register_default_script_modules(): void {
 	add_filter(
-		'scriptmoduleconfig_@wordpress/api-fetch',
+		'scriptmoduledata_@wordpress/api-fetch',
 		function ( $data ) {
 			return array_merge(
 				$data,

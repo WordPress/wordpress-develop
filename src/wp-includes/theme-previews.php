@@ -55,7 +55,7 @@ function wp_attach_theme_preview_middleware() {
 	);
 
 	add_filter(
-		'scriptmoduleconfig_@wordpress/api-fetch',
+		'scriptmoduledata_@wordpress/api-fetch',
 		function ( $data ) {
 			return array_merge(
 				$data,

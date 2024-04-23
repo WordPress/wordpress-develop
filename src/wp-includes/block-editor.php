@@ -767,7 +767,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		'after'
 	);
 	add_filter(
-		'scriptmoduleconfig_@wordpress/api-fetch',
+		'scriptmoduledata_@wordpress/api-fetch',
 		function ( $data ) use ( $preload_data ) {
 			return array_merge(
 				$data,

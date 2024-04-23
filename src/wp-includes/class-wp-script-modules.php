@@ -378,7 +378,7 @@ class WP_Script_Modules {
 					wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_AMP ),
 					array(
 						'type' => 'application/json',
-						'id'   => 'wp-config-data_' . $module_id,
+						'id'   => 'wp-scriptmodule-data_' . $module_id,
 					)
 				);
 			}
