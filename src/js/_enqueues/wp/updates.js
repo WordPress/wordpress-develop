@@ -1130,7 +1130,7 @@
 			},
 			noticeTarget;
 
-		wp.a11y.speak( __( 'Activation completed successfully.' ) );
+		wp.a11y.speak( __( 'Activation completed successfully. Some changes may not occur until you refresh the page.' ) );
 		$document.trigger( 'wp-plugin-activate-success', response );
 
 		$message
