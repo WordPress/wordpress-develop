@@ -114,6 +114,13 @@ final class WP_Term {
 	 * @var int|null
 	 */
 	public $cat_ID;
+	public $category_count;
+	public $category_description;
+	public $cat_name;
+	public $category_nicename;
+	public $category_parent;
+	public $link;
+	public $errors;
 
 	/**
 	 * Menu's auto_add setting.
