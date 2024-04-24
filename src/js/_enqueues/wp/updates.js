@@ -1165,11 +1165,7 @@
 			wp.updates.addAdminNotice( noticeData );
 		}
 
-		setTimeout( function() {
-			$message.removeClass( 'activated-message' )
-			.text( _x( 'Active', 'plugin' ) );
-
-			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+			setTimeout( function() {
 				wp.updates.setCardButtonStatus(
 					{
 						status: 'plugin-active',
