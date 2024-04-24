@@ -117,7 +117,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 
 		// get_term() will only be update the cache if the 'filter' prop is unset.
-		unset( $term_object->filter );
+		$term_object->filter = null;
 
 		$term_object_2 = get_term( $term_object, 'wptests_tax' );
 
