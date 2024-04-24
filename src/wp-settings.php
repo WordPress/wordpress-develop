@@ -252,6 +252,7 @@ require ABSPATH . WPINC . '/http.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-attribute-token.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-span.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-text-replacement.php';
+require ABSPATH . WPINC . '/html-api/class-wp-html-decoder.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-tag-processor.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-unsupported-exception.php';
 require ABSPATH . WPINC . '/html-api/class-wp-html-active-formatting-elements.php';
