@@ -765,7 +765,7 @@ HTML
 	 *
 	 * @ticket 60170
 	 *
-	 * @since 6.6.6
+	 * @since 6.6.0
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_token
 	 *
@@ -800,16 +800,16 @@ HTML
 	 */
 	public static function data_various_funky_comments() {
 		return array(
-			'Space'             => array( '</ >', ' ' ),
-			'Short-bang'        => array( '</!>', '!' ),
-			'Markup Decl. Like' => array( '</?>', '?' ),
-			'Short-slash'       => array( '<//>', '/' ),
-			'Bit (no attrs)'    => array( '<//wp:post-meta>', '/wp:post-meta' ),
-			'Bit (attrs)'       => array( '<//wp:post-meta key=isbn>', '/wp:post-meta key=isbn' ),
-			'Curly-wrapped'     => array( '</{json}>', '{json}' ),
-			'Before P'          => array( '</1><p>', '1' ),
-			'After P'           => array( '<p></__("Read more")></p>', '__("Read more")' ),
-			'References'        => array( '</&gt;>', '&gt;' ),
+			'Space'          => array( '</ >', ' ' ),
+			'Short-bang'     => array( '</!>', '!' ),
+			'Question mark'  => array( '</?>', '?' ),
+			'Short-slash'    => array( '<//>', '/' ),
+			'Bit (no attrs)' => array( '<//wp:post-meta>', '/wp:post-meta' ),
+			'Bit (attrs)'    => array( '<//wp:post-meta key=isbn>', '/wp:post-meta key=isbn' ),
+			'Curly-wrapped'  => array( '</{json}>', '{json}' ),
+			'Before P'       => array( '</1><p>', '1' ),
+			'After P'        => array( '<p></__("Read more")></p>', '__("Read more")' ),
+			'Reference'      => array( '</&gt;>', '&gt;' ),
 		);
 	}
 
