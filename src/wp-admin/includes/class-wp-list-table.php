@@ -1043,6 +1043,15 @@ class WP_List_Table {
 
 		$current_url = remove_query_arg( $removable_query_args, $current_url );
 
+		/**
+		 * Filters the base URL for pagination links.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $current_url Pagination base URL.
+		 */
+		$current_url = apply_filters( 'pagination_base_url', $current_url );
+
 		$page_links = array();
 
 		$total_pages_before = '<span class="paging-input">';
@@ -1395,6 +1404,15 @@ class WP_List_Table {
 
 		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 		$current_url = remove_query_arg( 'paged', $current_url );
+
+		/**
+		 * Filters the base URL for column header links.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param string $current_url Column header base URL.
+		 */
+		$current_url = apply_filters( 'column_header_base_url', $current_url );
 
 		// When users click on a column header to sort by other columns.
 		if ( isset( $_GET['orderby'] ) ) {
