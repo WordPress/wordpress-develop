@@ -8073,7 +8073,8 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 		$mime_types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
 	}
 
-	return $mime_types;
+	// Remove nulls from returned $mime_types.
+	return array_filter( $mime_types );
 }
 
 /**
