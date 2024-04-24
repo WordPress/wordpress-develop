@@ -1154,6 +1154,8 @@
 			// Add a notice to the modal's footer.
 			$message.replaceWith( wp.updates.adminNotice( noticeData ) );
 
+			// Send notice information back to the parent screen.
+			noticeTarget = window.parent === window ? null : window.parent;
 			$.support.postMessage = !! window.postMessage;
 			if ( false !== $.support.postMessage && null !== noticeTarget && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
 				noticeTarget.postMessage(
@@ -1161,9 +1163,6 @@
 					window.location.origin
 				);
 			}
-		} else {
-			wp.updates.addAdminNotice( noticeData );
-		}
 
 			setTimeout( function() {
 				wp.updates.setCardButtonStatus(
@@ -1179,8 +1178,11 @@
 						)
 					}
 				);
-			}
-		}, 1000 );
+			}, 1000 );
+		} else {
+			// Add a notice to the top of the screen.
+			wp.updates.addAdminNotice( noticeData );
+		}
 	};
 
 	/**
