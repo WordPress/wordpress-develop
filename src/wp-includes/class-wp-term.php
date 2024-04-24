@@ -108,6 +108,22 @@ final class WP_Term {
 	public $object_id;
 
 	/**
+	 * Stores the object ID.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
+	public $cat_ID;
+
+	/**
+	 * Menu's auto_add setting.
+	 *
+	 * @since 6.6.0
+	 * @var bool
+	 */
+	public $auto_add;
+
+	/**
 	 * Stores the sanitized term data.
 	 *
 	 * @since 6.6.0
