@@ -3486,5 +3486,22 @@
 				} );
 			}
 		);
+
+		/**
+		 * Click handler for page refresh link.
+		 *
+		 * @since 6.5.3
+		 *
+		 * @param {Event} event Event interface.
+		 */
+		$document.on( 'click', '.refresh-page', function( e ) {
+			e.preventDefault();
+
+			if ( window.parent === window ) {
+				window.location.reload();
+			} else {
+				window.parent.location.reload();
+			}
+		});
 	} );
 })( jQuery, window.wp, window._wpUpdatesSettings );
