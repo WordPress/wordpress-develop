@@ -1112,6 +1112,7 @@
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
+			isInModal = 'plugin-information-footer' === $message.parent().attr( 'id' ),
 			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
@@ -1139,7 +1140,7 @@
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
 
-		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
+		if ( isInModal ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'activated-plugin',
@@ -1163,8 +1164,13 @@
 					window.location.origin
 				);
 			}
+		} else {
+			// Add a notice to the top of the screen.
+			wp.updates.addAdminNotice( noticeData );
+		}
 
-			setTimeout( function() {
+		setTimeout( function() {
+			if ( isInModal ) {
 				wp.updates.setCardButtonStatus(
 					{
 						status: 'plugin-active',
@@ -1178,11 +1184,10 @@
 						)
 					}
 				);
-			}, 1000 );
-		} else {
-			// Add a notice to the top of the screen.
-			wp.updates.addAdminNotice( noticeData );
-		}
+			} else {
+				$message.removeClass( 'activated-message' ).text( _x( 'Active', 'plugin' ) );
+			}
+		}, 1000 );
 	};
 
 	/**
