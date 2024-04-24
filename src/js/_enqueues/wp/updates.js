@@ -1120,7 +1120,7 @@
 			),
 			noticeData = {
 				id: 'plugin-activated-successfully',
-				className: 'notice notice-success',
+				className: 'notice-success',
 				message: sprintf(
 					/* translators: %s: The plugin's name. */
 					__( '%s was activated successfully. Some changes may not occur until you refresh the page.' ),
