@@ -37,7 +37,6 @@ class Tests_Get_Available_Post_Mime_Types extends WP_UnitTestCase {
 
 		$mime_types = get_available_post_mime_types();
 
-		$this->assertIsArray( $mime_types );
 		$this->assertSame( array( 'image/jpeg', 'application/pdf' ), $mime_types );
 	}
 
@@ -49,7 +48,6 @@ class Tests_Get_Available_Post_Mime_Types extends WP_UnitTestCase {
 		add_filter( 'pre_get_available_post_mime_types', array( $this, 'filter_add_null_to_post_mime_types' ) );
 
 		$mime_types = get_available_post_mime_types();
-		$this->assertIsArray( $mime_types );
 		$this->assertEqualsCanonicalizing( array( 'image/jpeg', 'image/png' ), $mime_types );
 
 		// Remove filter.
