@@ -1362,8 +1362,8 @@ EOF;
 	 * @ticket 33121
 	 */
 	public function test_wp_kses_attr_data_attribute_is_allowed() {
-		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invalid="gone"  data-also-invalid-="gone" data-two-hyphens="remains">Pens and pencils</div>';
-		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
+		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--double-dash="retained"  data-trailing-dash-="allowable" data-two-hyphens="remains">Pens and pencils</div>';
+		$expected = '<div data-foo="foo" data-bar="bar" data--double-dash="retained" data-trailing-dash-="allowable" data-two-hyphens="remains">Pens and pencils</div>';
 
 		$this->assertSame( $expected, wp_kses_post( $test ) );
 	}
