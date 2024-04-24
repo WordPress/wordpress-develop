@@ -1151,7 +1151,8 @@
 				}
 			);
 
-			noticeTarget = window.parent === window ? null : window.parent;
+			// Add a notice to the modal's footer.
+			$message.replaceWith( wp.updates.adminNotice( noticeData ) );
 
 			$.support.postMessage = !! window.postMessage;
 			if ( false !== $.support.postMessage && null !== noticeTarget && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
