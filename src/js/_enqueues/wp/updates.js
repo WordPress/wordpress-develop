@@ -3493,14 +3493,14 @@
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$document.on( 'click', '.refresh-page', function( e ) {
-			e.preventDefault();
+		$document.on( 'click', '.refresh-page', function( event ) {
+			event.preventDefault();
 
 			if ( window.parent === window ) {
 				window.location.reload();
 			} else {
 				window.parent.location.reload();
 			}
-		});
+		} );
 	} );
 })( jQuery, window.wp, window._wpUpdatesSettings );
