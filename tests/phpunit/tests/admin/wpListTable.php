@@ -532,10 +532,10 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		// Test with Non-Assosiative arrays.
 		$_REQUEST['orderby'] = array(
 			'menu_order' => 'ASC',
-			'title' => 'ASC'
-		);		
+			'title' => 'ASC',
+		);
 		ob_start();
-		$wp_list_table = WP_List_Table();
+		$wp_list_table =  new WP_List_Table();
 
 		$wp_list_table->search_box();
 
@@ -551,8 +551,8 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		// Test with Non-Assosiative arrays.
 		$_REQUEST['orderby'] = array(
 			'menu_order',
-			'menu_order2'
-		);		
+			'menu_order2',
+		);
 		ob_start();
 
 		$wp_list_table->search_box();
@@ -569,7 +569,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		// Test with a single element in Array.
 		$_REQUEST['orderby'] = array(
 			'menu_order' => 'ASC'
-		);		
+		);
 		ob_start();
 
 		$wp_list_table->search_box();
