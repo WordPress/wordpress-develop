@@ -1590,40 +1590,43 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		 * @param string $file Plugin basename.
 		 * @return void
 		 */
-		add_action( "after_plugin_row_{$dependent}", function( $file ) {
-			/** @var WP_Plugins_List_Table $wp_list_table */
-			$wp_list_table = _get_list_table(
-				'WP_Plugins_List_Table',
-				array(
-					'screen' => get_current_screen(),
-				)
-			);
-
-			$is_active     = is_multisite() ? is_plugin_active_for_network( $file ) : is_plugin_active( $file );
-			$notice        = '';
-			$error_message = '';
-			if ( WP_Plugin_Dependencies::has_unmet_dependencies( $file ) ) {
-				if ( $is_active ) {
-					$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
-				} else {
-					$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
-				}
-				$notice = wp_get_admin_notice(
-					$error_message,
+		add_action(
+			"after_plugin_row_{$dependent}",
+			function ( $file ) {
+				/** @var WP_Plugins_List_Table $wp_list_table */
+				$wp_list_table = _get_list_table(
+					'WP_Plugins_List_Table',
 					array(
-						'type'               => 'error',
-						'additional_classes' => array( 'update-message', 'inline', 'notice-alt' ),
+						'screen' => get_current_screen(),
 					)
 				);
 
-				printf(
-					'<tr class="plugin-update-tr%s"><td colspan="%s" class="plugin-update colspanchange">%s</td></tr>',
-					( $is_active ) ? ' active' : '',
-					esc_attr( $wp_list_table->get_column_count() ),
-					wp_kses_post( $notice )
-				);
+				$is_active     = is_multisite() ? is_plugin_active_for_network( $file ) : is_plugin_active( $file );
+				$notice        = '';
+				$error_message = '';
+				if ( WP_Plugin_Dependencies::has_unmet_dependencies( $file ) ) {
+					if ( $is_active ) {
+						$error_message = __( 'This plugin is active but may not function correctly because required plugins are missing or inactive.' );
+					} else {
+						$error_message = __( 'This plugin cannot be activated because required plugins are missing or inactive.' );
+					}
+					$notice = wp_get_admin_notice(
+						$error_message,
+						array(
+							'type'               => 'error',
+							'additional_classes' => array( 'update-message', 'inline', 'notice-alt' ),
+						)
+					);
+
+					printf(
+						'<tr class="plugin-update-tr%s"><td colspan="%s" class="plugin-update colspanchange">%s</td></tr>',
+						( $is_active ) ? ' active' : '',
+						esc_attr( $wp_list_table->get_column_count() ),
+						wp_kses_post( $notice )
+					);
+				}
 			}
-		} );
+		);
 	}
 
 	/**
