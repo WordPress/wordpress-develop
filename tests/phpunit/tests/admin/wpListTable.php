@@ -535,9 +535,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 			'title' => 'ASC',
 		);
 		ob_start();
-		$wp_list_table =  new WP_List_Table();
+		$wp_list_table = new WP_List_Table();
 
-		$wp_list_table->search_box();
+		$wp_list_table->search_box( 'Search Pages', 'post' );
 
 		$output = ob_get_contents();
 		ob_end_clean();
@@ -555,7 +555,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		);
 		ob_start();
 
-		$wp_list_table->search_box();
+		$wp_list_table->search_box( 'Search Pages', 'post' );
 
 		$output = ob_get_contents();
 		ob_end_clean();
@@ -568,11 +568,11 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 
 		// Test with a single element in Array.
 		$_REQUEST['orderby'] = array(
-			'menu_order' => 'ASC'
+			'menu_order' => 'ASC',
 		);
 		ob_start();
 
-		$wp_list_table->search_box();
+		$wp_list_table->search_box( 'Search Pages', 'post' );
 
 		$output = ob_get_contents();
 		ob_end_clean();
