@@ -3304,9 +3304,8 @@ class WP_Query {
 			 *      @type string $fields   The SELECT clause of the query.
 			 *      @type string $limits   The LIMIT clause of the query.
 			 * }
-			 * @param array    $q Defined query variables.
 			 */
-			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, compact( $pieces ), $q );
+			$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this, $old_request, compact( $pieces ) );
 
 			if ( $split_the_query ) {
 				// First get the IDs and then fill in the objects.
