@@ -10,6 +10,13 @@
  */
 
 class Tests_Get_Available_Post_Mime_Types extends WP_UnitTestCase {
+
+	public function tear_down() {
+		// Remove all uploads.
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
+
 	/**
 	 * Test get_available_post_mime_types.
 	 */
