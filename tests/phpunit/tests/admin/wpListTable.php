@@ -530,10 +530,14 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 */
 	public function test_search_box_working_with_array_of_orderby() {
 		// Test with Non-Assosiative arrays.
-		$_REQUEST['orderby'] = [ 'menu_order' => 'ASC', 'title' => 'ASC' ];
+		$_REQUEST['orderby'] = array(
+			'menu_order' => 'ASC',
+			'title' => 'ASC'
+		);		
 		ob_start();
+		$wp_list_table = WP_List_Table();
 
-		WP_List_Table->search_box();
+		$wp_list_table->search_box();
 
 		$output = ob_get_contents();
 		ob_end_clean();
@@ -541,14 +545,17 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$expected_html1 = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
 		$expected_html2 = '<input type="hidden" name="orderby[title]" value="ASC" />';
 
-		$this->assertTrue( strpos($output, $expected_html1) !== false );
-		$this->assertTrue( strpos($output, $expected_html2) !== false );
+		$this->assertTrue( strpos( $output, $expected_html1 ) !== false );
+		$this->assertTrue( strpos( $output, $expected_html2 ) !== false );
 
 		// Test with Non-Assosiative arrays.
-		$_REQUEST['orderby'] = [ 'menu_order', 'menu_order2' ];
+		$_REQUEST['orderby'] = array(
+			'menu_order',
+			'menu_order2'
+		);		
 		ob_start();
 
-		WP_List_Table->search_box();
+		$wp_list_table->search_box();
 
 		$output = ob_get_contents();
 		ob_end_clean();
@@ -556,20 +563,22 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$expected_html3 = '<input type="hidden" name="orderby[0]" value="menu_order" />';
 		$expected_html4 = '<input type="hidden" name="orderby[1]" value="menu_order2" />';
 
-		$this->assertTrue( strpos($output, $expected_html3) !== false );
-		$this->assertTrue( strpos($output, $expected_html4) !== false );
+		$this->assertTrue( strpos( $output, $expected_html3 ) !== false );
+		$this->assertTrue( strpos( $output, $expected_html4 ) !== false );
 
 		// Test with a single element in Array.
-		$_REQUEST['orderby'] = [ 'menu_order' => 'ASC' ];
+		$_REQUEST['orderby'] = array(
+			'menu_order' => 'ASC'
+		);		
 		ob_start();
 
-		WP_List_Table->search_box();
+		$wp_list_table->search_box();
 
 		$output = ob_get_contents();
 		ob_end_clean();
 
 		$expected_html = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
 
-		$this->assertTrue( strpos($output, $expected_html) !== false );
+		$this->assertTrue( strpos( $output, $expected_html ) !== false );
 	}
 }
