@@ -1,42 +1,14 @@
 <?php
 
+require_once __DIR__ . '/Admin_WpAutomaticUpdater_TestCase.php';
+
 /**
  * @group admin
  * @group upgrade
  *
  * @covers WP_Automatic_Updater
  */
-class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
-	/**
-	 * An instance of WP_Automatic_Updater.
-	 *
-	 * @var WP_Automatic_Updater
-	 */
-	private static $updater;
-
-	/**
-	 * WP_Automatic_Updater::send_plugin_theme_email
-	 * made accessible.
-	 *
-	 * @var ReflectionMethod
-	 */
-	private static $send_plugin_theme_email;
-
-	/**
-	 * Sets up shared fixtures.
-	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-automatic-updater.php';
-		self::$updater = new WP_Automatic_Updater();
-
-		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );
-		self::$send_plugin_theme_email->setAccessible( true );
-	}
-
-	public function set_up() {
-		parent::set_up();
-		add_filter( 'pre_wp_mail', '__return_false' );
-	}
+class Tests_Admin_WpAutomaticUpdater extends Admin_WpAutomaticUpdater_TestCase {
 
 	/**
 	 * Tests that `WP_Automatic_Updater::send_plugin_theme_email()` appends
