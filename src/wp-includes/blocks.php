@@ -1043,11 +1043,11 @@ function insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( &$parsed_a
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
  *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
  */
-function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' ) {
+function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks before the given block, injects the `theme` attribute into Template Part blocks, and returns the serialized markup.
 	 *
@@ -1100,11 +1100,11 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  *                                                       or pattern that the blocks belong to.
  * @param callable                        $callback      A function that will be called for each block to generate
  *                                                       the markup for a given list of blocks that are hooked to it.
- *                                                       Default: 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'.
+ *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
  */
-function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' ) {
+function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
 	 * Injects hooked blocks after the given block, and returns the serialized markup.
 	 *
