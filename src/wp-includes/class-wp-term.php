@@ -113,14 +113,14 @@ final class WP_Term {
 	 * @since 6.6.0
 	 * @var int|null
 	 */
-	public $cat_ID = 0;
-	public $category_count = 0;
-	public $category_description = '';
-	public $cat_name = '';
-	public $category_nicename = '';
-	public $category_parent = 0;
-	public $link = '';
-	public $id = 0;
+	public $cat_ID;
+	public $category_count;
+	public $category_description;
+	public $cat_name;
+	public $category_nicename;
+	public $category_parent;
+	public $link;
+	public $id;
 
 	/**
 	 * Menu's auto_add setting.
@@ -128,7 +128,7 @@ final class WP_Term {
 	 * @since 6.6.0
 	 * @var bool
 	 */
-	public $auto_add = false;
+	public $auto_add;
 
 	/**
 	 * Retrieve WP_Term instance.
@@ -250,15 +250,14 @@ final class WP_Term {
 	 * @return array Object as array.
 	 */
 	public function to_array() {
-		$object_data = get_object_vars( $this );
-		return $object_data;
+		return get_object_vars( $this );
 	}
 
 	/**
 	 * Getter.
 	 *
 	 * @since 4.4.0
-	 * @since 6.6.0 Getting a dynamic property is deprecated.
+	 * @since 6.6.0 Getting dynamic class properties is deprecated.
 	 *
 	 * @param string $key Property to get.
 	 * @return object|null Property value.
@@ -302,7 +301,8 @@ final class WP_Term {
 	 * @return bool True if the property exists, false otherwise.
 	 */
 	public function __isset( $key ) {
-		return false;
+		// Only the "data" dynamic property is supported.
+		return 'data' === $key;
 	}
 
 	/**
@@ -316,6 +316,11 @@ final class WP_Term {
 	 * @param mixed  $value The value to set.
 	 */
 	public function __set( $key, $value ) {
+		if ( 'data' === $key ) {
+			// Since "data" is a read-only property, setting it should have no effect.
+			return;
+		}
+
 		wp_trigger_error(
 			__METHOD__,
 			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
@@ -333,6 +338,11 @@ final class WP_Term {
 	 * @param string $key The name of the property to unset.
 	 */
 	public function __unset( $key ) {
+		if ( 'data' === $key ) {
+			// Since "data" is a read-only property, unsetting it should have no effect.
+			return;
+		}
+
 		wp_trigger_error(
 			__METHOD__,
 			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
