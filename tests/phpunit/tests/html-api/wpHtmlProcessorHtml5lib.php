@@ -294,9 +294,10 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					}
 
 					// Finish previous test.
-					$test_line_number = $line_number;
-					$test_html        = '';
-					$test_dom         = '';
+					$test_line_number     = $line_number;
+					$test_html            = '';
+					$test_dom             = '';
+					$test_context_element = 'body';
 				}
 
 				$state = trim( substr( $line, 1 ) );
