@@ -317,9 +317,6 @@ final class WP_Interactivity_API {
 					 * stops processing it.
 					 */
 					$unbalanced = true;
-					/* translators: %s: Tag that caused the error, could by any HTML tag. */
-					$message = sprintf( __( 'Due to an unbalanced %s tag in the processed HTML, the directives will not be server side processed, JS runtime still work, but there will be a layout shift.' ), $tag_name );
-					_doing_it_wrong( __METHOD__, $message, '6.6' );
 					break;
 				} else {
 					// Remove the last tag from the stack.
@@ -392,13 +389,20 @@ final class WP_Interactivity_API {
 				}
 			}
 		}
-
 		/*
 		 * It returns null if the HTML is unbalanced because unbalanced HTML is
 		 * not safe to process. In that case, the Interactivity API runtime will
-		 * update the HTML on the client side during the hydration.
+		 * update the HTML on the client side during the hydration. It will also
+		 * display a notice to the developer to inform them about the issue.
 		 */
-		return $unbalanced || 0 < count( $tag_stack ) ? null : $p->get_updated_html();
+		if ( $unbalanced || 0 < count( $tag_stack ) ) {
+			/* translators: %s: Tag that caused the error, could by any HTML tag. */
+			$message = sprintf( __( 'Due to an unbalanced %s tag in the processed HTML, the directives will not be server side processed, JS runtime still work, but there will be a layout shift.' ), $tag_name );
+			_doing_it_wrong( __METHOD__, $message, '6.6' );
+			return null;
+		}
+
+		return $p->get_updated_html();
 	}
 
 	/**

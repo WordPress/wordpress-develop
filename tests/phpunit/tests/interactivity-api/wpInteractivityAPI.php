@@ -649,8 +649,10 @@ JSON;
 	 *
 	 * @dataProvider data_html_with_unbalanced_tags
 	 *
-	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
+	 *
+	 * @param string $html HTML containing unbalanced tags and also a directive.
+	 *
 	 */
 	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
