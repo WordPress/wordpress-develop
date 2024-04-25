@@ -31,19 +31,19 @@ class Tests_Category_MakeCatCompat extends WP_UnitTestCase {
 		$testcat2_array['term_id'] = $testcat2->term_id;
 
 		// Unset properties to enable validation of object.
-		unset( $testcat->cat_ID );
-		unset( $testcat->category_count );
-		unset( $testcat->category_description );
-		unset( $testcat->cat_name );
-		unset( $testcat->category_nicename );
-		unset( $testcat->category_parent );
+		$testcat->cat_ID               = null;
+		$testcat->category_count       = null;
+		$testcat->category_description = null;
+		$testcat->cat_name             = null;
+		$testcat->category_nicename    = null;
+		$testcat->category_parent      = null;
 
-		unset( $testcat2->cat_ID );
-		unset( $testcat2->category_count );
-		unset( $testcat2->category_description );
-		unset( $testcat2->cat_name );
-		unset( $testcat2->category_nicename );
-		unset( $testcat2->category_parent );
+		$testcat2->cat_ID               = null;
+		$testcat2->category_count       = null;
+		$testcat2->category_description = null;
+		$testcat2->cat_name             = null;
+		$testcat2->category_nicename    = null;
+		$testcat2->category_parent      = null;
 
 		// Make compatible.
 		_make_cat_compat( $testcat );

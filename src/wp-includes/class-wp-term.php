@@ -121,6 +121,7 @@ final class WP_Term {
 	public $category_parent;
 	public $link;
 	public $errors;
+	public $id;
 
 	/**
 	 * Menu's auto_add setting.
