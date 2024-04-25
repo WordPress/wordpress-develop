@@ -88,6 +88,9 @@ module.exports = function(grunt) {
 	// Load PostCSS tasks.
 	grunt.loadNpmTasks('@lodder/grunt-postcss');
 
+	// Load ESLint tasks.
+	grunt.loadNpmTasks('grunt-eslint');
+
 	// Project configuration.
 	grunt.initConfig({
 		postcss: {
@@ -598,7 +601,7 @@ module.exports = function(grunt) {
 			}
 		},
 		eslint: {
-
+			target: ['.']
 		},
 		qunit: {
 			files: [
@@ -1130,15 +1133,6 @@ module.exports = function(grunt) {
 	// Color schemes task.
 	grunt.registerTask('colors', ['sass:colors', 'postcss:colors']);
 
-	// JSHint task.
-	grunt.registerTask( 'jshint:corejs', [
-		'jshint:grunt',
-		'jshint:tests',
-		'jshint:themes',
-		'jshint:core',
-		'jshint:media'
-	] );
-
 	grunt.registerTask( 'restapi-jsclient', [
 		'phpunit:restapi-jsclient',
 		'qunit:compiled'
@@ -1197,7 +1191,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'precommit:js', [
 		'webpack:prod',
-		'jshint:corejs',
+		'eslint',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment',
