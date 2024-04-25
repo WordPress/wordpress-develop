@@ -722,7 +722,6 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_process_directives_does_not_change_inner_html_in_svgs() {
 		$this->interactivity->state(
