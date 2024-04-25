@@ -108,25 +108,74 @@ final class WP_Term {
 	public $object_id;
 
 	/**
-	 * Stores the object ID.
+	 * Stores the category ID.
 	 *
 	 * @since 6.6.0
 	 * @var int|null
 	 */
 	public $cat_ID;
+
+	/**
+	 * Stores the category count.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
 	public $category_count;
+
+	/**
+	 * Stores the description of the category.
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
 	public $category_description;
+
+	/**
+	 * Stores the name of the category.
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
 	public $cat_name;
+
+	/**
+	 * Stores the 'nice' name of the category (used in URLs).
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
 	public $category_nicename;
+
+	/**
+	 * Stores the ID of the parent category.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
 	public $category_parent;
+
+	/**
+	 * Stores the link associated with the term.
+	 *
+	 * @since 6.6.0
+	 * @var string|null
+	 */
 	public $link;
+
+	/**
+	 * Stores the term ID.
+	 *
+	 * @since 6.6.0
+	 * @var int|null
+	 */
 	public $id;
 
 	/**
-	 * Menu's auto_add setting.
+	 * Indicates whether the menu should automatically add new top-level pages.
 	 *
 	 * @since 6.6.0
-	 * @var bool
+	 * @var bool|null
 	 */
 	public $auto_add;
 
