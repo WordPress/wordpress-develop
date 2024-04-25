@@ -113,15 +113,14 @@ final class WP_Term {
 	 * @since 6.6.0
 	 * @var int|null
 	 */
-	public $cat_ID;
-	public $category_count;
-	public $category_description;
-	public $cat_name;
-	public $category_nicename;
-	public $category_parent;
-	public $link;
-	public $errors;
-	public $id;
+	public $cat_ID = 0;
+	public $category_count = 0;
+	public $category_description = '';
+	public $cat_name = '';
+	public $category_nicename = '';
+	public $category_parent = 0;
+	public $link = '';
+	public $id = 0;
 
 	/**
 	 * Menu's auto_add setting.
@@ -129,15 +128,7 @@ final class WP_Term {
 	 * @since 6.6.0
 	 * @var bool
 	 */
-	public $auto_add;
-
-	/**
-	 * Stores the sanitized term data.
-	 *
-	 * @since 6.6.0
-	 * @var stdClass|null
-	 */
-	private $data;
+	public $auto_add = false;
 
 	/**
 	 * Retrieve WP_Term instance.
@@ -260,9 +251,6 @@ final class WP_Term {
 	 */
 	public function to_array() {
 		$object_data = get_object_vars( $this );
-		// Don't return the "data" class property to ensure backward compatibility.
-		unset( $object_data['data'] );
-
 		return $object_data;
 	}
 
@@ -285,8 +273,8 @@ final class WP_Term {
 			return null;
 		}
 
-		$this->data = new stdClass();
-		$columns    = array(
+		$data    = new stdClass();
+		$columns = array(
 			'term_id',
 			'name',
 			'slug',
@@ -298,10 +286,10 @@ final class WP_Term {
 			'count',
 		);
 		foreach ( $columns as $column ) {
-			$this->data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
+			$data->{$column} = isset( $this->{$column} ) ? $this->{$column} : null;
 		}
 
-		return sanitize_term( $this->data, $this->data->taxonomy, 'raw' );
+		return sanitize_term( $data, $data->taxonomy, 'raw' );
 	}
 
 	/**
@@ -314,10 +302,6 @@ final class WP_Term {
 	 * @return bool True if the property exists, false otherwise.
 	 */
 	public function __isset( $key ) {
-		if ( 'data' === $key ) {
-			return isset( $this->data );
-		}
-
 		return false;
 	}
 
@@ -332,11 +316,6 @@ final class WP_Term {
 	 * @param mixed  $value The value to set.
 	 */
 	public function __set( $key, $value ) {
-		if ( 'data' === $key ) {
-			$this->data = $value;
-			return;
-		}
-
 		wp_trigger_error(
 			__METHOD__,
 			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
@@ -354,11 +333,6 @@ final class WP_Term {
 	 * @param string $key The name of the property to unset.
 	 */
 	public function __unset( $key ) {
-		if ( 'data' === $key ) {
-			unset( $this->$key );
-			return;
-		}
-
 		wp_trigger_error(
 			__METHOD__,
 			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
