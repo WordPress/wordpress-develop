@@ -117,6 +117,8 @@ class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_wp_text_sets_inner_content_even_with_unbalanced_but_different_tags_inside_content() {
 		$html     = '<div data-wp-text="myPlugin::state.text"><span>Text</div>';
@@ -131,6 +133,8 @@ class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_wp_text_fails_with_unbalanced_and_same_tags_inside_content() {
 		$html     = '<div data-wp-text="myPlugin::state.text">Text<div></div>';
