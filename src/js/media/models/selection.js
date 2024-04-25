@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 var Attachments = wp.media.model.Attachments,
 	Selection;
 

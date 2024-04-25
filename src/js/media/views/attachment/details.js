@@ -1,4 +1,6 @@
+/* eslint jsdoc/valid-types: "off" */
 /* global ClipboardJS */
+
 var Attachment = wp.media.view.Attachment,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,
@@ -32,8 +34,6 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 * Copies the attachment URL to the clipboard.
 	 *
 	 * @since 5.5.0
-	 *
-	 * @param {MouseEvent} event A click event.
 	 *
 	 * @return {void}
 	 */

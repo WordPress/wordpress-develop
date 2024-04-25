@@ -251,7 +251,7 @@
 
 		/**
 		 * Updates the count of the available widgets that have the `search_matched` attribute.
- 		 */
+		 */
 		updateSearchMatchesCount: function() {
 			this.searchMatchesCount = this.collection.where({ search_matched: true }).length;
 		},
@@ -271,7 +271,7 @@
 
 		/**
 		 * Changes visibility of available widgets.
- 		 */
+		 */
 		updateList: function() {
 			this.collection.each( function( widget ) {
 				var widgetTpl = $( '#widget-tpl-' + widget.id );
@@ -284,7 +284,7 @@
 
 		/**
 		 * Highlights a widget.
- 		 */
+		 */
 		select: function( widgetTpl ) {
 			this.selected = $( widgetTpl );
 			this.selected.siblings( '.widget-tpl' ).removeClass( 'selected' );
@@ -312,7 +312,7 @@
 
 		/**
 		 * Adds a selected widget to the sidebar.
- 		 */
+		 */
 		submit: function( widgetTpl ) {
 			var widgetId, widget, widgetFormControl;
 
@@ -970,7 +970,7 @@
 		 *
 		 * @param {boolean}   active
 		 * @param {Object}    args
-		 * @param {function}  args.completeCallback
+		 * @param {Function}  args.completeCallback
 		 */
 		onChangeActive: function ( active, args ) {
 			// Note: there is a second 'args' parameter being passed, merged on top of this.defaultActiveArguments.
@@ -1133,7 +1133,7 @@
 			sidebarWidgetsControl = api.control( settingId );
 
 			if ( ! sidebarWidgetsControl ) {
-				return;
+				return undefined;
 			}
 
 			return sidebarWidgetsControl;
@@ -1341,9 +1341,9 @@
 		/**
 		 * @since 4.1.0
 		 *
-		 * @param {Boolean} expanded
+		 * @param {boolean} expanded
 		 * @param {Object} [params]
-		 * @return {Boolean} False if state already applied.
+		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -1351,7 +1351,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already expanded.
+		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -1368,7 +1368,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already collapsed.
+		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -1507,7 +1507,7 @@
 			position = _.indexOf( sidebarWidgetIds, this.params.widget_id );
 
 			if ( position === -1 ) {
-				return;
+				return undefined;
 			}
 
 			return position;
@@ -2228,7 +2228,7 @@
 		if ( control ) {
 			control.highlightSectionAndControl();
 		}
-	},
+	};
 
 	/**
 	 * Focus a widget control.
@@ -2241,7 +2241,7 @@
 		if ( control ) {
 			control.focus();
 		}
-	},
+	};
 
 	/**
 	 * Given a widget control, find the sidebar widgets control that contains it.

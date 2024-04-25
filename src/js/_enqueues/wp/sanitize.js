@@ -18,7 +18,7 @@
 		 *
 		 * @param {string} text Text to have the HTML tags striped out of.
 		 *
-		 * @return  Stripped text.
+		 * @return {string} Stripped text.
 		 */
 		stripTags: function( text ) {
 			text = text || '';
@@ -44,7 +44,7 @@
 		 *
 		 * @param {string} text Text to strip tags and convert HTML entities.
 		 *
-		 * @return Sanitized text. False on failure.
+		 * @return {string} Sanitized text.
 		 */
 		stripTagsAndEncodeText: function( text ) {
 			var _text = wp.sanitize.stripTags( text ),

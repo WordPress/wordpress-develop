@@ -85,6 +85,7 @@
 
 				window.location = url;
 			} else {
+				// eslint-disable-next-line @wordpress/valid-sprintf -- Rule struggles with string concatenation.
 				message = wp.i18n.sprintf(
 					/* translators: %s: Application name. */
 					'<label for="new-application-password-value">' + wp.i18n.__( 'Your new password for %s is:' ) + '</label>',

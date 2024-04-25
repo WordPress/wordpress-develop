@@ -192,7 +192,7 @@
 	 *
 	 * @namespace wp.playlist
 	 * @since 4.9.3
-	 * @type {object}
+	 * @type {Object}
 	 */
 	window.wp.playlist = {
 		initialize: initialize

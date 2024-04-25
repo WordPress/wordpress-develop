@@ -2,7 +2,7 @@
  * @output wp-admin/js/customize-controls.js
  */
 
-/* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer, console, confirm */
+/* global _wpCustomizeHeader, _wpCustomizeBackground, _wpMediaViewsL10n, MediaElementPlayer */
 (function( exports, $ ){
 	var Container, focus, normalizedTransitionendEventName, api = wp.customize;
 
@@ -18,7 +18,7 @@
 		 * Whether the notification should show a loading spinner.
 		 *
 		 * @since 4.9.0
-		 * @var {boolean}
+		 * @member {boolean}
 		 */
 		loading: false,
 
@@ -88,7 +88,7 @@
 		 * The default constructor for items of the collection.
 		 *
 		 * @since 4.9.0
-		 * @type {object}
+		 * @type {Object}
 		 */
 		defaultConstructor: api.Notification,
 
@@ -346,7 +346,7 @@
 		 * Default params.
 		 *
 		 * @since 4.9.0
-		 * @var {object}
+		 * @member {Object}
 		 */
 		defaults: {
 			transport: 'refresh',
@@ -468,7 +468,7 @@
 	 * @alias wp.customize._latestSettingRevisions
 	 *
 	 * @since 4.7.0
-	 * @type {object}
+	 * @type {Object}
 	 * @protected
 	 */
 	api._latestSettingRevisions = {};
@@ -1118,7 +1118,7 @@
 		onChangeActive: function( active, args ) {
 			var construct = this,
 				headContainer = construct.headContainer,
-				duration, expandedOtherPanel;
+				duration;
 
 			if ( args.unchanged ) {
 				if ( args.completeCallback ) {
@@ -1133,7 +1133,6 @@
 				// If this is a panel is not currently expanded but another panel is expanded, do not animate.
 				api.panel.each(function ( panel ) {
 					if ( panel !== construct && panel.expanded() ) {
-						expandedOtherPanel = panel;
 						duration = 0;
 					}
 				});
@@ -1278,7 +1277,7 @@
 		 * @since 4.7.0
 		 * @private
 		 *
-		 * @param {function} completeCallback Function to be called after transition is completed.
+		 * @param {Function} completeCallback Function to be called after transition is completed.
 		 * @return {void}
 		 */
 		_animateChangeExpanded: function( completeCallback ) {
@@ -3335,7 +3334,7 @@
 				{
 					theme: themeId,
 					changeset_uuid: api.settings.changeset.uuid,
-					'return': api.settings.url['return']
+					'return': api.settings.url.return
 				}
 			);
 
@@ -3478,7 +3477,7 @@
 		 * Default params.
 		 *
 		 * @since 4.9.0
-		 * @var {object}
+		 * @member {Object}
 		 */
 		defaults: {
 			label: '',
@@ -3599,7 +3598,7 @@
 
 			settings = {};
 			if ( control.params.setting ) {
-				settings['default'] = control.params.setting;
+				settings.default = control.params.setting;
 			}
 			_.extend( settings, control.params.settings );
 
@@ -3628,12 +3627,12 @@
 				} );
 
 				// Make sure settings passed as array gets associated with default.
-				if ( control.settings[0] && ! control.settings['default'] ) {
-					control.settings['default'] = control.settings[0];
+				if ( control.settings[0] && ! control.settings.default ) {
+					control.settings.default = control.settings[0];
 				}
 
 				// Identify the main setting.
-				control.setting = control.settings['default'] || null;
+				control.setting = control.settings.default || null;
 
 				control.linkElements(); // Link initial elements present in server-rendered content.
 				control.embed();
@@ -4290,11 +4289,15 @@
 		},
 
 		pausePlayer: function () {
-			this.player && this.player.pause();
+			if ( this.player ) {
+				this.player.pause();
+			}
 		},
 
 		cleanupPlayer: function () {
-			this.player && wp.media.mixin.removePlayer( this.player );
+			if ( this.player ) {
+				wp.media.mixin.removePlayer( this.player );
+			}
 		},
 
 		/**
@@ -6239,6 +6242,7 @@
 		 * @constructs wp.customize.PreviewFrame
 		 * @augments   wp.customize.Messenger
 		 *
+		 * @param {Object} params
 		 * @param {Object} params.container
 		 * @param {Object} params.previewUrl
 		 * @param {Object} params.query
@@ -6477,12 +6481,13 @@
 		 * @constructs wp.customize.Previewer
 		 * @augments   wp.customize.Messenger
 		 *
-		 * @param {Array}  params.allowedUrls
+		 * @param {Object} params             Params
+		 * @param {Array}  params.allowedUrls List of allowed URLs.
 		 * @param {string} params.container   A selector or jQuery element for the preview
 		 *                                    frame to be placed.
 		 * @param {string} params.form
 		 * @param {string} params.previewUrl  The URL to preview.
-		 * @param {Object} options
+		 * @param {Object} options            Options.
 		 */
 		initialize: function( params, options ) {
 			var previewer = this,
@@ -7737,7 +7742,7 @@
 			 *
 			 * @since 4.9.0
 			 *
-			 * @return {jQuery.promise} Promise.
+			 * @return {void}
 			 */
 			trash: function trash() {
 				var request, success, fail;
@@ -7768,7 +7773,7 @@
 					urlParser.href = location.href;
 					queryParams = api.utils.parseQueryString( urlParser.search.substr( 1 ) );
 					delete queryParams.changeset_uuid;
-					queryParams['return'] = api.settings.url['return'];
+					queryParams.return = api.settings.url.return;
 					urlParser.search = $.param( queryParams );
 					location.replace( urlParser.href );
 				};
@@ -8129,7 +8134,7 @@
 				/**
 				 * Lock user.
 				 *
-				 * @type {object}
+				 * @type {Object}
 				 */
 				lockUser: null,
 
@@ -8172,7 +8177,7 @@
 					data = _.extend(
 						{
 							allowOverride: false,
-							returnUrl: api.settings.url['return'],
+							returnUrl: api.settings.url.return,
 							previewUrl: api.previewer.previewUrl.get(),
 							frontendPreviewUrl: api.previewer.getFrontendPreviewUrl()
 						},
@@ -8305,7 +8310,7 @@
 				} else {
 					queryParams.customize_autosaved = 'on';
 				}
-				queryParams['return'] = api.settings.url['return'];
+				queryParams.return = api.settings.url.return;
 				urlParser.search = $.param( queryParams );
 				return urlParser.href;
 			}
@@ -8773,7 +8778,7 @@
 		// Set the default device.
 		api.bind( 'ready', function() {
 			_.find( api.settings.previewableDevices, function( value, key ) {
-				if ( true === value['default'] ) {
+				if ( true === value.default ) {
 					api.previewedDevice.set( key );
 					return true;
 				}

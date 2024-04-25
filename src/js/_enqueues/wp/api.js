@@ -2,7 +2,7 @@
  * @output wp-includes/js/wp-api.js
  */
 
-(function( window, undefined ) {
+(function( window ) {
 
 	'use strict';
 
@@ -49,7 +49,7 @@
 	 *
 	 * @param {string} route    The API route.
 	 *
-	 * @return {Backbone Model} The model found at given route. Undefined if not found.
+	 * @return {Backbone.Model} The model found at given route. Undefined if not found.
 	 */
 	wp.api.getModelByRoute = function( route ) {
 		return _.find( wp.api.models, function( model ) {
@@ -62,7 +62,7 @@
 	 *
 	 * @param {string} route    The API route.
 	 *
-	 * @return {Backbone Model} The collection found at given route. Undefined if not found.
+	 * @return {Backbone.Model} The collection found at given route. Undefined if not found.
 	 */
 	wp.api.getCollectionByRoute = function( route ) {
 		return _.find( wp.api.collections, function( collection ) {
@@ -100,7 +100,7 @@
 	/**
 	 * Parse date into ISO8601 format.
 	 *
-	 * @param {Date} date.
+	 * @param {Date} date Date object.
 	 */
 	wp.api.utils.parseISO8601 = function( date ) {
 		var timestamp, struct, i, k,
@@ -142,7 +142,7 @@
 
 	/**
 	 * Helper function for getting the root URL.
-	 * @return {[type]} [description]
+	 * @return {string} Root URL.
 	 */
 	wp.api.utils.getRootUrl = function() {
 		return window.location.origin ?
@@ -288,7 +288,7 @@
 	/**
 	 * Add mixins and helpers to models depending on their defaults.
 	 *
-	 * @param {Backbone Model} model          The model to attach helpers and mixins to.
+	 * @param {Backbone.Model} model          The model to attach helpers and mixins to.
 	 * @param {string}         modelClassName The classname of the constructed model.
 	 * @param {Object} 	       loadingObjects An object containing the models and collections we are building.
 	 */
@@ -310,7 +310,7 @@
 			 * to or from the server. For example, a date stored as `2015-12-27T21:22:24` on the server
 			 * gets expanded to `Sun Dec 27 2015 14:22:24 GMT-0700 (MST)` when the model is fetched.
 			 *
-			 * @type {{toJSON: toJSON, parse: parse}}.
+			 * @type {{setDate: Function, getDate: Function}}
 			 */
 			TimeStampedMixin = {
 
@@ -366,7 +366,7 @@
 			 * @param {string} embedSourcePoint Where to check the embedded object for _embed data.
 			 * @param {string} embedCheckField  Which model field to check to see if the model has data.
 			 *
-			 * @return {Deferred.promise}        A promise which resolves to the constructed model.
+			 * @return {jQuery.Deferred.promise}        A promise which resolves to the constructed model.
 			 */
 			buildModelGetter = function( parentModel, modelId, modelName, embedSourcePoint, embedCheckField ) {
 				var getModel, embeddedObjects, attributes, deferred;
@@ -419,7 +419,7 @@
 			 * @param {string} embedSourcePoint Where to check the embedded object for _embed data.
 			 * @param {string} embedIndex       An additional optional index for the _embed data.
 			 *
-			 * @return {Deferred.promise} A promise which resolves to the constructed collection.
+			 * @return {jQuery.Deferred.promise} A promise which resolves to the constructed collection.
 			 */
 			buildCollectionGetter = function( parentModel, collectionName, embedSourcePoint, embedIndex ) {
 				/**
@@ -428,7 +428,7 @@
 				 * Uses the embedded data if available, otherwise fetches the
 				 * data from the server.
 				 *
-				 * @return {Deferred.promise} promise Resolves to a wp.api.collections[ collectionName ]
+				 * @return {jQuery.Deferred.promise} promise Resolves to a wp.api.collections[ collectionName ]
 				 * collection.
 				 */
 				var postId, embeddedObjects, getObjects,
@@ -570,7 +570,7 @@
 				/**
 				 * Get the tags for a post.
 				 *
-				 * @return {Deferred.promise} promise Resolves to an array of tags.
+				 * @return {jQuery.Deferred.promise} promise Resolves to an array of tags.
 				 */
 				getTags: function() {
 					var tagIds = this.get( 'tags' ),
@@ -590,7 +590,6 @@
 				 * Accepts an array of tag slugs, or a Tags collection.
 				 *
 				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
-				 *
 				 */
 				setTags: function( tags ) {
 					var allTags, newTag,
@@ -636,7 +635,6 @@
 				 * Accepts a Tags collection.
 				 *
 				 * @param {Array|Backbone.Collection} tags The tags to set on the post.
-				 *
 				 */
 				setTagsWithCollection: function( tags ) {
 
@@ -652,9 +650,9 @@
 			CategoriesMixin = {
 
 				/**
-				 * Get a the categories for a post.
+				 * Get the categories for a post.
 				 *
-				 * @return {Deferred.promise} promise Resolves to an array of categories.
+				 * @return {jQuery.Deferred.promise} promise Resolves to an array of categories.
 				 */
 				getCategories: function() {
 					var categoryIds = this.get( 'categories' ),
@@ -674,7 +672,6 @@
 				 * Accepts an array of category slugs, or a Categories collection.
 				 *
 				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
-				 *
 				 */
 				setCategories: function( categories ) {
 					var allCategories, newCategory,
@@ -721,7 +718,6 @@
 				 * Accepts Categories collection.
 				 *
 				 * @param {Array|Backbone.Collection} categories The categories to set on the post.
-				 *
 				 */
 				setCategoriesWithCollection: function( categories ) {
 
@@ -801,10 +797,7 @@
 
 })( window );
 
-/* global wpApiSettings:false */
-
 // Suppress warning about parse function's unused "options" argument:
-/* jshint unused:false */
 (function() {
 
 	'use strict';
@@ -816,16 +809,15 @@
 	 * Backbone base model for all models.
 	 */
 	wp.api.WPApiBaseModel = Backbone.Model.extend(
-		/** @lends WPApiBaseModel.prototype  */
+		/** @lends wp.api.WPApiBaseModel.prototype  */
 		{
 
 			// Initialize the model.
 			initialize: function() {
 
 				/**
-				* Types that don't support trashing require passing ?force=true to delete.
-				*
-				*/
+				 * Types that don't support trashing require passing ?force=true to delete.
+				 */
 				if ( -1 === _.indexOf( trashableTypes, this.name ) ) {
 					this.requireForceForDelete = true;
 				}
@@ -834,9 +826,9 @@
 			/**
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string} method.
-			 * @param {Backbone.Model} model.
-			 * @param {{beforeSend}, *} options.
+			 * @param {string} method
+			 * @param {Backbone.Model} model
+			 * @param {{beforeSend?: (xhr: XMLHttpRequest) => void}} options
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
@@ -927,7 +919,7 @@
 	 * API Schema model. Contains meta information about the API.
 	 */
 	wp.api.models.Schema = wp.api.WPApiBaseModel.extend(
-		/** @lends Schema.prototype  */
+		/** @lends wp.api.models.Schema.prototype  */
 		{
 			defaults: {
 				_links: {},
@@ -956,13 +948,11 @@
 
 	'use strict';
 
-	var wpApiSettings = window.wpApiSettings || {};
-
 	/**
 	 * Contains basic collection functionality such as pagination.
 	 */
 	wp.api.WPApiBaseCollection = Backbone.Collection.extend(
-		/** @lends BaseCollection.prototype  */
+		/** @lends wp.api.WPApiBaseCollection.prototype  */
 		{
 
 			/**
@@ -987,9 +977,9 @@
 			 *
 			 * Set nonce header before every Backbone sync.
 			 *
-			 * @param {string} method.
-			 * @param {Backbone.Model} model.
-			 * @param {{success}, *} options.
+			 * @param {string} method
+			 * @param {Backbone.Model} model
+			 * @param {{success?: Function}} options
 			 * @return {*}.
 			 */
 			sync: function( method, model, options ) {
@@ -1064,8 +1054,8 @@
 			/**
 			 * Fetches the next page of objects if a new page exists.
 			 *
-			 * @param {data: {page}} options.
-			 * @return {*}.
+			 * @param {{data: {page}}} options
+			 * @return {*}
 			 */
 			more: function( options ) {
 				options = options || {};

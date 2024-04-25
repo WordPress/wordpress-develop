@@ -2,7 +2,7 @@
  * @output wp-admin/js/customize-nav-menus.js
  */
 
-/* global _wpCustomizeNavMenusSettings, wpNavMenu, console */
+/* global _wpCustomizeNavMenusSettings, wpNavMenu */
 ( function( api, wp, $ ) {
 	'use strict';
 
@@ -1850,7 +1850,7 @@
 					menuItemControl = api.control( 'nav_menu_item[' + String( menuItemId ) + ']' );
 
 					// Check for duplicate menu items.
-					if ( menuItemControl && deleteItemOriginalItemId == menuItemControl.params.original_item_id ) {
+					if ( menuItemControl && deleteItemOriginalItemId === menuItemControl.params.original_item_id ) {
 						instanceCounter++;
 					}
 				} );
@@ -2015,9 +2015,9 @@
 		/**
 		 * @since 4.6.0
 		 *
-		 * @param {Boolean} expanded
+		 * @param {boolean} expanded
 		 * @param {Object} [params]
-		 * @return {Boolean} False if state already applied.
+		 * @return {boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -2025,7 +2025,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already expanded.
+		 * @return {boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -2045,7 +2045,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @return {Boolean} False if already collapsed.
+		 * @return {boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -3395,7 +3395,7 @@
 	 *
 	 * @alias wp.customize.Menus.getMenuControl
 	 *
-	 * @param menuId
+	 * @param {string} menuId
 	 * @return {wp.customize.controlConstructor.menus[]}
 	 */
 	api.Menus.getMenuControl = function( menuId ) {

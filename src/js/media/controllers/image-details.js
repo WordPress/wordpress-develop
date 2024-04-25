@@ -15,7 +15,7 @@ var State = wp.media.controller.State,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object}                    [attributes]                       The attributes hash passed to the state.
+ * @param {Object}                    [attributes]                       The attributes hash passed to the state.
  * @param {string}                    [attributes.id=image-details]      Unique identifier.
  * @param {string}                    [attributes.title=Image Details]   Title for the state. Displays in the frame's title region.
  * @param {wp.media.model.Attachment} attributes.image                   The image's model.
@@ -44,7 +44,7 @@ ImageDetails = State.extend(/** @lends wp.media.controller.ImageDetails.prototyp
 	/**
 	 * @since 3.9.0
 	 *
-	 * @param options Attributes
+	 * @param {Object} options Attributes
 	 */
 	initialize: function( options ) {
 		this.image = options.image;

@@ -13,7 +13,7 @@ var l10n = wp.media.view.l10n,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object} attributes                         The attributes hash passed to the state.
+ * @param {Object} attributes                         The attributes hash passed to the state.
  * @param {string} [attributes.id=embed]              Unique identifier.
  * @param {string} [attributes.title=Insert From URL] Title for the state. Displays in the media menu and the frame's title region.
  * @param {string} [attributes.content=embed]         Initial mode for the content region.
@@ -23,7 +23,7 @@ var l10n = wp.media.view.l10n,
  * @param {int}    [attributes.priority=120]          The priority for the state link in the media menu.
  * @param {string} [attributes.type=link]             The type of embed. Currently only link is supported.
  * @param {string} [attributes.url]                   The embed URL.
- * @param {object} [attributes.metadata={}]           Properties of the embed, which will override attributes.url if set.
+ * @param {Object} [attributes.metadata={}]           Properties of the embed, which will override attributes.url if set.
  */
 Embed = wp.media.controller.State.extend(/** @lends wp.media.controller.Embed.prototype */{
 	defaults: {

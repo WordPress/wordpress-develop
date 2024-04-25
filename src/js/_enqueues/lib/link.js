@@ -152,8 +152,6 @@
 		},
 
 		refresh: function( url, text ) {
-			var linkText = '';
-
 			// Refresh rivers (clear links, check visibility).
 			rivers.search.refresh();
 			rivers.recent.refresh();
@@ -168,7 +166,7 @@
 
 				if ( document.selection ) {
 					// Old IE.
-					linkText = document.selection.createRange().text || text || '';
+					text = document.selection.createRange().text || text || '';
 				} else if ( typeof this.textarea.selectionStart !== 'undefined' &&
 					( this.textarea.selectionStart !== this.textarea.selectionEnd ) ) {
 					// W3C.
@@ -349,7 +347,7 @@
 			var parser = document.createElement( 'a' );
 			parser.href = attrs.href;
 
-			if ( 'javascript:' === parser.protocol || 'data:' === parser.protocol ) { // jshint ignore:line
+			if ( 'javascript:' === parser.protocol || 'data:' === parser.protocol ) {
 				attrs.href = '';
 			}
 
@@ -409,7 +407,7 @@
 			var parser = document.createElement( 'a' );
 			parser.href = attrs.href;
 
-			if ( 'javascript:' === parser.protocol || 'data:' === parser.protocol ) { // jshint ignore:line
+			if ( 'javascript:' === parser.protocol || 'data:' === parser.protocol ) {
 				attrs.href = '';
 			}
 

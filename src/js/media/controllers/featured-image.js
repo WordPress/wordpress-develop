@@ -15,7 +15,7 @@ var Attachment = wp.media.model.Attachment,
  * @augments wp.media.controller.State
  * @augments Backbone.Model
  *
- * @param {object}                     [attributes]                          The attributes hash passed to the state.
+ * @param {Object}                     [attributes]                          The attributes hash passed to the state.
  * @param {string}                     [attributes.id=featured-image]        Unique identifier.
  * @param {string}                     [attributes.title=Set Featured Image] Title for the state. Displays in the media menu and the frame's title region.
  * @param {wp.media.model.Attachments} [attributes.library]                  The attachments collection to browse.

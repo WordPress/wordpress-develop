@@ -1,4 +1,3 @@
-/* global wp */
 jQuery( 'body' ).on( 'load', function() {
 
 	var api = wp.customize,

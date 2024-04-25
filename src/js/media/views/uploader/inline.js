@@ -110,7 +110,7 @@ UploaderInline = View.extend(/** @lends wp.media.view.UploaderInline.prototype *
 
 			// Check if we've already replaced the placeholder.
 			if ( $placeholder[0] === $browser[0] ) {
-				return;
+				return undefined;
 			}
 
 			$browser.detach().text( $placeholder.text() );

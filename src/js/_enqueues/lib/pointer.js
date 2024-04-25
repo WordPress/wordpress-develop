@@ -146,7 +146,7 @@
 		 *
 		 * @param {Object} event The event that caused the update.
 		 *
-		 * @return {Promise} Resolves when the update has been executed.
+		 * @return {?Promise} Resolves when the update has been executed.
 		 */
 		update: function( event ) {
 			var self = this,
@@ -155,7 +155,7 @@
 				content;
 
 			if ( o.disabled )
-				return;
+				return undefined;
 
 			dfd.done( function( content ) {
 				self._update( event, content );

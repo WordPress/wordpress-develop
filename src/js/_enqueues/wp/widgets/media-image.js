@@ -31,7 +31,7 @@
 		/**
 		 * View events.
 		 *
-		 * @type {object}
+		 * @type {Object}
 		 */
 		events: _.extend( {}, component.MediaWidgetControl.prototype.events, {
 			'click .media-widget-preview.populated': 'editMedia'
@@ -54,7 +54,7 @@
 			previewContainer.addClass( 'populated' );
 
 			linkInput = control.$el.find( '.link' );
-			if ( ! linkInput.is( document.activeElement ) ) {
+			if ( ! linkInput.is( linkInput.ownerDocument.activeElement ) ) {
 				fieldsContainer = control.$el.find( '.media-widget-fields' );
 				fieldsTemplate = wp.template( 'wp-media-widget-image-fields' );
 				fieldsContainer.html( fieldsTemplate( control.previewTemplateProps.toJSON() ) );

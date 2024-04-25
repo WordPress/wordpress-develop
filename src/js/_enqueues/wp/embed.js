@@ -64,7 +64,7 @@
 				height = parseInt( data.value, 10 );
 				if ( height > 1000 ) {
 					height = 1000;
-				} else if ( ~~height < 200 ) {
+				} else if ( ~~height < 200 ) { // eslint-disable-line no-bitwise
 					height = 200;
 				}
 
@@ -90,7 +90,7 @@
 			i, source, secret;
 
 		for ( i = 0; i < iframes.length; i++ ) {
-			/** @var {IframeElement} */
+			/** @member {IFrameElement} source */
 			source = iframes[ i ];
 
 			secret = source.getAttribute( 'data-secret' );

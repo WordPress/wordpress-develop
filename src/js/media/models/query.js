@@ -15,10 +15,10 @@ var Attachments = wp.media.model.Attachments,
  * @augments wp.media.model.Attachments
  * @augments Backbone.Collection
  *
- * @param {array}  [models]                      Models to initialize with the collection.
- * @param {object} [options]                     Options hash.
- * @param {object} [options.args]                Attachments query arguments.
- * @param {object} [options.args.posts_per_page]
+ * @param {Array}  [models]                      Models to initialize with the collection.
+ * @param {Object} [options]                     Options hash.
+ * @param {Object} [options.args]                Attachments query arguments.
+ * @param {Object} [options.args.posts_per_page]
  */
 Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	/**
@@ -210,9 +210,9 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * Caches query objects and reuses where possible.
 	 *
 	 * @static
-	 * @method
+	 * @function
 	 *
-	 * @param {object} [props]
+	 * @param {Object} [props]
 	 * @param {Object} [props.order]
 	 * @param {Object} [props.orderby]
 	 * @param {Object} [props.include]
@@ -231,7 +231,7 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	get: (function(){
 		/**
 		 * @static
-		 * @type Array
+		 * @type {Array}
 		 */
 		var queries = [];
 

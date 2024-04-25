@@ -220,7 +220,7 @@
 		 * @param {Object} settings Video settings.
 		 * @return {boolean}
 		 */
-		test: function() {
+		test: function( settings ) { // eslint-disable-line no-unused-vars
 			return false;
 		},
 
@@ -240,7 +240,7 @@
 	 * @memberOf wp
 	 *
 	 * @param {Object} protoProps Properties to apply to the prototype.
-	 * @return CustomHandler The subclass.
+	 * @return {CustomHandler} The subclass.
 	 */
 	BaseHandler.extend = function( protoProps ) {
 		var prop;

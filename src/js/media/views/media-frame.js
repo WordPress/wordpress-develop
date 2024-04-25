@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 var Frame = wp.media.view.Frame,
 	l10n = wp.media.view.l10n,
 	$ = jQuery,

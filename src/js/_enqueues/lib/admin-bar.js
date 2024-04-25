@@ -240,7 +240,7 @@
 	 * @since 5.3.1 Use querySelector to clean up the function.
 	 *
 	 * @param {Event} event The click event.
-	 * @return {boolean} Returns false to prevent default click behavior.
+	 * @return {boolean|undefined} Returns false to prevent default click behavior.
 	 */
 	function clickShortlink( event ) {
 		var wrapper = event.target.parentNode,

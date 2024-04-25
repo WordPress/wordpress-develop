@@ -1,7 +1,3 @@
-/* globals wp, Backbone */
-/* jshint qunit: true */
-/* eslint-env qunit */
-
 ( function() {
 	'use strict';
 

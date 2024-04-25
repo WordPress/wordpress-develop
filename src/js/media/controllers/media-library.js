@@ -24,7 +24,7 @@ MediaLibrary = Library.extend(/** @lends wp.media.controller.MediaLibrary.protot
 	/**
 	 * @since 3.9.0
 	 *
-	 * @param options
+	 * @param {Object} options
 	 */
 	initialize: function( options ) {
 		this.media = options.media;

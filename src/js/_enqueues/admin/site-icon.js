@@ -5,8 +5,6 @@
  * @output wp-admin/js/site-icon.js
  */
 
-/* global jQuery, wp */
-
 ( function ( $ ) {
 	var $chooseButton = $( '#choose-from-library-button' ),
 		$iconPreview = $( '#site-icon-preview' ),
@@ -139,7 +137,7 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {array} attributes The attributes for the attachment.
+	 * @param {Array} attributes The attributes for the attachment.
 	 */
 	function switchToUpdate( attributes ) {
 		var i18nAppAlternativeString, i18nBrowserAlternativeString;

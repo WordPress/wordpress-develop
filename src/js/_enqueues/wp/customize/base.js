@@ -2,6 +2,9 @@
  * @output wp-includes/js/customize-base.js
  */
 
+/* eslint jsdoc/check-param-names: "off" */
+/* eslint jsdoc/require-returns-type: "off" */
+
 /** @namespace wp */
 window.wp = window.wp || {};
 
@@ -17,10 +20,10 @@ window.wp = window.wp || {};
 	 * Similar to `goog.inherits`, but uses a hash of prototype properties and
 	 * class properties to be extended.
 	 *
-	 * @param object parent      Parent class constructor to inherit from.
-	 * @param object protoProps  Properties to apply to the prototype for use as class instance properties.
-	 * @param object staticProps Properties to apply directly to the class constructor.
-	 * @return child The subclassed constructor.
+	 * @param {Object} parent      Parent class constructor to inherit from.
+	 * @param {Object} protoProps  Properties to apply to the prototype for use as class instance properties.
+	 * @param {Object} staticProps Properties to apply directly to the class constructor.
+	 * @return {Function} The subclassed constructor.
 	 */
 	inherits = function( parent, protoProps, staticProps ) {
 		var child;
@@ -108,8 +111,8 @@ window.wp = window.wp || {};
 	/**
 	 * Creates a subclass of the class.
 	 *
-	 * @param object protoProps  Properties to apply to the prototype.
-	 * @param object staticProps Properties to apply directly to the class.
+	 * @param {Object} protoProps  Properties to apply to the prototype.
+	 * @param {Object} staticProps Properties to apply directly to the class.
 	 * @return child The subclass.
 	 */
 	api.Class.extend = function( protoProps, staticProps ) {
@@ -183,7 +186,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Value
 	 *
-	 * @constructor
+	 * @class
 	 */
 	api.Value = api.Class.extend(/** @lends wp.customize.Value.prototype */{
 		/**
@@ -325,7 +328,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Values
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events
 	 */
@@ -334,7 +337,7 @@ window.wp = window.wp || {};
 		/**
 		 * The default constructor for items of the collection.
 		 *
-		 * @type {object}
+		 * @type {Object}
 		 */
 		defaultConstructor: api.Value,
 
@@ -372,7 +375,7 @@ window.wp = window.wp || {};
 		 * Get the instance of an item.
 		 *
 		 * @param {string} id The ID of the item.
-		 * @return {[type]} [description]
+		 * @return {*}
 		 */
 		value: function( id ) {
 			return this._value[ id ];
@@ -494,7 +497,7 @@ window.wp = window.wp || {};
 		 * For example:
 		 *     when( id1, id2, id3, function( value1, value2, value3 ) {} );
 		 *
-		 * @return $.Deferred.promise();
+		 * @return {jQuery.Deferred.promise}
 		 */
 		when: function() {
 			var self = this,
@@ -557,7 +560,7 @@ window.wp = window.wp || {};
 	/**
 	 * Cast a string to a jQuery collection if it isn't already.
 	 *
-	 * @param {string|jQuery collection} element
+	 * @param {string|jQuery.Collection} element
 	 */
 	api.ensure = function( element ) {
 		return typeof element === 'string' ? $( element ) : element;
@@ -571,7 +574,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Element
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Value
 	 * @augments wp.customize.Class
 	 */
@@ -663,7 +666,7 @@ window.wp = window.wp || {};
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Messenger
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events
 	 */
@@ -822,8 +825,8 @@ window.wp = window.wp || {};
 	 * @alias wp.customize.Notification
 	 *
 	 * @param {string}  code - The error code.
-	 * @param {object}  params - Params.
-	 * @param {string}  params.message=null - The error message.
+	 * @param {Object}  params - Params.
+	 * @param {string}  [params.message=null] - The error message.
 	 * @param {string}  [params.type=error] - The notification type.
 	 * @param {boolean} [params.fromServer=false] - Whether the notification was server-sent.
 	 * @param {string}  [params.setting=null] - The setting ID that the notification is related to.
@@ -837,7 +840,7 @@ window.wp = window.wp || {};
 		 * This will be populated with template option or else it will be populated with template from the ID.
 		 *
 		 * @since 4.9.0
-		 * @var {Function}
+		 * @member {Function}
 		 */
 		template: null,
 
@@ -845,7 +848,7 @@ window.wp = window.wp || {};
 		 * ID for the template to render the notification.
 		 *
 		 * @since 4.9.0
-		 * @var {string}
+		 * @member {string}
 		 */
 		templateId: 'customize-notification',
 
@@ -853,7 +856,7 @@ window.wp = window.wp || {};
 		 * Additional class names to add to the notification container.
 		 *
 		 * @since 4.9.0
-		 * @var {string}
+		 * @member {string}
 		 */
 		containerClasses: '',
 

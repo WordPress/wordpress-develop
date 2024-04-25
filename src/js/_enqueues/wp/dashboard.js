@@ -2,7 +2,7 @@
  * @output wp-admin/js/dashboard.js
  */
 
-/* global pagenow, ajaxurl, postboxes, wpActiveEditor:true, ajaxWidgets */
+/* global pagenow, ajaxurl, postboxes, ajaxWidgets */
 /* global ajaxPopulateWidgets, quickPressLoad,  */
 window.wp = window.wp || {};
 window.communityEventsData = window.communityEventsData || {};
@@ -61,7 +61,7 @@ jQuery( function($) {
 	 * @type {string[]}
 	 *
 	 * @global
- 	 */
+	 */
 	window.ajaxWidgets = ['dashboard_primary'];
 
 	/**
@@ -161,7 +161,7 @@ jQuery( function($) {
 			 * Highlights the latest post for one second.
 			 *
 			 * @return {void}
- 			 */
+			 */
 			function highlightLatestPost () {
 				var latestPost = $('.drafts ul li').first();
 				latestPost.css('background', '#fffbe5');
@@ -175,7 +175,7 @@ jQuery( function($) {
 		$('#publish').on( 'click', function() { act.val( 'post-quickpress-publish' ); } );
 
 		$('#quick-press').on( 'click focusin', function() {
-			wpActiveEditor = 'content';
+			window.wpActiveEditor = 'content';
 		});
 
 		autoResizeTextarea();
@@ -378,7 +378,7 @@ jQuery( function( $ ) {
 				 * we explicitly pass a string as value of aria-expanded and
 				 * sometimes a boolean as the result of an evaluation.
 				 */
-				action = 'true' == $toggleButton.attr( 'aria-expanded' ) ? 'hide' : 'show';
+				action = 'true' === $toggleButton.attr( 'aria-expanded' ) ? 'hide' : 'show';
 			}
 
 			if ( 'hide' === action ) {
@@ -567,7 +567,7 @@ jQuery( function( $ ) {
 						 * or country. Use the endonym (native locale name) instead of the
 						 * English name if possible.
 						 */
-						__( 'We couldn’t locate %s. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ),
+						__( 'We couldn’t locate %s. Please try another nearby city. For example: Kansas City; Springfield; Portland.' ), // eslint-disable-line @wordpress/i18n-translator-comments -- https://github.com/WordPress/gutenberg/pull/61096
 						templateParams.unknownCity
 					)
 				);
@@ -628,7 +628,7 @@ jQuery( function( $ ) {
 		 * @param {Array}  rawEvents  The events that should have dynamic fields added to them.
 		 * @param {string} timeFormat A time format acceptable by `wp.date.dateI18n()`.
 		 *
-		 * @returns {Array}
+		 * @return {Array}
 		 */
 		populateDynamicEventFields: function( rawEvents, timeFormat ) {
 			// Clone the parameter to avoid mutating it, so that this can remain a pure function.
@@ -660,9 +660,9 @@ jQuery( function( $ ) {
 		 *
 		 * @since 5.5.2
 		 *
-		 * @param startTimestamp
+		 * @param {number} startTimestamp
 		 *
-		 * @returns {string|number}
+		 * @return {string|number}
 		 */
 		getTimeZone: function( startTimestamp ) {
 			/*
@@ -697,7 +697,7 @@ jQuery( function( $ ) {
 		 *
 		 * @param {number} startTimestamp
 		 *
-		 * @returns {number}
+		 * @return {number}
 		 */
 		getFlippedTimeZoneOffset: function( startTimestamp ) {
 			return new Date( startTimestamp ).getTimezoneOffset() * -1;
@@ -710,7 +710,7 @@ jQuery( function( $ ) {
 		 *
 		 * @param {number} startTimestamp
 		 *
-		 * @returns {string}
+		 * @return {string}
 		 */
 		getTimeZoneAbbreviation: function( startTimestamp ) {
 			var timeZoneAbbreviation,
@@ -754,7 +754,7 @@ jQuery( function( $ ) {
 		 * @param {int}    endDate     The Unix timestamp in milliseconds when the the event ends.
 		 * @param {string} timeZone    A time zone string or offset which is parsable by `wp.date.i18n()`.
 		 *
-		 * @returns {string}
+		 * @return {string}
 		 */
 		getFormattedDate: function( startDate, endDate, timeZone ) {
 			var formattedDate;
@@ -826,8 +826,8 @@ jQuery( function( $ ) {
  * @since 4.8.0
  * @deprecated 5.6.0
  *
- * @type {object}
-*/
+ * @type {Object}
+ */
 window.communityEventsData.l10n = window.communityEventsData.l10n || {
 	enter_closest_city: '',
 	error_occurred_please_try_again: '',

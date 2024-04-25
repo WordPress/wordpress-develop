@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 var View = wp.media.View,
 	$ = jQuery,
 	Attachments,

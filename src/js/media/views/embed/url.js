@@ -45,7 +45,7 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 		var $input = this.$input;
 
 		if ( $input.is(':focus') ) {
-			return;
+			return undefined;
 		}
 
 		if ( this.model.get( 'url' ) ) {

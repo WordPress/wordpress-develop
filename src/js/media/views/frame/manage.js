@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 var MediaFrame = wp.media.view.MediaFrame,
 	Library = wp.media.controller.Library,
 

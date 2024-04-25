@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 /**
  * wp.media.model.Attachments
  *
@@ -12,15 +14,14 @@
  * @class
  * @augments Backbone.Collection
  *
- * @param {array}  [models]                Models to initialize with the collection.
- * @param {object} [options]               Options hash for the collection.
+ * @param {Array}  [models]                Models to initialize with the collection.
+ * @param {Object} [options]               Options hash for the collection.
  * @param {string} [options.props]         Options hash for the initial query properties.
  * @param {string} [options.props.order]   Initial order (ASC or DESC) for the collection.
  * @param {string} [options.props.orderby] Initial attribute key to order the collection by.
  * @param {string} [options.props.query]   Whether the collection is linked to an attachments query.
  * @param {string} [options.observe]
  * @param {string} [options.filters]
- *
  */
 var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachments.prototype */{
 	/**
@@ -114,7 +115,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 				term = model.get( prop );
 
 			if ( ! filter ) {
-				return;
+				return undefined;
 			}
 
 			if ( term && ! this.filters[ prop ] ) {
@@ -122,7 +123,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			} else if ( ! term && this.filters[ prop ] === filter ) {
 				delete this.filters[ prop ];
 			} else {
-				return;
+				return undefined;
 			}
 
 			// Record the change.
@@ -204,7 +205,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * Start observing another attachments collection change events
 	 * and replicate them on this collection.
 	 *
-	 * @param {wp.media.model.Attachments} The attachments collection to observe.
+	 * @param {wp.media.model.Attachments} attachments The attachments collection to observe.
 	 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
 	 */
 	observe: function( attachments ) {
@@ -221,7 +222,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	/**
 	 * Stop replicating collection change events from another attachments collection.
 	 *
-	 * @param {wp.media.model.Attachments} The attachments collection to stop observing.
+	 * @param {wp.media.model.Attachments} attachments The attachments collection to stop observing.
 	 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
 	 */
 	unobserve: function( attachments ) {
@@ -294,7 +295,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * Start mirroring another attachments collection, clearing out any models already
 	 * in the collection.
 	 *
-	 * @param {wp.media.model.Attachments} The attachments collection to mirror.
+	 * @param {wp.media.model.Attachments} attachments The attachments collection to mirror.
 	 * @return {wp.media.model.Attachments} Returns itself to allow chaining.
 	 */
 	mirror: function( attachments ) {
@@ -434,7 +435,6 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * If the collection is a query, create and mirror an Attachments Query collection.
 	 *
 	 * @access private
-	 * @param {Boolean} refresh Deprecated, refresh parameter no longer used.
 	 */
 	_requery: function() {
 		var props;
@@ -516,15 +516,16 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	/** @namespace wp.media.model.Attachments.filters */
 	filters: {
 		/**
-		 * @static
 		 * Note that this client-side searching is *not* equivalent
 		 * to our server-side searching.
+		 *
+		 * @static
 		 *
 		 * @param {wp.media.model.Attachment} attachment
 		 *
 		 * @this wp.media.model.Attachments
 		 *
-		 * @return {Boolean}
+		 * @return {boolean}
 		 */
 		search: function( attachment ) {
 			if ( ! this.props.get('search') ) {

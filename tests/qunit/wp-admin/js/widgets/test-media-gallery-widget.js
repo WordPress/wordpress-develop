@@ -1,6 +1,3 @@
-/* global wp */
-/* jshint qunit: true */
-/* eslint-env qunit */
 /* eslint-disable no-magic-numbers */
 
 ( function() {
@@ -23,7 +20,7 @@
 
 		galleryWidgetModelInstance = new GalleryWidgetModel();
 		_.each( galleryWidgetModelInstance.attributes, function( value, key ) {
-			assert.equal( value, GalleryWidgetModel.prototype.schema[ key ][ 'default' ], 'Should properly set default for ' + key );
+			assert.equal( value, GalleryWidgetModel.prototype.schema[ key ].default, 'Should properly set default for ' + key );
 		});
 	});
 

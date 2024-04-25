@@ -5,7 +5,7 @@
 /**
  * Emoji Settings as exported in PHP via _print_emoji_detection_script().
  * @typedef WPEmojiSettings
- * @type {object}
+ * @type {Object}
  * @property {?object} source
  * @property {?string} source.concatemoji
  * @property {?string} source.twemoji
@@ -17,7 +17,7 @@
 /**
  * Support tests.
  * @typedef SupportTests
- * @type {object}
+ * @type {Object}
  * @property {?boolean} flag
  * @property {?boolean} emoji
  */
@@ -44,7 +44,7 @@
 	 *
 	 * @private
 	 *
-	 * @returns {boolean}
+	 * @return {boolean}
 	 */
 	function supportsWorkerOffloading() {
 		return (
@@ -58,7 +58,7 @@
 
 	/**
 	 * @typedef SessionSupportTests
-	 * @type {object}
+	 * @type {Object}
 	 * @property {number} timestamp
 	 * @property {SupportTests} supportTests
 	 */
@@ -70,7 +70,7 @@
 	 *
 	 * @private
 	 *
-	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
+	 * @return {?SupportTests} Support tests, or null if not set or older than 1 week.
 	 */
 	function getSessionSupportTests() {
 		try {
@@ -278,6 +278,7 @@
 		var canvas;
 		if (
 			typeof WorkerGlobalScope !== 'undefined' &&
+			// eslint-disable-next-line no-undef
 			self instanceof WorkerGlobalScope
 		) {
 			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.

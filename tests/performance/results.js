@@ -29,7 +29,7 @@ for ( const testSuite of testSuites ) {
         const convertString = testSuite.charAt( 0 ).toUpperCase() + testSuite.slice( 1 );
         console.log( convertString.replace( /[-]+/g, " " ) + ':' );
 
-        tableData = JSON.parse( data );
+        const tableData = JSON.parse( data );
         const rawResults = [];
 
         for ( var key in tableData ) {

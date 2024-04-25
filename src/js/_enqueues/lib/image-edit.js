@@ -5,7 +5,7 @@
  * @output wp-admin/js/image-edit.js
  */
 
- /* global ajaxurl, confirm */
+ /* global ajaxurl */
 
 (function($) {
 	var __ = wp.i18n.__;
@@ -98,6 +98,7 @@
 		 * Bitwise OR operator: one of the obscure ways to truncate floating point figures,
 		 * worth reminding JavaScript doesn't have a distinct "integer" type.
 		 */
+		// eslint-disable-next-line no-bitwise
 		return f | 0;
 	},
 
@@ -250,8 +251,6 @@
 	 * @since 6.4.0
 	 *
 	 * @memberof imageEdit
-	 *
-	 * @param {HTMLElement} el The activated control element.
 	 *
 	 * @return {boolean} Always returns false.
 	 */
@@ -547,7 +546,7 @@
 	 *
 	 * @param {number}   postid   The post ID.
 	 * @param {string}   nonce    The nonce to verify the request.
-	 * @param {function} callback Function to execute when the image is loaded.
+	 * @param {Function} callback Function to execute when the image is loaded.
 	 *
 	 * @return {void}
 	 */
@@ -651,9 +650,9 @@
 		};
 
 		if ( 'scale' === action ) {
-			w = $('#imgedit-scale-width-' + postid),
-			h = $('#imgedit-scale-height-' + postid),
-			fw = t.intval(w.val()),
+			w = $('#imgedit-scale-width-' + postid);
+			h = $('#imgedit-scale-height-' + postid);
+			fw = t.intval(w.val());
 			fh = t.intval(h.val());
 
 			if ( fw < 1 ) {
@@ -668,11 +667,11 @@
 				return false;
 			}
 
-			data['do'] = 'scale';
+			data.do = 'scale';
 			data.fwidth = fw;
 			data.fheight = fh;
 		} else if ( 'restore' === action ) {
-			data['do'] = 'restore';
+			data.do = 'restore';
 		} else {
 			return false;
 		}
@@ -979,8 +978,6 @@
 			 *
 			 * @param {Object} img jQuery object representing the image.
 			 * @param {Object} c   The selection.
-			 *
-			 * @return {Object}
 			 */
 			onSelectEnd: function(img, c) {
 				imageEdit.setCropSelection(postid, c);
@@ -1040,6 +1037,8 @@
 		sel = { 'x': c.x1, 'y': c.y1, 'w': c.width, 'h': c.height };
 		this.setDisabled($('.imgedit-crop', '#imgedit-panel-' + postid), 1);
 		$('#imgedit-selection-' + postid).val( JSON.stringify(sel) );
+
+		return true;
 	},
 
 
@@ -1165,6 +1164,7 @@
 		}
 		this.closePopup(t);
 		this.addStep({ 'r': { 'r': angle, 'fw': this.hold.h, 'fh': this.hold.w }}, postid, nonce);
+		return true;
 	},
 
 	/**
@@ -1187,6 +1187,7 @@
 		}
 		this.closePopup(t);
 		this.addStep({ 'f': { 'f': axis, 'fw': this.hold.w, 'fh': this.hold.h }}, postid, nonce);
+		return true;
 	},
 
 	/**
@@ -1411,7 +1412,8 @@
 				aspectRatio: x + ':' + y
 			});
 
-			if ( sel = this.iasapi.getSelection(true) ) {
+			sel = this.iasapi.getSelection( true );
+			if ( sel ) {
 				r = Math.ceil( sel.y1 + ( ( sel.x2 - sel.x1 ) / ( x / y ) ) );
 
 				if ( r > h ) {

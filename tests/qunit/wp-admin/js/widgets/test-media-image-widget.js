@@ -1,6 +1,3 @@
-/* globals wp */
-/* jshint qunit: true */
-/* eslint-env qunit */
 /* eslint-disable no-magic-numbers */
 
 ( function() {
@@ -110,7 +107,7 @@
 
 		imageWidgetModelInstance = new ImageWidgetModel();
 		_.each( imageWidgetModelInstance.attributes, function( value, key ) {
-			assert.equal( value, ImageWidgetModel.prototype.schema[ key ][ 'default' ], 'Should properly set default for ' + key );
+			assert.equal( value, ImageWidgetModel.prototype.schema[ key ].default, 'Should properly set default for ' + key );
 		});
 	});
 

@@ -24,7 +24,7 @@ media = wp.media = function( attributes ) {
 		frame;
 
 	if ( ! MediaFrame ) {
-		return;
+		return undefined;
 	}
 
 	attributes = _.defaults( attributes || {}, {

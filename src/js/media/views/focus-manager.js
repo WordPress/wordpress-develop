@@ -30,7 +30,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 		this.tabsAutomaticActivation = options.tabsAutomaticActivation || false;
 	},
 
- 	/**
+	/**
 	 * Determines which focus management mode to use.
 	 *
 	 * @since 5.3.0
@@ -217,8 +217,6 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 * Sets up tabs in an ARIA tabbed interface.
 	 *
 	 * @since 5.3.0
-	 *
-	 * @param {Object} event jQuery event object.
 	 *
 	 * @return {void}
 	 */

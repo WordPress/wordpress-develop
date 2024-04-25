@@ -1,4 +1,6 @@
+/* eslint jsdoc/valid-types: "off" */
 /* global MediaElementPlayer */
+
 var AttachmentDisplay = wp.media.view.Settings.AttachmentDisplay,
 	$ = jQuery,
 	MediaDetails;

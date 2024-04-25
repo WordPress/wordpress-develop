@@ -35,7 +35,7 @@ const baseResults = testSuites.map(( key ) => ({
  * Parse test files into JSON objects.
  *
  * @param {string} fileName The name of the file.
- * @returns An array of parsed objects from each file.
+ * @return {Object} Parsed object from the file.
  */
 const parseFile = ( fileName ) => (
 	JSON.parse(

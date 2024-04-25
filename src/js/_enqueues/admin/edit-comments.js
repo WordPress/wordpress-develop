@@ -323,7 +323,7 @@ window.setCommentsList = function() {
 	 *
 	 * @param {number} total Total number of comments.
 	 * @param {number} time Unix timestamp of response.
- 	 * @param {boolean} setConfidentTime Whether to update the last confident time
+	 * @param {boolean} setConfidentTime Whether to update the last confident time
 	 *                                   with the given time.
 	 *
 	 * @return {void}
@@ -849,6 +849,7 @@ window.commentReply = {
 	 * @return {void}
 	 */
 	toggle : function(el) {
+		// eslint-disable-next-line @wordpress/i18n-no-collapsible-whitespace
 		if ( 'none' !== $( el ).css( 'display' ) && ( $( '#replyrow' ).parent().is('#com-reply') || window.confirm( __( 'Are you sure you want to edit this comment?\nThe changes you made will be lost.' ) ) ) ) {
 			$( el ).find( 'button.vim-q' ).trigger( 'click' );
 		}
@@ -1229,6 +1230,7 @@ window.commentReply = {
 			return true;
 		}
 
+		// eslint-disable-next-line @wordpress/i18n-no-collapsible-whitespace
 		return window.confirm( __( 'Are you sure you want to do this?\nThe comment changes you made will be lost.' ) );
 	}
 };

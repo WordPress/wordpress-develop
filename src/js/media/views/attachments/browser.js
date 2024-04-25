@@ -17,7 +17,7 @@ var View = wp.media.View,
  * @augments wp.Backbone.View
  * @augments Backbone.View
  *
- * @param {object}         [options]               The options hash passed to the view.
+ * @param {Object}         [options]               The options hash passed to the view.
  * @param {boolean|string} [options.filters=false] Which filters to show in the browser's toolbar.
  *                                                 Accepts 'uploaded' and 'all'.
  * @param {boolean}        [options.search=true]   Whether to show the search interface in the
@@ -174,8 +174,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		}
 
 		/**
-		* @member {wp.media.view.Toolbar}
-		*/
+		 * @member {wp.media.view.Toolbar}
+		 */
 		this.toolbar = new wp.media.view.Toolbar( toolbarOptions );
 
 		this.views.add( this.toolbar );
@@ -289,7 +289,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 					}
 
 					selection.each( function( model ) {
-						if ( ! model.get( 'nonces' )['delete'] ) {
+						if ( ! model.get( 'nonces' ).delete ) {
 							removed.push( model );
 							return;
 						}
@@ -338,7 +338,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 						}
 
 						selection.each( function( model ) {
-							if ( ! model.get( 'nonces' )['delete'] ) {
+							if ( ! model.get( 'nonces' ).delete ) {
 								removed.push( model );
 								return;
 							}
@@ -580,8 +580,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		if ( this.collection.length ) {
 			this.loadMoreCount.$el.text(
-				/* translators: 1: Number of displayed attachments, 2: Number of total attachments. */
 				sprintf(
+					/* translators: 1: Number of displayed attachments, 2: Number of total attachments. */
 					__( 'Showing %1$s of %2$s media items' ),
 					this.collection.length,
 					this.collection.getTotalAttachments()

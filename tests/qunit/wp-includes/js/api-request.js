@@ -1,4 +1,3 @@
-/* global wp, JSON */
 ( function( QUnit ) {
 	var originalRootUrl = window.wpApiSettings.root;
 
