@@ -62,7 +62,7 @@ class Tests_Term_Data extends WP_UnitTestCase {
 	 */
 	public function test_checking_class_properties_should_work_correctly() {
 		$this->assertFalse( isset( $this->term->foo ), 'The WP_Term::$foo property should not be set.' );
-		$this->assertFalse( isset( $this->term->data ), 'The WP_Term::$data property should not be set.' );
+		$this->assertTrue( isset( $this->term->data ), 'The WP_Term::$data property should be set (it\'s a read-only property).' );
 		$this->term->data; // Activates __get().
 		$this->assertTrue( isset( $this->term->data ), 'The WP_Term::$data property should be set.' );
 	}
@@ -91,7 +91,7 @@ class Tests_Term_Data extends WP_UnitTestCase {
 	 * @covers WP_Term::to_array
 	 * @ticket 58087
 	 */
-	public function test_to_array_doesnt_return_the_data_property() {
+	public function test_to_array_does_not_return_the_data_property() {
 		$object_data = $this->term->to_array();
 		$this->assertNotContains( 'data', $object_data, 'The data property should not be returned.' );
 	}
