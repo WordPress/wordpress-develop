@@ -57,6 +57,23 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	/**
 	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
 	 */
+	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_no_duplicate_hooked_block() {
+		$anchor_block = array(
+			'blockName' => self::ANCHOR_BLOCK_TYPE,
+		);
+
+		$actual  = insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
+		$actual .= insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
+		$this->assertSame(
+			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /-->',
+			$actual,
+			"Markup for hooked block wasn't generated correctly."
+		);
+	}
+
+	/**
+	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_if_block_is_ignored() {
 		$anchor_block = array(
 			'blockName' => 'tests/anchor-block',
