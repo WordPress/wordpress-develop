@@ -1,0 +1,119 @@
+{
+  "extends": [ "plugin:@wordpress/eslint-plugin/recommended" ],
+  "rules": {
+	"camelcase": "off",
+	"eqeqeq": "off",
+	"no-alert": "off",
+	"no-else-return": "off",
+	"no-lonely-if": "off",
+	"no-nested-ternary": "off",
+	"no-shadow": "off",
+	"no-var": "off",
+	"object-shorthand": "off",
+	"jsdoc/check-line-alignment": "off",
+	"jsdoc/check-tag-names": [
+	  "error",
+	  {
+		"definedTags": [
+		  "link",
+		  "memberOf",
+		  "ticket",
+		  "output"
+		]
+	  }
+	],
+	"jsdoc/no-undefined-types": "off",
+	"jsdoc/require-param": "off",
+	"jsdoc/require-property-description": "off",
+	"jsdoc/require-returns-description": "off",
+	"prettier/prettier": "off",
+	"@wordpress/i18n-ellipsis": "off",
+	"@wordpress/i18n-hyphenated-range": "error",
+	"@wordpress/i18n-no-flanking-whitespace": "error",
+	"@wordpress/i18n-text-domain": [
+	  "error",
+	  {
+		"allowedTextDomain": "default"
+	  }
+	],
+	"@wordpress/no-global-active-element": "off",
+	"@wordpress/no-global-get-selection": "off",
+	"@wordpress/no-unused-vars-before-return": "off"
+  },
+  "globals": {
+	"jQuery": false,
+	"wp": false
+  },
+  "env": {
+	"browser": true
+  },
+  "overrides": [
+	{
+	  "files": [
+		"src/js/_enqueues/wp/api.js",
+		"src/js/_enqueues/wp/api-request.js",
+		"src/js/_enqueues/wp/heartbeat.js"
+	  ],
+	  "globals": {
+		"wpApiSettings": false
+	  }
+	},
+	{
+	  "files": [
+		"src/js/media/**/*.js",
+		"src/js/_enqueues/wp/**/*.js"
+	  ],
+	  "globals": {
+		"_": false,
+		"Backbone": false,
+		"jQuery": false
+	  }
+	},
+	{
+	  "files": [
+		"src/js/_enqueues/wp/svg-painter.js"
+	  ],
+	  "rules": {
+		"no-bitwise": "off"
+	  }
+	},
+	{
+	  "files": [
+		"src/js/_enqueues/wp/customize/controls.js",
+		"src/js/_enqueues/wp/customize/nav-menus.js",
+		"src/js/_enqueues/wp/customize/selective-refresh.js"
+	  ],
+	  "rules": {
+		"no-console": "off"
+	  }
+	},
+	{
+	  "files": [
+		"tests/qunit/**/*.js"
+	  ],
+	  "env": {
+		"qunit": true
+	  },
+	  "globals": {
+		"Backbone": false,
+		"sinon": false,
+		"wp": false,
+		"_": false
+	  }
+	},
+	{
+	  "files": [
+		"Gruntfile.js",
+		"tests/gutenberg/**/*.js",
+		"tests/performance/**/*.js"
+	  ],
+	  "env": {
+		"browser": false,
+		"node": true
+	  },
+	  "rules": {
+		"no-console": "off"
+	  }
+	}
+  ]
+}

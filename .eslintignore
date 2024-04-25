@@ -1,15 +1,31 @@
 # Files and folders related to build/test tools
+/.cache
+/.devcontainer
+/.github
+/artifacts
 /build
 /node_modules
-/tests
-/vendor
+/tests/phpunit
 /tools
+/vendor
 
-# Excluded files and folders based on `jsdoc.conf.json` exclusions
+# Vendor scripts.
 /src/js/_enqueues/vendor
 
 # Webpack built files
-/src/wp-includes/js/media-*
+/src/wp-admin/js
+/src/wp-includes/js
+/src/wp-includes/blocks/**/*.js
 
-# Themes
-src/wp-content/themes/
+# Ignore everything but default themes, except vendor scripts
+/src/wp-content/
+!/src/wp-content/themes/twenty*
+/src/wp-content/themes/**/node_modules
+/src/wp-content/themes/twentyeleven/js/html5.js
+/src/wp-content/themes/twentyfifteen/js/html5.js
+/src/wp-content/themes/twentyfourteen/js/html5.js
+/src/wp-content/themes/twentyseventeen/assets/js/html5.js
+/src/wp-content/themes/twentyseventeen/assets/js/jquery.scrollTo.js
+/src/wp-content/themes/twentysixteen/assets/js/html5.js
+/src/wp-content/themes/twentythirteen/assets/js/html5.js
+/src/wp-content/themes/twentytwelve/assets/js/html5.js

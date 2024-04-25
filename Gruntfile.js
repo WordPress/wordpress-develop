@@ -1,6 +1,3 @@
-/* jshint node:true */
-/* jshint esversion: 6 */
-/* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
 var json2php = require( 'json2php' );
@@ -426,7 +423,6 @@ module.exports = function(grunt) {
 							// If the version includes an SVN commit (-12345), it's not a released alpha/beta. Append a timestamp.
 							version = version.replace( /-[\d]{5}$/, '-' + grunt.template.today( 'yyyymmdd.HHMMss' ) );
 
-							/* jshint quotmark: true */
 							return "$wp_version = '" + version + "';";
 						});
 					}
@@ -601,118 +597,8 @@ module.exports = function(grunt) {
 				src: []
 			}
 		},
-		jshint: {
-			options: grunt.file.readJSON( '.jshintrc' ),
-			grunt: {
-				src: ['Gruntfile.js']
-			},
-			tests: {
-				src: [
-					'tests/qunit/**/*.js',
-					'!tests/qunit/vendor/*',
-					'!tests/qunit/editor/**'
-				],
-				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
-			},
-			themes: {
-				expand: true,
-				cwd: SOURCE_DIR + 'wp-content/themes',
-				src: [
-					'twenty*/**/*.js',
-					'!twenty{eleven,twelve,thirteen}/**',
-					// Third party scripts.
-					'!twenty*/node_modules/**',
-					'!twenty{fourteen,fifteen,sixteen}/js/html5.js',
-					'!twentyseventeen/assets/js/html5.js',
-					'!twentyseventeen/assets/js/jquery.scrollTo.js'
-				]
-			},
-			media: {
-				src: [
-					SOURCE_DIR + 'js/media/**/*.js'
-				]
-			},
-			core: {
-				expand: true,
-				cwd: SOURCE_DIR,
-				src: [
-					'js/_enqueues/**/*.js',
-					// Third party scripts.
-					'!js/_enqueues/vendor/**/*.js'
-				],
-				// Remove once other JSHint errors are resolved.
-				options: {
-					curly: false,
-					eqeqeq: false
-				},
-				/*
-				 * Limit JSHint's run to a single specified file:
-				 *
-				 *    grunt jshint:core --file=filename.js
-				 *
-				 * Optionally, include the file path:
-				 *
-				 *    grunt jshint:core --file=path/to/filename.js
-				 */
-				filter: function( filepath ) {
-					var index, file = grunt.option( 'file' );
+		eslint: {
 
-					// Don't filter when no target file is specified.
-					if ( ! file ) {
-						return true;
-					}
-
-					// Normalize filepath for Windows.
-					filepath = filepath.replace( /\\/g, '/' );
-					index = filepath.lastIndexOf( '/' + file );
-
-					// Match only the filename passed from cli.
-					if ( filepath === file || ( -1 !== index && index === filepath.length - ( file.length + 1 ) ) ) {
-						return true;
-					}
-
-					return false;
-				}
-			},
-			plugins: {
-				expand: true,
-				cwd: SOURCE_DIR + 'wp-content/plugins',
-				src: [
-					'**/*.js',
-					'!**/*.min.js'
-				],
-				/*
-				 * Limit JSHint's run to a single specified plugin directory:
-				 *
-				 *    grunt jshint:plugins --dir=foldername
-				 */
-				filter: function( dirpath ) {
-					var index, dir = grunt.option( 'dir' );
-
-					// Don't filter when no target folder is specified.
-					if ( ! dir ) {
-						return true;
-					}
-
-					dirpath = dirpath.replace( /\\/g, '/' );
-					index = dirpath.lastIndexOf( '/' + dir );
-
-					// Match only the folder name passed from cli.
-					if ( -1 !== index ) {
-						return true;
-					}
-
-					return false;
-				}
-			}
-		},
-		jsdoc : {
-			dist : {
-				dest: 'jsdoc',
-				options: {
-					configure : 'jsdoc.conf.json'
-				}
-			}
 		},
 		qunit: {
 			files: [
@@ -1348,7 +1234,11 @@ module.exports = function(grunt) {
 
 			if ( set.length ) {
 				fs.stat( dir = set.shift(), function( error ) {
-					error ? find( set ) : run( path.basename( dir ).substr( 1 ) );
+					if ( error ) {
+						find( set );
+					} else {
+						run( path.basename( dir ).substr( 1 ) );
+					}
 				} );
 			} else {
 				runAllTasks();
