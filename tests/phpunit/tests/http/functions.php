@@ -11,7 +11,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_head_request() {
 		// This URL gives a direct 200 response.
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
@@ -20,8 +20,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$this->assertIsArray( $response );
 
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
+		$this->assertSame( '153204', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -30,7 +30,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_head_redirect() {
 		// This URL will 301 redirect.
-		$url      = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://wp.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
@@ -41,7 +41,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_head
 	 */
 	public function test_head_404() {
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/awefasdfawef.jpg';
+		$url      = 'https://wordpress.org/screenshots/3.9/awefasdfawef.jpg';
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
@@ -54,7 +54,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_get_request() {
-		$url = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url = 'https://s.w.org/screenshots/3.9/dashboard.png';
 
 		$response = wp_remote_get( $url );
 
@@ -65,8 +65,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertIsArray( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
+		$this->assertSame( '153204', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -76,8 +76,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_get_redirect() {
-		// This will redirect to asdftestblog1.files.wordpress.com.
-		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
+		// This will redirect to wordpress.org.
+		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
 		$response = wp_remote_get( $url );
 
@@ -86,8 +86,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$headers = wp_remote_retrieve_headers( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
+		$this->assertSame( '153204', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -95,8 +95,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_get
 	 */
 	public function test_get_redirect_limit_exceeded() {
-		// This will redirect to asdftestblog1.files.wordpress.com.
-		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
+		// This will redirect to wordpress.org.
+		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
 		// Pretend we've already redirected 5 times.
 		$response = wp_remote_get( $url, array( 'redirection' => -1 ) );

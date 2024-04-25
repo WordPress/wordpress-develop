@@ -590,13 +590,13 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests that the default query should fetch all revisions.
 	 *
-	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_default_query_should_fetch_all_revisons
+	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_default_query_should_fetch_all_revisions
 	 *
 	 * @ticket 58524
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
 	 */
-	public function test_get_items_default_query_should_fetch_all_revisons() {
+	public function test_get_items_default_query_should_fetch_all_revisions() {
 		wp_set_current_user( self::$admin_id );
 
 		$expected_count = $this->total_revisions;

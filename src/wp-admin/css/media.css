@@ -454,6 +454,10 @@ border color while dragging a file over the uploader drop area */
 	position: relative;
 }
 
+.post-type-attachment .wp-filter select {
+	margin: 0 6px 0 0;
+}
+
 /**
  * Media Library grid view
  */
@@ -1120,7 +1124,7 @@ border color while dragging a file over the uploader drop area */
 .imgedit-panel-tools > .imgedit-menu {
 	display: flex;
 	column-gap: 4px;
-	align-items: start;
+	align-items: flex-start;
 	flex-wrap: wrap;
 }
 

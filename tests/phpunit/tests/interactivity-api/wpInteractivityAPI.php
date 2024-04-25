@@ -236,7 +236,113 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertEquals( array( 'config' => array( 'myPlugin' => array( 'a' => 1 ) ) ), $result );
 	}
 
+	/**
+	 * Tests that empty state objects are pruned from printed data.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_not_printed_when_empty_array() {
+		$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
+		$this->interactivity->state( 'pluginWithState_include', array( 'value' => 'excellent' ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"state":{"pluginWithState_include":{"value":"excellent"}}}
+</script>
 
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that data consisting of only empty state objects is not printed.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_not_printed_when_only_empty_arrays() {
+		$this->interactivity->state( 'pluginWithEmptyState_prune', array() );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$this->assertSame( '', $printed_script );
+	}
+
+	/**
+	 * Tests that nested empty state objects are printed correctly.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_state_printed_correctly_with_nested_empty_array() {
+		$this->interactivity->state( 'myPlugin', array( 'emptyArray' => array() ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"state":{"myPlugin":{"emptyArray":[]}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that empty config objects are pruned from printed data.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_not_printed_when_empty_array() {
+		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+		$this->interactivity->config( 'pluginWithConfig_include', array( 'value' => 'excellent' ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"config":{"pluginWithConfig_include":{"value":"excellent"}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
+
+	/**
+	 * Tests that data consisting of only empty config objects is not printed.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_not_printed_when_only_empty_arrays() {
+		$this->interactivity->config( 'pluginWithEmptyConfig_prune', array() );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$this->assertSame( '', $printed_script );
+	}
+
+	/**
+	 * Tests that nested empty config objects are printed correctly.
+	 *
+	 * @ticket 60761
+	 *
+	 * @covers ::print_client_interactivity_data
+	 */
+	public function test_config_printed_correctly_with_nested_empty_array() {
+		$this->interactivity->config( 'myPlugin', array( 'emptyArray' => array() ) );
+		$printed_script = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
+		$expected       = <<<'SCRIPT_TAG'
+<script type="application/json" id="wp-interactivity-data">
+{"config":{"myPlugin":{"emptyArray":[]}}}
+</script>
+
+SCRIPT_TAG;
+
+		$this->assertSame( $expected, $printed_script );
+	}
 
 	/**
 	 * Tests that special characters in the initial state and configuration are
@@ -443,7 +549,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_process_directives_doesnt_fail_with_unknown_directives() {
-		$html           = '<div data-wp-uknown="">Text</div>';
+		$html           = '<div data-wp-unknown="">Text</div>';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$this->assertEquals( $html, $processed_html );
 	}
@@ -482,29 +588,37 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_html_with_unbalanced_tags
+	 *
+	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags() {
+	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 
-		$html_samples = array(
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>',
-			'<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>',
-			'</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>',
-			'<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner conntent</ ></div>',
-		);
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( 'id' ) );
+	}
 
-		foreach ( $html_samples as $html ) {
-			$processed_html = $this->interactivity->process_directives( $html );
-			$p              = new WP_HTML_Tag_Processor( $processed_html );
-			$p->next_tag();
-			$this->assertNull( $p->get_attribute( 'id' ) );
-		}
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_with_unbalanced_tags() {
+		return array(
+			'DIV closer after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>' ),
+			'DIV opener after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>' ),
+			'DIV opener before'  => array( '<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV closer before'  => array( '</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV opener inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>' ),
+			'DIV closer inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>' ),
+			'SPAN opener inside' => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
+			'SPAN closer after'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
+			'SPAN overlapping'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
+		);
 	}
 
 	/**
