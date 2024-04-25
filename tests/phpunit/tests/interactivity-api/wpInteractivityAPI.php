@@ -686,7 +686,6 @@ JSON;
 	 * @ticket 60517
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_process_directives_changes_html_if_contains_svgs() {
 		$this->interactivity->state(
@@ -698,22 +697,22 @@ JSON;
 		);
 		$html           = '
 			<header>
-				<svg height="100" data-wp-bind--width="myPlugin::state.width">
+				<div data-wp-bind--id="myPlugin::state.width"></div>
+				<svg height="100">
 					<title>Red Circle</title>
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
 				</svg>
 				<div data-wp-bind--id="myPlugin::state.id"></div>
-				<div data-wp-bind--id="myPlugin::state.width"></div>
 			</header>
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'div' );
+		$this->assertEquals( '100', $p->get_attribute( 'id' ) );
 		$p->next_tag( 'svg' );
 		$this->assertNull( $p->get_attribute( 'width' ) );
 		$p->next_tag( 'div' );
 		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
-		$p->next_tag( 'div' );
-		$this->assertEquals( '100', $p->get_attribute( 'id' ) );
 	}
 
 	/**
