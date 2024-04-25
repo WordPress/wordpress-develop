@@ -229,14 +229,12 @@ function _get_block_templates_paths( $base_directory ) {
 		return $template_path_list[ $base_directory ];
 	}
 	$path_list = array();
-	try {
+	if ( is_dir( $base_directory ) ) {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
 			$path_list[] = $path;
 		}
-	} catch ( Exception $e ) {
-		// Do nothing.
 	}
 	$template_path_list[ $base_directory ] = $path_list;
 	return $path_list;
@@ -731,7 +729,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * It is self-sufficient in that it only uses information passed as arguments; it does not
  * query the database for additional information.
  *
- * @since 6.5.1
+ * @since 6.5.3
  * @access private
  *
  * @param WP_Post $post  Template post.
@@ -1399,13 +1397,16 @@ function wp_generate_block_templates_export_file() {
  */
 function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '' ) {
 	if ( 'index' === $slug ) {
-		return array( 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'index_template_hierarchy', array( 'index' ) );
 	}
 	if ( $is_custom ) {
-		return array( 'page', 'singular', 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'page_template_hierarchy', array( 'page', 'singular', 'index' ) );
 	}
 	if ( 'front-page' === $slug ) {
-		return array( 'front-page', 'home', 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'frontpage_template_hierarchy', array( 'front-page', 'home', 'index' ) );
 	}
 
 	$matches = array();
@@ -1471,6 +1472,18 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 		$template_hierarchy[] = 'singular';
 	}
 	$template_hierarchy[] = 'index';
+
+	$template_type = '';
+	if ( ! empty( $template_prefix ) ) {
+		list( $template_type ) = explode( '-', $template_prefix );
+	} else {
+		list( $template_type ) = explode( '-', $slug );
+	}
+	$valid_template_types = array( '404', 'archive', 'attachment', 'author', 'category', 'date', 'embed', 'frontpage', 'home', 'index', 'page', 'paged', 'privacypolicy', 'search', 'single', 'singular', 'tag', 'taxonomy' );
+	if ( in_array( $template_type, $valid_template_types, true ) ) {
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( "{$template_type}_template_hierarchy", $template_hierarchy );
+	}
 	return $template_hierarchy;
 }
 
@@ -1492,7 +1505,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {
-		_deprecated_argument( __FUNCTION__, '6.5.1' );
+		_deprecated_argument( __FUNCTION__, '6.5.3' );
 	}
 
 	$hooked_blocks = get_hooked_blocks();
