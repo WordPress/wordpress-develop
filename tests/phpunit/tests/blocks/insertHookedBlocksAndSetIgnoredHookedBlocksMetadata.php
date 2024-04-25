@@ -11,7 +11,7 @@
  * @group block-hooks
  */
 class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
-    const ANCHOR_BLOCK_TYPE       = 'tests/anchor-block';
+	const ANCHOR_BLOCK_TYPE       = 'tests/anchor-block';
 	const HOOKED_BLOCK_TYPE       = 'tests/hooked-block';
 	const OTHER_HOOKED_BLOCK_TYPE = 'tests/other-hooked-block';
 
@@ -38,7 +38,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 		return $template;
 	}
 
-    /**
+	/**
 	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_returns_correct_markup() {
