@@ -25,19 +25,19 @@ class Tests_Get_Available_Post_Mime_Types extends WP_UnitTestCase {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
 		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
+		$this->assertEmpty( $upload['error'], 'Uploading a JPEG file should not result in an error.' );
 		$this->_make_attachment( $upload );
 
 		// Upload a PDF file.
 		$filename = DIR_TESTDATA . '/images/test-alpha.pdf';
 		$contents = file_get_contents( $filename );
 		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertEmpty( $upload['error'] );
+		$this->assertEmpty( $upload['error'], 'Uploading a PDF file should not result in an error.' );
 		$this->_make_attachment( $upload );
 
 		$mime_types = get_available_post_mime_types();
 
-		$this->assertSame( array( 'image/jpeg', 'application/pdf' ), $mime_types );
+		$this->assertSame( array( 'image/jpeg', 'application/pdf' ), $mime_types, 'The MIME types returned should match the uploaded file MIME types.' );
 	}
 
 	/**
