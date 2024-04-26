@@ -313,11 +313,14 @@ final class WP_Term {
 	 */
 	public function __get( $key ) {
 		if ( 'data' !== $key ) {
-			wp_trigger_error(
-				__METHOD__,
-				sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
-				E_USER_DEPRECATED
-			);
+			// Public class properties are not dynamic.
+			if ( ! static::check_if_public_class_property( $key ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+					E_USER_DEPRECATED
+				);
+			}
 			return null;
 		}
 
@@ -370,6 +373,12 @@ final class WP_Term {
 			return;
 		}
 
+		// Setting a public property should not generate errors.
+		if ( static::check_if_public_class_property( $key ) ) {
+			$this->$key = $value;
+			return;
+		}
+
 		wp_trigger_error(
 			__METHOD__,
 			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
@@ -392,10 +401,51 @@ final class WP_Term {
 			return;
 		}
 
+		// Unsetting a public property should not generate errors.
+		if ( static::check_if_public_class_property( $key ) ) {
+			return;
+		}
+
 		wp_trigger_error(
 			__METHOD__,
 			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
+	}
+
+	/**
+	 * Checks whether a property is declared as public.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $class_property_name Name of the class property to check.
+	 * @return bool True if the property is public, false otherwise.
+	 */
+	private static function check_if_public_class_property( $class_property_name ) {
+		// Not using Reflection API for performance reasons.
+		$public_class_properties = array(
+			'term_id',
+			'name',
+			'slug',
+			'term_group',
+			'term_taxonomy_id',
+			'taxonomy',
+			'description',
+			'parent',
+			'count',
+			'filter',
+			'object_id',
+			'cat_ID',
+			'category_count',
+			'category_description',
+			'cat_name',
+			'category_nicename',
+			'category_parent',
+			'link',
+			'id',
+			'auto_add',
+		);
+
+		return in_array( $class_property_name, $public_class_properties, true );
 	}
 }
