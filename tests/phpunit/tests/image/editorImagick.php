@@ -691,4 +691,26 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick->destroy();
 		$this->assertSame( $expected, $output, 'The image color of the generated thumb does not match expected opaque background.' ); // Allow for floating point equivalence.
 	}
+
+
+	public function test_resizes_are_small_for_16bit_images() {
+        $file = DIR_TESTDATA . '/images/test-image-large.jpg';
+		$temp_file = DIR_TESTDATA . '/images/test-temp.jpg';
+
+        $imagick_image_editor = new WP_Image_Editor_Imagick($file);
+        $imagick_image_editor->load();
+		$size = $imagick_image_editor->get_size();
+
+		$org_filesize = filesize($file);
+
+        $imagick_image_editor->resize($size['width'] - 10, $size['height'] - 10 );
+
+		$saved = $imagick_image_editor->save( $temp_file );
+
+		$new_filesize = filesize($temp_file);
+
+//		unlink( $temp_file );
+
+		$this->assertLessThan( $org_filesize, $new_filesize, 'The resized image file size is not smaller than the original file size.');
+    }
 }

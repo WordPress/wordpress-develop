@@ -21,6 +21,15 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 */
 	protected $image;
 
+	/**
+     * Stores the information whether the image is indexed-color encoded
+     *
+     * @since 4.7
+     * @access protected
+     * @var bool
+     */
+     protected $indexed_color_encoded = false;
+
 	public function __destruct() {
 		if ( $this->image instanceof Imagick ) {
 			// We don't need the original in memory anymore.
@@ -398,6 +407,19 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'FILTER_BESSEL',
 			'FILTER_SINC',
 		);
+
+		/**
+		 * Check image type whether it's using palette (indexed-color encoded).
+		 * Use this property when saving the resized image to preserved its original image type.
+		 * This will reduce occurrences of having a resized image filesize very much larger than the original.
+		 * @since 6.6
+		 */
+		if ( ( is_callable( array( $this->image, 'getImageType' ) ) ) && ( defined( 'imagick::IMGTYPE_PALETTE' ) ) ) {
+			$image_type = $this->image->getImageType();
+			if ( imagick::IMGTYPE_PALETTE === $image_type ) {
+				$this->indexed_color_encoded = true;
+			}
+		}
 
 		/**
 		 * Set the filter value if '$filter_name' name is in the allowed list and the related
@@ -817,6 +839,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$orig_format = $this->image->getImageFormat();
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
+
+			// Restore image type when saving the image to preserved original colors and optimized its file size.
+			if ( ( is_callable( array( $this->image, 'getImageType' ) ) ) && ( true === $this->indexed_color_encoded ) && ( defined( 'imagick::IMGTYPE_PALETTE' ) ) ) {
+				$this->image->setImageType( imagick::IMGTYPE_PALETTE );
+			}
+
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
 		}
