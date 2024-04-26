@@ -1525,6 +1525,17 @@ class Tests_Functions extends WP_UnitTestCase {
 					'mime' => 'image/avif',
 				),
 			),
+			// Grid AVIF.
+			array(
+				DIR_TESTDATA . '/images/avif-alpha-grid2x1.avif',
+				array(
+					199,
+					200,
+					IMAGETYPE_AVIF,
+					'width="199" height="200"',
+					'mime' => 'image/avif',
+				),
+			),
 		);
 
 		return $data;
