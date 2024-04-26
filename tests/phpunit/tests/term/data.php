@@ -93,7 +93,7 @@ class Tests_Term_Data extends WP_UnitTestCase {
 	 */
 	public function test_to_array_does_not_return_the_data_property() {
 		$object_data = $this->term->to_array();
-		$this->assertNotContains( 'data', $object_data, 'The data property should not be returned.' );
+		$this->assertArrayNotHasKey( 'data', $object_data, 'The data property should not be returned.' );
 	}
 
 	public function tear_down() {
