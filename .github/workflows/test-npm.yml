@@ -127,7 +127,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-npm-macos:
     name: Test npm on MacOS
-    runs-on: macos-latest
+    runs-on: macos-13 # Later GHA macOS runners are arm64-only, for which node 14 isn't available.
     permissions:
       contents: read
     timeout-minutes: 30
