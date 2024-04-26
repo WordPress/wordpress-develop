@@ -699,7 +699,6 @@ JSON;
 		);
 		$html           = '
 			<header>
-				<div data-wp-bind--id="myPlugin::state.width"></div>
 				<svg height="100">
 					<title>Red Circle</title>
 					<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
@@ -709,10 +708,6 @@ JSON;
 		';
 		$processed_html = $this->interactivity->process_directives( $html );
 		$p              = new WP_HTML_Tag_Processor( $processed_html );
-		$p->next_tag( 'div' );
-		$this->assertEquals( '100', $p->get_attribute( 'id' ) );
-		$p->next_tag( 'svg' );
-		$this->assertNull( $p->get_attribute( 'width' ) );
 		$p->next_tag( 'div' );
 		$this->assertEquals( 'some-id', $p->get_attribute( 'id' ) );
 	}

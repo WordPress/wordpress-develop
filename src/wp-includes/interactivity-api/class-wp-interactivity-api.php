@@ -300,7 +300,7 @@ final class WP_Interactivity_API {
 				if ( $p->get_attribute_names_with_prefix( 'data-wp-' ) ) {
 					/* translators: %s: SVG or MATH HTML tag. */
 					$message = sprintf( __( '%s tags are currently incompatible with the directives processing. Please refrain from adding directives to them.' ), $tag_name );
-					_doing_it_wrong( __METHOD__, $message, '6.6' );
+					_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 				}
 				$p->skip_to_tag_closer();
 				continue;
@@ -398,7 +398,7 @@ final class WP_Interactivity_API {
 		if ( $unbalanced || 0 < count( $tag_stack ) ) {
 			/* translators: %s: Tag that caused the error, could by any HTML tag. */
 			$message = sprintf( __( 'Due to an unbalanced %s tag in the processed HTML, the directives will not be server side processed, JS runtime still work, but there will be a layout shift.' ), $tag_name );
-			_doing_it_wrong( __METHOD__, $message, '6.6' );
+			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
 

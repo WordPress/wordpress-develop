@@ -12,7 +12,7 @@
  *
  * @group interactivity-api
  */
-class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
+class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *
@@ -118,7 +118,6 @@ class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::process_directives_args
 	 */
 	public function test_wp_text_sets_inner_content_even_with_unbalanced_but_different_tags_inside_content() {
 		$html     = '<div data-wp-text="myPlugin::state.text"><span>Text</div>';
