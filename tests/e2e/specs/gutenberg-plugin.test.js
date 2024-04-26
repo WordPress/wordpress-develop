@@ -39,6 +39,8 @@ test.describe( 'Gutenberg plugin', () => {
 				error.code === 'plugin_wp_incompatible'
 			) {
 				test.skip();
+			} else {
+				throw error;
 			}
 		}
 
