@@ -423,7 +423,7 @@ final class WP_Term {
 	 * @return bool True if the property is public, false otherwise.
 	 */
 	private static function check_if_public_class_property( $class_property_name ) {
-		// Not using Reflection API for performance reasons.
+		// The Reflection API is not used here for performance reasons.
 		$public_class_properties = array(
 			'term_id',
 			'name',
