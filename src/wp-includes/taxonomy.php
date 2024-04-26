@@ -1037,10 +1037,8 @@ function get_term( $term, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) {
 		return $_term;
 	}
 
-	// Don't access the filter property if it's not set.
-	$term_filter = isset( $term->filter ) ? $term->filter : null;
 	// Sanitize term, according to the specified filter.
-	if ( $_term !== $old_term || $term_filter !== $filter ) {
+	if ( $_term !== $old_term || $_term->filter !== $filter ) {
 		$_term->filter( $filter );
 	}
 

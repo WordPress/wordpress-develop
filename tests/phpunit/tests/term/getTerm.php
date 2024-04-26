@@ -98,8 +98,8 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 		$num_queries = get_num_queries();
 
-		$term->filter = null;
-		$term_a       = get_term( $term, 'wptests_tax' );
+		unset( $term->filter );
+		$term_a = get_term( $term, 'wptests_tax' );
 
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
