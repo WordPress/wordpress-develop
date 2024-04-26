@@ -15,7 +15,6 @@ class Admin_WpAutomaticUpdater_IsVcsCheckout_Test extends Admin_WpAutomaticUpdat
 	 * when none of the checked directories are allowed.
 	 *
 	 * @ticket 58563
-	 *
 	 */
 	public function test_is_vcs_checkout_should_return_false_when_no_directories_are_allowed() {
 		$updater_mock = $this->getMockBuilder( 'WP_Automatic_Updater' )
