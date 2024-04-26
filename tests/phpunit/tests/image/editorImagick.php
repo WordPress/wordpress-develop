@@ -709,7 +709,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$new_filesize = filesize($temp_file);
 
-//		unlink( $temp_file );
+		unlink( $temp_file );
 
 		$this->assertLessThan( $org_filesize, $new_filesize, 'The resized image file size is not smaller than the original file size.');
     }
