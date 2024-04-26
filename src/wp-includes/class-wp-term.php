@@ -344,8 +344,9 @@ final class WP_Term {
 	}
 
 	/**
-	 * Checks if the "data" class property exists.
-	 * Returns false for dynamic class properties since dynamic class properties are deprecated.
+	 * This method specifically returns true for the "data" property because it is read-only and
+	 * is always defined. It returns false for any other properties to reflect that dynamic class
+	 * properties are deprecated and not supported.
 	 *
 	 * @since 6.6.0
 	 *
