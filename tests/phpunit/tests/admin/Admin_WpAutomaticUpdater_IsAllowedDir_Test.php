@@ -15,7 +15,6 @@ class Admin_WpAutomaticUpdater_IsAllowedDir_Test extends Admin_WpAutomaticUpdate
 	 * when the `open_basedir` directive is not set.
 	 *
 	 * @ticket 42619
-	 *
 	 */
 	public function test_is_allowed_dir_should_return_true_if_open_basedir_is_not_set() {
 		$this->assertTrue( self::$updater->is_allowed_dir( ABSPATH ) );
