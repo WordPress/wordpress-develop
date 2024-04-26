@@ -13,27 +13,102 @@ function median( array ) {
 		: ( numbers[ mid - 1 ] + numbers[ mid ] ) / 2;
 }
 
-/**
- * Gets the result file name.
- *
- * @param {string} fileName File name.
- *
- * @return {string} Result file name.
- */
-function getResultsFilename( fileName ) {
-	const prefix = process.env.TEST_RESULTS_PREFIX;
-	const fileNamePrefix = prefix ? `${ prefix }-` : '';
-	return `${fileNamePrefix + fileName}.results.json`;
-}
-
 function camelCaseDashes( str ) {
-	return str.replace( /-([a-z])/g, function( g ) {
+	return str.replace( /-([a-z])/g, function ( g ) {
 		return g[ 1 ].toUpperCase();
 	} );
 }
 
+/**
+ * Formats an array of objects as a Markdown table.
+ *
+ * For example, this array:
+ *
+ * [
+ * 	{
+ * 	    foo: 123,
+ * 	    bar: 456,
+ * 	    baz: 'Yes',
+ * 	},
+ * 	{
+ * 	    foo: 777,
+ * 	    bar: 999,
+ * 	    baz: 'No',
+ * 	}
+ * ]
+ *
+ * Will result in the following table:
+ *
+ * | foo | bar | baz |
+ * |-----|-----|-----|
+ * | 123 | 456 | Yes |
+ * | 777 | 999 | No  |
+ *
+ * @param {Array<Object>} rows Table rows.
+ * @returns {string} Markdown table content.
+ */
+function formatAsMarkdownTable( rows ) {
+	let result = '';
+	const headers = Object.keys( rows[ 0 ] );
+	for ( const header of headers ) {
+		result += `| ${ header } `;
+	}
+	result += '|\n';
+	for ( const header of headers ) {
+		result += '| ------ ';
+	}
+	result += '|\n';
+
+	for ( const row of rows ) {
+		for ( const value of Object.values( row ) ) {
+			result += `| ${ value } `;
+		}
+		result += '|\n';
+	}
+
+	return result;
+}
+
+/**
+ * Nicely formats a given value.
+ *
+ * @param {string} metric Metric.
+ * @param {number} value
+ */
+function formatValue( metric, value ) {
+	if ( null === value ) {
+		return 'N/A';
+	}
+	if ( 'wpMemoryUsage' === metric ) {
+		return `${ ( value / Math.pow( 10, 6 ) ).toFixed( 2 ) } MB`;
+	}
+
+	return `${ value.toFixed( 2 ) } ms`;
+}
+
+/**
+ * Returns a Markdown link to a Git commit on the current GitHub repository.
+ *
+ * For example, turns `a5c3785ed8d6a35868bc169f07e40e889087fd2e`
+ * into (https://github.com/wordpress/wordpress-develop/commit/36fe58a8c64dcc83fc21bddd5fcf054aef4efb27)[36fe58a].
+ *
+ * @param {string} sha Commit SHA.
+ * @return string Link
+ */
+function linkToSha( sha ) {
+	const repoName =
+		process.env.GITHUB_REPOSITORY || 'wordpress/wordpress-develop';
+
+	return `[${ sha.slice(
+		0,
+		7
+	) }](https://github.com/${ repoName }/commit/${ sha })`;
+}
+
 module.exports = {
 	median,
-	getResultsFilename,
 	camelCaseDashes,
+	formatAsMarkdownTable,
+	formatValue,
+	linkToSha,
 };

@@ -6,7 +6,8 @@
 const fs = require( 'fs' );
 const path = require( 'path' );
 const https = require( 'https' );
-const [ token, branch, hash, baseHash, timestamp, host ] = process.argv.slice( 2 );
+const [ token, branch, hash, baseHash, timestamp, host ] =
+	process.argv.slice( 2 );
 const { median } = require( './utils' );
 
 // The list of test suites to log.
@@ -20,16 +21,16 @@ const testSuites = [
 ];
 
 // A list of results to parse based on test suites.
-const testResults = testSuites.map(( key ) => ({
+const testResults = testSuites.map( ( key ) => ( {
 	key,
 	file: `${ key }.test.results.json`,
-}));
+} ) );
 
 // A list of base results to parse based on test suites.
-const baseResults = testSuites.map(( key ) => ({
+const baseResults = testSuites.map( ( key ) => ( {
 	key,
 	file: `base-${ key }.test.results.json`,
-}));
+} ) );
 
 /**
  * Parse test files into JSON objects.
@@ -37,11 +38,10 @@ const baseResults = testSuites.map(( key ) => ({
  * @param {string} fileName The name of the file.
  * @returns An array of parsed objects from each file.
  */
-const parseFile = ( fileName ) => (
+const parseFile = ( fileName ) =>
 	JSON.parse(
 		fs.readFileSync( path.join( __dirname, '/specs/', fileName ), 'utf8' )
-	)
-);
+	);
 
 /**
  * Gets the array of metrics from a list of results.
@@ -50,22 +50,19 @@ const parseFile = ( fileName ) => (
  * @return {Object[]} Metrics.
  */
 const formatResults = ( results ) => {
-	return results.reduce(
-		( result, { key, file } ) => {
-			return {
-				...result,
-				...Object.fromEntries(
-					Object.entries(
-						parseFile( file ) ?? {}
-					).map( ( [ metric, value ] ) => [
+	return results.reduce( ( result, { key, file } ) => {
+		return {
+			...result,
+			...Object.fromEntries(
+				Object.entries( parseFile( file ) ?? {} ).map(
+					( [ metric, value ] ) => [
 						key + '-' + metric,
-						median ( value ),
-					] )
-				),
-			};
-		},
-		{}
-	);
+						median( value ),
+					]
+				)
+			),
+		};
+	}, {} );
 };
 
 const data = new TextEncoder().encode(
