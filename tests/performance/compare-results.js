@@ -3,8 +3,8 @@
 /**
  * External dependencies.
  */
-const { readFileSync, writeFileSync } = require( 'node:fs' );
-const { join, existsSync } = require( 'node:path' );
+const { readFileSync, writeFileSync, existsSync } = require( 'node:fs' );
+const { join } = require( 'node:path' );
 
 /**
  * Internal dependencies
