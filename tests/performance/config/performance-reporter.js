@@ -39,7 +39,7 @@ class PerformanceReporter {
 				results: [],
 			};
 
-			this.allResults[ test.location.file ].results.push(
+			this.allResults[ title ].results.push(
 				JSON.parse( performanceResults.body.toString( 'utf-8' ) )
 			);
 		}
