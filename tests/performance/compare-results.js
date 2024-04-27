@@ -104,7 +104,11 @@ for ( const { title, results } of afterStats ) {
 	}
 
 	console.log( title );
-	console.table( rows );
+	if ( rows.length > 0 ) {
+		console.table( rows );
+	} else {
+		console.log( '(no results)' );
+	}
 
 	summaryMarkdown += `**${ title }**\n\n`;
 	summaryMarkdown += `${ formatAsMarkdownTable( rows ) }\n`;

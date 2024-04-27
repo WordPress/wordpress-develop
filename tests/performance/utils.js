@@ -49,6 +49,11 @@ function camelCaseDashes( str ) {
  */
 function formatAsMarkdownTable( rows ) {
 	let result = '';
+
+	if ( ! rows.length ) {
+		return result;
+	}
+
 	const headers = Object.keys( rows[ 0 ] );
 	for ( const header of headers ) {
 		result += `| ${ header } `;
