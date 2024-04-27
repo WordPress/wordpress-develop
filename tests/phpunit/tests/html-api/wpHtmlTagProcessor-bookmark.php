@@ -414,6 +414,7 @@ HTML;
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_bookmark
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_limits_the_number_of_bookmarks() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -423,7 +424,6 @@ HTML;
 			$this->assertTrue( $processor->set_bookmark( "bookmark $i" ), "Could not allocate the bookmark #$i" );
 		}
 
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::set_bookmark' );
 		$this->assertFalse( $processor->set_bookmark( 'final bookmark' ), "Allocated $i bookmarks, which is one above the limit" );
 	}
 
