@@ -70,8 +70,8 @@ console.log(
 	'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n'
 );
 
-for ( const { file, title, results } of afterStats ) {
-	const prevStat = beforeStats.find( ( s ) => s.file === file );
+for ( const { title, results } of afterStats ) {
+	const prevStat = beforeStats.find( ( s ) => s.title === title );
 
 	/**
 	 * @type {Array<Record<string, string>>}

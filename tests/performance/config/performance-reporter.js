@@ -28,11 +28,17 @@ class PerformanceReporter {
 		);
 
 		if ( performanceResults?.body ) {
-			this.allResults[ test.location.file ] ??= {
-				// 0 = empty, 1 = browser, 2 = file name, 3 = test suite name.
-				title: test.titlePath()[ 3 ],
+			// 0 = empty, 1 = browser, 2 = file name, 3 = test suite name, 4 = test name.
+			const titlePath = test.titlePath();
+			const title = `${ titlePath[ 3 ] } › ${ titlePath[ 4 ] }`;
+
+			// results is an array in case repeatEach is > 1.
+
+			this.allResults[ title ] ??= {
+				file: test.location.file, // Unused, but useful for debugging.
 				results: [],
 			};
+
 			this.allResults[ test.location.file ].results.push(
 				JSON.parse( performanceResults.body.toString( 'utf-8' ) )
 			);
@@ -50,7 +56,7 @@ class PerformanceReporter {
 	onEnd( result ) {
 		const summary = [];
 
-		for ( const [ file, { title, results } ] of Object.entries(
+		for ( const [ title, { file, results } ] of Object.entries(
 			this.allResults
 		) ) {
 			summary.push( {
