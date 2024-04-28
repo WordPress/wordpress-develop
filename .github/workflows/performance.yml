@@ -205,10 +205,13 @@ jobs:
             } );
 
             const fs = require( 'fs' );
-            fs.writeFileSync( '${{ env.LOCAL_DIR }}/before.zip', Buffer.from( download.data ) )
+            fs.writeFileSync( '${{ github.workspace }}/before.zip', Buffer.from( download.data ) )
 
       - name: Unzip the build
-        run: unzip ${{ env.LOCAL_DIR }}/before.zip
+        run: |
+          rm -rf ${{ env.LOCAL_DIR }}
+          unzip ${{ github.workspace }}/before.zip
+          unzip ${{ github.workspace }}/wordpress.zip
 
       - name: Flush cache
         run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
