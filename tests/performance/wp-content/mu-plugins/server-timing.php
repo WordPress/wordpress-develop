@@ -30,8 +30,9 @@ add_filter(
 				 * any numeric value can actually be passed.
 				 * This is a nice little trick as it allows to easily get this information in JS.
 				 */
-				$server_timing_values['memory-usage'] = memory_get_usage();
-				$server_timing_values['db-queries']   = $GLOBALS['wpdb']->num_queries;
+				$server_timing_values['memory-usage']  = memory_get_usage();
+				$server_timing_values['db-queries']    = $GLOBALS['wpdb']->num_queries;
+				$server_timing_values['ext-obj-cache'] = wp_using_ext_object_cache() ? 1 : 0;
 
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
