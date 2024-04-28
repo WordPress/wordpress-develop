@@ -189,7 +189,7 @@ jobs:
       - name: Get previous build (target branch or previous commit)
         id: get-previous-build
         run: |
-          echo "artifact_id=$(gh api repos/WordPress/wordpress-develop/actions/artifacts?name='wordpress-build-$TARGET_SHA' --jq ".artifacts[] .id")" >> $GITHUB_OUTPUT
+          echo "artifact_id=$(gh api repos/WordPress/wordpress-develop/actions/artifacts?name="wordpress-build-$TARGET_SHA" --jq ".artifacts[] .id")" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -200,7 +200,7 @@ jobs:
             const download = await github.rest.actions.downloadArtifact( {
                owner: context.repo.owner,
                repo: context.repo.repo,
-               artifact_id: ${{ steps.get-previous-build.outputs.artifact_id }}
+               artifact_id: ${{ steps.get-previous-build.outputs.artifact_id || null }},
                archive_format: 'zip',
             } );
 
