@@ -85,7 +85,7 @@ for ( const { title, results } of afterStats ) {
 			// Only do comparison if the number of results is the same.
 			const prevValues =
 				prevStat?.results.length === results.length
-					? prevStat?.results[ i ].key
+					? prevStat?.results[ i ][ metric ]
 					: null;
 
 			const value = median( values );
