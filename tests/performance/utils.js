@@ -120,8 +120,12 @@ function standardDeviation( array = [] ) {
 		return 0;
 	}
 
-	const mean = array.reduce( ( a, b ) => a + b ) / array.length
-	return Math.sqrt( array.map( ( x ) => Math.pow( x - mean, 2 ) ).reduce( ( a, b ) => a + b ) / array.length )
+	const mean = array.reduce( ( a, b ) => a + b ) / array.length;
+	return Math.sqrt(
+		array
+			.map( ( x ) => Math.pow( x - mean, 2 ) )
+			.reduce( ( a, b ) => a + b ) / array.length
+	);
 }
 
 function medianAbsoluteDeviation( array = [] ) {

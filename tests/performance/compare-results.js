@@ -62,7 +62,8 @@ if ( process.env.TARGET_SHA ) {
 	}
 }
 
-const numberOfIterations = Object.values( afterStats[ 0 ].results[ 0 ] )[ 0 ].length;
+const numberOfIterations = Object.values( afterStats[ 0 ].results[ 0 ] )[ 0 ]
+	.length;
 
 summaryMarkdown += `All numbers are median values over ${ numberOfIterations } iterations.\n\n`;
 
@@ -72,7 +73,9 @@ if ( process.env.GITHUB_SHA ) {
 
 console.log( 'Performance Test Results\n' );
 
-console.log( `All numbers are median values over ${ numberOfIterations } iterations.\n` );
+console.log(
+	`All numbers are median values over ${ numberOfIterations } iterations.\n`
+);
 
 if ( process.env.GITHUB_SHA ) {
 	console.log(
@@ -102,7 +105,8 @@ for ( const { title, results } of afterStats ) {
 			const prevValue = prevValues ? median( prevValues ) : 0;
 			const delta = value - prevValue;
 			const percentage = ( delta / value ) * 100;
-			const showDiff = metric !== 'wpExtObjCache' && ! Number.isNaN( percentage );
+			const showDiff =
+				metric !== 'wpExtObjCache' && ! Number.isNaN( percentage );
 
 			rows.push( {
 				Metric: metric,
@@ -110,8 +114,12 @@ for ( const { title, results } of afterStats ) {
 				After: formatValue( metric, value ),
 				'Diff abs.': showDiff ? formatValue( metric, delta ) : '',
 				'Diff %': showDiff ? `${ percentage.toFixed( 2 ) } %` : '',
-				'STD':  showDiff ? formatValue( metric, standardDeviation( values ) ) : '',
-				'MAD':  showDiff ? formatValue( metric, medianAbsoluteDeviation( values ) ) : '',
+				STD: showDiff
+					? formatValue( metric, standardDeviation( values ) )
+					: '',
+				MAD: showDiff
+					? formatValue( metric, medianAbsoluteDeviation( values ) )
+					: '',
 			} );
 		}
 	}
