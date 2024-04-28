@@ -92,13 +92,14 @@ for ( const { title, results } of afterStats ) {
 			const prevValue = prevValues ? median( prevValues ) : 0;
 			const delta = value - prevValue;
 			const percentage = ( delta / value ) * 100;
+			const showDiff = metric !== 'wpExtObjCache';
 
 			rows.push( {
 				Metric: metric,
 				Before: formatValue( metric, prevValue ),
 				After: formatValue( metric, value ),
-				'Diff abs.': formatValue( metric, delta ),
-				'Diff %': `${ percentage.toFixed( 2 ) } %`,
+				'Diff abs.': showDiff ? formatValue( metric, delta ) : '',
+				'Diff %': showDiff ? `${ percentage.toFixed( 2 ) } %` : '',
 			} );
 		}
 	}

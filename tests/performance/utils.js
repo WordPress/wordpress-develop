@@ -84,8 +84,13 @@ function formatValue( metric, value ) {
 	if ( null === value ) {
 		return 'N/A';
 	}
+
 	if ( 'wpMemoryUsage' === metric ) {
 		return `${ ( value / Math.pow( 10, 6 ) ).toFixed( 2 ) } MB`;
+	}
+
+	if ( 'wpExtObjCache' === metric || 'wpDbQueries' === metric ) {
+		return value;
 	}
 
 	return `${ value.toFixed( 2 ) } ms`;
