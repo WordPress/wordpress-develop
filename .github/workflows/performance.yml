@@ -209,9 +209,8 @@ jobs:
 
       - name: Unzip the build
         run: |
-          rm -rf ${{ env.LOCAL_DIR }}
           unzip ${{ github.workspace }}/before.zip
-          unzip ${{ github.workspace }}/wordpress.zip
+          unzip -o ${{ github.workspace }}/wordpress.zip
 
       - name: Flush cache
         run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
