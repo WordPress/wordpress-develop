@@ -224,17 +224,21 @@ jobs:
         run: npm run test:performance
 
       - name: Set the environment to the baseline version
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: |
           npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Flush cache
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run any database upgrades
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run baseline performance tests
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         env:
           TEST_RESULTS_PREFIX: base
         run: npm run test:performance
