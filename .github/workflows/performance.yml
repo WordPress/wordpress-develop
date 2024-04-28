@@ -168,15 +168,26 @@ jobs:
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path=/var/www/${{ env.LOCAL_DIR }}
           rm themeunittestdata.wordpress.xml
 
+      - name: Deactivate WordPress Importer plugin
+        run: npm run env:cli -- plugin deactivate wordpress-importer --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Update permalink structure
-        run: |
-          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install additional languages
         run: |
           npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Disable external HTTP requests
+        run: npm run env:cli -- config set WP_HTTP_BLOCK_EXTERNAL true --raw --type=constant --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Disable cron
+        run: npm run env:cli -- config set DISABLE_WP_CRON true --raw --type=constant --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: List defined constants
+        run: npm run env:cli -- config list --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install MU plugin
         run: |

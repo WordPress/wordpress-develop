@@ -14,6 +14,8 @@ const {
 	formatAsMarkdownTable,
 	formatValue,
 	linkToSha,
+	standardDeviation,
+	medianAbsoluteDeviation,
 } = require( './utils' );
 
 process.env.WP_ARTIFACTS_PATH ??= join( process.cwd(), 'artifacts' );
@@ -60,15 +62,23 @@ if ( process.env.TARGET_SHA ) {
 	}
 }
 
+const numberOfIterations = Object.values( afterStats[ 0 ].results[ 0 ] )[ 0 ].length;
+
+summaryMarkdown += `All numbers are median values over ${ numberOfIterations } iterations.\n\n`;
+
 if ( process.env.GITHUB_SHA ) {
 	summaryMarkdown += `**Note:** Due to the nature of how GitHub Actions work, some variance in the results is expected.\n\n`;
 }
 
 console.log( 'Performance Test Results\n' );
 
-console.log(
-	'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n'
-);
+console.log( `All numbers are median values over ${ numberOfIterations } iterations.\n` );
+
+if ( process.env.GITHUB_SHA ) {
+	console.log(
+		'Note: Due to the nature of how GitHub Actions work, some variance in the results is expected.\n'
+	);
+}
 
 for ( const { title, results } of afterStats ) {
 	const prevStat = beforeStats.find( ( s ) => s.title === title );
@@ -100,6 +110,8 @@ for ( const { title, results } of afterStats ) {
 				After: formatValue( metric, value ),
 				'Diff abs.': showDiff ? formatValue( metric, delta ) : '',
 				'Diff %': showDiff ? `${ percentage.toFixed( 2 ) } %` : '',
+				'STD':  showDiff ? formatValue( metric, standardDeviation( values ) ) : '',
+				'MAD':  showDiff ? formatValue( metric, medianAbsoluteDeviation( values ) ) : '',
 			} );
 		}
 	}

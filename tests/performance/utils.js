@@ -115,10 +115,30 @@ function linkToSha( sha ) {
 	) }](https://github.com/${ repoName }/commit/${ sha })`;
 }
 
+function standardDeviation( array = [] ) {
+	if ( ! array.length ) {
+		return 0;
+	}
+
+	const mean = array.reduce( ( a, b ) => a + b ) / array.length
+	return Math.sqrt( array.map( ( x ) => Math.pow( x - mean, 2 ) ).reduce( ( a, b ) => a + b ) / array.length )
+}
+
+function medianAbsoluteDeviation( array = [] ) {
+	if ( ! array.length ) {
+		return 0;
+	}
+
+	const med = median( array );
+	return median( array.map( ( a ) => Math.abs( a - med ) ) );
+}
+
 module.exports = {
 	median,
 	camelCaseDashes,
 	formatAsMarkdownTable,
 	formatValue,
 	linkToSha,
+	standardDeviation,
+	medianAbsoluteDeviation,
 };
