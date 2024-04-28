@@ -92,7 +92,7 @@ for ( const { title, results } of afterStats ) {
 			const prevValue = prevValues ? median( prevValues ) : 0;
 			const delta = value - prevValue;
 			const percentage = ( delta / value ) * 100;
-			const showDiff = metric !== 'wpExtObjCache';
+			const showDiff = metric !== 'wpExtObjCache' && ! Number.isNaN( percentage );
 
 			rows.push( {
 				Metric: metric,
