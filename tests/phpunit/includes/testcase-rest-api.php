@@ -19,13 +19,13 @@ abstract class WP_Test_REST_TestCase extends WP_UnitTestCase {
 			$response = $response->as_error();
 		}
 
-		$this->assertWPError( $response, $message );
-		$this->assertSame( $code, $response->get_error_code(), $message );
+		$this->assertWPError( $response, $message . ' Passed $response is not a WP_Error object.' );
+		$this->assertSame( $code, $response->get_error_code(), $message . ' The expected error code does not match.' );
 
 		if ( null !== $status ) {
 			$data = $response->get_error_data();
-			$this->assertArrayHasKey( 'status', $data, $message );
-			$this->assertSame( $status, $data['status'], $message );
+			$this->assertArrayHasKey( 'status', $data, $message . ' Passed $response does not include a status code.' );
+			$this->assertSame( $status, $data['status'], $message . ' The expected status code does not match.' );
 		}
 	}
 }
