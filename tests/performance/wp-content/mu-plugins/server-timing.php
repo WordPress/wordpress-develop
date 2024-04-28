@@ -4,7 +4,7 @@ add_filter(
 	'template_include',
 	static function ( $template ) {
 
-		global $timestart;
+		global $timestart, $wpdb;
 
 		$server_timing_values = array();
 		$template_start       = microtime( true );
@@ -15,10 +15,7 @@ add_filter(
 
 		add_action(
 			'shutdown',
-			static function () use ( $server_timing_values, $template_start ) {
-
-				global $timestart;
-
+			static function () use ( $server_timing_values, $template_start, $wpdb ) {
 				$output = ob_get_clean();
 
 				$server_timing_values['template'] = microtime( true ) - $template_start;
@@ -31,7 +28,7 @@ add_filter(
 				 * This is a nice little trick as it allows to easily get this information in JS.
 				 */
 				$server_timing_values['memory-usage']  = memory_get_usage();
-				$server_timing_values['db-queries']    = $GLOBALS['wpdb']->num_queries;
+				$server_timing_values['db-queries']    = $wpdb->num_queries;
 				$server_timing_values['ext-obj-cache'] = wp_using_ext_object_cache() ? 1 : 0;
 
 				$header_values = array();
