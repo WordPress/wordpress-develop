@@ -190,6 +190,8 @@ jobs:
         id: get-previous-build
         run: |
           echo "artifact_id=$(gh api repos/WordPress/wordpress-develop/actions/artifacts?name='wordpress-build-$TARGET_SHA' --jq ".artifacts[] .id")" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download artifact
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
