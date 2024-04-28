@@ -31,6 +31,7 @@ add_filter(
 				 * This is a nice little trick as it allows to easily get this information in JS.
 				 */
 				$server_timing_values['memory-usage'] = memory_get_usage();
+				$server_timing_values['db-queries']   = $GLOBALS['wpdb']->num_queries;
 
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
