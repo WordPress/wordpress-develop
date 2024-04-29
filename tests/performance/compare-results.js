@@ -16,6 +16,7 @@ const {
 	linkToSha,
 	standardDeviation,
 	medianAbsoluteDeviation,
+	accumulateValues,
 } = require( './utils' );
 
 process.env.WP_ARTIFACTS_PATH ??= join( process.cwd(), 'artifacts' );
@@ -91,21 +92,6 @@ if ( process.env.GITHUB_SHA ) {
 	);
 }
 
-/**
- *
- * @param {Array<Record<string, number[]>>} results
- * @returns {Record<string, number[]>}
- */
-function accumulateValues( results ) {
-	return results.reduce( ( acc, result ) => {
-		for ( const [ metric, values ] of Object.entries( result ) ) {
-			acc[ metric ] = acc[ metric ] ?? [];
-			acc[ metric ].push( ...values );
-		}
-		return acc;
-	}, {} );
-}
-
 for ( const { title, results } of afterStats ) {
 	const prevStat = beforeStats.find( ( s ) => s.title === title );
 
@@ -113,12 +99,6 @@ for ( const { title, results } of afterStats ) {
 	 * @type {Array<Record<string, string>>}
 	 */
 	const rows = [];
-
-	/**
-	 *
-	 * @type {Record<string, number[]>}
-	 */
-	const metrics = {};
 
 	const newResults = accumulateValues( results );
 	// Only do comparison if the number of results is the same.

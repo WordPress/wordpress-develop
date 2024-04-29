@@ -1,4 +1,27 @@
 /**
+ * External dependencies.
+ */
+const { readFileSync, existsSync } = require( 'node:fs' );
+const { join } = require( 'node:path' );
+
+process.env.WP_ARTIFACTS_PATH ??= join( process.cwd(), 'artifacts' );
+
+/**
+ * Parse test files into JSON objects.
+ *
+ * @param {string} fileName The name of the file.
+ * @return {Array<{file: string, title: string, results: Record<string,number[]>[]}>} Parsed object.
+ */
+function parseFile( fileName ) {
+	const file = join( process.env.WP_ARTIFACTS_PATH, fileName );
+	if ( ! existsSync( file ) ) {
+		return [];
+	}
+
+	return JSON.parse( readFileSync( file, 'utf8' ) );
+}
+
+/**
  * Computes the median number from an array numbers.
  *
  * @param {number[]} array
@@ -141,7 +164,23 @@ function medianAbsoluteDeviation( array = [] ) {
 	return median( array.map( ( a ) => Math.abs( a - med ) ) );
 }
 
+/**
+ *
+ * @param {Array<Record<string, number[]>>} results
+ * @returns {Record<string, number[]>}
+ */
+function accumulateValues( results ) {
+	return results.reduce( ( acc, result ) => {
+		for ( const [ metric, values ] of Object.entries( result ) ) {
+			acc[ metric ] = acc[ metric ] ?? [];
+			acc[ metric ].push( ...values );
+		}
+		return acc;
+	}, {} );
+}
+
 module.exports = {
+	parseFile,
 	median,
 	camelCaseDashes,
 	formatAsMarkdownTable,
@@ -149,4 +188,5 @@ module.exports = {
 	linkToSha,
 	standardDeviation,
 	medianAbsoluteDeviation,
+	accumulateValues,
 };
