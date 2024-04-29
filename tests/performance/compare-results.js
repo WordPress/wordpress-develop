@@ -62,10 +62,14 @@ if ( process.env.TARGET_SHA ) {
 	}
 }
 
+const numberOfRepetitions = afterStats[ 0 ].results.length;
 const numberOfIterations = Object.values( afterStats[ 0 ].results[ 0 ] )[ 0 ]
 	.length;
 
-summaryMarkdown += `All numbers are median values over ${ numberOfIterations } iterations.\n\n`;
+const repetitions = `${ numberOfRepetitions } ${numberOfRepetitions === 1 ? 'repetition' : 'repetitions'}`;
+const iterations  = `${ numberOfIterations} ${numberOfIterations === 1 ? 'iteration' : 'iterations'}`;
+
+summaryMarkdown += `All numbers are median values over ${ repetitions } with ${ iterations } each.\n\n`;
 
 if ( process.env.GITHUB_SHA ) {
 	summaryMarkdown += `**Note:** Due to the nature of how GitHub Actions work, some variance in the results is expected.\n\n`;
@@ -74,7 +78,7 @@ if ( process.env.GITHUB_SHA ) {
 console.log( 'Performance Test Results\n' );
 
 console.log(
-	`All numbers are median values over ${ numberOfIterations } iterations.\n`
+	`All numbers are median values over ${ repetitions } with ${ iterations } each.\n`
 );
 
 if ( process.env.GITHUB_SHA ) {
