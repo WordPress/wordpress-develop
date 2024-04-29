@@ -89,7 +89,11 @@ function formatValue( metric, value ) {
 		return `${ ( value / Math.pow( 10, 6 ) ).toFixed( 2 ) } MB`;
 	}
 
-	if ( 'wpExtObjCache' === metric || 'wpDbQueries' === metric ) {
+	if ( 'wpExtObjCache' === metric ) {
+		return 1 === value ? 'yes' : 'no';
+	}
+
+	if ( 'wpDbQueries' === metric ) {
 		return value;
 	}
 
