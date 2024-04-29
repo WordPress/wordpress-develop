@@ -66,31 +66,33 @@ jobs:
   # - Install WordPress.
   # - Install WordPress Importer plugin.
   # - Import mock data.
+  # - Deactivate WordPress Importer plugin.
   # - Update permalink structure.
+  # - Install additional languages.
+  # - Disable external HTTP requests.
+  # - Disable cron.
+  # - List defined constants.
   # - Install MU plugin.
   # - Run performance tests (current commit).
-  # - Print performance tests results.
-  # - Check out target commit (target branch or previous commit).
-  # - Switch Node.js versions if necessary.
-  # - Install npm dependencies.
-  # - Build WordPress.
+  # - Get previous build (target branch or previous commit).
+  # - Download artifact.
+  # - Unzip the build.
+  # - Flush cache.
   # - Run any database upgrades.
+  # - Delete expired transients.
   # - Run performance tests (previous/target commit).
-  # - Print target performance tests results.
-  # - Reset to original commit.
-  # - Switch Node.js versions if necessary.
-  # - Install npm dependencies.
   # - Set the environment to the baseline version.
+  # - Flush cache.
   # - Run any database upgrades.
+  # - Delete expired transients.
   # - Run baseline performance tests.
-  # - Print baseline performance tests results.
-  # - Compare results with base.
+  # - Archive artifacts.
+  # - Compare results.
   # - Add workflow summary.
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.
   # - Ensure version-controlled files are not modified or deleted.
-  # - Dispatch workflow run.
   performance:
     name: Run performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
     runs-on: ubuntu-latest
@@ -232,7 +234,7 @@ jobs:
       - name: Delete expired transients
         run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
 
-      - name: Run target performance tests (base/previous commit)
+      - name: Run target performance tests (previous/target commit)
         env:
           TEST_RESULTS_PREFIX: before
         run: npm run test:performance
@@ -269,10 +271,7 @@ jobs:
           path: artifacts
           if-no-files-found: ignore
 
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
-
-      - name: Compare results with base
+      - name: Compare results
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
 
       - name: Add workflow summary
