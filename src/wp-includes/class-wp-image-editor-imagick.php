@@ -22,12 +22,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	protected $image;
 
 	/**
-     * Stores the information whether the image is indexed-color encoded
-     *
-     * @since 4.7
-     * @access protected
-     * @var bool
-     */
+	 * Stores the information whether the image is indexed-color encoded
+	 *
+	 * @since 4.7
+	 * @access protected
+	 * @var bool
+	 */
      protected $indexed_color_encoded = false;
 
 	public function __destruct() {
