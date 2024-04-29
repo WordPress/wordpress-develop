@@ -162,8 +162,15 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$config = static::read_json_file( __DIR__ . '/theme.json' );
-		$config = static::translate( $config );
+		$cached_core = wp_cache_get( 'get_core_data', 'core_json' );
+
+		if ( $cached_core ) {
+			$config = $cached_core;
+		} else {
+			$config = static::read_json_file( __DIR__ . '/theme.json' );
+			$config = static::translate( $config );
+			wp_cache_set( 'get_core_data', $config, 'core_json' );
+		}
 
 		/**
 		 * Filters the default data provided by WordPress for global styles & settings.
