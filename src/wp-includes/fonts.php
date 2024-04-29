@@ -156,8 +156,9 @@ function wp_font_dir( $create_dir = true ) {
 	 *     @type string       $baseurl URL path without subdir.
 	 *     @type string|false $error   False or error message.
 	 * }
+	 * @param array $upload_dir The uploads directory data as returned by {@see wp_upload_dir()}.
 	 */
-	$font_dir = apply_filters( 'font_dir', $font_dir );
+	$font_dir = apply_filters( 'font_dir', $font_dir, $upload_dir );
 
 	// Do not attempt to create the /fonts directory if there was an error in wp_upload_dir() or after the 'font_dir' filter.
 	if ( ! empty( $font_dir['error'] ) ) {
