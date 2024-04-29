@@ -229,6 +229,9 @@ jobs:
       - name: Run any database upgrades
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
 
+      - name: Delete expired transients
+        run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run target performance tests (base/previous commit)
         env:
           TEST_RESULTS_PREFIX: before
@@ -247,6 +250,10 @@ jobs:
       - name: Run any database upgrades
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Delete expired transients
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run baseline performance tests
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
