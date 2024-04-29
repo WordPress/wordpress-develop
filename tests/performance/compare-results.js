@@ -66,8 +66,12 @@ const numberOfRepetitions = afterStats[ 0 ].results.length;
 const numberOfIterations = Object.values( afterStats[ 0 ].results[ 0 ] )[ 0 ]
 	.length;
 
-const repetitions = `${ numberOfRepetitions } ${numberOfRepetitions === 1 ? 'repetition' : 'repetitions'}`;
-const iterations  = `${ numberOfIterations} ${numberOfIterations === 1 ? 'iteration' : 'iterations'}`;
+const repetitions = `${ numberOfRepetitions } ${
+	numberOfRepetitions === 1 ? 'repetition' : 'repetitions'
+}`;
+const iterations = `${ numberOfIterations } ${
+	numberOfIterations === 1 ? 'iteration' : 'iterations'
+}`;
 
 summaryMarkdown += `All numbers are median values over ${ repetitions } with ${ iterations } each.\n\n`;
 
@@ -87,6 +91,21 @@ if ( process.env.GITHUB_SHA ) {
 	);
 }
 
+/**
+ *
+ * @param {Array<Record<string, number[]>>} results
+ * @returns {Record<string, number[]>}
+ */
+function accumulateValues( results ) {
+	return results.reduce( ( acc, result ) => {
+		for ( const [ metric, values ] of Object.entries( result ) ) {
+			acc[ metric ] = acc[ metric ] ?? [];
+			acc[ metric ].push( ...values );
+		}
+		return acc;
+	}, {} );
+}
+
 for ( const { title, results } of afterStats ) {
 	const prevStat = beforeStats.find( ( s ) => s.title === title );
 
@@ -95,37 +114,42 @@ for ( const { title, results } of afterStats ) {
 	 */
 	const rows = [];
 
-	for ( const i in results ) {
-		const newResult = results[ i ];
+	/**
+	 *
+	 * @type {Record<string, number[]>}
+	 */
+	const metrics = {};
 
-		for ( const [ metric, values ] of Object.entries( newResult ) ) {
-			// Only do comparison if the number of results is the same.
-			const prevValues =
-				prevStat?.results.length === results.length
-					? prevStat?.results[ i ][ metric ]
-					: null;
+	const newResults = accumulateValues( results );
+	// Only do comparison if the number of results is the same.
+	const prevResults =
+		prevStat && prevStat.results.length === results.length
+			? accumulateValues( prevStat.results )
+			: {};
 
-			const value = median( values );
-			const prevValue = prevValues ? median( prevValues ) : 0;
-			const delta = value - prevValue;
-			const percentage = ( delta / value ) * 100;
-			const showDiff =
-				metric !== 'wpExtObjCache' && ! Number.isNaN( percentage );
+	for ( const [ metric, values ] of Object.entries( newResults ) ) {
+		const prevValues = prevResults[ metric ] ? prevResults[ metric ] : null;
 
-			rows.push( {
-				Metric: metric,
-				Before: formatValue( metric, prevValue ),
-				After: formatValue( metric, value ),
-				'Diff abs.': showDiff ? formatValue( metric, delta ) : '',
-				'Diff %': showDiff ? `${ percentage.toFixed( 2 ) } %` : '',
-				STD: showDiff
-					? formatValue( metric, standardDeviation( values ) )
-					: '',
-				MAD: showDiff
-					? formatValue( metric, medianAbsoluteDeviation( values ) )
-					: '',
-			} );
-		}
+		const value = median( values );
+		const prevValue = prevValues ? median( prevValues ) : 0;
+		const delta = value - prevValue;
+		const percentage = ( delta / value ) * 100;
+		const showDiff =
+			metric !== 'wpExtObjCache' && ! Number.isNaN( percentage );
+
+		rows.push( {
+			Metric: metric,
+			Before: formatValue( metric, prevValue ),
+			After: formatValue( metric, value ),
+			'Diff abs.': showDiff ? formatValue( metric, delta ) : '',
+			'Diff %': showDiff ? `${ percentage.toFixed( 2 ) } %` : '',
+			STD: showDiff
+				? formatValue( metric, standardDeviation( values ) )
+				: '',
+			MAD: showDiff
+				? formatValue( metric, medianAbsoluteDeviation( values ) )
+				: '',
+		} );
 	}
 
 	console.log( title );
