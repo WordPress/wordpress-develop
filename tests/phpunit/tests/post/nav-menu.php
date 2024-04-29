@@ -764,7 +764,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
+	 * Run tests required to confirm Walker_Nav_Menu receives an $args object.
 	 */
 	public function confirm_nav_menu_item_args_object( $args ) {
 		$this->assertIsObject( $args );

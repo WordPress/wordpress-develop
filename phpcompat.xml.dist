@@ -63,8 +63,8 @@
 
 	<rule ref="PHPCompatibilityWP"/>
 
-	<!-- WordPress Core currently supports PHP 7.0+. -->
-	<config name="testVersion" value="7.0-"/>
+	<!-- WordPress Core currently supports PHP 7.2+. -->
+	<config name="testVersion" value="7.2-"/>
 
 	<!--
 	#############################################################################
