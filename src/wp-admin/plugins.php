@@ -71,11 +71,11 @@ if ( $action ) {
 			if ( ! is_network_admin() ) {
 				$recent = (array) get_option( 'recently_activated' );
 				unset( $recent[ $plugin ] );
-				update_option( 'recently_activated', $recent );
+				update_option( 'recently_activated', $recent, 'off' );
 			} else {
 				$recent = (array) get_site_option( 'recently_activated' );
 				unset( $recent[ $plugin ] );
-				update_site_option( 'recently_activated', $recent );
+				update_site_option( 'recently_activated', $recent, 'off' );
 			}
 
 			if ( isset( $_GET['from'] ) && 'import' === $_GET['from'] ) {
@@ -211,7 +211,7 @@ if ( $action ) {
 			deactivate_plugins( $plugin, false, is_network_admin() );
 
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array( $plugin => time() ) + (array) get_option( 'recently_activated' ) );
+				update_option( 'recently_activated', array( $plugin => time() ) + (array) get_option( 'recently_activated' ), 'off' );
 			} else {
 				update_site_option( 'recently_activated', array( $plugin => time() ) + (array) get_site_option( 'recently_activated' ) );
 			}
@@ -258,7 +258,7 @@ if ( $action ) {
 			}
 
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', $deactivated + (array) get_option( 'recently_activated' ) );
+				update_option( 'recently_activated', $deactivated + (array) get_option( 'recently_activated' ), 'off' );
 			} else {
 				update_site_option( 'recently_activated', $deactivated + (array) get_site_option( 'recently_activated' ) );
 			}
@@ -431,12 +431,12 @@ if ( $action ) {
 
 			// Store the result in an option rather than a URL param due to object type & length.
 			// Cannot use transient/cache, as that could get flushed if any plugin flushes data on uninstall/delete.
-			update_option( 'plugins_delete_result_' . $user_ID, $delete_result, false );
+			update_option( 'plugins_delete_result_' . $user_ID, $delete_result, 'off' );
 			wp_redirect( self_admin_url( "plugins.php?deleted=$plugins_to_delete&plugin_status=$status&paged=$page&s=$s" ) );
 			exit;
 		case 'clear-recent-list':
 			if ( ! is_network_admin() ) {
-				update_option( 'recently_activated', array() );
+				update_option( 'recently_activated', array(), 'off' );
 			} else {
 				update_site_option( 'recently_activated', array() );
 			}

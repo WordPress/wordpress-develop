@@ -1758,7 +1758,7 @@ function _upgrade_core_deactivate_incompatible_plugins() {
 		} else {
 			$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
 			$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
-			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins, 'off' );
 		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}

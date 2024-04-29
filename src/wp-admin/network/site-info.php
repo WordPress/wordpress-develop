@@ -91,7 +91,7 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 
 	if ( $old_home_parsed['host'] === $existing_details->domain && $old_home_parsed['path'] === $existing_details->path ) {
 		$new_home_url = untrailingslashit( sanitize_url( $blog_data['scheme'] . '://' . $new_details->domain . $new_details->path ) );
-		update_option( 'home', $new_home_url );
+		update_option( 'home', $new_home_url, 'on' );
 	}
 
 	$old_site_url    = trailingslashit( esc_url( get_option( 'siteurl' ) ) );
@@ -99,7 +99,7 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 
 	if ( $old_site_parsed['host'] === $existing_details->domain && $old_site_parsed['path'] === $existing_details->path ) {
 		$new_site_url = untrailingslashit( sanitize_url( $blog_data['scheme'] . '://' . $new_details->domain . $new_details->path ) );
-		update_option( 'siteurl', $new_site_url );
+		update_option( 'siteurl', $new_site_url, 'on' );
 	}
 
 	restore_current_blog();

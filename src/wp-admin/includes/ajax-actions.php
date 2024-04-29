@@ -2483,7 +2483,7 @@ function wp_ajax_delete_inactive_widgets() {
 		$id_base      = implode( '-', $pieces );
 		$widget       = get_option( 'widget_' . $id_base );
 		unset( $widget[ $multi_number ] );
-		update_option( 'widget_' . $id_base, $widget );
+		update_option( 'widget_' . $id_base, $widget, 'off' );
 		unset( $sidebars_widgets['wp_inactive_widgets'][ $key ] );
 	}
 

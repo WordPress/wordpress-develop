@@ -55,24 +55,24 @@ if ( ! function_exists( 'wp_install' ) ) :
 		populate_options();
 		populate_roles();
 
-		update_option( 'blogname', $blog_title );
-		update_option( 'admin_email', $user_email );
-		update_option( 'blog_public', $is_public );
+		update_option( 'blogname', $blog_title, 'on' );
+		update_option( 'admin_email', $user_email, 'off' );
+		update_option( 'blog_public', $is_public, 'on' );
 
 		// Freshness of site - in the future, this could get more specific about actions taken, perhaps.
-		update_option( 'fresh_site', 1 );
+		update_option( 'fresh_site', 1, 'off' );
 
 		if ( $language ) {
-			update_option( 'WPLANG', $language );
+			update_option( 'WPLANG', $language, 'on' );
 		}
 
 		$guessurl = wp_guess_url();
 
-		update_option( 'siteurl', $guessurl );
+		update_option( 'siteurl', $guessurl, 'on' );
 
 		// If not a public site, don't ping.
 		if ( ! $is_public ) {
-			update_option( 'default_pingback_flag', 0 );
+			update_option( 'default_pingback_flag', 0, 'on' );
 		}
 
 		/*
@@ -390,7 +390,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 					'meta_value' => 'default',
 				)
 			);
-			update_option( 'wp_page_for_privacy_policy', 3 );
+			update_option( 'wp_page_for_privacy_policy', 3, 'on' );
 		}
 
 		// Set up default widgets for default theme.
@@ -403,7 +403,8 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 				5              => array( 'content' => '<!-- wp:group --><div class="wp-block-group"><!-- wp:heading --><h2>' . __( 'Archives' ) . '</h2><!-- /wp:heading --><!-- wp:archives /--></div><!-- /wp:group -->' ),
 				6              => array( 'content' => '<!-- wp:group --><div class="wp-block-group"><!-- wp:heading --><h2>' . __( 'Categories' ) . '</h2><!-- /wp:heading --><!-- wp:categories /--></div><!-- /wp:group -->' ),
 				'_multiwidget' => 1,
-			)
+			),
+			'on'
 		);
 		update_option(
 			'sidebars_widgets',
@@ -419,7 +420,8 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 					1 => 'block-6',
 				),
 				'array_version'       => 3,
-			)
+			),
+			'on'
 		);
 
 		if ( ! is_multisite() ) {
@@ -851,8 +853,8 @@ function upgrade_all() {
 
 	maybe_disable_automattic_widgets();
 
-	update_option( 'db_version', $wp_db_version );
-	update_option( 'db_upgraded', true );
+	update_option( 'db_version', $wp_db_version, 'on' );
+	update_option( 'db_upgraded', true, 'on' );
 }
 
 /**
@@ -1064,7 +1066,7 @@ function upgrade_130() {
 	 */
 	if ( ! is_array( $active_plugins ) ) {
 		$active_plugins = explode( "\n", trim( $active_plugins ) );
-		update_option( 'active_plugins', $active_plugins );
+		update_option( 'active_plugins', $active_plugins, 'off' );
 	}
 
 	// Obsolete tables.
@@ -1453,7 +1455,7 @@ function upgrade_230() {
 		}
 
 		// Set default to the last category we grabbed during the upgrade loop.
-		update_option( 'default_link_category', $default_link_cat );
+		update_option( 'default_link_category', $default_link_cat, 'off' );
 	} else {
 		$links = $wpdb->get_results( "SELECT link_id, category_id FROM $wpdb->link2cat GROUP BY link_id, category_id" );
 		foreach ( $links as $link ) {
@@ -1630,7 +1632,7 @@ function upgrade_280() {
 					$value = stripslashes( $value );
 				}
 				if ( $value !== $row->option_value ) {
-					update_option( $row->option_name, $value );
+					update_option( $row->option_name, $value, 'on' );
 				}
 			}
 			$start += 20;
@@ -1656,8 +1658,8 @@ function upgrade_290() {
 		 * but now 2 is the minimum depth to avoid confusion.
 		 */
 		if ( get_option( 'thread_comments_depth' ) == '1' ) {
-			update_option( 'thread_comments_depth', 2 );
-			update_option( 'thread_comments', 0 );
+			update_option( 'thread_comments_depth', 2, 'on' );
+			update_option( 'thread_comments', 0, 'on' );
 		}
 	}
 }
@@ -1792,7 +1794,7 @@ function upgrade_330() {
 		case 2:
 			$sidebars_widgets                  = retrieve_widgets();
 			$sidebars_widgets['array_version'] = 3;
-			update_option( 'sidebars_widgets', $sidebars_widgets );
+			update_option( 'sidebars_widgets', $sidebars_widgets, 'on' );
 	}
 }
 
@@ -1846,7 +1848,7 @@ function upgrade_350() {
 	global $wp_current_db_version, $wpdb;
 
 	if ( $wp_current_db_version < 22006 && $wpdb->get_var( "SELECT link_id FROM $wpdb->links LIMIT 1" ) ) {
-		update_option( 'link_manager_enabled', 1 ); // Previously set to 0 by populate_options().
+		update_option( 'link_manager_enabled', 1, 'on' ); // Previously set to 0 by populate_options().
 	}
 
 	if ( $wp_current_db_version < 21811 && wp_should_upgrade_global_tables() ) {
@@ -1932,9 +1934,9 @@ function upgrade_400() {
 	if ( $wp_current_db_version < 29630 ) {
 		if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
 			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages(), true ) ) {
-				update_option( 'WPLANG', WPLANG );
+				update_option( 'WPLANG', WPLANG, 'on' );
 			} else {
-				update_option( 'WPLANG', '' );
+				update_option( 'WPLANG', '', 'on' );
 			}
 		}
 	}
@@ -1966,7 +1968,7 @@ function upgrade_430() {
 
 	// Shared terms are split in a separate process.
 	if ( $wp_current_db_version < 32814 ) {
-		update_option( 'finished_splitting_shared_terms', 0 );
+		update_option( 'finished_splitting_shared_terms', 0, 'off' );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_split_shared_term_batch' );
 	}
 
@@ -2128,7 +2130,7 @@ function upgrade_460() {
 				}
 			}
 
-			update_option( 'uninstall_plugins', $uninstall_plugins );
+			update_option( 'uninstall_plugins', $uninstall_plugins, 'off' );
 		}
 	}
 }
@@ -2168,7 +2170,7 @@ function upgrade_530() {
 	 * is shown next time an admin logs in.
 	 */
 	if ( function_exists( 'current_user_can' ) && ! current_user_can( 'manage_options' ) ) {
-		update_option( 'admin_email_lifespan', 0 );
+		update_option( 'admin_email_lifespan', 0, 'off' );
 	}
 }
 
@@ -2185,7 +2187,7 @@ function upgrade_550() {
 
 	if ( $wp_current_db_version < 48121 ) {
 		$comment_previously_approved = get_option( 'comment_whitelist', '' );
-		update_option( 'comment_previously_approved', $comment_previously_approved );
+		update_option( 'comment_previously_approved', $comment_previously_approved, 'on' );
 		delete_option( 'comment_whitelist' );
 	}
 
@@ -2201,13 +2203,13 @@ function upgrade_550() {
 			$disallowed_list = get_option( 'blocklist_keys' );
 		}
 
-		update_option( 'disallowed_keys', $disallowed_list );
+		update_option( 'disallowed_keys', $disallowed_list, 'on' );
 		delete_option( 'blacklist_keys' );
 		delete_option( 'blocklist_keys' );
 	}
 
 	if ( $wp_current_db_version < 48748 ) {
-		update_option( 'finished_updating_comment_type', 0 );
+		update_option( 'finished_updating_comment_type', 0, 'off' );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 	}
 }
@@ -2239,7 +2241,7 @@ function upgrade_560() {
 		 * This overrides the same option from populate_options() that is intended for new installs.
 		 * See https://core.trac.wordpress.org/ticket/51742.
 		 */
-		update_option( 'auto_update_core_major', 'unset' );
+		update_option( 'auto_update_core_major', 'unset', 'off' );
 	}
 
 	if ( $wp_current_db_version < 49632 ) {
@@ -2343,7 +2345,7 @@ function upgrade_640() {
 
 	if ( $wp_current_db_version < 56657 ) {
 		// Enable attachment pages.
-		update_option( 'wp_attachment_pages_enabled', 1 );
+		update_option( 'wp_attachment_pages_enabled', 1, 'off' );
 
 		// Remove the wp_https_detection cron. Https status is checked directly in an async Site Health check.
 		$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
@@ -3505,8 +3507,8 @@ function make_site_theme() {
 	// Make the new site theme active.
 	$current_template = __get_option( 'template' );
 	if ( WP_DEFAULT_THEME == $current_template ) {
-		update_option( 'template', $template );
-		update_option( 'stylesheet', $template );
+		update_option( 'template', $template, 'on' );
+		update_option( 'stylesheet', $template, 'on' );
 	}
 	return $template;
 }

@@ -598,7 +598,7 @@ class WP_Widget {
 	 */
 	public function save_settings( $settings ) {
 		$settings['_multiwidget'] = 1;
-		update_option( $this->option_name, $settings );
+		update_option( $this->option_name, $settings, 'on' );
 	}
 
 	/**
