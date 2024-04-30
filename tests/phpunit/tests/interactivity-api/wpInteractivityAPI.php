@@ -588,29 +588,37 @@ SCRIPT_TAG;
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_html_with_unbalanced_tags
+	 *
+	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
-	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags() {
+	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {
 		$this->interactivity->state( 'myPlugin', array( 'id' => 'some-id' ) );
 
-		$html_samples = array(
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>',
-			'<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>',
-			'</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>',
-			'<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>',
-			'<div data-wp-bind--id="myPlugin::state.id">Inner conntent</ ></div>',
-		);
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( 'id' ) );
+	}
 
-		foreach ( $html_samples as $html ) {
-			$processed_html = $this->interactivity->process_directives( $html );
-			$p              = new WP_HTML_Tag_Processor( $processed_html );
-			$p->next_tag();
-			$this->assertNull( $p->get_attribute( 'id' ) );
-		}
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_with_unbalanced_tags() {
+		return array(
+			'DIV closer after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></div>' ),
+			'DIV opener after'   => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div><div>' ),
+			'DIV opener before'  => array( '<div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV closer before'  => array( '</div><div data-wp-bind--id="myPlugin::state.id">Inner content</div>' ),
+			'DIV opener inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner<div>content</div>' ),
+			'DIV closer inside'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner</div>content</div>' ),
+			'SPAN opener inside' => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
+			'SPAN closer after'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
+			'SPAN overlapping'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
+		);
 	}
 
 	/**
