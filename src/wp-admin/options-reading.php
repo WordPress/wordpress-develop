@@ -74,12 +74,12 @@ if ( ! in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', '
 <table class="form-table" role="presentation">
 	<?php
 	if ( 'posts' !== get_option( 'show_on_front' ) ) :
-		update_option( 'show_on_front', 'posts', 'on' );
+		update_option( 'show_on_front', 'posts' );
 	endif;
 
 else :
 	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
-		update_option( 'show_on_front', 'posts', 'on' );
+		update_option( 'show_on_front', 'posts' );
 	}
 	?>
 <table class="form-table" role="presentation">

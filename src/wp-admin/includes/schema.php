@@ -614,7 +614,7 @@ function populate_options( array $options = array() ) {
 
 	// In case it is set, but blank, update "home".
 	if ( ! __get_option( 'home' ) ) {
-		update_option( 'home', $guessurl, 'on' );
+		update_option( 'home', $guessurl );
 	}
 
 	// Delete unused options.

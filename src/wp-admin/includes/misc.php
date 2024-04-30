@@ -352,7 +352,7 @@ function update_recently_edited( $file ) {
 		$oldfiles[] = $file;
 	}
 
-	update_option( 'recently_edited', $oldfiles, 'off' );
+	update_option( 'recently_edited', $oldfiles );
 }
 
 /**

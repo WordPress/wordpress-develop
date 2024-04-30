@@ -511,7 +511,7 @@ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set.
 	$url = dirname( set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'] ) );
 
 	if ( get_option( 'siteurl' ) !== $url ) {
-		update_option( 'siteurl', $url, 'on' );
+		update_option( 'siteurl', $url );
 	}
 }
 
