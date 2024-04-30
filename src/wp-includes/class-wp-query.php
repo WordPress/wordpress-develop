@@ -2264,6 +2264,9 @@ class WP_Query {
 					$post_type = 'any';
 				} elseif ( count( $post_type ) === 1 ) {
 					$post_type = $post_type[0];
+				} else {
+					// Sort post types to ensure same cache key generation.
+					sort( $post_type );
 				}
 
 				$post_status_join = true;
