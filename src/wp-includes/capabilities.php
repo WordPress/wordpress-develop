@@ -1089,7 +1089,6 @@ function is_super_admin( $user_id = false ) {
 			return true;
 		}
 	} elseif ( $user->has_cap( 'delete_users' ) ) {
-
 		return true;
 	}
 
