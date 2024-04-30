@@ -55,24 +55,24 @@ if ( ! function_exists( 'wp_install' ) ) :
 		populate_options();
 		populate_roles();
 
-		update_option( 'blogname', $blog_title, 'on' );
-		update_option( 'admin_email', $user_email, 'off' );
-		update_option( 'blog_public', $is_public, 'on' );
+		update_option( 'blogname', $blog_title );
+		update_option( 'admin_email', $user_email );
+		update_option( 'blog_public', $is_public );
 
 		// Freshness of site - in the future, this could get more specific about actions taken, perhaps.
-		update_option( 'fresh_site', 1, 'off' );
+		update_option( 'fresh_site', 1 );
 
 		if ( $language ) {
-			update_option( 'WPLANG', $language, 'on' );
+			update_option( 'WPLANG', $language );
 		}
 
 		$guessurl = wp_guess_url();
 
-		update_option( 'siteurl', $guessurl, 'on' );
+		update_option( 'siteurl', $guessurl );
 
 		// If not a public site, don't ping.
 		if ( ! $is_public ) {
-			update_option( 'default_pingback_flag', 0, 'on' );
+			update_option( 'default_pingback_flag', 0 );
 		}
 
 		/*
@@ -192,9 +192,9 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 			if ( ! $first_post ) {
 				$first_post = "<!-- wp:paragraph -->\n<p>" .
-				/* translators: First post content. %s: Site link. */
-				__( 'Welcome to %s. This is your first post. Edit or delete it, then start writing!' ) .
-				"</p>\n<!-- /wp:paragraph -->";
+					/* translators: First post content. %s: Site link. */
+					__( 'Welcome to %s. This is your first post. Edit or delete it, then start writing!' ) .
+					"</p>\n<!-- /wp:paragraph -->";
 			}
 
 			$first_post = sprintf(
@@ -207,9 +207,9 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 			$first_post = str_replace( 'SITE_NAME', get_network()->site_name, $first_post );
 		} else {
 			$first_post = "<!-- wp:paragraph -->\n<p>" .
-			/* translators: First post content. %s: Site link. */
-			__( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' ) .
-			"</p>\n<!-- /wp:paragraph -->";
+				/* translators: First post content. %s: Site link. */
+				__( 'Welcome to WordPress. This is your first post. Edit or delete it, then start writing!' ) .
+				"</p>\n<!-- /wp:paragraph -->";
 		}
 
 		$wpdb->insert(
@@ -257,7 +257,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 		$first_comment_email  = ! empty( $first_comment_email ) ? $first_comment_email : 'wapuu@wordpress.example';
 		$first_comment_url    = ! empty( $first_comment_url ) ? $first_comment_url : esc_url( __( 'https://wordpress.org/' ) );
 		$first_comment        = ! empty( $first_comment ) ? $first_comment : sprintf(
-			/* translators: %s: Gravatar URL. */
+		/* translators: %s: Gravatar URL. */
 			__(
 				'Hi, this is a comment.
 To get started with moderating, editing, and deleting comments, please visit the Comments screen in the dashboard.
@@ -307,7 +307,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			$first_page .= sprintf(
-				/* translators: First page content. %s: Site admin URL. */
+			/* translators: First page content. %s: Site admin URL. */
 				__( 'As a new WordPress user, you should go to <a href="%s">your dashboard</a> to delete this page and create new pages for your content. Have fun!' ),
 				admin_url()
 			);
@@ -390,7 +390,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 					'meta_value' => 'default',
 				)
 			);
-			update_option( 'wp_page_for_privacy_policy', 3, 'on' );
+			update_option( 'wp_page_for_privacy_policy', 3 );
 		}
 
 		// Set up default widgets for default theme.
@@ -403,8 +403,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 				5              => array( 'content' => '<!-- wp:group --><div class="wp-block-group"><!-- wp:heading --><h2>' . __( 'Archives' ) . '</h2><!-- /wp:heading --><!-- wp:archives /--></div><!-- /wp:group -->' ),
 				6              => array( 'content' => '<!-- wp:group --><div class="wp-block-group"><!-- wp:heading --><h2>' . __( 'Categories' ) . '</h2><!-- /wp:heading --><!-- wp:categories /--></div><!-- /wp:group -->' ),
 				'_multiwidget' => 1,
-			),
-			'on'
+			)
 		);
 		update_option(
 			'sidebars_widgets',
@@ -420,8 +419,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 					1 => 'block-6',
 				),
 				'array_version'       => 3,
-			),
-			'on'
+			)
 		);
 
 		if ( ! is_multisite() ) {
@@ -556,7 +554,7 @@ if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 		$login_url = wp_login_url();
 
 		$message = sprintf(
-			/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL. */
+		/* translators: New site notification email. 1: New site URL, 2: User login, 3: User password or password reset link, 4: Login URL. */
 			__(
 				'Your new WordPress site has been successfully set up at:
 
@@ -853,8 +851,8 @@ function upgrade_all() {
 
 	maybe_disable_automattic_widgets();
 
-	update_option( 'db_version', $wp_db_version, 'on' );
-	update_option( 'db_upgraded', true, 'on' );
+	update_option( 'db_version', $wp_db_version );
+	update_option( 'db_upgraded', true );
 }
 
 /**
@@ -975,7 +973,7 @@ function upgrade_110() {
 
 	$time_difference = $all_options->time_difference;
 
-		$server_time = time() + gmdate( 'Z' );
+	$server_time = time() + gmdate( 'Z' );
 	$weblogger_time  = $server_time + $time_difference * HOUR_IN_SECONDS;
 	$gmt_time        = time();
 
@@ -1066,7 +1064,7 @@ function upgrade_130() {
 	 */
 	if ( ! is_array( $active_plugins ) ) {
 		$active_plugins = explode( "\n", trim( $active_plugins ) );
-		update_option( 'active_plugins', $active_plugins, 'off' );
+		update_option( 'active_plugins', $active_plugins );
 	}
 
 	// Obsolete tables.
@@ -1455,7 +1453,7 @@ function upgrade_230() {
 		}
 
 		// Set default to the last category we grabbed during the upgrade loop.
-		update_option( 'default_link_category', $default_link_cat, 'off' );
+		update_option( 'default_link_category', $default_link_cat );
 	} else {
 		$links = $wpdb->get_results( "SELECT link_id, category_id FROM $wpdb->link2cat GROUP BY link_id, category_id" );
 		foreach ( $links as $link ) {
@@ -1632,7 +1630,7 @@ function upgrade_280() {
 					$value = stripslashes( $value );
 				}
 				if ( $value !== $row->option_value ) {
-					update_option( $row->option_name, $value, 'on' );
+					update_option( $row->option_name, $value );
 				}
 			}
 			$start += 20;
@@ -1658,8 +1656,8 @@ function upgrade_290() {
 		 * but now 2 is the minimum depth to avoid confusion.
 		 */
 		if ( get_option( 'thread_comments_depth' ) == '1' ) {
-			update_option( 'thread_comments_depth', 2, 'on' );
-			update_option( 'thread_comments', 0, 'on' );
+			update_option( 'thread_comments_depth', 2 );
+			update_option( 'thread_comments', 0 );
 		}
 	}
 }
@@ -1790,11 +1788,11 @@ function upgrade_330() {
 			$sidebars_widgets                   = $_sidebars_widgets;
 			unset( $_sidebars_widgets );
 
-			// Intentional fall-through to upgrade to the next version.
+		// Intentional fall-through to upgrade to the next version.
 		case 2:
 			$sidebars_widgets                  = retrieve_widgets();
 			$sidebars_widgets['array_version'] = 3;
-			update_option( 'sidebars_widgets', $sidebars_widgets, 'on' );
+			update_option( 'sidebars_widgets', $sidebars_widgets );
 	}
 }
 
@@ -1848,7 +1846,7 @@ function upgrade_350() {
 	global $wp_current_db_version, $wpdb;
 
 	if ( $wp_current_db_version < 22006 && $wpdb->get_var( "SELECT link_id FROM $wpdb->links LIMIT 1" ) ) {
-		update_option( 'link_manager_enabled', 1, 'on' ); // Previously set to 0 by populate_options().
+		update_option( 'link_manager_enabled', 1 ); // Previously set to 0 by populate_options().
 	}
 
 	if ( $wp_current_db_version < 21811 && wp_should_upgrade_global_tables() ) {
@@ -1934,9 +1932,9 @@ function upgrade_400() {
 	if ( $wp_current_db_version < 29630 ) {
 		if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
 			if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages(), true ) ) {
-				update_option( 'WPLANG', WPLANG, 'on' );
+				update_option( 'WPLANG', WPLANG );
 			} else {
-				update_option( 'WPLANG', '', 'on' );
+				update_option( 'WPLANG', '' );
 			}
 		}
 	}
@@ -1968,7 +1966,7 @@ function upgrade_430() {
 
 	// Shared terms are split in a separate process.
 	if ( $wp_current_db_version < 32814 ) {
-		update_option( 'finished_splitting_shared_terms', 0, 'off' );
+		update_option( 'finished_splitting_shared_terms', 0 );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_split_shared_term_batch' );
 	}
 
@@ -2130,7 +2128,7 @@ function upgrade_460() {
 				}
 			}
 
-			update_option( 'uninstall_plugins', $uninstall_plugins, 'off' );
+			update_option( 'uninstall_plugins', $uninstall_plugins );
 		}
 	}
 }
@@ -2170,7 +2168,7 @@ function upgrade_530() {
 	 * is shown next time an admin logs in.
 	 */
 	if ( function_exists( 'current_user_can' ) && ! current_user_can( 'manage_options' ) ) {
-		update_option( 'admin_email_lifespan', 0, 'off' );
+		update_option( 'admin_email_lifespan', 0 );
 	}
 }
 
@@ -2187,7 +2185,7 @@ function upgrade_550() {
 
 	if ( $wp_current_db_version < 48121 ) {
 		$comment_previously_approved = get_option( 'comment_whitelist', '' );
-		update_option( 'comment_previously_approved', $comment_previously_approved, 'on' );
+		update_option( 'comment_previously_approved', $comment_previously_approved );
 		delete_option( 'comment_whitelist' );
 	}
 
@@ -2203,13 +2201,13 @@ function upgrade_550() {
 			$disallowed_list = get_option( 'blocklist_keys' );
 		}
 
-		update_option( 'disallowed_keys', $disallowed_list, 'on' );
+		update_option( 'disallowed_keys', $disallowed_list );
 		delete_option( 'blacklist_keys' );
 		delete_option( 'blocklist_keys' );
 	}
 
 	if ( $wp_current_db_version < 48748 ) {
-		update_option( 'finished_updating_comment_type', 0, 'off' );
+		update_option( 'finished_updating_comment_type', 0 );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 	}
 }
@@ -2241,7 +2239,7 @@ function upgrade_560() {
 		 * This overrides the same option from populate_options() that is intended for new installs.
 		 * See https://core.trac.wordpress.org/ticket/51742.
 		 */
-		update_option( 'auto_update_core_major', 'unset', 'off' );
+		update_option( 'auto_update_core_major', 'unset' );
 	}
 
 	if ( $wp_current_db_version < 49632 ) {
@@ -2345,7 +2343,7 @@ function upgrade_640() {
 
 	if ( $wp_current_db_version < 56657 ) {
 		// Enable attachment pages.
-		update_option( 'wp_attachment_pages_enabled', 1, 'off' );
+		update_option( 'wp_attachment_pages_enabled', 1 );
 
 		// Remove the wp_https_detection cron. Https status is checked directly in an async Site Health check.
 		$scheduled = wp_get_scheduled_event( 'wp_https_detection' );
@@ -3507,8 +3505,8 @@ function make_site_theme() {
 	// Make the new site theme active.
 	$current_template = __get_option( 'template' );
 	if ( WP_DEFAULT_THEME == $current_template ) {
-		update_option( 'template', $template, 'on' );
-		update_option( 'stylesheet', $template, 'on' );
+		update_option( 'template', $template );
+		update_option( 'stylesheet', $template );
 	}
 	return $template;
 }
