@@ -886,6 +886,11 @@ mockedApiResponse.Schema = {
                             "default": "view",
                             "required": false
                         },
+                        "excerpt_length": {
+                            "description": "Override the default excerpt length.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "password": {
                             "description": "The password for the post if it is password protected.",
                             "type": "string",
@@ -2049,6 +2054,11 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
+                            "required": false
+                        },
+                        "excerpt_length": {
+                            "description": "Override the default excerpt length.",
+                            "type": "integer",
                             "required": false
                         },
                         "password": {
@@ -9230,7 +9240,8 @@ mockedApiResponse.Schema = {
                                 "de_DE",
                                 "en_GB",
                                 "es_ES",
-                                "ja_JP"
+                                "ja_JP",
+                                "de_CH"
                             ],
                             "required": false
                         },
@@ -9361,7 +9372,8 @@ mockedApiResponse.Schema = {
                                 "de_DE",
                                 "en_GB",
                                 "es_ES",
-                                "ja_JP"
+                                "ja_JP",
+                                "de_CH"
                             ],
                             "required": false
                         },
@@ -9502,7 +9514,8 @@ mockedApiResponse.Schema = {
                                 "de_DE",
                                 "en_GB",
                                 "es_ES",
-                                "ja_JP"
+                                "ja_JP",
+                                "de_CH"
                             ],
                             "required": false
                         },
