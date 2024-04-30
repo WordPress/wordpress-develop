@@ -156,8 +156,8 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Generates the tree-like structure represented in the Html5lib tests.
 	 *
-	 * @param string? $fragment_context Context element in which to parse HTML, such as BODY or SVG.
-	 * @param string $html             Given test HTML.
+	 * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
+	 * @param string      $html             Given test HTML.
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
 	private static function build_tree_representation( ?string $fragment_context, string $html ) {
