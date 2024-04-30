@@ -21,14 +21,15 @@ require ABSPATH . 'wp-admin/includes/revision.php';
  * @global int    $from     The revision to compare from.
  * @global int    $to       Optional, required if revision missing. The revision to compare to.
  */
-wp_reset_vars( array( 'revision', 'action', 'from', 'to' ) );
 
-$revision_id = absint( $revision );
+$revision_id = ! empty( $_REQUEST['revision'] ) ? absint( $_REQUEST['revision'] ) : 0;
+$action      = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
+$from        = ! empty( $_REQUEST['from'] ) && is_numeric( $_REQUEST['from'] ) ? absint( $_REQUEST['from'] ) : null;
 
-$from = is_numeric( $from ) ? absint( $from ) : null;
-if ( ! $revision_id ) {
-	$revision_id = absint( $to );
+if ( ! empty( $_REQUEST['to'] ) && ! $revision_id ) {
+	$revision_id = absint( $_REQUEST['to'] );
 }
+
 $redirect = 'edit.php';
 
 switch ( $action ) {
