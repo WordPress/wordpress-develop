@@ -10,13 +10,17 @@ import fs from 'fs';
 import path from 'node:path';
 
 test.describe( 'Localize Script on wp-login.php', () => {
-	const muFolder = path.normalize(
+	const srcMuFolder = path.normalize(
 		path.join( process.cwd(), 'src/wp-content/mu-plugins' )
 	);
-	const muFile = path.normalize( path.join( muFolder, 'login-test.php' ) );
+	const srcMuFile = path.normalize( path.join( srcMuFolder, 'login-test.php' ) );
+	const buildMuFolder = path.normalize(
+		path.join( process.cwd(), 'build/wp-content/mu-plugins' )
+	);
+	const buildMuFile = path.normalize( path.join( buildMuFolder, 'login-test.php' ) );
 
 	test.beforeAll( async ( { requestUtils } ) => {
-		const muplugin = `<?php
+		const mupluginCode = `<?php
 		add_action(
 			'login_enqueue_scripts',
 			function() {
@@ -24,19 +28,24 @@ test.describe( 'Localize Script on wp-login.php', () => {
 				'wp-util',
 				'testData',
 				[
-				  'answerToTheUltimateQuestionOfLifeTheUniverseAndEverything' => 42,
+				  'answerToTheUltimateQuestionOfLifeTheUniverseAndEverything2' => 42,
 				]
 			  );
 			}
 		  );`;
-		if ( ! fs.existsSync( muFolder ) ) {
-			fs.mkdirSync( muFolder, { recursive: true } );
+		if ( ! fs.existsSync( srcMuFolder ) ) {
+			fs.mkdirSync( srcMuFolder, { recursive: true } );
 		}
-		fs.writeFileSync( muFile, muplugin );
+		if ( ! fs.existsSync( buildMuFolder ) ) {
+			fs.mkdirSync( buildMuFolder, { recursive: true } );
+		}
+		fs.writeFileSync( srcMuFile, mupluginCode );
+		fs.writeFileSync( buildMuFile, mupluginCode );
 	} );
 
 	test.afterAll( async ( { requestUtils } ) => {
-		fs.unlinkSync( muFile );
+		fs.unlinkSync( srcMuFile );
+		fs.unlinkSync( buildMuFile );
 	} );
 
 	test( 'should localize script', async ( { page } ) => {
@@ -44,7 +53,7 @@ test.describe( 'Localize Script on wp-login.php', () => {
 		await page.waitForSelector( '#login' );
 		const testData = await page.evaluate( () => window.testData );
 		expect(
-			testData.answerToTheUltimateQuestionOfLifeTheUniverseAndEverything
+			testData.answerToTheUltimateQuestionOfLifeTheUniverseAndEverything2
 		).toBe( '42' );
 	} );
 } );
