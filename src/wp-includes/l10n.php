@@ -997,6 +997,19 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return false;
 	}
 
+	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'init'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>init</code>'
+			),
+			'6.6.0'
+		);
+	}
+
 	/**
 	 * Filters a plugin's locale.
 	 *
@@ -1049,6 +1062,19 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 		return false;
 	}
 
+	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'init'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>init</code>'
+			),
+			'6.6.0'
+		);
+	}
+
 	/** This filter is documented in wp-includes/l10n.php */
 	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
 
@@ -1090,6 +1116,19 @@ function load_theme_textdomain( $domain, $path = false ) {
 
 	if ( ! is_string( $domain ) ) {
 		return false;
+	}
+
+	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'init'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>init</code>'
+			),
+			'6.6.0'
+		);
 	}
 
 	/**
@@ -1371,6 +1410,20 @@ function _load_textdomain_just_in_time( $domain ) {
 	if ( ! $path ) {
 		return false;
 	}
+
+	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'init'. */
+				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>init</code>'
+			),
+			'6.6.0'
+		);
+	}
+
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
 	$template_directory   = trailingslashit( get_template_directory() );
 	$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
