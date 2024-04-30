@@ -156,12 +156,14 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	/**
 	 * Generates the tree-like structure represented in the Html5lib tests.
 	 *
-	 * @param string $fragment_context Context element in which to parse HTML, such as BODY or SVG.
+	 * @param string? $fragment_context Context element in which to parse HTML, such as BODY or SVG.
 	 * @param string $html             Given test HTML.
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
-	private static function build_tree_representation( $fragment_context, $html ) {
-		$processor = WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" );
+	private static function build_tree_representation( ?string $fragment_context, string $html ) {
+		$processor = $fragment_context
+			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
+			: WP_HTML_Processor::create_fragment( $html );
 		if ( null === $processor ) {
 			return null;
 		}
@@ -274,7 +276,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 		$line_number          = 0;
 		$test_html            = '';
 		$test_dom             = '';
-		$test_context_element = 'body';
+		$test_context_element = null;
 		$test_line_number     = 0;
 
 		while ( false !== ( $line = fgets( $handle ) ) ) {
@@ -298,7 +300,7 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 					$test_line_number     = $line_number;
 					$test_html            = '';
 					$test_dom             = '';
-					$test_context_element = 'body';
+					$test_context_element = null;
 				}
 
 				$state = trim( substr( $line, 1 ) );
