@@ -11,7 +11,7 @@ class Tests_Block_Templates_InjectIgnoredHookedBlocksMetadataAttributes extends 
 	/**
 	 * Tear down after each test.
 	 *
-	 * @since 6.5.1
+	 * @since 6.5.3
 	 */
 	public function tear_down() {
 		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
