@@ -594,6 +594,7 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rest_base'             => 'font-families',
 			'rest_controller_class' => 'WP_REST_Font_Families_Controller',
+			'supports'              => array( 'title' ),
 		)
 	);
 
@@ -625,6 +626,7 @@ function create_initial_post_types() {
 			'show_in_rest'          => true,
 			'rest_base'             => 'font-families/(?P<font_family_id>[\d]+)/font-faces',
 			'rest_controller_class' => 'WP_REST_Font_Faces_Controller',
+			'supports'              => array( 'title' ),
 		)
 	);
 
