@@ -61,7 +61,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	/**
 	 * Set up the test fixture.
 	 *
-	 * Override `wp_die()`, pretend to be Ajax, and suppress `E_WARNING`s.
+	 * Override `wp_die()`, pretend to be Ajax, and suppress warnings.
 	 *
 	 * @since 5.2.0
 	 */
