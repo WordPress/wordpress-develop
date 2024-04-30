@@ -886,6 +886,11 @@ mockedApiResponse.Schema = {
                             "default": "view",
                             "required": false
                         },
+                        "excerpt_length": {
+                            "description": "Override the default excerpt length.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "password": {
                             "description": "The password for the post if it is password protected.",
                             "type": "string",
@@ -2049,6 +2054,11 @@ mockedApiResponse.Schema = {
                                 "edit"
                             ],
                             "default": "view",
+                            "required": false
+                        },
+                        "excerpt_length": {
+                            "description": "Override the default excerpt length.",
+                            "type": "integer",
                             "required": false
                         },
                         "password": {
