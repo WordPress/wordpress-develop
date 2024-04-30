@@ -25,9 +25,10 @@ require ABSPATH . 'wp-admin/includes/revision.php';
 $revision_id = ! empty( $_REQUEST['revision'] ) ? absint( $_REQUEST['revision'] ) : 0;
 $action      = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 $from        = ! empty( $_REQUEST['from'] ) && is_numeric( $_REQUEST['from'] ) ? absint( $_REQUEST['from'] ) : null;
+$to          = ! empty( $_REQUEST['to'] ) && is_numeric( $_REQUEST['to'] ) ? absint( $_REQUEST['to'] ) : null;
 
-if ( ! empty( $_REQUEST['to'] ) && ! $revision_id ) {
-	$revision_id = absint( $_REQUEST['to'] );
+if ( ! $revision_id ) {
+	$revision_id = $to;
 }
 
 $redirect = 'edit.php';
