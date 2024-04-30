@@ -10,10 +10,10 @@ import fs from 'fs';
 import path from 'node:path';
 
 test.describe( 'Localize Script on wp-login.php', () => {
-	const muFile = path.normalize(
-		path.join( process.cwd(), 'src/wp-content/mu-plugins/login-test.php' )
+	const muFolder = path.normalize(
+		path.join( process.cwd(), 'src/wp-content/mu-plugins' )
 	);
-	console.log( muFile );
+	const muFile = path.normalize( path.join( muFolder, 'login-test.php' ) );
 
 	test.beforeAll( async ( { requestUtils } ) => {
 		const muplugin = `<?php
@@ -29,6 +29,9 @@ test.describe( 'Localize Script on wp-login.php', () => {
 			  );
 			}
 		  );`;
+		if ( ! fs.existsSync( muFolder ) ) {
+			fs.mkdirSync( muFolder, { recursive: true } );
+		}
 		fs.writeFileSync( muFile, muplugin );
 	} );
 
