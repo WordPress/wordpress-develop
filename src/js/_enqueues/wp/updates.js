@@ -1123,7 +1123,7 @@
 				id: 'plugin-activated-successfully',
 				className: 'notice-success',
 				message: sprintf(
-					/* translators: %s: The refresh button's attributes. */
+					/* translators: %s: The refresh link's attributes. */
 					__( 'Plugin activated. Some changes may not occur until you refresh the page. <a %s>Refresh Now</a>' ),
 					'href="#" class="button button-secondary refresh-page"'
 				),
