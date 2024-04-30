@@ -162,14 +162,13 @@ class WP_Theme_JSON_Resolver {
 			return static::$core;
 		}
 
-		$cached_core = wp_cache_get( 'get_core_data', 'core_json' );
-
+		$cached_core = wp_cache_get( 'get_core_data', 'theme_files' );
 		if ( $cached_core ) {
 			$config = $cached_core;
 		} else {
 			$config = static::read_json_file( __DIR__ . '/theme.json' );
 			$config = static::translate( $config );
-			wp_cache_set( 'get_core_data', $config, 'core_json' );
+			wp_cache_set( 'get_core_data', $config, 'theme_files' );
 		}
 
 		/**
@@ -180,8 +179,7 @@ class WP_Theme_JSON_Resolver {
 		 * @param WP_Theme_JSON_Data $theme_json Class to access and update the underlying data.
 		 */
 		$theme_json   = apply_filters( 'wp_theme_json_data_default', new WP_Theme_JSON_Data( $config, 'default' ) );
-		$config       = $theme_json->get_data();
-		static::$core = new WP_Theme_JSON( $config, 'default' );
+		static::$core = $theme_json->get_theme_json();
 
 		return static::$core;
 	}
