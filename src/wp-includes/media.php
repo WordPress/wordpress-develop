@@ -1048,12 +1048,12 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  *     @type string       $sizes         The 'sizes' attribute value.
  *     @type string|false $loading       The 'loading' attribute value. Passing a value of false
  *                                       will result in the attribute being omitted for the image.
- *                                       Default value determined by `wp_get_loading_optimization_attributes()`.
+ *                                       Default determined by {@see wp_get_loading_optimization_attributes()}.
  *     @type string       $decoding      The 'decoding' attribute value. Possible values are
  *                                       'async' (default), 'sync', or 'auto'. Passing false or an empty
  *                                       string will result in the attribute being omitted.
- *     @type string       $fetchpriority The 'fetchpriority' attribute value. Default value is determined
- *                                       by `wp_get_loading_optimization_attributes()`.
+ *     @type string       $fetchpriority The 'fetchpriority' attribute value, whether `high`, `low`, or `auto`.
+ *                                       Default determined by {@see wp_get_loading_optimization_attributes()}.
  * }
  * @return string HTML img element or empty string on failure.
  */
