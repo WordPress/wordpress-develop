@@ -1589,31 +1589,3 @@ function image_attachment_fields_to_save( $post, $attachment ) {
 
 	return $post;
 }
-
-/**
- * Resets global variables based on $_GET and $_POST.
- *
- * This function resets global variables based on the names passed
- * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
- * if neither is defined.
- *
- * @since 2.0.0
- * @deprecated 6.6.0
- *
- * @param array $vars An array of globals to reset.
- */
-function wp_reset_vars( $vars ) {
-	_deprecated_function( __FUNCTION__, '6.6.0' );
-
-	foreach ( $vars as $var ) {
-		if ( empty( $_POST[ $var ] ) ) {
-			if ( empty( $_GET[ $var ] ) ) {
-				$GLOBALS[ $var ] = '';
-			} else {
-				$GLOBALS[ $var ] = $_GET[ $var ];
-			}
-		} else {
-			$GLOBALS[ $var ] = $_POST[ $var ];
-		}
-	}
-}

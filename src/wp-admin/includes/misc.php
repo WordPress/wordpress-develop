@@ -576,6 +576,31 @@ function update_home_siteurl( $old_value, $value ) {
 }
 
 /**
+ * Resets global variables based on $_GET and $_POST.
+ *
+ * This function resets global variables based on the names passed
+ * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
+ * if neither is defined.
+ *
+ * @since 2.0.0
+ *
+ * @param array $vars An array of globals to reset.
+ */
+function wp_reset_vars( $vars ) {
+	foreach ( $vars as $var ) {
+		if ( empty( $_POST[ $var ] ) ) {
+			if ( empty( $_GET[ $var ] ) ) {
+				$GLOBALS[ $var ] = '';
+			} else {
+				$GLOBALS[ $var ] = $_GET[ $var ];
+			}
+		} else {
+			$GLOBALS[ $var ] = $_POST[ $var ];
+		}
+	}
+}
+
+/**
  * Displays the given administration message.
  *
  * @since 2.1.0
