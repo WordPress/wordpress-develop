@@ -96,6 +96,63 @@ class Tests_Term_Data extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'data', $object_data, 'The data property should not be returned.' );
 	}
 
+	/**
+	 * Data provider.
+	 *
+	 * @return array An array of public WP_Term properties.
+	 */
+	public function data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error() {
+		$reflection     = new ReflectionClass( WP_Term::class );
+		$properties     = $reflection->getProperties( ReflectionProperty::IS_PUBLIC );
+		$property_names = array();
+
+		foreach ( $properties as $property ) {
+			$property_name                                   = $property->getName();
+			$property_names[ 'WP_Term::$' . $property_name ] = array( 'property_name' => $property_name );
+		}
+
+		return $property_names;
+	}
+
+	/**
+	 * @dataProvider data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error
+	 *
+	 * @covers WP_Term::to_array
+	 * @ticket 58087
+	 *
+	 * @param string $property_name A class property name to test.
+	 */
+	public function test_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error( $property_name ) {
+		$this->assertObjectHasProperty( $property_name, $this->term, "WP_Term does not have the expected property '{$property_name}'." );
+
+		unset( $this->term->$property_name );
+		$this->assertFalse( isset( $this->term->$property_name ), "Property '{$property_name}' should be unset but is still set." );
+
+		// Set the property to null and verify through addToAssertionCount() that __set doesn't trigger a deprecation error.
+		$this->term->$property_name = null;
+		$this->addToAssertionCount( 1 );
+	}
+
+	/**
+	 * @dataProvider data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error
+	 *
+	 * @covers WP_Term::check_if_public_class_property
+	 * @ticket 58087
+	 *
+	 * @param string $property_name A class property name to test.
+	 */
+	public function test_public_properties_should_be_correctly_detected( $property_name ) {
+		$method = new ReflectionMethod( $this->term, 'check_if_public_class_property' );
+
+		// Set the method to be accessible
+		$method->setAccessible( true );
+
+		$this->assertTrue(
+			$method->invokeArgs( $this->term, array( $property_name ) ),
+			"Have you forgotten to add the \"$property_name\" property to the array in WP_Term::check_if_public_class_property()?"
+		);
+	}
+
 	public function tear_down() {
 		unregister_taxonomy( 'wptests_tax' );
 		parent::tear_down();
