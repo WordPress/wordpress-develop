@@ -38,7 +38,8 @@ function _wp_http_get_object() {
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
  * @see wp_http_validate_url() For more information about how the URL is validated.
- * @see {@link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery Explanation of SSRF}
+ * 
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
@@ -525,14 +526,16 @@ function send_origin_headers() {
  * Validate a URL for safe use in the HTTP API.
  *
  * Examples for URLs that are considered unsafe:
- * - ftp://example.com/caniload.php (Invalid protocol - Only `http` and `https` are allowed)
+ *
+ * - ftp://example.com/caniload.php (Invalid protocol - Only http and https are allowed)
  * - http:///example.com/caniload.php (Malformed URL)
  * - http://user:pass@example.com/caniload.php (Login information)
  * - http://exampleeeee.com/caniload.php (Invalid hostname, as the IP cannot be looked up in DNS)
  *
  * Examples for URLS that are considered unsafe by default:
- * - http://192.168.0.1/caniload.php (IPs from LAN networks. This can be changed with the Wordpress filter `http_request_host_is_external` )
- * - http://192.168.0.1/caniload.php (By default, only 80, 443 and 8080 are allowed. This can be changed with the Wordpress filter `http_allowed_safe_ports`)
+ *
+ * - http://192.168.0.1/caniload.php (IPs from LAN networks. This can be changed with the Wordpress filter http_request_host_is_external )
+ * - http://192.168.0.1/caniload.php (By default, only 80, 443 and 8080 are allowed. This can be changed with the Wordpress filter http_allowed_safe_ports)
  *
  * @since 3.5.2
  *
