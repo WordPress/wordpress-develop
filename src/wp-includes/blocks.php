@@ -675,6 +675,27 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	$metadata['name'] = ! empty( $settings['name'] ) ? $settings['name'] : $metadata['name'];
 
+	// This is an alias block.
+	if ( isset( $metadata['settings']['alias'] ) ) {
+		$canonicalBlock = WP_Block_Type_Registry::get_instance()->get_registered( $metadata['settings']['alias'] );
+
+		if ( ! $canonicalBlock ) {
+			return false;
+		}
+
+		foreach ( $canonicalBlock as $key => $value ) {
+			if ( ! isset( $settings[ $key ] ) ) {
+				$settings[ $key ] = $value;
+			}
+
+			// We copy over all the attributes from the canonical block to the alias block
+			// but the ones that are already set in the alias block are not overwritten.
+			if ( 'attributes' === $key ) {
+				$settings[ $key ] = array_merge( is_array( $value ) ? $value : array(), $settings[ $key ] );
+			}
+		}
+	}
+
 	return WP_Block_Type_Registry::get_instance()->register(
 		$metadata['name'],
 		$settings
