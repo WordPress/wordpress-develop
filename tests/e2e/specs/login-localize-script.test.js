@@ -1,8 +1,8 @@
 /**
  * External dependencies
  */
-import fs from 'node:fs';
-import path from 'node:path';
+import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
  * WordPress dependencies
@@ -10,12 +10,12 @@ import path from 'node:path';
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 test.describe( 'Localize Script on wp-login.php', () => {
-	const muPlugins = path.normalize(
-		path.join( process.cwd(), 'wp-content/mu-plugins' )
+	const muPlugins = join(
+		process.cwd(),
+		process.env.LOCAL_DIR ?? 'src',
+		'wp-content/mu-plugins'
 	);
-	const muPluginFile = path.normalize(
-		path.join( muPlugins, 'login-test.php' )
-	);
+	const muPluginFile = join( muPlugins, 'login-test.php' );
 
 	test.beforeAll( async () => {
 		const muPluginCode = `<?php
@@ -32,14 +32,14 @@ test.describe( 'Localize Script on wp-login.php', () => {
 			}
 		  );`;
 
-		if ( ! fs.existsSync( muPlugins ) ) {
-			fs.mkdirSync( muPlugins, { recursive: true } );
+		if ( ! existsSync( muPlugins ) ) {
+			mkdirSync( muPlugins, { recursive: true } );
 		}
-		fs.writeFileSync( muPluginFile, muPluginCode );
+		writeFileSync( muPluginFile, muPluginCode );
 	} );
 
 	test.afterAll( async () => {
-		fs.unlinkSync( muPluginFile );
+		unlinkSync( muPluginFile );
 	} );
 
 	test( 'should localize script', async ( { page } ) => {

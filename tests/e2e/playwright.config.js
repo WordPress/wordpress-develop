@@ -14,7 +14,6 @@ process.env.STORAGE_STATE_PATH ??= path.join(
 	process.env.WP_ARTIFACTS_PATH,
 	'storage-states/admin.json'
 );
-process.env.LOCAL_DIR = path.join( process.cwd(), process.env.LOCAL_DIR ?? 'src' );
 
 const config = defineConfig( {
 	...baseConfig,
