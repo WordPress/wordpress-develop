@@ -170,7 +170,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 			array( 'status' => 404 )
 		);
 
-		if ( (int) $parent_post_id <= 0 ) {
+		if ( is_null( $parent_post_id ) ) {
 			return $error;
 		}
 		$template = get_block_template( $parent_post_id, $this->parent_post_type );
