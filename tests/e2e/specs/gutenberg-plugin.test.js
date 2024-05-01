@@ -29,7 +29,20 @@ test.describe( 'Gutenberg plugin', () => {
 
 		expect( plugin.status ).toBe( 'inactive' );
 
-		await requestUtils.activatePlugin( 'gutenberg' );
+		try {
+			await requestUtils.activatePlugin( 'gutenberg' );
+		} catch ( error ) {
+			if (
+				typeof error === 'object' &&
+				error !== null &&
+				Object.prototype.hasOwnProperty.call( error, 'code' ) &&
+				error.code === 'plugin_wp_incompatible'
+			) {
+				test.skip();
+			} else {
+				throw error;
+			}
+		}
 
 		plugin = await requestUtils.rest( {
 			path: 'wp/v2/plugins/gutenberg/gutenberg',
