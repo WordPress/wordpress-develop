@@ -918,7 +918,8 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/lookup' );
 		$request->set_param( 'slug', 'not-found' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
+		$data     = $response->get_data();
+		$this->assertEquals( new stdClass(), $data, 'Response should be an empty object when a fallback template is not found.' );
 	}
 
 	/**
