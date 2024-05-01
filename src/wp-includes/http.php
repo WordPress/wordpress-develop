@@ -30,7 +30,7 @@ function _wp_http_get_object() {
  * Retrieve the raw response from a safe HTTP request.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
  * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
@@ -56,12 +56,16 @@ function wp_safe_remote_request( $url, $args = array() ) {
  * Retrieve the raw response from a safe HTTP request using the GET method.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
@@ -78,12 +82,16 @@ function wp_safe_remote_get( $url, $args = array() ) {
  * Retrieve the raw response from a safe HTTP request using the POST method.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
@@ -100,12 +108,16 @@ function wp_safe_remote_post( $url, $args = array() ) {
  * Retrieve the raw response from a safe HTTP request using the HEAD method.
  *
  * This function is ideal when the HTTP request is being made to an arbitrary
- * URL. The URL is validated to avoid redirection and request forgery attacks.
+ * URL. The URL, and every URL it redirects to, are validated with wp_http_validate_url()
+ * to avoid Server Side Request Forgery attacks (SSRF).
  *
  * @since 3.6.0
  *
  * @see wp_remote_request() For more information on the response array format.
  * @see WP_Http::request() For default arguments information.
+ * @see wp_http_validate_url() For more information about how the URL is validated.
+ *
+ * @link https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
  *
  * @param string $url  URL to retrieve.
  * @param array  $args Optional. Request arguments. Default empty array.
@@ -534,7 +546,7 @@ function send_origin_headers() {
  *
  * Examples for URLS that are considered unsafe by default:
  *
- * - http://192.168.0.1/caniload.php (IPs from LAN networks. This can be changed with the Wordpress filter http_request_host_is_external )
+ * - http://192.168.0.1/caniload.php (IPs from LAN networks. This can be changed with the Wordpress filter http_request_host_is_external)
  * - http://192.168.0.1/caniload.php (By default, only 80, 443 and 8080 are allowed. This can be changed with the Wordpress filter http_allowed_safe_ports)
  *
  * @since 3.5.2
