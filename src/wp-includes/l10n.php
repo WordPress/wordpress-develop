@@ -1003,7 +1003,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 			sprintf(
 				/* translators: 1: The text domain. 2: 'init'. */
 				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
-				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>' . $domain . '</code>',
 				'<code>init</code>'
 			),
 			'6.6.0'
@@ -1068,7 +1068,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 			sprintf(
 				/* translators: 1: The text domain. 2: 'init'. */
 				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
-				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>' . $domain . '</code>',
 				'<code>init</code>'
 			),
 			'6.6.0'
@@ -1124,7 +1124,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 			sprintf(
 				/* translators: 1: The text domain. 2: 'init'. */
 				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
-				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>' . $domain . '</code>',
 				'<code>init</code>'
 			),
 			'6.6.0'
@@ -1417,7 +1417,7 @@ function _load_textdomain_just_in_time( $domain ) {
 			sprintf(
 				/* translators: 1: The text domain. 2: 'init'. */
 				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
-				'<code>' . esc_html( $domain ) . '</code>',
+				'<code>' . $domain . '</code>',
 				'<code>init</code>'
 			),
 			'6.6.0'
