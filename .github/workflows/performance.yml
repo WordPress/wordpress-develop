@@ -201,48 +201,57 @@ jobs:
       - name: Run performance tests (current commit)
         run: npm run test:performance
 
-      - name: Get previous build (target branch or previous commit)
-        id: get-previous-build
-        run: |
-          echo "artifact_id=$(gh api repos/WordPress/wordpress-develop/actions/artifacts?name="wordpress-build-$TARGET_SHA" --jq ".artifacts[] .id")" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download artifact
+      - name: Download previous build artifact (target branch or previous commit)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ steps.get-previous-build.outputs.artifact_id || false }}
+        id: get-previous-build
+        if: ${{ steps.get-previous-build.outputs.result || false }}
         with:
           script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: "wordpress-build-$TARGET_SHA",
+            });
+
+            const matchArtifact = artifacts.data.artifacts[0];
+
+            if ( ! matchArtifact ) {
+              core.setFailed( 'No artifact found!' );
+              return false;
+            }
+
             const download = await github.rest.actions.downloadArtifact( {
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: ${{ steps.get-previous-build.outputs.artifact_id }},
-               archive_format: 'zip',
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
             } );
 
             const fs = require( 'fs' );
             fs.writeFileSync( '${{ github.workspace }}/before.zip', Buffer.from( download.data ) )
 
+            return true;
+
       - name: Unzip the build
-        if: ${{ steps.get-previous-build.outputs.artifact_id || false }}
+        if: ${{ steps.get-previous-build.outputs.result }}
         run: |
           unzip ${{ github.workspace }}/before.zip
           unzip -o ${{ github.workspace }}/wordpress.zip
 
       - name: Run any database upgrades
-        if: ${{ steps.get-previous-build.outputs.artifact_id || false }}
+        if: ${{ steps.get-previous-build.outputs.result }}
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Flush cache
-        if: ${{ steps.get-previous-build.outputs.artifact_id || false }}
+        if: ${{ steps.get-previous-build.outputs.result }}
         run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Delete expired transients
-        if: ${{ steps.get-previous-build.outputs.artifact_id || false }}
+        if: ${{ steps.get-previous-build.outputs.result }}
         run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run target performance tests (previous/target commit)
-        if: ${{ steps.get-previous-build.outputs.artifact_id || false }}
+        if: ${{ steps.get-previous-build.outputs.result }}
         env:
           TEST_RESULTS_PREFIX: before
         run: npm run test:performance
