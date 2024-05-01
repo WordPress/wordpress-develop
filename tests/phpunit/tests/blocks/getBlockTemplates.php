@@ -188,6 +188,7 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_get_block_templates_should_respect_posttypes_property
 	 * @ticket 55881
+	 * @ticket 61110
 	 *
 	 * @param string $post_type Post type for query.
 	 * @param array  $expected  Expected template IDs.
@@ -203,6 +204,9 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 
 	/**
 	 * Data provider.
+	 *
+	 * The `custom-hero-template` is intentionally omitted from the theme.json's `customTemplates`.
+	 * See: https://core.trac.wordpress.org/ticket/61110.
 	 *
 	 * @return array
 	 */
