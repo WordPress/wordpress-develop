@@ -38,6 +38,8 @@ test.describe( 'Gutenberg plugin', () => {
 				Object.prototype.hasOwnProperty.call( error, 'code' ) &&
 				error.code === 'plugin_wp_incompatible'
 			) {
+				// Skip the test if the plugin is incompatible with the current WordPress version.
+				// eslint-disable-next-line playwright/no-skipped-test
 				test.skip();
 			} else {
 				throw error;
