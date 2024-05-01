@@ -71,7 +71,7 @@ class WP_Theme_JSON_Data {
 	}
 
 	/**
-	 * Return theme JSON object.
+	 * Returns theme JSON object.
 	 *
 	 * @since 6.6.0
 	 *
