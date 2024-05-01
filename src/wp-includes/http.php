@@ -547,7 +547,7 @@ function send_origin_headers() {
  * Examples for URLS that are considered unsafe by default:
  *
  * - http://192.168.0.1/caniload.php (IPs from LAN networks. This can be changed with the Wordpress filter http_request_host_is_external)
- * - http://192.168.0.1:81/caniload.php (By default, only 80, 443 and 8080 are allowed. This can be changed with the Wordpress filter http_allowed_safe_ports)
+ * - http://198.143.164.252:81/caniload.php (By default, only 80, 443 and 8080 are allowed. This can be changed with the Wordpress filter http_allowed_safe_ports)
  *
  * @since 3.5.2
  *
