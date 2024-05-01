@@ -74,7 +74,7 @@ jobs:
   # - List defined constants.
   # - Install MU plugin.
   # - Run performance tests (current commit).
-  # - Get previous build (target branch or previous commit).
+  # - Download previous build artifact (target branch or previous commit).
   # - Download artifact.
   # - Unzip the build.
   # - Run any database upgrades.
@@ -204,7 +204,6 @@ jobs:
       - name: Download previous build artifact (target branch or previous commit)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: get-previous-build
-        if: ${{ steps.get-previous-build.outputs.result || false }}
         with:
           script: |
             const artifacts = await github.rest.actions.listArtifactsForRepo({
