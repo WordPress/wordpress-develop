@@ -214,13 +214,18 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query1   = new WP_Query( $query_vars1 );
 		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
 
+		$query2   = new WP_Query( $query_vars2 );
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
+
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
 		$reflection->setAccessible( true );
 
-		$cache_key_1 = $reflection->invoke( $query1, $query_vars1, $request1 );
-		$cache_key_2 = $reflection->invoke( $query1, $query_vars2, $request1 );
+		$this->assertSame( $request1, $request2, 'Queries should match' );
 
-		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs when using wpdb placeholder.' );
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars1, $request1 );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars2, $request2 );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs the same paramters.' );
 	}
 
 	/**
@@ -312,6 +317,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'different order post type' => array(
 				'query_vars1' => array( 'post_type' => array( 'post', 'page' ) ),
 				'query_vars2' => array( 'post_type' => array( 'page', 'post' ) ),
+			),
+			'post status array'         => array(
+				'query_vars1' => array( 'post_status' => 'publish' ),
+				'query_vars2' => array( 'post_status' => array( 'publish' ) ),
+			),
+			'post status order'         => array(
+				'query_vars1' => array( 'post_status' => array( 'draft', 'publish' ) ),
+				'query_vars2' => array( 'post_status' => array( 'publish', 'draft' ) ),
 			),
 			'cache parameters'          => array(
 				'query_vars1' => array(

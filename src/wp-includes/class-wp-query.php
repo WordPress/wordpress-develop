@@ -2652,7 +2652,7 @@ class WP_Query {
 			}
 
 			if ( ! empty( $queried_post_types ) ) {
-
+				sort( $queried_post_types );
 				$status_type_clauses = array();
 
 				foreach ( $queried_post_types as $queried_post_type ) {
@@ -3112,11 +3112,11 @@ class WP_Query {
 		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
 		$old_request =
 			"SELECT $found_rows $distinct $fields
-			 FROM {$wpdb->posts} $join
-			 WHERE 1=1 $where
-			 $groupby
-			 $orderby
-			 $limits";
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where
+					 $groupby
+					 $orderby
+					 $limits";
 
 		$this->request = $old_request;
 
@@ -4875,6 +4875,12 @@ class WP_Query {
 		$args['post_type'] = (array) $args['post_type'];
 		// Sort post types to ensure same cache key generation.
 		sort( $args['post_type'] );
+
+		if ( isset( $args['post_status'] ) ) {
+			$args['post_status'] = (array) $args['post_status'];
+			// Sort post status to ensure same cache key generation.
+			sort( $args['post_status'] );
+		}
 
 		// Add a default orderby value of date to ensure same cache key generation.
 		if ( ! isset( $q['orderby'] ) ) {
