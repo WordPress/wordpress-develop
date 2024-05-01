@@ -397,6 +397,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 
+				// The custom templates with no associated post types are available for all post types.
 				if ( $post_type && ! isset( $candidate['postTypes'] ) && $is_custom ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
