@@ -118,7 +118,8 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  *     Required. A collection of CSS rules.
  *
  *     @type array ...$0 {
- *         @type string   $rules_group  A parent CSS selector in the case of nested CSS, or a CSS nested @rule, such as `@media (min-width: 80rem)` or `@layer module`.
+ *         @type string   $rules_group  A parent CSS selector in the case of nested CSS,
+ *                                      or a CSS nested @rule, such as `@media (min-width: 80rem)` or `@layer module`.
  *         @type string   $selector     A CSS selector.
  *         @type string[] $declarations An associative array of CSS definitions,
  *                                      e.g. `array( "$property" => "$value", "$property" => "$value" )`.
