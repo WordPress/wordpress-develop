@@ -33,7 +33,7 @@ function wp_get_elements_class_name( $block ) {
  * @return string Filtered block content.
  */
 function wp_render_elements_support( $block_content, $block ) {
-	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_support' );
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
 	return $block_content;
 }
 
