@@ -19,7 +19,7 @@ test.describe( 'Localize Script on wp-login.php', () => {
 	);
 	const buildMuFile = path.normalize( path.join( buildMuFolder, 'login-test.php' ) );
 
-	test.beforeAll( async ( { requestUtils } ) => {
+	test.beforeAll( async () => {
 		const mupluginCode = `<?php
 		add_action(
 			'login_enqueue_scripts',
