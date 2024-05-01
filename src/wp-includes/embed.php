@@ -965,7 +965,7 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 
 	if ( ! empty( $content[1] ) ) {
 		// We have a blockquote to fall back on. Hide the iframe by default.
-		$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
+		$html = str_replace( '<iframe', '<iframe style="position: absolute; opacity: 0; pointer-events: none;"', $html );
 		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
 	}
 
