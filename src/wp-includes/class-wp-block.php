@@ -214,23 +214,66 @@ class WP_Block {
 		return $this->attributes;
 	}
 
-	public function __set( $key, $value ) {
-		if ( 'attributes' === $key ) {
+	public function __isset( $name ) {
+		if ( 'attributes' === $name ) {
+			return isset( $this->attributes );
+		}
+
+		return false;
+	}
+
+	public function __set( $name, $value ) {
+		if ( 'attributes' === $name ) {
 			$this->attributes = $value;
 			return;
 		}
 
-		// Setting a public property should not generate errors.
-		if ( static::check_if_public_class_property( $key ) ) {
-			$this->$key = $value;
+		// Setting a public property should not trigger deprecation errors.
+		if ( static::check_if_public_class_property( $name ) ) {
+			$this->$name = $value;
 			return;
 		}
 
 		wp_trigger_error(
 			__METHOD__,
-			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
+	}
+
+	public function __unset( $name ) {
+		if ( 'attributes' === $name ) {
+			unset( $this->attributes );
+			return;
+		}
+
+		// Unsetting a public property should not trigger deprecation errors.
+		if ( static::check_if_public_class_property( $name ) ) {
+			return;
+		}
+
+		trigger_error(
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated', $name, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
+	}
+
+	/**
+	 * Checks whether a property is declared as public.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $class_property_name Name of the class property to check.
+	 * @return bool True if the property is public, false otherwise.
+	 */
+	private static function check_if_public_class_property( $class_property_name ) {
+		// The Reflection API is not used here for performance reasons.
+		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
+		$public_class_properties = array(
+			// To be added.
+		);
+
+		return in_array( $class_property_name, $public_class_properties, true );
 	}
 
 	/**
