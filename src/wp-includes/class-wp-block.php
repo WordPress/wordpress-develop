@@ -101,6 +101,14 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
+	 *
+	 *
+	 * @since 6.6.0
+	 * @var array
+	 */
+	protected $attributes;
+
+	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -180,24 +188,49 @@ class WP_Block {
 	 * value is returned.
 	 *
 	 * @since 5.5.0
+	 * @since 6.6.0 Getting dynamic class properties is deprecated.
 	 *
 	 * @param string $name Property name.
 	 * @return array|null Prepared attributes, or null.
 	 */
 	public function __get( $name ) {
-		if ( 'attributes' === $name ) {
-			$this->attributes = isset( $this->parsed_block['attrs'] ) ?
-				$this->parsed_block['attrs'] :
-				array();
-
-			if ( ! is_null( $this->block_type ) ) {
-				$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
-			}
-
-			return $this->attributes;
+		if ( 'attributes' !== $name ) {
+			wp_trigger_error(
+				__METHOD__,
+				sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+				E_USER_DEPRECATED
+			);
+			return null;
 		}
 
-		return null;
+		$this->attributes = isset( $this->parsed_block['attrs'] ) ?
+			$this->parsed_block['attrs'] :
+			array();
+
+		if ( ! is_null( $this->block_type ) ) {
+			$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
+		}
+
+		return $this->attributes;
+	}
+
+	public function __set( $key, $value ) {
+		if ( 'attributes' === $key ) {
+			$this->attributes = $value;
+			return;
+		}
+
+		// Setting a public property should not generate errors.
+		if ( static::check_if_public_class_property( $key ) ) {
+			$this->$key = $value;
+			return;
+		}
+
+		wp_trigger_error(
+			__METHOD__,
+			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**
