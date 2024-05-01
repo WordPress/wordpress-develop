@@ -211,12 +211,14 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 			'post' => array(
 				'post_type' => 'post',
 				'expected'  => array(
+					'block-theme//custom-hero-template',
 					'block-theme//custom-single-post-template',
 				),
 			),
 			'page' => array(
 				'post_type' => 'page',
 				'expected'  => array(
+					'block-theme//custom-hero-template',
 					'block-theme//page-home',
 				),
 			),

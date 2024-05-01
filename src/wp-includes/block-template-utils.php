@@ -320,6 +320,11 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 		return null;
 	}
 
+	$default_template_types = array();
+	if ( 'wp_template' === $template_type ) {
+		$default_template_types = get_default_block_template_types();
+	}
+
 	// Prepare metadata from $query.
 	$slugs_to_include = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
 	$slugs_to_skip    = isset( $query['slug__not_in'] ) ? $query['slug__not_in'] : array();
@@ -383,10 +388,16 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 			if ( 'wp_template' === $template_type ) {
 				$candidate = _add_block_template_info( $new_template_item );
+				$is_custom = ! isset( $default_template_types[ $candidate['slug'] ] );
+
 				if (
 					! $post_type ||
 					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
+					$template_files[ $template_slug ] = $candidate;
+				}
+
+				if ( $post_type && ! isset( $candidate['postTypes'] ) && $is_custom ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 			}
