@@ -77,13 +77,13 @@ jobs:
   # - Get previous build (target branch or previous commit).
   # - Download artifact.
   # - Unzip the build.
-  # - Flush cache.
   # - Run any database upgrades.
+  # - Flush cache.
   # - Delete expired transients.
   # - Run performance tests (previous/target commit).
   # - Set the environment to the baseline version.
-  # - Flush cache.
   # - Run any database upgrades.
+  # - Flush cache.
   # - Delete expired transients.
   # - Run baseline performance tests.
   # - Archive artifacts.
@@ -225,11 +225,11 @@ jobs:
           unzip ${{ github.workspace }}/before.zip
           unzip -o ${{ github.workspace }}/wordpress.zip
 
-      - name: Flush cache
-        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
-
       - name: Run any database upgrades
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Flush cache
+        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Delete expired transients
         run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
@@ -245,13 +245,13 @@ jobs:
           npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
-      - name: Flush cache
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
-        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
-
       - name: Run any database upgrades
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Flush cache
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Delete expired transients
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
