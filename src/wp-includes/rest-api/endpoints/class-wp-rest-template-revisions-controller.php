@@ -160,7 +160,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param int $parent_post_id Supplied ID.
+	 * @param string $parent_post_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
 	protected function get_parent( $parent_post_id ) {
@@ -170,7 +170,7 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 			array( 'status' => 404 )
 		);
 
-		if ( is_null( $parent_post_id ) ) {
+		if ( null === $parent_post_id ) {
 			return $error;
 		}
 		$template = get_block_template( $parent_post_id, $this->parent_post_type );
