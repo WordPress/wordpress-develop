@@ -41,7 +41,6 @@
 		"cssnano": "6.0.3",
 		"dotenv": "16.4.4",
 		"dotenv-expand": "11.0.3",
-		"glob": "10.3.12",
 		"grunt": "1.6.1",
 		"grunt-banner": "^0.6.0",
 		"grunt-contrib-clean": "~2.0.1",
