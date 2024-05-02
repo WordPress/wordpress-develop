@@ -82,6 +82,7 @@
 		"webpack-livereload-plugin": "3.0.2"
 	},
 	"dependencies": {
+		"@react-spring/animated": "9.7.2",
 		"@wordpress/a11y": "3.51.1",
 		"@wordpress/annotations": "2.51.4",
 		"@wordpress/api-fetch": "6.48.1",
