@@ -255,6 +255,7 @@ function wp_render_elements_support_styles( $parsed_block ) {
  * block's markup.
  *
  * @see wp_render_elements_support_styles
+ * @since 6.6.0
  *
  * @param  string $block_content Rendered block content.
  * @param  array  $block         Block object.
