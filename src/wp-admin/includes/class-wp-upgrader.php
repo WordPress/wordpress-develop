@@ -1149,11 +1149,15 @@ class WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param array[] $temp_backups {
-	 *      Optional. An array of temporary backups.
+	 *     Optional. An array of temporary backups.
 	 *
-	 *      @type string $dir  The temporary backup location in the upgrade-temp-backup directory.
-	 *      @type string $slug The item's slug.
-	 *      @type string $src  The directory where the original is stored. For example, `WP_PLUGIN_DIR`.
+	 *     @type array ...$0 {
+	 *         Information about the backup.
+	 *
+	 *         @type string $dir  The temporary backup location in the upgrade-temp-backup directory.
+	 *         @type string $slug The item's slug.
+	 *         @type string $src  The directory where the original is stored. For example, `WP_PLUGIN_DIR`.
+	 *     }
 	 * }
 	 * @return bool|WP_Error True on success, false on early exit, otherwise WP_Error.
 	 */
