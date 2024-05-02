@@ -53,6 +53,7 @@
 		"grunt-contrib-qunit": "~7.0.1",
 		"grunt-contrib-uglify": "~5.2.2",
 		"grunt-contrib-watch": "~1.1.0",
+		"grunt-eslint": "24.3.0",
 		"grunt-file-append": "0.0.7",
 		"grunt-jsdoc": "2.4.1",
 		"grunt-legacy-util": "^2.0.1",
