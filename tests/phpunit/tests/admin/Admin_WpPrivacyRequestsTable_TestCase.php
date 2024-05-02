@@ -9,7 +9,7 @@ abstract class Admin_WpPrivacyRequestsTable_TestCase extends WP_UnitTestCase {
 	 *
 	 * @var string
 	 */
-	private $sql;
+	protected $sql;
 
 	/**
 	 * Clean up after each test.
