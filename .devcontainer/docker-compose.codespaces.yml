@@ -1,0 +1,21 @@
+# Extends the base docker-compose configuration for devcontainer-specific tools.
+# https://docs.docker.com/compose/multiple-compose-files/merge/
+
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu
+
+    # Run forever.
+    command: sleep infinity
+
+    # Ensure we mount to the host's network so we can access the site via loopback
+    # (i.e. curl localhost:8889)
+    network_mode: "host"
+
+  # Allow access to MySQL container from everywhere.
+  mysql:
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
+
+    environment:
+      # Force initialization of root user.
+      MYSQL_ROOT_HOST: "%"
