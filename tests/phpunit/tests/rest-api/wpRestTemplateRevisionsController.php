@@ -558,4 +558,16 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, WP_Http::NOT_FOUND );
 	}
+
+	/**
+	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
+	 * @ticket 61113
+	 */
+	public function test_get_item_permissions_check_without_parent() {
+		$request = new WP_REST_Request( 'GET' );
+		$controller = new WP_REST_Template_Revisions_Controller( self::PARENT_POST_TYPE );
+		$result = $controller->get_item_permissions_check( $request );
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_post_invalid_parent', $result->get_error_code() );
+	}
 }
