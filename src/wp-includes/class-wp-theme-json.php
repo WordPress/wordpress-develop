@@ -213,6 +213,7 @@ class WP_Theme_JSON {
 	 * @since 6.3.0 Added `column-count` property.
 	 * @since 6.4.0 Added `writing-mode` property.
 	 * @since 6.5.0 Added `aspect-ratio` property.
+	 * @since 6.6.0 Added `background-[image|position|repeat|size]` properties.
 	 *
 	 * @var array
 	 */
@@ -220,6 +221,10 @@ class WP_Theme_JSON {
 		'aspect-ratio'                      => array( 'dimensions', 'aspectRatio' ),
 		'background'                        => array( 'color', 'gradient' ),
 		'background-color'                  => array( 'color', 'background' ),
+		'background-image'                  => array( 'background', 'backgroundImage' ),
+		'background-position'               => array( 'background', 'backgroundPosition' ),
+		'background-repeat'                 => array( 'background', 'backgroundRepeat' ),
+		'background-size'                   => array( 'background', 'backgroundSize' ),
 		'border-radius'                     => array( 'border', 'radius' ),
 		'border-top-left-radius'            => array( 'border', 'radius', 'topLeft' ),
 		'border-top-right-radius'           => array( 'border', 'radius', 'topRight' ),
@@ -286,6 +291,7 @@ class WP_Theme_JSON {
 	 * property is used to validate whether or not a style value is allowed.
 	 *
 	 * @since 6.2.0
+	 * @since 6.6.0 Added background-image properties.
 	 *
 	 * @var array
 	 */
@@ -302,6 +308,10 @@ class WP_Theme_JSON {
 		'max-width'  => array(
 			array( 'layout', 'contentSize' ),
 			array( 'layout', 'wideSize' ),
+		),
+		'background-image' => array(
+			array( 'background', 'backgroundImage', 'url' ),
+			array( 'background', 'backgroundImage', 'source' ),
 		),
 	);
 
@@ -482,10 +492,17 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added `outline`, and `minHeight` properties.
 	 * @since 6.3.0 Added support for `typography.textColumns`.
 	 * @since 6.5.0 Added support for `dimensions.aspectRatio`.
+	 * @since 6.6.0 Added `background` sub properties to top-level only.
 	 *
 	 * @var array
 	 */
 	const VALID_STYLES = array(
+		'background' => array(
+			'backgroundImage'    => 'top',
+			'backgroundPosition' => 'top',
+			'backgroundRepeat'   => 'top',
+			'backgroundSize'     => 'top',
+		),
 		'border'     => array(
 			'color'  => null,
 			'radius' => null,
@@ -2103,6 +2120,12 @@ class WP_Theme_JSON {
 				) {
 					continue;
 				}
+			}
+
+			// Processes background styles.
+			if ( 'background' === $value_path[0] && isset( $styles['background'] ) ) {
+				$background_styles = wp_style_engine_get_styles( array( 'background' => $styles['background'] ) );
+				$value             = $background_styles['declarations'][ $css_property ] ?? $value;
 			}
 
 			// Skip if empty and not "0" or value represents array of longhand values.
