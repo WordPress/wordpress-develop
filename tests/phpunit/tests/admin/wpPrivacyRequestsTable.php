@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/Admin_WpPrivacyRequestsTable_TestCase.php';
+
 /**
  * Test the `WP_Privacy_Requests_Table` class.
  *
