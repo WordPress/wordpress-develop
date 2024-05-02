@@ -31,15 +31,26 @@ const testSuiteMap = {
  */
 const afterStats = parseFile( 'performance-results.json' );
 
+if ( ! afterStats.length ) {
+	console.error( 'No results file found' );
+	process.exit( 1 );
+}
+
 /**
  * @type {Array<{file: string, title: string, results: Record<string,number[]>[]}>}
  */
 const baseStats = parseFile( 'base-performance-results.json' );
 
+if ( ! baseStats.length ) {
+	console.error( 'No base results file found' );
+	process.exit( 1 );
+}
+
 /**
  * @type {Record<string, number>}
  */
 const metrics = {};
+
 /**
  * @type {Record<string, number>}
  */
@@ -65,38 +76,14 @@ for ( const { title, results } of afterStats ) {
 	}
 }
 
-process.exit( 0 );
-
-/**
- * Gets the array of metrics from a list of results.
- *
- * @param {Object[]} results A list of results to format.
- * @return {Object} Metrics.
- */
-const formatResults = ( results ) => {
-	return results.reduce( ( result, { key, file } ) => {
-		return {
-			...result,
-			...Object.fromEntries(
-				Object.entries( parseFile( file ) ?? {} ).map(
-					( [ metric, value ] ) => [
-						key + '-' + metric,
-						median( value ),
-					]
-				)
-			),
-		};
-	}, {} );
-};
-
 const data = new TextEncoder().encode(
 	JSON.stringify( {
 		branch,
 		hash,
 		baseHash,
 		timestamp: parseInt( timestamp, 10 ),
-		metrics: formatResults( testResults ),
-		baseMetrics: formatResults( baseResults ),
+		metrics: metrics,
+		baseMetrics: baseMetrics,
 	} )
 );
 
