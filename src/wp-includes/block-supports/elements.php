@@ -69,7 +69,7 @@ function wp_should_add_elements_class_name( $block, $options ) {
 			),
 		),
 		'heading' => array(
-			'skip'  => isset( $options['link']['skip'] ) ? $options['heading']['skip'] : false,
+			'skip'  => isset( $options['heading']['skip'] ) ? $options['heading']['skip'] : false,
 			'paths' => array(
 				array( 'heading', 'color', 'text' ),
 				array( 'heading', 'color', 'background' ),
