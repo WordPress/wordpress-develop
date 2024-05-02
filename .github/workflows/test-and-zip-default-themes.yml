@@ -86,7 +86,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
@@ -125,7 +125,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
@@ -181,13 +181,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
       - name: Upload theme ZIP as an artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           if-no-files-found: error
           name: ${{ matrix.theme }}
