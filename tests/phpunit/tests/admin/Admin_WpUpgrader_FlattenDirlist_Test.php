@@ -5,7 +5,7 @@ require_once __DIR__ . '/Admin_WpUpgrader_TestCase.php';
 /**
  * @group admin
  * @group upgrade
- * @covers WP_Upgrader::flatten_dirlist
+ * @covers WP_Upgrader::flatten_dirlist()
  */
 class Admin_WpUpgrader_FlattenDirlist_Test extends Admin_WpUpgrader_TestCase {
 

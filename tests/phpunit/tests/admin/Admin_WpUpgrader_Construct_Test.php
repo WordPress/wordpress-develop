@@ -8,7 +8,7 @@ require_once __DIR__ . '/Admin_WpUpgrader_TestCase.php';
  *
  * @group admin
  * @group upgrade
- * @covers WP_Upgrader::__construct
+ * @covers WP_Upgrader::__construct()
  */
 class Admin_WpUpgrader_Construct_Test extends Admin_WpUpgrader_TestCase {
 

@@ -5,7 +5,7 @@ require_once __DIR__ . '/Admin_WpUpgrader_TestCase.php';
 /**
  * @group admin
  * @group upgrade
- * @covers WP_Upgrader::init
+ * @covers WP_Upgrader::init()
  */
 class Admin_WpUpgrader_Init_Test extends Admin_WpUpgrader_TestCase {
 
