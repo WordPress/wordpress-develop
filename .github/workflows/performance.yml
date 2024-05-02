@@ -209,7 +209,7 @@ jobs:
             const artifacts = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: 'wordpress-build-' . process.env.TARGET_SHA,
+              name: 'wordpress-build-' + process.env.TARGET_SHA,
             });
 
             const matchArtifact = artifacts.data.artifacts[0];
