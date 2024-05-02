@@ -31,6 +31,7 @@
 		"@wordpress/dependency-extraction-webpack-plugin": "5.2.1",
 		"@wordpress/e2e-test-utils": "10.22.1",
 		"@wordpress/e2e-test-utils-playwright": "0.19.2",
+		"@wordpress/eslint-plugin": "17.13.0",
 		"@wordpress/prettier-config": "3.8.1",
 		"@wordpress/scripts": "27.2.5",
 		"autoprefixer": "10.4.17",
