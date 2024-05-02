@@ -364,6 +364,7 @@ final class WP_Style_Engine {
 	 * Stores a CSS rule using the provided CSS selector and CSS declarations.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added the `$rules_group` parameter.
 	 *
 	 * @param string   $store_name       A valid store key.
 	 * @param string   $css_selector     When a selector is passed, the function will return

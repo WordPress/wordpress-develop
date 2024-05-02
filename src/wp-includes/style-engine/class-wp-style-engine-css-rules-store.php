@@ -121,6 +121,7 @@ class WP_Style_Engine_CSS_Rules_Store {
 	 * If the rule does not exist, it will be created.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added the $rules_group parameter.
 	 *
 	 * @param string $selector The CSS selector.
 	 * @param string $rules_group A parent CSS selector in the case of nested CSS, or a CSS nested @rule,

@@ -39,6 +39,7 @@ class WP_Style_Engine_CSS_Rule {
 	 * A parent CSS selector in the case of nested CSS, or a CSS nested @rule,
 	 * such as `@media (min-width: 80rem)` or `@layer module`.
 	 *
+	 * @since 6.6.0
 	 * @var string
 	 */
 	protected $rules_group;
@@ -47,6 +48,7 @@ class WP_Style_Engine_CSS_Rule {
 	 * Constructor.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added the `$rules_group` parameter.
 	 *
 	 * @param string                                    $selector     Optional. The CSS selector. Default empty string.
 	 * @param string[]|WP_Style_Engine_CSS_Declarations $declarations Optional. An associative array of CSS definitions,
@@ -103,6 +105,8 @@ class WP_Style_Engine_CSS_Rule {
 	/**
 	 * Sets the rules group.
 	 *
+	 * @since 6.6.0
+	 *
 	 * @param string $rules_group A parent CSS selector in the case of nested CSS, or a CSS nested @rule,
 	 *                            such as `@media (min-width: 80rem)` or `@layer module`.
 	 *
@@ -115,6 +119,8 @@ class WP_Style_Engine_CSS_Rule {
 
 	/**
 	 * Gets the rules group.
+	 *
+	 * @since 6.6.0
 	 *
 	 * @return string
 	 */
@@ -148,6 +154,7 @@ class WP_Style_Engine_CSS_Rule {
 	 * Gets the CSS.
 	 *
 	 * @since 6.1.0
+	 * @since 6.6.0 Added support for nested CSS with rules groups.
 	 *
 	 * @param bool $should_prettify Optional. Whether to add spacing, new lines and indents.
 	 *                              Default false.

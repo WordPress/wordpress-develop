@@ -113,6 +113,7 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  *     .elephant-are-cool{color:gray;width:3em}
  *
  * @since 6.1.0
+ * @since 6.6.0 Added support for `$rules_group` in the `$css_rules` array.
  *
  * @param array $css_rules {
  *     Required. A collection of CSS rules.
