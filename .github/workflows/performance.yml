@@ -295,7 +295,7 @@ jobs:
 
       - name: Set the base sha
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: base-sha
         with:
@@ -306,7 +306,7 @@ jobs:
 
       - name: Set commit details
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: commit-timestamp
         with:
@@ -317,7 +317,7 @@ jobs:
 
       - name: Publish performance results
         # Only publish results on pushes to trunk.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
         env:
             BASE_SHA: ${{ steps.base-sha.outputs.result }}
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
