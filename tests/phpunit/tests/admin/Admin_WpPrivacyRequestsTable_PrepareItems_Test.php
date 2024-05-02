@@ -3,7 +3,7 @@
 require_once __DIR__ . '/Admin_WpPrivacyRequestsTable_TestCase.php';
 
 /**
- * Test the `WP_Privacy_Requests_Table` class.
+ * Test `WP_Privacy_Requests_Table::prepare_items`
  *
  * @package WordPress\UnitTests
  *
@@ -11,8 +11,9 @@ require_once __DIR__ . '/Admin_WpPrivacyRequestsTable_TestCase.php';
  *
  * @group admin
  * @group privacy
+ * @covers WP_Privacy_Requests_Table::prepare_items
  */
-class Tests_Admin_wpPrivacyRequestsTable extends Admin_WpPrivacyRequestsTable_TestCase {
+class Admin_WpPrivacyRequestsTable_PrepareItems_Test extends Admin_WpPrivacyRequestsTable_TestCase {
 
 	/**
 	 * Test columns should be sortable.
@@ -23,9 +24,8 @@ class Tests_Admin_wpPrivacyRequestsTable extends Admin_WpPrivacyRequestsTable_Te
 	 * @param string|null $orderby  Order by.
 	 * @param string|null $search   Search term.
 	 * @param string      $expected Expected in SQL query.
-
+	 *
 	 * @dataProvider data_columns_should_be_sortable
-	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 * @ticket 43960
 	 */
 	public function test_columns_should_be_sortable( $order, $orderby, $search, $expected ) {
@@ -129,18 +129,5 @@ class Tests_Admin_wpPrivacyRequestsTable extends Admin_WpPrivacyRequestsTable_Te
 				'expected' => 'post_date ASC',
 			),
 		);
-	}
-
-	/**
-	 * @ticket 42066
-	 *
-	 * @covers WP_Privacy_Requests_List_Table::get_views
-	 */
-	public function test_get_views_should_return_views_by_default() {
-		$expected = array(
-			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
-		);
-
-		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
 	}
 }
