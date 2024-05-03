@@ -184,6 +184,7 @@ class WP_Script_Modules {
 		add_action( 'admin_footer', array( $this, 'print_script_module_preloads' ) );
 
 		add_action( 'wp_footer', array( $this, 'print_script_data' ) );
+		add_action( 'admin_footer', array( $this, 'print_script_data' ) );
 	}
 
 	/**
