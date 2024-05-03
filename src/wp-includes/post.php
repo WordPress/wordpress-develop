@@ -8074,7 +8074,7 @@ function get_available_post_mime_types( $type = 'attachment' ) {
 	}
 
 	// Remove nulls from returned $mime_types.
-	return array_filter( $mime_types );
+	return array_values( array_filter( $mime_types ) );
 }
 
 /**
