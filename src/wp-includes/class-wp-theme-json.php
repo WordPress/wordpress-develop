@@ -1793,15 +1793,15 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Scopes the selectors for a given style node. This includes the primary
-	 * selector, i.e. `$node['selector']`, as well as any custom selectors for
-	 * features and subfeatures, e.g. `$node['selectors']['border']` etc.
+	 * Scopes the selectors for a given style node.
+	 * 
+	 * This includes the primary selector, i.e. `$node['selector']`, as well as any custom
+	 * selectors for features and subfeatures, e.g. `$node['selectors']['border']` etc.
 	 *
 	 * @since 6.6.0
 	 *
 	 * @param string $scope Selector to scope to.
 	 * @param array  $node  Style node with selectors to scope.
-	 *
 	 * @return array Node with updated selectors.
 	 */
 	protected static function scope_style_node_selectors( $scope, $node ) {
