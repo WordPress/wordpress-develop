@@ -197,7 +197,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		unregister_post_type( 'wptests_pt' );
 		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request1 );
 
-		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differs when after unregister post type.' );
+		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differ after unregistering post type.' );
 	}
 
 	/**

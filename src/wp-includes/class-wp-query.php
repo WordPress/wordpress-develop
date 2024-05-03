@@ -3109,7 +3109,17 @@ class WP_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
-		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		/*
+		 * Beginning of the string is on a new line to prevent leading whitespace. 
+		 *
+		 * The additional indentation of subsequent lines is to ensure the SQL
+		 * queries are identical to those generated when splitting queries. This
+		 * improves caching of the query by ensuring the same cache key is 
+		 * generated for the same database queries functionally.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/56841.
+		 * See https://github.com/WordPress/wordpress-develop/pull/6393#issuecomment-2088217429
+		 */
 		$old_request =
 			"SELECT $found_rows $distinct $fields
 					 FROM {$wpdb->posts} $join
