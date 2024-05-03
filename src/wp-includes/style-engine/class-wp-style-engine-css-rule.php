@@ -109,7 +109,6 @@ class WP_Style_Engine_CSS_Rule {
 	 *
 	 * @param string $rules_group A parent CSS selector in the case of nested CSS, or a CSS nested @rule,
 	 *                            such as `@media (min-width: 80rem)` or `@layer module`.
-	 *
 	 * @return WP_Style_Engine_CSS_Rule Returns the object to allow chaining of methods.
 	 */
 	public function set_rules_group( $rules_group ) {
