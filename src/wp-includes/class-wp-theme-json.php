@@ -1794,7 +1794,7 @@ class WP_Theme_JSON {
 
 	/**
 	 * Scopes the selectors for a given style node.
-	 * 
+	 *
 	 * This includes the primary selector, i.e. `$node['selector']`, as well as any custom
 	 * selectors for features and subfeatures, e.g. `$node['selectors']['border']` etc.
 	 *
