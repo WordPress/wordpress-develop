@@ -101,10 +101,10 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
-	 *
+	 * Represents the attributes of a block.
 	 *
 	 * @since 6.6.0
-	 * @var array
+	 * @var array|null
 	 */
 	protected $attributes;
 
@@ -160,6 +160,7 @@ class WP_Block {
 			$child_context = $this->available_context;
 
 			if ( ! empty( $this->block_type->provides_context ) ) {
+				$this->populate_attributes();
 				foreach ( $this->block_type->provides_context as $context_name => $attribute_name ) {
 					if ( array_key_exists( $attribute_name, $this->attributes ) ) {
 						$child_context[ $context_name ] = $this->attributes[ $attribute_name ];
@@ -205,14 +206,7 @@ class WP_Block {
 			return null;
 		}
 
-		$this->attributes = isset( $this->parsed_block['attrs'] ) ?
-			$this->parsed_block['attrs'] :
-			array();
-
-		if ( ! is_null( $this->block_type ) ) {
-			$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
-		}
-
+		$this->populate_attributes();
 		return $this->attributes;
 	}
 
@@ -543,6 +537,7 @@ class WP_Block {
 		// Process the block bindings and get attributes updated with the values from the sources.
 		$computed_attributes = $this->process_block_bindings();
 		if ( ! empty( $computed_attributes ) ) {
+			$this->populate_attributes();
 			// Merge the computed attributes with the original attributes.
 			$this->attributes = array_merge( $this->attributes, $computed_attributes );
 		}
@@ -594,6 +589,7 @@ class WP_Block {
 
 			WP_Block_Supports::$block_to_render = $this->parsed_block;
 
+			$this->populate_attributes();
 			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
 
 			WP_Block_Supports::$block_to_render = $parent;
@@ -668,6 +664,27 @@ class WP_Block {
 	}
 
 	/**
+	 * Populates the block attributes.
+	 *
+	 * @since 6.6.0
+	 */
+	protected function populate_attributes() {
+		// Originally, attributes could only be calculated once.
+		// Therefore, this method should exit if the attributes property has already been set.
+		if ( isset($this->attributes) ) {
+			return;
+		}
+
+		$this->attributes = isset( $this->parsed_block['attrs'] ) ?
+			$this->parsed_block['attrs'] :
+			array();
+
+		if ( ! is_null( $this->block_type ) ) {
+			$this->attributes = $this->block_type->prepare_attributes_for_render( $this->attributes );
+		}
+	}
+
+	/**
 	 * Checks whether a property is declared as public.
 	 *
 	 * @since 6.6.0
@@ -675,7 +692,7 @@ class WP_Block {
 	 * @param string $class_property_name Name of the class property to check.
 	 * @return bool True if the property is public, false otherwise.
 	 */
-	private static function check_if_public_class_property( $class_property_name ) {
+	protected static function check_if_public_class_property( $class_property_name ) {
 		// The Reflection API is not used here for performance reasons.
 		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
 		$public_class_properties = array(
