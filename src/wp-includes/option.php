@@ -2769,6 +2769,7 @@ function register_initial_settings() {
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
+ * @since 6.6.0 Added the `label` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2782,6 +2783,7 @@ function register_initial_settings() {
  *
  *     @type string     $type              The type of data associated with this setting.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label             A label of the data attached to this setting.
  *     @type string     $description       A description of the data attached to this setting.
  *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
  *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
@@ -2802,6 +2804,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 	$defaults = array(
 		'type'              => 'string',
 		'group'             => $option_group,
+		'label'             => '',
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
