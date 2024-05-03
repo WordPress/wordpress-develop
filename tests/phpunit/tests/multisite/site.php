@@ -844,7 +844,7 @@ if ( is_multisite() ) :
 		 * @param string $value          The sanitized option value.
 		 * @param string $option         The option name.
 		 * @param string $original_value The original value passed to the function.
-		 * @return string The orginal value.
+		 * @return string The original value.
 		 */
 		public function filter_allow_unavailable_languages( $value, $option, $original_value ) {
 			return $original_value;
@@ -2149,7 +2149,7 @@ if ( is_multisite() ) :
 		/**
 		 * Tests whether all expected meta are provided in deprecated `wpmu_new_blog` action.
 		 *
-		 * @dataProvider data_wpmu_new_blog_action_backward_commpatible
+		 * @dataProvider data_wpmu_new_blog_action_backward_compatible
 		 *
 		 * @ticket 46351
 		 */
@@ -2214,7 +2214,7 @@ if ( is_multisite() ) :
 			$this->wp_initialize_site_meta = $meta;
 		}
 
-		public function data_wpmu_new_blog_action_backward_commpatible() {
+		public function data_wpmu_new_blog_action_backward_compatible() {
 			return array(
 				'default values' => array(
 					array(),

@@ -454,7 +454,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Test the tests. The administrator role has all primitive capabilities, therefore the
-	 * primitive capabilitity tests can be tested by checking that the list of tested
+	 * primitive capability tests can be tested by checking that the list of tested
 	 * capabilities matches those of the administrator role.
 	 *
 	 * @group capTestTests
@@ -992,7 +992,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_add_cap() {
@@ -1033,7 +1033,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the capabilites associated with a role and make sure the change
+	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */
 	public function test_role_remove_cap() {
