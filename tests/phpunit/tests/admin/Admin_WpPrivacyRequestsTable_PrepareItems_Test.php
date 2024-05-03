@@ -1,6 +1,9 @@
 <?php
+
+require_once __DIR__ . '/Admin_WpPrivacyRequestsTable_TestCase.php';
+
 /**
- * Test the `WP_Privacy_Requests_Table` class.
+ * Test `WP_Privacy_Requests_Table::prepare_items`
  *
  * @package WordPress\UnitTests
  *
@@ -8,60 +11,9 @@
  *
  * @group admin
  * @group privacy
+ * @covers WP_Privacy_Requests_Table::prepare_items
  */
-class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
-
-	/**
-	 * Temporary storage for SQL to allow a filter to access it.
-	 *
-	 * Used in the `test_columns_should_be_sortable()` test method.
-	 *
-	 * @var string
-	 */
-	private $sql;
-
-	/**
-	 * Clean up after each test.
-	 */
-	public function tear_down() {
-		unset( $this->sql );
-
-		parent::tear_down();
-	}
-
-	/**
-	 * Get instance for mocked class.
-	 *
-	 * @since 5.1.0
-	 *
-	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Privacy_Requests_Table Mocked class instance.
-	 */
-	public function get_mocked_class_instance() {
-		$args = array(
-			'plural'   => 'privacy_requests',
-			'singular' => 'privacy_request',
-			'screen'   => 'export_personal_data',
-		);
-
-		$instance = $this
-			->getMockBuilder( 'WP_Privacy_Requests_Table' )
-			->setConstructorArgs( array( $args ) )
-			->getMockForAbstractClass();
-
-		$reflection = new ReflectionClass( $instance );
-
-		// Set the request type as 'export_personal_data'.
-		$reflection_property = $reflection->getProperty( 'request_type' );
-		$reflection_property->setAccessible( true );
-		$reflection_property->setValue( $instance, 'export_personal_data' );
-
-		// Set the post type as 'user_request'.
-		$reflection_property = $reflection->getProperty( 'post_type' );
-		$reflection_property->setAccessible( true );
-		$reflection_property->setValue( $instance, 'user_request' );
-
-		return $instance;
-	}
+class Admin_WpPrivacyRequestsTable_PrepareItems_Test extends Admin_WpPrivacyRequestsTable_TestCase {
 
 	/**
 	 * Test columns should be sortable.
@@ -72,9 +24,8 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @param string|null $orderby  Order by.
 	 * @param string|null $search   Search term.
 	 * @param string      $expected Expected in SQL query.
-
+	 *
 	 * @dataProvider data_columns_should_be_sortable
-	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 * @ticket 43960
 	 */
 	public function test_columns_should_be_sortable( $order, $orderby, $search, $expected ) {
@@ -96,19 +47,6 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		unset( $_REQUEST['s'] );
 
 		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.{$expected}", $this->sql );
-	}
-
-	/**
-	 * Filter to grab the complete SQL query.
-	 *
-	 * @since 5.1.0
-	 *
-	 * @param string $request The complete SQL query.
-	 * @return string The complete SQL query.
-	 */
-	public function filter_posts_request( $request ) {
-		$this->sql = $request;
-		return $request;
 	}
 
 	/**
@@ -191,18 +129,5 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 				'expected' => 'post_date ASC',
 			),
 		);
-	}
-
-	/**
-	 * @ticket 42066
-	 *
-	 * @covers WP_Privacy_Requests_List_Table::get_views
-	 */
-	public function test_get_views_should_return_views_by_default() {
-		$expected = array(
-			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
-		);
-
-		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
 	}
 }
