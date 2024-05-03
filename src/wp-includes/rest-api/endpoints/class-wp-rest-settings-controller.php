@@ -237,7 +237,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 			$default_schema = array(
 				'type'        => empty( $args['type'] ) ? null : $args['type'],
-				'label'       => empty( $args['label'] ) ? '' : $args['label'],
+				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
 				'default'     => isset( $args['default'] ) ? $args['default'] : null,
 			);
