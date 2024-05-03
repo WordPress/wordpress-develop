@@ -2554,6 +2554,7 @@ function register_initial_settings() {
 				'name' => 'title',
 			),
 			'type'         => 'string',
+			'label'        => __( 'Title' ),
 			'description'  => __( 'Site title.' ),
 		)
 	);
@@ -2566,6 +2567,7 @@ function register_initial_settings() {
 				'name' => 'description',
 			),
 			'type'         => 'string',
+			'label'        => __( 'Tagline' ),
 			'description'  => __( 'Site tagline.' ),
 		)
 	);
@@ -2696,6 +2698,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'integer',
+			'label'        => __( 'Maximum posts per page' ),
 			'description'  => __( 'Blog pages show at most.' ),
 			'default'      => 10,
 		)
@@ -2707,6 +2710,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'string',
+			'label'        => __( 'Show on front' ),
 			'description'  => __( 'What to show on the front page' ),
 		)
 	);
@@ -2717,6 +2721,7 @@ function register_initial_settings() {
 		array(
 			'show_in_rest' => true,
 			'type'         => 'integer',
+			'label'        => __( 'Page on front' ),
 			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
 		)
 	);
@@ -2755,6 +2760,7 @@ function register_initial_settings() {
 				),
 			),
 			'type'         => 'string',
+			'label'        => __( 'Allow comments on new posts' ),
 			'description'  => __( 'Allow people to submit comments on new posts.' ),
 		)
 	);
