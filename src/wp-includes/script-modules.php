@@ -136,5 +136,6 @@ function wp_register_default_script_modules(): void {
 			return $data;
 		}
 	);
+	wp_enqueue_script_module( '__DEV__/noop', includes_url( '/noop.js' ), array( '@wordpress/api-fetch' ) );
 }
 add_action( 'init', 'wp_register_default_script_modules', 0 );
