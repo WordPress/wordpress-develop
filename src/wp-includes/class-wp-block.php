@@ -195,11 +195,13 @@ class WP_Block {
 	 */
 	public function __get( $name ) {
 		if ( 'attributes' !== $name ) {
-			wp_trigger_error(
-				__METHOD__,
-				sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
-				E_USER_DEPRECATED
-			);
+			if ( ! static::check_if_public_class_property( $name ) ) {
+				wp_trigger_error(
+					__METHOD__,
+					sprintf( 'Getting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
+					E_USER_DEPRECATED
+				);
+			}
 			return null;
 		}
 
@@ -256,24 +258,6 @@ class WP_Block {
 			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated', $name, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
-	}
-
-	/**
-	 * Checks whether a property is declared as public.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @param string $class_property_name Name of the class property to check.
-	 * @return bool True if the property is public, false otherwise.
-	 */
-	private static function check_if_public_class_property( $class_property_name ) {
-		// The Reflection API is not used here for performance reasons.
-		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
-		$public_class_properties = array(
-			// To be added.
-		);
-
-		return in_array( $class_property_name, $public_class_properties, true );
 	}
 
 	/**
@@ -681,5 +665,29 @@ class WP_Block {
 		}
 
 		return $block_content;
+	}
+
+	/**
+	 * Checks whether a property is declared as public.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $class_property_name Name of the class property to check.
+	 * @return bool True if the property is public, false otherwise.
+	 */
+	private static function check_if_public_class_property( $class_property_name ) {
+		// The Reflection API is not used here for performance reasons.
+		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
+		$public_class_properties = array(
+			'parsed_block',
+			'name',
+			'block_type',
+			'context',
+			'inner_blocks',
+			'inner_html',
+			'inner_content',
+		);
+
+		return in_array( $class_property_name, $public_class_properties, true );
 	}
 }
