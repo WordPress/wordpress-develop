@@ -3,9 +3,9 @@
 /**
  * @group admin
  *
- * @covers WP_Post_Comments_List_Table
+ * @covers WP_Post_Comments_List_Table::get_views
  */
-class Tests_Admin_wpPostCommentsListTable extends WP_UnitTestCase {
+class Admin_WpPostCommentsListTable_GetViews_Test extends WP_UnitTestCase {
 
 	/**
 	 * @var WP_Post_Comments_List_Table
@@ -20,7 +20,6 @@ class Tests_Admin_wpPostCommentsListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 42066
 	 *
-	 * @covers WP_Post_Comments_List_Table::get_views
 	 */
 	public function test_get_views_should_return_views_by_default() {
 		$this->table->prepare_items();
