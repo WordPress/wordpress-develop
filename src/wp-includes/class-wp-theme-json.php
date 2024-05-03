@@ -288,7 +288,7 @@ class WP_Theme_JSON {
 	 *
 	 * Indirect properties are not output directly by `compute_style_properties`,
 	 * but are used elsewhere in the processing of global styles. The indirect
-	 * property is used to validate whether or not a style value is allowed.
+	 * property is used to validate whether a style value is allowed.
 	 *
 	 * @since 6.2.0
 	 * @since 6.6.0 Added background-image properties.
