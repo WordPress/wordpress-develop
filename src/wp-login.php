@@ -753,7 +753,7 @@ switch ( $action ) {
 		break;
 
 	case 'postpass':
-		if ( empty( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
+		if ( ! isset( $_POST['post_password'] ) || ! is_string( $_POST['post_password'] ) ) {
 			wp_safe_redirect( wp_get_referer() );
 			exit;
 		}
