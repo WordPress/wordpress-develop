@@ -769,10 +769,8 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 	add_filter(
 		'scriptmoduledata_@wordpress/api-fetch',
 		function ( $data ) use ( $preload_data ) {
-			return array_merge(
-				$data,
-				array( 'preloadData' => $preload_data )
-			);
+			$data['preloadData'] = $preload_data;
+			return $data;
 		}
 	);
 }

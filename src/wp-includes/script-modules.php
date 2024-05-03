@@ -129,15 +129,11 @@ function wp_register_default_script_modules(): void {
 	add_filter(
 		'scriptmoduledata_@wordpress/api-fetch',
 		function ( $data ) {
-			return array_merge(
-				$data,
-				array(
-					'rootURL'                             => sanitize_url( get_rest_url() ),
-					'nonce'                               => wp_installing() ? '' : wp_create_nonce( 'wp_rest' ),
-					'shouldRegisterMediaUploadMiddleware' => true,
-					'nonceEndpoint'                       => admin_url( 'admin-ajax.php?action=rest-nonce' ),
-				)
-			);
+			$data['rootURL']                             = sanitize_url( get_rest_url() );
+			$data['nonce']                               = wp_installing() ? '' : wp_create_nonce( 'wp_rest' );
+			$data['shouldRegisterMediaUploadMiddleware'] = true;
+			$data['nonceEndpoint']                       = admin_url( 'admin-ajax.php?action=rest-nonce' );
+			return $data;
 		}
 	);
 }
