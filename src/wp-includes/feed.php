@@ -151,10 +151,11 @@ function wp_title_rss( $deprecated = '&#8211;' ) {
  *
  * @since 2.0.0
  *
+ * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string Current post title.
  */
-function get_the_title_rss() {
-	$title = get_the_title();
+function get_the_title_rss( $post = 0 ) {
+	$title = get_the_title( $post );
 
 	/**
 	 * Filters the post title for use in a feed.
