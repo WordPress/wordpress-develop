@@ -67,7 +67,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		// Should return the same headers as a HEAD request.
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
 	}
 
@@ -89,7 +89,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		// Should return the same headers as a HEAD request.
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
 	}
 
