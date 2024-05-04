@@ -1059,8 +1059,8 @@ class Tests_Cron extends WP_UnitTestCase {
 			),
 			'associative' => array(
 				array(
-					'one' => 1,
-					'two' => 2,
+					'one'   => 1,
+					'two'   => 2,
 					'three' => 3,
 				),
 			),
