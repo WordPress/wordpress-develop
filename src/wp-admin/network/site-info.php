@@ -94,16 +94,18 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] ) {
 
 	$old_home_url    = trailingslashit( esc_url( get_option( 'home' ) ) );
 	$old_home_parsed = parse_url( $old_home_url );
+	$old_home_host   = $old_home_parsed['host'] . ( isset( $old_home_parsed['port'] ) ? ':' . $old_home_parsed['port'] : '' );
 
-	if ( $old_home_parsed['host'] === $existing_details->domain && $old_home_parsed['path'] === $existing_details->path ) {
+	if ( $old_home_host === $existing_details->domain && $old_home_parsed['path'] === $existing_details->path ) {
 		$new_home_url = untrailingslashit( sanitize_url( $blog_data['scheme'] . '://' . $new_details->domain . $new_details->path ) );
 		update_option( 'home', $new_home_url );
 	}
 
 	$old_site_url    = trailingslashit( esc_url( get_option( 'siteurl' ) ) );
 	$old_site_parsed = parse_url( $old_site_url );
+	$old_site_host   = $old_site_parsed['host'] . ( isset( $old_site_parsed['port'] ) ? ':' . $old_site_parsed['port'] : '' );
 
-	if ( $old_site_parsed['host'] === $existing_details->domain && $old_site_parsed['path'] === $existing_details->path ) {
+	if ( $old_site_host === $existing_details->domain && $old_site_parsed['path'] === $existing_details->path ) {
 		$new_site_url = untrailingslashit( sanitize_url( $blog_data['scheme'] . '://' . $new_details->domain . $new_details->path ) );
 		update_option( 'siteurl', $new_site_url );
 	}
