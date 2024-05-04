@@ -3110,11 +3110,11 @@ class WP_Query {
 		}
 
 		/*
-		 * Beginning of the string is on a new line to prevent leading whitespace. 
+		 * Beginning of the string is on a new line to prevent leading whitespace.
 		 *
 		 * The additional indentation of subsequent lines is to ensure the SQL
 		 * queries are identical to those generated when splitting queries. This
-		 * improves caching of the query by ensuring the same cache key is 
+		 * improves caching of the query by ensuring the same cache key is
 		 * generated for the same database queries functionally.
 		 *
 		 * See https://core.trac.wordpress.org/ticket/56841.
