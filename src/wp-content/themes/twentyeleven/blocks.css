@@ -192,7 +192,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 .wp-block-pullquote__citation,
 .wp-block-pullquote cite,
 .wp-block-pullquote footer {
-	color: #141412;
+	color: inherit;
 }
 
 .wp-block-pullquote.alignleft {
@@ -217,6 +217,14 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-weight: bold;
 	padding: 6px 10px 6px 0;
 	text-transform: uppercase;
+}
+
+.rtl .wp-block-table th {
+	padding: 6px 0 6px 10px;
+}
+
+.wp-block-table .has-text-color th {
+	color: currentColor;
 }
 
 .wp-block-table td {
@@ -267,7 +275,8 @@ p.has-drop-cap:not(:focus)::first-letter {
 	max-width: 100px;
 }
 
-.wp-block-separator.is-style-wide {
+.wp-block-separator.is-style-wide,
+.wp-block-separator.is-style-dots {
 	max-width: 100%;
 }
 

@@ -126,7 +126,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 			'attachment_id' => 1,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment ID.
 		$result = $widget->update(
@@ -142,7 +142,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 			'url' => 'https://chickenandribs.org',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment url.
 		$result = $widget->update(
@@ -159,7 +159,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 			'loop' => true,
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid loop setting.
 		$result = $widget->update(
@@ -175,7 +175,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 			'title' => 'A video of goats',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid attachment title.
 		$result = $widget->update(
@@ -191,7 +191,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 			'preload' => 'none',
 		);
 		$result   = $widget->update( $expected, $instance );
-		$this->assertSame( $result, $expected );
+		$this->assertSame( $expected, $result );
 
 		// Should filter invalid preload setting.
 		$result = $widget->update(

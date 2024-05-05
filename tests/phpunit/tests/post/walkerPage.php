@@ -28,12 +28,12 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
 		$output = '';
-		$page   = $this->factory->post->create_and_get( array( 'post_type' => 'page' ) );
+		$page   = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
 		$link   = get_permalink( $page );
 
 		add_filter(
 			'page_menu_link_attributes',
-			static function( $atts ) use ( $value ) {
+			static function ( $atts ) use ( $value ) {
 				$atts['data-test'] = $value;
 				return $atts;
 			}

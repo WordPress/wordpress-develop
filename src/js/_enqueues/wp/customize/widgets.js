@@ -388,7 +388,7 @@
 		},
 
 		/**
-		 * Adds keyboard accessiblity to the panel.
+		 * Adds keyboard accessibility to the panel.
 		 */
 		keyboardAccessible: function( event ) {
 			var isEnter = ( event.which === 13 ),
@@ -1457,7 +1457,7 @@
 				self.container.addClass( 'expanding' );
 			};
 
-			if ( expanded ) {
+			if ( $toggleBtn.attr( 'aria-expanded' ) === 'false' ) {
 				if ( api.section.has( self.section() ) ) {
 					api.section( self.section() ).expand( {
 						completeCallback: expandControl

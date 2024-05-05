@@ -13,6 +13,7 @@
  * @since 3.7.0
  * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
  */
+#[AllowDynamicProperties]
 class WP_Automatic_Updater {
 
 	/**
@@ -23,9 +24,11 @@ class WP_Automatic_Updater {
 	protected $update_results = array();
 
 	/**
-	 * Whether the entire automatic updater is disabled.
+	 * Determines whether the entire automatic updater is disabled.
 	 *
 	 * @since 3.7.0
+	 *
+	 * @return bool True if the automatic updater is disabled, false otherwise.
 	 */
 	public function is_disabled() {
 		// Background updates are disabled if you don't want file changes.
@@ -56,7 +59,55 @@ class WP_Automatic_Updater {
 	}
 
 	/**
-	 * Check for version control checkouts.
+	 * Checks whether access to a given directory is allowed.
+	 *
+	 * This is used when detecting version control checkouts. Takes into account
+	 * the PHP `open_basedir` restrictions, so that WordPress does not try to access
+	 * directories it is not allowed to.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param string $dir The directory to check.
+	 * @return bool True if access to the directory is allowed, false otherwise.
+	 */
+	public function is_allowed_dir( $dir ) {
+		if ( is_string( $dir ) ) {
+			$dir = trim( $dir );
+		}
+
+		if ( ! is_string( $dir ) || '' === $dir ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: The "$dir" argument. */
+					__( 'The "%s" argument must be a non-empty string.' ),
+					'$dir'
+				),
+				'6.2.0'
+			);
+
+			return false;
+		}
+
+		$open_basedir = ini_get( 'open_basedir' );
+
+		if ( empty( $open_basedir ) ) {
+			return true;
+		}
+
+		$open_basedir_list = explode( PATH_SEPARATOR, $open_basedir );
+
+		foreach ( $open_basedir_list as $basedir ) {
+			if ( '' !== trim( $basedir ) && str_starts_with( $dir, $basedir ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks for version control checkouts.
 	 *
 	 * Checks for Subversion, Git, Mercurial, and Bazaar. It recursively looks up the
 	 * filesystem to the top of the drive, erring on the side of detecting a VCS
@@ -97,11 +148,16 @@ class WP_Automatic_Updater {
 		}
 
 		$check_dirs = array_unique( $check_dirs );
+		$checkout   = false;
 
 		// Search all directories we've found for evidence of version control.
 		foreach ( $vcs_dirs as $vcs_dir ) {
 			foreach ( $check_dirs as $check_dir ) {
-				$checkout = @is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
+				if ( ! $this->is_allowed_dir( $check_dir ) ) {
+					continue;
+				}
+
+				$checkout = is_dir( rtrim( $check_dir, '\\/' ) . "/$vcs_dir" );
 				if ( $checkout ) {
 					break 2;
 				}
@@ -138,7 +194,7 @@ class WP_Automatic_Updater {
 	 */
 	public function should_update( $type, $item, $context ) {
 		// Used to see if WP_Filesystem is set up to allow unattended updates.
-		$skin = new Automatic_Upgrader_Skin;
+		$skin = new Automatic_Upgrader_Skin();
 
 		if ( $this->is_disabled() ) {
 			return false;
@@ -193,9 +249,10 @@ class WP_Automatic_Updater {
 		 *  - `auto_update_theme`
 		 *  - `auto_update_translation`
 		 *
-		 * Generally speaking, plugins, themes, and major core versions are not updated
-		 * by default, while translations and minor and development versions for core
-		 * are updated by default.
+		 * Since WordPress 3.7, minor and development versions of core, and translations have
+		 * been auto-updated by default. New installs on WordPress 5.6 or higher will also
+		 * auto-update major versions by default. Starting in 5.6, older sites can opt-in to
+		 * major version auto-updates, and auto-updates for plugins and themes.
 		 *
 		 * See the {@see 'allow_dev_auto_core_updates'}, {@see 'allow_minor_auto_core_updates'},
 		 * and {@see 'allow_major_auto_core_updates'} filters for a more straightforward way to
@@ -221,7 +278,7 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
-			$php_compat = version_compare( phpversion(), $item->php_version, '>=' );
+			$php_compat = version_compare( PHP_VERSION, $item->php_version, '>=' );
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
 			} else {
@@ -235,7 +292,7 @@ class WP_Automatic_Updater {
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
 		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
-			if ( ! empty( $item->requires_php ) && version_compare( phpversion(), $item->requires_php, '<' ) ) {
+			if ( ! empty( $item->requires_php ) && version_compare( PHP_VERSION, $item->requires_php, '<' ) ) {
 				return false;
 			}
 		}
@@ -294,7 +351,7 @@ class WP_Automatic_Updater {
 	}
 
 	/**
-	 * Update an item, if appropriate.
+	 * Updates an item, if appropriate.
 	 *
 	 * @since 3.7.0
 	 *
@@ -303,7 +360,7 @@ class WP_Automatic_Updater {
 	 * @return null|WP_Error
 	 */
 	public function update( $type, $item ) {
-		$skin = new Automatic_Upgrader_Skin;
+		$skin = new Automatic_Upgrader_Skin();
 
 		switch ( $type ) {
 			case 'core':
@@ -413,14 +470,17 @@ class WP_Automatic_Updater {
 				&& ( 'up_to_date' === $upgrade_result->get_error_code()
 					|| 'locked' === $upgrade_result->get_error_code() )
 			) {
-				// These aren't actual errors, treat it as a skipped-update instead
-				// to avoid triggering the post-core update failure routines.
+				/*
+				 * These aren't actual errors, treat it as a skipped-update instead
+				 * to avoid triggering the post-core update failure routines.
+				 */
 				return false;
 			}
 
-			// Core doesn't output this, so let's append it so we don't get confused.
+			// Core doesn't output this, so let's append it, so we don't get confused.
 			if ( is_wp_error( $upgrade_result ) ) {
-				$skin->error( __( 'Installation failed.' ), $upgrade_result );
+				$upgrade_result->add( 'installation_failed', __( 'Installation failed.' ) );
+				$skin->error( $upgrade_result );
 			} else {
 				$skin->feedback( __( 'WordPress updated successfully.' ) );
 			}
@@ -490,8 +550,10 @@ class WP_Automatic_Updater {
 			$this->update( 'core', $core_update );
 		}
 
-		// Clean up, and check for any pending translations.
-		// (Core_Upgrader checks for core updates.)
+		/*
+		 * Clean up, and check for any pending translations.
+		 * (Core_Upgrader checks for core updates.)
+		 */
 		$theme_stats = array();
 		if ( isset( $this->update_results['theme'] ) ) {
 			foreach ( $this->update_results['theme'] as $upgrade ) {
@@ -525,7 +587,7 @@ class WP_Automatic_Updater {
 
 		// Send debugging email to admin for all development installations.
 		if ( ! empty( $this->update_results ) ) {
-			$development_version = false !== strpos( get_bloginfo( 'version' ), '-' );
+			$development_version = str_contains( get_bloginfo( 'version' ), '-' );
 
 			/**
 			 * Filters whether to send a debugging email for each automatic background update.
@@ -560,8 +622,8 @@ class WP_Automatic_Updater {
 	}
 
 	/**
-	 * If we tried to perform a core update, check if we should send an email,
-	 * and if we need to avoid processing future updates.
+	 * Checks whether to send an email and avoid processing future updates after
+	 * attempting a core update.
 	 *
 	 * @since 3.7.0
 	 *
@@ -580,16 +642,18 @@ class WP_Automatic_Updater {
 
 		$error_code = $result->get_error_code();
 
-		// Any of these WP_Error codes are critical failures, as in they occurred after we started to copy core files.
-		// We should not try to perform a background update again until there is a successful one-click update performed by the user.
+		/*
+		 * Any of these WP_Error codes are critical failures, as in they occurred after we started to copy core files.
+		 * We should not try to perform a background update again until there is a successful one-click update performed by the user.
+		 */
 		$critical = false;
-		if ( 'disk_full' === $error_code || false !== strpos( $error_code, '__copy_dir' ) ) {
+		if ( 'disk_full' === $error_code || str_contains( $error_code, '__copy_dir' ) ) {
 			$critical = true;
 		} elseif ( 'rollback_was_required' === $error_code && is_wp_error( $result->get_error_data()->rollback ) ) {
 			// A rollback is only critical if it failed too.
 			$critical        = true;
 			$rollback_result = $result->get_error_data()->rollback;
-		} elseif ( false !== strpos( $error_code, 'do_rollback' ) ) {
+		} elseif ( str_contains( $error_code, 'do_rollback' ) ) {
 			$critical = true;
 		}
 
@@ -773,10 +837,12 @@ class WP_Automatic_Updater {
 
 				$body .= "\n\n";
 
-				// Don't show this message if there is a newer version available.
-				// Potential for confusion, and also not useful for them to know at this point.
+				/*
+				 * Don't show this message if there is a newer version available.
+				 * Potential for confusion, and also not useful for them to know at this point.
+				 */
 				if ( 'fail' === $type && ! $newer_version_available ) {
-					$body .= __( 'We tried but were unable to update your site automatically.' ) . ' ';
+					$body .= __( 'An attempt was made, but your site could not be updated automatically.' ) . ' ';
 				}
 
 				$body .= __( 'Updating is easy and only takes a few moments:' );
@@ -827,7 +893,7 @@ class WP_Automatic_Updater {
 		}
 
 		if ( $critical_support ) {
-			$body .= ' ' . __( "If you reach out to us, we'll also ensure you'll never have this problem again." );
+			$body .= ' ' . __( "Reach out to WordPress Core developers to ensure you'll never have this problem again." );
 		}
 
 		// If things are successful and we're now on the latest, mention plugins and themes if any are out of date.
@@ -842,11 +908,13 @@ class WP_Automatic_Updater {
 			$body .= "\n***\n\n";
 			/* translators: %s: WordPress version. */
 			$body .= sprintf( __( 'Your site was running version %s.' ), get_bloginfo( 'version' ) );
-			$body .= ' ' . __( 'We have some data that describes the error your site encountered.' );
+			$body .= ' ' . __( 'Some data that describes the error your site encountered has been put together.' );
 			$body .= ' ' . __( 'Your hosting company, support forum volunteers, or a friendly developer may be able to use this information to help you:' );
 
-			// If we had a rollback and we're still critical, then the rollback failed too.
-			// Loop through all errors (the main WP_Error, the update result, the rollback result) for code, data, etc.
+			/*
+			 * If we had a rollback and we're still critical, then the rollback failed too.
+			 * Loop through all errors (the main WP_Error, the update result, the rollback result) for code, data, etc.
+			 */
 			if ( 'rollback_was_required' === $result->get_error_code() ) {
 				$errors = array( $result, $result->get_error_data()->update, $result->get_error_data()->rollback );
 			} else {
@@ -910,7 +978,7 @@ class WP_Automatic_Updater {
 
 
 	/**
-	 * If we tried to perform plugin or theme updates, check if we should send an email.
+	 * Checks whether an email should be sent after attempting plugin or theme updates.
 	 *
 	 * @since 5.5.0
 	 *
@@ -1098,22 +1166,33 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins failed to update:' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
+					$body_message = '';
+					$item_url     = '';
+
+					if ( ! empty( $item->item->url ) ) {
+						$item_url = ' : ' . esc_url( $item->item->url );
+					}
+
 					if ( $item->item->current_version ) {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Current version number, 3: New version number. */
-							__( '- %1$s (from version %2$s to %3$s)' ),
-							$item->name,
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
+							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
-							$item->item->new_version
+							$item->item->new_version,
+							$item_url
 						);
 					} else {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Version number. */
-							__( '- %1$s version %2$s' ),
-							$item->name,
-							$item->item->new_version
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
+							__( '- %1$s version %2$s%3$s' ),
+							html_entity_decode( $item->name ),
+							$item->item->new_version,
+							$item_url
 						);
 					}
+
+					$body[] = $body_message;
 
 					$past_failure_emails[ $item->item->plugin ] = $item->item->new_version;
 				}
@@ -1130,7 +1209,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version
 						);
@@ -1138,7 +1217,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->new_version
 						);
 					}
@@ -1159,22 +1238,32 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins are now up to date:' );
 
 				foreach ( $successful_updates['plugin'] as $item ) {
+					$body_message = '';
+					$item_url     = '';
+
+					if ( ! empty( $item->item->url ) ) {
+						$item_url = ' : ' . esc_url( $item->item->url );
+					}
+
 					if ( $item->item->current_version ) {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Current version number, 3: New version number. */
-							__( '- %1$s (from version %2$s to %3$s)' ),
-							$item->name,
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Current version number, 3: New version number, 4: Plugin URL. */
+							__( '- %1$s (from version %2$s to %3$s)%4$s' ),
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
-							$item->item->new_version
+							$item->item->new_version,
+							$item_url
 						);
 					} else {
-						$body[] = sprintf(
-							/* translators: 1: Plugin name, 2: Version number. */
-							__( '- %1$s version %2$s' ),
-							$item->name,
-							$item->item->new_version
+						$body_message .= sprintf(
+							/* translators: 1: Plugin name, 2: Version number, 3: Plugin URL. */
+							__( '- %1$s version %2$s%3$s' ),
+							html_entity_decode( $item->name ),
+							$item->item->new_version,
+							$item_url
 						);
 					}
+					$body[] = $body_message;
 
 					unset( $past_failure_emails[ $item->item->plugin ] );
 				}
@@ -1191,7 +1280,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Current version number, 3: New version number. */
 							__( '- %1$s (from version %2$s to %3$s)' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->current_version,
 							$item->item->new_version
 						);
@@ -1199,7 +1288,7 @@ class WP_Automatic_Updater {
 						$body[] = sprintf(
 							/* translators: 1: Theme name, 2: Version number. */
 							__( '- %1$s version %2$s' ),
-							$item->name,
+							html_entity_decode( $item->name ),
 							$item->item->new_version
 						);
 					}
@@ -1234,9 +1323,15 @@ class WP_Automatic_Updater {
 		$body[] = __( 'https://wordpress.org/support/forums/' );
 		$body[] = "\n" . __( 'The WordPress Team' );
 
+		if ( '' !== get_option( 'blogname' ) ) {
+			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
+
 		$body    = implode( "\n", $body );
 		$to      = get_site_option( 'admin_email' );
-		$subject = sprintf( $subject, wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) );
+		$subject = sprintf( $subject, $site_title );
 		$headers = '';
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
@@ -1295,7 +1390,7 @@ class WP_Automatic_Updater {
 			} else {
 				/* translators: %s: WordPress version. */
 				$body[] = sprintf( __( 'FAILED: WordPress failed to update to %s' ), $result->name );
-				$failures++;
+				++$failures;
 			}
 
 			$body[] = '';
@@ -1337,7 +1432,7 @@ class WP_Automatic_Updater {
 					if ( ! $item->result || is_wp_error( $item->result ) ) {
 						/* translators: %s: Name of plugin / theme / translation. */
 						$body[] = ' * ' . sprintf( __( 'FAILED: %s' ), $item->name );
-						$failures++;
+						++$failures;
 					}
 				}
 			}
@@ -1345,7 +1440,11 @@ class WP_Automatic_Updater {
 			$body[] = '';
 		}
 
-		$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		if ( '' !== get_bloginfo( 'name' ) ) {
+			$site_title = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
 
 		if ( $failures ) {
 			$body[] = trim(

@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::get_comment_link
  */
 class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 	protected static $p;
@@ -53,7 +55,6 @@ class Tests_Comment_GetCommentLink extends WP_UnitTestCase {
 				'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 600 ),
 			)
 		);
-
 	}
 
 	/**
