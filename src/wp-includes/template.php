@@ -729,6 +729,7 @@ function locate_template( $template_names, $load = false, $load_once = true, $ar
 		if ( ! $template_name ) {
 			continue;
 		}
+	
 		$stylesheet      = $wp_stylesheet_path . '/' . $template_name;
 		$template        = $wp_template_path . '/' . $template_name;
 		$template_compat = ABSPATH . WPINC . '/theme-compat/' . $template_name;
