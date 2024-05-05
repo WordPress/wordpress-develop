@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::get_user_locale
  */
 class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	protected $user_id;
@@ -10,7 +12,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->user_id = $this->factory()->user->create(
+		$this->user_id = self::factory()->user->create(
 			array(
 				'role'   => 'administrator',
 				'locale' => 'de_DE',
@@ -65,10 +67,6 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	 * @group ms-required
 	 */
 	public function test_user_locale_is_same_across_network() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test requires Multisite.' );
-		}
-
 		$user_locale = get_user_locale();
 
 		switch_to_blog( self::factory()->blog->create() );
@@ -80,7 +78,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	}
 
 	public function test_user_id_argument_with_id() {
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'locale' => 'es_ES',
 			)
@@ -97,7 +95,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	}
 
 	public function test_user_id_argument_with_wp_user_object() {
-		$user_id = $this->factory()->user->create(
+		$user_id = self::factory()->user->create(
 			array(
 				'locale' => 'es_ES',
 			)

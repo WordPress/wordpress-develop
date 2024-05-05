@@ -2,11 +2,13 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::get_bloginfo
  */
 class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 
 	/**
-	 * @dataProvider locales
+	 * @dataProvider data_get_bloginfo_language
 	 * @ticket 28303
 	 */
 	public function test_get_bloginfo_language( $test_locale, $expected ) {
@@ -20,7 +22,7 @@ class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 		$locale = $old_locale;
 	}
 
-	public function locales() {
+	public function data_get_bloginfo_language() {
 		return array(
 			// Locale, language code.
 			array( 'en_US', 'en-US' ),
@@ -35,6 +37,8 @@ class Tests_Formatting_GetBloginfo extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27942
+	 *
+	 * @covers ::sanitize_option
 	 */
 	public function test_bloginfo_sanitize_option() {
 		$old_values = array(

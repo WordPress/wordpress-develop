@@ -1,5 +1,6 @@
 {
-	"apiVersion": 2,
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
 	"name": "core/more",
 	"title": "More",
 	"category": "design",
@@ -19,7 +20,10 @@
 		"customClassName": false,
 		"className": false,
 		"html": false,
-		"multiple": false
+		"multiple": false,
+		"interactivity": {
+			"clientNavigation": true
+		}
 	},
 	"editorStyle": "wp-block-more-editor"
 }

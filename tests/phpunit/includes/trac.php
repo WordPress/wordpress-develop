@@ -9,9 +9,9 @@ class TracTickets {
 	protected static $trac_ticket_cache = array();
 
 	/**
-	 * Checks if track ticket #$ticket_id is resolved
+	 * Checks if Trac ticket #$ticket_id is resolved.
 	 *
-	 * @return bool|null true if the ticket is resolved, false if not resolved, null on error
+	 * @return bool|null True if the ticket is resolved, false if not resolved, null on error.
 	 */
 	public static function isTracTicketClosed( $trac_url, $ticket_id ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( ! extension_loaded( 'openssl' ) ) {
@@ -22,6 +22,7 @@ class TracTickets {
 			// In case you're running the tests offline, keep track of open tickets.
 			$file    = DIR_TESTDATA . '/.trac-ticket-cache.' . str_replace( array( 'http://', 'https://', '/' ), array( '', '', '-' ), rtrim( $trac_url, '/' ) );
 			$tickets = @file_get_contents( $trac_url . '/query?status=%21closed&format=csv&col=id' );
+
 			// Check if our HTTP request failed.
 			if ( false === $tickets ) {
 				if ( file_exists( $file ) ) {
@@ -37,7 +38,9 @@ class TracTickets {
 				$tickets = trim( $tickets );
 				file_put_contents( $file, $tickets );
 			}
-			$tickets                              = explode( "\r\n", $tickets );
+
+			$tickets = explode( "\r\n", $tickets );
+
 			self::$trac_ticket_cache[ $trac_url ] = $tickets;
 		}
 

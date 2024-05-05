@@ -1799,7 +1799,7 @@
 						section.closeDetails();
 					} else {
 
-						// Escape from the inifinite scroll list.
+						// Escape from the infinite scroll list.
 						section.headerContainer.find( '.customize-themes-section-title' ).focus();
 					}
 					event.stopPropagation(); // Prevent section from being collapsed.
@@ -3866,7 +3866,7 @@
 			var control = this, container, notifications, hasError = false;
 
 			if ( 'undefined' !== typeof console && console.warn ) {
-				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantating a wp.customize.Notifications and calling its render() method.' );
+				console.warn( '[DEPRECATED] wp.customize.Control.prototype.renderNotifications() is deprecated in favor of instantiating a wp.customize.Notifications and calling its render() method.' );
 			}
 
 			container = control.getNotificationsContainerElement();
@@ -7199,7 +7199,7 @@
 			} ) );
 
 			/**
-			 * Return whether the pubish settings section should be active.
+			 * Return whether the publish settings section should be active.
 			 *
 			 * @return {boolean} Is section active.
 			 */
@@ -7800,11 +7800,11 @@
 			},
 
 			/**
-			 * Builds the front preview url with the current state of customizer.
+			 * Builds the front preview URL with the current state of customizer.
 			 *
-			 * @since 4.9
+			 * @since 4.9.0
 			 *
-			 * @return {string} Preview url.
+			 * @return {string} Preview URL.
 			 */
 			getFrontendPreviewUrl: function() {
 				var previewer = this, params, urlParser;
@@ -8335,6 +8335,33 @@
 			}
 
 			/**
+			 * Displays a Site Editor notification when a block theme is activated.
+			 *
+			 * @since 4.9.0
+			 *
+			 * @param {string} [notification] - A notification to display.
+			 * @return {void}
+			 */
+			function addSiteEditorNotification( notification ) {
+				api.notifications.add( new api.Notification( 'site_editor_block_theme_notice', {
+					message: notification,
+					type: 'info',
+					dismissible: false,
+					render: function() {
+						var notification = api.Notification.prototype.render.call( this ),
+							button = notification.find( 'button.switch-to-editor' );
+
+						button.on( 'click', function( event ) {
+							event.preventDefault();
+							location.assign( button.data( 'action' ) );
+						} );
+
+						return notification;
+					}
+				} ) );
+			}
+
+			/**
 			 * Dismiss autosave.
 			 *
 			 * @return {void}
@@ -8407,6 +8434,10 @@
 			}
 			if ( api.settings.changeset.latestAutoDraftUuid || api.settings.changeset.hasAutosaveRevision ) {
 				addAutosaveRestoreNotification();
+			}
+			var shouldDisplayBlockThemeNotification = !! parseInt( $( '#customize-info' ).data( 'block-theme' ), 10 );
+			if (shouldDisplayBlockThemeNotification) {
+				addSiteEditorNotification( api.l10n.blockThemeNotification );
 			}
 		})();
 

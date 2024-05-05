@@ -97,6 +97,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -121,6 +122,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -175,11 +177,12 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => array( $this, '_new_sanitize_meta_cb' ),
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
 		);
-		$this->assertSame( $actual, $expected );
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function test_register_meta_with_current_sanitize_callback_returns_true() {
@@ -342,6 +345,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -395,6 +399,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 						'sanitize_callback' => null,
 						'auth_callback'     => '__return_true',
 						'show_in_rest'      => false,
+						'revisions_enabled' => false,
 					),
 				),
 			),
@@ -521,11 +526,11 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
 		$default_value        = get_metadata_default( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $default_value, $expected );
+		$this->assertSame( $expected, $default_value );
 
 		// Check for default value.
 		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $value, $expected );
+		$this->assertSame( $expected, $value );
 
 		// Set value to check default is not being returned by mistake.
 		$meta_value = 'dibble';
@@ -536,7 +541,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		// Delete meta, make sure the default is returned.
 		delete_metadata( $object_type, $object_id, $meta_key );
 		$value = get_metadata( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $value, $expected );
+		$this->assertSame( $expected, $value );
 
 		// Set other meta key, to make sure other keys are not effects.
 		$meta_value = 'hibble';
@@ -546,7 +551,6 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		update_metadata( $object_type, $object_id, $meta_key, $meta_value );
 		$value = get_metadata( $object_type, $object_id, $meta_key, true );
 		$this->assertSame( $value, $meta_value );
-
 	}
 
 	/**
@@ -568,7 +572,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		$object_property_name = $object_type . '_id';
 		$object_id            = self::$$object_property_name;
 		$default_value        = get_metadata_default( $object_type, $object_id, $meta_key, $single );
-		$this->assertSame( $default_value, $expected );
+		$this->assertSame( $expected, $default_value );
 	}
 
 	public function filter_get_object_subtype_for_customtype( $subtype, $object_id ) {
@@ -1081,5 +1085,36 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 			array( 'comment', 'comment' ),
 			array( 'user', 'user' ),
 		);
+	}
+
+	/**
+	 * Test that attempting to register meta with revisions_enabled set to true on a
+	 * post type that does not have revisions enabled fails and throws a `doing_it_wrong` notice.
+	 *
+	 * @ticket 20564
+	 */
+	public function test_register_meta_with_revisions_enabled_on_post_type_without_revisions() {
+		$this->setExpectedIncorrectUsage( 'register_meta' );
+
+		// Set up a custom post type with revisions disabled.
+		register_post_type(
+			'test_post_type',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+
+		$meta_key = 'registered_key1';
+		$args     = array(
+			'revisions_enabled' => true,
+		);
+
+		$register = register_meta(
+			'test_post_type',
+			$meta_key,
+			$args
+		);
+
+		$this->assertFalse( $register );
 	}
 }

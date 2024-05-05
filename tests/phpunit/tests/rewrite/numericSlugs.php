@@ -6,6 +6,7 @@
  */
 class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 	private $old_current_user;
+	private $author_id;
 
 	public function set_up() {
 		parent::set_up();
@@ -23,7 +24,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -53,7 +54,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -80,7 +81,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -98,7 +99,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2015',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -114,7 +115,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '02',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -133,7 +134,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '02',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -150,7 +151,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -169,7 +170,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '2',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -186,7 +187,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '02',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -204,7 +205,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '02',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -220,7 +221,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -238,7 +239,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '2',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -254,7 +255,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '01',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -273,7 +274,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '',
 				'post_name'    => '01',
 				'post_date'    => '2015-02-01 01:00:00',
@@ -290,7 +291,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -308,7 +309,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)
@@ -324,7 +325,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array(
 				'post_author'  => $this->author_id,
 				'post_status'  => 'publish',
-				'post_content' => rand_str(),
+				'post_content' => 'content',
 				'post_title'   => '01',
 				'post_date'    => '2015-02-01 01:00:00',
 			)

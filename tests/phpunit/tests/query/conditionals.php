@@ -395,7 +395,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 			$this->go_to( "/{$feed}/" );
 			$this->assertQueryTrue( 'is_feed' );
 		}
-
 	}
 
 	public function test_main_feed() {
@@ -440,7 +439,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 				$this->go_to( "/comments/{$type}" );
 				$this->assertQueryTrue( 'is_feed', 'is_comment_feed' );
 		}
-
 	}
 
 	// 'search/(.+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?s=$matches[1]&feed=$matches[2]',
@@ -771,7 +769,6 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_id ) . '2/' );
 		// Should is_paged be true also?
 		$this->assertQueryTrue( 'is_single', 'is_singular' );
-
 	}
 
 	// '[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}/[^/]+/([^/]+)/?$' => 'index.php?attachment=$matches[1]',
@@ -978,13 +975,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 	public function test_is_single_with_slug_that_clashes_with_attachment() {
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$attachment_id = $this->factory->post->create(
+		$attachment_id = self::factory()->post->create(
 			array(
 				'post_type' => 'attachment',
 			)
 		);
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => get_post( $attachment_id )->post_title,
 			)
@@ -1616,4 +1613,80 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_page', 'is_singular', 'is_privacy_policy' );
 	}
 
+	/**
+	 * @ticket 55104
+	 *
+	 * @dataProvider data_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set
+	 *
+	 * @param string $function_name The name of the function to test.
+	 */
+	public function test_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set( $function_name ) {
+		unset( $GLOBALS['wp_query'] );
+
+		if ( 'is_comments_popup' === $function_name ) {
+			// `is_comments_popup()` is deprecated as of WP 4.5.
+			$this->setExpectedDeprecated( $function_name );
+		} else {
+			// All the other functions should throw a `_doing_it_wrong()` notice.
+			$this->setExpectedIncorrectUsage( $function_name );
+		}
+
+		$this->assertFalse( call_user_func( $function_name ) );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public function data_conditional_tags_trigger_doing_it_wrong_and_return_false_if_wp_query_is_not_set() {
+		// Get the list of `is_*()` conditional tags.
+		$functions = array_filter(
+			get_class_methods( 'WP_Query' ),
+			static function ( $function_name ) {
+				return str_starts_with( $function_name, 'is_' );
+			}
+		);
+
+		// Wrap each function name in an array.
+		$functions = array_map(
+			static function ( $function_name ) {
+				return array( $function_name );
+			},
+			$functions
+		);
+
+		return $functions;
+	}
+
+	/**
+	 * @ticket 55722
+	 *
+	 * @dataProvider data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set
+	 *
+	 * @param string     $function_name The name of the function to test.
+	 * @param false|null $expected      Expected return value.
+	 */
+	public function test_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set( $function_name, $expected ) {
+		unset( $GLOBALS['wp_query'] );
+
+		$this->assertSame( $expected, call_user_func( $function_name ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[] Test parameters {
+	 *     @type string     $function_name The name of the function to test.
+	 *     @type false|null $expected      Expected return value.
+	 * }
+	 */
+	public function data_loop_functions_do_not_trigger_a_fatal_error_if_wp_query_is_not_set() {
+		return array(
+			array( 'have_posts', false ),
+			array( 'in_the_loop', false ),
+			array( 'rewind_posts', null ),
+			array( 'the_post', null ),
+			array( 'have_comments', false ),
+			array( 'the_comment', null ),
+		);
+	}
 }

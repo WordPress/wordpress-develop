@@ -1,13 +1,9 @@
 <?php
 /**
- * WP_REST_Search_Controller tests
+ * Unit tests covering WP_REST_Search_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
- */
-
-/**
- * Tests for WP_REST_Search_Controller.
  *
  * @group restapi
  */
@@ -333,6 +329,36 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 55674
+	 */
+	public function test_get_items_search_prime_ids() {
+		$action = new MockAction();
+		add_filter( 'query', array( $action, 'filter' ), 10, 2 );
+
+		$query_args = array(
+			'per_page' => 100,
+			'search'   => 'foocontent',
+		);
+		$response   = $this->do_request_with_params( $query_args );
+		$this->assertSame( 200, $response->get_status(), 'Request Status Response is not 200.' );
+
+		$ids = wp_list_pluck( $response->get_data(), 'id' );
+		$this->assertSameSets( self::$my_content_post_ids, $ids, 'Query result posts ids do not match with expected ones.' );
+
+		$args               = $action->get_args();
+		$primed_query_found = false;
+		foreach ( $args as $arg ) {
+			// Primed query will use WHERE ID IN clause.
+			if ( str_contains( $arg[0], 'WHERE ID IN (' . implode( ',', $ids ) ) ) {
+				$primed_query_found = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $primed_query_found, 'Prime query was not executed.' );
+	}
+
+	/**
 	 * Test retrieving a single item isn't possible.
 	 */
 	public function test_get_item() {
@@ -413,7 +439,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			array(
 				'id',
 				'title',
-				'_links',
 			),
 			array_keys( $data[0] )
 		);
@@ -790,4 +815,91 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		return $request;
 	}
 
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_posts_include_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'include' => array_slice( self::$my_title_post_ids, 1, 2 ),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_title_post_ids[1], self::$my_title_post_ids[2] ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_posts_exclude_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'exclude' => self::$my_title_page_ids,
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array_merge(
+				self::$my_title_post_ids,
+				self::$my_content_post_ids
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_terms_include_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				'include' => self::$my_tag_id,
+				'type'    => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_tag_id ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 56546
+	 */
+	public function test_get_items_search_terms_exclude_ids() {
+		$response = $this->do_request_with_params(
+			array(
+				// "1" is the default category.
+				'exclude' => array( 1, self::$my_tag_id ),
+				'type'    => 'term',
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
+			array( self::$my_category_id ),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * @ticket 60771
+	 */
+	public function test_sanitize_subtypes_validates_type() {
+		$response = $this->do_request_with_params(
+			array(
+				'subtype' => 'page',
+				'type'    => array( 'invalid' ),
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
 }
