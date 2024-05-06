@@ -1239,6 +1239,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
+	 * @ticket 60981
 	 */
 	public function test_get_stylesheet_generates_base_fallback_gap_layout_styles() {
 		$theme_json = new WP_Theme_JSON(

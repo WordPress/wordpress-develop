@@ -48,6 +48,7 @@ jobs:
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.1', '8.2', '8.3' ]
+        tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -57,19 +58,37 @@ jobs:
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
+            tests-domain: 'example.org'
             multisite: false
             memcached: true
           - os: ubuntu-latest
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
+            tests-domain: 'example.org'
             multisite: true
             memcached: true
+          # Include jobs with a port on the test domain for both single and multisite.
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '5.7'
+            tests-domain: 'example.org:8889'
+            multisite: false
+            memcached: false
+          - os: ubuntu-latest
+            php: '7.4'
+            db-type: 'mysql'
+            db-version: '5.7'
+            tests-domain: 'example.org:8889'
+            multisite: true
+            memcached: false
           # Report test results to the Host Test Results.
           - os: ubuntu-latest
             php: '7.4'
             db-type: 'mysql'
             db-version: '5.7'
+            tests-domain: 'example.org'
             multisite: false
             memcached: false
             report: true
@@ -81,6 +100,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      tests-domain: ${{ matrix.tests-domain }}
       report: ${{ matrix.report || false }}
 
   #

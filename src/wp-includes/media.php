@@ -1363,8 +1363,17 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 * If currently on HTTPS, prefer HTTPS URLs when we know they're supported by the domain
 	 * (which is to say, when they share the domain name of the current request).
 	 */
-	if ( is_ssl() && ! str_starts_with( $image_baseurl, 'https' ) && parse_url( $image_baseurl, PHP_URL_HOST ) === $_SERVER['HTTP_HOST'] ) {
-		$image_baseurl = set_url_scheme( $image_baseurl, 'https' );
+	if ( is_ssl() && ! str_starts_with( $image_baseurl, 'https' ) ) {
+		// Since the `Host:` header might contain a port we should
+		// compare it against the image URL using the same port.
+		$parsed = parse_url( $image_baseurl );
+		$domain = $parsed['host'];
+		if ( isset( $parsed['port'] ) ) {
+			$domain .= ':' . $parsed['port'];
+		}
+		if ( $_SERVER['HTTP_HOST'] === $domain ) {
+			$image_baseurl = set_url_scheme( $image_baseurl, 'https' );
+		}
 	}
 
 	/*
@@ -2127,7 +2136,7 @@ function wp_img_tag_add_width_and_height_attr( $image, $context, $attachment_id 
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
 		$size_array = wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id );
 
-		if ( $size_array ) {
+		if ( $size_array && $size_array[0] && $size_array[1] ) {
 			// If the width is enforced through style (e.g. in an inline image), calculate the dimension attributes.
 			$style_width = preg_match( '/style="width:\s*(\d+)px;"/', $image, $match_width ) ? (int) $match_width[1] : 0;
 			if ( $style_width ) {
@@ -5593,12 +5602,12 @@ function wp_getimagesize( $filename, ?array &$image_info = null ) {
  *
  * @param string $filename Path to an AVIF file.
  * @return array {
- *    An array of AVIF image information.
+ *     An array of AVIF image information.
  *
- *    @type int|false $width        Image width on success, false on failure.
- *    @type int|false $height       Image height on success, false on failure.
- *    @type int|false $bit_depth    Image bit depth on success, false on failure.
- *    @type int|false $num_channels Image number of channels on success, false on failure.
+ *     @type int|false $width        Image width on success, false on failure.
+ *     @type int|false $height       Image height on success, false on failure.
+ *     @type int|false $bit_depth    Image bit depth on success, false on failure.
+ *     @type int|false $num_channels Image number of channels on success, false on failure.
  * }
  */
 function wp_get_avif_info( $filename ) {
