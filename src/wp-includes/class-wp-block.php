@@ -210,6 +210,16 @@ class WP_Block {
 		return $this->attributes;
 	}
 
+
+	/**
+	 * This method returns true for the "attributes" property if it is set, and false otherwise.
+	 * It returns false to reflect that dynamic class properties are not really defined.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $key Property to check.
+	 * @return bool True if the property exists, false otherwise.
+	 */
 	public function __isset( $name ) {
 		if ( 'attributes' === $name ) {
 			return isset( $this->attributes );
@@ -218,6 +228,16 @@ class WP_Block {
 		return false;
 	}
 
+	/**
+	 * Sets the "attributes" class property.
+	 * Triggers an error when attempting to set a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name  The name of the property to set.
+	 * @param mixed  $value The value to set.
+	 */
 	public function __set( $name, $value ) {
 		if ( 'attributes' === $name ) {
 			$this->attributes = $value;
@@ -237,6 +257,15 @@ class WP_Block {
 		);
 	}
 
+	/**
+	 * Unsets the "attributes" class property.
+	 * Triggers an error when attempting to unset a dynamic class property since dynamic class
+	 * properties are deprecated.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $name The name of the property to unset.
+	 */
 	public function __unset( $name ) {
 		if ( 'attributes' === $name ) {
 			unset( $this->attributes );
@@ -248,8 +277,9 @@ class WP_Block {
 			return;
 		}
 
-		trigger_error(
-			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated', $name, __CLASS__ ),
+		wp_trigger_error(
+			__METHOD__,
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
 	}
