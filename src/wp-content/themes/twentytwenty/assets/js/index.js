@@ -443,6 +443,22 @@ twentytwenty.primaryMenu = {
 			links[i].addEventListener( 'focus', updateFocus, true );
 		}
 
+		menu.addEventListener( 'focusout', removeFocus, true );
+
+		//Remove focus class from menu entirly
+		function removeFocus(e){
+			const leavingParent = !menu.contains(e.relatedTarget);
+
+    		if (leavingParent) {
+        		// Remove focus from all li elements of primary-menu.
+				menu.querySelectorAll('li').forEach( function(el){
+					if(el.classList.contains('focus')){
+						el.classList.remove('focus');
+					}
+				});
+    		}
+		}
+
 		// Update focus class on an element.
 		function updateFocus() {
 			var self = this;
@@ -459,7 +475,10 @@ twentytwenty.primaryMenu = {
 
 			// If current element is inside sub-menu find main parent li and add focus.
 			if(self.closest('.menu-item-has-children')) {
-				self.closest('.menu-item-has-children').classList.add('focus');
+				twentytwentyFindParents( self, 'li.menu-item-has-children' ).forEach( function( element ) {
+					element.classList.add('focus');
+				} );
+				
 			}
 
 		}
