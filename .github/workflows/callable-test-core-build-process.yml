@@ -68,7 +68,7 @@ jobs:
         run: npm ci
 
       - name: Run Emoji precommit task
-        if: ${ inputs.test-emoji }}
+        if: ${{ inputs.test-emoji }}
         run: npm run grunt precommit:emoji
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
