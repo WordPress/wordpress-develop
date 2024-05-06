@@ -47,6 +47,7 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+      install-gutenberg: false
 
   failed-workflow:
     name: Failed workflow tasks
