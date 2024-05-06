@@ -83,33 +83,33 @@ EOD;
 		$html   = '<blockquote></blockquote><iframe></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertSame( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;"></iframe>', $actual );
+		$this->assertSame( '<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;"></iframe>', $actual );
 	}
 
 	public function test_filter_oembed_result_allowed_html() {
 		$html   = '<blockquote class="foo" id="bar"><strong><a href="" target=""></a></strong></blockquote><iframe></iframe>';
 		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
 
-		$this->assertSame( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;"></iframe>', $actual );
+		$this->assertSame( '<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;"></iframe>', $actual );
 	}
 
 	public function data_wp_filter_pre_oembed_custom_result() {
 		return array(
 			array(
 				'<blockquote></blockquote><iframe title=""></iframe>',
-				'<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;" title="Hola"></iframe>',
+				'<blockquote class="wp-embedded-content"></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="Hola"></iframe>',
 			),
 			array(
 				'<blockquote class="foo" id="bar"><strong><a href="" target=""></a></strong></blockquote><iframe width=123></iframe>',
-				'<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;" title="Hola" width="123"></iframe>',
+				'<blockquote class="wp-embedded-content"><a href=""></a></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="Hola" width="123"></iframe>',
 			),
 			array(
 				'<blockquote><iframe width="100"></iframe></blockquote><iframe stitle="aaaa"></iframe>',
-				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;" title="Hola" width="100"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;" title="Hola"></iframe>',
+				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="Hola" width="100"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title="Hola"></iframe>',
 			),
 			array(
 				"<blockquote><iframe title=' width=\"'></iframe></blockquote><iframe title='' height=' title=' width=\"'' height='123'\"></iframe>",
-				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;" title=" width=&quot;"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; opacity: 0; pointer-events: none;" title=" width=&quot;" height=\' title=\' width="\'\' height=\'123\'"></iframe>',
+				'<blockquote class="wp-embedded-content"><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;"></iframe></blockquote><iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; visibility: hidden;" title=" width=&quot;" height=\' title=\' width="\'\' height=\'123\'"></iframe>',
 			),
 		);
 	}
