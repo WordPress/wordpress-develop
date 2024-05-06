@@ -1028,7 +1028,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 57271
 	 *
-	 * @dataProvider data_wp_reschedule_event_args
+	 * @dataProvider data_wp_reschedule_event_works_with_args
 	 *
 	 * @covers ::wp_reschedule_event
 	 */
@@ -1048,7 +1048,12 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertSame( $time + DAY_IN_SECONDS, $next_timestamp );
 	}
 
-	public function data_wp_reschedule_event_args() {
+	/**
+	 * Data provider for test_wp_reschedule_event_works_with_args().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_reschedule_event_works_with_args() {
 		return array(
 			'indexed'     => array(
 				array(
