@@ -221,8 +221,8 @@ class WP_Font_Utils {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param mixed $value     The value to sanitize.
-	 * @param mixed $sanitizer The sanitizer function to apply.
+	 * @param mixed    $value     The value to sanitize.
+	 * @param callable $sanitizer The sanitizer function to apply.
 	 * @return mixed The sanitized value.
 	 */
 	private static function apply_sanitizer( $value, $sanitizer ) {
@@ -244,7 +244,7 @@ class WP_Font_Utils {
 	 *
 	 * @access private
 	 *
-	 * @return array A collection of mime types keyed by file extension.
+	 * @return string[] A collection of mime types keyed by file extension.
 	 */
 	public static function get_allowed_font_mime_types() {
 		$php_7_ttf_mime_type = PHP_VERSION_ID >= 70300 ? 'application/font-sfnt' : 'application/x-font-ttf';

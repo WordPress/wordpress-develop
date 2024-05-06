@@ -66,38 +66,45 @@ jobs:
   # - Install WordPress.
   # - Install WordPress Importer plugin.
   # - Import mock data.
+  # - Deactivate WordPress Importer plugin.
   # - Update permalink structure.
+  # - Install additional languages.
+  # - Disable external HTTP requests.
+  # - Disable cron.
+  # - List defined constants.
   # - Install MU plugin.
   # - Run performance tests (current commit).
-  # - Print performance tests results.
-  # - Check out target commit (target branch or previous commit).
-  # - Switch Node.js versions if necessary.
-  # - Install npm dependencies.
-  # - Build WordPress.
+  # - Download previous build artifact (target branch or previous commit).
+  # - Download artifact.
+  # - Unzip the build.
   # - Run any database upgrades.
+  # - Flush cache.
+  # - Delete expired transients.
   # - Run performance tests (previous/target commit).
-  # - Print target performance tests results.
-  # - Reset to original commit.
-  # - Switch Node.js versions if necessary.
-  # - Install npm dependencies.
   # - Set the environment to the baseline version.
   # - Run any database upgrades.
+  # - Flush cache.
+  # - Delete expired transients.
   # - Run baseline performance tests.
-  # - Print baseline performance tests results.
-  # - Compare results with base.
+  # - Archive artifacts.
+  # - Compare results.
   # - Add workflow summary.
   # - Set the base sha.
   # - Set commit details.
   # - Publish performance results.
   # - Ensure version-controlled files are not modified or deleted.
-  # - Dispatch workflow run.
   performance:
-    name: Run performance tests
+    name: Run performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
-
+    strategy:
+      fail-fast: false
+      matrix:
+        memcached: [ true, false ]
+    env:
+      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
     steps:
       - name: Configure environment variables
         run: |
@@ -127,14 +134,17 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Build WordPress
         run: npm run build
 
       - name: Start Docker environment
-        run: |
-          npm run env:start
+        run: npm run env:start
+
+      - name: Install object cache drop-in
+        if: ${{ matrix.memcached }}
+        run: cp src/wp-content/object-cache.php build/wp-content/object-cache.php
 
       - name: Log running Docker containers
         run: docker ps -a
@@ -160,15 +170,28 @@ jobs:
           npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path=/var/www/${{ env.LOCAL_DIR }}
           rm themeunittestdata.wordpress.xml
 
+      - name: Deactivate WordPress Importer plugin
+        run: npm run env:cli -- plugin deactivate wordpress-importer --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Update permalink structure
-        run: |
-          npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
+        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install additional languages
         run: |
           npm run env:cli -- language core install de_DE --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language plugin install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- language theme install de_DE --all --path=/var/www/${{ env.LOCAL_DIR }}
+
+      # Prevent background update checks from impacting test stability.
+      - name: Disable external HTTP requests
+        run: npm run env:cli -- config set WP_HTTP_BLOCK_EXTERNAL true --raw --type=constant --path=/var/www/${{ env.LOCAL_DIR }}
+
+      # Prevent background tasks from impacting test stability.
+      - name: Disable cron
+        run: npm run env:cli -- config set DISABLE_WP_CRON true --raw --type=constant --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: List defined constants
+        run: npm run env:cli -- config list --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install MU plugin
         run: |
@@ -178,74 +201,93 @@ jobs:
       - name: Run performance tests (current commit)
         run: npm run test:performance
 
-      - name: Print performance tests results
-        run: node ./tests/performance/results.js
-
-      - name: Check out target commit (target branch or previous commit)
-        run: |
-          if [[ -z "$TARGET_REF" ]]; then
-            git fetch -n origin $TARGET_SHA
-          else
-            git fetch -n origin $TARGET_REF
-          fi
-          git reset --hard $TARGET_SHA
-
-      - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+      - name: Download previous build artifact (target branch or previous commit)
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: get-previous-build
         with:
-          node-version-file: '.nvmrc'
-          cache: npm
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'wordpress-build-' + process.env.TARGET_SHA,
+            });
 
-      - name: Install npm dependencies
-        run: npm ci
+            const matchArtifact = artifacts.data.artifacts[0];
 
-      - name: Build WordPress
-        run: npm run build
+            if ( ! matchArtifact ) {
+              core.setFailed( 'No artifact found!' );
+              return false;
+            }
+
+            const download = await github.rest.actions.downloadArtifact( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            } );
+
+            const fs = require( 'fs' );
+            fs.writeFileSync( '${{ github.workspace }}/before.zip', Buffer.from( download.data ) )
+
+            return true;
+
+      - name: Unzip the build
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: |
+          unzip ${{ github.workspace }}/before.zip
+          unzip -o ${{ github.workspace }}/wordpress.zip
 
       - name: Run any database upgrades
+        if: ${{ steps.get-previous-build.outputs.result }}
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
 
-      - name: Run target performance tests (base/previous commit)
+      - name: Flush cache
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Delete expired transients
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Run target performance tests (previous/target commit)
+        if: ${{ steps.get-previous-build.outputs.result }}
         env:
           TEST_RESULTS_PREFIX: before
         run: npm run test:performance
 
-      - name: Print target performance tests results
-        env:
-          TEST_RESULTS_PREFIX: before
-        run: node ./tests/performance/results.js
-
-      - name: Reset to original commit
-        run: git reset --hard $GITHUB_SHA
-
-      - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Install npm dependencies
-        run: npm ci
-
       - name: Set the environment to the baseline version
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: |
           npm run env:cli -- core update --version=${{ env.BASE_TAG }} --force --path=/var/www/${{ env.LOCAL_DIR }}
           npm run env:cli -- core version --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run any database upgrades
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         run: npm run env:cli -- core update-db --path=/var/www/${{ env.LOCAL_DIR }}
 
+      - name: Flush cache
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- cache flush --path=/var/www/${{ env.LOCAL_DIR }}
+
+      - name: Delete expired transients
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- transient delete --expired --path=/var/www/${{ env.LOCAL_DIR }}
+
       - name: Run baseline performance tests
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
         env:
           TEST_RESULTS_PREFIX: base
         run: npm run test:performance
 
-      - name: Print baseline performance tests results
-        env:
-          TEST_RESULTS_PREFIX: base
-        run: node ./tests/performance/results.js
+      - name: Archive artifacts
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        if: always()
+        with:
+          name: performance-artifacts${{ matrix.memcached && '-memcached' || '' }}-${{ github.run_id }}
+          path: artifacts
+          if-no-files-found: ignore
 
-      - name: Compare results with base
+      - name: Compare results
         run: node ./tests/performance/compare-results.js ${{ runner.temp }}/summary.md
 
       - name: Add workflow summary
@@ -253,7 +295,7 @@ jobs:
 
       - name: Set the base sha
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: base-sha
         with:
@@ -264,7 +306,7 @@ jobs:
 
       - name: Set commit details
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: commit-timestamp
         with:
@@ -275,7 +317,7 @@ jobs:
 
       - name: Publish performance results
         # Only publish results on pushes to trunk.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
         env:
             BASE_SHA: ${{ steps.base-sha.outputs.result }}
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}

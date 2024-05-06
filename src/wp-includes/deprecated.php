@@ -6302,6 +6302,24 @@ function block_core_image_ensure_interactivity_dependency() {
 }
 
 /**
+ * Updates the block content with elements class names.
+ *
+ * @deprecated 6.6.0 Generation of element class name is handled via `render_block_data` filter.
+ *
+ * @since 5.8.0
+ * @since 6.4.0 Added support for button and heading element styling.
+ * @access private
+ *
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
+ */
+function wp_render_elements_support( $block_content, $block ) {
+	_deprecated_function( __FUNCTION__, '6.6.0', 'wp_render_elements_class_name' );
+	return $block_content;
+}
+
+/**
  * A callback function for use in the {@see 'upload_dir'} filter.
  *
  * This function is intended for internal use only and should not be used by plugins and themes.
