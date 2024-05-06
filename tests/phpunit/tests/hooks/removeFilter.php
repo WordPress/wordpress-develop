@@ -17,6 +17,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $hook_name, $callback, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 	}
@@ -31,6 +32,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $hook_name, $callback, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 	}
@@ -44,6 +46,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
 		$hook->remove_filter( $hook_name, $callback, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 	}
@@ -62,6 +65,7 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$hook->remove_filter( $hook_name, $callback_one, $priority );
 
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
+		$this->check_priority_exists( $hook, $priority, 'Has priority of 2' );
 	}
 
 	public function test_remove_filter_with_another_at_different_priority() {
@@ -76,7 +80,29 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$hook->add_filter( $hook_name, $callback_two, $priority + 1, $accepted_args );
 
 		$hook->remove_filter( $hook_name, $callback_one, $priority );
+		$this->check_priority_non_existent( $hook, $priority );
 		$this->assertArrayNotHasKey( $priority, $hook->callbacks );
 		$this->assertCount( 1, $hook->callbacks[ $priority + 1 ] );
+		$this->check_priority_exists( $hook, $priority + 1, 'Should priority of 3' );
+	}
+
+	protected function check_priority_non_existent( $hook, $priority ) {
+		$priorities = $this->get_priorities( $hook );
+
+		$this->assertNotContains( $priority, $priorities );
+	}
+
+	protected function check_priority_exists( $hook, $priority ) {
+		$priorities = $this->get_priorities( $hook );
+
+		$this->assertContains( $priority, $priorities );
+	}
+
+	protected function get_priorities( $hook ) {
+		$reflection          = new ReflectionClass( $hook );
+		$reflection_property = $reflection->getProperty( 'priorities' );
+		$reflection_property->setAccessible( true );
+
+		return $reflection_property->getValue( $hook );
 	}
 }

@@ -27,7 +27,6 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$this->assertFalse( $dep->query( 'one' ) );
 		$this->assertInstanceOf( '_WP_Dependency', $dep->query( 'two' ) );
-
 	}
 
 	public function test_enqueue() {
@@ -134,10 +133,9 @@ class Tests_Dependencies extends WP_UnitTestCase {
 
 		$dep->remove( 'one' );
 		$this->assertFalse( $dep->query( 'one' ) );
-
 	}
 
-	function test_enqueue_before_register() {
+	public function test_enqueue_before_register() {
 		$dep = new WP_Dependencies();
 
 		$this->assertArrayNotHasKey( 'one', $dep->registered );

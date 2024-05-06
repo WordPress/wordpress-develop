@@ -22,15 +22,15 @@ class WP_Sitemaps_Stylesheet {
 	 * @param string $type Stylesheet type. Either 'sitemap' or 'index'.
 	 */
 	public function render_stylesheet( $type ) {
-		header( 'Content-type: application/xml; charset=UTF-8' );
+		header( 'Content-Type: application/xml; charset=UTF-8' );
 
 		if ( 'sitemap' === $type ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- All content escaped below.
+			// All content is escaped below.
 			echo $this->get_sitemap_stylesheet();
 		}
 
 		if ( 'index' === $type ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- All content escaped below.
+			// All content is escaped below.
 			echo $this->get_sitemap_index_stylesheet();
 		}
 

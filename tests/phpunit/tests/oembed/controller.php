@@ -84,13 +84,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	/**
 	 * Intercept oEmbed requests and mock responses.
 	 *
-	 * @param mixed  $preempt Whether to preempt an HTTP request's return value. Default false.
-	 * @param mixed  $r       HTTP request arguments.
-	 * @param string $url     The request URL.
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
 	 * @return array Response data.
 	 */
-	public function mock_embed_request( $preempt, $r, $url ) {
-		unset( $preempt, $r );
+	public function mock_embed_request( $response, $parsed_args, $url ) {
+		unset( $response, $parsed_args );
 
 		$parsed_url = wp_parse_url( $url );
 		$query      = isset( $parsed_url['query'] ) ? $parsed_url['query'] : '';
@@ -171,7 +171,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		}
 		$this->assertIsString( $url );
 		$this->assertIsArray( $args );
-		$this->oembed_result_filter_count++;
+		++$this->oembed_result_filter_count;
 		return $data;
 	}
 
@@ -606,8 +606,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertIsObject( $data );
 		$this->assertSame( 'YouTube', $data->provider_name );
 		$this->assertSame( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
-		$this->assertEquals( $data->width, $request['maxwidth'] );
-		$this->assertEquals( $data->height, $request['maxheight'] );
+		$this->assertSame( (int) $data->width, $request['maxwidth'] );
+		$this->assertSame( (int) $data->height, $request['maxheight'] );
 	}
 
 	/**

@@ -555,11 +555,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 36687
 	 */
 	public function test_posts_pre_query_filter_should_bypass_database_query() {
-		global $wpdb;
-
 		add_filter( 'posts_pre_query', array( __CLASS__, 'filter_posts_pre_query' ) );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 		$q           = new WP_Query(
 			array(
 				'fields'        => 'ids',
@@ -569,7 +567,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		remove_filter( 'posts_pre_query', array( __CLASS__, 'filter_posts_pre_query' ) );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 		$this->assertSame( array( 12345 ), $q->posts );
 	}
 
@@ -633,7 +631,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -656,7 +654,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -682,7 +680,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', '__return_true' );
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
@@ -709,23 +707,13 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'split_the_query', '__return_false' );
 
 		$this->assertSame( 2, $q->found_posts );
-		$this->assertEquals( 2, $q->max_num_pages );
-	}
-
-	public function set_found_posts_provider() {
-		// Count return 0 for null, but 1 for other data you may not expect.
-		return array(
-			array( null, 0 ),
-			array( '', 1 ),
-			array( "To life, to life, l'chaim", 1 ),
-			array( false, 1 ),
-		);
+		$this->assertSame( 2, $q->max_num_pages );
 	}
 
 	/**
 	 * @ticket 42860
 	 *
-	 * @dataProvider set_found_posts_provider
+	 * @dataProvider data_set_found_posts_not_posts_as_an_array
 	 */
 	public function test_set_found_posts_not_posts_as_an_array( $posts, $expected ) {
 		$q = new WP_Query(
@@ -737,11 +725,21 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$q->posts = $posts;
 
-		$methd = new ReflectionMethod( 'WP_Query', 'set_found_posts' );
-		$methd->setAccessible( true );
-		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
+		$method = new ReflectionMethod( 'WP_Query', 'set_found_posts' );
+		$method->setAccessible( true );
+		$method->invoke( $q, array( 'no_found_rows' => false ), array() );
 
 		$this->assertSame( $expected, $q->found_posts );
+	}
+
+	public function data_set_found_posts_not_posts_as_an_array() {
+		// Count return 0 for null, but 1 for other data you may not expect.
+		return array(
+			array( null, 0 ),
+			array( '', 1 ),
+			array( "To life, to life, l'chaim", 1 ),
+			array( false, 1 ),
+		);
 	}
 
 	/**
@@ -776,5 +774,56 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		remove_filter( 'found_posts', '__return_empty_string' );
 
 		$this->assertIsInt( $q->found_posts );
+	}
+
+	/**
+	 * @ticket 57296
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_split_the_query_object_cache() {
+		$filter = new MockAction();
+		add_filter( 'split_the_query', array( $filter, 'filter' ) );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		$this->assertSame( (bool) wp_using_ext_object_cache(), $filter->get_args()[0][0] );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		add_filter( 'split_the_query', '__return_false' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		remove_filter( 'split_the_query', '__return_false' );
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace_split_the_query() {
+		add_filter( 'split_the_query', '__return_true' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 501,
+			)
+		);
+
+		remove_filter( 'split_the_query', '__return_true' );
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }

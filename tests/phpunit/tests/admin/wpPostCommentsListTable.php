@@ -35,5 +35,4 @@ class Tests_Admin_wpPostCommentsListTable extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
-
 }

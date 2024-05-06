@@ -3,7 +3,8 @@
 /**
  * Test wp_guess_url().
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::wp_guess_url
  */
 class Tests_Functions_wpGuessUrl extends WP_UnitTestCase {
@@ -24,7 +25,7 @@ class Tests_Functions_wpGuessUrl extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_wp_guess_url_should_return_site_url() {
 		return array(
