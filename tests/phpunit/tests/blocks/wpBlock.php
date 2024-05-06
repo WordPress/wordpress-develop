@@ -819,7 +819,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @covers WP_Block::__get
 	 * @ticket 58087
 	 */
-	public function test_attributes_property_should_reflect_changes_in_the_block_attributes() {
+	public function test_attributes_property_should_not_be_rewritten_after_calling_getter_twice() {
 		$this->registry->register( 'core/example', array() );
 
 		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
@@ -827,22 +827,10 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$context       = array();
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
-		// Check if initial block names match.
-		$this->assertSame(
-			$block->attributes->name,
-			$block->name,
-			'Initial term name should match the name in term data object.'
-		);
-
-		// Modify the term name.
-		$this->term->name = 'foo';
-
-		// Check if modified term names match.
-		$this->assertSame(
-			$this->term->data->name,
-			$this->term->name,
-			'Modified term name should be updated in the term data object.'
-		);
+		$this->assertFalse( isset( $this->attributes ) );
+		$block->attributes = array( 'foo' => 'bar' );
+		$block->attributes; // Activates __get().
+		$this->assertSame( array( 'foo' => 'bar' ), $block->attributes, );
 	}
 
 	/**
@@ -897,18 +885,9 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$block->attributes = array();
 		unset( $block->attributes );
-		$this->assertFalse(isset( $block->attributes ), 'The WP_Block::$foo property should not be set.' );
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$foo property should not be set.' );
 		$this->expect_deprecation_message( 'WP_Block::__unset(): Unsetting the dynamic property "foo" on WP_Block is deprecated.' );
 		unset( $block->foo );
-	}
-
-	/**
-	 * @covers WP_Block::to_array
-	 * @ticket 58087
-	 */
-	public function test_to_array_does_not_return_the_data_property() {
-		$object_data = $this->term->to_array();
-		$this->assertArrayNotHasKey( 'data', $object_data, 'The data property should not be returned.' );
 	}
 
 	/**
@@ -922,7 +901,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$property_names = array();
 
 		foreach ( $properties as $property ) {
-			$property_name                                   = $property->getName();
+			$property_name                                    = $property->getName();
 			$property_names[ 'WP_Block::$' . $property_name ] = array( 'property_name' => $property_name );
 		}
 
@@ -938,13 +917,20 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @param string $property_name A class property name to test.
 	 */
 	public function test_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error( $property_name ) {
-		$this->assertObjectHasProperty( $property_name, $this->term, "WP_Block does not have the expected property '{$property_name}'." );
+		$this->registry->register( 'core/example', array() );
 
-		unset( $this->term->$property_name );
-		$this->assertFalse( isset( $this->term->$property_name ), "Property '{$property_name}' should be unset but is still set." );
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertObjectHasProperty( $property_name, $block, "WP_Block does not have the expected property '{$property_name}'." );
+
+		unset( $block->$property_name );
+		$this->assertFalse( isset( $block->$property_name ), "Property '{$property_name}' should be unset but is still set." );
 
 		// Set the property to null and verify through addToAssertionCount() that __set doesn't trigger a deprecation error.
-		$this->term->$property_name = null;
+		$block->$property_name = null;
 		$this->addToAssertionCount( 1 );
 	}
 
@@ -957,13 +943,20 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @param string $property_name A class property name to test.
 	 */
 	public function test_public_properties_should_be_correctly_detected( $property_name ) {
-		$method = new ReflectionMethod( $this->term, 'check_if_public_class_property' );
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$method = new ReflectionMethod( $block, 'check_if_public_class_property' );
 
 		// Set the method to be accessible
 		$method->setAccessible( true );
 
 		$this->assertTrue(
-			$method->invokeArgs( $this->term, array( $property_name ) ),
+			$method->invokeArgs( $block, array( $property_name ) ),
 			"Have you forgotten to add the \"$property_name\" property to the array in WP_Term::check_if_public_class_property()?"
 		);
 	}

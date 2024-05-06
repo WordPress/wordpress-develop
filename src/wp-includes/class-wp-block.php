@@ -103,7 +103,7 @@ class WP_Block {
 	/**
 	 * Represents the attributes of a block.
 	 *
-	 * @since 6.6.0
+	 * @since 6.6.0 The attributes property is explicitly declared.
 	 * @var array|null
 	 */
 	protected $attributes;
