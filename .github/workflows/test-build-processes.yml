@@ -53,6 +53,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      test-emoji: false
 
   # Tests the WordPress Core build process on MacOS.
   #
@@ -76,6 +77,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      test-emoji: false
 
   slack-notifications:
     name: Slack Notifications
