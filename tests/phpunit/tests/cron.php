@@ -488,7 +488,10 @@ class Tests_Cron extends WP_UnitTestCase {
 		add_filter( 'pre_reschedule_event', '__return_true' );
 
 		// Reschedule event with preflight filter in place.
-		wp_reschedule_event( $ts1, 'daily', $hook );
+		$rescheduled = wp_reschedule_event( $ts1, 'daily', $hook );
+
+		// Check return value.
+		$this->assertTrue( $rescheduled );
 
 		// Check cron option is unchanged.
 		$this->assertSame( $expected, _get_cron_array() );
@@ -1020,6 +1023,53 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'pre_reschedule_event_false', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 57271
+	 *
+	 * @dataProvider data_wp_reschedule_event_works_with_args
+	 *
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_wp_reschedule_event_works_with_args( array $args ) {
+		$time = time();
+
+		// Schedule events with the `$wp_error` parameter:
+		$event             = wp_schedule_event( $time, 'daily', 'hook', $args, true );
+		$rescheduled_event = wp_reschedule_event( $time, 'daily', 'hook', $args, true );
+		$unscheduled_event = wp_unschedule_event( $time, 'hook', $args, true );
+		$next_timestamp    = wp_next_scheduled( 'hook', $args );
+
+		// Ensure the events were added and updated correctly:
+		$this->assertNotWPError( $event );
+		$this->assertNotWPError( $rescheduled_event );
+		$this->assertNotWPError( $unscheduled_event );
+		$this->assertSame( $time + DAY_IN_SECONDS, $next_timestamp );
+	}
+
+	/**
+	 * Data provider for test_wp_reschedule_event_works_with_args().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_reschedule_event_works_with_args() {
+		return array(
+			'indexed'     => array(
+				array(
+					1,
+					2,
+					3,
+				),
+			),
+			'associative' => array(
+				array(
+					'one'   => 1,
+					'two'   => 2,
+					'three' => 3,
+				),
+			),
+		);
 	}
 
 	/**
