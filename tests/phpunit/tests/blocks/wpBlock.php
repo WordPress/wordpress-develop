@@ -875,7 +875,10 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$context       = array();
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$block->attributes = array();
+		$this->assertFalse( isset( $block->attributes ) );
+		$block->attributes = array( 1, 2, 3 );
+		$this->assertTrue( isset( $block->attributes ) );
+		$this->assertSame( array( 1, 2, 3 ), $block->attributes );
 		$this->expect_deprecation_message( 'WP_Block::__set(): Setting the dynamic property "foo" on WP_Block is deprecated.' );
 		$block->foo = 'foo';
 	}
@@ -894,8 +897,9 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$block->attributes = array();
 		unset( $block->attributes );
+		$this->assertFalse(isset( $block->attributes ), 'The WP_Block::$foo property should not be set.' );
 		$this->expect_deprecation_message( 'WP_Block::__unset(): Unsetting the dynamic property "foo" on WP_Block is deprecated.' );
-		unset( $this->term->foo );
+		unset( $block->foo );
 	}
 
 	/**
