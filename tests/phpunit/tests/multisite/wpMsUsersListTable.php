@@ -98,8 +98,8 @@ class Tests_Multisite_wpMsUsersListTable extends WP_UnitTestCase {
 		$super = count( get_super_admins() );
 
 		$expected = array(
-			'all'   => '<a href="http://example.org/wp-admin/network/users.php" class="current" aria-current="page">All <span class="count">(' . $all . ')</span></a>',
-			'super' => '<a href="http://example.org/wp-admin/network/users.php?role=super">Super Admin <span class="count">(' . $super . ')</span></a>',
+			'all'   => '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/network/users.php" class="current" aria-current="page">All <span class="count">(' . $all . ')</span></a>',
+			'super' => '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/network/users.php?role=super">Super Admin <span class="count">(' . $super . ')</span></a>',
 		);
 
 		$this->assertSame( $expected, $this->table->get_views() );
