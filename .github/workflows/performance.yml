@@ -32,7 +32,7 @@ permissions: {}
 jobs:
   # Runs the performance test suite.
   performance:
-    name: Run performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
+    name: Performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
     uses: desrosj/wordpress-develop/.github/workflows/callable-performance.yml@try/make-workflows-callable
     permissions:
       contents: read

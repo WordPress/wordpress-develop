@@ -87,7 +87,7 @@ jobs:
   # - Publish performance results.
   # - Ensure version-controlled files are not modified or deleted.
   performance:
-    name: Run performance tests ${{ inputs.memcached && '(with memcached)' || '' }}
+    name: Run tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
