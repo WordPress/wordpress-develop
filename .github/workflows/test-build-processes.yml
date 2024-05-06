@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-13 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
