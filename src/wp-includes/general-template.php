@@ -516,7 +516,7 @@ function wp_registration_url() {
  *                                     Default false (unchecked).
  *     @type bool   $required_password Whether the password field has the 'required' attribute.
  *                                     Default false (unchecked).
- * 
+ *
  *
  * }
  * @return void|string Void if 'echo' argument is true, login form HTML if 'echo' is false.
