@@ -47,7 +47,6 @@ jobs:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
-      PUPPETEER_SKIP_DOWNLOAD: ${{ false }}
 
   failed-workflow:
     name: Failed workflow tasks
