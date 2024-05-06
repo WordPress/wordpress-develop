@@ -14,6 +14,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      install-gutenberg:
+        description: 'Whether to install Gutenberg.'
+        required: false
+        type: 'boolean'
+        default: true
 
 env:
   LOCAL_DIR: build
@@ -99,6 +104,7 @@ jobs:
         run: npm run env:install
 
       - name: Install Gutenberg
+        if: ${{ inputs.install-gutenberg }}
         run: npm run env:cli -- plugin install gutenberg --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Run E2E tests
