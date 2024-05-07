@@ -350,12 +350,12 @@ final class WP_Term {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $key Property to check.
+	 * @param string $name Property to check.
 	 * @return bool True if the property exists, false otherwise.
 	 */
-	public function __isset( $key ) {
+	public function __isset( $name ) {
 		// Only the "data" dynamic property is supported.
-		return 'data' === $key;
+		return 'data' === $name;
 	}
 
 	/**
@@ -365,24 +365,24 @@ final class WP_Term {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $key   The name of the property to set.
+	 * @param string $name  The name of the property to set.
 	 * @param mixed  $value The value to set.
 	 */
-	public function __set( $key, $value ) {
-		if ( 'data' === $key ) {
+	public function __set( $name, $value ) {
+		if ( 'data' === $name ) {
 			// Since "data" is a read-only property, setting it should have no effect.
 			return;
 		}
 
 		// Setting a public property should not generate errors.
-		if ( static::check_if_public_class_property( $key ) ) {
-			$this->$key = $value;
+		if ( static::check_if_public_class_property( $name ) ) {
+			$this->$name = $value;
 			return;
 		}
 
 		wp_trigger_error(
 			__METHOD__,
-			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+			sprintf( 'Setting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
 	}
@@ -394,22 +394,22 @@ final class WP_Term {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $key The name of the property to unset.
+	 * @param string $name The name of the property to unset.
 	 */
-	public function __unset( $key ) {
-		if ( 'data' === $key ) {
+	public function __unset( $name ) {
+		if ( 'data' === $name ) {
 			// Since "data" is a read-only property, unsetting it should have no effect.
 			return;
 		}
 
 		// Unsetting a public property should not generate errors.
-		if ( static::check_if_public_class_property( $key ) ) {
+		if ( static::check_if_public_class_property( $name ) ) {
 			return;
 		}
 
 		wp_trigger_error(
 			__METHOD__,
-			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $key, __CLASS__ ),
+			sprintf( 'Unsetting the dynamic property "%s" on %s is deprecated.', $name, __CLASS__ ),
 			E_USER_DEPRECATED
 		);
 	}
@@ -419,10 +419,10 @@ final class WP_Term {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $class_property_name Name of the class property to check.
+	 * @param string $name The name of the property to check.
 	 * @return bool True if the property is public, false otherwise.
 	 */
-	private static function check_if_public_class_property( $class_property_name ) {
+	private static function check_if_public_class_property( $name ) {
 		// The Reflection API is not used here for performance reasons.
 		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
 		$public_class_properties = array(
@@ -448,6 +448,6 @@ final class WP_Term {
 			'auto_add',
 		);
 
-		return in_array( $class_property_name, $public_class_properties, true );
+		return in_array( $name, $public_class_properties, true );
 	}
 }
