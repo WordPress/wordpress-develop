@@ -239,13 +239,8 @@ class WP_Block {
 	 * @param mixed  $value The value to set.
 	 */
 	public function __set( $name, $value ) {
-		if ( 'attributes' === $name ) {
-			$this->attributes = $value;
-			return;
-		}
-
 		// Setting a public property should not trigger deprecation errors.
-		if ( static::check_if_public_class_property( $name ) ) {
+		if ( ( 'attributes' === $name ) || static::check_if_public_class_property( $name ) ) {
 			$this->$name = $value;
 			return;
 		}
