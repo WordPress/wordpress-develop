@@ -724,7 +724,7 @@ class WP_Block {
 	 */
 	protected static function check_if_public_class_property( $class_property_name ) {
 		// The Reflection API is not used here for performance reasons.
-		// As the list is hardcoded, all newly declared public properties should be added to the list manually.
+		// As the list is hardcoded, all newly declared public properties should be added to this list manually.
 		$public_class_properties = array(
 			'parsed_block',
 			'name',
