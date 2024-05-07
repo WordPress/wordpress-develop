@@ -699,8 +699,8 @@ class WP_Block {
 	 * @since 6.6.0
 	 */
 	protected function populate_attributes() {
-		// Originally, attributes could only be calculated once.
-		// Therefore, this method should exit if the attributes property has already been set.
+		// Originally, attributes could only be calculated if the $attributes dynamic property had not been initialized.
+		// Therefore, this method should exit if the $attributes property has already been set.
 		if ( isset( $this->attributes ) ) {
 			return;
 		}
