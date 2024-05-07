@@ -564,92 +564,96 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$outer_class_names         = array();
-	$container_content_class   = wp_unique_id( 'wp-container-content-' );
-	$child_layout_declarations = array();
-	$child_layout_styles       = array();
+	$outer_class_names = array();
 
-	$self_stretch = isset( $child_layout['selfStretch'] ) ? $child_layout['selfStretch'] : null;
+	// Child layout specific logic.
+	if ( $child_layout ) {
+		$container_content_class   = wp_unique_id( 'wp-container-content-' );
+		$child_layout_declarations = array();
+		$child_layout_styles       = array();
 
-	if ( 'fixed' === $self_stretch && isset( $child_layout['flexSize'] ) ) {
-		$child_layout_declarations['flex-basis'] = $child_layout['flexSize'];
-		$child_layout_declarations['box-sizing'] = 'border-box';
-	} elseif ( 'fill' === $self_stretch ) {
-		$child_layout_declarations['flex-grow'] = '1';
-	}
+		$self_stretch = isset( $child_layout['selfStretch'] ) ? $child_layout['selfStretch'] : null;
 
-	if ( isset( $child_layout['columnSpan'] ) ) {
-		$column_span                              = $child_layout['columnSpan'];
-		$child_layout_declarations['grid-column'] = "span $column_span";
-	}
-	if ( isset( $child_layout['rowSpan'] ) ) {
-		$row_span                              = $child_layout['rowSpan'];
-		$child_layout_declarations['grid-row'] = "span $row_span";
-	}
-	$child_layout_styles[] = array(
-		'selector'     => ".$container_content_class",
-		'declarations' => $child_layout_declarations,
-	);
+		if ( 'fixed' === $self_stretch && isset( $child_layout['flexSize'] ) ) {
+			$child_layout_declarations['flex-basis'] = $child_layout['flexSize'];
+			$child_layout_declarations['box-sizing'] = 'border-box';
+		} elseif ( 'fill' === $self_stretch ) {
+			$child_layout_declarations['flex-grow'] = '1';
+		}
 
-	/*
-	 * If columnSpan is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
-	 * the columnSpan should be removed on small grids. If there's a minimumColumnWidth, the grid is responsive.
-	 * But if the minimumColumnWidth value wasn't changed, it won't be set. In that case, if columnCount doesn't
-	 * exist, we can assume that the grid is responsive.
-	 */
-	if ( isset( $child_layout['columnSpan'] ) && ( isset( $block['parentLayout']['minimumColumnWidth'] ) || ! isset( $block['parentLayout']['columnCount'] ) ) ) {
-		$column_span_number  = floatval( $child_layout['columnSpan'] );
-		$parent_column_width = isset( $block['parentLayout']['minimumColumnWidth'] ) ? $block['parentLayout']['minimumColumnWidth'] : '12rem';
-		$parent_column_value = floatval( $parent_column_width );
-		$parent_column_unit  = explode( $parent_column_value, $parent_column_width );
+		if ( isset( $child_layout['columnSpan'] ) ) {
+			$column_span                              = $child_layout['columnSpan'];
+			$child_layout_declarations['grid-column'] = "span $column_span";
+		}
+		if ( isset( $child_layout['rowSpan'] ) ) {
+			$row_span                              = $child_layout['rowSpan'];
+			$child_layout_declarations['grid-row'] = "span $row_span";
+		}
+		$child_layout_styles[] = array(
+			'selector'     => ".$container_content_class",
+			'declarations' => $child_layout_declarations,
+		);
 
 		/*
-		 * If there is no unit, the width has somehow been mangled so we reset both unit and value
-		 * to defaults.
-		 * Additionally, the unit should be one of px, rem or em, so that also needs to be checked.
+		 * If columnSpan is set, and the parent grid is responsive, i.e. if it has a minimumColumnWidth set,
+		 * the columnSpan should be removed on small grids. If there's a minimumColumnWidth, the grid is responsive.
+		 * But if the minimumColumnWidth value wasn't changed, it won't be set. In that case, if columnCount doesn't
+		 * exist, we can assume that the grid is responsive.
 		 */
-		if ( count( $parent_column_unit ) <= 1 ) {
-			$parent_column_unit  = 'rem';
-			$parent_column_value = 12;
-		} else {
-			$parent_column_unit = $parent_column_unit[1];
+		if ( isset( $child_layout['columnSpan'] ) && ( isset( $block['parentLayout']['minimumColumnWidth'] ) || ! isset( $block['parentLayout']['columnCount'] ) ) ) {
+			$column_span_number  = floatval( $child_layout['columnSpan'] );
+			$parent_column_width = isset( $block['parentLayout']['minimumColumnWidth'] ) ? $block['parentLayout']['minimumColumnWidth'] : '12rem';
+			$parent_column_value = floatval( $parent_column_width );
+			$parent_column_unit  = explode( $parent_column_value, $parent_column_width );
 
-			if ( ! in_array( $parent_column_unit, array( 'px', 'rem', 'em' ), true ) ) {
-				$parent_column_unit = 'rem';
+			/*
+			 * If there is no unit, the width has somehow been mangled so we reset both unit and value
+			 * to defaults.
+			 * Additionally, the unit should be one of px, rem or em, so that also needs to be checked.
+			 */
+			if ( count( $parent_column_unit ) <= 1 ) {
+				$parent_column_unit  = 'rem';
+				$parent_column_value = 12;
+			} else {
+				$parent_column_unit = $parent_column_unit[1];
+
+				if ( ! in_array( $parent_column_unit, array( 'px', 'rem', 'em' ), true ) ) {
+					$parent_column_unit = 'rem';
+				}
 			}
+
+			/*
+			 * A default gap value is used for this computation because custom gap values may not be
+			 * viable to use in the computation of the container query value.
+			 */
+			$default_gap_value     = 'px' === $parent_column_unit ? 24 : 1.5;
+			$container_query_value = $column_span_number * $parent_column_value + ( $column_span_number - 1 ) * $default_gap_value;
+			$container_query_value = $container_query_value . $parent_column_unit;
+
+			$child_layout_styles[] = array(
+				'rules_group'  => "@container (max-width: $container_query_value )",
+				'selector'     => ".$container_content_class",
+				'declarations' => array(
+					'grid-column' => '1/-1',
+				),
+			);
 		}
 
 		/*
-		 * A default gap value is used for this computation because custom gap values may not be
-		 * viable to use in the computation of the container query value.
+		 * Add to the style engine store to enqueue and render layout styles.
+		 * Return styles here just to check if any exist.
 		 */
-		$default_gap_value     = 'px' === $parent_column_unit ? 24 : 1.5;
-		$container_query_value = $column_span_number * $parent_column_value + ( $column_span_number - 1 ) * $default_gap_value;
-		$container_query_value = $container_query_value . $parent_column_unit;
-
-		$child_layout_styles[] = array(
-			'rules_group'  => "@container (max-width: $container_query_value )",
-			'selector'     => ".$container_content_class",
-			'declarations' => array(
-				'grid-column' => '1/-1',
-			),
+		$child_css = wp_style_engine_get_stylesheet_from_css_rules(
+			$child_layout_styles,
+			array(
+				'context'  => 'block-supports',
+				'prettify' => false,
+			)
 		);
-	}
 
-	/*
-	 * Add to the style engine store to enqueue and render layout styles.
-	 * Return styles here just to check if any exist.
-	 */
-	$child_css = wp_style_engine_get_stylesheet_from_css_rules(
-		$child_layout_styles,
-		array(
-			'context'  => 'block-supports',
-			'prettify' => false,
-		)
-	);
-
-	if ( $child_css ) {
-		$outer_class_names[] = $container_content_class;
+		if ( $child_css ) {
+			$outer_class_names[] = $container_content_class;
+		}
 	}
 
 	// Prep the processor for modifying the block output.
