@@ -167,10 +167,15 @@ final class WP_Interactivity_API {
 		}
 
 		if ( ! empty( $interactivity_data ) ) {
+			$json_encode_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
+			if ( str_starts_with( get_option( 'blog_charset' ), 'UTF-' ) ) {
+				$json_encode_flags |= JSON_UNESCAPED_UNICODE;
+			}
+
 			wp_print_inline_script_tag(
 				wp_json_encode(
 					$interactivity_data,
-					JSON_HEX_TAG | JSON_HEX_AMP
+					$json_encode_flags
 				),
 				array(
 					'type' => 'application/json',
