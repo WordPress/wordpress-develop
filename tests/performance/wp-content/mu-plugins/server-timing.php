@@ -34,9 +34,9 @@ add_filter(
 				if ( function_exists( 'wp_cache_get_stats' ) ) {
 					$obj_cache_stats = array_values( wp_cache_get_stats() );
 
-					$server_timing_values['obj-cache-hits'] = $obj_cache_stats[0]['get_hits'];
+					$server_timing_values['obj-cache-hits']   = $obj_cache_stats[0]['get_hits'];
 					$server_timing_values['obj-cache-misses'] = $obj_cache_stats[0]['get_misses'];
-					$server_timing_values['obj-cache-ratio'] = $obj_cache_stats[0]['get_hits'] / ($obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses']);
+					$server_timing_values['obj-cache-ratio']  = $obj_cache_stats[0]['get_hits'] / ( $obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses'] );
 				}
 
 				$header_values = array();
@@ -86,9 +86,9 @@ add_action(
 				if ( function_exists( 'wp_cache_get_stats' ) ) {
 					$obj_cache_stats = array_values( wp_cache_get_stats() );
 
-					$server_timing_values['obj-cache-hits'] = $obj_cache_stats[0]['get_hits'];
+					$server_timing_values['obj-cache-hits']   = $obj_cache_stats[0]['get_hits'];
 					$server_timing_values['obj-cache-misses'] = $obj_cache_stats[0]['get_misses'];
-					$server_timing_values['obj-cache-ratio'] = $obj_cache_stats[0]['get_hits'] / ($obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses']);
+					$server_timing_values['obj-cache-ratio']  = $obj_cache_stats[0]['get_hits'] / ( $obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses'] );
 				}
 
 				$header_values = array();
