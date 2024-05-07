@@ -94,7 +94,7 @@ jobs:
   # - Publish performance results.
   # - Ensure version-controlled files are not modified or deleted.
   performance:
-    name: Run performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
+    name: Run tests${{ matrix.multisite && ' (Multisite)' || '' }} ${{ matrix.memcached && '(with memcached)' || '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -102,9 +102,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ true, false ]
+        memcached: [ false, true ]
+        multisite: [ false, true ]
     env:
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
+      LOCAL_MULTISITE: ${{ matrix.multisite }}
     steps:
       - name: Configure environment variables
         run: |
@@ -283,7 +285,7 @@ jobs:
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         if: always()
         with:
-          name: performance-artifacts${{ matrix.memcached && '-memcached' || '' }}-${{ github.run_id }}
+          name: performance-artifacts${{ matrix.multisite && '' || '-multisite' }}${{ matrix.memcached && '-memcached' || '' }}-${{ github.run_id }}
           path: artifacts
           if-no-files-found: ignore
 
@@ -295,7 +297,7 @@ jobs:
 
       - name: Set the base sha
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached && ! matrix.multisite }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: base-sha
         with:
@@ -306,7 +308,7 @@ jobs:
 
       - name: Set commit details
         # Only needed when publishing results.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached && ! matrix.multisite }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         id: commit-timestamp
         with:
@@ -317,7 +319,7 @@ jobs:
 
       - name: Publish performance results
         # Only publish results on pushes to trunk.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! matrix.memcached && ! matrix.multisite }}
         env:
             BASE_SHA: ${{ steps.base-sha.outputs.result }}
             COMMITTED_AT: ${{ steps.commit-timestamp.outputs.result }}
