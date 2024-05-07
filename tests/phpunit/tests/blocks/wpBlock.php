@@ -801,7 +801,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Block::__get
-	 * @ticket 58087
+	 * @ticket 61154
 	 */
 	public function test_getting_dynamic_class_property_should_trigger_deprecation_error() {
 		$this->registry->register( 'core/example', array() );
@@ -817,7 +817,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Block::__get
-	 * @ticket 58087
+	 * @ticket 61154
 	 */
 	public function test_attributes_property_should_not_be_rewritten_after_calling_getter_twice() {
 		$this->registry->register( 'core/example', array() );
@@ -827,15 +827,15 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$context       = array();
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$this->assertFalse( isset( $this->attributes ) );
+		$this->assertFalse( isset( $this->attributes ), 'The WP_Block::$attributes property should initially not be set.' );
 		$block->attributes = array( 'foo' => 'bar' );
 		$block->attributes; // Activates __get().
-		$this->assertSame( array( 'foo' => 'bar' ), $block->attributes, );
+		$this->assertSame( array( 'foo' => 'bar' ), $block->attributes, 'The WP_Block::$attributes property should remain unchanged after multiple accesses.' );
 	}
 
 	/**
 	 * @covers WP_Block::__isset
-	 * @ticket 58087
+	 * @ticket 61154
 	 */
 	public function test_checking_class_properties_should_work_correctly() {
 		$this->registry->register( 'core/example', array() );
@@ -846,14 +846,14 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertFalse( isset( $block->foo ), 'The WP_Block::$foo property should not be set.' );
-		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$data property should not be set as it\'s not initialized at this stage.' );
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be set as it\'s not initialized at this stage.' );
 		$block->attributes; // Activates __get().
-		$this->assertTrue( isset( $block->attributes ), 'The WP_Block::$data property should be set.' );
+		$this->assertTrue( isset( $block->attributes ), 'The WP_Block::$attributes property should be set.' );
 	}
 
 	/**
 	 * @covers WP_Block::__set
-	 * @ticket 58087
+	 * @ticket 61154
 	 */
 	public function test_setting_class_properties_should_work_correctly() {
 		$this->registry->register( 'core/example', array() );
@@ -863,17 +863,17 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$context       = array();
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$this->assertFalse( isset( $block->attributes ) );
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be initially set.' );
 		$block->attributes = array( 1, 2, 3 );
-		$this->assertTrue( isset( $block->attributes ) );
-		$this->assertSame( array( 1, 2, 3 ), $block->attributes );
+		$this->assertTrue( isset( $block->attributes ), 'The WP_Block::$attributes property should be set after assignment.' );
+		$this->assertSame( array( 1, 2, 3 ), $block->attributes, 'The WP_Block::$attributes property should hold the correct values.' );
 		$this->expect_deprecation_message( 'WP_Block::__set(): Setting the dynamic property "foo" on WP_Block is deprecated.' );
 		$block->foo = 'foo';
 	}
 
 	/**
 	 * @covers WP_Block::__unset
-	 * @ticket 58087
+	 * @ticket 61154
 	 */
 	public function test_unsetting_class_properties_should_work_correctly() {
 		$this->registry->register( 'core/example', array() );
@@ -912,7 +912,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @dataProvider data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error
 	 *
 	 * @covers WP_Block::to_array
-	 * @ticket 58087
+	 * @ticket 61154
 	 *
 	 * @param string $property_name A class property name to test.
 	 */
@@ -938,7 +938,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @dataProvider data_unsetting_public_declared_properties_should_not_trigger_a_deprecation_error
 	 *
 	 * @covers WP_Block::check_if_public_class_property
-	 * @ticket 58087
+	 * @ticket 61154
 	 *
 	 * @param string $property_name A class property name to test.
 	 */
@@ -957,7 +957,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$this->assertTrue(
 			$method->invokeArgs( $block, array( $property_name ) ),
-			"Have you forgotten to add the \"$property_name\" property to the array in WP_Term::check_if_public_class_property()?"
+			"Have you forgotten to add the \"$property_name\" property to the array in WP_Block::check_if_public_class_property()?"
 		);
 	}
 
