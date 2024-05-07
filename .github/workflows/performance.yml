@@ -63,7 +63,9 @@ jobs:
   # - Start Docker environment.
   # - Log running Docker containers.
   # - Docker debug information.
+  # - Install object cache drop-in.
   # - Install WordPress.
+  # - Enable themes on Multisite.
   # - Install WordPress Importer plugin.
   # - Import mock data.
   # - Deactivate WordPress Importer plugin.
@@ -144,10 +146,6 @@ jobs:
       - name: Start Docker environment
         run: npm run env:start
 
-      - name: Install object cache drop-in
-        if: ${{ matrix.memcached }}
-        run: cp src/wp-content/object-cache.php build/wp-content/object-cache.php
-
       - name: Log running Docker containers
         run: docker ps -a
 
@@ -160,8 +158,19 @@ jobs:
           docker compose run --rm php php -i
           docker compose run --rm php locale -a
 
+      - name: Install object cache drop-in
+        if: ${{ matrix.memcached }}
+        run: cp src/wp-content/object-cache.php build/wp-content/object-cache.php
+
       - name: Install WordPress
         run: npm run env:install
+
+      - name: Enable themes on Multisite
+        if: ${{ matrix.multisite }}
+        run: |
+          npm run env:cli -- theme enable twentytwentyone --network --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme enable twentytwentythree --network --path=/var/www/${{ env.LOCAL_DIR }}
+          npm run env:cli -- theme enable twentytwentyfour --network --path=/var/www/${{ env.LOCAL_DIR }}
 
       - name: Install WordPress Importer plugin
         run: npm run env:cli -- plugin install wordpress-importer --activate --path=/var/www/${{ env.LOCAL_DIR }}
