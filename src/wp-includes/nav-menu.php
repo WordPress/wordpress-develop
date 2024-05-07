@@ -458,10 +458,10 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 
 	$args = wp_parse_args( $menu_item_data, $defaults );
 
-	if ( 0 == $menu_id ) {
+	if ( 0 === $menu_id ) {
 		$args['menu-item-position'] = 1;
-	} elseif ( 0 == (int) $args['menu-item-position'] ) {
-		$menu_items                 = 0 == $menu_id ? array() : (array) wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
+	} elseif ( 0 === (int) $args['menu-item-position'] ) {
+		$menu_items                 = 0 === $menu_id ? array() : (array) wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish,draft' ) );
 		$last_item                  = array_pop( $menu_items );
 		$args['menu-item-position'] = ( $last_item && isset( $last_item->menu_order ) ) ? 1 + $last_item->menu_order : count( $menu_items );
 	}
@@ -522,7 +522,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		$post['post_date'] = $post_date;
 	}
 
-	$update = 0 != $menu_item_db_id;
+	$update = 0 !== $menu_item_db_id;
 
 	// New menu item. Default is draft status.
 	if ( ! $update ) {
@@ -582,7 +582,7 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	update_post_meta( $menu_item_db_id, '_menu_item_xfn', $args['menu-item-xfn'] );
 	update_post_meta( $menu_item_db_id, '_menu_item_url', sanitize_url( $args['menu-item-url'] ) );
 
-	if ( 0 == $menu_id ) {
+	if ( 0 === $menu_id ) {
 		update_post_meta( $menu_item_db_id, '_menu_item_orphaned', (string) time() );
 	} elseif ( get_post_meta( $menu_item_db_id, '_menu_item_orphaned' ) ) {
 		delete_post_meta( $menu_item_db_id, '_menu_item_orphaned' );
