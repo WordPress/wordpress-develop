@@ -31,11 +31,13 @@ add_filter(
 				$server_timing_values['db-queries']    = $wpdb->num_queries;
 				$server_timing_values['ext-obj-cache'] = wp_using_ext_object_cache() ? 1 : 0;
 
-				$obj_cache_stats = array_values( wp_cache_get_stats() );
+				if ( function_exists( 'wp_cache_get_stats' ) ) {
+					$obj_cache_stats = array_values( wp_cache_get_stats() );
 
-				$server_timing_values['obj-cache-hits']   = $obj_cache_stats[0]['get_hits'];
-				$server_timing_values['obj-cache-misses'] = $obj_cache_stats[0]['get_misses'];
-				$server_timing_values['obj-cache-ratio']  = $obj_cache_stats[0]['get_hits'] / ( $obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses'] );
+					$server_timing_values['obj-cache-hits'] = $obj_cache_stats[0]['get_hits'];
+					$server_timing_values['obj-cache-misses'] = $obj_cache_stats[0]['get_misses'];
+					$server_timing_values['obj-cache-ratio'] = $obj_cache_stats[0]['get_hits'] / ($obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses']);
+				}
 
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
@@ -81,11 +83,13 @@ add_action(
 				$server_timing_values['db-queries']    = $wpdb->num_queries;
 				$server_timing_values['ext-obj-cache'] = wp_using_ext_object_cache() ? 1 : 0;
 
-				$obj_cache_stats = array_values( wp_cache_get_stats() );
+				if ( function_exists( 'wp_cache_get_stats' ) ) {
+					$obj_cache_stats = array_values( wp_cache_get_stats() );
 
-				$server_timing_values['obj-cache-hits']   = $obj_cache_stats[0]['get_hits'];
-				$server_timing_values['obj-cache-misses'] = $obj_cache_stats[0]['get_misses'];
-				$server_timing_values['obj-cache-ratio']  = $obj_cache_stats[0]['get_hits'] / ( $obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses'] );
+					$server_timing_values['obj-cache-hits'] = $obj_cache_stats[0]['get_hits'];
+					$server_timing_values['obj-cache-misses'] = $obj_cache_stats[0]['get_misses'];
+					$server_timing_values['obj-cache-ratio'] = $obj_cache_stats[0]['get_hits'] / ($obj_cache_stats[0]['get_hits'] + $obj_cache_stats[0]['get_misses']);
+				}
 
 				$header_values = array();
 				foreach ( $server_timing_values as $slug => $value ) {
