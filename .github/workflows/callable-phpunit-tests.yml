@@ -40,6 +40,11 @@ on:
         required: false
         type: 'string'
         default: 'phpunit.xml.dist'
+      phpunit-script:
+        description: 'The command to use when running PHPUnit tests'
+        required: false
+        type: 'string'
+        default: 'php ./vendor/bin/phpunit'
       composer-options:
         description: 'Options to pass to composer'
         required: false
@@ -179,9 +184,8 @@ jobs:
 
       - name: Install WordPress
         run: npm run env:install
-
       - name: Run PHPUnit tests
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: node ./tools/local-env/scripts/docker.js run ${{ inputs.phpunit-script )) --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
