@@ -308,7 +308,7 @@ class WP_Network {
 			return;
 		}
 
-		$this->cookie_domain = $this->domain;
+		$this->cookie_domain = parse_url( $this->domain, PHP_URL_HOST );
 		if ( str_starts_with( $this->cookie_domain, 'www.' ) ) {
 			$this->cookie_domain = substr( $this->cookie_domain, 4 );
 		}
