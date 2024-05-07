@@ -184,8 +184,9 @@ jobs:
 
       - name: Install WordPress
         run: npm run env:install
+
       - name: Run PHPUnit tests
-        run: node ./tools/local-env/scripts/docker.js run ${{ inputs.phpunit-script )) --verbose -c ${{ env.PHPUNIT_CONFIG }}
+        run: node ./tools/local-env/scripts/docker.js run ${{ inputs.phpunit-script }} --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
