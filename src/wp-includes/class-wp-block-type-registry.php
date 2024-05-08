@@ -22,6 +22,15 @@ final class WP_Block_Type_Registry {
 	 */
 	private $registered_block_types = array();
 
+
+	/**
+	 * Registered block aliases, as `$alias_name => $instance` pairs.
+	 *
+	 * @since 6.6.0
+	 * var WP_Block_Type[]
+	 */
+	private $registered_block_type_aliases = array();
+
 	/**
 	 * Container for the main instance of the class.
 	 *
@@ -94,6 +103,21 @@ final class WP_Block_Type_Registry {
 			$block_type = new WP_Block_Type( $name, $args );
 		}
 
+		// Register aliases for the block type.
+		$aliases = $block_type->get_aliases();
+		if ( ! empty( $aliases ) ) {
+			foreach ( $aliases as $alias_name => $alias_args ) {
+				if ( ! $this->is_registered( $alias_name ) ) {
+					$new_args                             = array_merge( $args, $alias_args );
+					$new_args['alias_of']                 = $name;
+					$alias_args['attributes']['metadata'] = array( 'canonicalBlock' => $name );
+
+					// Register the alias block.
+					$this->registered_block_type_aliases[ $alias_name ] = new WP_Block_Type( $alias_name, array_merge( $args, $alias_args ) );
+				}
+			}
+		}
+
 		$this->registered_block_types[ $name ] = $block_type;
 
 		return $block_type;
@@ -142,6 +166,10 @@ final class WP_Block_Type_Registry {
 			return null;
 		}
 
+		if ( isset( $this->registered_block_type_aliases[ $name ] ) ) {
+			return $this->registered_block_type_aliases[ $name ];
+		}
+
 		return $this->registered_block_types[ $name ];
 	}
 
@@ -153,7 +181,7 @@ final class WP_Block_Type_Registry {
 	 * @return WP_Block_Type[] Associative array of `$block_type_name => $block_type` pairs.
 	 */
 	public function get_all_registered() {
-		return $this->registered_block_types;
+		return array_merge( $this->registered_block_types, $this->registered_block_type_aliases );
 	}
 
 	/**
@@ -165,7 +193,7 @@ final class WP_Block_Type_Registry {
 	 * @return bool True if the block type is registered, false otherwise.
 	 */
 	public function is_registered( $name ) {
-		return isset( $this->registered_block_types[ $name ] );
+		return isset( $this->registered_block_types[ $name ] ) || isset( $this->registered_block_type_aliases[ $name ] );
 	}
 
 	public function __wakeup() {
