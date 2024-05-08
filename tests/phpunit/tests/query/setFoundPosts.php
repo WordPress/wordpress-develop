@@ -45,7 +45,7 @@ class Test_Query_setFoundPosts extends WP_UnitTestCase {
 	 */
 	public function test_set_found_posts( $q, $limits, $expected, $pages ) {
 		$this->q = new WP_Query( $q );
-//		$this->q->set_found_posts( $q, $limits );
+		$this->q->set_found_posts( $q, $limits );
 
 		$this->assertSame( $expected, $this->q->found_posts );
 		$this->assertSame( $pages, $this->q->max_num_pages );
@@ -54,17 +54,17 @@ class Test_Query_setFoundPosts extends WP_UnitTestCase {
 	public function data_set_found_posts() {
 		return array(
 			'10' => array(
-				'q'  => array(
+				'q'        => array(
 					'post_status'            => 'posts', // For the future post.
 					'orderby'                => 'ID',  // Same order they were created.
 					'order'                  => 'ASC',
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
-					'posts_per_page' => 1,
+					'posts_per_page'         => 10,
 				),
-				'limits'   => 'LIMIT 0, 10',
-				'expected' => 50,
-				'pages'    => 10,
+				'limits'   => 'not empty',
+				'expected' => 10,
+				'pages'    => 1,
 			),
 
 		);

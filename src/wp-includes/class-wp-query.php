@@ -3373,7 +3373,7 @@ class WP_Query {
 
 		if ( ! empty( $this->posts ) ) {
 			$this->set_found_posts( $q, $limits );
- 		}
+		}
 
 		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
 			/** This filter is documented in wp-includes/query.php */
@@ -3595,7 +3595,7 @@ class WP_Query {
 				 * @since 2.1.0
 				 *
 				 */
-				$this->found_posts = (int)$wpdb->get_var(apply_filters_ref_array('found_posts_query', array('SELECT FOUND_ROWS()', &$this)));
+				$this->found_posts = (int) $wpdb->get_var( apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) ) );
 			}
 		} else {
 			if ( null === $this->posts ) {
