@@ -856,8 +856,6 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function handle_font_file_upload( $file ) {
 		add_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
-		// Filter the upload directory to return the fonts directory.
-		add_filter( 'upload_dir', '_wp_filter_font_directory' );
 
 		$overrides = array(
 			'upload_error_handler' => array( $this, 'handle_font_file_upload_error' ),
@@ -865,6 +863,8 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 			'test_form'            => false,
 			// Only allow uploading font files for this request.
 			'mimes'                => WP_Font_Utils::get_allowed_font_mime_types(),
+			// Only allow uploading font files to the fonts directory.
+			'subdir'               => '/fonts',
 		);
 
 		// Bypasses is_uploaded_file() when running unit tests.
@@ -874,7 +874,6 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 
 		$uploaded_file = wp_handle_upload( $file, $overrides );
 
-		remove_filter( 'upload_dir', '_wp_filter_font_directory' );
 		remove_filter( 'upload_mimes', array( 'WP_Font_Utils', 'get_allowed_font_mime_types' ) );
 
 		return $uploaded_file;

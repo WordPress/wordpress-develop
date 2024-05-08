@@ -877,6 +877,9 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		$unique_filename_callback = $overrides['unique_filename_callback'];
 	}
 
+	// You may define your own subdirectory and pass the name in $overrides['subdir'].
+	$subdir = isset( $overrides['subdir'] ) ? $overrides['subdir'] : '';
+
 	/*
 	 * This may not have originally been intended to be overridable,
 	 * but historically has been.
@@ -976,7 +979,7 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * A writable uploads dir will pass this test. Again, there's no point
 	 * overriding this one.
 	 */
-	$uploads = wp_upload_dir( $time );
+	$uploads = wp_upload_dir( $time, true, false, $subdir );
 	if ( ! ( $uploads && false === $uploads['error'] ) ) {
 		return call_user_func_array( $upload_error_handler, array( &$file, $uploads['error'] ) );
 	}
