@@ -902,7 +902,6 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
  * Only filters 'rich' and 'video' response types.
  *
  * @since 4.4.0
- * @todo This needs to be refactored to leverage the HTML API.
  *
  * @param string $result The oEmbed HTML result.
  * @param object $data   A data object result from an oEmbed provider.
