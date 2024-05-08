@@ -137,8 +137,7 @@ class WP_Block {
 	public function __construct( $block, $available_context = array(), $registry = null ) {
 		$this->parsed_block = $block;
 		$this->name         = $block['blockName'];
-		// Need to unset the $attributes property to emulate how the attributes property
-		// used to work when it was dynamic.
+		// Unset the $attributes property to emulate the behavior when it was dynamic.
 		unset( $this->attributes );
 
 		if ( is_null( $registry ) ) {
