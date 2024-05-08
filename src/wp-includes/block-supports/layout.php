@@ -568,7 +568,7 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	// Child layout specific logic.
 	if ( $child_layout ) {
-		$container_content_class   = wp_unique_id( 'wp-container-content-' );
+		$container_content_class   = wp_unique_prefixed_id( 'wp-container-content-' );
 		$child_layout_declarations = array();
 		$child_layout_styles       = array();
 
