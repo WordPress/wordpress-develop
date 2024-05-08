@@ -50,11 +50,6 @@ on:
         required: false
         type: 'string'
         default: ''
-      legacy-phpunit:
-        description: 'Whether to install phpunit/phpunit for PHP 5.6 & 7.0 in old branches'
-        required: false
-        type: 'boolean'
-        default: false
       tests-domain:
         description: 'The domain to use for the tests'
         required: false
@@ -133,18 +128,10 @@ jobs:
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
         uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
-        if: ${{ ! inputs.legacy-phpunit }}
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
           composer-options: ${{ inputs.composer-options }}
           dependency-versions: ${{ inputs.composer-dependency-versions }}
-
-      # For some old WordPress branches, a specific version of PHPunit is required.
-      - name: Install Composer dependencies (old branches)
-        if: ${{ inputs.legacy-phpunit }}
-        run: |
-          composer require --dev phpunit/phpunit:"^5.7" --update-with-dependencies
-          git checkout -- composer.lock composer.json
 
       - name: Install npm dependencies
         run: npm ci
