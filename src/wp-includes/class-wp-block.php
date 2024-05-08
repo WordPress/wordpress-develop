@@ -137,6 +137,9 @@ class WP_Block {
 	public function __construct( $block, $available_context = array(), $registry = null ) {
 		$this->parsed_block = $block;
 		$this->name         = $block['blockName'];
+		// Need to unset the $attributes property to emulate how the attributes property
+		// used to work when it was dynamic.
+		unset( $this->attributes );
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
@@ -694,9 +697,9 @@ class WP_Block {
 	 * @since 6.6.0
 	 */
 	protected function populate_attributes() {
-		// Originally, attributes could only be calculated if the $attributes dynamic property had not been initialized.
-		// Therefore, this method should exit if the $attributes property has already been set.
-		if ( isset( $this->attributes ) ) {
+		// Originally, attributes could only be populated if the $attributes dynamic property had not been initialized.
+		// Therefore, this method should exit if the $attributes property has already been initalized.
+		if ( array_key_exists( 'attributes', get_object_vars( $this ) ) ) {
 			return;
 		}
 
