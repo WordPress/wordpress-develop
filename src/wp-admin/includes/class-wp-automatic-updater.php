@@ -540,7 +540,12 @@ class WP_Automatic_Updater {
 					set_time_limit( 10 * MINUTE_IN_SECONDS );
 				}
 
-				// Avoid a race condition when there are 2 sequential plugins that have fatal errors.
+				/*
+				 * Avoids a race condition when there are 2 sequential plugins that have fatal errors.
+				 * WP_Automatic_Updater::update() can be called for the second plugin before the first has
+				 * finished checking for fatal errors. This can cause the second plugin's fatal error checking to be skipped,
+				 * and may affect subsequent plugins too.
+				 */
 				sleep( 2 );
 
 				if ( $this->has_fatal_error() ) {
