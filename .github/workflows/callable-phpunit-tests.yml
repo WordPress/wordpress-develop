@@ -40,11 +40,6 @@ on:
         required: false
         type: 'string'
         default: 'phpunit.xml.dist'
-      composer-options:
-        description: 'Options to pass to composer'
-        required: false
-        type: 'string'
-        default: ''
       tests-domain:
         description: 'The domain to use for the tests'
         required: false
@@ -125,7 +120,6 @@ jobs:
         uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
-          composer-options: '${{ inputs.composer-options }}'
 
       - name: Install npm dependencies
         run: npm ci
