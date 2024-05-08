@@ -10,7 +10,6 @@
  * Class representing a parsed instance of a block.
  *
  * @since 5.5.0
- * @property array $attributes
  */
 #[AllowDynamicProperties]
 class WP_Block {
@@ -103,7 +102,8 @@ class WP_Block {
 	/**
 	 * Represents the attributes of a block.
 	 *
-	 * @since 6.6.0 The attributes property is explicitly declared.
+	 * @since 5.5.0 Introduced as a dynamic class property.
+	 * @since 6.6.0 The $attributes property is explicitly declared.
 	 * @var array|null
 	 */
 	protected $attributes;
