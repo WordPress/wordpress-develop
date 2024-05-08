@@ -143,7 +143,7 @@ jobs:
       - name: Install Composer dependencies (old branches)
         if: ${{ inputs.legacy-phpunit }}
         run: |
-          docker-compose run --rm php composer require --dev phpunit/phpunit:"^5.7" --update-with-dependencies
+          composer require --dev phpunit/phpunit:"^5.7" --update-with-dependencies
           git checkout -- composer.lock composer.json
 
       - name: Install npm dependencies
