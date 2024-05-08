@@ -698,7 +698,7 @@ class WP_Block {
 	 */
 	protected function populate_attributes() {
 		// Originally, attributes could only be populated if the $attributes dynamic property had not been initialized.
-		// Therefore, this method should exit if the $attributes property has already been initalized.
+		// Therefore, this method should exit if the $attributes property has already been initialized.
 		if ( array_key_exists( 'attributes', get_object_vars( $this ) ) ) {
 			return;
 		}
