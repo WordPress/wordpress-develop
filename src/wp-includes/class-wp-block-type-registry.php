@@ -107,10 +107,10 @@ final class WP_Block_Type_Registry {
 		$aliases = $block_type->get_aliases();
 		if ( ! empty( $aliases ) ) {
 			foreach ( $aliases as $alias_name => $alias_args ) {
-				if ( ! $this->is_registered( $alias_name ) ) {
+				if ( ! isset( $this->$registered_block_type_aliases[ $alias_name ] ) ) {
 					$new_args                             = array_merge( $args, $alias_args );
 					$new_args['alias_of']                 = $name;
-					$alias_args['attributes']['metadata'] = array( 'canonicalBlock' => $name );
+					$alias_args['attributes']['metadata'] = array( 'alias' => $name );
 
 					// Register the alias block.
 					$this->registered_block_type_aliases[ $alias_name ] = new WP_Block_Type( $alias_name, array_merge( $args, $alias_args ) );
@@ -166,10 +166,6 @@ final class WP_Block_Type_Registry {
 			return null;
 		}
 
-		if ( isset( $this->registered_block_type_aliases[ $name ] ) ) {
-			return $this->registered_block_type_aliases[ $name ];
-		}
-
 		return $this->registered_block_types[ $name ];
 	}
 
@@ -181,7 +177,7 @@ final class WP_Block_Type_Registry {
 	 * @return WP_Block_Type[] Associative array of `$block_type_name => $block_type` pairs.
 	 */
 	public function get_all_registered() {
-		return array_merge( $this->registered_block_types, $this->registered_block_type_aliases );
+		return $this->registered_block_types;
 	}
 
 	/**
@@ -193,7 +189,7 @@ final class WP_Block_Type_Registry {
 	 * @return bool True if the block type is registered, false otherwise.
 	 */
 	public function is_registered( $name ) {
-		return isset( $this->registered_block_types[ $name ] ) || isset( $this->registered_block_type_aliases[ $name ] );
+		return isset( $this->registered_block_types[ $name ] );
 	}
 
 	public function __wakeup() {
