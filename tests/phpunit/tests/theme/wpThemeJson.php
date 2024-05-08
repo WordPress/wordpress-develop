@@ -4985,6 +4985,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that theme background image styles are correctly generated.
+	 *
 	 * @ticket 61123
 	 */
 	public function test_get_top_level_background_image_styles() {
@@ -5004,8 +5006,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/paragraph' => array(
 							'background' => array(
 								'backgroundImage'    => array(
-									'url'    => 'http://example.org/image.png',
-									'source' => 'file',
+									'url' => 'http://example.org/image.png',
 								),
 								'backgroundSize'     => 'cover',
 								'backgroundRepeat'   => 'no-repeat',

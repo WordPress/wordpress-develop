@@ -311,7 +311,6 @@ class WP_Theme_JSON {
 		),
 		'background-image' => array(
 			array( 'background', 'backgroundImage', 'url' ),
-			array( 'background', 'backgroundImage', 'source' ),
 		),
 	);
 
