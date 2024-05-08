@@ -621,7 +621,13 @@ class WP_Block_Type {
 		if ( ! isset( $this->variations ) ) {
 			$this->variations = array();
 			if ( is_callable( $this->variation_callback ) ) {
-				$this->variations = call_user_func( $this->variation_callback );
+				$variations = call_user_func( $this->variation_callback );
+				foreach ( $variations as $variation ) {
+					if ( ! empty( $variation['supports']['alias'] ) && true === $variation['supports']['alias'] ) {
+						$this->aliases[ $variation['name'] ] = $variation;
+					}
+				}
+				$this->variations = $variations;
 			}
 		}
 
@@ -633,7 +639,14 @@ class WP_Block_Type {
 		 * @param array         $variations Array of registered variations for a block type.
 		 * @param WP_Block_Type $block_type The full block type object.
 		 */
-		return apply_filters( 'get_block_type_variations', $this->variations, $this );
+		$variations = apply_filters( 'get_block_type_variations', $this->variations, $this );
+
+		foreach ( $variations as $variation ) {
+			if ( ! empty( $variation['supports']['alias'] ) && true === $variation['supports']['alias'] ) {
+				$this->aliases[ $variation['name'] ] = $variation;
+			}
+		}
+		return $variations;
 	}
 
 	/**
@@ -645,17 +658,10 @@ class WP_Block_Type {
 	 */
 	public function get_aliases() {
 		if ( ! isset( $this->aliases ) ) {
-			$this->aliases = array();
-			$variations    = array();
-			if ( is_callable( $this->variation_callback ) ) {
-				$variations = call_user_func( $this->variation_callback );
-			}
+			$this->get_variations();
 
-			foreach ( $variations as $variation ) {
-				if ( ! empty( $variation['alias'] ) && true === $variation['alias'] ) {
-					unset( $variation['alias'] );
-					$this->aliases[][ $variation['name'] ] = $variation;
-				}
+			if ( ! isset( $this->aliases ) ) {
+				$this->aliases = array();
 			}
 		}
 

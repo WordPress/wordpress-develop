@@ -109,10 +109,9 @@ final class WP_Block_Type_Registry {
 			foreach ( $aliases as $alias_name => $alias_args ) {
 				if ( ! isset( $this->registered_block_type_aliases[ $alias_name ] ) ) {
 					$new_args                           = array_merge( $args, $alias_args );
-					$new_args['alias_of']               = $name;
 					$new_args['attributes']['metadata'] = array( 'alias' => $name );
 
-					// Register the alias block.
+					// Add the alias to the alias registry.
 					$this->registered_block_type_aliases[ $alias_name ] = new WP_Block_Type( $alias_name, array_merge( $args, $alias_args ) );
 				}
 			}
