@@ -885,9 +885,27 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$block->attributes = array();
 		unset( $block->attributes );
-		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$foo property should not be set.' );
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be set.' );
 		$this->expect_deprecation_message( 'WP_Block::__unset(): Unsetting the dynamic property "foo" on WP_Block is deprecated.' );
 		unset( $block->foo );
+	}
+
+	/**
+	 * @covers WP_Block::populate_attributes
+	 * @ticket 61154
+	 */
+	public function test_setting_attributes_to_null_should_not_repopulate_attributes() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertFalse( isset( $block->attributes ), 'The WP_Block::$attributes property should not be initially set.' );
+		$block->attributes = null;
+		$block->attributes; // Activates __get().
+		$this->assertNull( $block->attributes, 'The WP_Block::$attributes property should not be repopulated after calling __get() if it is initialized.' );
 	}
 
 	/**
@@ -960,6 +978,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			"Have you forgotten to add the \"$property_name\" property to the array in WP_Block::check_if_public_class_property()?"
 		);
 	}
+
+
 
 	/**
 	 * Provides a workaround to ensure compatibility with PHPUnit 10,
