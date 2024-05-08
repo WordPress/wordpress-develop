@@ -217,7 +217,7 @@ function get_default_block_editor_settings() {
 	foreach ( $types_to_test_for_support as $type ) {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => $type ) ) ) {
 			$key = array_search( $type, $allowed_mime_types, true );
-			if ( $key !== false ) {
+			if ( false !== $key ) {
 				unset( $allowed_mime_types[ $key ] );
 			}
 		}
