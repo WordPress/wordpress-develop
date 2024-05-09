@@ -172,6 +172,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 * @ticket 57584
 	 * @ticket 58548
 	 * @ticket 60292
+	 * @ticket 61111
 	 *
 	 * @dataProvider data_layout_support_flag_renders_classnames_on_wrapper
 	 *
@@ -271,7 +272,7 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 						),
 					),
 				),
-				'expected_output' => '<p class="wp-container-content-1">Some text.</p>', // The generated classname number assumes `wp_unique_id` will not have run previously in this test.
+				'expected_output' => '<p class="wp-container-content-1">Some text.</p>', // The generated classname number assumes `wp_unique_prefixed_id( 'wp-container-content-' )` will not have run previously in this test.
 			),
 			'skip classname output if block does not support layout and there are no child layout classes to be output' => array(
 				'args'            => array(
