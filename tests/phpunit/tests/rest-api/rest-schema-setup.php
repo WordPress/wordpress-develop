@@ -210,6 +210,10 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	}
 
 	public function test_build_wp_api_client_fixtures() {
+		if ( 'example.org' !== WP_TESTS_DOMAIN ) {
+			$this->markTestSkipped( 'This test can only be run on example.org' );
+		}
+
 		// Set up data for individual endpoint responses.  We need to specify
 		// lots of different fields on these objects, otherwise the generated
 		// fixture file will be different between runs of PHPUnit tests, which
