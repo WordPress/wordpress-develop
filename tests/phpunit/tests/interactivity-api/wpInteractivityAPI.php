@@ -379,7 +379,7 @@ SCRIPT_TAG;
 				'flag of england'                        => "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
 				'malicious script closer'                => '</script>',
 				'entity-encoded malicious script closer' => '&lt;/script&gt;',
-			),
+			)
 		);
 		$this->interactivity->config( 'myPlugin', array( 'chars' => '&<>/' ) );
 
@@ -419,7 +419,7 @@ JSON;
 				'flag of england'                        => "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
 				'malicious script closer'                => '</script>',
 				'entity-encoded malicious script closer' => '&lt;/script&gt;',
-			),
+			)
 		);
 		$this->interactivity->config( 'myPlugin', array( 'chars' => '&<>/' ) );
 
