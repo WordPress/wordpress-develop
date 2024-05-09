@@ -167,7 +167,7 @@ final class WP_Interactivity_API {
 		}
 
 		if ( ! empty( $interactivity_data ) ) {
-			$json_encode_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
+			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
 			if ( 'UTF-8' === get_option( 'blog_charset' ) ) {
 				$json_encode_flags |= JSON_UNESCAPED_UNICODE;
 			}
