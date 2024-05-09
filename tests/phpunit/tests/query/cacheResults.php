@@ -172,6 +172,63 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Query::generate_cache_key
+	 * @ticket 59442
+	 */
+	public function test_generate_cache_key_unregister_post_type() {
+		global $wpdb;
+		register_post_type(
+			'wptests_pt',
+			array(
+				'exclude_from_search' => false,
+			)
+		);
+		$query_vars = array(
+			'post_type' => 'any',
+		);
+		$fields     = "{$wpdb->posts}.ID";
+		$query1     = new WP_Query( $query_vars );
+		$request1   = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request1 );
+		unregister_post_type( 'wptests_pt' );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request1 );
+
+		$this->assertNotSame( $cache_key_1, $cache_key_2, 'Cache key should differ after unregistering post type.' );
+	}
+
+	/**
+	 * @ticket 59442
+	 *
+	 * @covers WP_Query::generate_cache_key
+	 *
+	 * @dataProvider data_query_cache_duplicate
+	 */
+	public function test_generate_cache_key_normalize( $query_vars1, $query_vars2 ) {
+		global $wpdb;
+
+		$fields   = "{$wpdb->posts}.ID";
+		$query1   = new WP_Query( $query_vars1 );
+		$request1 = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
+
+		$query2   = new WP_Query( $query_vars2 );
+		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
+
+		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
+		$reflection->setAccessible( true );
+
+		$this->assertSame( $request1, $request2, 'Queries should match' );
+
+		$cache_key_1 = $reflection->invoke( $query1, $query_vars1, $request1 );
+		$cache_key_2 = $reflection->invoke( $query1, $query_vars2, $request2 );
+
+		$this->assertSame( $cache_key_1, $cache_key_2, 'Cache key differs the same paramters.' );
+	}
+
+	/**
 	 * @dataProvider data_query_cache
 	 * @ticket 22176
 	 */
@@ -214,6 +271,74 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			$this->assertNotSame( $query1->found_posts, $query3->found_posts );
 			$this->assertNotSame( $queries_after, get_num_queries() );
 		}
+	}
+
+	/**
+	 * Data provider for test_generate_cache_key_normalize().
+	 *
+	 * @return array[]
+	 */
+	public function data_query_cache_duplicate() {
+		return array(
+			'post type empty'           => array(
+				'query_vars1' => array( 'post_type' => '' ),
+				'query_vars2' => array( 'post_type' => 'post' ),
+			),
+			'post type array'           => array(
+				'query_vars1' => array( 'post_type' => array( 'page' ) ),
+				'query_vars2' => array( 'post_type' => 'page' ),
+			),
+			'orderby empty'             => array(
+				'query_vars1' => array( 'orderby' => null ),
+				'query_vars2' => array( 'orderby' => 'date' ),
+			),
+			'different order parameter' => array(
+				'query_vars1' => array(
+					'post_type'      => 'post',
+					'posts_per_page' => 15,
+				),
+				'query_vars2' => array(
+					'posts_per_page' => 15,
+					'post_type'      => 'post',
+				),
+			),
+			'same args'                 => array(
+				'query_vars1' => array( 'post_type' => 'post' ),
+				'query_vars2' => array( 'post_type' => 'post' ),
+			),
+			'same args any'             => array(
+				'query_vars1' => array( 'post_type' => 'any' ),
+				'query_vars2' => array( 'post_type' => 'any' ),
+			),
+			'any and post types'        => array(
+				'query_vars1' => array( 'post_type' => 'any' ),
+				'query_vars2' => array( 'post_type' => array( 'post', 'page', 'attachment' ) ),
+			),
+			'different order post type' => array(
+				'query_vars1' => array( 'post_type' => array( 'post', 'page' ) ),
+				'query_vars2' => array( 'post_type' => array( 'page', 'post' ) ),
+			),
+			'post status array'         => array(
+				'query_vars1' => array( 'post_status' => 'publish' ),
+				'query_vars2' => array( 'post_status' => array( 'publish' ) ),
+			),
+			'post status order'         => array(
+				'query_vars1' => array( 'post_status' => array( 'draft', 'publish' ) ),
+				'query_vars2' => array( 'post_status' => array( 'publish', 'draft' ) ),
+			),
+			'cache parameters'          => array(
+				'query_vars1' => array(
+					'update_post_meta_cache' => true,
+					'update_post_term_cache' => true,
+					'update_menu_item_cache' => true,
+				),
+				'query_vars2' => array(
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'update_menu_item_cache' => false,
+				),
+			),
+		);
 	}
 
 	/**
@@ -261,6 +386,18 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 				'args' => array(
 					'cache_results' => true,
 					'post_type'     => 'page',
+				),
+			),
+			'cache true and empty post type'              => array(
+				'args' => array(
+					'cache_results' => true,
+					'post_type'     => '',
+				),
+			),
+			'cache true and orderby null'                 => array(
+				'args' => array(
+					'cache_results' => true,
+					'orderby'       => null,
 				),
 			),
 			'cache true and ids'                          => array(
