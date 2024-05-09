@@ -53,7 +53,19 @@ function get_block_theme_folders( $theme_stylesheet = null ) {
  *
  * @since 5.9.0
  *
- * @return array[] The supported template part area values.
+ * @return array[] {
+ *     The allowed template part area values.
+ *
+ *     @type array ...$0 {
+ *         Data for the allowed template part area.
+ *
+ *         @type string $area        Template part area name.
+ *         @type string $label       Template part area label.
+ *         @type string $description Template part area description.
+ *         @type string $icon        Template part area icon.
+ *         @type string $area_tag    Template part area tag.
+ *     }
+ * }
  */
 function get_allowed_block_template_part_areas() {
 	$default_area_definitions = array(
@@ -91,7 +103,19 @@ function get_allowed_block_template_part_areas() {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array[] $default_area_definitions An array of supported area objects.
+	 * @param array[] $default_area_definitions {
+	 *     The allowed template part area values.
+	 *
+	 *     @type array ...$0 {
+	 *         Data for the template part area.
+	 *
+	 *         @type string $area        Template part area name.
+	 *         @type string $label       Template part area label.
+	 *         @type string $description Template part area description.
+	 *         @type string $icon        Template part area icon.
+	 *         @type string $area_tag    Template part area tag.
+	 *     }
+	 * }
 	 */
 	return apply_filters( 'default_wp_template_part_areas', $default_area_definitions );
 }
@@ -103,7 +127,16 @@ function get_allowed_block_template_part_areas() {
  *
  * @since 5.9.0
  *
- * @return array[] The default template types.
+ * @return array[] {
+ *     The default template types.
+ *
+ *     @type array ...$0 {
+ *         Data for the template type.
+ *
+ *         @type string $title       Template type title.
+ *         @type string $description Template type description.
+ *    }
+ * }
  */
 function get_default_block_template_types() {
 	$default_template_types = array(
@@ -178,7 +211,16 @@ function get_default_block_template_types() {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param array[] $default_template_types An array of template types, formatted as [ slug => [ title, description ] ].
+	 * @param array[] $default_template_types {
+	 *     The default template types.
+	 *
+	 *     @type array ...$0 {
+	 *         Data for the template type.
+	 *
+	 *         @type string $title       Template type title.
+	 *         @type string $description Template type description.
+	 *    }
+	 * }
 	 */
 	return apply_filters( 'default_template_types', $default_template_types );
 }
@@ -229,14 +271,12 @@ function _get_block_templates_paths( $base_directory ) {
 		return $template_path_list[ $base_directory ];
 	}
 	$path_list = array();
-	try {
+	if ( is_dir( $base_directory ) ) {
 		$nested_files      = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base_directory ) );
 		$nested_html_files = new RegexIterator( $nested_files, '/^.+\.html$/i', RecursiveRegexIterator::GET_MATCH );
 		foreach ( $nested_html_files as $path => $file ) {
 			$path_list[] = $path;
 		}
-	} catch ( Exception $e ) {
-		// Do nothing.
 	}
 	$template_path_list[ $base_directory ] = $path_list;
 	return $path_list;
@@ -251,16 +291,16 @@ function _get_block_templates_paths( $base_directory ) {
  * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @param string $slug          Template slug.
  * @return array|null {
- *    Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
- *    null otherwise.
+ *     Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
+ *     null otherwise.
  *
- *    @type string   $slug      Template slug.
- *    @type string   $path      Template file path.
- *    @type string   $theme     Theme slug.
- *    @type string   $type      Template type.
- *    @type string   $area      Template area. Only for 'wp_template_part'.
- *    @type string   $title     Optional. Template title.
- *    @type string[] $postTypes Optional. List of post types that the template supports. Only for 'wp_template'.
+ *     @type string   $slug      Template slug.
+ *     @type string   $path      Template file path.
+ *     @type string   $theme     Theme slug.
+ *     @type string   $type      Template type.
+ *     @type string   $area      Template area. Only for 'wp_template_part'.
+ *     @type string   $title     Optional. Template title.
+ *     @type string[] $postTypes Optional. List of post types that the template supports. Only for 'wp_template'.
  * }
  */
 function _get_block_template_file( $template_type, $slug ) {
@@ -731,7 +771,7 @@ function _wp_build_title_and_description_for_taxonomy_block_template( $taxonomy,
  * It is self-sufficient in that it only uses information passed as arguments; it does not
  * query the database for additional information.
  *
- * @since 6.5.1
+ * @since 6.5.3
  * @access private
  *
  * @param WP_Post $post  Template post.
@@ -1399,13 +1439,16 @@ function wp_generate_block_templates_export_file() {
  */
 function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '' ) {
 	if ( 'index' === $slug ) {
-		return array( 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'index_template_hierarchy', array( 'index' ) );
 	}
 	if ( $is_custom ) {
-		return array( 'page', 'singular', 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'page_template_hierarchy', array( 'page', 'singular', 'index' ) );
 	}
 	if ( 'front-page' === $slug ) {
-		return array( 'front-page', 'home', 'index' );
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( 'frontpage_template_hierarchy', array( 'front-page', 'home', 'index' ) );
 	}
 
 	$matches = array();
@@ -1471,6 +1514,18 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 		$template_hierarchy[] = 'singular';
 	}
 	$template_hierarchy[] = 'index';
+
+	$template_type = '';
+	if ( ! empty( $template_prefix ) ) {
+		list( $template_type ) = explode( '-', $template_prefix );
+	} else {
+		list( $template_type ) = explode( '-', $slug );
+	}
+	$valid_template_types = array( '404', 'archive', 'attachment', 'author', 'category', 'date', 'embed', 'frontpage', 'home', 'index', 'page', 'paged', 'privacypolicy', 'search', 'single', 'singular', 'tag', 'taxonomy' );
+	if ( in_array( $template_type, $valid_template_types, true ) ) {
+		/** This filter is documented in wp-includes/template.php */
+		return apply_filters( "{$template_type}_template_hierarchy", $template_hierarchy );
+	}
 	return $template_hierarchy;
 }
 
@@ -1492,7 +1547,7 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {
-		_deprecated_argument( __FUNCTION__, '6.5.1' );
+		_deprecated_argument( __FUNCTION__, '6.5.3' );
 	}
 
 	$hooked_blocks = get_hooked_blocks();

@@ -244,7 +244,7 @@ function wp_embed_handler_youtube( $matches, $attr, $url, $rawattr ) {
 	$embed = $wp_embed->autoembed( sprintf( 'https://youtube.com/watch?v=%s', urlencode( $matches[2] ) ) );
 
 	/**
-	 * Filters the YoutTube embed output.
+	 * Filters the YouTube embed output.
 	 *
 	 * @since 4.0.0
 	 *
@@ -627,12 +627,13 @@ function get_oembed_response_data_for_url( $url, $args ) {
 			wp_parse_url( $url ),
 			array(
 				'host' => '',
+				'port' => null,
 				'path' => '/',
 			)
 		);
 
 		$qv = array(
-			'domain'                 => $url_parts['host'],
+			'domain'                 => $url_parts['host'] . ( $url_parts['port'] ? ':' . $url_parts['port'] : '' ),
 			'path'                   => '/',
 			'update_site_meta_cache' => false,
 		);

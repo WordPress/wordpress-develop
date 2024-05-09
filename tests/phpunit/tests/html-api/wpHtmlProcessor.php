@@ -30,16 +30,10 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 58517
 	 *
 	 * @covers WP_HTML_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Processor::__construct
 	 */
 	public function test_warns_that_the_static_creator_methods_should_be_called_instead_of_the_public_constructor() {
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Processor::__construct' );
-
 		new WP_HTML_Processor( '<p>Light roast.</p>' );
-
-		$this->assertNotNull(
-			$this->caught_doing_it_wrong['WP_HTML_Processor::__construct'],
-			"Calling the public constructor should warn to call the static creator methods instead, but didn't."
-		);
 	}
 
 	/**
