@@ -236,8 +236,40 @@
 		// Open menu and set z-index to appear above image crop area if it is enabled.
 		$target
 			.toggleClass( 'imgedit-popup-menu-open' ).slideToggle( 'fast' ).css( { 'z-index' : 200000 } );
-		// Move focus to first item in menu.
-		$target.find( 'button' ).first().trigger( 'focus' );
+		// Move focus to first item in menu when opening menu.
+		if ( 'true' === $el.attr( 'aria-expanded' ) ) {
+			$target.find( 'button' ).first().trigger( 'focus' );
+		}
+
+		return false;
+	},
+
+	/**
+	 * Observes whether the popup should remain open based on focus position.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @memberof imageEdit
+	 *
+	 * @param {HTMLElement} el The activated control element.
+	 *
+	 * @return {boolean} Always returns false.
+	 */
+	monitorPopup : function() {
+		var $parent = document.querySelector( '.imgedit-rotate-menu-container' );
+		var $toggle = document.querySelector( '.imgedit-rotate-menu-container .imgedit-rotate' );
+
+		setTimeout( function() {
+			var $focused = document.activeElement;
+			var $contains = $parent.contains( $focused );
+
+			// If $focused is defined and not inside the menu container, close the popup.
+			if ( $focused && ! $contains ) {
+				if ( 'true' === $toggle.getAttribute( 'aria-expanded' ) ) {
+					imageEdit.togglePopup( $toggle );
+				}
+			}
+		}, 100 );
 
 		return false;
 	},
@@ -856,7 +888,7 @@
 				elementToSetFocusTo = $( '.imgedit-wrap' ).find( ':tabbable:first' );
 			}
 
-			elementToSetFocusTo.trigger( 'focus' );
+			elementToSetFocusTo.attr( 'tabindex', '-1' ).trigger( 'focus' );
 		}, 100 );
 	},
 

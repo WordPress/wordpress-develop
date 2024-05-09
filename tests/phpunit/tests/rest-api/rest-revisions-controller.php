@@ -9,6 +9,7 @@
  */
 class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $post_id;
+	protected static $post_id_2;
 	protected static $page_id;
 
 	protected static $editor_id;
@@ -22,10 +23,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	private $revision_id2;
 	private $revision_3;
 	private $revision_id3;
+	private $revision_2_1_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$post_id = $factory->post->create();
-		self::$page_id = $factory->post->create( array( 'post_type' => 'page' ) );
+		self::$post_id   = $factory->post->create();
+		self::$post_id_2 = $factory->post->create();
+		self::$page_id   = $factory->post->create( array( 'post_type' => 'page' ) );
 
 		self::$editor_id      = $factory->user->create(
 			array(
@@ -57,12 +60,25 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 				'ID'           => self::$post_id,
 			)
 		);
+		wp_update_post(
+			array(
+				'post_content' => 'A second post.',
+				'ID'           => self::$post_id_2,
+			)
+		);
+		wp_update_post(
+			array(
+				'post_content' => 'A second post. How prolific.',
+				'ID'           => self::$post_id_2,
+			)
+		);
 		wp_set_current_user( 0 );
 	}
 
 	public static function wpTearDownAfterClass() {
 		// Also deletes revisions.
 		wp_delete_post( self::$post_id, true );
+		wp_delete_post( self::$post_id_2, true );
 		wp_delete_post( self::$page_id, true );
 
 		self::delete_user( self::$editor_id );
@@ -72,6 +88,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	public function set_up() {
 		parent::set_up();
 
+		// Set first post revision vars.
 		$revisions             = wp_get_post_revisions( self::$post_id );
 		$this->total_revisions = count( $revisions );
 		$this->revisions       = $revisions;
@@ -81,6 +98,11 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->revision_id2    = $this->revision_2->ID;
 		$this->revision_3      = array_pop( $revisions );
 		$this->revision_id3    = $this->revision_3->ID;
+
+		// Set second post revision vars.
+		$revisions             = wp_get_post_revisions( self::$post_id_2 );
+		$post_2_revision       = array_pop( $revisions );
+		$this->revision_2_1_id = $post_2_revision->ID;
 	}
 
 	public function _filter_map_meta_cap_remove_no_allow_revisions( $caps, $cap, $user_id, $args ) {
@@ -179,6 +201,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			'modified_gmt',
 			'guid',
 			'id',
+			'meta',
 			'parent',
 			'slug',
 			'title',
@@ -231,6 +254,31 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$page_id . '/revisions/' . $this->revision_id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
+	}
+
+	/**
+	 * @ticket 59875
+	 */
+	public function test_get_item_valid_parent_id() {
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_id1 );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( self::$post_id, $data['parent'], "The returned revision's id should match the parent id." );
+		$this->check_get_revision_response( $response, $this->revision_1 );
+	}
+
+	/**
+	 * @ticket 59875
+	 */
+	public function test_get_item_invalid_parent_id() {
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions/' . $this->revision_2_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
+
+		$expected_message = 'The revision does not belong to the specified parent with id of "' . self::$post_id . '"';
+		$this->assertSame( $expected_message, $response->as_error()->get_error_messages()[0], 'The message must contain the correct parent ID.' );
 	}
 
 	public function test_delete_item() {
@@ -335,7 +383,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 12, $properties );
+		$this->assertCount( 13, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
@@ -348,6 +396,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
+		$this->assertArrayHasKey( 'meta', $properties );
 	}
 
 	public function test_create_item() {
@@ -619,7 +668,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @ticket 40510
 	 */
-	public function test_get_items_default_query_should_fetch_all_revisons() {
+	public function test_get_items_default_query_should_fetch_all_revisions() {
 		wp_set_current_user( self::$editor_id );
 
 		$expected_count = $this->total_revisions;

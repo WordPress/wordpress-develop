@@ -176,6 +176,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'REST Theme',
 			'Block Theme',
 			'Block Theme Child Theme',
+			'Block Theme Child Deprecated Path',
 			'Block Theme Child with no theme.json',
 			'Block Theme Child Theme With Fluid Layout',
 			'Block Theme Child Theme With Fluid Typography',
@@ -184,7 +185,10 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Block Theme [0.4.0]',
 			'Block Theme [1.0.0] in subdirectory',
 			'Block Theme Deprecated Path',
+			'Block Theme Patterns',
+			'Block Theme Post Content Default',
 			'Block Theme with defined Typography Fonts',
+			'Block Theme with Hooked Blocks',
 			'Empty `fontFace` in theme.json - no webfonts defined',
 			'A theme with the Update URI header',
 		);

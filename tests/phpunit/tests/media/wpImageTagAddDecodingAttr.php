@@ -19,6 +19,8 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 	 * @param string $context  Additional context to pass to the filters.
 	 * @param string $decoding The value for the 'decoding' attribute. 'no value' for default.
 	 * @param string $expected The expected `img` tag.
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_should_add_decoding_attr( $image, $context, $decoding, $expected ) {
 		// Falsey values are allowed in the filter, cannot use `null` or `false` here.
@@ -80,6 +82,8 @@ class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
 	 * @param string $context  Additional context to pass to the filters.
 	 * @param mixed  $decoding The value for the 'decoding' attribute. 'no value' for default.
 	 * @param string $expected The expected `img` tag.
+	 *
+	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_should_not_add_decoding_attr( $image, $context, $decoding, $expected ) {
 		// Falsey values are allowed in the filter, cannot use `null` or `false` here.

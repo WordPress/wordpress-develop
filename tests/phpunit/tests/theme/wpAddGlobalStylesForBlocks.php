@@ -18,6 +18,11 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 */
 	private $test_blocks = array();
 
+	public function set_up() {
+		parent::set_up();
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+	}
+
 	public function tear_down() {
 		// Unregister test blocks.
 		if ( ! empty( $this->test_blocks ) ) {

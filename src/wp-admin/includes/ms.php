@@ -305,7 +305,9 @@ function upload_space_setting( $id ) {
 	<tr>
 		<th><label for="blog-upload-space-number"><?php _e( 'Site Upload Space Quota' ); ?></label></th>
 		<td>
-			<input type="number" step="1" min="0" style="width: 100px" name="option[blog_upload_space]" id="blog-upload-space-number" aria-describedby="blog-upload-space-desc" value="<?php echo $quota; ?>" />
+			<input type="number" step="1" min="0" style="width: 100px"
+				name="option[blog_upload_space]" id="blog-upload-space-number"
+				aria-describedby="blog-upload-space-desc" value="<?php echo esc_attr( $quota ); ?>" />
 			<span id="blog-upload-space-desc"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
@@ -692,11 +694,20 @@ function site_admin_notice() {
 	}
 
 	if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) {
-		echo "<div class='update-nag notice notice-warning inline'>" . sprintf(
+		$upgrade_network_message = sprintf(
 			/* translators: %s: URL to Upgrade Network screen. */
 			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
 			esc_url( network_admin_url( 'upgrade.php' ) )
-		) . '</div>';
+		);
+
+		wp_admin_notice(
+			$upgrade_network_message,
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'update-nag', 'inline' ),
+				'paragraph_wrap'     => false,
+			)
+		);
 	}
 }
 

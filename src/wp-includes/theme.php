@@ -153,11 +153,17 @@ function wp_clean_themes_cache( $clear_update_cache = true ) {
  * Whether a child theme is in use.
  *
  * @since 3.0.0
+ * @since 6.5.0 Makes use of global template variables.
+ *
+ * @global string $wp_stylesheet_path Path to current theme's stylesheet directory.
+ * @global string $wp_template_path   Path to current theme's template directory.
  *
  * @return bool True if a child theme is in use, false otherwise.
  */
 function is_child_theme() {
-	return ( TEMPLATEPATH !== STYLESHEETPATH );
+	global $wp_stylesheet_path, $wp_template_path;
+
+	return $wp_stylesheet_path !== $wp_template_path;
 }
 
 /**
@@ -187,6 +193,8 @@ function get_stylesheet() {
  * Retrieves stylesheet directory path for the active theme.
  *
  * @since 1.5.0
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
+ * @since 6.4.2 Memoization removed.
  *
  * @return string Path to active theme's stylesheet directory.
  */
@@ -321,6 +329,8 @@ function get_template() {
  * Retrieves template directory path for the active theme.
  *
  * @since 1.5.0
+ * @since 6.4.0 Memoizes filter execution so that it only runs once for the current theme.
+ * @since 6.4.1 Memoization removed.
  *
  * @return string Path to active theme's template directory.
  */
@@ -832,6 +842,27 @@ function switch_theme( $stylesheet ) {
 
 	update_option( 'theme_switched', $old_theme->get_stylesheet() );
 
+	/*
+	 * Reset template globals when switching themes outside of a switched blog
+	 * context to ensure templates will be loaded from the new theme.
+	 */
+	if ( ! is_multisite() || ! ms_is_switched() ) {
+		wp_set_template_globals();
+	}
+
+	// Clear pattern caches.
+	if ( ! is_multisite() ) {
+		$new_theme->delete_pattern_cache();
+		$old_theme->delete_pattern_cache();
+	}
+
+	// Set autoload=no for the old theme, autoload=yes for the switched theme.
+	$theme_mods_options = array(
+		'theme_mods_' . $stylesheet                  => 'yes',
+		'theme_mods_' . $old_theme->get_stylesheet() => 'no',
+	);
+	wp_set_option_autoload_values( $theme_mods_options );
+
 	/**
 	 * Fires after the theme is switched.
 	 *
@@ -1247,11 +1278,10 @@ function get_header_image_tag( $attr = array() ) {
 	$attr = wp_parse_args(
 		$attr,
 		array(
-			'src'      => $header->url,
-			'width'    => $width,
-			'height'   => $height,
-			'alt'      => $alt,
-			'decoding' => 'async',
+			'src'    => $header->url,
+			'width'  => $width,
+			'height' => $height,
+			'alt'    => $alt,
 		)
 	);
 
@@ -1430,14 +1460,16 @@ function is_random_header_image( $type = 'any' ) {
 	if ( 'any' === $type ) {
 		if ( 'random-default-image' === $header_image_mod
 			|| 'random-uploaded-image' === $header_image_mod
-			|| ( '' !== get_random_header_image() && empty( $header_image_mod ) )
+			|| ( empty( $header_image_mod ) && '' !== get_random_header_image() )
 		) {
 			return true;
 		}
 	} else {
 		if ( "random-$type-image" === $header_image_mod ) {
 			return true;
-		} elseif ( 'default' === $type && empty( $header_image_mod ) && '' !== get_random_header_image() ) {
+		} elseif ( 'default' === $type
+			&& empty( $header_image_mod ) && '' !== get_random_header_image()
+		) {
 			return true;
 		}
 	}
@@ -2596,18 +2628,31 @@ function get_theme_starter_content() {
  * @since 5.3.0 The `html5` feature now also accepts 'script' and 'style'.
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.4.0 The `disable-custom-gradients` feature limits to default gradients or gradients added
+ *              through `editor-gradient-presets` theme support.
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
  * @since 5.6.0 The `post-formats` feature warns if no array is passed as the second parameter.
  * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
+ * @since 5.8.0 The `block-templates` feature indicates whether a theme uses block-based templates.
  * @since 6.0.0 The `html5` feature warns if no array is passed as the second parameter.
+ * @since 6.1.0 The `block-template-parts` feature allows to edit any reusable template part from site editor.
+ * @since 6.1.0 The `disable-layout-styles` feature disables the default layout styles.
+ * @since 6.3.0 The `link-color` feature allows to enable the link color setting.
+ * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
+ * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
+ *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
  *
  * @global array $_wp_theme_features
  *
  * @param string $feature The feature being added. Likely core values include:
  *                          - 'admin-bar'
  *                          - 'align-wide'
+ *                          - 'appearance-tools'
  *                          - 'automatic-feed-links'
+ *                          - 'block-templates'
+ *                          - 'block-template-parts'
+ *                          - 'border'
  *                          - 'core-block-patterns'
  *                          - 'custom-background'
  *                          - 'custom-header'
@@ -2619,21 +2664,24 @@ function get_theme_starter_content() {
  *                          - 'dark-editor-style'
  *                          - 'disable-custom-colors'
  *                          - 'disable-custom-font-sizes'
+ *                          - 'disable-custom-gradients'
+ *                          - 'disable-layout-styles'
  *                          - 'editor-color-palette'
  *                          - 'editor-gradient-presets'
  *                          - 'editor-font-sizes'
  *                          - 'editor-styles'
  *                          - 'featured-content'
  *                          - 'html5'
+ *                          - 'link-color'
  *                          - 'menus'
  *                          - 'post-formats'
  *                          - 'post-thumbnails'
  *                          - 'responsive-embeds'
  *                          - 'starter-content'
  *                          - 'title-tag'
- *                          - 'wp-block-styles'
  *                          - 'widgets'
  *                          - 'widgets-block-editor'
+ *                          - 'wp-block-styles'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|false Void on success, false on failure.
  */
@@ -2770,7 +2818,7 @@ function add_theme_support( $feature, ...$args ) {
 			 * the constant is always accurate (and is not defined later,  overriding our value).
 			 * As stated above, the first value wins.
 			 * Once we get to wp_loaded (just-in-time), define any constants we haven't already.
-			 * Constants are lame. Don't reference them. This is just for backward compatibility.
+			 * Constants should be avoided. Don't reference them. This is just for backward compatibility.
 			 */
 
 			if ( defined( 'NO_HEADER_TEXT' ) ) {
@@ -3514,7 +3562,7 @@ function _wp_customize_include() {
 	$changeset_uuid = false;
 
 	/*
-	 * Set initially fo false since defaults to true for back-compat;
+	 * Set initially to false since defaults to true for back-compat;
 	 * can be overridden via the customize_changeset_branching filter.
 	 */
 	$branching = false;
@@ -3575,7 +3623,6 @@ function _wp_customize_include() {
  * @since 4.7.0
  * @access private
  *
- * @global wpdb                 $wpdb         WordPress database abstraction object.
  * @global WP_Customize_Manager $wp_customize Customizer instance.
  *
  * @param string  $new_status     New post status.
@@ -3583,7 +3630,7 @@ function _wp_customize_include() {
  * @param WP_Post $changeset_post Changeset post object.
  */
 function _wp_customize_publish_changeset( $new_status, $old_status, $changeset_post ) {
-	global $wp_customize, $wpdb;
+	global $wp_customize;
 
 	$is_publishing_changeset = (
 		'customize_changeset' === $changeset_post->post_type
@@ -3742,9 +3789,9 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) !== strtolower( $home_origin['host'] ) );
-	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+	ob_start();
 	?>
-	<script<?php echo $type_attr; ?>>
+	<script>
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
 
@@ -3760,6 +3807,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 }
 
 /**
@@ -4290,9 +4338,9 @@ function wp_theme_get_element_class_name( $element ) {
 }
 
 /**
- * Adds default theme supports for block themes when the 'setup_theme' action fires.
+ * Adds default theme supports for block themes when the 'after_setup_theme' action fires.
  *
- * See {@see 'setup_theme'}.
+ * See {@see 'after_setup_theme'}.
  *
  * @since 5.9.0
  * @access private

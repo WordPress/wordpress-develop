@@ -29,7 +29,15 @@ if ( empty( $plugins ) ) {
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( $title ); ?></h1>
-		<div id="message" class="error"><p><?php _e( 'No plugins are currently available.' ); ?></p></div>
+		<?php
+		wp_admin_notice(
+			__( 'No plugins are currently available.' ),
+			array(
+				'id'                 => 'message',
+				'additional_classes' => array( 'error' ),
+			)
+		);
+		?>
 	</div>
 	<?php
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -140,7 +148,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/plugins-editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/plugins/editor-screen/">Documentation on Editing Plugins</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://developer.wordpress.org/plugins/">Documentation on Writing Plugins</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
@@ -182,16 +190,29 @@ $content = esc_textarea( $content );
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
-<?php if ( isset( $_GET['a'] ) ) : ?>
-	<div id="message" class="updated notice is-dismissible">
-		<p><?php _e( 'File edited successfully.' ); ?></p>
-	</div>
-<?php elseif ( is_wp_error( $edit_error ) ) : ?>
-	<div id="message" class="notice notice-error">
-		<p><?php _e( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ); ?></p>
-		<pre><?php echo esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() ); ?></pre>
-	</div>
-<?php endif; ?>
+<?php
+if ( isset( $_GET['a'] ) ) :
+	wp_admin_notice(
+		__( 'File edited successfully.' ),
+		array(
+			'additional_classes' => array( 'updated', 'is-dismissible' ),
+			'id'                 => 'message',
+		)
+	);
+elseif ( is_wp_error( $edit_error ) ) :
+	$error   = esc_html( $edit_error->get_error_message() ? $edit_error->get_error_message() : $edit_error->get_error_code() );
+	$message = '<p>' . __( 'There was an error while trying to update the file. You may need to fix something and try updating again.' ) . '</p>
+	<pre>' . $error . '</pre>';
+	wp_admin_notice(
+		$message,
+		array(
+			'type'           => 'error',
+			'id'             => 'message',
+			'paragraph_wrap' => false,
+		)
+	);
+endif;
+?>
 
 <div class="fileedit-sub">
 <div class="alignleft">
@@ -274,17 +295,23 @@ $content = esc_textarea( $content );
 		<div id="documentation" class="hide-if-no-js">
 			<label for="docs-list"><?php _e( 'Documentation:' ); ?></label>
 			<?php echo $docs_select; ?>
-			<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
+			<input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?>" onclick="if ( '' !== jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" />
 		</div>
 	<?php endif; ?>
 
 	<?php if ( is_writable( $real_file ) ) : ?>
 		<div class="editor-notices">
-		<?php if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) { ?>
-			<div class="notice notice-warning inline active-plugin-edit-warning">
-				<p><?php _e( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ); ?></p>
-			</div>
-		<?php } ?>
+		<?php
+		if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) {
+			wp_admin_notice(
+				__( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ),
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'inline', 'active-plugin-edit-warning' ),
+				)
+			);
+		}
+		?>
 		</div>
 		<p class="submit">
 			<?php submit_button( __( 'Update File' ), 'primary', 'submit', false ); ?>
@@ -296,7 +323,7 @@ $content = esc_textarea( $content );
 			printf(
 				/* translators: %s: Documentation URL. */
 				__( 'You need to make this file writable before you can save your changes. See <a href="%s">Changing File Permissions</a> for more information.' ),
-				__( 'https://wordpress.org/documentation/article/changing-file-permissions/' )
+				__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' )
 			);
 			?>
 		</p>

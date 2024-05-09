@@ -209,7 +209,7 @@ function rest_api_register_rewrites() {
  * @since 4.4.0
  */
 function rest_api_default_filters() {
-	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+	if ( wp_is_serving_rest_request() ) {
 		// Deprecated reporting.
 		add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
 		add_filter( 'deprecated_function_trigger_error', '__return_false' );
@@ -241,16 +241,22 @@ function create_initial_rest_routes() {
 			continue;
 		}
 
-		$controller->register_routes();
+		if ( ! $post_type->late_route_registration ) {
+			$controller->register_routes();
+		}
 
-		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
-			$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
+		$revisions_controller = $post_type->get_revisions_rest_controller();
+		if ( $revisions_controller ) {
 			$revisions_controller->register_routes();
 		}
 
-		if ( 'attachment' !== $post_type->name ) {
-			$autosaves_controller = new WP_REST_Autosaves_Controller( $post_type->name );
+		$autosaves_controller = $post_type->get_autosave_rest_controller();
+		if ( $autosaves_controller ) {
 			$autosaves_controller->register_routes();
+		}
+
+		if ( $post_type->late_route_registration ) {
+			$controller->register_routes();
 		}
 	}
 
@@ -385,6 +391,10 @@ function create_initial_rest_routes() {
 	// Navigation Fallback.
 	$controller = new WP_REST_Navigation_Fallback_Controller();
 	$controller->register_routes();
+
+	// Font Collections.
+	$font_collections_controller = new WP_REST_Font_Collections_Controller();
+	$font_collections_controller->register_routes();
 }
 
 /**
@@ -870,7 +880,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 }
 
 /**
- * Filters the REST API response to include only a white-listed set of response object fields.
+ * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
  *
@@ -1084,6 +1094,7 @@ function rest_cookie_check_errors( $result ) {
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 
 	if ( ! $result ) {
+		add_filter( 'rest_send_nocache_headers', '__return_true', 20 );
 		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie check failed' ), array( 'status' => 403 ) );
 	}
 
@@ -1215,13 +1226,13 @@ function rest_add_application_passwords_to_index( $response ) {
 }
 
 /**
- * Retrieves the avatar urls in various sizes.
+ * Retrieves the avatar URLs in various sizes.
  *
  * @since 4.7.0
  *
  * @see get_avatar_url()
  *
- * @param mixed $id_or_email The Gravatar to retrieve a URL for. Accepts a user_id, gravatar md5 hash,
+ * @param mixed $id_or_email The avatar to retrieve a URL for. Accepts a user ID, Gravatar MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @return (string|false)[] Avatar URLs keyed by size. Each value can be a URL string or boolean false.
  */
@@ -3381,4 +3392,39 @@ function rest_convert_error_to_response( $error ) {
 	}
 
 	return new WP_REST_Response( $data, $status );
+}
+
+/**
+ * Checks whether a REST API endpoint request is currently being handled.
+ *
+ * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+ *
+ * @since 6.5.0
+ *
+ * @global WP_REST_Server $wp_rest_server REST server instance.
+ *
+ * @return bool True if a REST endpoint request is currently being handled, false otherwise.
+ */
+function wp_is_rest_endpoint() {
+	/* @var WP_REST_Server $wp_rest_server */
+	global $wp_rest_server;
+
+	// Check whether this is a standalone REST request.
+	$is_rest_endpoint = wp_is_serving_rest_request();
+	if ( ! $is_rest_endpoint ) {
+		// Otherwise, check whether an internal REST request is currently being handled.
+		$is_rest_endpoint = isset( $wp_rest_server )
+			&& $wp_rest_server->is_dispatching();
+	}
+
+	/**
+	 * Filters whether a REST endpoint request is currently being handled.
+	 *
+	 * This may be a standalone REST API request, or an internal request dispatched from within a regular page load.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param bool $is_request_endpoint Whether a REST endpoint request is currently being handled.
+	 */
+	return (bool) apply_filters( 'wp_is_rest_endpoint', $is_rest_endpoint );
 }

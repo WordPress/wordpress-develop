@@ -556,6 +556,9 @@ function populate_options( array $options = array() ) {
 
 		// 5.8.0
 		'wp_force_deactivated_plugins'    => array(),
+
+		// 6.4.0
+		'wp_attachment_pages_enabled'     => 0,
 	);
 
 	// 3.3.0
@@ -591,18 +594,16 @@ function populate_options( array $options = array() ) {
 		}
 
 		if ( in_array( $option, $fat_options, true ) ) {
-			$autoload = 'no';
+			$autoload = 'off';
 		} else {
-			$autoload = 'yes';
-		}
-
-		if ( is_array( $value ) ) {
-			$value = serialize( $value );
+			$autoload = 'on';
 		}
 
 		if ( ! empty( $insert ) ) {
 			$insert .= ', ';
 		}
+
+		$value = maybe_serialize( sanitize_option( $option, $value ) );
 
 		$insert .= $wpdb->prepare( '(%s, %s, %s)', $option, $value, $autoload );
 	}
@@ -1249,6 +1250,7 @@ We hope you enjoy your new site. Thanks!
 		'png',
 		'gif',
 		'webp',
+		'avif',
 		// Video.
 		'mov',
 		'avi',

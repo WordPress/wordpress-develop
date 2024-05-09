@@ -165,7 +165,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			array_shift( $hierarchy );
 		} while ( ! empty( $hierarchy ) && empty( $fallback_template->content ) );
 
-		$response = $this->prepare_item_for_response( $fallback_template, $request );
+		// To maintain original behavior, return an empty object rather than a 404 error when no template is found.
+		$response = $fallback_template ? $this->prepare_item_for_response( $fallback_template, $request ) : new stdClass();
 
 		return rest_ensure_response( $response );
 	}
@@ -532,7 +533,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return stdClass Changes to pass to wp_update_post.
+	 * @return stdClass|WP_Error Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
@@ -619,7 +620,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_author = $post_author;
 		}
 
-		return $changes;
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+		return apply_filters( "rest_pre_insert_{$this->post_type}", $changes, $request );
 	}
 
 	/**
@@ -633,7 +635,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request   $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $item, $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$template = $item;
 
@@ -726,6 +728,14 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$data['modified'] = mysql_to_rfc3339( $template->modified );
 		}
 
+		if ( rest_is_field_included( 'author_text', $fields ) ) {
+			$data['author_text'] = self::get_wp_templates_author_text_field( $template );
+		}
+
+		if ( rest_is_field_included( 'original_source', $fields ) ) {
+			$data['original_source'] = self::get_wp_templates_original_source_field( $template );
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
@@ -748,6 +758,83 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		return $response;
 	}
 
+	/**
+	 * Returns the source from where the template originally comes from.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param WP_Block_Template $template_object Template instance.
+	 * @return string                            Original source of the template one of theme, plugin, site, or user.
+	 */
+	private static function get_wp_templates_original_source_field( $template_object ) {
+		if ( 'wp_template' === $template_object->type || 'wp_template_part' === $template_object->type ) {
+			// Added by theme.
+			// Template originally provided by a theme, but customized by a user.
+			// Templates originally didn't have the 'origin' field so identify
+			// older customized templates by checking for no origin and a 'theme'
+			// or 'custom' source.
+			if ( $template_object->has_theme_file &&
+			( 'theme' === $template_object->origin || (
+				empty( $template_object->origin ) && in_array(
+					$template_object->source,
+					array(
+						'theme',
+						'custom',
+					),
+					true
+				) )
+			)
+			) {
+				return 'theme';
+			}
+
+			// Added by plugin.
+			if ( $template_object->has_theme_file && 'plugin' === $template_object->origin ) {
+				return 'plugin';
+			}
+
+			// Added by site.
+			// Template was created from scratch, but has no author. Author support
+			// was only added to templates in WordPress 5.9. Fallback to showing the
+			// site logo and title.
+			if ( empty( $template_object->has_theme_file ) && 'custom' === $template_object->source && empty( $template_object->author ) ) {
+				return 'site';
+			}
+		}
+
+		// Added by user.
+		return 'user';
+	}
+
+	/**
+	 * Returns a human readable text for the author of the template.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param WP_Block_Template $template_object Template instance.
+	 * @return string                            Human readable text for the author.
+	 */
+	private static function get_wp_templates_author_text_field( $template_object ) {
+		$original_source = self::get_wp_templates_original_source_field( $template_object );
+		switch ( $original_source ) {
+			case 'theme':
+				$theme_name = wp_get_theme( $template_object->theme )->get( 'Name' );
+				return empty( $theme_name ) ? $template_object->theme : $theme_name;
+			case 'plugin':
+				$plugins = get_plugins();
+				$plugin  = $plugins[ plugin_basename( sanitize_text_field( $template_object->theme . '.php' ) ) ];
+				return empty( $plugin['Name'] ) ? $template_object->theme : $plugin['Name'];
+			case 'site':
+				return get_bloginfo( 'name' );
+			case 'user':
+				$author = get_user_by( 'id', $template_object->author );
+				if ( ! $author ) {
+					return __( 'Unknown author' );
+				}
+				return $author->get( 'display_name' );
+		}
+	}
+
 
 	/**
 	 * Prepares links for the request.
@@ -760,7 +847,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	protected function prepare_links( $id ) {
 		$links = array(
 			'self'       => array(
-				'href' => rest_url( rest_get_route_for_post( $id ) ),
+				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->rest_base, $id ) ),
 			),
 			'collection' => array(
 				'href' => rest_url( rest_get_route_for_post_type_items( $this->post_type ) ),
@@ -769,6 +856,27 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 		);
+
+		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
+			$template = get_block_template( $id, $this->post_type );
+			if ( $template instanceof WP_Block_Template && ! empty( $template->wp_id ) ) {
+				$revisions       = wp_get_latest_revision_id_and_total_count( $template->wp_id );
+				$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;
+				$revisions_base  = sprintf( '/%s/%s/%s/revisions', $this->namespace, $this->rest_base, $id );
+
+				$links['version-history'] = array(
+					'href'  => rest_url( $revisions_base ),
+					'count' => $revisions_count,
+				);
+
+				if ( $revisions_count > 0 ) {
+					$links['predecessor-version'] = array(
+						'href' => rest_url( $revisions_base . '/' . $revisions['latest_id'] ),
+						'id'   => $revisions['latest_id'],
+					);
+				}
+			}
+		}
 
 		return $links;
 	}
@@ -840,13 +948,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			'title'      => $this->post_type,
 			'type'       => 'object',
 			'properties' => array(
-				'id'             => array(
+				'id'              => array(
 					'description' => __( 'ID of template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'slug'           => array(
+				'slug'            => array(
 					'description' => __( 'Unique slug identifying the template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
@@ -854,29 +962,29 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'minLength'   => 1,
 					'pattern'     => '[a-zA-Z0-9_\%-]+',
 				),
-				'theme'          => array(
+				'theme'           => array(
 					'description' => __( 'Theme identifier for the template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
-				'type'           => array(
+				'type'            => array(
 					'description' => __( 'Type of template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
-				'source'         => array(
+				'source'          => array(
 					'description' => __( 'Source of template' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'origin'         => array(
+				'origin'          => array(
 					'description' => __( 'Source of a customized template' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'content'        => array(
+				'content'         => array(
 					'description' => __( 'Content of template.' ),
 					'type'        => array( 'object', 'string' ),
 					'default'     => '',
@@ -895,7 +1003,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'title'          => array(
+				'title'           => array(
 					'description' => __( 'Title of template.' ),
 					'type'        => array( 'object', 'string' ),
 					'default'     => '',
@@ -914,42 +1022,60 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'description'    => array(
+				'description'     => array(
 					'description' => __( 'Description of template.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
-				'status'         => array(
+				'status'          => array(
 					'description' => __( 'Status of template.' ),
 					'type'        => 'string',
 					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
 					'default'     => 'publish',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
-				'wp_id'          => array(
+				'wp_id'           => array(
 					'description' => __( 'Post ID.' ),
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'has_theme_file' => array(
+				'has_theme_file'  => array(
 					'description' => __( 'Theme file exists.' ),
 					'type'        => 'bool',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'author'         => array(
+				'author'          => array(
 					'description' => __( 'The ID for the author of the template.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
-				'modified'       => array(
+				'modified'        => array(
 					'description' => __( "The date the template was last modified, in the site's timezone." ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
+				),
+				'author_text'     => array(
+					'type'        => 'string',
+					'description' => __( 'Human readable text for the author.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+				),
+				'original_source' => array(
+					'description' => __( 'Where the template originally comes from e.g. \'theme\'' ),
+					'type'        => 'string',
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'enum'        => array(
+						'theme',
+						'plugin',
+						'site',
+						'user',
+					),
 				),
 			),
 		);

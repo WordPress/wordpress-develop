@@ -7,6 +7,8 @@
 
 /**
  * Tests for the WP_Navigation_Fallback class.
+ *
+ * @group editor
  */
 class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
 

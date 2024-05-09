@@ -63,8 +63,8 @@ $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 
 // $menu[5] = Posts.
 
-$menu[10]                     = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
-	$submenu['upload.php'][5] = array( __( 'Library' ), 'upload_files', 'upload.php' );
+$menu[10]                      = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
+	$submenu['upload.php'][5]  = array( __( 'Library' ), 'upload_files', 'upload.php' );
 	$submenu['upload.php'][10] = array( __( 'Add New Media File' ), 'upload_files', 'media-new.php' );
 	$i                         = 15;
 foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
@@ -76,8 +76,8 @@ foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 }
 	unset( $tax, $i );
 
-$menu[15]                           = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
-	$submenu['link-manager.php'][5] = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
+$menu[15]                            = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
+	$submenu['link-manager.php'][5]  = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
 	$submenu['link-manager.php'][10] = array( __( 'Add New Link' ), 'manage_links', 'link-add.php' );
 	$submenu['link-manager.php'][15] = array( __( 'Link Categories' ), 'manage_categories', 'edit-tags.php?taxonomy=link_category' );
 
@@ -127,8 +127,11 @@ foreach ( array_merge( $builtin, $types ) as $ptype ) {
 
 	$menu_icon = 'dashicons-admin-post';
 	if ( is_string( $ptype_obj->menu_icon ) ) {
-		// Special handling for data:image/svg+xml and Dashicons.
-		if ( str_starts_with( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' ) || str_starts_with( $ptype_obj->menu_icon, 'dashicons-' ) ) {
+		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, and Dashicons.
+		if ( 'none' === $ptype_obj->menu_icon || 'div' === $ptype_obj->menu_icon
+			|| str_starts_with( $ptype_obj->menu_icon, 'data:image/svg+xml;base64,' )
+			|| str_starts_with( $ptype_obj->menu_icon, 'dashicons-' )
+		) {
 			$menu_icon = $ptype_obj->menu_icon;
 		} else {
 			$menu_icon = esc_url( $ptype_obj->menu_icon );
@@ -202,10 +205,12 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 
 if ( wp_is_block_theme() ) {
 	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
+} else {
+	$submenu['themes.php'][6] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'edit.php?post_type=wp_block' );
 }
 
 if ( ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ) ) {
-	$submenu['themes.php'][6] = array(
+	$submenu['themes.php'][7] = array(
 		__( 'Template Parts' ),
 		'edit_theme_options',
 		'site-editor.php?path=/wp_template_part/all',
@@ -217,7 +222,7 @@ $customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_remova
 // Hide Customize link on block themes unless a plugin or theme
 // is using 'customize_register' to add a setting.
 if ( ! wp_is_block_theme() || has_action( 'customize_register' ) ) {
-	$position = ( wp_is_block_theme() || current_theme_supports( 'block-template-parts' ) ) ? 7 : 6;
+	$position = ! wp_is_block_theme() && current_theme_supports( 'block-template-parts' ) ? 8 : 7;
 
 	$submenu['themes.php'][ $position ] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
 }

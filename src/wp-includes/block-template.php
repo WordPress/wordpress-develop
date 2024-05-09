@@ -246,12 +246,13 @@ function get_the_block_template_html() {
  * @since 6.4.0
  *
  * @global WP_Query $wp_query
+ * @global string   $_wp_current_template_id
  *
  * @param string $content Block template content.
  * @return string Updated block template content.
  */
 function do_block_template_blocks( $content ) {
-	global $wp_query;
+	global $wp_query, $_wp_current_template_id;
 
 	/*
 	 * Most block themes omit the `core/query` and `core/post-template` blocks in their singular content templates.
@@ -266,8 +267,18 @@ function do_block_template_blocks( $content ) {
 	 * Even if the block template contained a `core/query` and `core/post-template` block referencing the main query
 	 * loop, it would not cause errors since it would use a cloned instance and go through the same loop of a single
 	 * post, within the actual main query loop.
+	 *
+	 * This special logic should be skipped if the current template does not come from the current theme, in which case
+	 * it has been injected by a plugin by hijacking the block template loader mechanism. In that case, entirely custom
+	 * logic may be applied which is unpredictable and therefore safer to omit this special handling on.
 	 */
-	if ( is_singular() && 1 === $wp_query->post_count && have_posts() ) {
+	if (
+		$_wp_current_template_id &&
+		str_starts_with( $_wp_current_template_id, get_stylesheet() . '//' ) &&
+		is_singular() &&
+		1 === $wp_query->post_count &&
+		have_posts()
+	) {
 		while ( have_posts() ) {
 			the_post();
 

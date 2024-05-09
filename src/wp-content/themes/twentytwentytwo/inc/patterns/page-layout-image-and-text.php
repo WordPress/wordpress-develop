@@ -4,15 +4,15 @@
  */
 return array(
 	'title'      => __( 'Page layout with image and text', 'twentytwentytwo' ),
-	'categories' => array( 'pages' ),
+	'categories' => array( 'twentytwentytwo_pages' ),
 	'content'    => '<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var(--wp--custom--spacing--large, 8rem)","bottom":"2rem"}}},"layout":{"inherit":true}} -->
 				<div class="wp-block-group alignfull" style="padding-top:var(--wp--custom--spacing--large, 8rem);padding-bottom:2rem"><!-- wp:heading {"align":"wide","style":{"typography":{"fontSize":"clamp(4rem, 8vw, 7.5rem)","lineHeight":"1.15","fontWeight":"300"}}} -->
 					<h2 class="alignwide" style="font-size:clamp(4rem, 8vw, 7.5rem);font-weight:300;line-height:1.15">' . wp_kses_post( __( '<em>Watching Birds </em><br><em>in the Garden</em>', 'twentytwentytwo' ) ) . '</h2>
 					<!-- /wp:heading --></div>
 					<!-- /wp:group -->
 
-					<!-- wp:image {"align":"full","style":{"color":{}}} -->
-					<figure class="wp-block-image alignfull"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-b.png" alt="' . esc_attr_x( 'TBD', 'Short for to be determined', 'twentytwentytwo' ) . '"/></figure>
+					<!-- wp:image {"align":"full","width":2400,"height":1800,"style":{"color":{}}} -->
+					<figure class="wp-block-image alignfull is-resized"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/flight-path-on-transparent-b.png" alt="' . esc_attr_x( 'TBD', 'Short for to be determined', 'twentytwentytwo' ) . '" width="2400" height="1800"/></figure>
 					<!-- /wp:image -->
 
 					<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"2rem","bottom":"var(--wp--custom--spacing--large, 8rem)"}}},"layout":{"inherit":true}} -->

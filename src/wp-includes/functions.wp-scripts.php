@@ -168,11 +168,11 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
  * @param array|bool       $args     {
- *      Optional. An array of additional script loading strategies. Default empty array.
- *      Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
+ *     Optional. An array of additional script loading strategies. Default empty array.
+ *     Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *      @type string    $strategy     Optional. If provided, may be either 'defer' or 'async'.
- *      @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
+ *     @type string    $strategy     Optional. If provided, may be either 'defer' or 'async'.
+ *     @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
  * }
  * @return bool Whether the script has been registered. True on success, false on failure.
  */
@@ -211,7 +211,6 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
  *
  * @see WP_Scripts::localize()
  * @link https://core.trac.wordpress.org/ticket/11520
- * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  *
  * @since 2.2.0
  *
@@ -224,12 +223,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $args
  * @return bool True if the script was successfully localized, false otherwise.
  */
 function wp_localize_script( $handle, $object_name, $l10n ) {
-	global $wp_scripts;
-
-	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
-		_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
-		return false;
-	}
+	$wp_scripts = wp_scripts();
 
 	return $wp_scripts->localize( $handle, $object_name, $l10n );
 }
@@ -355,11 +349,11 @@ function wp_deregister_script( $handle ) {
  *                                    number is automatically added equal to current installed WordPress version.
  *                                    If set to null, no version is added.
  * @param array|bool       $args     {
- *      Optional. An array of additional script loading strategies. Default empty array.
- *      Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
+ *     Optional. An array of additional script loading strategies. Default empty array.
+ *     Otherwise, it may be a boolean in which case it determines whether the script is printed in the footer. Default false.
  *
- *      @type string    $strategy     Optional. If provided, may be either 'defer' or 'async'.
- *      @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
+ *     @type string    $strategy     Optional. If provided, may be either 'defer' or 'async'.
+ *     @type bool      $in_footer    Optional. Whether to print the script in the footer. Default 'false'.
  * }
  */
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $args = array() ) {

@@ -200,7 +200,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	 */
 	public function test_get_views_should_return_views_by_default() {
 		$expected = array(
-			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
+			'all' => '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
 		);
 
 		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
