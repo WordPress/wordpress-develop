@@ -7474,17 +7474,34 @@ function get_tag_regex( $tag ) {
  *
  * @see https://core.trac.wordpress.org/ticket/23688
  *
- * @param string $charset A charset name.
+ * @param string $charset A charset name, e.g. "UTF-8", "Windows-1252", "SJIS".
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
-	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset ) ) {
-
+	if ( is_utf8_charset( $charset ) ) {
 		return 'UTF-8';
 	}
 
-	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
-
+	/*
+	 * Normalize the ISO-8859-1 family of languages.
+	 *
+	 * This is not required for htmlspecialchars(), as it properly recognizes all of
+	 * the input character sets that here are transformed into "ISO-8859-1".
+	 *
+	 * @todo Should this entire check be removed since it's not required for the stated purpose?
+	 * @todo Should WordPress transform other potential charset equivalents, such as "latin1"?
+	 */
+	$charset_length = strlen( $charset );
+	if (
+		(
+			10 === $charset_length &&
+			substr_compare( $charset, 'iso-8859-1', 0, 10, true )
+		) ||
+		(
+			9 === $charset_length &&
+			substr_compare( $charset, 'iso8859-1', 0, 9, true )
+		)
+	) {
 		return 'ISO-8859-1';
 	}
 
