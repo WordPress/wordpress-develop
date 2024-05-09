@@ -1219,8 +1219,11 @@ function get_post_mime_type( $post = null ) {
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
-	if ( ! is_object( $post ) ) {
-		$post = get_post( $post );
+	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
+		$sample = true;
+	} else {
+		$post   = get_post( $post );
+		$sample = false;
 	}
 
 	if ( ! is_object( $post ) ) {
