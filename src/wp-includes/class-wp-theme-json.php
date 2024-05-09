@@ -1584,7 +1584,6 @@ class WP_Theme_JSON {
 
 							$layout_selector = sprintf(
 								'.%s%s',
-								$selector,
 								$class_name,
 								$base_style_rule['selector']
 							);
