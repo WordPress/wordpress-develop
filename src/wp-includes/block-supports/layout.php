@@ -911,24 +911,26 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	return $processor->get_updated_html();
 }
 
-/*
- * Add a `render_block_data` filter to fetch the parent block layout data.
+/**
+ * Check if the parent block exists and if it has a layout attribute.
+ * If it does, add the parent layout to the parsed block
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param array $parsed_block The parsed block.
+ * @param array $source_block The source block.
+ * @param array $parent_block The parent block.
+ * @return array The parsed block with parent layout attribute if it exists.
  */
-add_filter(
-	'render_block_data',
-	function ( $parsed_block, $source_block, $parent_block ) {
-		/*
-		 * Check if the parent block exists and if it has a layout attribute.
-		 * If it does, add the parent layout to the parsed block.
-		 */
-		if ( $parent_block && isset( $parent_block->parsed_block['attrs']['layout'] ) ) {
-			$parsed_block['parentLayout'] = $parent_block->parsed_block['attrs']['layout'];
-		}
-		return $parsed_block;
-	},
-	10,
-	3
-);
+function wp_add_parent_layout_to_parsed_block( $parsed_block, $source_block, $parent_block ) {
+	if ( $parent_block && isset( $parent_block->parsed_block['attrs']['layout'] ) ) {
+		$parsed_block['parentLayout'] = $parent_block->parsed_block['attrs']['layout'];
+	}
+	return $parsed_block;
+}
+
+add_filter( 'render_block_data', 'wp_add_parent_layout_to_parsed_block', 10, 3 );
 
 // Register the block support.
 WP_Block_Supports::get_instance()->register(
