@@ -10,6 +10,7 @@
  * Class representing a parsed instance of a block.
  *
  * @since 5.5.0
+ * @property-read array $attributes
  */
 #[AllowDynamicProperties]
 class WP_Block {
