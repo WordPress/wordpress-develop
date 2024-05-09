@@ -167,8 +167,30 @@ final class WP_Interactivity_API {
 		}
 
 		if ( ! empty( $interactivity_data ) ) {
+
+			/*
+			 * This data will be printed as JSON inside a script tag:
+			 *   <script type="application/json"></script>
+			 * A script tag must be closed by a sequence beginning with `</`. We ensure that
+			 * `<` is escaped and `/` can remain unescaped. `</script>` will be
+			 * printed as `\u003C/script\u00E3`.
+			 *
+			 *   - JSON_HEX_TAG: All < and > are converted to \u003C and \u003E.
+			 *   - JSON_UNESCAPED_SLASHES: Don't escape /.
+			 *
+			 * @see https://www.php.net/manual/en/json.constants.php
+			 */
 			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
 			if ( 'UTF-8' === get_option( 'blog_charset' ) ) {
+				/*
+				 * If the page uses the UTF-8 charset unicode does not need to be escaped.
+				 *
+				 *   - JSON_UNESCAPED_UNICODE: Encode multibyte Unicode characters literally
+				 *     (default is to escape as \uXXXX).
+				 *   - JSON_UNESCAPED_LINE_TERMINATORS: The line terminators are kept unescaped when
+				 *     JSON_UNESCAPED_UNICODE is supplied. It uses the same behaviour as it was
+				 *     before PHP 7.1 without this constant. Available as of PHP 7.1.0.
+				 */
 				$json_encode_flags |= JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
 			}
 
