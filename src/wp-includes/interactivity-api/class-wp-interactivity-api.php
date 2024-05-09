@@ -169,7 +169,7 @@ final class WP_Interactivity_API {
 		if ( ! empty( $interactivity_data ) ) {
 			$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
 			if ( 'UTF-8' === get_option( 'blog_charset' ) ) {
-				$json_encode_flags |= JSON_UNESCAPED_UNICODE;
+				$json_encode_flags |= JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
 			}
 
 			wp_print_inline_script_tag(
