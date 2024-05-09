@@ -386,12 +386,10 @@ SCRIPT_TAG;
 		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
 		preg_match( '~<script type="application/json" id="wp-interactivity-data">\s*(\{.*\})\s*</script>~s', $interactivity_data_markup, $interactivity_data_string );
 
-		$this->assertEquals(
-			<<<"JSON"
+		$expected = <<<"JSON"
 {"config":{"myPlugin":{"chars":"&\\u003C\\u003E/"}},"state":{"myPlugin":{"ampersand":"&","less-than sign":"\\u003C","greater-than sign":"\\u003E","solidus":"/","line separator":"\u{2028}","paragraph separator":"\u{2029}","flag of england":"\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}","malicious script closer":"\\u003C/script\\u003E","entity-encoded malicious script closer":"&lt;/script&gt;"}}}
-JSON,
-			$interactivity_data_string[1]
-		);
+JSON;
+		$this->assertEquals( $expected, $interactivity_data_string[1] );
 	}
 
 	/**
@@ -428,12 +426,10 @@ JSON,
 		$interactivity_data_markup = get_echo( array( $this->interactivity, 'print_client_interactivity_data' ) );
 		preg_match( '~<script type="application/json" id="wp-interactivity-data">\s*(\{.*\})\s*</script>~s', $interactivity_data_markup, $interactivity_data_string );
 
-		$this->assertEquals(
-			<<<"JSON"
+		$expected = <<<"JSON"
 {"config":{"myPlugin":{"chars":"&\\u003C\\u003E/"}},"state":{"myPlugin":{"ampersand":"&","less-than sign":"\\u003C","greater-than sign":"\\u003E","solidus":"/","line separator":"\\u2028","paragraph separator":"\\u2029","flag of england":"\\ud83c\\udff4\\udb40\\udc67\\udb40\\udc62\\udb40\\udc65\\udb40\\udc6e\\udb40\\udc67\\udb40\\udc7f","malicious script closer":"\\u003C/script\\u003E","entity-encoded malicious script closer":"&lt;/script&gt;"}}}
-JSON,
-			$interactivity_data_string[1]
-		);
+JSON;
+		$this->assertEquals( $expected, $interactivity_data_string[1] );
 	}
 
 	/**
