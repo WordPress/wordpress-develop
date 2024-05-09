@@ -2134,8 +2134,13 @@ class WP_Query {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title = %s", stripslashes( $q['title'] ) );
 		}
 
+		// Set is_singular to false.
+		if ( '' === sanitize_title_for_query( $q['name'] ) && true === $this->is_singular && ! $this->is_preview ) {
+			$this->is_singular = false;
+		}
+
 		// Parameters related to 'post_name'.
-		if ( '' !== $q['name'] ) {
+		if ( '' !== sanitize_title_for_query( $q['name'] ) ) {
 			$q['name'] = sanitize_title_for_query( $q['name'] );
 			$where    .= " AND {$wpdb->posts}.post_name = '" . $q['name'] . "'";
 		} elseif ( '' !== $q['pagename'] ) {
