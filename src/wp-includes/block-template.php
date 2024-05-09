@@ -207,7 +207,7 @@ function _block_template_render_title_tag() {
  *
  * @access private
  * @since 5.8.0
- * @since 6.4.0 Block template content now runs through a 'the_block_template_html' filter.
+ * @since 6.6.0 Block template content now runs through a 'the_block_template_html' filter.
  *
  * @global string $_wp_current_template_content
  *
@@ -226,11 +226,11 @@ function get_the_block_template_html() {
 	$content = $_wp_current_template_content;
 
 	/**
-	 * Filters the block template HTML content.
+	 * Filters the block template content.
 	 *
-	 * @since 6.4.0
+	 * @since 6.6.0
 	 *
-	 * @param string $content The entire block template HTML content.
+	 * @param string $content The entire block template content.
 	 */
 	$content = apply_filters( 'the_block_template_html', $content );
 	$content = str_replace( ']]>', ']]&gt;', $content );
@@ -243,7 +243,7 @@ function get_the_block_template_html() {
 /**
  * Parses dynamic blocks from the block template and re-renders them.
  *
- * @since 6.4.0
+ * @since 6.6.0
  *
  * @global WP_Query $wp_query
  * @global string   $_wp_current_template_id
