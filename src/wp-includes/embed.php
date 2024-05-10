@@ -926,6 +926,7 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 			'href' => true,
 		),
 		'blockquote' => array(),
+		'p'          => array(),
 		'iframe'     => array(
 			'src'          => true,
 			'width'        => true,
@@ -941,36 +942,36 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 	$html = wp_kses( $result, $allowed_html );
 
 	preg_match( '|(<blockquote>.*?</blockquote>)?.*(<iframe.*?></iframe>)|ms', $html, $content );
+
 	// We require at least the iframe to exist.
-	if ( empty( $content[2] ) ) {
-		return false;
+	if ( ! empty( $content[2] ) ) {
+		$html = $content[1] . $content[2];
+
+		preg_match( '/ src=([\'"])(.*?)\1/', $html, $results );
+
+		if ( ! empty( $results ) ) {
+			$secret = wp_generate_password( 10, false );
+
+			$url = esc_url( "{$results[2]}#?secret=$secret" );
+			$q   = $results[1];
+
+			$html = str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
+			$html = str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
+		}
+
+		$allowed_html['blockquote']['data-secret'] = true;
+		$allowed_html['iframe']['data-secret']     = true;
+
+		$html = wp_kses( $html, $allowed_html );
+
+		if ( ! empty( $content[1] ) ) {
+			// We have a blockquote to fall back on. Hide the iframe by default.
+			$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
+			$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
+		}
+
+		$html = str_ireplace( '<iframe', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $html );
 	}
-	$html = $content[1] . $content[2];
-
-	preg_match( '/ src=([\'"])(.*?)\1/', $html, $results );
-
-	if ( ! empty( $results ) ) {
-		$secret = wp_generate_password( 10, false );
-
-		$url = esc_url( "{$results[2]}#?secret=$secret" );
-		$q   = $results[1];
-
-		$html = str_replace( $results[0], ' src=' . $q . $url . $q . ' data-secret=' . $q . $secret . $q, $html );
-		$html = str_replace( '<blockquote', "<blockquote data-secret=\"$secret\"", $html );
-	}
-
-	$allowed_html['blockquote']['data-secret'] = true;
-	$allowed_html['iframe']['data-secret']     = true;
-
-	$html = wp_kses( $html, $allowed_html );
-
-	if ( ! empty( $content[1] ) ) {
-		// We have a blockquote to fall back on. Hide the iframe by default.
-		$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
-		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
-	}
-
-	$html = str_ireplace( '<iframe', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $html );
 
 	return $html;
 }
