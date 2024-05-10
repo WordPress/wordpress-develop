@@ -110,6 +110,24 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure set_transient() primes the option cache checking for an existing transient.
+	 *
+	 * @ticket 61193
+	 *
+	 * @covers ::set_transient
+	 */
+	public function test_set_transient_primes_option_cache() {
+		$key     = rand_str();
+		$value   = rand_str();
+		$timeout = 100;
+
+		$before_queries = get_num_queries();
+		$this->assertTrue( set_transient( $key, $value, $timeout ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 3, $transient_queries, 'Expected three database queries setting the transient.' );
+	}
+
+	/**
 	 * @ticket 22807
 	 *
 	 * @covers ::set_transient
