@@ -256,7 +256,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertNotNull( get_post_type_object( 'foo' ) );
 		$this->assertNull( get_post_type_object( array() ) );
 		$this->assertNull( get_post_type_object( array( 'foo' ) ) );
-		$this->assertNull( get_post_type_object( new stdClass ) );
+		$this->assertNull( get_post_type_object( new stdClass() ) );
 
 		_unregister_post_type( 'foo' );
 
@@ -586,7 +586,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	/**
 	 * @ticket 34010
 	 */
-	public function test_get_post_types_by_support_non_existant_feature() {
+	public function test_get_post_types_by_support_non_existent_feature() {
 		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
 	}
 }

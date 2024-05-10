@@ -3,8 +3,9 @@
 /**
  * Test dbDelta()
  *
- * @group upgrade
+ * @group wpdb
  * @group dbdelta
+ * @group upgrade
  *
  * @covers ::dbDelta
  */
@@ -68,7 +69,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			$wpdb->prepare(
 				"
 				CREATE TABLE {$wpdb->prefix}dbdelta_test (" .
-					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					'id bigint(20) NOT NULL AUTO_INCREMENT,
 					column_1 varchar(255) NOT NULL,
 					column_2 text,
@@ -99,7 +99,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 
 		parent::tear_down();
 
-		// This has to be called after the parent `tearDown()` method.
+		// This has to be called after the parent `tear_down()` method.
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_test" );
 	}
 
@@ -311,7 +311,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 		);
 
 		$this->assertTableRowHasValue( 'column_1', 'wcphilly2015', $wpdb->prefix . 'dbdelta_test' );
-
 	}
 
 	/**
@@ -426,10 +425,6 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	 */
 	public function test_truncated_index() {
 		global $wpdb;
-
-		if ( ! $wpdb->has_cap( 'utf8mb4' ) ) {
-			$this->markTestSkipped( 'This test requires utf8mb4 support in MySQL.' );
-		}
 
 		// This table needs to be actually created.
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -740,7 +735,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 	/**
 	 * @ticket 20263
 	 */
-	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indicies() {
+	public function test_key_and_index_and_fulltext_key_and_fulltext_index_and_unique_key_and_unique_index_indices() {
 		global $wpdb;
 
 		$schema = "

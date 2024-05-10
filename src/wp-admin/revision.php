@@ -21,14 +21,16 @@ require ABSPATH . 'wp-admin/includes/revision.php';
  * @global int    $from     The revision to compare from.
  * @global int    $to       Optional, required if revision missing. The revision to compare to.
  */
-wp_reset_vars( array( 'revision', 'action', 'from', 'to' ) );
 
-$revision_id = absint( $revision );
+$revision_id = ! empty( $_REQUEST['revision'] ) ? absint( $_REQUEST['revision'] ) : 0;
+$action      = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
+$from        = ! empty( $_REQUEST['from'] ) && is_numeric( $_REQUEST['from'] ) ? absint( $_REQUEST['from'] ) : null;
+$to          = ! empty( $_REQUEST['to'] ) && is_numeric( $_REQUEST['to'] ) ? absint( $_REQUEST['to'] ) : null;
 
-$from = is_numeric( $from ) ? absint( $from ) : null;
 if ( ! $revision_id ) {
-	$revision_id = absint( $to );
+	$revision_id = $to;
 }
+
 $redirect = 'edit.php';
 
 switch ( $action ) {
@@ -104,10 +106,10 @@ switch ( $action ) {
 		}
 
 		$post_edit_link = get_edit_post_link();
-		$post_title     = '<a href="' . $post_edit_link . '">' . _draft_or_post_title() . '</a>';
+		$post_title     = '<a href="' . esc_url( $post_edit_link ) . '">' . _draft_or_post_title() . '</a>';
 		/* translators: %s: Post title. */
 		$h1             = sprintf( __( 'Compare Revisions of &#8220;%s&#8221;' ), $post_title );
-		$return_to_post = '<a href="' . $post_edit_link . '">' . __( '&larr; Go to editor' ) . '</a>';
+		$return_to_post = '<a href="' . esc_url( $post_edit_link ) . '">' . __( '&larr; Go to editor' ) . '</a>';
 		// Used in the HTML title tag.
 		$title = __( 'Revisions' );
 
@@ -154,8 +156,8 @@ get_current_screen()->add_help_tab(
 );
 
 $revisions_sidebar  = '<p><strong>' . __( 'For more information:' ) . '</strong></p>';
-$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/article/revisions/">Revisions Management</a>' ) . '</p>';
-$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
+$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/documentation/article/revisions/">Revisions Management</a>' ) . '</p>';
+$revisions_sidebar .= '<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>';
 
 get_current_screen()->set_help_sidebar( $revisions_sidebar );
 

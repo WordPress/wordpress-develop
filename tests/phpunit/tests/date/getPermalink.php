@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group post
+ *
  * @covers ::get_permalink
  */
 class Tests_Date_GetPermalink extends WP_UnitTestCase {
@@ -34,10 +35,10 @@ class Tests_Date_GetPermalink extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'http://example.org/2018/07/22/21/13/23', get_permalink( $post_id ) );
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/2018/07/22/21/13/23', get_permalink( $post_id ) );
 
 		// phpcs:ignore WordPress.DateTime.RestrictedFunctions.timezone_change_date_default_timezone_set
 		date_default_timezone_set( $timezone );
-		$this->assertSame( 'http://example.org/2018/07/22/21/13/23', get_permalink( $post_id ) );
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/2018/07/22/21/13/23', get_permalink( $post_id ) );
 	}
 }

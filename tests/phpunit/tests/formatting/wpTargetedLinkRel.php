@@ -136,5 +136,4 @@ class Tests_Formatting_wpTargetedLinkRel extends WP_UnitTestCase {
 		$expected = '<p>Links: <a href="/" target="_blank" rel="ugc noopener">No rel</a></p>';
 		$this->assertSame( $expected, wp_targeted_link_rel( $content ) );
 	}
-
 }

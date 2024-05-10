@@ -4,12 +4,6 @@
  *
  * @package WordPress\UnitTests
  * @since 5.2.0
- */
-
-/**
- * Tests_Ajax_PrivacyExportPersonalData class.
- *
- * @since 5.2.0
  *
  * @group ajax
  * @group privacy

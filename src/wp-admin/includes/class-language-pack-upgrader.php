@@ -62,7 +62,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		 * Avoid messing with VCS installations, at least for now.
 		 * Noted: this is not the ideal way to accomplish this.
 		 */
-		$check_vcs = new WP_Automatic_Updater;
+		$check_vcs = new WP_Automatic_Updater();
 		if ( $check_vcs->is_vcs_checkout( WP_CONTENT_DIR ) ) {
 			return;
 		}
@@ -105,7 +105,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Initialize the upgrade strings.
+	 * Initializes the upgrade strings.
 	 *
 	 * @since 3.7.0
 	 */
@@ -114,7 +114,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date']       = __( 'Your translations are all up to date.' );
 		$this->strings['no_package']       = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading translation from %s&#8230;' ), '<span class="code">%s</span>' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading translation from %s&#8230;' ), '<span class="code pre">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
 		$this->strings['process_failed']      = __( 'Translation update failed.' );
 		$this->strings['process_success']     = __( 'Translation updated successfully.' );
@@ -123,7 +123,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Upgrade a language pack.
+	 * Upgrades a language pack.
 	 *
 	 * @since 3.7.0
 	 *
@@ -147,13 +147,13 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Bulk upgrade language packs.
+	 * Upgrades several language packs at once.
 	 *
 	 * @since 3.7.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param object[] $language_updates Optional. Array of language packs to update. @see wp_get_translation_updates().
+	 * @param object[] $language_updates Optional. Array of language packs to update. See {@see wp_get_translation_updates()}.
 	 *                                   Default empty array.
 	 * @param array    $args {
 	 *     Other arguments for upgrading multiple language packs. Default empty array.
@@ -238,7 +238,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				$destination .= '/themes';
 			}
 
-			$this->update_current++;
+			++$this->update_current;
 
 			$options = array(
 				'package'                     => $language_update->package,
@@ -332,15 +332,22 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		// Check that the folder contains a valid language.
 		$files = $wp_filesystem->dirlist( $remote_source );
 
-		// Check to see if a .po and .mo exist in the folder.
-		$po = false;
-		$mo = false;
+		// Check to see if the expected files exist in the folder.
+		$po  = false;
+		$mo  = false;
+		$php = false;
 		foreach ( (array) $files as $file => $filedata ) {
-			if ( '.po' === substr( $file, -3 ) ) {
+			if ( str_ends_with( $file, '.po' ) ) {
 				$po = true;
-			} elseif ( '.mo' === substr( $file, -3 ) ) {
+			} elseif ( str_ends_with( $file, '.mo' ) ) {
 				$mo = true;
+			} elseif ( str_ends_with( $file, '.l10n.php' ) ) {
+				$php = true;
 			}
+		}
+
+		if ( $php ) {
+			return $source;
 		}
 
 		if ( ! $mo || ! $po ) {
@@ -348,10 +355,11 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				'incompatible_archive_pomo',
 				$this->strings['incompatible_archive'],
 				sprintf(
-					/* translators: 1: .po, 2: .mo */
-					__( 'The language pack is missing either the %1$s or %2$s files.' ),
+					/* translators: 1: .po, 2: .mo, 3: .l10n.php */
+					__( 'The language pack is missing either the %1$s, %2$s, or %3$s files.' ),
 					'<code>.po</code>',
-					'<code>.mo</code>'
+					'<code>.mo</code>',
+					'<code>.l10n.php</code>'
 				)
 			);
 		}
@@ -360,7 +368,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Get the name of an item being updated.
+	 * Gets the name of an item being updated.
 	 *
 	 * @since 3.7.0
 	 *
@@ -409,12 +417,16 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$files = array(
 				$remote_destination . $language_update->language . '.po',
 				$remote_destination . $language_update->language . '.mo',
+				$remote_destination . $language_update->language . '.l10n.php',
 				$remote_destination . 'admin-' . $language_update->language . '.po',
 				$remote_destination . 'admin-' . $language_update->language . '.mo',
+				$remote_destination . 'admin-' . $language_update->language . '.l10n.php',
 				$remote_destination . 'admin-network-' . $language_update->language . '.po',
 				$remote_destination . 'admin-network-' . $language_update->language . '.mo',
+				$remote_destination . 'admin-network-' . $language_update->language . '.l10n.php',
 				$remote_destination . 'continents-cities-' . $language_update->language . '.po',
 				$remote_destination . 'continents-cities-' . $language_update->language . '.mo',
+				$remote_destination . 'continents-cities-' . $language_update->language . '.l10n.php',
 			);
 
 			$json_translation_files = glob( $language_directory . $language_update->language . '-*.json' );
@@ -427,6 +439,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$files = array(
 				$remote_destination . $language_update->slug . '-' . $language_update->language . '.po',
 				$remote_destination . $language_update->slug . '-' . $language_update->language . '.mo',
+				$remote_destination . $language_update->slug . '-' . $language_update->language . '.l10n.php',
 			);
 
 			$language_directory     = $language_directory . $language_update->type . 's/';

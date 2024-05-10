@@ -11,14 +11,14 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 *
 	 * @var int[]
 	 */
-	static $post_ids = array();
+	private static $post_ids = array();
 
 	/**
 	 * Page IDs.
 	 *
 	 * @var int[]
 	 */
-	static $page_ids = array();
+	private static $page_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Register CPT for use with shared fixtures.
@@ -62,7 +62,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -86,7 +86,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -110,7 +110,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -145,7 +145,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -173,7 +173,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -204,7 +204,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 
 		$this->assertEqualSets( $expected, $q->posts, 'Posts property for first query is not of expected form.' );
 		$this->assertSame( 5, $q->found_posts, 'Number of found posts is not five.' );
-		$this->assertEquals( 1, $q->max_num_pages, 'Number of found pages is not one.' );
+		$this->assertSame( 1, $q->max_num_pages, 'Number of found pages is not one.' );
 
 		// Test the second query's results match.
 		$q2 = new WP_Query( $query_args );
@@ -217,7 +217,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * @param string $fields The fields to SELECT.
 	 * @return string The filtered fields.
 	 */
-	function filter_posts_fields( $fields ) {
+	public function filter_posts_fields( $fields ) {
 		return "$fields, 1 as test_post_fields";
 	}
 
@@ -227,7 +227,7 @@ class Tests_Query_FieldsClause extends WP_UnitTestCase {
 	 * @param array $clauses The WP_Query database clauses.
 	 * @return array The filtered database clauses.
 	 */
-	function filter_posts_clauses( $clauses ) {
+	public function filter_posts_clauses( $clauses ) {
 		$clauses['fields'] .= ', 2 as test_post_clauses';
 		return $clauses;
 	}

@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi-themes
  * @group restapi
  */
@@ -129,6 +127,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$contributor_id );
 		self::delete_user( self::$admin_id );
+
+		remove_theme_support( 'editor-gradient-presets' );
+		remove_theme_support( 'editor-color-palette' );
 	}
 
 	/**
@@ -174,6 +175,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -187,6 +189,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 	}
 
@@ -210,6 +214,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -222,6 +227,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 
 		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
@@ -345,7 +352,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 15, $properties );
+		$this->assertCount( 16, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -358,6 +365,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['description']['properties'] );
 		$this->assertArrayHasKey( 'rendered', $properties['description']['properties'] );
+
+		$this->assertArrayHasKey( 'is_block_theme', $properties );
 
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['name']['properties'] );
@@ -471,6 +480,27 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'requires_wp', $result[0] );
 		$this->assertSame( '5.3', $result[0]['requires_wp'] );
+	}
+
+	/**
+	 * @ticket 58123
+	 * @covers WP_REST_Themes_Controller::prepare_item_for_response
+	 */
+	public function test_theme_is_block_theme() {
+		// Test classic theme, activated in test setup.
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
+		$this->assertFalse( $result[0]['is_block_theme'] );
+
+		// Test block theme.
+		switch_theme( 'block-theme' );
+		$response = self::perform_active_theme_request();
+		$result   = $response->get_data();
+
+		$this->assertArrayHasKey( 'is_block_theme', $result[0] );
+		$this->assertTrue( $result[0]['is_block_theme'] );
 	}
 
 	/**
@@ -904,7 +934,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_wp_block_styles_optin() {
+	public function test_theme_wp_block_styles_opt_in() {
 		remove_theme_support( 'wp-block-styles' );
 		add_theme_support( 'wp-block-styles' );
 		$response = self::perform_active_theme_request();
@@ -928,7 +958,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_align_wide_optin() {
+	public function test_theme_align_wide_opt_in() {
 		remove_theme_support( 'align-wide' );
 		add_theme_support( 'align-wide' );
 		$response = self::perform_active_theme_request();
@@ -952,7 +982,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_editor_styles_optin() {
+	public function test_theme_editor_styles_opt_in() {
 		remove_theme_support( 'editor-styles' );
 		add_theme_support( 'editor-styles' );
 		$response = self::perform_active_theme_request();
@@ -976,7 +1006,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_dark_editor_style_optin() {
+	public function test_theme_dark_editor_style_opt_in() {
 		remove_theme_support( 'dark-editor-style' );
 		add_theme_support( 'dark-editor-style' );
 		$response = self::perform_active_theme_request();
@@ -1236,6 +1266,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'author',
 			'author_uri',
 			'description',
+			'is_block_theme',
 			'name',
 			'requires_php',
 			'requires_wp',
@@ -1386,7 +1417,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'wp/v2',
 			sprintf( '/themes/(?P<stylesheet>%s)//test', WP_REST_Themes_Controller::PATTERN ),
 			array(
-				'callback'            => function ( WP_REST_Request $request ) {
+				'callback'            => static function ( WP_REST_Request $request ) {
 					return $request['stylesheet'];
 				},
 				'permission_callback' => '__return_true',

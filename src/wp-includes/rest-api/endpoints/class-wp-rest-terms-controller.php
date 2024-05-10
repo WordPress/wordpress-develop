@@ -179,7 +179,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access, otherwise false or WP_Error object.
+	 * @return bool|WP_Error True if the request has read access, otherwise false or WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
 		$tax_obj = get_taxonomy( $this->taxonomy );
@@ -348,13 +348,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		// Store pagination values for headers.
 		$per_page = (int) $prepared_args['number'];
-		$page     = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
+		$page     = (int) ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
 
 		$response->header( 'X-WP-Total', (int) $total_terms );
 
-		$max_pages = ceil( $total_terms / $per_page );
+		$max_pages = (int) ceil( $total_terms / $per_page );
 
-		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$request_params = $request->get_query_params();
 		$collection_url = rest_url( rest_get_route_for_taxonomy_items( $this->taxonomy ) );
@@ -417,7 +417,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return true|WP_Error True if the request has read access for the item, otherwise false or WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$term = $this->get_term( $request['id'] );
@@ -807,7 +807,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return object Term object.
 	 */
 	public function prepare_item_for_database( $request ) {
-		$prepared_term = new stdClass;
+		$prepared_term = new stdClass();
 
 		$schema = $this->get_item_schema();
 		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {

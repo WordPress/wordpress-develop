@@ -40,6 +40,24 @@ class Tests_Comment_wpCheckCommentDisallowedList extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 	}
 
+	/**
+	 * @ticket 57207
+	 */
+	public function test_should_return_true_when_content_with_non_latin_words_matches_disallowed_keys() {
+		$author       = 'Setup';
+		$author_email = 'setup@example.com';
+		$author_url   = 'http://example.com';
+		$comment      = 'Установка';
+		$author_ip    = '192.168.0.1';
+		$user_agent   = '';
+
+		update_option( 'disallowed_keys', "установка\nfoo" );
+
+		$result = wp_check_comment_disallowed_list( $author, $author_email, $author_url, $comment, $author_ip, $user_agent );
+
+		$this->assertTrue( $result );
+	}
+
 	public function test_should_return_true_when_author_matches_disallowed_keys() {
 		$author       = 'Sideshow Mel';
 		$author_email = 'mel@example.com';

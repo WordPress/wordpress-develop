@@ -4,10 +4,9 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @covers WP_REST_Global_Styles_Controller
+ *
  * @group restapi-global-styles
  * @group restapi
  */
@@ -31,17 +30,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 * @var int
 	 */
 	protected static $post_id;
-
-	private function find_and_normalize_global_styles_by_id( $global_styles, $id ) {
-		foreach ( $global_styles as $style ) {
-			if ( $style['id'] === $id ) {
-				unset( $style['_links'] );
-				return $style;
-			}
-		}
-
-		return null;
-	}
 
 	public function set_up() {
 		parent::set_up();
@@ -129,6 +117,89 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	public function test_context_param() {
 		// Controller does not use get_context_param().
+	}
+
+	public function test_get_theme_items() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/block-theme/variations' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$expected = array(
+			array(
+				'version'  => 2,
+				'title'    => 'variation-a',
+				'settings' => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'light',
+											'name'  => 'Light',
+											'color' => '#f2f2f2',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			array(
+				'version'  => 2,
+				'title'    => 'variation-b',
+				'settings' => array(
+					'blocks' => array(
+						'core/post-title' => array(
+							'color' => array(
+								'palette' => array(
+									'theme' => array(
+										array(
+											'slug'  => 'light',
+											'name'  => 'Light',
+											'color' => '#f1f1f1',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			array(
+				'version'  => 2,
+				'title'    => 'Block theme variation',
+				'settings' => array(
+					'color' => array(
+						'palette' => array(
+							'theme' => array(
+								array(
+									'slug'  => 'foreground',
+									'color' => '#3F67C6',
+									'name'  => 'Foreground',
+								),
+							),
+						),
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/post-title' => array(
+							'typography' => array(
+								'fontWeight' => '700',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		wp_recursive_ksort( $data );
+		wp_recursive_ksort( $expected );
+
+		$this->assertSameSets( $expected, $data );
 	}
 
 	/**
@@ -412,7 +483,6 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertSame( 'My new global styles title', $data['title']['raw'] );
 	}
 
-
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::update_item
 	 * @ticket 54516
@@ -447,6 +517,45 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 57536
+	 */
+	public function test_update_item_valid_styles_css() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => 'body { color: red; }' ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'body { color: red; }', $data['styles']['css'] );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 57536
+	 */
+	public function test_update_item_invalid_styles_css() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => '<p>test</p> body { color: red; }' ),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_custom_css_illegal_markup', $response, 400 );
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_delete_item() {
@@ -476,41 +585,22 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'title', $properties, 'Schema properties array does not have "title" key' );
 	}
 
-
-	public function test_get_theme_items() {
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_available_actions
+	 */
+	public function test_assign_edit_css_action_admin() {
 		wp_set_current_user( self::$admin_id );
-		switch_theme( 'block-theme' );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/themes/block-theme/variations' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$expected = array(
-			array(
-				'version'  => 2,
-				'title'    => 'Block theme variation',
-				'settings' => array(
-					'color' => array(
-						'palette' => array(
-							'theme' => array(
-								array(
-									'slug'  => 'foreground',
-									'color' => '#3F67C6',
-									'name'  => 'Foreground',
-								),
-							),
-						),
-					),
-				),
-				'styles'   => array(
-					'blocks' => array(
-						'core/post-title' => array(
-							'typography' => array(
-								'fontWeight' => '700',
-							),
-						),
-					),
-				),
-			),
-		);
-		$this->assertSameSetsWithIndex( $data, $expected );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+		$links    = $response->get_links();
+
+		// Admins can only edit css on single site.
+		if ( is_multisite() ) {
+			$this->assertArrayNotHasKey( 'https://api.w.org/action-edit-css', $links );
+		} else {
+			$this->assertArrayHasKey( 'https://api.w.org/action-edit-css', $links );
+		}
 	}
 }
