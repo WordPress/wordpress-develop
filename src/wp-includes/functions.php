@@ -7495,11 +7495,11 @@ function _canonical_charset( $charset ) {
 	if (
 		(
 			10 === $charset_length &&
-			0 === substr_compare( 'iso-8859-1', $charset, 0, 10, true )
+			0 === strcasecmp( 'iso-8859-1', $charset )
 		) ||
 		(
 			9 === $charset_length &&
-			0 === substr_compare( 'iso8859-1', $charset, 0, 9, true )
+			0 === strcasecmp( 'iso8859-1', $charset )
 		)
 	) {
 		return 'ISO-8859-1';
