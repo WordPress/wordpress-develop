@@ -81,6 +81,35 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure get_transient() makes a single database request.
+	 *
+	 * @ticket 61193
+	 *
+	 * @covers ::get_transient
+	 */
+	public function test_get_transient_with_timeout_makes_a_single_database_call() {
+		$key     = rand_str();
+		$value   = rand_str();
+		$timeout = 100;
+
+		set_transient( $key, $value, $timeout );
+
+		// Clear the cache of both the transient and the timeout.
+		$option_names = array(
+			'_transient_' . $key,
+			'_transient_timeout_' . $key,
+		);
+		foreach ( $option_names as $option_name ) {
+			wp_cache_delete( $option_name, 'options' );
+		}
+
+		$before_queries = get_num_queries();
+		$this->assertSame( $value, get_transient( $key ) );
+		$transient_queries = get_num_queries() - $before_queries;
+		$this->assertSame( 1, $transient_queries, 'Expected a single database query to retrieve the transient.' );
+	}
+
+	/**
 	 * @ticket 22807
 	 *
 	 * @covers ::set_transient
