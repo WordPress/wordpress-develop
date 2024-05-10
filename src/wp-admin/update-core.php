@@ -160,8 +160,8 @@ function list_core_update( $update ) {
 	wp_nonce_field( 'upgrade-core' );
 
 	echo '<p>';
-	echo '<input name="version" value="' . esc_attr( $update->current ) . '" type="hidden" />';
-	echo '<input name="locale" value="' . esc_attr( $update->locale ) . '" type="hidden" />';
+	echo '<input name="version" value="' . esc_attr( $update->current ) . '" type="hidden">';
+	echo '<input name="locale" value="' . esc_attr( $update->locale ) . '" type="hidden">';
 	if ( $show_buttons ) {
 		if ( $first_pass ) {
 			submit_button( $submit, $current ? '' : 'primary regular', 'upgrade', false );
@@ -413,7 +413,7 @@ function core_auto_updates_settings() {
 			_e( 'This site is automatically kept up to date with each new version of WordPress.' );
 
 			if ( $can_set_update_option ) {
-				echo '<br />';
+				echo '<br>';
 				printf(
 					'<a href="%s" class="core-auto-update-settings-link core-auto-update-settings-link-disable">%s</a>',
 					wp_nonce_url( add_query_arg( 'value', 'disable', $action_url ), 'core-major-auto-updates-nonce' ),
@@ -424,7 +424,7 @@ function core_auto_updates_settings() {
 			_e( 'This site is automatically kept up to date with maintenance and security releases of WordPress only.' );
 
 			if ( $can_set_update_option ) {
-				echo '<br />';
+				echo '<br>';
 				printf(
 					'<a href="%s" class="core-auto-update-settings-link core-auto-update-settings-link-enable">%s</a>',
 					wp_nonce_url( add_query_arg( 'value', 'enable', $action_url ), 'core-major-auto-updates-nonce' ),
@@ -493,11 +493,11 @@ function list_plugin_updates() {
 <p><?php _e( 'The following plugins have new versions available. Check the ones you want to update and then click &#8220;Update Plugins&#8221;.' ); ?></p>
 <form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-plugins" class="upgrade">
 	<?php wp_nonce_field( 'upgrade-core' ); ?>
-<p><input id="upgrade-plugins" class="button" type="submit" value="<?php esc_attr_e( 'Update Plugins' ); ?>" name="upgrade" /></p>
+<p><input id="upgrade-plugins" class="button" type="submit" value="<?php esc_attr_e( 'Update Plugins' ); ?>" name="upgrade"></p>
 <table class="widefat updates-table" id="update-plugins-table">
 	<thead>
 	<tr>
-		<td class="manage-column check-column"><input type="checkbox" id="plugins-select-all" /></td>
+		<td class="manage-column check-column"><input type="checkbox" id="plugins-select-all"></td>
 		<td class="manage-column"><label for="plugins-select-all"><?php _e( 'Select All' ); ?></label></td>
 	</tr>
 	</thead>
@@ -518,7 +518,7 @@ function list_plugin_updates() {
 		$preferred_icons = array( 'svg', '2x', '1x', 'default' );
 		foreach ( $preferred_icons as $preferred_icon ) {
 			if ( ! empty( $plugin_data->update->icons[ $preferred_icon ] ) ) {
-				$icon = '<img src="' . esc_url( $plugin_data->update->icons[ $preferred_icon ] ) . '" alt="" />';
+				$icon = '<img src="' . esc_url( $plugin_data->update->icons[ $preferred_icon ] ) . '" alt="">';
 				break;
 			}
 		}
@@ -526,19 +526,19 @@ function list_plugin_updates() {
 		// Get plugin compat for running version of WordPress.
 		if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
+			$compat = '<br>' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
 		} else {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
+			$compat = '<br>' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
 		}
 		// Get plugin compat for updated version of WordPress.
 		if ( $core_update_version ) {
 			if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $core_update_version, '>=' ) ) {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $core_update_version );
+				$compat .= '<br>' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $core_update_version );
 			} else {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $core_update_version );
+				$compat .= '<br>' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $core_update_version );
 			}
 		}
 
@@ -546,7 +546,7 @@ function list_plugin_updates() {
 		$compatible_php = is_php_version_compatible( $requires_php );
 
 		if ( ! $compatible_php && current_user_can( 'update_php' ) ) {
-			$compat .= '<br />' . __( 'This update does not work with your version of PHP.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your version of PHP.' ) . '&nbsp;';
 			$compat .= sprintf(
 				/* translators: %s: URL to Update PHP page. */
 				__( '<a href="%s">Learn more about updating PHP</a>.' ),
@@ -562,7 +562,7 @@ function list_plugin_updates() {
 
 		// Get the upgrade notice for the new plugin version.
 		if ( isset( $plugin_data->update->upgrade_notice ) ) {
-			$upgrade_notice = '<br />' . strip_tags( $plugin_data->update->upgrade_notice );
+			$upgrade_notice = '<br>' . strip_tags( $plugin_data->update->upgrade_notice );
 		} else {
 			$upgrade_notice = '';
 		}
@@ -582,7 +582,7 @@ function list_plugin_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_php ) : ?>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>">
 				<label for="<?php echo $checkbox_id; ?>">
 					<span class="screen-reader-text">
 					<?php
@@ -621,12 +621,12 @@ function list_plugin_updates() {
 
 	<tfoot>
 	<tr>
-		<td class="manage-column check-column"><input type="checkbox" id="plugins-select-all-2" /></td>
+		<td class="manage-column check-column"><input type="checkbox" id="plugins-select-all-2"></td>
 		<td class="manage-column"><label for="plugins-select-all-2"><?php _e( 'Select All' ); ?></label></td>
 	</tr>
 	</tfoot>
 </table>
-<p><input id="upgrade-plugins-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Plugins' ); ?>" name="upgrade" /></p>
+<p><input id="upgrade-plugins-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Plugins' ); ?>" name="upgrade"></p>
 </form>
 	<?php
 }
@@ -669,11 +669,11 @@ function list_theme_updates() {
 </p>
 <form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-themes" class="upgrade">
 	<?php wp_nonce_field( 'upgrade-core' ); ?>
-<p><input id="upgrade-themes" class="button" type="submit" value="<?php esc_attr_e( 'Update Themes' ); ?>" name="upgrade" /></p>
+<p><input id="upgrade-themes" class="button" type="submit" value="<?php esc_attr_e( 'Update Themes' ); ?>" name="upgrade"></p>
 <table class="widefat updates-table" id="update-themes-table">
 	<thead>
 	<tr>
-		<td class="manage-column check-column"><input type="checkbox" id="themes-select-all" /></td>
+		<td class="manage-column check-column"><input type="checkbox" id="themes-select-all"></td>
 		<td class="manage-column"><label for="themes-select-all"><?php _e( 'Select All' ); ?></label></td>
 	</tr>
 	</thead>
@@ -696,7 +696,7 @@ function list_theme_updates() {
 		$compat = '';
 
 		if ( ! $compatible_wp && ! $compatible_php ) {
-			$compat .= '<br />' . __( 'This update does not work with your versions of WordPress and PHP.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your versions of WordPress and PHP.' ) . '&nbsp;';
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 				$compat .= sprintf(
 					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -730,7 +730,7 @@ function list_theme_updates() {
 				}
 			}
 		} elseif ( ! $compatible_wp ) {
-			$compat .= '<br />' . __( 'This update does not work with your version of WordPress.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your version of WordPress.' ) . '&nbsp;';
 			if ( current_user_can( 'update_core' ) ) {
 				$compat .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
@@ -739,7 +739,7 @@ function list_theme_updates() {
 				);
 			}
 		} elseif ( ! $compatible_php ) {
-			$compat .= '<br />' . __( 'This update does not work with your version of PHP.' ) . '&nbsp;';
+			$compat .= '<br>' . __( 'This update does not work with your version of PHP.' ) . '&nbsp;';
 			if ( current_user_can( 'update_php' ) ) {
 				$compat .= sprintf(
 					/* translators: %s: URL to Update PHP page. */
@@ -760,7 +760,7 @@ function list_theme_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>">
 				<label for="<?php echo $checkbox_id; ?>">
 					<span class="screen-reader-text">
 					<?php
@@ -772,7 +772,7 @@ function list_theme_updates() {
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
-			<img src="<?php echo esc_url( $theme->get_screenshot() . '?ver=' . $theme->version ); ?>" width="85" height="64" class="updates-table-screenshot" alt="" />
+			<img src="<?php echo esc_url( $theme->get_screenshot() . '?ver=' . $theme->version ); ?>" width="85" height="64" class="updates-table-screenshot" alt="">
 			<strong><?php echo $theme->display( 'Name' ); ?></strong>
 			<?php
 			printf(
@@ -797,12 +797,12 @@ function list_theme_updates() {
 
 	<tfoot>
 	<tr>
-		<td class="manage-column check-column"><input type="checkbox" id="themes-select-all-2" /></td>
+		<td class="manage-column check-column"><input type="checkbox" id="themes-select-all-2"></td>
 		<td class="manage-column"><label for="themes-select-all-2"><?php _e( 'Select All' ); ?></label></td>
 	</tr>
 	</tfoot>
 </table>
-<p><input id="upgrade-themes-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Themes' ); ?>" name="upgrade" /></p>
+<p><input id="upgrade-themes-2" class="button" type="submit" value="<?php esc_attr_e( 'Update Themes' ); ?>" name="upgrade"></p>
 </form>
 	<?php
 }
@@ -828,7 +828,7 @@ function list_translation_updates() {
 	<form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-translations" class="upgrade">
 		<p><?php _e( 'New translations are available.' ); ?></p>
 		<?php wp_nonce_field( 'upgrade-translations' ); ?>
-		<p><input class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade" /></p>
+		<p><input class="button" type="submit" value="<?php esc_attr_e( 'Update Translations' ); ?>" name="upgrade"></p>
 	</form>
 	<?php
 }

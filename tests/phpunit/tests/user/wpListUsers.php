@@ -129,10 +129,10 @@ class Tests_User_wpListUsers extends WP_UnitTestCase {
 					'feed'       => 'User feed with image',
 					'feed_image' => 'http://example.org/image.jpg',
 				),
-				'expected' => '<li>jane <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_jane"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
-						'<li>michelle <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_michelle"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
-						'<li>paul <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_paul"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>' .
-						'<li>zack <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_zack"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image" /></a></li>',
+				'expected' => '<li>jane <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_jane"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image"></a></li>' .
+						'<li>michelle <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_michelle"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image"></a></li>' .
+						'<li>paul <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_paul"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image"></a></li>' .
+						'<li>zack <a href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&amp;author=AUTHOR_ID_zack"><img src="http://example.org/image.jpg" style="border: none;" alt="User feed with image"></a></li>',
 			),
 			'a feed of the specified type'       => array(
 				'args'     => array(

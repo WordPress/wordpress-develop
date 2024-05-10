@@ -13,7 +13,7 @@ class Tests_Media extends WP_UnitTestCase {
 A <strong class='classy'>bolded</strong> <em>caption</em> with a <a href="#">link</a>.
 CAP;
 	const IMG_CONTENT  = <<<'CAP'
-<img src="pic.jpg" id='anId' alt="pic"/>
+<img src="pic.jpg" id='anId' alt="pic">
 CAP;
 
 	const IMG_NAME = 'image.jpg';
@@ -633,7 +633,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 		}
 
 		$imgs1_joined = implode( "\n", array_slice( $imgs, 0, 3 ) );
@@ -671,7 +671,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 
 		}
 
@@ -713,7 +713,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 		}
 
 		$ids1_joined  = implode( "\n", array_slice( $ids, 0, 3 ) );
@@ -756,7 +756,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 
 		}
 
@@ -799,7 +799,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+			$imgs[]     = '<!-- wp:image {"id":' . $attachment_id . ',"sizeSlug":"large","linkDestination":"none"} --><figure class="wp-block-image size-large"><img src="' . $url . '"></figure><!-- /wp:image -->';
 
 		}
 
@@ -820,23 +820,23 @@ BLOB;
 	public function test_get_media_embedded_in_content() {
 		$object = <<<OBJ
 <object src="this" data="that">
-	<param name="value"/>
+	<param name="value">
 </object>
 OBJ;
 		$embed  = <<<EMBED
-<embed src="something.mp4"/>
+<embed src="something.mp4">
 EMBED;
 		$iframe = <<<IFRAME
-<iframe src="youtube.com" width="7000" />
+<iframe src="youtube.com" width="7000">
 IFRAME;
 		$audio  = <<<AUDIO
 <audio preload="none">
-	<source />
+	<source>
 </audio>
 AUDIO;
 		$video  = <<<VIDEO
 <video preload="none">
-	<source />
+	<source>
 </video>
 VIDEO;
 
@@ -884,12 +884,12 @@ CONTENT;
 	public function test_get_media_embedded_in_content_order() {
 		$audio   = <<<AUDIO
 <audio preload="none">
-	<source />
+	<source>
 </audio>
 AUDIO;
 		$video   = <<<VIDEO
 <video preload="none">
-	<source />
+	<source>
 </video>
 VIDEO;
 		$content = $audio . $video;
@@ -976,13 +976,13 @@ VIDEO;
 		$video = <<<VIDEO
 [video width="$width" height="480" mp4="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4"]
 <!-- WebM/VP8 for Firefox4, Opera, and Chrome -->
-<source type="video/webm" src="myvideo.webm" />
+<source type="video/webm" src="myvideo.webm">
 <!-- Ogg/Vorbis for older Firefox and Opera versions -->
-<source type="video/ogg" src="myvideo.ogv" />
+<source type="video/ogg" src="myvideo.ogv">
 <!-- Optional: Add subtitles for each language -->
-<track kind="subtitles" src="subtitles.srt" srclang="en" />
+<track kind="subtitles" src="subtitles.srt" srclang="en">
 <!-- Optional: Add chapters -->
-<track kind="chapters" src="chapters.srt" srclang="en" />
+<track kind="chapters" src="chapters.srt" srclang="en">
 [/video]
 VIDEO;
 
@@ -993,11 +993,11 @@ VIDEO;
 		$expected = '<div style="width: ' . $width . 'px;" class="wp-video">' .
 			"<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n" .
 			'<video class="wp-video-shortcode" id="video-' . $post_id . '-1" width="' . $width . '" height="' . $h . '" preload="metadata" controls="controls">' .
-			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=1" />' .
-			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm" />' .
-			'<!-- Ogg/Vorbis for older Firefox and Opera versions --><source type="video/ogg" src="myvideo.ogv" />' .
-			'<!-- Optional: Add subtitles for each language --><track kind="subtitles" src="subtitles.srt" srclang="en" />' .
-			'<!-- Optional: Add chapters --><track kind="chapters" src="chapters.srt" srclang="en" />' .
+			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=1">' .
+			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm">' .
+			'<!-- Ogg/Vorbis for older Firefox and Opera versions --><source type="video/ogg" src="myvideo.ogv">' .
+			'<!-- Optional: Add subtitles for each language --><track kind="subtitles" src="subtitles.srt" srclang="en">' .
+			'<!-- Optional: Add chapters --><track kind="chapters" src="chapters.srt" srclang="en">' .
 			'<a href="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4">' .
 			"http://domain.tld/wp-content/uploads/2013/12/xyz.mp4</a></video></div>\n";
 
@@ -1413,14 +1413,14 @@ Stop.
 EOF;
 
 		$expected = <<<EOF
-<p>Start.<br />
-https://youtube.com/watch?v=TEST01YRHA0<br />
+<p>Start.<br>
+https://youtube.com/watch?v=TEST01YRHA0<br>
 <script><!--
 my_function();
-// --> </script><br />
-https://youtube.com/watch?v=TEST02YRHA0<br />
-<a href="http://www.example.com/embed/TEST03YRHA0">http://www.example.com/embed/TEST03YRHA0</a><br />
-http://www.example.com/embed/TEST04YRHA0<br />
+// --> </script><br>
+https://youtube.com/watch?v=TEST02YRHA0<br>
+<a href="http://www.example.com/embed/TEST03YRHA0">http://www.example.com/embed/TEST03YRHA0</a><br>
+http://www.example.com/embed/TEST04YRHA0<br>
 Stop.</p>
 
 EOF;
@@ -1484,7 +1484,7 @@ EOF;
 	public function test_wp_get_attachment_image_defaults() {
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="" decoding="async" loading="lazy">',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -1522,7 +1522,7 @@ EOF;
 
 		$image    = image_downsize( self::$large_id, 'thumbnail' );
 		$expected = sprintf(
-			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" decoding="async" loading="lazy" />',
+			'<img width="%1$d" height="%2$d" src="%3$s" class="attachment-thumbnail size-thumbnail" alt="Some very clever alt text" decoding="async" loading="lazy">',
 			$image[1],
 			$image[2],
 			$image[0]
@@ -2207,16 +2207,16 @@ EOF;
 		$img_no_width_height  = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
 		$img_no_size_id       = str_replace( 'wp-image-', 'id-', $img );
 		$img_with_sizes_attr  = str_replace( '<img ', '<img sizes="99vw" ', $img );
-		$img_xhtml            = str_replace( ' />', '/>', $img );
-		$img_html5            = str_replace( ' />', '>', $img );
+		$img_xhtml            = str_replace( '>', '>', $img );
+		$img_html5            = str_replace( '>', '>', $img );
 
 		// Manually add srcset and sizes to the markup from get_image_tag().
-		$respimg                  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
-		$respimg_no_size_in_class = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_size_in_class );
-		$respimg_no_width_height  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_no_width_height );
-		$respimg_with_sizes_attr  = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' />', $img_with_sizes_attr );
-		$respimg_xhtml            = preg_replace( '|<img ([^>]+)/>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_xhtml );
-		$respimg_html5            = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_html5 );
+		$respimg                  = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img );
+		$respimg_no_size_in_class = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img_no_size_in_class );
+		$respimg_no_width_height  = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img_no_width_height );
+		$respimg_with_sizes_attr  = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . '>', $img_with_sizes_attr );
+		$respimg_xhtml            = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img_xhtml );
+		$respimg_html5            = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img_html5 );
 
 		$content = '
 			<p>Image, standard. Should have srcset and sizes.</p>
@@ -2302,7 +2302,7 @@ EOF;
 		// Generate HTML and add a dummy srcset attribute.
 		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
-		$img = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . 'srcset="image2x.jpg 2x" />', $img );
+		$img = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . 'srcset="image2x.jpg 2x">', $img );
 
 		// The content filter should return the image unchanged.
 		$this->assertSame( $img, wp_filter_content_tags( $img ) );
@@ -2450,9 +2450,9 @@ EOF;
 		$img_relative = str_replace( 'http://', '//', $img );
 
 		// Manually add srcset and sizes to the markup from get_image_tag().
-		$respimg          = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img );
-		$respimg_https    = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_https );
-		$respimg_relative = preg_replace( '|<img ([^>]+) />|', '<img $1 ' . $srcset . ' ' . $sizes . ' />', $img_relative );
+		$respimg          = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img );
+		$respimg_https    = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img_https );
+		$respimg_relative = preg_replace( '|<img ([^>]+)>|', '<img $1 ' . $srcset . ' ' . $sizes . '>', $img_relative );
 
 		$content = '
 			<p>Image, http: protocol. Should have srcset and sizes.</p>
@@ -2541,7 +2541,7 @@ EOF;
 		// Calculate attachment data (default is medium).
 		$attachment = wp_get_attachment_image_src( $id, 'medium' );
 
-		$html     = '<img src="%1$s" alt="" width="%2$d" height="%3$d" class="align%4$s size-medium wp-image-%5$d" />';
+		$html     = '<img src="%1$s" alt="" width="%2$d" height="%3$d" class="align%4$s size-medium wp-image-%5$d">';
 		$expected = sprintf(
 			$html,
 			$attachment[0],
@@ -2572,7 +2572,7 @@ EOF;
 		// Calculate attachment data.
 		$attachment = wp_get_attachment_image_src( $id, $size );
 
-		$html = '<a href="%1$s" rel="%2$s"><img src="%3$s" alt="%4$s" width="%5$d" height="%6$d" class="size-%8$s wp-image-%9$d" /></a>';
+		$html = '<a href="%1$s" rel="%2$s"><img src="%3$s" alt="%4$s" width="%5$d" height="%6$d" class="size-%8$s wp-image-%9$d"></a>';
 		$html = '[caption id="attachment_%9$d" align="align%7$s" width="%5$d"]' . $html . ' %10$s[/caption]';
 
 		$expected = sprintf(
@@ -2608,7 +2608,7 @@ EOF;
 		// Calculate attachment data.
 		$attachment = wp_get_attachment_image_src( $id, $size );
 
-		$html = '<a href="%1$s"><img src="%2$s" alt="%3$s" width="%4$d" height="%5$d" class="align%6$s size-%7$s wp-image-%8$d" /></a>';
+		$html = '<a href="%1$s"><img src="%2$s" alt="%3$s" width="%4$d" height="%5$d" class="align%6$s size-%7$s wp-image-%8$d"></a>';
 
 		$expected = sprintf(
 			$html,
@@ -2650,7 +2650,7 @@ EOF;
 			'src="' . $uploads_url . 'test-image-testsize-999x999.jpg" ' .
 			'class="attachment-testsize size-testsize" alt="" decoding="async" loading="lazy" ' .
 			'srcset="' . $uploads_url . 'test-image-testsize-999x999.jpg 999w, ' . $uploads_url . $basename . '-150x150.jpg 150w" ' .
-			'sizes="(max-width: 999px) 100vw, 999px" />';
+			'sizes="(max-width: 999px) 100vw, 999px">';
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
 
@@ -2994,8 +2994,8 @@ EOF;
 		$size_array = $this->get_image_size_array_from_meta( $image_meta, 'medium' );
 
 		$img                    = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img_xhtml              = str_replace( ' />', '/>', $img );
-		$img_html5              = str_replace( ' />', '>', $img );
+		$img_xhtml              = str_replace( '>', '>', $img );
+		$img_html5              = str_replace( '>', '>', $img );
 		$img_no_width_height    = str_replace( ' width="' . $size_array[0] . '"', '', $img );
 		$img_no_width_height    = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
 		$iframe                 = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
@@ -3009,7 +3009,7 @@ EOF;
 		$lazy_iframe    = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		// The following should not be modified because there already is a 'loading' attribute.
-		$img_eager    = str_replace( ' />', ' loading="eager" fetchpriority="high" />', $img );
+		$img_eager    = str_replace( '>', ' loading="eager" fetchpriority="high">', $img );
 		$iframe_eager = str_replace( '">', '" loading="eager">', $iframe );
 
 		$content = '
@@ -3132,7 +3132,7 @@ EOF;
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr() {
-		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		$img = '<img src="example.png" alt=" width="300" height="225">';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
 		$this->assertStringContainsString( ' loading="lazy"', $img );
@@ -3146,7 +3146,7 @@ EOF;
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr_without_src() {
-		$img = '<img alt=" width="300" height="225" />';
+		$img = '<img alt=" width="300" height="225">';
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
 		$this->assertStringNotContainsString( ' loading=', $img );
@@ -3160,7 +3160,7 @@ EOF;
 	 * @expectedDeprecated wp_get_loading_attr_default
 	 */
 	public function test_wp_img_tag_add_loading_attr_with_single_quotes() {
-		$img = "<img src='example.png' alt=' width='300' height='225' />";
+		$img = "<img src='example.png' alt=' width='300' height='225'>";
 		$img = wp_img_tag_add_loading_attr( $img, 'test' );
 
 		$this->assertStringNotContainsString( ' loading=', $img );
@@ -3175,7 +3175,7 @@ EOF;
 	 * @ticket 50425
 	 */
 	public function test_wp_img_tag_add_loading_attr_opt_out() {
-		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		$img = '<img src="example.png" alt=" width="300" height="225">';
 		add_filter( 'wp_img_tag_add_loading_attr', '__return_false' );
 
 		$this->assertStringNotContainsString( ' loading=', $img );
@@ -3189,7 +3189,7 @@ EOF;
 	 * @expectedDeprecated wp_img_tag_add_decoding_attr
 	 */
 	public function test_wp_img_tag_add_decoding_attr_with_single_quotes() {
-		$img = "<img src='example.png' alt='' width='300' height='225' />";
+		$img = "<img src='example.png' alt='' width='300' height='225'>";
 		$img = wp_img_tag_add_decoding_attr( $img, 'test' );
 		$this->assertStringNotContainsString( ' decoding="async"', $img );
 	}
@@ -3200,7 +3200,7 @@ EOF;
 	 * @ticket 56969
 	 */
 	public function test_decoding_async_not_applied_to_json() {
-		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\" />"}';
+		$content = '{"image": "<img src=\"example.png\" alt=\"\" width=\"300\" height=\"225\">"}';
 		$content = wp_filter_content_tags( $content );
 		$this->assertStringNotContainsString( ' decoding="async"', $content );
 	}
@@ -4839,7 +4839,7 @@ EOF;
 	 * @ticket 58235
 	 */
 	public function test_wp_img_tag_add_loading_optimization_attrs() {
-		$img = '<img src="example.png" alt=" width="300" height="225" />';
+		$img = '<img src="example.png" alt=" width="300" height="225">';
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 
 		$this->assertStringContainsString( ' loading="lazy"', $img );
@@ -4851,7 +4851,7 @@ EOF;
 	 * @ticket 58235
 	 */
 	public function test_wp_img_tag_add_loading_optimization_attrs_without_src() {
-		$img = '<img alt="" width="300" height="225" />';
+		$img = '<img alt="" width="300" height="225">';
 		$img = wp_img_tag_add_loading_optimization_attrs( $img, 'test' );
 
 		$this->assertStringNotContainsString( ' loading=', $img );

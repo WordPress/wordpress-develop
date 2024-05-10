@@ -318,7 +318,7 @@ if ( ! function_exists( 'twentyten_header_image' ) ) :
 		}
 
 		?>
-		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>">
 		<?php
 	}
 endif; // twentyten_header_image()
@@ -481,7 +481,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 
 				<?php if ( '0' === $comment->comment_approved ) : ?>
 			<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
-			<br />
+			<br>
 			<?php endif; ?>
 
 			<div class="comment-meta commentmetadata"><a href="<?php echo esc_url( get_comment_link( $comment->comment_ID ) ); ?>">

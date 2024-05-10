@@ -138,7 +138,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 					_e( 'Set image' );
 					?>
 				</span>
-				<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}" />
+				<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}">
 			</button>
 
 			<# if ( data.type === 'uploaded' ) { #>
@@ -170,7 +170,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 
 				<# } else { #>
 
-			<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}" />
+			<img src="{{data.header.thumbnail_url}}" alt="{{data.header.alt_text || data.header.description}}">
 
 				<# } #>
 			<# } else { #>

@@ -451,7 +451,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			// Empty post content.
 			array( '', 0 ),
 			// Post content without blocks.
-			array( '<hr class="wp-block-separator" />', 0 ),
+			array( '<hr class="wp-block-separator">', 0 ),
 			// Post content with a block.
 			array( '<!-- wp:core/separator -->', 1 ),
 			// Post content with a fake block.

@@ -100,7 +100,7 @@ class Tests_Shortcode extends WP_UnitTestCase {
 		foreach ( $atts as $k => $v ) {
 			$out .= " $k=\"$v\"";
 		}
-		$out .= ' />';
+		$out .= '>';
 
 		return $out;
 	}
@@ -811,7 +811,7 @@ EOF;
 	 */
 	public function test_smilies_arent_converted() {
 		$out      = apply_filters( 'the_content', '[img alt="Hello :-) World"]' );
-		$expected = "<img alt=\"Hello :-) World\" />\n";
+		$expected = "<img alt=\"Hello :-) World\">\n";
 		$this->assertSame( $expected, $out );
 	}
 

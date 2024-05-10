@@ -528,7 +528,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 			'with other elements'            => array(
 				'<meta name="viewport" content="width=device-width">
 				<title>Testing &lt;title&gt;</title>
-				<link rel="shortcut icon" href="https://wordpress.org/favicon.ico" />',
+				<link rel="shortcut icon" href="https://wordpress.org/favicon.ico">',
 				'Testing',
 			),
 			'multiline'                      => array(
@@ -579,11 +579,11 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 			// Happy path for default.
 			'default'                               => array(
-				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico" />',
+				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'default with no closing whitespace'    => array(
-				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico"/>',
+				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'default without self-closing'          => array(
@@ -591,74 +591,74 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'https://wordpress.org/favicon.ico',
 			),
 			'default with href first'               => array(
-				'<link href="https://wordpress.org/favicon.ico" rel="shortcut icon" />',
+				'<link href="https://wordpress.org/favicon.ico" rel="shortcut icon">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'default with type last'                => array(
-				'<link href="https://wordpress.org/favicon.png" rel="icon" type="image/png" />',
+				'<link href="https://wordpress.org/favicon.png" rel="icon" type="image/png">',
 				'https://wordpress.org/favicon.png',
 			),
 			'default with type first'               => array(
-				'<link type="image/png" href="https://wordpress.org/favicon.png" rel="icon" />',
+				'<link type="image/png" href="https://wordpress.org/favicon.png" rel="icon">',
 				'https://wordpress.org/favicon.png',
 			),
 			'default with single quotes'            => array(
-				'<link type="image/png" href=\'https://wordpress.org/favicon.png\' rel=\'icon\' />',
+				'<link type="image/png" href=\'https://wordpress.org/favicon.png\' rel=\'icon\'>',
 				'https://wordpress.org/favicon.png',
 			),
 
 			// Happy paths.
 			'with query string'                     => array(
-				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico?somequerystring=foo&another=bar" />',
+				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico?somequerystring=foo&another=bar">',
 				'https://wordpress.org/favicon.ico?somequerystring=foo&another=bar',
 			),
 			'with another link'                     => array(
-				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico" /><link rel="canonical" href="https://example.com">',
+				'<link rel="shortcut icon" href="https://wordpress.org/favicon.ico"><link rel="canonical" href="https://example.com">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'with multiple links'                   => array(
 				'<link rel="manifest" href="/manifest.56b1cedc.json">
-				<link rel="shortcut icon" href="https://wordpress.org/favicon.ico" />
+				<link rel="shortcut icon" href="https://wordpress.org/favicon.ico">
 				<link rel="canonical" href="https://example.com">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'relative url'                          => array(
-				'<link rel="shortcut icon" href="/favicon.ico" />',
+				'<link rel="shortcut icon" href="/favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'relative url no slash'                 => array(
-				'<link rel="shortcut icon" href="favicon.ico" />',
+				'<link rel="shortcut icon" href="favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'relative url with path'                => array(
-				'<link rel="shortcut icon" href="favicon.ico" />',
+				'<link rel="shortcut icon" href="favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 				'https://wordpress.org/my/path/here/',
 			),
 			'rel reverse order'                     => array(
-				'<link rel="icon shortcut" href="https://wordpress.org/favicon.ico" />',
+				'<link rel="icon shortcut" href="https://wordpress.org/favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'rel icon only'                         => array(
-				'<link rel="icon" href="https://wordpress.org/favicon.ico" />',
+				'<link rel="icon" href="https://wordpress.org/favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'rel icon only with whitespace'         => array(
-				'<link rel=" icon " href="https://wordpress.org/favicon.ico" />',
+				'<link rel=" icon " href="https://wordpress.org/favicon.ico">',
 				'https://wordpress.org/favicon.ico',
 			),
 			'multiline attributes'                  => array(
 				'<link
 					rel="icon"
 					href="https://wordpress.org/favicon.ico"
-				/>',
+				>',
 				'https://wordpress.org/favicon.ico',
 			),
 			'multiline attributes in reverse order' => array(
 				'<link
 					rel="icon"
 					href="https://wordpress.org/favicon.ico"
-				/>',
+				>',
 				'https://wordpress.org/favicon.ico',
 			),
 			'multiline attributes with type'        => array(
@@ -666,7 +666,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 					rel="icon"
 					href="https://wordpress.org/favicon.ico"
 					type="image/x-icon"
-				/>',
+				>',
 				'https://wordpress.org/favicon.ico',
 			),
 			'multiline with type first'             => array(
@@ -674,33 +674,33 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 					type="image/x-icon"
 					rel="icon"
 					href="https://wordpress.org/favicon.ico"
-				/>',
+				>',
 				'https://wordpress.org/favicon.ico',
 			),
 			'with data URL x-icon type'             => array(
-				'<link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" type="image/x-icon" />',
+				'<link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" type="image/x-icon">',
 				'data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=',
 			),
 			'with data URL png type'                => array(
-				'<link href="data:image/png;base64,iVBORw0KGgo=" rel="icon" type="image/png" />',
+				'<link href="data:image/png;base64,iVBORw0KGgo=" rel="icon" type="image/png">',
 				'data:image/png;base64,iVBORw0KGgo=',
 			),
 
 			// Unhappy paths.
 			'empty rel'                             => array(
-				'<link rel="" href="https://wordpress.org/favicon.ico" />',
+				'<link rel="" href="https://wordpress.org/favicon.ico">',
 				'',
 			),
 			'empty href'                            => array(
-				'<link rel="icon" href="" />',
+				'<link rel="icon" href="">',
 				'',
 			),
 			'no rel'                                => array(
-				'<link href="https://wordpress.org/favicon.ico" />',
+				'<link href="https://wordpress.org/favicon.ico">',
 				'',
 			),
 			'link to external stylesheet'           => array(
-				'<link rel="stylesheet" href="https://example.com/assets/style.css" />',
+				'<link rel="stylesheet" href="https://example.com/assets/style.css">',
 				'',
 				'https://example.com',
 			),
@@ -708,14 +708,14 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'<link
 					rel="icon"
 					href=""
-				/>',
+				>',
 				'',
 			),
 			'multiline with no rel'                 => array(
 				'<link
 					rel=""
 					href="https://wordpress.org/favicon.ico"
-				/>',
+				>',
 				'',
 			),
 		);
@@ -764,11 +764,11 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'This is a description.',
 			),
 			'with self-closing'                          => array(
-				'<meta name="description" content="This is a description."/>',
+				'<meta name="description" content="This is a description.">',
 				'This is a description.',
 			),
 			'with self-closing and whitespace'           => array(
-				'<meta  name=" description "   content=" This is a description.  "   />',
+				'<meta  name=" description "   content=" This is a description.  "  >',
 				'This is a description.',
 			),
 			'with content first'                         => array(
@@ -784,8 +784,8 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'This is a description.',
 			),
 			'with multiple elements'                     => array(
-				'<meta property="og:image" content="https://wordpress.org/images/myimage.jpg" />
-				<link rel="stylesheet" href="https://example.com/assets/style.css" />
+				'<meta property="og:image" content="https://wordpress.org/images/myimage.jpg">
+				<link rel="stylesheet" href="https://example.com/assets/style.css">
 				<meta name="description" content="This is a description.">
 				<meta name="viewport" content="width=device-width, initial-scale=1">',
 				'This is a description.',
@@ -795,7 +795,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'description with other attributes',
 			),
 			'with open graph'                            => array(
-				'<meta name="og:description" content="This is a OG description." />
+				'<meta name="og:description" content="This is a OG description.">
 				<meta name="description" content="This is a description.">',
 				'This is a OG description.',
 			),
@@ -916,11 +916,11 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with self-closing'                            => array(
-				'<meta property="og:image" content="https://wordpress.org/images/myimage.jpg"/>',
+				'<meta property="og:image" content="https://wordpress.org/images/myimage.jpg">',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with self-closing and whitespace'             => array(
-				'<meta  property=" og:image "   content="  https://wordpress.org/images/myimage.jpg "  />',
+				'<meta  property=" og:image "   content="  https://wordpress.org/images/myimage.jpg " >',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with single quotes'                           => array(
@@ -932,12 +932,12 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with url modifier'                            => array(
-				'<meta property="og:image:url" content="https://wordpress.org/images/url-modifier.jpg" />
+				'<meta property="og:image:url" content="https://wordpress.org/images/url-modifier.jpg">
 				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg">',
 				'https://wordpress.org/images/url-modifier.jpg',
 			),
 			'with query string'                            => array(
-				'<meta property="og:image" content="https://wordpress.org/images/withquerystring.jpg?foo=bar&bar=foo" />',
+				'<meta property="og:image" content="https://wordpress.org/images/withquerystring.jpg?foo=bar&bar=foo">',
 				'https://wordpress.org/images/withquerystring.jpg?foo=bar&bar=foo',
 			),
 
@@ -951,24 +951,24 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with other og meta'                           => array(
-				'<meta property="og:image:height" content="720" />
-				<meta property="og:image:alt" content="Ignore this please" />
-				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg" />
-				<link rel="stylesheet" href="https://example.com/assets/style.css" />',
+				'<meta property="og:image:height" content="720">
+				<meta property="og:image:alt" content="Ignore this please">
+				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg">
+				<link rel="stylesheet" href="https://example.com/assets/style.css">',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 
 			// Happy paths with relative url.
 			'with relative url'                            => array(
-				'<meta property="og:image" content="/images/myimage.jpg" />',
+				'<meta property="og:image" content="/images/myimage.jpg">',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with relative url without starting slash'     => array(
-				'<meta property="og:image" content="images/myimage.jpg" />',
+				'<meta property="og:image" content="images/myimage.jpg">',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with relative url and path'                   => array(
-				'<meta property="og:image" content="images/myimage.jpg" />',
+				'<meta property="og:image" content="images/myimage.jpg">',
 				'https://wordpress.org/images/myimage.jpg',
 				'https://wordpress.org/my/path/here/',
 			),
@@ -992,16 +992,16 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 				'<meta
 					property="og:image:height"
 					content="720"
-				/>
+				>
 				<meta
 					property="og:image:alt"
 					content="Ignore this please"
-				/>
+				>
 				<meta
 					property="og:image"
 					content="https://wordpress.org/images/myimage.jpg"
 				>
-				<link rel="stylesheet" href="https://example.com/assets/style.css" />',
+				<link rel="stylesheet" href="https://example.com/assets/style.css">',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 			'with multiline and other attributes'          => array(
@@ -1017,10 +1017,10 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 			// Happy paths with HTML tags in the content.
 			'with other og meta'                           => array(
-				'<meta property="og:image:height" content="720" />
-				<meta property="og:image:alt" content="<em>ignore this please</em>" />
-				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg" />
-				<link rel="stylesheet" href="https://example.com/assets/style.css" />',
+				'<meta property="og:image:height" content="720">
+				<meta property="og:image:alt" content="<em>ignore this please</em>">
+				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg">
+				<link rel="stylesheet" href="https://example.com/assets/style.css">',
 				'https://wordpress.org/images/myimage.jpg',
 			),
 
@@ -1133,22 +1133,22 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 			<!DOCTYPE html>
 			<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
 			<head>
-			<meta charset="utf-8" />
+			<meta charset="utf-8">
 			<title data-test-title-attr="test">Example Website &mdash; - with encoded content.</title>
 
-			<link rel="shortcut icon" href="/favicon.ico?querystringaddedfortesting" type="image/x-icon" />
+			<link rel="shortcut icon" href="/favicon.ico?querystringaddedfortesting" type="image/x-icon">
 
 			<link rel="canonical" href="https://example.com">
 
-			<meta name="description" content="Example description text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore." />
+			<meta name="description" content="Example description text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.">
 
 			<!-- Open Graph Tags -->
-			<meta property="og:type" content="website" />
-			<meta property="og:title" content="Example Website" />
-			<meta property="og:url" content="https://example.com" />
-			<meta property="og:site_name" content="Example Website" />
-			<meta property="og:image:alt" content="Attempt to break image parsing" />
-			<meta property="og:image" content="/images/home/screen-themes.png?3" />
+			<meta property="og:type" content="website">
+			<meta property="og:title" content="Example Website">
+			<meta property="og:url" content="https://example.com">
+			<meta property="og:site_name" content="Example Website">
+			<meta property="og:image:alt" content="Attempt to break image parsing">
+			<meta property="og:image" content="/images/home/screen-themes.png?3">
 
 			</head>
 			<body>
@@ -1162,7 +1162,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		$doc = '<!DOCTYPE html>
 				<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
 				<head>
-				<meta charset="utf-8" />' . $html . "\n" . '</head>';
+				<meta charset="utf-8">' . $html . "\n" . '</head>';
 
 		if ( $with_body ) {
 			$doc .= '

@@ -128,10 +128,10 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	}
 
 	if ( ! is_subdomain_install() ) {
-		echo '<div class="wp-signup-blogname"><span class="prefix_address" id="prefix-address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'prefix-address" /></div>';
+		echo '<div class="wp-signup-blogname"><span class="prefix_address" id="prefix-address">' . $current_network->domain . $current_network->path . '</span><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'prefix-address"></div>';
 	} else {
 		$site_domain = preg_replace( '|^www\.|', '', $current_network->domain );
-		echo '<div class="wp-signup-blogname"><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'suffix-address" /><span class="suffix_address" id="suffix-address">.' . esc_html( $site_domain ) . '</span></div>';
+		echo '<div class="wp-signup-blogname"><input name="blogname" type="text" id="blogname" value="' . esc_attr( $blogname ) . '" maxlength="60" autocomplete="off" required="required" aria-describedby="' . $errmsg_blogname_aria . 'suffix-address"><span class="suffix_address" id="suffix-address">.' . esc_html( $site_domain ) . '</span></div>';
 	}
 
 	if ( ! is_user_logged_in() ) {
@@ -159,7 +159,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 		$errmsg_blog_title_aria = ' aria-describedby="wp-signup-blog-title-error"';
 		echo '<p class="error" id="wp-signup-blog-title-error">' . $errmsg_blog_title . '</p>';
 	}
-	echo '<input name="blog_title" type="text" id="blog_title" value="' . esc_attr( $blog_title ) . '" required="required" autocomplete="off"' . $errmsg_blog_title_aria . ' />';
+	echo '<input name="blog_title" type="text" id="blog_title" value="' . esc_attr( $blog_title ) . '" required="required" autocomplete="off"' . $errmsg_blog_title_aria . '>';
 	?>
 
 	<?php
@@ -214,11 +214,11 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 			</legend>
 			<p class="wp-signup-radio-buttons">
 				<span class="wp-signup-radio-button">
-					<input type="radio" id="blog_public_on" name="blog_public" value="1" <?php echo $blog_public_on_checked; ?> />
+					<input type="radio" id="blog_public_on" name="blog_public" value="1" <?php echo $blog_public_on_checked; ?>>
 					<label class="checkbox" for="blog_public_on"><?php _e( 'Yes' ); ?></label>
 				</span>
 				<span class="wp-signup-radio-button">
-					<input type="radio" id="blog_public_off" name="blog_public" value="0" <?php echo $blog_public_off_checked; ?> />
+					<input type="radio" id="blog_public_off" name="blog_public" value="0" <?php echo $blog_public_off_checked; ?>>
 					<label class="checkbox" for="blog_public_off"><?php _e( 'No' ); ?></label>
 				</span>
 			</p>
@@ -276,7 +276,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 		echo '<p class="error" id="wp-signup-username-error">' . $errmsg_username . '</p>';
 	}
 	?>
-	<input name="user_name" type="text" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" autocapitalize="none" autocorrect="off" maxlength="60" autocomplete="username" required="required" aria-describedby="<?php echo $errmsg_username_aria; ?>wp-signup-username-description" />
+	<input name="user_name" type="text" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" autocapitalize="none" autocorrect="off" maxlength="60" autocomplete="username" required="required" aria-describedby="<?php echo $errmsg_username_aria; ?>wp-signup-username-description">
 	<p id="wp-signup-username-description"><?php _e( '(Must be at least 4 characters, lowercase letters and numbers only.)' ); ?></p>
 
 	<?php
@@ -289,7 +289,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
 		echo '<p class="error" id="wp-signup-email-error">' . $errmsg_email . '</p>';
 	}
 	?>
-	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>" maxlength="200" autocomplete="email" required="required" aria-describedby="<?php echo $errmsg_email_aria; ?>wp-signup-email-description" />
+	<input name="user_email" type="email" id="user_email" value="<?php echo esc_attr( $user_email ); ?>" maxlength="200" autocomplete="email" required="required" aria-describedby="<?php echo $errmsg_email_aria; ?>wp-signup-email-description">
 	<p id="wp-signup-email-description"><?php _e( 'Your registration email is sent to this address. (Double-check your email address before continuing.)' ); ?></p>
 
 	<?php
@@ -396,7 +396,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 
 	<p><?php _e( 'If you are not going to use a great site domain, leave it for a new user. Now have at it!' ); ?></p>
 	<form id="setupform" method="post" action="wp-signup.php">
-		<input type="hidden" name="stage" value="gimmeanotherblog" />
+		<input type="hidden" name="stage" value="gimmeanotherblog">
 		<?php
 		/**
 		 * Fires when hidden sign-up form fields output when creating another site or user.
@@ -409,7 +409,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 		do_action( 'signup_hidden_fields', 'create-another-site' );
 		?>
 		<?php show_blog_form( $blogname, $blog_title, $errors ); ?>
-		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Create Site' ); ?>" /></p>
+		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Create Site' ); ?>"></p>
 	</form>
 	<?php
 }
@@ -623,7 +623,7 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 	?>
 	</h2>
 	<form id="setupform" method="post" action="wp-signup.php" novalidate="novalidate">
-		<input type="hidden" name="stage" value="validate-user-signup" />
+		<input type="hidden" name="stage" value="validate-user-signup">
 		<?php
 		/** This action is documented in wp-signup.php */
 		do_action( 'signup_hidden_fields', 'validate-user' );
@@ -631,26 +631,26 @@ function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
 		<?php show_user_form( $user_name, $user_email, $errors ); ?>
 
 		<?php if ( 'blog' === $active_signup ) : ?>
-			<input id="signupblog" type="hidden" name="signup_for" value="blog" />
+			<input id="signupblog" type="hidden" name="signup_for" value="blog">
 		<?php elseif ( 'user' === $active_signup ) : ?>
-			<input id="signupblog" type="hidden" name="signup_for" value="user" />
+			<input id="signupblog" type="hidden" name="signup_for" value="user">
 		<?php else : ?>
 			<fieldset class="signup-options">
 				<legend><?php _e( 'Create a site or only a username:' ); ?></legend>
 				<p class="wp-signup-radio-buttons">
 					<span class="wp-signup-radio-button">
-						<input id="signupblog" type="radio" name="signup_for" value="blog" <?php checked( $signup_for, 'blog' ); ?> />
+						<input id="signupblog" type="radio" name="signup_for" value="blog" <?php checked( $signup_for, 'blog' ); ?>>
 						<label class="checkbox" for="signupblog"><?php _e( 'Gimme a site!' ); ?></label>
 					</span>
 					<span class="wp-signup-radio-button">
-						<input id="signupuser" type="radio" name="signup_for" value="user" <?php checked( $signup_for, 'user' ); ?> />
+						<input id="signupuser" type="radio" name="signup_for" value="user" <?php checked( $signup_for, 'user' ); ?>>
 						<label class="checkbox" for="signupuser"><?php _e( 'Just a username, please.' ); ?></label>
 					</span>
 				</p>
 			</fieldset>
 		<?php endif; ?>
 
-		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Next' ); ?>" /></p>
+		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Next' ); ?>"></p>
 	</form>
 	<?php
 }
@@ -766,15 +766,15 @@ function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_t
 	}
 	?>
 	<form id="setupform" method="post" action="wp-signup.php">
-		<input type="hidden" name="stage" value="validate-blog-signup" />
-		<input type="hidden" name="user_name" value="<?php echo esc_attr( $user_name ); ?>" />
-		<input type="hidden" name="user_email" value="<?php echo esc_attr( $user_email ); ?>" />
+		<input type="hidden" name="stage" value="validate-blog-signup">
+		<input type="hidden" name="user_name" value="<?php echo esc_attr( $user_name ); ?>">
+		<input type="hidden" name="user_email" value="<?php echo esc_attr( $user_email ); ?>">
 		<?php
 		/** This action is documented in wp-signup.php */
 		do_action( 'signup_hidden_fields', 'validate-site' );
 		?>
 		<?php show_blog_form( $blogname, $blog_title, $errors ); ?>
-		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Sign up' ); ?>" /></p>
+		<p class="submit"><input type="submit" name="submit" class="submit" value="<?php esc_attr_e( 'Sign up' ); ?>"></p>
 	</form>
 	<?php
 }

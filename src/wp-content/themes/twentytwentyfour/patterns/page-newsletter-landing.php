@@ -17,7 +17,7 @@
 	<div class="wp-block-group">
 		<!-- wp:image {"align":"center","width":"45px","height":"49px","scale":"cover","sizeSlug":"full","linkDestination":"none"} -->
 		<figure class="wp-block-image aligncenter size-full is-resized">
-			<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/icon-message.webp" alt="" style="object-fit:cover;width:45px;height:49px" />
+			<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/icon-message.webp" alt="" style="object-fit:cover;width:45px;height:49px">
 		</figure>
 		<!-- /wp:image -->
 

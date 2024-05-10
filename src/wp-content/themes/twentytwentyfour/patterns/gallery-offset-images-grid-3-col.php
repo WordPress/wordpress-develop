@@ -16,7 +16,7 @@
 		<div class="wp-block-column">
 			<!-- wp:image {"aspectRatio":"4/3","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:4/3;object-fit:cover" />
+				<img alt="" style="aspect-ratio:4/3;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 
@@ -26,7 +26,7 @@
 
 			<!-- wp:image {"aspectRatio":"3/4","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:3/4;object-fit:cover" />
+				<img alt="" style="aspect-ratio:3/4;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 
@@ -36,7 +36,7 @@
 
 			<!-- wp:image {"aspectRatio":"3/4","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:3/4;object-fit:cover" />
+				<img alt="" style="aspect-ratio:3/4;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 		</div>
@@ -50,7 +50,7 @@
 
 			<!-- wp:image {"aspectRatio":"3/4","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:3/4;object-fit:cover" />
+				<img alt="" style="aspect-ratio:3/4;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 
@@ -60,7 +60,7 @@
 
 			<!-- wp:image {"aspectRatio":"1","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:1;object-fit:cover" />
+				<img alt="" style="aspect-ratio:1;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 
@@ -70,7 +70,7 @@
 
 			<!-- wp:image {"aspectRatio":"1","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:1;object-fit:cover" />
+				<img alt="" style="aspect-ratio:1;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 		</div>
@@ -80,7 +80,7 @@
 		<div class="wp-block-column">
 			<!-- wp:image {"aspectRatio":"3/4","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:3/4;object-fit:cover" />
+				<img alt="" style="aspect-ratio:3/4;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 
@@ -90,7 +90,7 @@
 
 			<!-- wp:image {"aspectRatio":"3/4","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:3/4;object-fit:cover" />
+				<img alt="" style="aspect-ratio:3/4;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 
@@ -100,7 +100,7 @@
 
 			<!-- wp:image {"aspectRatio":"16/9","scale":"cover","className":"is-style-rounded"} -->
 			<figure class="wp-block-image is-style-rounded">
-				<img alt="" style="aspect-ratio:16/9;object-fit:cover" />
+				<img alt="" style="aspect-ratio:16/9;object-fit:cover">
 			</figure>
 			<!-- /wp:image -->
 		</div>

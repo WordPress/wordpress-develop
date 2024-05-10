@@ -1169,7 +1169,7 @@ final class WP_Customize_Nav_Menus {
 						_e( 'Search Menu Items' );
 						?>
 					</label>
-					<input type="text" id="menu-items-search" placeholder="<?php esc_attr_e( 'Search menu items&hellip;' ); ?>" aria-describedby="menu-items-search-desc" />
+					<input type="text" id="menu-items-search" placeholder="<?php esc_attr_e( 'Search menu items&hellip;' ); ?>" aria-describedby="menu-items-search-desc">
 					<p class="screen-reader-text" id="menu-items-search-desc">
 						<?php
 						/* translators: Hidden accessibility text. */
@@ -1277,7 +1277,7 @@ final class WP_Customize_Nav_Menus {
 				</button>
 			</h4>
 			<div class="accordion-section-content customlinkdiv">
-				<input type="hidden" value="custom" id="custom-menu-item-type" name="menu-item[-1][menu-item-type]" />
+				<input type="hidden" value="custom" id="custom-menu-item-type" name="menu-item[-1][menu-item-type]">
 				<p id="menu-item-url-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 					<input id="custom-menu-item-url" name="menu-item[-1][menu-item-url]" type="text" class="code menu-item-textbox" placeholder="https://">

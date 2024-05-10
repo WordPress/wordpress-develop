@@ -93,10 +93,10 @@ get_current_screen()->set_screen_reader_content(
 );
 
 if ( empty( $_REQUEST ) ) {
-	$referer = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '" />';
+	$referer = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ) . '">';
 } elseif ( isset( $_REQUEST['wp_http_referer'] ) ) {
 	$redirect = remove_query_arg( array( 'wp_http_referer', 'updated', 'delete_count' ), wp_unslash( $_REQUEST['wp_http_referer'] ) );
-	$referer  = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( $redirect ) . '" />';
+	$referer  = '<input type="hidden" name="wp_http_referer" value="' . esc_attr( $redirect ) . '">';
 } else {
 	$redirect = 'users.php';
 	$referer  = '';
@@ -375,7 +375,7 @@ switch ( $wp_list_table->current_action() ) {
 			} else {
 				echo '<li>';
 				printf(
-					'<input type="hidden" name="users[]" value="%s" />',
+					'<input type="hidden" name="users[]" value="%s">',
 					esc_attr( $id )
 				);
 				printf(
@@ -397,7 +397,7 @@ switch ( $wp_list_table->current_action() ) {
 
 			if ( ! $users_have_content ) :
 				?>
-				<input type="hidden" name="delete_option" value="delete" />
+				<input type="hidden" name="delete_option" value="delete">
 			<?php else : ?>
 				<fieldset>
 				<?php if ( 1 === $go_delete ) : ?>
@@ -408,11 +408,11 @@ switch ( $wp_list_table->current_action() ) {
 
 				<ul style="list-style:none;">
 					<li>
-						<input type="radio" id="delete_option0" name="delete_option" value="delete" />
+						<input type="radio" id="delete_option0" name="delete_option" value="delete">
 						<label for="delete_option0"><?php _e( 'Delete all content.' ); ?></label>
 					</li>
 					<li>
-						<input type="radio" id="delete_option1" name="delete_option" value="reassign" />
+						<input type="radio" id="delete_option1" name="delete_option" value="reassign">
 						<label for="delete_option1"><?php _e( 'Attribute all content to:' ); ?></label>
 						<?php
 						wp_dropdown_users(
@@ -440,7 +440,7 @@ switch ( $wp_list_table->current_action() ) {
 			 */
 			do_action( 'delete_user_form', $current_user, $user_ids );
 			?>
-			<input type="hidden" name="action" value="dodelete" />
+			<input type="hidden" name="action" value="dodelete">
 			<?php submit_button( __( 'Confirm Deletion' ), 'primary' ); ?>
 
 		<?php else : ?>
@@ -542,7 +542,7 @@ switch ( $wp_list_table->current_action() ) {
 			} else {
 				echo '<li>';
 				printf(
-					'<input type="hidden" name="users[]" value="%s" />',
+					'<input type="hidden" name="users[]" value="%s">',
 					esc_attr( $id )
 				);
 				printf(
@@ -561,7 +561,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		<?php if ( $go_remove ) : ?>
 
-			<input type="hidden" name="action" value="doremove" />
+			<input type="hidden" name="action" value="doremove">
 			<?php submit_button( __( 'Confirm Removal' ), 'primary' ); ?>
 
 		<?php else : ?>
@@ -808,7 +808,7 @@ switch ( $wp_list_table->current_action() ) {
 		<?php $wp_list_table->search_box( __( 'Search Users' ), 'user' ); ?>
 
 		<?php if ( ! empty( $_REQUEST['role'] ) ) { ?>
-			<input type="hidden" name="role" value="<?php echo esc_attr( $_REQUEST['role'] ); ?>" />
+			<input type="hidden" name="role" value="<?php echo esc_attr( $_REQUEST['role'] ); ?>">
 		<?php } ?>
 
 		<?php $wp_list_table->display(); ?>

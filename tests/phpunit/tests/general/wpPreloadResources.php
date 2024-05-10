@@ -33,7 +33,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 	public function data_preload_resources() {
 		return array(
 			'basic_preload'          => array(
-				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n",
+				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style'>\n",
 				'urls'     => array(
 					array(
 						'href' => 'https://example.com/style.css',
@@ -42,8 +42,8 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 				),
 			),
 			'multiple_links'         => array(
-				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n" .
-							"<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style'>\n" .
+							"<link rel='preload' href='https://example.com/main.js' as='script'>\n",
 				'urls'     => array(
 					array(
 						'href' => 'https://example.com/style.css',
@@ -56,9 +56,9 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 				),
 			),
 			'MIME_types'             => array(
-				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' />\n" .
-							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
-							"<link rel='preload' href='https://example.com/main.js' as='script' />\n",
+				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style'>\n" .
+							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4'>\n" .
+							"<link rel='preload' href='https://example.com/main.js' as='script'>\n",
 				'urls'     => array(
 					array(
 						// Should ignore not valid attributes.
@@ -78,10 +78,10 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 				),
 			),
 			'CORS'                   => array(
-				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
-							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
-							"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
-							"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin />\n",
+				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous'>\n" .
+							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4'>\n" .
+							"<link rel='preload' href='https://example.com/main.js' as='script'>\n" .
+							"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin>\n",
 				'urls'     => array(
 					array(
 						'href'        => 'https://example.com/style.css',
@@ -108,12 +108,12 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 				),
 			),
 			'media'                  => array(
-				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
-							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
-							"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
-							"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin />\n" .
-							"<link rel='preload' href='https://example.com/image-narrow.png' as='image' media='(max-width: 600px)' />\n" .
-							"<link rel='preload' href='https://example.com/image-wide.png' as='image' media='(min-width: 601px)' />\n",
+				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous'>\n" .
+							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4'>\n" .
+							"<link rel='preload' href='https://example.com/main.js' as='script'>\n" .
+							"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin>\n" .
+							"<link rel='preload' href='https://example.com/image-narrow.png' as='image' media='(max-width: 600px)'>\n" .
+							"<link rel='preload' href='https://example.com/image-wide.png' as='image' media='(min-width: 601px)'>\n",
 				'urls'     => array(
 					array(
 						'href'        => 'https://example.com/style.css',
@@ -155,14 +155,14 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 				),
 			),
 			'media_extra_attributes' => array(
-				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous' />\n" .
-							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4' />\n" .
-							"<link rel='preload' href='https://example.com/main.js' as='script' />\n" .
-							"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin />\n" .
-							"<link rel='preload' href='https://example.com/image-640.png' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' imagesizes='100vw' />\n" .
-							"<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' imagesizes='100vw' />\n" .
-							"<link rel='preload' href='https://example.com/image-wide.png' as='image' media='(min-width: 601px)' />\n" .
-							"<link rel='preload' href='https://example.com/image-800.png' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' />\n",
+				'expected' => "<link rel='preload' href='https://example.com/style.css' as='style' crossorigin='anonymous'>\n" .
+							"<link rel='preload' href='https://example.com/video.mp4' as='video' type='video/mp4'>\n" .
+							"<link rel='preload' href='https://example.com/main.js' as='script'>\n" .
+							"<link rel='preload' href='https://example.com/font.woff2' as='font' type='font/woff2' crossorigin>\n" .
+							"<link rel='preload' href='https://example.com/image-640.png' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' imagesizes='100vw'>\n" .
+							"<link rel='preload' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w' imagesizes='100vw'>\n" .
+							"<link rel='preload' href='https://example.com/image-wide.png' as='image' media='(min-width: 601px)'>\n" .
+							"<link rel='preload' href='https://example.com/image-800.png' as='image' imagesrcset='640.png 640w, 800.png 800w, 1024.png 1024w'>\n",
 				'urls'     => array(
 					array(
 						'href'        => 'https://example.com/style.css',
@@ -248,7 +248,7 @@ class Tests_General_wpPreloadResources extends WP_UnitTestCase {
 				),
 			),
 			'fetchpriority'          => array(
-				'expected'  => "<link rel='preload' href='https://example.com/image.jpg' as='image' fetchpriority='high' />\n",
+				'expected'  => "<link rel='preload' href='https://example.com/image.jpg' as='image' fetchpriority='high'>\n",
 				'resources' => array(
 					array(
 						'href'          => 'https://example.com/image.jpg',

@@ -350,7 +350,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 				name="<?php echo esc_attr( $this->get_field_name( $name ) ); ?>"
 				id="<?php echo esc_attr( $this->get_field_id( $name ) ); // Needed specifically by wpWidgets.appendTitle(). ?>"
 				value="<?php echo esc_attr( is_array( $value ) ? implode( ',', $value ) : (string) $value ); ?>"
-			/>
+			>
 			<?php
 		endforeach;
 	}

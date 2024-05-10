@@ -22,9 +22,9 @@ global $comment;
 <h1><?php _e( 'Edit Comment' ); ?></h1>
 
 <div id="poststuff">
-<input type="hidden" name="action" value="editedcomment" />
-<input type="hidden" name="comment_ID" value="<?php echo esc_attr( $comment->comment_ID ); ?>" />
-<input type="hidden" name="comment_post_ID" value="<?php echo esc_attr( $comment->comment_post_ID ); ?>" />
+<input type="hidden" name="action" value="editedcomment">
+<input type="hidden" name="comment_ID" value="<?php echo esc_attr( $comment->comment_ID ); ?>">
+<input type="hidden" name="comment_post_ID" value="<?php echo esc_attr( $comment->comment_post_ID ); ?>">
 
 <div id="post-body" class="metabox-holder columns-2">
 <div id="post-body-content" class="edit-form-section edit-comment-section">
@@ -57,18 +57,18 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <tbody>
 <tr>
 	<td class="first"><label for="name"><?php _e( 'Name' ); ?></label></td>
-	<td><input type="text" name="newcomment_author" size="30" value="<?php echo esc_attr( $comment->comment_author ); ?>" id="name" /></td>
+	<td><input type="text" name="newcomment_author" size="30" value="<?php echo esc_attr( $comment->comment_author ); ?>" id="name"></td>
 </tr>
 <tr>
 	<td class="first"><label for="email"><?php _e( 'Email' ); ?></label></td>
 	<td>
-		<input type="text" name="newcomment_author_email" size="30" value="<?php echo esc_attr( $comment->comment_author_email ); ?>" id="email" />
+		<input type="text" name="newcomment_author_email" size="30" value="<?php echo esc_attr( $comment->comment_author_email ); ?>" id="email">
 	</td>
 </tr>
 <tr>
 	<td class="first"><label for="newcomment_author_url"><?php _e( 'URL' ); ?></label></td>
 	<td>
-		<input type="text" id="newcomment_author_url" name="newcomment_author_url" size="30" class="code" value="<?php echo esc_attr( $comment->comment_author_url ); ?>" />
+		<input type="text" id="newcomment_author_url" name="newcomment_author_url" size="30" class="code" value="<?php echo esc_attr( $comment->comment_author_url ); ?>">
 	</td>
 </tr>
 </tbody>
@@ -133,9 +133,9 @@ switch ( $comment->comment_approved ) {
 	_e( 'Comment status' );
 	?>
 </legend>
-<label><input type="radio"<?php checked( $comment->comment_approved, '1' ); ?> name="comment_status" value="1" /><?php _ex( 'Approved', 'comment status' ); ?></label><br />
-<label><input type="radio"<?php checked( $comment->comment_approved, '0' ); ?> name="comment_status" value="0" /><?php _ex( 'Pending', 'comment status' ); ?></label><br />
-<label><input type="radio"<?php checked( $comment->comment_approved, 'spam' ); ?> name="comment_status" value="spam" /><?php _ex( 'Spam', 'comment status' ); ?></label>
+<label><input type="radio"<?php checked( $comment->comment_approved, '1' ); ?> name="comment_status" value="1"><?php _ex( 'Approved', 'comment status' ); ?></label><br>
+<label><input type="radio"<?php checked( $comment->comment_approved, '0' ); ?> name="comment_status" value="0"><?php _ex( 'Pending', 'comment status' ); ?></label><br>
+<label><input type="radio"<?php checked( $comment->comment_approved, 'spam' ); ?> name="comment_status" value="spam"><?php _ex( 'Spam', 'comment status' ); ?></label>
 </fieldset>
 </div><!-- .misc-pub-section -->
 
@@ -271,11 +271,11 @@ $referer = wp_get_referer();
 ?>
 </div>
 
-<input type="hidden" name="c" value="<?php echo esc_attr( $comment->comment_ID ); ?>" />
-<input type="hidden" name="p" value="<?php echo esc_attr( $comment->comment_post_ID ); ?>" />
-<input name="referredby" type="hidden" id="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>" />
+<input type="hidden" name="c" value="<?php echo esc_attr( $comment->comment_ID ); ?>">
+<input type="hidden" name="p" value="<?php echo esc_attr( $comment->comment_post_ID ); ?>">
+<input name="referredby" type="hidden" id="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>">
 <?php wp_original_referer_field( true, 'previous' ); ?>
-<input type="hidden" name="noredir" value="1" />
+<input type="hidden" name="noredir" value="1">
 
 </div><!-- /post-body -->
 </div>

@@ -238,7 +238,7 @@ function block_core_image_print_lightbox_overlay() {
 	}
 
 	echo <<<HTML
-		<div 
+		<div
 			class="wp-lightbox-overlay zoom"
 			data-wp-interactive="core/image"
 			data-wp-context='{}'

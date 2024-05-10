@@ -96,7 +96,7 @@ function install_theme_search_form( $type_selector = true ) {
 	}
 	?>
 <form id="search-themes" method="get">
-	<input type="hidden" name="tab" value="search" />
+	<input type="hidden" name="tab" value="search">
 	<?php if ( $type_selector ) : ?>
 	<label class="screen-reader-text" for="typeselector">
 		<?php
@@ -135,7 +135,7 @@ function install_theme_search_form( $type_selector = true ) {
 		?>
 	</label>
 	<?php endif; ?>
-	<input type="search" name="s" id="s" size="30" value="<?php echo esc_attr( $term ); ?>" autofocus="autofocus" />
+	<input type="search" name="s" id="s" size="30" value="<?php echo esc_attr( $term ); ?>" autofocus="autofocus">
 	<?php submit_button( __( 'Search' ), '', 'search', false ); ?>
 </form>
 	<?php
@@ -153,7 +153,7 @@ function install_themes_dashboard() {
 <p class="install-help"><?php _e( 'Find a theme based on specific features.' ); ?></p>
 
 <form method="get">
-	<input type="hidden" name="tab" value="search" />
+	<input type="hidden" name="tab" value="search">
 	<?php
 	$feature_list = get_theme_feature_list();
 	echo '<div class="feature-filter">';
@@ -169,19 +169,19 @@ function install_themes_dashboard() {
 			?>
 
 <li>
-	<input type="checkbox" name="features[]" id="feature-id-<?php echo $feature; ?>" value="<?php echo $feature; ?>" />
+	<input type="checkbox" name="features[]" id="feature-id-<?php echo $feature; ?>" value="<?php echo $feature; ?>">
 	<label for="feature-id-<?php echo $feature; ?>"><?php echo $feature_name; ?></label>
 </li>
 
 <?php	} ?>
 </ol>
-<br class="clear" />
+<br class="clear">
 		<?php
 	}
 	?>
 
 </div>
-<br class="clear" />
+<br class="clear">
 	<?php submit_button( __( 'Find Themes' ), '', 'search' ); ?>
 </form>
 	<?php
@@ -203,7 +203,7 @@ function install_themes_upload() {
 		_e( 'Theme zip file' );
 		?>
 	</label>
-	<input type="file" id="themezip" name="themezip" accept=".zip" />
+	<input type="file" id="themezip" name="themezip" accept=".zip">
 	<?php submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ?>
 </form>
 	<?php

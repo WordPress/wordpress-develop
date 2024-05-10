@@ -244,7 +244,7 @@ function network_step1( $errors = false ) {
 		<?php // @todo Link to an MS readme? ?>
 		<table class="form-table" role="presentation">
 			<tr>
-				<th><label><input type="radio" name="subdomain_install" value="1"<?php checked( $subdomain_install ); ?> /> <?php _e( 'Sub-domains' ); ?></label></th>
+				<th><label><input type="radio" name="subdomain_install" value="1"<?php checked( $subdomain_install ); ?>> <?php _e( 'Sub-domains' ); ?></label></th>
 				<td>
 				<?php
 				printf(
@@ -256,7 +256,7 @@ function network_step1( $errors = false ) {
 				</td>
 			</tr>
 			<tr>
-				<th><label><input type="radio" name="subdomain_install" value="0"<?php checked( ! $subdomain_install ); ?> /> <?php _e( 'Sub-directories' ); ?></label></th>
+				<th><label><input type="radio" name="subdomain_install" value="0"<?php checked( ! $subdomain_install ); ?>> <?php _e( 'Sub-directories' ); ?></label></th>
 				<td>
 				<?php
 				printf(
@@ -375,7 +375,7 @@ function network_step1( $errors = false ) {
 			<tr>
 				<th scope='row'><label for="sitename"><?php esc_html_e( 'Network Title' ); ?></label></th>
 				<td>
-					<input name='sitename' id='sitename' type='text' size='45' value='<?php echo esc_attr( $site_name ); ?>' />
+					<input name='sitename' id='sitename' type='text' size='45' value='<?php echo esc_attr( $site_name ); ?>'>
 					<p class="description">
 						<?php _e( 'What would you like to call your network?' ); ?>
 					</p>
@@ -384,7 +384,7 @@ function network_step1( $errors = false ) {
 			<tr>
 				<th scope='row'><label for="email"><?php esc_html_e( 'Network Admin Email' ); ?></label></th>
 				<td>
-					<input name='email' id='email' type='text' size='45' value='<?php echo esc_attr( $admin_email ); ?>' />
+					<input name='email' id='email' type='text' size='45' value='<?php echo esc_attr( $admin_email ); ?>'>
 					<p class="description">
 						<?php _e( 'Your email address.' ); ?>
 					</p>
@@ -604,40 +604,40 @@ define( 'BLOG_ID_CURRENT_SITE', 1 );
         <rewrite>
             <rules>
                 <rule name="WordPress Rule 1" stopProcessing="true">
-                    <match url="^index\.php$" ignoreCase="false" />
-                    <action type="None" />
+                    <match url="^index\.php$" ignoreCase="false">
+                    <action type="None">
                 </rule>';
 		if ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) {
 			$web_config_file .= '
                 <rule name="WordPress Rule for Files" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . 'files/(.+)" ignoreCase="false" />
-                    <action type="Rewrite" url="' . $iis_rewrite_base . WPINC . '/ms-files.php?file={R:1}" appendQueryString="false" />
+                    <match url="^' . $iis_subdir_match . 'files/(.+)" ignoreCase="false">
+                    <action type="Rewrite" url="' . $iis_rewrite_base . WPINC . '/ms-files.php?file={R:1}" appendQueryString="false">
                 </rule>';
 		}
 			$web_config_file .= '
                 <rule name="WordPress Rule 2" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . 'wp-admin$" ignoreCase="false" />
-                    <action type="Redirect" url="' . $iis_subdir_replacement . 'wp-admin/" redirectType="Permanent" />
+                    <match url="^' . $iis_subdir_match . 'wp-admin$" ignoreCase="false">
+                    <action type="Redirect" url="' . $iis_subdir_replacement . 'wp-admin/" redirectType="Permanent">
                 </rule>
                 <rule name="WordPress Rule 3" stopProcessing="true">
-                    <match url="^" ignoreCase="false" />
+                    <match url="^" ignoreCase="false">
                     <conditions logicalGrouping="MatchAny">
-                        <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false" />
-                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false" />
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" ignoreCase="false">
+                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" ignoreCase="false">
                     </conditions>
-                    <action type="None" />
+                    <action type="None">
                 </rule>
                 <rule name="WordPress Rule 4" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . '(wp-(content|admin|includes).*)" ignoreCase="false" />
-                    <action type="Rewrite" url="' . $iis_rewrite_base . '{R:1}" />
+                    <match url="^' . $iis_subdir_match . '(wp-(content|admin|includes).*)" ignoreCase="false">
+                    <action type="Rewrite" url="' . $iis_rewrite_base . '{R:1}">
                 </rule>
                 <rule name="WordPress Rule 5" stopProcessing="true">
-                    <match url="^' . $iis_subdir_match . '([_0-9a-zA-Z-]+/)?(.*\.php)$" ignoreCase="false" />
-                    <action type="Rewrite" url="' . $iis_rewrite_base . '{R:2}" />
+                    <match url="^' . $iis_subdir_match . '([_0-9a-zA-Z-]+/)?(.*\.php)$" ignoreCase="false">
+                    <action type="Rewrite" url="' . $iis_rewrite_base . '{R:2}">
                 </rule>
                 <rule name="WordPress Rule 6" stopProcessing="true">
-                    <match url="." ignoreCase="false" />
-                    <action type="Rewrite" url="index.php" />
+                    <match url="." ignoreCase="false">
+                    <action type="Rewrite" url="index.php">
                 </rule>
             </rules>
         </rewrite>

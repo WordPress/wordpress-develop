@@ -113,7 +113,7 @@ class Walker_Category_Checklist extends Walker {
 			$output .= "\n<li id='{$taxonomy}-{$category->term_id}'$class>" .
 				'<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="' . $name . '[]" id="in-' . $taxonomy . '-' . $category->term_id . '"' .
 				checked( $is_selected, true, false ) .
-				disabled( $is_disabled, true, false ) . ' /> ' .
+				disabled( $is_disabled, true, false ) . '> ' .
 				/** This filter is documented in wp-includes/category-template.php */
 				esc_html( apply_filters( 'the_category', $category->name, '', '' ) ) . '</label>';
 		}

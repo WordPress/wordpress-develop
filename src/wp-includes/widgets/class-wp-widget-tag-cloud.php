@@ -136,7 +136,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
-			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
+			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>">
 		</p>
 		<?php
 		$taxonomies       = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
@@ -147,7 +147,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			// No tag cloud supporting taxonomies found, display error message.
 			case 0:
 				?>
-				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="" />
+				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="">
 				<p>
 					<?php _e( 'The tag cloud will not be displayed since there are no taxonomies that support the tag cloud widget.' ); ?>
 				</p>
@@ -159,7 +159,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 				$keys     = array_keys( $taxonomies );
 				$taxonomy = reset( $keys );
 				?>
-				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="<?php echo esc_attr( $taxonomy ); ?>" />
+				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="<?php echo esc_attr( $taxonomy ); ?>">
 				<?php
 				break;
 
@@ -182,7 +182,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		if ( count( $taxonomies ) > 0 ) {
 			?>
 			<p>
-				<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" <?php checked( $count, true ); ?> />
+				<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" <?php checked( $count, true ); ?>>
 				<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show tag counts' ); ?></label>
 			</p>
 			<?php

@@ -587,7 +587,7 @@ HTML
 			'Short comment w/o text'  => array( '<!---->', '' ),
 			'Short comment with text' => array( '<!----->', '-' ),
 			'PI node without target'  => array( '<? missing?>', ' missing?' ),
-			'Invalid PI node'         => array( '<?/missing/>', '/missing/' ),
+			'Invalid PI node'         => array( '<?/missing>', '/missing/' ),
 			'Invalid ! directive'     => array( '<!something else>', 'something else' ),
 		);
 	}
@@ -686,7 +686,7 @@ HTML
 	 * @covers WP_HTML_Tag_Processor::next_token
 	 */
 	public function test_basic_assertion_presumptuous_tag() {
-		$processor = new WP_HTML_Tag_Processor( '</>' );
+		$processor = new WP_HTML_Tag_Processor( '<>' );
 		$processor->next_token();
 
 		$this->assertSame(
@@ -803,7 +803,7 @@ HTML
 			'Space'          => array( '</ >', ' ' ),
 			'Short-bang'     => array( '</!>', '!' ),
 			'Question mark'  => array( '</?>', '?' ),
-			'Short-slash'    => array( '<//>', '/' ),
+			'Short-slash'    => array( '</>', '/' ),
 			'Bit (no attrs)' => array( '<//wp:post-meta>', '/wp:post-meta' ),
 			'Bit (attrs)'    => array( '<//wp:post-meta key=isbn>', '/wp:post-meta key=isbn' ),
 			'Curly-wrapped'  => array( '</{json}>', '{json}' ),

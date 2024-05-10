@@ -95,7 +95,7 @@ class Tests_Comment_wpCheckCommentDisallowedList extends WP_UnitTestCase {
 		$author       = 'Rainier Wolfcastle';
 		$author_email = 'rainier@wolfcastle.com';
 		$author_url   = 'http://example.com';
-		$comment      = 'We go on TV and sing, <a href="http://example.com/spam/>sing</a>, sing.';
+		$comment      = 'We go on TV and sing, <a href="http://example.com/spam>sing</a>, sing.';
 		$author_ip    = '192.168.0.1';
 		$user_agent   = '';
 

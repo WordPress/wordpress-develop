@@ -24,7 +24,7 @@ return array(
 
 					<!-- wp:column {"verticalAlignment":"center","width":"80%"} -->
 					<div class="wp-block-column is-vertically-aligned-center" style="flex-basis:80%"><!-- wp:separator {"className":"is-style-wide"} -->
-					<hr class="wp-block-separator is-style-wide"/>
+					<hr class="wp-block-separator is-style-wide">
 					<!-- /wp:separator --></div>
 					<!-- /wp:column --></div>
 					<!-- /wp:columns --></div>
@@ -49,7 +49,7 @@ return array(
 					<!-- wp:columns {"align":"wide"} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column {"verticalAlignment":"center"} -->
 					<div class="wp-block-column is-vertically-aligned-center"><!-- wp:separator {"className":"is-style-wide"} -->
-					<hr class="wp-block-separator is-style-wide"/>
+					<hr class="wp-block-separator is-style-wide">
 					<!-- /wp:separator --></div>
 					<!-- /wp:column -->
 

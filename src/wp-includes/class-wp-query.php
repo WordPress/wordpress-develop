@@ -1401,7 +1401,7 @@ class WP_Query {
 		if ( empty( $_GET['s'] ) && $this->is_main_query() ) {
 			$q['s'] = urldecode( $q['s'] );
 		}
-		// There are no line breaks in <input /> fields.
+		// There are no line breaks in <input> fields.
 		$q['s']                  = str_replace( array( "\r", "\n" ), '', $q['s'] );
 		$q['search_terms_count'] = 1;
 		if ( ! empty( $q['sentence'] ) ) {

@@ -262,7 +262,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				$image .= ' ' . $name . '="' . $value . '"';
 			}
 
-			$image .= ' />';
+			$image .= '>';
 		} // End if().
 
 		$url = '';
@@ -396,7 +396,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 						?>
 						"
 					<# } #>
-				/>
+				>
 			<# } #>
 		</script>
 		<?php

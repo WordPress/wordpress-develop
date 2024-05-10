@@ -2351,8 +2351,8 @@ function remove_allowed_options( $del_options, $options = '' ) {
  *                             used in register_setting().
  */
 function settings_fields( $option_group ) {
-	echo "<input type='hidden' name='option_page' value='" . esc_attr( $option_group ) . "' />";
-	echo '<input type="hidden" name="action" value="update" />';
+	echo "<input type='hidden' name='option_page' value='" . esc_attr( $option_group ) . "'>";
+	echo '<input type="hidden" name="action" value="update">';
 	wp_nonce_field( "$option_group-options" );
 }
 

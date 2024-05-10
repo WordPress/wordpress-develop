@@ -44,7 +44,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		return array(
 			array(
 				'Lorem ipsum dolor sit amet mauris ;-) Praesent gravida sodales. :lol: Vivamus nec diam in faucibus eu, bibendum varius nec, imperdiet purus est, at augue at lacus malesuada elit dapibus a, :eek: mauris. Cras mauris viverra elit. Nam laoreet viverra. Pellentesque tortor. Nam libero ante, porta urna ut turpis. Nullam wisi magna, :mrgreen: tincidunt nec, sagittis non, fringilla enim. Nam consectetuer nec, ullamcorper pede eu dui odio consequat vel, vehicula tortor quis pede turpis cursus quis, egestas ipsum ultricies ut, eleifend velit. Mauris vestibulum iaculis. Sed in nunc. Vivamus elit porttitor egestas. Mauris purus :?:',
-				"Lorem ipsum dolor sit amet mauris \xf0\x9f\x98\x89 Praesent gravida sodales. \xf0\x9f\x98\x86 Vivamus nec diam in faucibus eu, bibendum varius nec, imperdiet purus est, at augue at lacus malesuada elit dapibus a, \xf0\x9f\x98\xae mauris. Cras mauris viverra elit. Nam laoreet viverra. Pellentesque tortor. Nam libero ante, porta urna ut turpis. Nullam wisi magna, <img src=\"{$includes_path}mrgreen.png\" alt=\":mrgreen:\" class=\"wp-smiley\" style=\"height: 1em; max-height: 1em;\" /> tincidunt nec, sagittis non, fringilla enim. Nam consectetuer nec, ullamcorper pede eu dui odio consequat vel, vehicula tortor quis pede turpis cursus quis, egestas ipsum ultricies ut, eleifend velit. Mauris vestibulum iaculis. Sed in nunc. Vivamus elit porttitor egestas. Mauris purus \xe2\x9d\x93",
+				"Lorem ipsum dolor sit amet mauris \xf0\x9f\x98\x89 Praesent gravida sodales. \xf0\x9f\x98\x86 Vivamus nec diam in faucibus eu, bibendum varius nec, imperdiet purus est, at augue at lacus malesuada elit dapibus a, \xf0\x9f\x98\xae mauris. Cras mauris viverra elit. Nam laoreet viverra. Pellentesque tortor. Nam libero ante, porta urna ut turpis. Nullam wisi magna, <img src=\"{$includes_path}mrgreen.png\" alt=\":mrgreen:\" class=\"wp-smiley\" style=\"height: 1em; max-height: 1em;\"> tincidunt nec, sagittis non, fringilla enim. Nam consectetuer nec, ullamcorper pede eu dui odio consequat vel, vehicula tortor quis pede turpis cursus quis, egestas ipsum ultricies ut, eleifend velit. Mauris vestibulum iaculis. Sed in nunc. Vivamus elit porttitor egestas. Mauris purus \xe2\x9d\x93",
 			),
 			array(
 				'<strong>Welcome to the jungle!</strong> We got fun n games! :) We got everything you want 8-) <em>Honey we know the names :)</em>',
@@ -121,15 +121,15 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 		return array(
 			array(
 				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. :monkey:',
-				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. <img src="' . $includes_path . 'icon_shock_the_monkey.gif" alt=":monkey:" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'Peter Brian Gabriel (born 13 February 1950) is a British singer, musician, and songwriter who rose to fame as the lead vocalist and flautist of the progressive rock group Genesis. <img src="' . $includes_path . 'icon_shock_the_monkey.gif" alt=":monkey:" class="wp-smiley" style="height: 1em; max-height: 1em;">',
 			),
 			array(
 				'Star Wars Jedi Knight :arrow: Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. :nervou:',
-				'Star Wars Jedi Knight <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. <img src="' . $includes_path . 'icon_nervou.gif" alt=":nervou:" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'Star Wars Jedi Knight <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;"> Jedi Academy is a first and third-person shooter action game set in the Star Wars universe. It was developed by Raven Software and published, distributed and marketed by LucasArts in North America and by Activision in the rest of the world. <img src="' . $includes_path . 'icon_nervou.gif" alt=":nervou:" class="wp-smiley" style="height: 1em; max-height: 1em;">',
 			),
 			array(
-				':arrow: monkey: Lorem ipsum dolor sit amet enim. Etiam ullam :PP <br />corper. Suspendisse a pellentesque dui, non felis.<a> :arrow: :arrow</a>',
-				'<img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> monkey: Lorem ipsum dolor sit amet enim. Etiam ullam <img src="' . $includes_path . 'icon_tongue.gif" alt=":PP" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <br />corper. Suspendisse a pellentesque dui, non felis.<a> <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;" /> :arrow</a>',
+				':arrow: monkey: Lorem ipsum dolor sit amet enim. Etiam ullam :PP <br>corper. Suspendisse a pellentesque dui, non felis.<a> :arrow: :arrow</a>',
+				'<img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;"> monkey: Lorem ipsum dolor sit amet enim. Etiam ullam <img src="' . $includes_path . 'icon_tongue.gif" alt=":PP" class="wp-smiley" style="height: 1em; max-height: 1em;"> <br>corper. Suspendisse a pellentesque dui, non felis.<a> <img src="' . $includes_path . 'icon_arrow.gif" alt=":arrow:" class="wp-smiley" style="height: 1em; max-height: 1em;"> :arrow</a>',
 			),
 		);
 	}
@@ -232,7 +232,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 			),
 			array(
 				'8O :twisted: :( :? :roll: :mrgreen:',
-				"\xf0\x9f\x98\xaf \xf0\x9f\x98\x88 \xf0\x9f\x99\x81 \xf0\x9f\x98\x95 \xf0\x9f\x99\x84 <img src=\"{$includes_path}mrgreen.png\" alt=\":mrgreen:\" class=\"wp-smiley\" style=\"height: 1em; max-height: 1em;\" />",
+				"\xf0\x9f\x98\xaf \xf0\x9f\x98\x88 \xf0\x9f\x99\x81 \xf0\x9f\x98\x95 \xf0\x9f\x99\x84 <img src=\"{$includes_path}mrgreen.png\" alt=\":mrgreen:\" class=\"wp-smiley\" style=\"height: 1em; max-height: 1em;\">",
 			),
 		);
 	}
@@ -292,11 +292,11 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 			),
 			array(
 				'8O :) additional text here :)',
-				'8O <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> additional text here <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'8O <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;"> additional text here <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;">',
 			),
 			array(
 				':) :) :) :)',
-				'<img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" /> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;"> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;"> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;"> <img src="' . $includes_path . 'simple-smile.png" alt=":)" class="wp-smiley" style="height: 1em; max-height: 1em;">',
 			),
 		);
 	}

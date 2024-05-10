@@ -1072,7 +1072,7 @@ function wp_ajax_add_link_category( $action ) {
 			array(
 				'what'     => 'link-category',
 				'id'       => $cat_id,
-				'data'     => "<li id='link-category-$cat_id'><label for='in-link-category-$cat_id' class='selectit'><input value='" . esc_attr( $cat_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$cat_id'/> $cat_name</label></li>",
+				'data'     => "<li id='link-category-$cat_id'><label for='in-link-category-$cat_id' class='selectit'><input value='" . esc_attr( $cat_id ) . "' type='checkbox' checked='checked' name='link_category[]' id='in-link-category-$cat_id'> $cat_name</label></li>",
 				'position' => -1,
 			)
 		);
@@ -2254,7 +2254,7 @@ function wp_ajax_find_posts() {
 		wp_send_json_error( __( 'No items found.' ) );
 	}
 
-	$html = '<table class="widefat"><thead><tr><th class="found-radio"><br /></th><th>' . __( 'Title' ) . '</th><th class="no-break">' . __( 'Type' ) . '</th><th class="no-break">' . __( 'Date' ) . '</th><th class="no-break">' . __( 'Status' ) . '</th></tr></thead><tbody>';
+	$html = '<table class="widefat"><thead><tr><th class="found-radio"><br></th><th>' . __( 'Title' ) . '</th><th class="no-break">' . __( 'Type' ) . '</th><th class="no-break">' . __( 'Date' ) . '</th><th class="no-break">' . __( 'Status' ) . '</th></tr></thead><tbody>';
 	$alt  = '';
 	foreach ( $posts as $post ) {
 		$title = trim( $post->post_title ) ? $post->post_title : __( '(no title)' );
@@ -3824,7 +3824,7 @@ function wp_ajax_parse_embed() {
 		$mce_styles = wpview_media_sandbox_styles();
 
 		foreach ( $mce_styles as $style ) {
-			$styles .= sprintf( '<link rel="stylesheet" href="%s" />', $style );
+			$styles .= sprintf( '<link rel="stylesheet" href="%s">', $style );
 		}
 
 		$html = do_shortcode( $parsed );

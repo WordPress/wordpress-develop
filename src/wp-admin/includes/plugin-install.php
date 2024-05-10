@@ -303,7 +303,7 @@ function install_dashboard() {
 			)
 		);
 	}
-	echo '</p><br class="clear" /></div>';
+	echo '</p><br class="clear"></div>';
 }
 
 /**
@@ -319,7 +319,7 @@ function install_search_form( $deprecated = true ) {
 	$term = isset( $_REQUEST['s'] ) ? urldecode( wp_unslash( $_REQUEST['s'] ) ) : '';
 	?>
 	<form class="search-form search-plugins" method="get">
-		<input type="hidden" name="tab" value="search" />
+		<input type="hidden" name="tab" value="search">
 		<label class="screen-reader-text" for="typeselector">
 			<?php
 			/* translators: Hidden accessibility text. */
@@ -337,7 +337,7 @@ function install_search_form( $deprecated = true ) {
 			_e( 'Search Plugins' );
 			?>
 		</label>
-		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
+		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>">
 		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
 	</form>
 	<?php
@@ -360,7 +360,7 @@ function install_plugins_upload() {
 			_e( 'Plugin zip file' );
 			?>
 		</label>
-		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
+		<input type="file" id="pluginzip" name="pluginzip" accept=".zip">
 		<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
 	</form>
 </div>
@@ -378,12 +378,12 @@ function install_plugins_favorites_form() {
 	?>
 	<p><?php _e( 'If you have marked plugins as favorites on WordPress.org, you can browse them here.' ); ?></p>
 	<form method="get">
-		<input type="hidden" name="tab" value="favorites" />
+		<input type="hidden" name="tab" value="favorites">
 		<p>
 			<label for="user"><?php _e( 'Your WordPress.org username:' ); ?></label>
-			<input type="search" id="user" name="user" value="<?php echo esc_attr( $user ); ?>" />
-			<input type="submit" class="button" value="<?php esc_attr_e( 'Get Favorites' ); ?>" />
-			<input type="hidden" id="wporg-username-nonce" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( $action ) ); ?>" />
+			<input type="search" id="user" name="user" value="<?php echo esc_attr( $user ); ?>">
+			<input type="submit" class="button" value="<?php esc_attr_e( 'Get Favorites' ); ?>">
+			<input type="hidden" id="wporg-username-nonce" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( $action ) ); ?>">
 		</p>
 	</form>
 	<?php
@@ -798,7 +798,7 @@ function install_plugin_information() {
 					$contrib_profile = esc_url( $contrib_details['profile'] );
 					$contrib_avatar  = esc_url( add_query_arg( 's', '36', $contrib_details['avatar'] ) );
 
-					echo "<li><a href='{$contrib_profile}' target='_blank'><img src='{$contrib_avatar}' width='18' height='18' alt='' />{$contrib_name}</a></li>";
+					echo "<li><a href='{$contrib_profile}' target='_blank'><img src='{$contrib_avatar}' width='18' height='18' alt=''>{$contrib_name}</a></li>";
 				}
 				?>
 			</ul>

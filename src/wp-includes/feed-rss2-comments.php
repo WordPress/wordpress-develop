@@ -46,7 +46,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 	}
 	?>
 	</title>
-	<atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />
+	<atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml">
 	<link><?php ( is_single() ) ? the_permalink_rss() : bloginfo_rss( 'url' ); ?></link>
 	<description><?php bloginfo_rss( 'description' ); ?></description>
 	<lastBuildDate><?php echo get_feed_build_date( 'r' ); ?></lastBuildDate>

@@ -403,7 +403,7 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 	 */
 	$class = apply_filters( 'get_image_tag_class', $class, $id, $align, $size );
 
-	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
+	$html = '<img src="' . esc_url( $img_src ) . '" alt="' . esc_attr( $alt ) . '" ' . $title . $hwstring . 'class="' . $class . '">';
 
 	/**
 	 * Filters the HTML content for the image tag.
@@ -1157,7 +1157,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			$html .= " $name=" . '"' . $value . '"';
 		}
 
-		$html .= ' />';
+		$html .= '>';
 	}
 
 	/**
@@ -1780,7 +1780,7 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		}
 
 		// Add the srcset and sizes attributes to the image markup.
-		return preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . ' />', $image );
+		return preg_replace( '/<img ([^>]+?)[\/ ]*>/', '<img $1' . $attr . '>', $image );
 	}
 
 	return $image;
@@ -2789,7 +2789,7 @@ function wp_underscore_playlist_templates() {
 	?>
 <script type="text/html" id="tmpl-wp-playlist-current-item">
 	<# if ( data.thumb && data.thumb.src ) { #>
-		<img src="{{ data.thumb.src }}" alt="" />
+		<img src="{{ data.thumb.src }}" alt="">
 	<# } #>
 	<div class="wp-playlist-caption">
 		<span class="wp-playlist-item-meta wp-playlist-item-title">
@@ -3347,7 +3347,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 	$html .= sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
 
 	$fileurl = '';
-	$source  = '<source type="%s" src="%s" />';
+	$source  = '<source type="%s" src="%s">';
 
 	foreach ( $default_types as $fallback ) {
 		if ( ! empty( $atts[ $fallback ] ) ) {
@@ -3620,7 +3620,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
 
 	$fileurl = '';
-	$source  = '<source type="%s" src="%s" />';
+	$source  = '<source type="%s" src="%s">';
 
 	foreach ( $default_types as $fallback ) {
 		if ( ! empty( $atts[ $fallback ] ) ) {
@@ -5019,7 +5019,7 @@ function get_media_embedded_in_content( $content, $types = null ) {
 
 	$tags = implode( '|', $allowed_media_types );
 
-	if ( preg_match_all( '#<(?P<tag>' . $tags . ')[^<]*?(?:>[\s\S]*?<\/(?P=tag)>|\s*\/>)#', $content, $matches ) ) {
+	if ( preg_match_all( '#<(?P<tag>' . $tags . ')[^<]*?(?:>[\s\S]*?<\/(?P=tag)>|\s*\>)#', $content, $matches ) ) {
 		foreach ( $matches[0] as $match ) {
 			$html[] = $match;
 		}

@@ -65,7 +65,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified RSD link but same URL.
-		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
+		$head_tag = str_replace( '>', '>', get_echo( 'rsd_link' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 
@@ -92,7 +92,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified REST API link but same URL.
-		$head_tag = str_replace( ' />', '>', get_echo( 'rest_output_link_wp_head' ) );
+		$head_tag = str_replace( '>', '>', get_echo( 'rest_output_link_wp_head' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 

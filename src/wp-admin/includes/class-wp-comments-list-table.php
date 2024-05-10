@@ -466,7 +466,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$columns = array();
 
 		if ( $this->checkbox ) {
-			$columns['cb'] = '<input type="checkbox" />';
+			$columns['cb'] = '<input type="checkbox">';
 		}
 
 		$columns['author']  = __( 'Author' );
@@ -910,7 +910,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		if ( $this->user_can ) {
 			?>
-		<input id="cb-select-<?php echo $comment->comment_ID; ?>" type="checkbox" name="delete_comments[]" value="<?php echo $comment->comment_ID; ?>" />
+		<input id="cb-select-<?php echo $comment->comment_ID; ?>" type="checkbox" name="delete_comments[]" value="<?php echo $comment->comment_ID; ?>">
 		<label for="cb-select-<?php echo $comment->comment_ID; ?>">
 			<span class="screen-reader-text">
 			<?php
@@ -980,12 +980,12 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		echo '<strong>';
 		comment_author( $comment );
-		echo '</strong><br />';
+		echo '</strong><br>';
 
 		if ( ! empty( $author_url_display ) ) {
 			// Print link to author URL, and disallow referrer information (without using target="_blank").
 			printf(
-				'<a href="%s" rel="noopener noreferrer">%s</a><br />',
+				'<a href="%s" rel="noopener noreferrer">%s</a><br>',
 				esc_url( $author_url ),
 				esc_html( $author_url_display )
 			);
@@ -997,7 +997,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$email = apply_filters( 'comment_email', $comment->comment_author_email, $comment );
 
 				if ( ! empty( $email ) && '@' !== $email ) {
-					printf( '<a href="%1$s">%2$s</a><br />', esc_url( 'mailto:' . $email ), esc_html( $email ) );
+					printf( '<a href="%1$s">%2$s</a><br>', esc_url( 'mailto:' . $email ), esc_html( $email ) );
 				}
 			}
 

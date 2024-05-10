@@ -219,7 +219,7 @@ class WP_Styles extends WP_Dependencies {
 		$title = isset( $obj->extra['title'] ) ? sprintf( " title='%s'", esc_attr( $obj->extra['title'] ) ) : '';
 
 		$tag = sprintf(
-			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s' />\n",
+			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s'>\n",
 			$rel,
 			$handle,
 			$title,
@@ -251,7 +251,7 @@ class WP_Styles extends WP_Dependencies {
 			}
 
 			$rtl_tag = sprintf(
-				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s' />\n",
+				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s'>\n",
 				$rel,
 				$handle,
 				$title,

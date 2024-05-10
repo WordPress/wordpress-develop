@@ -186,11 +186,11 @@ function export_date_options( $post_type = 'post' ) {
 	_e( 'Content to export' );
 	?>
 </legend>
-<input type="hidden" name="download" value="true" />
-<p><label><input type="radio" name="content" value="all" checked="checked" aria-describedby="all-content-desc" /> <?php _e( 'All content' ); ?></label></p>
+<input type="hidden" name="download" value="true">
+<p><label><input type="radio" name="content" value="all" checked="checked" aria-describedby="all-content-desc"> <?php _e( 'All content' ); ?></label></p>
 <p class="description" id="all-content-desc"><?php _e( 'This will contain all of your posts, pages, comments, custom fields, terms, navigation menus, and custom posts.' ); ?></p>
 
-<p><label><input type="radio" name="content" value="posts" /> <?php _ex( 'Posts', 'post type general name' ); ?></label></p>
+<p><label><input type="radio" name="content" value="posts"> <?php _ex( 'Posts', 'post type general name' ); ?></label></p>
 <ul id="post-filters" class="export-filters">
 	<li>
 		<label><span class="label-responsive"><?php _e( 'Categories:' ); ?></span>
@@ -247,7 +247,7 @@ function export_date_options( $post_type = 'post' ) {
 	</li>
 </ul>
 
-<p><label><input type="radio" name="content" value="pages" /> <?php _e( 'Pages' ); ?></label></p>
+<p><label><input type="radio" name="content" value="pages"> <?php _e( 'Pages' ); ?></label></p>
 <ul id="page-filters" class="export-filters">
 	<li>
 		<label><span class="label-responsive"><?php _e( 'Authors:' ); ?></span>
@@ -305,10 +305,10 @@ foreach ( get_post_types(
 	'objects'
 ) as $post_type ) :
 	?>
-<p><label><input type="radio" name="content" value="<?php echo esc_attr( $post_type->name ); ?>" /> <?php echo esc_html( $post_type->label ); ?></label></p>
+<p><label><input type="radio" name="content" value="<?php echo esc_attr( $post_type->name ); ?>"> <?php echo esc_html( $post_type->label ); ?></label></p>
 <?php endforeach; ?>
 
-<p><label><input type="radio" name="content" value="attachment" /> <?php _e( 'Media' ); ?></label></p>
+<p><label><input type="radio" name="content" value="attachment"> <?php _e( 'Media' ); ?></label></p>
 <ul id="attachment-filters" class="export-filters">
 	<li>
 		<fieldset>

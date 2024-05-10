@@ -1637,12 +1637,12 @@ class WP_Rewrite {
 
 		$rules .= '
 			<rule name="WordPress: ' . esc_attr( home_url() ) . '" patternSyntax="Wildcard">
-				<match url="*" />
+				<match url="*">
 					<conditions>
-						<add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
-						<add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+						<add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true">
+						<add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true">
 					</conditions>
-				<action type="Rewrite" url="index.php" />
+				<action type="Rewrite" url="index.php">
 			</rule>';
 
 		if ( $add_parent_tags ) {

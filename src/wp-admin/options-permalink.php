@@ -342,7 +342,7 @@ printf(
 					name="selection" aria-describedby="permalink-<?php echo esc_attr( $input['id'] ); ?>"
 					type="radio" value="<?php echo esc_attr( $input['value'] ); ?>"
 					<?php checked( $input['value'], $permalink_structure ); ?>
-				/>
+				>
 				<div>
 					<label for="permalink-input-<?php echo esc_attr( $input['id'] ); ?>">
 						<?php echo esc_html( $input['label'] ); ?>
@@ -360,7 +360,7 @@ printf(
 				<input id="custom_selection"
 					name="selection" type="radio" value="custom"
 					<?php checked( ! in_array( $permalink_structure, $default_structure_values, true ) ); ?>
-				/>
+				>
 				<div>
 					<label for="custom_selection"><?php _e( 'Custom Structure' ); ?></label>
 					<p>
@@ -375,7 +375,7 @@ printf(
 							<input name="permalink_structure" id="permalink_structure"
 								type="text" value="<?php echo esc_attr( $permalink_structure ); ?>"
 								aria-describedby="permalink-custom" class="regular-text code"
-							/>
+							>
 						</span>
 					</p>
 
@@ -431,7 +431,7 @@ printf(
 			<?php echo $blog_prefix; ?>
 			<input name="category_base" id="category_base" type="text"
 				value="<?php echo esc_attr( $category_base ); ?>" class="regular-text code"
-			/>
+			>
 		</td>
 	</tr>
 	<tr>
@@ -442,7 +442,7 @@ printf(
 			<?php echo $blog_prefix; ?>
 			<input name="tag_base" id="tag_base" type="text"
 				value="<?php echo esc_attr( $tag_base ); ?>" class="regular-text code"
-			/>
+			>
 		</td>
 	</tr>
 	<?php do_settings_fields( 'permalink', 'optional' ); ?>
@@ -475,7 +475,7 @@ printf(
 				<form action="options-permalink.php" method="post">
 					<?php wp_nonce_field( 'update-permalink' ); ?>
 					<p>
-						<label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br />
+						<label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br>
 						<textarea rows="9" class="large-text readonly"
 							name="rules" id="rules" readonly="readonly"
 							aria-describedby="iis-description-a"
@@ -507,7 +507,7 @@ printf(
 				<form action="options-permalink.php" method="post">
 					<?php wp_nonce_field( 'update-permalink' ); ?>
 					<p>
-						<label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br />
+						<label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br>
 						<textarea rows="18" class="large-text readonly"
 							name="rules" id="rules" readonly="readonly"
 							aria-describedby="iis-description-b"
@@ -542,7 +542,7 @@ printf(
 			<form action="options-permalink.php" method="post">
 				<?php wp_nonce_field( 'update-permalink' ); ?>
 				<p>
-					<label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br />
+					<label for="rules"><?php _e( 'Rewrite rules:' ); ?></label><br>
 					<textarea rows="8" class="large-text readonly"
 						name="rules" id="rules" readonly="readonly"
 						aria-describedby="htaccess-description"

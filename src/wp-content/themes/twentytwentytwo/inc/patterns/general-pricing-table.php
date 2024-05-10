@@ -8,7 +8,7 @@ return array(
 	'content'    => '<!-- wp:columns {"align":"wide"} -->
 					<div class="wp-block-columns alignwide"><!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:separator {"className":"is-style-wide"} -->
-					<hr class="wp-block-separator is-style-wide"/>
+					<hr class="wp-block-separator is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:heading {"style":{"typography":{"fontSize":"var(--wp--custom--typography--font-size--gigantic, clamp(2.75rem, 6vw, 3.25rem))","lineHeight":"0.5"}}} -->
@@ -36,7 +36,7 @@ return array(
 
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:separator {"className":"is-style-wide"} -->
-					<hr class="wp-block-separator is-style-wide"/>
+					<hr class="wp-block-separator is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:heading {"style":{"typography":{"fontSize":"clamp(2.75rem, 6vw, 3.25rem)","lineHeight":"0.5"}}} -->
@@ -64,7 +64,7 @@ return array(
 
 					<!-- wp:column -->
 					<div class="wp-block-column"><!-- wp:separator {"className":"is-style-wide"} -->
-					<hr class="wp-block-separator is-style-wide"/>
+					<hr class="wp-block-separator is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:heading {"style":{"typography":{"fontSize":"clamp(2.75rem, 6vw, 3.25rem)","lineHeight":"0.5"}}} -->

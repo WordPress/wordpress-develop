@@ -499,7 +499,7 @@ class WP_Customize_Control {
 						value="<?php echo esc_attr( $this->value() ); ?>"
 						<?php $this->link(); ?>
 						<?php checked( $this->value() ); ?>
-					/>
+					>
 					<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo esc_html( $this->label ); ?></label>
 					<?php if ( ! empty( $this->description ) ) : ?>
 						<span id="<?php echo esc_attr( $description_id ); ?>" class="description customize-control-description"><?php echo $this->description; ?></span>
@@ -531,7 +531,7 @@ class WP_Customize_Control {
 							name="<?php echo esc_attr( $name ); ?>"
 							<?php $this->link(); ?>
 							<?php checked( $this->value(), $value ); ?>
-							/>
+							>
 						<label for="<?php echo esc_attr( $input_id . '-radio-' . $value ); ?>"><?php echo esc_html( $label ); ?></label>
 					</span>
 				<?php endforeach; ?>
@@ -665,7 +665,7 @@ class WP_Customize_Control {
 						value="<?php echo esc_attr( $this->value() ); ?>"
 					<?php endif; ?>
 					<?php $this->link(); ?>
-					/>
+					>
 				<?php
 				break;
 		}

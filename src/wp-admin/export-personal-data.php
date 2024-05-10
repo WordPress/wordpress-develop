@@ -106,7 +106,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap nosubsub">
 	<h1><?php esc_html_e( 'Export Personal Data' ); ?></h1>
 	<p><?php _e( 'This tool helps site owners comply with local laws and regulations by exporting known data for a given user in a .zip file.' ); ?></p>
-	<hr class="wp-header-end" />
+	<hr class="wp-header-end">
 
 	<?php settings_errors(); ?>
 
@@ -119,7 +119,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						<label for="username_or_email_for_privacy_request"><?php esc_html_e( 'Username or email address' ); ?></label>
 					</th>
 					<td>
-						<input type="text" required class="regular-text ltr" id="username_or_email_for_privacy_request" name="username_or_email_for_privacy_request" />
+						<input type="text" required class="regular-text ltr" id="username_or_email_for_privacy_request" name="username_or_email_for_privacy_request">
 					</td>
 				</tr>
 				<tr>
@@ -128,7 +128,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</th>
 					<td>
 						<label for="send_confirmation_email">
-							<input type="checkbox" name="send_confirmation_email" id="send_confirmation_email" value="1" checked="checked" />
+							<input type="checkbox" name="send_confirmation_email" id="send_confirmation_email" value="1" checked="checked">
 							<?php _e( 'Send personal data export confirmation email.' ); ?>
 						</label>
 					</td>
@@ -139,18 +139,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</p>
 		</div>
 		<?php wp_nonce_field( 'personal-data-request' ); ?>
-		<input type="hidden" name="action" value="add_export_personal_data_request" />
-		<input type="hidden" name="type_of_action" value="export_personal_data" />
+		<input type="hidden" name="action" value="add_export_personal_data_request">
+		<input type="hidden" name="type_of_action" value="export_personal_data">
 	</form>
-	<hr />
+	<hr>
 
 	<?php $requests_table->views(); ?>
 
 	<form class="search-form wp-clearfix">
 		<?php $requests_table->search_box( __( 'Search Requests' ), 'requests' ); ?>
-		<input type="hidden" name="filter-status" value="<?php echo isset( $_REQUEST['filter-status'] ) ? esc_attr( sanitize_text_field( $_REQUEST['filter-status'] ) ) : ''; ?>" />
-		<input type="hidden" name="orderby" value="<?php echo isset( $_REQUEST['orderby'] ) ? esc_attr( sanitize_text_field( $_REQUEST['orderby'] ) ) : ''; ?>" />
-		<input type="hidden" name="order" value="<?php echo isset( $_REQUEST['order'] ) ? esc_attr( sanitize_text_field( $_REQUEST['order'] ) ) : ''; ?>" />
+		<input type="hidden" name="filter-status" value="<?php echo isset( $_REQUEST['filter-status'] ) ? esc_attr( sanitize_text_field( $_REQUEST['filter-status'] ) ) : ''; ?>">
+		<input type="hidden" name="orderby" value="<?php echo isset( $_REQUEST['orderby'] ) ? esc_attr( sanitize_text_field( $_REQUEST['orderby'] ) ) : ''; ?>">
+		<input type="hidden" name="order" value="<?php echo isset( $_REQUEST['order'] ) ? esc_attr( sanitize_text_field( $_REQUEST['order'] ) ) : ''; ?>">
 	</form>
 
 	<form method="post">

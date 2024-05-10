@@ -555,7 +555,7 @@ function wp_list_authors( $args = '' ) {
 			$link .= '>';
 
 			if ( ! empty( $parsed_args['feed_image'] ) ) {
-				$link .= '<img src="' . esc_url( $parsed_args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
+				$link .= '<img src="' . esc_url( $parsed_args['feed_image'] ) . '" style="border: none;"' . $alt . '>';
 			} else {
 				$link .= $name;
 			}

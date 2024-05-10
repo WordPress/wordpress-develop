@@ -106,7 +106,7 @@ else :
 	 */
 	do_action( 'myblogs_allblogs_options' );
 	?>
-	<br clear="all" />
+	<br clear="all">
 	<ul class="my-sites striped">
 	<?php
 	/**
@@ -166,7 +166,7 @@ else :
 	<?php
 	if ( count( $blogs ) > 1 || has_action( 'myblogs_allblogs_options' ) || has_filter( 'myblogs_options' ) ) {
 		?>
-		<input type="hidden" name="action" value="updateblogsettings" />
+		<input type="hidden" name="action" value="updateblogsettings">
 		<?php
 		wp_nonce_field( 'update-my-sites' );
 		submit_button();

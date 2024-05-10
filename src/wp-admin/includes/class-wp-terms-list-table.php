@@ -188,7 +188,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
-			'cb'          => '<input type="checkbox" />',
+			'cb'          => '<input type="checkbox">',
 			'name'        => _x( 'Name', 'term name' ),
 			'description' => __( 'Description' ),
 			'slug'        => __( 'Slug' ),
@@ -364,7 +364,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			return sprintf(
-				'<input type="checkbox" name="delete_tags[]" value="%1$s" id="cb-select-%1$s" />' .
+				'<input type="checkbox" name="delete_tags[]" value="%1$s" id="cb-select-%1$s">' .
 				'<label for="cb-select-%1$s"><span class="screen-reader-text">%2$s</span></label>',
 				$tag->term_id,
 				/* translators: Hidden accessibility text. %s: Taxonomy term name. */
@@ -421,7 +421,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		$output = sprintf(
-			'<strong>%s</strong><br />',
+			'<strong>%s</strong><br>',
 			$name
 		);
 
@@ -693,12 +693,12 @@ class WP_Terms_List_Table extends WP_List_Table {
 				<div class="inline-edit-col">
 				<label>
 					<span class="title"><?php _ex( 'Name', 'term name' ); ?></span>
-					<span class="input-text-wrap"><input type="text" name="name" class="ptitle" value="" /></span>
+					<span class="input-text-wrap"><input type="text" name="name" class="ptitle" value=""></span>
 				</label>
 
 				<label>
 					<span class="title"><?php _e( 'Slug' ); ?></span>
-					<span class="input-text-wrap"><input type="text" name="slug" class="ptitle" value="" /></span>
+					<span class="input-text-wrap"><input type="text" name="slug" class="ptitle" value=""></span>
 				</label>
 				</div>
 			</fieldset>
@@ -730,8 +730,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 				<span class="spinner"></span>
 
 				<?php wp_nonce_field( 'taxinlineeditnonce', '_inline_edit', false ); ?>
-				<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $this->screen->taxonomy ); ?>" />
-				<input type="hidden" name="post_type" value="<?php echo esc_attr( $this->screen->post_type ); ?>" />
+				<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $this->screen->taxonomy ); ?>">
+				<input type="hidden" name="post_type" value="<?php echo esc_attr( $this->screen->post_type ); ?>">
 
 				<?php
 				wp_admin_notice(

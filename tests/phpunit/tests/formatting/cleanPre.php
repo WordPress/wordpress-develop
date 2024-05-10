@@ -12,14 +12,14 @@
 class Tests_Formatting_CleanPre extends WP_UnitTestCase {
 
 	public function test_removes_self_closing_br_with_space() {
-		$source = 'a b c\n<br />sldfj<br />';
+		$source = 'a b c\n<br>sldfj<br>';
 		$res    = 'a b c\nsldfj';
 
 		$this->assertSame( $res, clean_pre( $source ) );
 	}
 
 	public function test_removes_self_closing_br_without_space() {
-		$source = 'a b c\n<br/>sldfj<br/>';
+		$source = 'a b c\n<br>sldfj<br>';
 		$res    = 'a b c\nsldfj';
 		$this->assertSame( $res, clean_pre( $source ) );
 	}
@@ -27,7 +27,7 @@ class Tests_Formatting_CleanPre extends WP_UnitTestCase {
 
 	/**
 	 * I don't think this can ever happen in production;
-	 * <br> is changed to <br /> elsewhere. Left in because
+	 * <br> is changed to <br> elsewhere. Left in because
 	 * that replacement shouldn't happen (what if you want
 	 * HTML 4 output?).
 	 */

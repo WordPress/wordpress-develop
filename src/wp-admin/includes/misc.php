@@ -445,7 +445,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 				$file_description = esc_html( get_file_description( $filename ) );
 
 				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
-					$file_description .= '<br /><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
+					$file_description .= '<br><span class="nonessential">(' . esc_html( $filename ) . ')</span>';
 				}
 
 				if ( $relative_file === $filename ) {
@@ -899,7 +899,7 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	// If configuration file does not exist then we create one.
 	if ( ! file_exists( $filename ) ) {
 		$fp = fopen( $filename, 'w' );
-		fwrite( $fp, '<configuration/>' );
+		fwrite( $fp, '<configuration>' );
 		fclose( $fp );
 	}
 
@@ -1034,9 +1034,9 @@ function admin_color_scheme_picker( $user_id ) {
 
 			?>
 			<div class="color-option <?php echo ( $color === $current_color ) ? 'selected' : ''; ?>">
-				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
-				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
-				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?>>
+				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>">
+				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>">
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<div class="color-palette">
 				<?php
@@ -1406,7 +1406,7 @@ function wp_admin_canonical_url() {
 	 */
 	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
-	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>" />
+	<link id="wp-admin-canonical" rel="canonical" href="<?php echo esc_url( $filtered_url ); ?>">
 	<script>
 		if ( window.history.replaceState ) {
 			window.history.replaceState( null, null, document.getElementById( 'wp-admin-canonical' ).href + window.location.hash );

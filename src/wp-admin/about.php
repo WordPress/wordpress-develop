@@ -61,7 +61,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/1-font-library.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.5/1-font-library.webp" alt="" height="436" width="436">
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/3-style-revisions.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.5/3-style-revisions.webp" alt="" height="436" width="436">
 				</div>
 			</div>
 		</div>
@@ -85,21 +85,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/4-background-images.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.5/4-background-images.webp" alt="" height="270" width="270">
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Do more with background images in Group blocks' ); ?></h3>
 				<p><?php _e( 'Control size, repeat, and focal point options so you can play around with subtle or splashy ways to add visual interest to layouts.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/5-cover-aspect-ratio.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.5/5-cover-aspect-ratio.webp" alt="" height="270" width="270">
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Get more control over images in Cover blocks' ); ?></h3>
 				<p><?php _e( 'Set aspect ratios for Cover block images and easily add color overlays that automatically source color from your chosen image.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/6-box-shadow.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.5/6-box-shadow.webp" alt="" height="270" width="270">
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Add box shadow supports to even more blocks' ); ?></h3>
 				<p><?php _e( 'With shadow supports enabled, you can create layouts with visual depth or add a little personality to your design.' ); ?></p>
@@ -109,28 +109,28 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-3-columns">
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/7-data-views.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.5/7-data-views.webp" alt="" height="270" width="270">
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Discover new Data Views' ); ?></h3>
 				<p><?php _e( 'Find and organize your data however you like with data views for pages, templates, patterns, and template parts. Arrange it in a table or grid view with the option to toggle fields and make bulk changes.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/8-drag-n-drop.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.5/8-drag-n-drop.webp" alt="" height="270" width="270">
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Smoother drag-and-drop' ); ?></h3>
 				<p><?php _e( 'Feel the difference when you move things around, with helpful visual cues like displaced items in List View or frictionless dragging to anywhere in your workspace—from beginning to end.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/9-link-controls.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.5/9-link-controls.webp" alt="" height="270" width="270">
 				</div>
 				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Improved link controls' ); ?></h3>
 				<p><?php _e( 'Create and manage links easily with a more intuitive link-building experience, like a streamlined UI and a shortcut for copying links.' ); ?></p>
 			</div>
 		</div>
 
-		<hr />
+		<hr>
 
 		<div class="about__section has-2-columns">
 			<div class="column">
@@ -214,11 +214,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<hr />
+		<hr>
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.5' ) ); ?>" alt="" height="280" width="280" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.5' ) ); ?>" alt="" height="280" width="280">
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
@@ -287,7 +287,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<hr class="is-large" />
+		<hr class="is-large">
 
 		<div class="return-to-dashboard">
 			<?php

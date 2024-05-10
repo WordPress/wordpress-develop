@@ -496,7 +496,7 @@ function print_backtrace() {
 
 // Mask out any input fields matching the given name.
 function mask_input_value( $in, $name = '_wpnonce' ) {
-	return preg_replace( '@<input([^>]*) name="' . preg_quote( $name ) . '"([^>]*) value="[^>]*" />@', '<input$1 name="' . preg_quote( $name ) . '"$2 value="***" />', $in );
+	return preg_replace( '@<input([^>]*) name="' . preg_quote( $name ) . '"([^>]*) value="[^>]*">@', '<input$1 name="' . preg_quote( $name ) . '"$2 value="***">', $in );
 }
 
 /**

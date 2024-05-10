@@ -262,7 +262,7 @@ class MagpieRSS {
 				$this->append_content("</$el>");
 			}
 			else {
-				$this->append_content("<$el />");
+				$this->append_content("<$el>");
 			}
 
 			array_shift( $this->stack );
@@ -631,9 +631,9 @@ function _response_to_rss ($resp) {
  * Set up constants with default values, unless user overrides.
  *
  * @since 1.5.0
- * 
+ *
  * @global string $wp_version The WordPress version string.
- * 
+ *
  * @package External
  * @subpackage MagpieRSS
  */
@@ -940,7 +940,7 @@ function get_rss ($url, $num_items = 5) { // Like get posts, but for RSS
 			echo "<li>\n";
 			echo "<a href='$item[link]' title='$item[description]'>";
 			echo esc_html($item['title']);
-			echo "</a><br />\n";
+			echo "</a><br>\n";
 			echo "</li>\n";
 		}
 	} else {

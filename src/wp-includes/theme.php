@@ -1340,7 +1340,7 @@ function get_header_image_tag( $attr = array() ) {
 		$html .= ' ' . $name . '="' . $value . '"';
 	}
 
-	$html .= ' />';
+	$html .= '>';
 
 	/**
 	 * Filters the markup of header images.

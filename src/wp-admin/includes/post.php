@@ -1671,7 +1671,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 		}
 	}
 
-	$content .= '<input type="hidden" id="_thumbnail_id" name="_thumbnail_id" value="' . esc_attr( $thumbnail_id ? $thumbnail_id : '-1' ) . '" />';
+	$content .= '<input type="hidden" id="_thumbnail_id" name="_thumbnail_id" value="' . esc_attr( $thumbnail_id ? $thumbnail_id : '-1' ) . '">';
 
 	/**
 	 * Filters the admin post thumbnail HTML markup to return.
@@ -1901,8 +1901,8 @@ function _admin_notice_post_locked() {
 		<div class="post-taken-over">
 			<div class="post-locked-avatar"></div>
 			<p class="wp-tab-first" tabindex="0">
-			<span class="currently-editing"></span><br />
-			<span class="locked-saving hidden"><img src="<?php echo esc_url( admin_url( 'images/spinner-2x.gif' ) ); ?>" width="16" height="16" alt="" /> <?php _e( 'Saving revision&hellip;' ); ?></span>
+			<span class="currently-editing"></span><br>
+			<span class="locked-saving hidden"><img src="<?php echo esc_url( admin_url( 'images/spinner-2x.gif' ) ); ?>" width="16" height="16" alt=""> <?php _e( 'Saving revision&hellip;' ); ?></span>
 			<span class="locked-saved hidden"><?php _e( 'Your latest changes were saved as a revision.' ); ?></span>
 			</p>
 			<?php
@@ -2372,7 +2372,7 @@ function the_block_editor_meta_boxes() {
 	</form>
 	<form id="toggle-custom-fields-form" method="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>">
 		<?php wp_nonce_field( 'toggle-custom-fields', 'toggle-custom-fields-nonce' ); ?>
-		<input type="hidden" name="action" value="toggle-custom-fields" />
+		<input type="hidden" name="action" value="toggle-custom-fields">
 	</form>
 	<?php foreach ( $locations as $location ) : ?>
 		<form class="metabox-location-<?php echo esc_attr( $location ); ?>" onsubmit="return false;">
@@ -2527,11 +2527,11 @@ function the_block_editor_meta_boxes() {
 function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	$form_extra = '';
 	if ( 'auto-draft' === $post->post_status ) {
-		$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1' />";
+		$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1'>";
 	}
 	$form_action  = 'editpost';
 	$nonce_action = 'update-post_' . $post->ID;
-	$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
+	$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "'>";
 	$referer      = wp_get_referer();
 	$current_user = wp_get_current_user();
 	$user_id      = $current_user->ID;
@@ -2561,12 +2561,12 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 		}
 	}
 	?>
-	<input type="hidden" id="user-id" name="user_ID" value="<?php echo (int) $user_id; ?>" />
-	<input type="hidden" id="hiddenaction" name="action" value="<?php echo esc_attr( $form_action ); ?>" />
-	<input type="hidden" id="originalaction" name="originalaction" value="<?php echo esc_attr( $form_action ); ?>" />
-	<input type="hidden" id="post_type" name="post_type" value="<?php echo esc_attr( $post->post_type ); ?>" />
-	<input type="hidden" id="original_post_status" name="original_post_status" value="<?php echo esc_attr( $post->post_status ); ?>" />
-	<input type="hidden" id="referredby" name="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>" />
+	<input type="hidden" id="user-id" name="user_ID" value="<?php echo (int) $user_id; ?>">
+	<input type="hidden" id="hiddenaction" name="action" value="<?php echo esc_attr( $form_action ); ?>">
+	<input type="hidden" id="originalaction" name="originalaction" value="<?php echo esc_attr( $form_action ); ?>">
+	<input type="hidden" id="post_type" name="post_type" value="<?php echo esc_attr( $post->post_type ); ?>">
+	<input type="hidden" id="original_post_status" name="original_post_status" value="<?php echo esc_attr( $post->post_status ); ?>">
+	<input type="hidden" id="referredby" name="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>">
 
 	<?php
 	if ( 'draft' !== get_post_status( $post ) ) {
@@ -2581,7 +2581,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	/**
 	 * Adds hidden input fields to the meta box save form.
 	 *
-	 * Hook into this action to print `<input type="hidden" ... />` fields, which will be POSTed back to
+	 * Hook into this action to print `<input type="hidden" ...>` fields, which will be POSTed back to
 	 * the server when meta boxes are saved.
 	 *
 	 * @since 5.0.0

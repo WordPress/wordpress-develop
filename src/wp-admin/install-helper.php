@@ -26,9 +26,9 @@
  *     $tablename   = $wpdb->links;
  *
  *     if ( check_column( $wpdb->links, 'link_description', 'varchar( 255 )' ) ) {
- *         $res .= $tablename . ' - ok <br />';
+ *         $res .= $tablename . ' - ok <br>';
  *     } else {
- *         $res .= 'There was a problem with ' . $tablename . '<br />';
+ *         $res .= 'There was a problem with ' . $tablename . '<br>';
  *         ++$error_count;
  *     }
  *

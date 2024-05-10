@@ -163,7 +163,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			$this->extra_tablenav( $which );
 			$this->pagination( $which );
 			?>
-			<br class="clear" />
+			<br class="clear">
 		</div>
 		<?php
 	}

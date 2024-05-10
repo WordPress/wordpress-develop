@@ -119,8 +119,8 @@ All at ###SITENAME###
 
 	<form method="post" name="deletedirect">
 		<?php wp_nonce_field( 'delete-blog' ); ?>
-		<input type="hidden" name="action" value="deleteblog" />
-		<p><input id="confirmdelete" type="checkbox" name="confirmdelete" value="1" /> <label for="confirmdelete"><strong>
+		<input type="hidden" name="action" value="deleteblog">
+		<p><input id="confirmdelete" type="checkbox" name="confirmdelete" value="1"> <label for="confirmdelete"><strong>
 		<?php
 			printf(
 				/* translators: %s: Site address. */

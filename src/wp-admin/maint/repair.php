@@ -14,9 +14,9 @@ header( 'Content-Type: text/html; charset=utf-8' );
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
-	<meta name="viewport" content="width=device-width" />
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="robots" content="noindex,nofollow" />
+	<meta name="viewport" content="width=device-width">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="robots" content="noindex,nofollow">
 	<title><?php _e( 'WordPress &rsaquo; Database Repair' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
@@ -120,13 +120,13 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 
 			$repair = $wpdb->get_row( "REPAIR TABLE $table" );
 
-			echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
+			echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;';
 			if ( 'OK' === $repair->Msg_text ) {
 				/* translators: %s: Table name. */
 				printf( __( 'Successfully repaired the %s table.' ), "<code>$table</code>" );
 			} else {
 				/* translators: 1: Table name, 2: Error message. */
-				printf( __( 'Failed to repair the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$repair->Msg_text</code>" ) . '<br />';
+				printf( __( 'Failed to repair the %1$s table. Error: %2$s' ), "<code>$table</code>", "<code>$repair->Msg_text</code>" ) . '<br>';
 				$problems[ $table ] = $repair->Msg_text;
 				$okay               = false;
 			}
@@ -135,14 +135,14 @@ if ( ! defined( 'WP_ALLOW_REPAIR' ) || ! WP_ALLOW_REPAIR ) {
 		if ( $okay && $optimize ) {
 			$analyze = $wpdb->get_row( "ANALYZE TABLE $table" );
 
-			echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
+			echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;';
 			if ( 'Table is already up to date' === $analyze->Msg_text ) {
 				/* translators: %s: Table name. */
 				printf( __( 'The %s table is already optimized.' ), "<code>$table</code>" );
 			} else {
 				$optimize = $wpdb->get_row( "OPTIMIZE TABLE $table" );
 
-				echo '<br />&nbsp;&nbsp;&nbsp;&nbsp;';
+				echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;';
 				if ( 'OK' === $optimize->Msg_text || 'Table is already up to date' === $optimize->Msg_text ) {
 					/* translators: %s: Table name. */
 					printf( __( 'Successfully optimized the %s table.' ), "<code>$table</code>" );

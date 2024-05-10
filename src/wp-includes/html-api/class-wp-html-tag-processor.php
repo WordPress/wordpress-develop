@@ -321,7 +321,7 @@
  *    an HTML comment when parsing. E.g. for `</%post_author>` the text is `%post_author`.
  *  - `DOCTYPE` declarations like `<DOCTYPE html>` which have no closing tag.
  *  - XML Processing instruction nodes like `<?wp __( "Like" ); ?>` (with restrictions [2]).
- *  - The empty end tag `</>` which is ignored in the browser and DOM.
+ *  - The empty end tag `<>` which is ignored in the browser and DOM.
  *
  * [1]: There are no CDATA sections in HTML. When encountering `<![CDATA[`, everything
  *      until the next `>` becomes a bogus HTML comment, meaning there can be no CDATA
@@ -495,7 +495,7 @@ class WP_HTML_Tag_Processor {
 	 * | *Text node*     | Found a #text node; this is plaintext and modifiable.                |
 	 * | *CDATA node*    | Found a CDATA section; this is modifiable.                           |
 	 * | *Comment*       | Found a comment or bogus comment; this is modifiable.                |
-	 * | *Presumptuous*  | Found an empty tag closer: `</>`.                                    |
+	 * | *Presumptuous*  | Found an empty tag closer: `<>`.                                    |
 	 * | *Funky comment* | Found a tag closer with an invalid tag name; this is modifiable.     |
 	 *
 	 * @since 6.5.0
@@ -1610,7 +1610,7 @@ class WP_HTML_Tag_Processor {
 				++$at;
 				$this->parser_state         = self::STATE_MATCHED_TAG;
 				$this->tag_name_starts_at   = $at;
-				$this->tag_name_length      = $tag_name_prefix_length + strcspn( $html, " \t\f\r\n/>", $at + $tag_name_prefix_length );
+				$this->tag_name_length      = $tag_name_prefix_length + strcspn( $html, " \t\f\r\n>", $at + $tag_name_prefix_length );
 				$this->bytes_already_parsed = $at + $this->tag_name_length;
 				return true;
 			}
@@ -1800,7 +1800,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * </> is a missing end tag name, which is ignored.
+			 * <> is a missing end tag name, which is ignored.
 			 *
 			 * This was also known as the "presumptuous empty tag"
 			 * in early discussions as it was proposed to close
@@ -1941,8 +1941,8 @@ class WP_HTML_Tag_Processor {
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
 		 */
 		$name_length = '=' === $this->html[ $this->bytes_already_parsed ]
-			? 1 + strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed + 1 )
-			: strcspn( $this->html, "=/> \t\f\r\n", $this->bytes_already_parsed );
+			? 1 + strcspn( $this->html, "=> \t\f\r\n", $this->bytes_already_parsed + 1 )
+			: strcspn( $this->html, "=> \t\f\r\n", $this->bytes_already_parsed );
 
 		// No attribute, just tag closer.
 		if ( 0 === $name_length || $this->bytes_already_parsed + $name_length >= strlen( $this->html ) ) {
@@ -2478,7 +2478,7 @@ class WP_HTML_Tag_Processor {
 		 *     'update' === $p->get_enqueued_attribute_value( 'data-test-id' );
 		 *
 		 * Detect this difference based on the absence of the `=`, which _must_ exist in any
-		 * attribute containing a value, e.g. `<input type="text" enabled />`.
+		 * attribute containing a value, e.g. `<input type="text" enabled>`.
 		 *                                            ¹           ²
 		 *                                       1. Attribute with a string value.
 		 *                                       2. Boolean attribute whose value is `true`.
@@ -2684,7 +2684,7 @@ class WP_HTML_Tag_Processor {
 		 *
 		 * Example:
 		 *
-		 *     <figure />
+		 *     <figure>
 		 *             ^ this appears one character before the end of the closing ">".
 		 */
 		return '/' === $this->html[ $this->token_starts_at + $this->token_length - 1 ];
@@ -2992,14 +2992,14 @@ class WP_HTML_Tag_Processor {
 			/*
 			 * Update an existing attribute.
 			 *
-			 * Example – set attribute id to "new" in <div id="initial_id" />:
+			 * Example – set attribute id to "new" in <div id="initial_id">:
 			 *
-			 *     <div id="initial_id"/>
+			 *     <div id="initial_id">
 			 *          ^-------------^
 			 *          start         end
 			 *     replacement: `id="new"`
 			 *
-			 *     Result: <div id="new"/>
+			 *     Result: <div id="new">
 			 */
 			$existing_attribute                        = $this->attributes[ $comparable_name ];
 			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
@@ -3011,14 +3011,14 @@ class WP_HTML_Tag_Processor {
 			/*
 			 * Create a new attribute at the tag's name end.
 			 *
-			 * Example – add attribute id="new" to <div />:
+			 * Example – add attribute id="new" to <div>:
 			 *
-			 *     <div/>
+			 *     <div>
 			 *         ^
 			 *         start and end
 			 *     replacement: ` id="new"`
 			 *
-			 *     Result: <div id="new"/>
+			 *     Result: <div id="new">
 			 */
 			$this->lexical_updates[ $comparable_name ] = new WP_HTML_Text_Replacement(
 				$this->tag_name_starts_at + $this->tag_name_length,
@@ -3090,13 +3090,13 @@ class WP_HTML_Tag_Processor {
 		/*
 		 * Removes an existing tag attribute.
 		 *
-		 * Example – remove the attribute id from <div id="main"/>:
-		 *    <div id="initial_id"/>
+		 * Example – remove the attribute id from <div id="main">:
+		 *    <div id="initial_id">
 		 *         ^-------------^
 		 *         start         end
 		 *    replacement: ``
 		 *
-		 *    Result: <div />
+		 *    Result: <div>
 		 */
 		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
 			$this->attributes[ $name ]->start,
@@ -3450,7 +3450,7 @@ class WP_HTML_Tag_Processor {
 	const STATE_DOCTYPE = 'STATE_DOCTYPE';
 
 	/**
-	 * Indicates that the parser has found an empty tag closer `</>`.
+	 * Indicates that the parser has found an empty tag closer `<>`.
 	 *
 	 * Note that in HTML there are no empty tag closers, and they
 	 * are ignored. Nonetheless, the Tag Processor still

@@ -92,7 +92,7 @@ class WP_Widget_RSS extends WP_Widget {
 			$feed_url  = strip_tags( $url );
 			$feed_icon = includes_url( 'images/rss.png' );
 			$feed_link = sprintf(
-				'<a class="rsswidget rss-widget-feed" href="%1$s"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="%2$s" alt="%3$s"%4$s /></a> ',
+				'<a class="rsswidget rss-widget-feed" href="%1$s"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="%2$s" alt="%3$s"%4$s></a> ',
 				esc_url( $feed_url ),
 				esc_url( $feed_icon ),
 				esc_attr__( 'RSS' ),

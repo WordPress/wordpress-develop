@@ -17,7 +17,7 @@ return array(
 					<!-- /wp:spacer -->
 
 					<!-- wp:separator {"color":"foreground","className":"is-style-wide"} -->
-					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
+					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:spacer {"height":16} -->
@@ -33,7 +33,7 @@ return array(
 					<!-- /wp:spacer -->
 
 					<!-- wp:separator {"color":"foreground","className":"is-style-wide"} -->
-					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
+					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:spacer {"height":16} -->
@@ -60,7 +60,7 @@ return array(
 					<!-- /wp:post-template -->
 
 					<!-- wp:separator {"className":"alignwide is-style-wide"} -->
-					<hr class="wp-block-separator alignwide is-style-wide"/>
+					<hr class="wp-block-separator alignwide is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:query-pagination {"paginationArrow":"arrow","align":"wide","layout":{"type":"flex","justifyContent":"space-between"}} -->

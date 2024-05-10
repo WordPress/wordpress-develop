@@ -304,7 +304,7 @@ class AtomParser {
                 $this->in_content = array();
             } else if($this->in_content[$ccount-1][0] == $tag &&
                 $this->in_content[$ccount-1][1] == $this->depth) {
-                $this->in_content[$ccount-1][2] = substr($this->in_content[$ccount-1][2],0,-1) . "/>";
+                $this->in_content[$ccount-1][2] = substr($this->in_content[$ccount-1][2],0,-1) . ">";
             } else {
                 # else, just finalize the current element's content
                 $endtag = $this->ns_to_prefix($name);

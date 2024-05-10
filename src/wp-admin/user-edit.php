@@ -281,11 +281,11 @@ switch ( $action ) {
 				>
 				<?php wp_nonce_field( 'update-user_' . $user_id ); ?>
 				<?php if ( $wp_http_referer ) : ?>
-					<input type="hidden" name="wp_http_referer" value="<?php echo esc_url( $wp_http_referer ); ?>" />
+					<input type="hidden" name="wp_http_referer" value="<?php echo esc_url( $wp_http_referer ); ?>">
 				<?php endif; ?>
 				<p>
-					<input type="hidden" name="from" value="profile" />
-					<input type="hidden" name="checkuser_id" value="<?php echo get_current_user_id(); ?>" />
+					<input type="hidden" name="from" value="profile">
+					<input type="hidden" name="checkuser_id" value="<?php echo get_current_user_id(); ?>">
 				</p>
 
 				<h2><?php _e( 'Personal Options' ); ?></h2>
@@ -295,7 +295,7 @@ switch ( $action ) {
 						<tr class="user-rich-editing-wrap">
 							<th scope="row"><?php _e( 'Visual Editor' ); ?></th>
 							<td>
-								<label for="rich_editing"><input name="rich_editing" type="checkbox" id="rich_editing" value="false" <?php checked( 'false', $profile_user->rich_editing ); ?> />
+								<label for="rich_editing"><input name="rich_editing" type="checkbox" id="rich_editing" value="false" <?php checked( 'false', $profile_user->rich_editing ); ?>>
 									<?php _e( 'Disable the visual editor when writing' ); ?>
 								</label>
 							</td>
@@ -319,7 +319,7 @@ switch ( $action ) {
 					<tr class="user-syntax-highlighting-wrap">
 						<th scope="row"><?php _e( 'Syntax Highlighting' ); ?></th>
 						<td>
-							<label for="syntax_highlighting"><input name="syntax_highlighting" type="checkbox" id="syntax_highlighting" value="false" <?php checked( 'false', $profile_user->syntax_highlighting ); ?> />
+							<label for="syntax_highlighting"><input name="syntax_highlighting" type="checkbox" id="syntax_highlighting" value="false" <?php checked( 'false', $profile_user->syntax_highlighting ); ?>>
 								<?php _e( 'Disable syntax highlighting when editing code' ); ?>
 							</label>
 						</td>
@@ -353,7 +353,7 @@ switch ( $action ) {
 						<th scope="row"><?php _e( 'Keyboard Shortcuts' ); ?></th>
 						<td>
 							<label for="comment_shortcuts">
-								<input type="checkbox" name="comment_shortcuts" id="comment_shortcuts" value="true" <?php checked( 'true', $profile_user->comment_shortcuts ); ?> />
+								<input type="checkbox" name="comment_shortcuts" id="comment_shortcuts" value="true" <?php checked( 'true', $profile_user->comment_shortcuts ); ?>>
 								<?php _e( 'Enable keyboard shortcuts for comment moderation.' ); ?>
 							</label>
 							<?php _e( '<a href="https://wordpress.org/documentation/article/keyboard-shortcuts-classic-editor/#keyboard-shortcuts-for-comments">Documentation on Keyboard Shortcuts</a>' ); ?>
@@ -365,9 +365,9 @@ switch ( $action ) {
 						<th scope="row"><?php _e( 'Toolbar' ); ?></th>
 						<td>
 							<label for="admin_bar_front">
-								<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( _get_admin_bar_pref( 'front', $profile_user->ID ) ); ?> />
+								<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( _get_admin_bar_pref( 'front', $profile_user->ID ) ); ?>>
 								<?php _e( 'Show Toolbar when viewing site' ); ?>
-							</label><br />
+							</label><br>
 						</td>
 					</tr>
 
@@ -438,7 +438,7 @@ switch ( $action ) {
 				<table class="form-table" role="presentation">
 					<tr class="user-user-login-wrap">
 						<th><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" disabled="disabled" class="regular-text" /> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
+						<td><input type="text" name="user_login" id="user_login" value="<?php echo esc_attr( $profile_user->user_login ); ?>" disabled="disabled" class="regular-text"> <span class="description"><?php _e( 'Usernames cannot be changed.' ); ?></span></td>
 					</tr>
 
 					<?php if ( ! IS_PROFILE_PAGE && ! is_network_admin() && current_user_can( 'promote_user', $profile_user->ID ) ) : ?>
@@ -471,7 +471,7 @@ switch ( $action ) {
 							<th><?php _e( 'Super Admin' ); ?></th>
 							<td>
 								<?php if ( 0 !== strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) || ! is_super_admin( $profile_user->ID ) ) : ?>
-									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
+									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?>> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 								<?php else : ?>
 									<p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
 								<?php endif; ?>
@@ -481,17 +481,17 @@ switch ( $action ) {
 
 					<tr class="user-first-name-wrap">
 						<th><label for="first_name"><?php _e( 'First Name' ); ?></label></th>
-						<td><input type="text" name="first_name" id="first_name" value="<?php echo esc_attr( $profile_user->first_name ); ?>" class="regular-text" /></td>
+						<td><input type="text" name="first_name" id="first_name" value="<?php echo esc_attr( $profile_user->first_name ); ?>" class="regular-text"></td>
 					</tr>
 
 					<tr class="user-last-name-wrap">
 						<th><label for="last_name"><?php _e( 'Last Name' ); ?></label></th>
-						<td><input type="text" name="last_name" id="last_name" value="<?php echo esc_attr( $profile_user->last_name ); ?>" class="regular-text" /></td>
+						<td><input type="text" name="last_name" id="last_name" value="<?php echo esc_attr( $profile_user->last_name ); ?>" class="regular-text"></td>
 					</tr>
 
 					<tr class="user-nickname-wrap">
 						<th><label for="nickname"><?php _e( 'Nickname' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
-						<td><input type="text" name="nickname" id="nickname" value="<?php echo esc_attr( $profile_user->nickname ); ?>" class="regular-text" /></td>
+						<td><input type="text" name="nickname" id="nickname" value="<?php echo esc_attr( $profile_user->nickname ); ?>" class="regular-text"></td>
 					</tr>
 
 					<tr class="user-display-name-wrap">
@@ -540,7 +540,7 @@ switch ( $action ) {
 					<tr class="user-email-wrap">
 						<th><label for="email"><?php _e( 'Email' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
 						<td>
-							<input type="email" name="email" id="email" aria-describedby="email-description" value="<?php echo esc_attr( $profile_user->user_email ); ?>" class="regular-text ltr" />
+							<input type="email" name="email" id="email" aria-describedby="email-description" value="<?php echo esc_attr( $profile_user->user_email ); ?>" class="regular-text ltr">
 							<?php if ( $profile_user->ID === $current_user->ID ) : ?>
 								<p class="description" id="email-description">
 									<?php _e( 'If you change this, an email will be sent at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
@@ -574,7 +574,7 @@ switch ( $action ) {
 
 					<tr class="user-url-wrap">
 						<th><label for="url"><?php _e( 'Website' ); ?></label></th>
-						<td><input type="url" name="url" id="url" value="<?php echo esc_attr( $profile_user->user_url ); ?>" class="regular-text code" /></td>
+						<td><input type="url" name="url" id="url" value="<?php echo esc_attr( $profile_user->user_url ); ?>" class="regular-text code"></td>
 					</tr>
 
 					<?php foreach ( wp_get_user_contact_methods( $profile_user ) as $name => $desc ) : ?>
@@ -597,7 +597,7 @@ switch ( $action ) {
 							</label>
 						</th>
 						<td>
-							<input type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $profile_user->$name ); ?>" class="regular-text" />
+							<input type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $profile_user->$name ); ?>" class="regular-text">
 						</td>
 					</tr>
 					<?php endforeach; ?>
@@ -666,11 +666,11 @@ switch ( $action ) {
 							<tr id="password" class="user-pass1-wrap">
 								<th><label for="pass1"><?php _e( 'New Password' ); ?></label></th>
 								<td>
-									<input type="hidden" value=" " /><!-- #24364 workaround -->
+									<input type="hidden" value=" "><!-- #24364 workaround -->
 									<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="false"><?php _e( 'Set New Password' ); ?></button>
 									<div class="wp-pwd hide-if-js">
 										<div class="password-input-wrapper">
-											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
+											<input type="password" name="pass1" id="pass1" class="regular-text" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result">
 											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 										</div>
 										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
@@ -687,7 +687,7 @@ switch ( $action ) {
 							<tr class="user-pass2-wrap hide-if-js">
 								<th scope="row"><label for="pass2"><?php _e( 'Repeat New Password' ); ?></label></th>
 								<td>
-								<input type="password" name="pass2" id="pass2" class="regular-text" value="" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc" />
+								<input type="password" name="pass2" id="pass2" class="regular-text" value="" autocomplete="new-password" spellcheck="false" aria-describedby="pass2-desc">
 									<?php if ( IS_PROFILE_PAGE ) : ?>
 										<p class="description" id="pass2-desc"><?php _e( 'Type your new password again.' ); ?></p>
 									<?php else : ?>
@@ -699,7 +699,7 @@ switch ( $action ) {
 								<th><?php _e( 'Confirm Password' ); ?></th>
 								<td>
 									<label>
-										<input type="checkbox" name="pw_weak" class="pw-checkbox" />
+										<input type="checkbox" name="pw_weak" class="pw-checkbox">
 										<span id="pw-weak-text-label"><?php _e( 'Confirm use of weak password' ); ?></span>
 									</label>
 								</td>
@@ -811,7 +811,7 @@ switch ( $action ) {
 									<div class="create-application-password form-wrap">
 										<div class="form-field">
 											<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false" />
+											<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" spellcheck="false">
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
@@ -932,8 +932,8 @@ switch ( $action ) {
 					</table>
 				<?php endif; // End Display Additional Capabilities. ?>
 
-				<input type="hidden" name="action" value="update" />
-				<input type="hidden" name="user_id" id="user_id" value="<?php echo esc_attr( $user_id ); ?>" />
+				<input type="hidden" name="action" value="update">
+				<input type="hidden" name="user_id" id="user_id" value="<?php echo esc_attr( $user_id ); ?>">
 
 				<?php submit_button( IS_PROFILE_PAGE ? __( 'Update Profile' ) : __( 'Update User' ) ); ?>
 
@@ -958,7 +958,7 @@ switch ( $action ) {
 			 * as there is nothing to download.
 			 */
 			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
-				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
+				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active">' );
 			}
 		});
 	} );
@@ -977,7 +977,7 @@ switch ( $action ) {
 					);
 					?>
 				</label>
-				<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="{{ data.password }}" />
+				<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="{{ data.password }}">
 			</p>
 			<p><?php _e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			<button type="button" class="notice-dismiss">

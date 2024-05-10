@@ -106,7 +106,7 @@ class Tests_Style_Engine_wpStyleEngineCSSDeclarations extends WP_UnitTestCase {
 	 */
 	public function test_should_strip_html_tags_and_remove_unsafe_css_properties() {
 		$input_declarations         = array(
-			'font-size'    => '<red/>',
+			'font-size'    => '<red>',
 			'padding'      => '</style>',
 			'potato'       => 'uppercase',
 			'cheese'       => '10px',

@@ -39,7 +39,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
-			'cb'                => '<input type="checkbox" />',
+			'cb'                => '<input type="checkbox">',
 			'email'             => __( 'Requester' ),
 			'status'            => __( 'Status' ),
 			'created_timestamp' => __( 'Requested' ),
@@ -416,7 +416,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function column_cb( $item ) {
 		return sprintf(
-			'<input type="checkbox" name="request_id[]" id="requester_%1$s" value="%1$s" />' .
+			'<input type="checkbox" name="request_id[]" id="requester_%1$s" value="%1$s">' .
 			'<label for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label><span class="spinner"></span>',
 			esc_attr( $item->ID ),
 			/* translators: Hidden accessibility text. %s: Email address. */

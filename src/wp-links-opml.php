@@ -86,7 +86,7 @@ foreach ( (array) $cats as $cat ) :
 								echo $bookmark->link_updated;
 							}
 							?>
-" />
+">
 		<?php
 	endforeach; // $bookmarks
 	?>

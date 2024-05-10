@@ -364,8 +364,8 @@ endif;
 <div id="ajax-response"></div>
 
 <form class="search-form wp-clearfix" method="get">
-<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>" />
-<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
+<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>">
+<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>">
 
 <?php $wp_list_table->search_box( $tax->labels->search_items, 'tag' ); ?>
 
@@ -450,20 +450,20 @@ if ( $can_edit_terms ) {
 	do_action( "{$taxonomy}_term_new_form_tag" );
 	?>
 >
-<input type="hidden" name="action" value="add-tag" />
-<input type="hidden" name="screen" value="<?php echo esc_attr( $current_screen->id ); ?>" />
-<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>" />
-<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
+<input type="hidden" name="action" value="add-tag">
+<input type="hidden" name="screen" value="<?php echo esc_attr( $current_screen->id ); ?>">
+<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>">
+<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>">
 	<?php wp_nonce_field( 'add-tag', '_wpnonce_add-tag' ); ?>
 
 <div class="form-field form-required term-name-wrap">
 	<label for="tag-name"><?php _ex( 'Name', 'term name' ); ?></label>
-	<input name="tag-name" id="tag-name" type="text" value="" size="40" aria-required="true" aria-describedby="name-description" />
+	<input name="tag-name" id="tag-name" type="text" value="" size="40" aria-required="true" aria-describedby="name-description">
 	<p id="name-description"><?php echo $tax->labels->name_field_description; ?></p>
 </div>
 <div class="form-field term-slug-wrap">
 	<label for="tag-slug"><?php _e( 'Slug' ); ?></label>
-	<input name="slug" id="tag-slug" type="text" value="" size="40" aria-describedby="slug-description" />
+	<input name="slug" id="tag-slug" type="text" value="" size="40" aria-describedby="slug-description">
 	<p id="slug-description"><?php echo $tax->labels->slug_field_description; ?></p>
 </div>
 	<?php if ( is_taxonomy_hierarchical( $taxonomy ) ) : ?>
@@ -612,8 +612,8 @@ if ( $can_edit_terms ) {
 <?php $wp_list_table->views(); ?>
 
 <form id="posts-filter" method="post">
-<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>" />
-<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
+<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>">
+<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>">
 
 <?php $wp_list_table->display(); ?>
 

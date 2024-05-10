@@ -54,7 +54,7 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 					<?php
 					$thumb_url = wp_get_attachment_image_src( $id, 'thumbnail', true );
 					if ( $thumb_url ) {
-						echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="" />';
+						echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="">';
 					}
 
 					// Title shouldn't ever be empty, but use filename just in case.
@@ -114,7 +114,7 @@ if ( isset( $_REQUEST['post_id'] ) ) {
 $id = media_handle_upload( 'async-upload', $post_id );
 if ( is_wp_error( $id ) ) {
 	$message = sprintf(
-		'%s <strong>%s</strong><br />%s',
+		'%s <strong>%s</strong><br>%s',
 		sprintf(
 			'<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">%s</button>',
 			__( 'Dismiss' )

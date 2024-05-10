@@ -2592,18 +2592,18 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 </p>
 <label for="hostname">
 	<span class="field-title"><?php _e( 'Hostname' ); ?></span>
-	<input name="hostname" type="text" id="hostname" aria-describedby="request-filesystem-credentials-desc" class="code" placeholder="<?php esc_attr_e( 'example: www.wordpress.org' ); ?>" value="<?php echo $hostname_value; ?>"<?php disabled( defined( 'FTP_HOST' ) ); ?> />
+	<input name="hostname" type="text" id="hostname" aria-describedby="request-filesystem-credentials-desc" class="code" placeholder="<?php esc_attr_e( 'example: www.wordpress.org' ); ?>" value="<?php echo $hostname_value; ?>"<?php disabled( defined( 'FTP_HOST' ) ); ?>>
 </label>
 <div class="ftp-username">
 	<label for="username">
 		<span class="field-title"><?php echo $label_user; ?></span>
-		<input name="username" type="text" id="username" value="<?php echo esc_attr( $username ); ?>"<?php disabled( defined( 'FTP_USER' ) ); ?> />
+		<input name="username" type="text" id="username" value="<?php echo esc_attr( $username ); ?>"<?php disabled( defined( 'FTP_USER' ) ); ?>>
 	</label>
 </div>
 <div class="ftp-password">
 	<label for="password">
 		<span class="field-title"><?php echo $label_pass; ?></span>
-		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> spellcheck="false" />
+		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> spellcheck="false">
 		<?php
 		if ( ! defined( 'FTP_PASS' ) ) {
 			_e( 'This password will not be stored on the server.' );
@@ -2618,7 +2618,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	foreach ( $types as $name => $text ) :
 		?>
 	<label for="<?php echo esc_attr( $name ); ?>">
-		<input type="radio" name="connection_type" id="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $name ); ?>" <?php checked( $name, $connection_type ); ?> <?php echo $disabled; ?> />
+		<input type="radio" name="connection_type" id="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $name ); ?>" <?php checked( $name, $connection_type ); ?> <?php echo $disabled; ?>>
 		<?php echo $text; ?>
 	</label>
 		<?php
@@ -2636,11 +2636,11 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 <legend><?php _e( 'Authentication Keys' ); ?></legend>
 <label for="public_key">
 	<span class="field-title"><?php _e( 'Public Key:' ); ?></span>
-	<input name="public_key" type="text" id="public_key" aria-describedby="auth-keys-desc" value="<?php echo esc_attr( $public_key ); ?>"<?php disabled( defined( 'FTP_PUBKEY' ) ); ?> />
+	<input name="public_key" type="text" id="public_key" aria-describedby="auth-keys-desc" value="<?php echo esc_attr( $public_key ); ?>"<?php disabled( defined( 'FTP_PUBKEY' ) ); ?>>
 </label>
 <label for="private_key">
 	<span class="field-title"><?php _e( 'Private Key:' ); ?></span>
-	<input name="private_key" type="text" id="private_key" value="<?php echo esc_attr( $private_key ); ?>"<?php disabled( defined( 'FTP_PRIKEY' ) ); ?> />
+	<input name="private_key" type="text" id="private_key" value="<?php echo esc_attr( $private_key ); ?>"<?php disabled( defined( 'FTP_PRIKEY' ) ); ?>>
 </label>
 <p id="auth-keys-desc"><?php _e( 'Enter the location on the server where the public and private keys are located. If a passphrase is needed, enter that in the password field above.' ); ?></p>
 </fieldset>
@@ -2649,7 +2649,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 
 	foreach ( (array) $extra_fields as $field ) {
 		if ( isset( $submitted_form[ $field ] ) ) {
-			echo '<input type="hidden" name="' . esc_attr( $field ) . '" value="' . esc_attr( $submitted_form[ $field ] ) . '" />';
+			echo '<input type="hidden" name="' . esc_attr( $field ) . '" value="' . esc_attr( $submitted_form[ $field ] ) . '">';
 		}
 	}
 

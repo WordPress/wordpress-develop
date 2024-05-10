@@ -60,7 +60,7 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 	}
 
 	public function test_escapes_greater_and_less_than() {
-		$source   = 'this > that < that <randomhtml />';
+		$source   = 'this > that < that <randomhtml>';
 		$expected = 'this &gt; that &lt; that &lt;randomhtml /&gt;';
 		$actual   = esc_xml( $source );
 		$this->assertSame( $expected, $actual );
@@ -114,23 +114,23 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 			),
 			// string with chars that should be escaped as well as a CDATA Section that should be not be.
 			array(
-				'This is &hellip; a <![CDATA[test of the <emergency>]]> broadcast <system />',
+				'This is &hellip; a <![CDATA[test of the <emergency>]]> broadcast <system>',
 				'This is … a <![CDATA[test of the <emergency>]]> broadcast &lt;system /&gt;',
 			),
 			// Same as above, but with the CDATA Section at the start of the string.
 			array(
-				'<![CDATA[test of the <emergency>]]> This is &hellip; a broadcast <system />',
+				'<![CDATA[test of the <emergency>]]> This is &hellip; a broadcast <system>',
 				'<![CDATA[test of the <emergency>]]> This is … a broadcast &lt;system /&gt;',
 			),
 			// Same as above, but with the CDATA Section at the end of the string.
 			array(
-				'This is &hellip; a broadcast <system /><![CDATA[test of the <emergency>]]>',
+				'This is &hellip; a broadcast <system><![CDATA[test of the <emergency>]]>',
 				'This is … a broadcast &lt;system /&gt;<![CDATA[test of the <emergency>]]>',
 			),
 			// Multiple CDATA Sections.
 			array(
-				'This is &hellip; a <![CDATA[test of the <emergency>]]> &broadcast; <![CDATA[<system />]]>',
-				'This is … a <![CDATA[test of the <emergency>]]> &amp;broadcast; <![CDATA[<system />]]>',
+				'This is &hellip; a <![CDATA[test of the <emergency>]]> &broadcast; <![CDATA[<system>]]>',
+				'This is … a <![CDATA[test of the <emergency>]]> &amp;broadcast; <![CDATA[<system>]]>',
 			),
 			// Ensure that ']]>' that does not mark the end of a CDATA Section is escaped.
 			array(

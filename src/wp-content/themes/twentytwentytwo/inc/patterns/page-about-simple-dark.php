@@ -37,7 +37,7 @@ return array(
 
 					<!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"top":"0rem","right":"0rem","bottom":"4rem","left":"0rem"}}}} -->
 					<div class="wp-block-column is-vertically-aligned-center" style="padding-top:0rem;padding-right:0rem;padding-bottom:4rem;padding-left:0rem"><!-- wp:separator {"color":"background","className":"is-style-wide"} -->
-					<hr class="wp-block-separator has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
+					<hr class="wp-block-separator has-text-color has-background has-background-background-color has-background-color is-style-wide">
 					<!-- /wp:separator --></div>
 					<!-- /wp:column --></div>
 					<!-- /wp:columns --></div></div>

@@ -52,17 +52,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 </span></legend>
 <label for="default_pingback_flag">
-<input name="default_pingback_flag" type="checkbox" id="default_pingback_flag" value="1" <?php checked( '1', get_option( 'default_pingback_flag' ) ); ?> />
+<input name="default_pingback_flag" type="checkbox" id="default_pingback_flag" value="1" <?php checked( '1', get_option( 'default_pingback_flag' ) ); ?>>
 <?php _e( 'Attempt to notify any blogs linked to from the post' ); ?></label>
-<br />
+<br>
 <label for="default_ping_status">
-<input name="default_ping_status" type="checkbox" id="default_ping_status" value="open" <?php checked( 'open', get_option( 'default_ping_status' ) ); ?> />
+<input name="default_ping_status" type="checkbox" id="default_ping_status" value="open" <?php checked( 'open', get_option( 'default_ping_status' ) ); ?>>
 <?php _e( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new posts' ); ?></label>
-<br />
+<br>
 <label for="default_comment_status">
-<input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <?php checked( 'open', get_option( 'default_comment_status' ) ); ?> />
+<input name="default_comment_status" type="checkbox" id="default_comment_status" value="open" <?php checked( 'open', get_option( 'default_comment_status' ) ); ?>>
 <?php _e( 'Allow people to submit comments on new posts' ); ?></label>
-<br />
+<br>
 <p class="description"><?php _e( 'Individual posts may override these settings. Changes here will only be applied to new posts.' ); ?></p>
 </fieldset></td>
 </tr>
@@ -74,10 +74,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	_e( 'Other comment settings' );
 	?>
 </span></legend>
-<label for="require_name_email"><input type="checkbox" name="require_name_email" id="require_name_email" value="1" <?php checked( '1', get_option( 'require_name_email' ) ); ?> /> <?php _e( 'Comment author must fill out name and email' ); ?></label>
-<br />
+<label for="require_name_email"><input type="checkbox" name="require_name_email" id="require_name_email" value="1" <?php checked( '1', get_option( 'require_name_email' ) ); ?>> <?php _e( 'Comment author must fill out name and email' ); ?></label>
+<br>
 <label for="comment_registration">
-<input name="comment_registration" type="checkbox" id="comment_registration" value="1" <?php checked( '1', get_option( 'comment_registration' ) ); ?> />
+<input name="comment_registration" type="checkbox" id="comment_registration" value="1" <?php checked( '1', get_option( 'comment_registration' ) ); ?>>
 <?php _e( 'Users must be registered and logged in to comment' ); ?>
 <?php
 if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
@@ -85,28 +85,28 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 }
 ?>
 </label>
-<br />
+<br>
 
 <label for="close_comments_for_old_posts">
-<input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?> />
+<input name="close_comments_for_old_posts" type="checkbox" id="close_comments_for_old_posts" value="1" <?php checked( '1', get_option( 'close_comments_for_old_posts' ) ); ?>>
 <?php
 printf(
 	/* translators: %s: Number of days. */
 	__( 'Automatically close comments on posts older than %s days' ),
-	'</label> <label for="close_comments_days_old"><input name="close_comments_days_old" type="number" min="0" step="1" id="close_comments_days_old" value="' . esc_attr( get_option( 'close_comments_days_old' ) ) . '" class="small-text" />'
+	'</label> <label for="close_comments_days_old"><input name="close_comments_days_old" type="number" min="0" step="1" id="close_comments_days_old" value="' . esc_attr( get_option( 'close_comments_days_old' ) ) . '" class="small-text">'
 );
 ?>
 </label>
-<br />
+<br>
 
 <label for="show_comments_cookies_opt_in">
-<input name="show_comments_cookies_opt_in" type="checkbox" id="show_comments_cookies_opt_in" value="1" <?php checked( '1', get_option( 'show_comments_cookies_opt_in' ) ); ?> />
+<input name="show_comments_cookies_opt_in" type="checkbox" id="show_comments_cookies_opt_in" value="1" <?php checked( '1', get_option( 'show_comments_cookies_opt_in' ) ); ?>>
 <?php _e( 'Show comments cookies opt-in checkbox, allowing comment author cookies to be set' ); ?>
 </label>
-<br />
+<br>
 
 <label for="thread_comments">
-<input name="thread_comments" type="checkbox" id="thread_comments" value="1" <?php checked( '1', get_option( 'thread_comments' ) ); ?> />
+<input name="thread_comments" type="checkbox" id="thread_comments" value="1" <?php checked( '1', get_option( 'thread_comments' ) ); ?>>
 <?php
 /**
  * Filters the maximum depth of threaded/nested comments.
@@ -132,9 +132,9 @@ printf( __( 'Enable threaded (nested) comments %s levels deep' ), $thread_commen
 
 ?>
 </label>
-<br />
+<br>
 <label for="page_comments">
-<input name="page_comments" type="checkbox" id="page_comments" value="1" <?php checked( '1', get_option( 'page_comments' ) ); ?> />
+<input name="page_comments" type="checkbox" id="page_comments" value="1" <?php checked( '1', get_option( 'page_comments' ) ); ?>>
 <?php
 $default_comments_page = '</label> <label for="default_comments_page"><select name="default_comments_page" id="default_comments_page"><option value="newest"';
 if ( 'newest' === get_option( 'default_comments_page' ) ) {
@@ -148,12 +148,12 @@ $default_comments_page .= '>' . __( 'first' ) . '</option></select>';
 printf(
 	/* translators: 1: Form field control for number of top level comments per page, 2: Form field control for the 'first' or 'last' page. */
 	__( 'Break comments into pages with %1$s top level comments per page and the %2$s page displayed by default' ),
-	'</label> <label for="comments_per_page"><input name="comments_per_page" type="number" step="1" min="0" id="comments_per_page" value="' . esc_attr( get_option( 'comments_per_page' ) ) . '" class="small-text" />',
+	'</label> <label for="comments_per_page"><input name="comments_per_page" type="number" step="1" min="0" id="comments_per_page" value="' . esc_attr( get_option( 'comments_per_page' ) ) . '" class="small-text">',
 	$default_comments_page
 );
 ?>
 </label>
-<br />
+<br>
 <label for="comment_order">
 <?php
 
@@ -183,11 +183,11 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 	?>
 </span></legend>
 <label for="comments_notify">
-<input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
+<input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?>>
 <?php _e( 'Anyone posts a comment' ); ?> </label>
-<br />
+<br>
 <label for="moderation_notify">
-<input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
+<input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?>>
 <?php _e( 'A comment is held for moderation' ); ?> </label>
 </fieldset></td>
 </tr>
@@ -200,10 +200,10 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 	?>
 </span></legend>
 <label for="comment_moderation">
-<input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <?php checked( '1', get_option( 'comment_moderation' ) ); ?> />
+<input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <?php checked( '1', get_option( 'comment_moderation' ) ); ?>>
 <?php _e( 'Comment must be manually approved' ); ?> </label>
-<br />
-<label for="comment_previously_approved"><input type="checkbox" name="comment_previously_approved" id="comment_previously_approved" value="1" <?php checked( '1', get_option( 'comment_previously_approved' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
+<br>
+<label for="comment_previously_approved"><input type="checkbox" name="comment_previously_approved" id="comment_previously_approved" value="1" <?php checked( '1', get_option( 'comment_previously_approved' ) ); ?>> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
 </fieldset></td>
 </tr>
 <tr>
@@ -219,7 +219,7 @@ printf( __( 'Comments should be displayed with the %s comments at the top of eac
 printf(
 	/* translators: %s: Number of links. */
 	__( 'Hold a comment in the queue if it contains %s or more links. (A common characteristic of comment spam is a large number of hyperlinks.)' ),
-	'<input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="' . esc_attr( get_option( 'comment_max_links' ) ) . '" class="small-text" />'
+	'<input name="comment_max_links" type="number" step="1" min="0" id="comment_max_links" value="' . esc_attr( get_option( 'comment_max_links' ) ) . '" class="small-text">'
 );
 ?>
 </label></p>
@@ -266,7 +266,7 @@ if ( ! $show_avatars ) {
 <th scope="row"><?php _e( 'Avatar Display' ); ?></th>
 <td>
 	<label for="show_avatars">
-		<input type="checkbox" id="show_avatars" name="show_avatars" value="1" <?php checked( $show_avatars, 1 ); ?> />
+		<input type="checkbox" id="show_avatars" name="show_avatars" value="1" <?php checked( $show_avatars, 1 ); ?>>
 		<?php _e( 'Show Avatars' ); ?>
 	</label>
 </td>
@@ -293,7 +293,7 @@ $ratings = array(
 );
 foreach ( $ratings as $key => $rating ) :
 	$selected = ( get_option( 'avatar_rating' ) === $key ) ? 'checked="checked"' : '';
-	echo "\n\t<label><input type='radio' name='avatar_rating' value='" . esc_attr( $key ) . "' $selected/> $rating</label><br />";
+	echo "\n\t<label><input type='radio' name='avatar_rating' value='" . esc_attr( $key ) . "' $selected> $rating</label><br>";
 endforeach;
 ?>
 
@@ -309,7 +309,7 @@ endforeach;
 </span></legend>
 
 <p>
-<?php _e( 'For users without a custom avatar of their own, you can either display a generic logo or a generated one based on their email address.' ); ?><br />
+<?php _e( 'For users without a custom avatar of their own, you can either display a generic logo or a generated one based on their email address.' ); ?><br>
 </p>
 
 <?php
@@ -342,10 +342,10 @@ add_filter( 'pre_option_show_avatars', '__return_true', 100 );
 
 foreach ( $avatar_defaults as $default_key => $default_name ) {
 	$selected     = ( $default === $default_key ) ? 'checked="checked" ' : '';
-	$avatar_list .= "\n\t<label><input type='radio' name='avatar_default' id='avatar_{$default_key}' value='" . esc_attr( $default_key ) . "' {$selected}/> ";
+	$avatar_list .= "\n\t<label><input type='radio' name='avatar_default' id='avatar_{$default_key}' value='" . esc_attr( $default_key ) . "' {$selected}> ";
 	$avatar_list .= get_avatar( $user_email, 32, $default_key, '', array( 'force_default' => true ) );
 	$avatar_list .= ' ' . $default_name . '</label>';
-	$avatar_list .= '<br />';
+	$avatar_list .= '<br>';
 }
 
 remove_filter( 'pre_option_show_avatars', '__return_true', 100 );

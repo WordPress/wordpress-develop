@@ -11,7 +11,7 @@
 class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 	/**
-	 * Block content to test with (i.e. what's wrapped by the block wrapper `<div />`).
+	 * Block content to test with (i.e. what's wrapped by the block wrapper `<div>`).
 	 *
 	 * @var string
 	 */
@@ -76,7 +76,7 @@ class Tests_Blocks_SupportedStyles extends WP_UnitTestCase {
 
 	/**
 	 * Retrieves block content from the rendered block string
-	 * (i.e. what's wrapped by the block wrapper `<div />`).
+	 * (i.e. what's wrapped by the block wrapper `<div>`).
 	 *
 	 * @param string $block String of rendered block to check.
 	 */

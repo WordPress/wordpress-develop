@@ -191,7 +191,7 @@ HTML;
 		$input           = <<<HTML
 <div selected class="merge-message" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class="BtnGroup MixedCaseHTML position-relative" />
+		<div checked class="BtnGroup MixedCaseHTML position-relative">
 		<div checked class="BtnGroup MixedCaseHTML position-relative">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
@@ -213,7 +213,7 @@ HTML;
 		$expected_output = <<<HTML
 <div selected class="merge-message" checked>
 	<div class="select-menu d-inline-block">
-		<div  class="BtnGroup MixedCaseHTML position-relative" />
+		<div  class="BtnGroup MixedCaseHTML position-relative">
 		<div checked class="BtnGroup MixedCaseHTML position-relative">
 			<button type="submit" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request

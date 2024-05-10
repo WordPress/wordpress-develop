@@ -1960,7 +1960,7 @@ HTML
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
 		$expected_localized  = "<!--[if gte IE 9]>\n";
-		$expected_localized .= "<script id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
+		$expected_localized .= "<script id='test-example-js-extra'>\nvar testExample = {\"foo\":\"bar\"};\n</script>\n";
 		$expected_localized .= "<![endif]-->\n";
 		$expected_localized  = str_replace( "'", '"', $expected_localized );
 

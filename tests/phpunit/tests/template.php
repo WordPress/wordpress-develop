@@ -596,14 +596,14 @@ class Tests_Template extends WP_UnitTestCase {
 			),
 			'disallowed tag in before_section'        => array(
 				array(
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/">',
 					'after_section'  => '</div><!-- end of the test section -->',
 				),
 				array(
 					'id'             => 'test-section',
 					'title'          => 'Section title',
 					'callback'       => '__return_false',
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/">',
 					'after_section'  => '</div><!-- end of the test section -->',
 					'section_class'  => '',
 				),
@@ -613,14 +613,14 @@ class Tests_Template extends WP_UnitTestCase {
 			'disallowed tag in after_section'         => array(
 				array(
 					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/">',
 				),
 				array(
 					'id'             => 'test-section',
 					'title'          => 'Section title',
 					'callback'       => '__return_false',
 					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/">',
 					'section_class'  => '',
 				),
 				'<div class="video-settings-section">',

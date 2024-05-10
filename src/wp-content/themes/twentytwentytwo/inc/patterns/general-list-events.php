@@ -16,7 +16,7 @@ return array(
 					<!-- /wp:spacer -->
 
 					<!-- wp:separator {"color":"background","align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
+					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->
@@ -40,7 +40,7 @@ return array(
 					<!-- /wp:columns -->
 
 					<!-- wp:separator {"color":"background","align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
+					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->
@@ -64,7 +64,7 @@ return array(
 					<!-- /wp:columns -->
 
 					<!-- wp:separator {"color":"background","align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
+					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->
@@ -88,7 +88,7 @@ return array(
 					<!-- /wp:columns -->
 
 					<!-- wp:separator {"color":"background","align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
+					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->
@@ -112,7 +112,7 @@ return array(
 					<!-- /wp:columns -->
 
 					<!-- wp:separator {"color":"background","align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide"/>
+					<hr class="wp-block-separator alignwide has-text-color has-background has-background-background-color has-background-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:spacer {"height":32} -->

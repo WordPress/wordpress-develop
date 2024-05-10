@@ -125,7 +125,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 			<div class="menu-item-bar">
 				<div class="menu-item-handle">
 					<label class="item-title" for="menu-item-checkbox-<?php echo $item_id; ?>">
-						<input id="menu-item-checkbox-<?php echo $item_id; ?>" type="checkbox" class="menu-item-checkbox" data-menu-item-id="<?php echo $item_id; ?>" disabled="disabled" />
+						<input id="menu-item-checkbox-<?php echo $item_id; ?>" type="checkbox" class="menu-item-checkbox" data-menu-item-id="<?php echo $item_id; ?>" disabled="disabled">
 						<span class="menu-item-title"><?php echo esc_html( $title ); ?></span>
 						<span class="is-submenu" <?php echo $submenu_text; ?>><?php _e( 'sub item' ); ?></span>
 					</label>
@@ -195,44 +195,44 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				<?php if ( 'custom' === $menu_item->type ) : ?>
 					<p class="field-url description description-wide">
 						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
-							<?php _e( 'URL' ); ?><br />
-							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->url ); ?>" />
+							<?php _e( 'URL' ); ?><br>
+							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->url ); ?>">
 						</label>
 					</p>
 				<?php endif; ?>
 				<p class="description description-wide">
 					<label for="edit-menu-item-title-<?php echo $item_id; ?>">
-						<?php _e( 'Navigation Label' ); ?><br />
-						<input type="text" id="edit-menu-item-title-<?php echo $item_id; ?>" class="widefat edit-menu-item-title" name="menu-item-title[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->title ); ?>" />
+						<?php _e( 'Navigation Label' ); ?><br>
+						<input type="text" id="edit-menu-item-title-<?php echo $item_id; ?>" class="widefat edit-menu-item-title" name="menu-item-title[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->title ); ?>">
 					</label>
 				</p>
 				<p class="field-title-attribute field-attr-title description description-wide">
 					<label for="edit-menu-item-attr-title-<?php echo $item_id; ?>">
-						<?php _e( 'Title Attribute' ); ?><br />
-						<input type="text" id="edit-menu-item-attr-title-<?php echo $item_id; ?>" class="widefat edit-menu-item-attr-title" name="menu-item-attr-title[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->post_excerpt ); ?>" />
+						<?php _e( 'Title Attribute' ); ?><br>
+						<input type="text" id="edit-menu-item-attr-title-<?php echo $item_id; ?>" class="widefat edit-menu-item-attr-title" name="menu-item-attr-title[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->post_excerpt ); ?>">
 					</label>
 				</p>
 				<p class="field-link-target description">
 					<label for="edit-menu-item-target-<?php echo $item_id; ?>">
-						<input type="checkbox" id="edit-menu-item-target-<?php echo $item_id; ?>" value="_blank" name="menu-item-target[<?php echo $item_id; ?>]"<?php checked( $menu_item->target, '_blank' ); ?> />
+						<input type="checkbox" id="edit-menu-item-target-<?php echo $item_id; ?>" value="_blank" name="menu-item-target[<?php echo $item_id; ?>]"<?php checked( $menu_item->target, '_blank' ); ?>>
 						<?php _e( 'Open link in a new tab' ); ?>
 					</label>
 				</p>
 				<p class="field-css-classes description description-thin">
 					<label for="edit-menu-item-classes-<?php echo $item_id; ?>">
-						<?php _e( 'CSS Classes (optional)' ); ?><br />
-						<input type="text" id="edit-menu-item-classes-<?php echo $item_id; ?>" class="widefat code edit-menu-item-classes" name="menu-item-classes[<?php echo $item_id; ?>]" value="<?php echo esc_attr( implode( ' ', $menu_item->classes ) ); ?>" />
+						<?php _e( 'CSS Classes (optional)' ); ?><br>
+						<input type="text" id="edit-menu-item-classes-<?php echo $item_id; ?>" class="widefat code edit-menu-item-classes" name="menu-item-classes[<?php echo $item_id; ?>]" value="<?php echo esc_attr( implode( ' ', $menu_item->classes ) ); ?>">
 					</label>
 				</p>
 				<p class="field-xfn description description-thin">
 					<label for="edit-menu-item-xfn-<?php echo $item_id; ?>">
-						<?php _e( 'Link Relationship (XFN)' ); ?><br />
-						<input type="text" id="edit-menu-item-xfn-<?php echo $item_id; ?>" class="widefat code edit-menu-item-xfn" name="menu-item-xfn[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->xfn ); ?>" />
+						<?php _e( 'Link Relationship (XFN)' ); ?><br>
+						<input type="text" id="edit-menu-item-xfn-<?php echo $item_id; ?>" class="widefat code edit-menu-item-xfn" name="menu-item-xfn[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->xfn ); ?>">
 					</label>
 				</p>
 				<p class="field-description description description-wide">
 					<label for="edit-menu-item-description-<?php echo $item_id; ?>">
-						<?php _e( 'Description' ); ?><br />
+						<?php _e( 'Description' ); ?><br>
 						<textarea id="edit-menu-item-description-<?php echo $item_id; ?>" class="widefat edit-menu-item-description" rows="3" cols="20" name="menu-item-description[<?php echo $item_id; ?>]"><?php echo esc_html( $menu_item->description ); // textarea_escaped ?></textarea>
 						<span class="description"><?php _e( 'The description will be displayed in the menu if the active theme supports it.' ); ?></span>
 					</label>
@@ -309,12 +309,12 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					?>
 				</div>
 
-				<input class="menu-item-data-db-id" type="hidden" name="menu-item-db-id[<?php echo $item_id; ?>]" value="<?php echo $item_id; ?>" />
-				<input class="menu-item-data-object-id" type="hidden" name="menu-item-object-id[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->object_id ); ?>" />
-				<input class="menu-item-data-object" type="hidden" name="menu-item-object[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->object ); ?>" />
-				<input class="menu-item-data-parent-id" type="hidden" name="menu-item-parent-id[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->menu_item_parent ); ?>" />
-				<input class="menu-item-data-position" type="hidden" name="menu-item-position[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->menu_order ); ?>" />
-				<input class="menu-item-data-type" type="hidden" name="menu-item-type[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->type ); ?>" />
+				<input class="menu-item-data-db-id" type="hidden" name="menu-item-db-id[<?php echo $item_id; ?>]" value="<?php echo $item_id; ?>">
+				<input class="menu-item-data-object-id" type="hidden" name="menu-item-object-id[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->object_id ); ?>">
+				<input class="menu-item-data-object" type="hidden" name="menu-item-object[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->object ); ?>">
+				<input class="menu-item-data-parent-id" type="hidden" name="menu-item-parent-id[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->menu_item_parent ); ?>">
+				<input class="menu-item-data-position" type="hidden" name="menu-item-position[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->menu_order ); ?>">
+				<input class="menu-item-data-type" type="hidden" name="menu-item-type[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->type ); ?>">
 			</div><!-- .menu-item-settings-->
 			<ul class="menu-item-transport"></ul>
 		<?php

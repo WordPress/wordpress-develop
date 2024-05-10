@@ -23,7 +23,7 @@ return array(
 					<!-- /wp:spacer -->
 
 					<!-- wp:separator {"color":"foreground","className":"is-style-wide"} -->
-					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
+					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:spacer {"height":32} -->
@@ -39,7 +39,7 @@ return array(
 					<!-- /wp:spacer -->
 
 					<!-- wp:separator {"color":"foreground","className":"is-style-wide"} -->
-					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide"/>
+					<hr class="wp-block-separator has-text-color has-background has-foreground-background-color has-foreground-color is-style-wide">
 					<!-- /wp:separator --></div>
 					<!-- /wp:column -->
 

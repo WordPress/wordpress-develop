@@ -3077,7 +3077,7 @@ function pingback( $content, $post ) {
 	 * http://dummy-weblog.org
 	 * http://dummy-weblog.org/
 	 * http://dummy-weblog.org/post.php
-	 * We don't wanna ping first and second types, even if they have a valid <link/>.
+	 * We don't wanna ping first and second types, even if they have a valid <link>.
 	 */
 	foreach ( (array) $post_links_temp as $link_test ) {
 		// If we haven't pung it already and it isn't a link to itself.

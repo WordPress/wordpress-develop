@@ -31,14 +31,14 @@ function wp_underscore_audio_template() {
 	<?php endforeach; ?>#>
 >
 	<# if ( ! _.isEmpty( data.model.src ) ) { #>
-	<source src="{{ data.model.src }}" type="{{ wp.media.view.settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
+	<source src="{{ data.model.src }}" type="{{ wp.media.view.settings.embedMimes[ data.model.src.split('.').pop() ] }}">
 	<# } #>
 
 	<?php
 	foreach ( $audio_types as $type ) :
 		?>
 	<# if ( ! _.isEmpty( data.model.<?php echo $type; ?> ) ) { #>
-	<source src="{{ data.model.<?php echo $type; ?> }}" type="{{ wp.media.view.settings.embedMimes[ '<?php echo $type; ?>' ] }}" />
+	<source src="{{ data.model.<?php echo $type; ?> }}" type="{{ wp.media.view.settings.embedMimes[ '<?php echo $type; ?>' ] }}">
 	<# } #>
 		<?php
 	endforeach;
@@ -127,11 +127,11 @@ function wp_underscore_video_template() {
 >
 	<# if ( ! _.isEmpty( data.model.src ) ) {
 		if ( isYouTube ) { #>
-		<source src="{{ data.model.src }}" type="video/youtube" />
+		<source src="{{ data.model.src }}" type="video/youtube">
 		<# } else if ( isVimeo ) { #>
-		<source src="{{ data.model.src }}" type="video/vimeo" />
+		<source src="{{ data.model.src }}" type="video/vimeo">
 		<# } else { #>
-		<source src="{{ data.model.src }}" type="{{ settings.embedMimes[ data.model.src.split('.').pop() ] }}" />
+		<source src="{{ data.model.src }}" type="{{ settings.embedMimes[ data.model.src.split('.').pop() ] }}">
 		<# }
 	} #>
 
@@ -139,7 +139,7 @@ function wp_underscore_video_template() {
 	foreach ( $video_types as $type ) :
 		?>
 	<# if ( data.model.<?php echo $type; ?> ) { #>
-	<source src="{{ data.model.<?php echo $type; ?> }}" type="{{ settings.embedMimes[ '<?php echo $type; ?>' ] }}" />
+	<source src="{{ data.model.<?php echo $type; ?> }}" type="{{ settings.embedMimes[ '<?php echo $type; ?>' ] }}">
 	<# } #>
 	<?php endforeach; ?>
 	{{{ data.model.content }}}
@@ -389,17 +389,17 @@ function wp_print_media_templates() {
 				<# if ( data.uploading ) { #>
 					<div class="media-progress-bar"><div></div></div>
 				<# } else if ( data.sizes && data.sizes.full ) { #>
-					<img class="details-image" src="{{ data.sizes.full.url }}" draggable="false" alt="" />
+					<img class="details-image" src="{{ data.sizes.full.url }}" draggable="false" alt="">
 				<# } else if ( data.sizes && data.sizes.large ) { #>
-					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="" />
+					<img class="details-image" src="{{ data.sizes.large.url }}" draggable="false" alt="">
 				<# } else if ( -1 === jQuery.inArray( data.type, [ 'audio', 'video' ] ) ) { #>
-					<img class="details-image icon" src="{{ data.icon }}" draggable="false" alt="" />
+					<img class="details-image icon" src="{{ data.icon }}" draggable="false" alt="">
 				<# } #>
 
 				<# if ( 'audio' === data.type ) { #>
 				<div class="wp-media-wrapper wp-audio">
 					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-						<source type="{{ data.mime }}" src="{{ data.url }}" />
+						<source type="{{ data.mime }}" src="{{ data.url }}">
 					</audio>
 				</div>
 				<# } else if ( 'video' === data.type ) {
@@ -415,7 +415,7 @@ function wp_print_media_templates() {
 						<# if ( data.width ) { #>width="{{ data.width }}"<# } #>
 						<# if ( data.height ) { #>height="{{ data.height }}"<# } #>
 						<# if ( data.image && data.image.src !== data.icon ) { #>poster="{{ data.image.src }}"<# } #>>
-						<source type="{{ data.mime }}" src="{{ data.url }}" />
+						<source type="{{ data.mime }}" src="{{ data.url }}">
 					</video>
 				</div>
 				<# } #>
@@ -520,7 +520,7 @@ function wp_print_media_templates() {
 				<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
 				<span class="setting" data-setting="title">
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
-					<input type="text" id="attachment-details-two-column-title" value="{{ data.title }}" {{ maybeReadOnly }} />
+					<input type="text" id="attachment-details-two-column-title" value="{{ data.title }}" {{ maybeReadOnly }}>
 				</span>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
@@ -532,7 +532,7 @@ function wp_print_media_templates() {
 					?>
 				<span class="setting" data-setting="<?php echo esc_attr( $key ); ?>">
 					<label for="attachment-details-two-column-<?php echo esc_attr( $key ); ?>" class="name"><?php echo $label; ?></label>
-					<input type="text" id="attachment-details-two-column-<?php echo esc_attr( $key ); ?>" value="{{ data.<?php echo $key; ?> || data.meta.<?php echo $key; ?> || '' }}" />
+					<input type="text" id="attachment-details-two-column-<?php echo esc_attr( $key ); ?>" value="{{ data.<?php echo $key; ?> || data.meta.<?php echo $key; ?> || '' }}">
 				</span>
 				<?php endforeach; ?>
 				<# } #>
@@ -546,7 +546,7 @@ function wp_print_media_templates() {
 				</span>
 				<span class="setting" data-setting="url">
 					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
-					<input type="text" class="attachment-details-copy-link" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
+					<input type="text" class="attachment-details-copy-link" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly>
 					<span class="copy-to-clipboard-container">
 						<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-two-column-copy-link"><?php _e( 'Copy URL to clipboard' ); ?></button>
 						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
@@ -598,16 +598,16 @@ function wp_print_media_templates() {
 					<div class="media-progress-bar"><div style="width: {{ data.percent }}%"></div></div>
 				<# } else if ( 'image' === data.type && data.size && data.size.url ) { #>
 					<div class="centered">
-						<img src="{{ data.size.url }}" draggable="false" alt="" />
+						<img src="{{ data.size.url }}" draggable="false" alt="">
 					</div>
 				<# } else { #>
 					<div class="centered">
 						<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
-							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="" />
+							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="">
 						<# } else if ( data.sizes && data.sizes.medium ) { #>
-							<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="" />
+							<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="">
 						<# } else { #>
-							<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
+							<img src="{{ data.icon }}" class="icon" draggable="false" alt="">
 						<# } #>
 					</div>
 					<div class="filename">
@@ -638,7 +638,7 @@ function wp_print_media_templates() {
 			if ( 'image' === data.type ) { #>
 				<input type="text" value="{{ data.caption }}" class="describe" data-setting="caption"
 					aria-label="<?php esc_attr_e( 'Caption' ); ?>"
-					placeholder="<?php esc_attr_e( 'Caption&hellip;' ); ?>" {{ maybeReadOnly }} />
+					placeholder="<?php esc_attr_e( 'Caption&hellip;' ); ?>" {{ maybeReadOnly }}>
 			<# } else { #>
 				<input type="text" value="{{ data.title }}" class="describe" data-setting="title"
 					<# if ( 'video' === data.type ) { #>
@@ -650,7 +650,7 @@ function wp_print_media_templates() {
 					<# } else { #>
 						aria-label="<?php esc_attr_e( 'Media title' ); ?>"
 						placeholder="<?php esc_attr_e( 'Media title&hellip;' ); ?>"
-					<# } #> {{ maybeReadOnly }} />
+					<# } #> {{ maybeReadOnly }}>
 			<# }
 		} #>
 	</script>
@@ -669,7 +669,7 @@ function wp_print_media_templates() {
 			<# if ( 'audio' === data.type ) { #>
 				<div class="wp-media-wrapper wp-audio">
 					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
-						<source type="{{ data.mime }}" src="{{ data.url }}" />
+						<source type="{{ data.mime }}" src="{{ data.url }}">
 					</audio>
 				</div>
 			<# } else if ( 'video' === data.type ) {
@@ -685,7 +685,7 @@ function wp_print_media_templates() {
 						<# if ( data.width ) { #>width="{{ data.width }}"<# } #>
 						<# if ( data.height ) { #>height="{{ data.height }}"<# } #>
 						<# if ( data.image && data.image.src !== data.icon ) { #>poster="{{ data.image.src }}"<# } #>>
-						<source type="{{ data.mime }}" src="{{ data.url }}" />
+						<source type="{{ data.mime }}" src="{{ data.url }}">
 					</video>
 				</div>
 			<# } else { #>
@@ -693,9 +693,9 @@ function wp_print_media_templates() {
 					<# if ( data.uploading ) { #>
 						<div class="media-progress-bar"><div></div></div>
 					<# } else if ( 'image' === data.type && data.size && data.size.url ) { #>
-						<img src="{{ data.size.url }}" draggable="false" alt="" />
+						<img src="{{ data.size.url }}" draggable="false" alt="">
 					<# } else { #>
-						<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
+						<img src="{{ data.icon }}" class="icon" draggable="false" alt="">
 					<# } #>
 				</div>
 			<# } #>
@@ -768,7 +768,7 @@ function wp_print_media_templates() {
 		<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
 		<span class="setting" data-setting="title">
 			<label for="attachment-details-title" class="name"><?php _e( 'Title' ); ?></label>
-			<input type="text" id="attachment-details-title" value="{{ data.title }}" {{ maybeReadOnly }} />
+			<input type="text" id="attachment-details-title" value="{{ data.title }}" {{ maybeReadOnly }}>
 		</span>
 		<?php endif; ?>
 		<# if ( 'audio' === data.type ) { #>
@@ -780,7 +780,7 @@ function wp_print_media_templates() {
 			?>
 		<span class="setting" data-setting="<?php echo esc_attr( $key ); ?>">
 			<label for="attachment-details-<?php echo esc_attr( $key ); ?>" class="name"><?php echo $label; ?></label>
-			<input type="text" id="attachment-details-<?php echo esc_attr( $key ); ?>" value="{{ data.<?php echo $key; ?> || data.meta.<?php echo $key; ?> || '' }}" />
+			<input type="text" id="attachment-details-<?php echo esc_attr( $key ); ?>" value="{{ data.<?php echo $key; ?> || data.meta.<?php echo $key; ?> || '' }}">
 		</span>
 		<?php endforeach; ?>
 		<# } #>
@@ -794,7 +794,7 @@ function wp_print_media_templates() {
 		</span>
 		<span class="setting" data-setting="url">
 			<label for="attachment-details-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
-			<input type="text" class="attachment-details-copy-link" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
+			<input type="text" class="attachment-details-copy-link" id="attachment-details-copy-link" value="{{ data.url }}" readonly>
 			<div class="copy-to-clipboard-container">
 				<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-copy-link"><?php _e( 'Copy URL to clipboard' ); ?></button>
 				<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
@@ -892,7 +892,7 @@ function wp_print_media_templates() {
 		</span>
 		<span class="setting">
 			<label for="attachment-display-settings-link-to-custom" class="name"><?php _e( 'URL' ); ?></label>
-			<input type="text" id="attachment-display-settings-link-to-custom" class="link-to-custom" data-setting="linkUrl" />
+			<input type="text" id="attachment-display-settings-link-to-custom" class="link-to-custom" data-setting="linkUrl">
 		</span>
 
 		<# if ( 'undefined' !== typeof data.sizes ) { #>
@@ -971,7 +971,7 @@ function wp_print_media_templates() {
 		</span>
 
 		<span class="setting">
-			<input type="checkbox" id="gallery-settings-random-order" data-setting="_orderbyRandom" />
+			<input type="checkbox" id="gallery-settings-random-order" data-setting="_orderbyRandom">
 			<label for="gallery-settings-random-order" class="checkbox-label-inline"><?php _e( 'Random Order' ); ?></label>
 		</span>
 
@@ -1015,7 +1015,7 @@ function wp_print_media_templates() {
 		<span class="setting">
 			<input type="checkbox" id="playlist-settings-show-list" data-setting="tracklist" <# if ( emptyModel ) { #>
 				checked="checked"
-			<# } #> />
+			<# } #>>
 			<label for="playlist-settings-show-list" class="checkbox-label-inline">
 				<# if ( isVideo ) { #>
 				<?php _e( 'Show Video List' ); ?>
@@ -1029,7 +1029,7 @@ function wp_print_media_templates() {
 		<span class="setting">
 			<input type="checkbox" id="playlist-settings-show-artist" data-setting="artists" <# if ( emptyModel ) { #>
 				checked="checked"
-			<# } #> />
+			<# } #>>
 			<label for="playlist-settings-show-artist" class="checkbox-label-inline">
 				<?php _e( 'Show Artist Name in Tracklist' ); ?>
 			</label>
@@ -1039,7 +1039,7 @@ function wp_print_media_templates() {
 		<span class="setting">
 			<input type="checkbox" id="playlist-settings-show-images" data-setting="images" <# if ( emptyModel ) { #>
 				checked="checked"
-			<# } #> />
+			<# } #>>
 			<label for="playlist-settings-show-images" class="checkbox-label-inline">
 				<?php _e( 'Show Images' ); ?>
 			</label>
@@ -1050,7 +1050,7 @@ function wp_print_media_templates() {
 	<script type="text/html" id="tmpl-embed-link-settings">
 		<span class="setting link-text">
 			<label for="embed-link-settings-link-text" class="name"><?php _e( 'Link Text' ); ?></label>
-			<input type="text" id="embed-link-settings-link-text" class="alignment" data-setting="linkText" />
+			<input type="text" id="embed-link-settings-link-text" class="alignment" data-setting="linkText">
 		</span>
 		<div class="embed-container" style="display: none;">
 			<div class="embed-preview"></div>
@@ -1061,7 +1061,7 @@ function wp_print_media_templates() {
 	<script type="text/html" id="tmpl-embed-image-settings">
 		<div class="wp-clearfix">
 			<div class="thumbnail">
-				<img src="{{ data.model.url }}" draggable="false" alt="" />
+				<img src="{{ data.model.url }}" draggable="false" alt="">
 			</div>
 		</div>
 
@@ -1118,7 +1118,7 @@ function wp_print_media_templates() {
 			</span>
 			<span class="setting">
 				<label for="embed-image-settings-link-to-custom" class="name"><?php _e( 'URL' ); ?></label>
-				<input type="text" id="embed-image-settings-link-to-custom" class="link-to-custom" data-setting="linkUrl" />
+				<input type="text" id="embed-image-settings-link-to-custom" class="link-to-custom" data-setting="linkUrl">
 			</span>
 		</fieldset>
 	</script>
@@ -1205,12 +1205,12 @@ function wp_print_media_templates() {
 							<div class="custom-size wp-clearfix<# if ( data.model.size !== 'custom' ) { #> hidden<# } #>">
 								<span class="custom-size-setting">
 									<label for="image-details-size-width"><?php _e( 'Width' ); ?></label>
-									<input type="number" id="image-details-size-width" aria-describedby="image-size-desc" data-setting="customWidth" step="1" value="{{ data.model.customWidth }}" />
+									<input type="number" id="image-details-size-width" aria-describedby="image-size-desc" data-setting="customWidth" step="1" value="{{ data.model.customWidth }}">
 								</span>
 								<span class="sep" aria-hidden="true">&times;</span>
 								<span class="custom-size-setting">
 									<label for="image-details-size-height"><?php _e( 'Height' ); ?></label>
-									<input type="number" id="image-details-size-height" aria-describedby="image-size-desc" data-setting="customHeight" step="1" value="{{ data.model.customHeight }}" />
+									<input type="number" id="image-details-size-height" aria-describedby="image-size-desc" data-setting="customHeight" step="1" value="{{ data.model.customHeight }}">
 								</span>
 								<p id="image-size-desc" class="description"><?php _e( 'Image size in pixels' ); ?></p>
 							</div>
@@ -1241,7 +1241,7 @@ function wp_print_media_templates() {
 					</span>
 					<span class="setting">
 						<label for="image-details-link-to-custom" class="name"><?php _e( 'URL' ); ?></label>
-						<input type="text" id="image-details-link-to-custom" class="link-to-custom" data-setting="linkUrl" />
+						<input type="text" id="image-details-link-to-custom" class="link-to-custom" data-setting="linkUrl">
 					</span>
 
 					<div class="advanced-section">
@@ -1250,11 +1250,11 @@ function wp_print_media_templates() {
 							<div class="advanced-image">
 								<span class="setting title-text">
 									<label for="image-details-title-attribute" class="name"><?php _e( 'Image Title Attribute' ); ?></label>
-									<input type="text" id="image-details-title-attribute" data-setting="title" value="{{ data.model.title }}" />
+									<input type="text" id="image-details-title-attribute" data-setting="title" value="{{ data.model.title }}">
 								</span>
 								<span class="setting extra-classes">
 									<label for="image-details-css-class" class="name"><?php _e( 'Image CSS Class' ); ?></label>
-									<input type="text" id="image-details-css-class" data-setting="extraClasses" value="{{ data.model.extraClasses }}" />
+									<input type="text" id="image-details-css-class" data-setting="extraClasses" value="{{ data.model.extraClasses }}">
 								</span>
 							</div>
 							<div class="advanced-link">
@@ -1264,11 +1264,11 @@ function wp_print_media_templates() {
 								</span>
 								<span class="setting link-rel">
 									<label for="image-details-link-rel" class="name"><?php _e( 'Link Rel' ); ?></label>
-									<input type="text" id="image-details-link-rel" data-setting="linkRel" value="{{ data.model.linkRel }}" />
+									<input type="text" id="image-details-link-rel" data-setting="linkRel" value="{{ data.model.linkRel }}">
 								</span>
 								<span class="setting link-class-name">
 									<label for="image-details-link-css-class" class="name"><?php _e( 'Link CSS Class' ); ?></label>
-									<input type="text" id="image-details-link-css-class" data-setting="linkClassName" value="{{ data.model.linkClassName }}" />
+									<input type="text" id="image-details-link-css-class" data-setting="linkClassName" value="{{ data.model.linkClassName }}">
 								</span>
 							</div>
 						</div>
@@ -1276,11 +1276,11 @@ function wp_print_media_templates() {
 				</div>
 				<div class="column-image">
 					<div class="image">
-						<img src="{{ data.model.url }}" draggable="false" alt="" />
+						<img src="{{ data.model.url }}" draggable="false" alt="">
 						<# if ( data.attachment && window.imageEdit ) { #>
 							<div class="actions">
-								<input type="button" class="edit-attachment button" value="<?php esc_attr_e( 'Edit Original' ); ?>" />
-								<input type="button" class="replace-attachment button" value="<?php esc_attr_e( 'Replace' ); ?>" />
+								<input type="button" class="edit-attachment button" value="<?php esc_attr_e( 'Edit Original' ); ?>">
+								<input type="button" class="replace-attachment button" value="<?php esc_attr_e( 'Replace' ); ?>">
 							</div>
 						<# } #>
 					</div>
@@ -1315,7 +1315,7 @@ function wp_print_media_templates() {
 				#>
 				<span class="setting">
 					<label for="audio-details-source" class="name"><?php _e( 'URL' ); ?></label>
-					<input type="text" id="audio-details-source" readonly data-setting="src" value="{{ data.model.src }}" />
+					<input type="text" id="audio-details-source" readonly data-setting="src" value="{{ data.model.src }}">
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove audio source' ); ?></button>
 				</span>
 				<# } #>
@@ -1330,7 +1330,7 @@ function wp_print_media_templates() {
 				#>
 				<span class="setting">
 					<label for="audio-details-<?php echo $type . '-source'; ?>" class="name"><?php echo strtoupper( $type ); ?></label>
-					<input type="text" id="audio-details-<?php echo $type . '-source'; ?>" readonly data-setting="<?php echo $type; ?>" value="{{ data.model.<?php echo $type; ?> }}" />
+					<input type="text" id="audio-details-<?php echo $type . '-source'; ?>" readonly data-setting="<?php echo $type; ?>" value="{{ data.model.<?php echo $type; ?> }}">
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove audio source' ); ?></button>
 				</span>
 				<# } #>
@@ -1362,12 +1362,12 @@ function wp_print_media_templates() {
 
 				<span class="setting-group">
 					<span class="setting checkbox-setting autoplay">
-						<input type="checkbox" id="audio-details-autoplay" data-setting="autoplay" />
+						<input type="checkbox" id="audio-details-autoplay" data-setting="autoplay">
 						<label for="audio-details-autoplay" class="checkbox-label"><?php _e( 'Autoplay' ); ?></label>
 					</span>
 
 					<span class="setting checkbox-setting">
-						<input type="checkbox" id="audio-details-loop" data-setting="loop" />
+						<input type="checkbox" id="audio-details-loop" data-setting="loop">
 						<label for="audio-details-loop" class="checkbox-label"><?php _e( 'Loop' ); ?></label>
 					</span>
 				</span>
@@ -1406,7 +1406,7 @@ function wp_print_media_templates() {
 				#>
 				<span class="setting">
 					<label for="video-details-source" class="name"><?php _e( 'URL' ); ?></label>
-					<input type="text" id="video-details-source" readonly data-setting="src" value="{{ data.model.src }}" />
+					<input type="text" id="video-details-source" readonly data-setting="src" value="{{ data.model.src }}">
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove video source' ); ?></button>
 				</span>
 				<# } #>
@@ -1420,7 +1420,7 @@ function wp_print_media_templates() {
 				#>
 				<span class="setting">
 					<label for="video-details-<?php echo $type . '-source'; ?>" class="name"><?php echo strtoupper( $type ); ?></label>
-					<input type="text" id="video-details-<?php echo $type . '-source'; ?>" readonly data-setting="<?php echo $type; ?>" value="{{ data.model.<?php echo $type; ?> }}" />
+					<input type="text" id="video-details-<?php echo $type . '-source'; ?>" readonly data-setting="<?php echo $type; ?>" value="{{ data.model.<?php echo $type; ?> }}">
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove video source' ); ?></button>
 				</span>
 				<# } #>
@@ -1443,7 +1443,7 @@ function wp_print_media_templates() {
 				<# if ( ! _.isEmpty( data.model.poster ) ) { #>
 				<span class="setting">
 					<label for="video-details-poster-image" class="name"><?php _e( 'Poster Image' ); ?></label>
-					<input type="text" id="video-details-poster-image" readonly data-setting="poster" value="{{ data.model.poster }}" />
+					<input type="text" id="video-details-poster-image" readonly data-setting="poster" value="{{ data.model.poster }}">
 					<button type="button" class="button-link remove-setting"><?php _e( 'Remove poster image' ); ?></button>
 				</span>
 				<# } #>
@@ -1461,12 +1461,12 @@ function wp_print_media_templates() {
 
 				<span class="setting-group">
 					<span class="setting checkbox-setting autoplay">
-						<input type="checkbox" id="video-details-autoplay" data-setting="autoplay" />
+						<input type="checkbox" id="video-details-autoplay" data-setting="autoplay">
 						<label for="video-details-autoplay" class="checkbox-label"><?php _e( 'Autoplay' ); ?></label>
 					</span>
 
 					<span class="setting checkbox-setting">
-						<input type="checkbox" id="video-details-loop" data-setting="loop" />
+						<input type="checkbox" id="video-details-loop" data-setting="loop">
 						<label for="video-details-loop" class="checkbox-label"><?php _e( 'Loop' ); ?></label>
 					</span>
 				</span>
@@ -1479,7 +1479,7 @@ function wp_print_media_templates() {
 						_.each( tracks.toArray(), function( track, index ) {
 							content += track.outerHTML; #>
 						<label for="video-details-track-{{ index }}" class="name"><?php _e( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ); ?></label>
-						<input class="content-track" type="text" id="video-details-track-{{ index }}" aria-describedby="video-details-track-desc-{{ index }}" value="{{ track.outerHTML }}" />
+						<input class="content-track" type="text" id="video-details-track-{{ index }}" aria-describedby="video-details-track-desc-{{ index }}" value="{{ track.outerHTML }}">
 						<span class="description" id="video-details-track-desc-{{ index }}">
 						<?php
 							printf(
@@ -1491,10 +1491,10 @@ function wp_print_media_templates() {
 							);
 						?>
 						</span>
-						<button type="button" class="button-link remove-setting remove-track"><?php _ex( 'Remove video track', 'media' ); ?></button><br />
+						<button type="button" class="button-link remove-setting remove-track"><?php _ex( 'Remove video track', 'media' ); ?></button><br>
 						<# } ); #>
 					<# } else { #>
-					<span class="name"><?php _e( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ); ?></span><br />
+					<span class="name"><?php _e( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ); ?></span><br>
 					<em><?php _e( 'There are no associated subtitles.' ); ?></em>
 					<# } #>
 					<textarea class="hidden content-setting">{{ content }}</textarea>
@@ -1511,9 +1511,9 @@ function wp_print_media_templates() {
 					<dl class="gallery-item">
 						<dt class="gallery-icon">
 							<# if ( attachment.thumbnail ) { #>
-								<img src="{{ attachment.thumbnail.url }}" width="{{ attachment.thumbnail.width }}" height="{{ attachment.thumbnail.height }}" alt="{{ attachment.alt }}" />
+								<img src="{{ attachment.thumbnail.url }}" width="{{ attachment.thumbnail.width }}" height="{{ attachment.thumbnail.height }}" alt="{{ attachment.alt }}">
 							<# } else { #>
-								<img src="{{ attachment.url }}" alt="{{ attachment.alt }}" />
+								<img src="{{ attachment.url }}" alt="{{ attachment.alt }}">
 							<# } #>
 						</dt>
 						<# if ( attachment.caption ) { #>
@@ -1523,7 +1523,7 @@ function wp_print_media_templates() {
 						<# } #>
 					</dl>
 					<# if ( index % data.columns === data.columns - 1 ) { #>
-						<br style="clear: both;" />
+						<br style="clear: both;">
 					<# } #>
 				<# } ); #>
 			</div>
@@ -1536,7 +1536,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the Crop area layout, used for example in the Customizer. ?>
 	<script type="text/html" id="tmpl-crop-content">
-		<img class="crop-image" src="{{ data.url }}" alt="<?php esc_attr_e( 'Image crop area preview. Requires mouse interaction.' ); ?>" />
+		<img class="crop-image" src="{{ data.url }}" alt="<?php esc_attr_e( 'Image crop area preview. Requires mouse interaction.' ); ?>">
 		<div class="upload-errors"></div>
 	</script>
 
@@ -1545,17 +1545,17 @@ function wp_print_media_templates() {
 		<h2><?php _e( 'Preview' ); ?></h2>
 		<strong aria-hidden="true"><?php _e( 'As a browser icon' ); ?></strong>
 		<div class="favicon-preview">
-			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" height="" alt="" />
+			<img src="<?php echo esc_url( admin_url( 'images/' . ( is_rtl() ? 'browser-rtl.png' : 'browser.png' ) ) ); ?>" class="browser-preview" width="182" height="" alt="">
 
 			<div class="favicon">
-				<img id="preview-favicon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>" />
+				<img id="preview-favicon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as a browser icon' ); ?>">
 			</div>
 			<span class="browser-title" aria-hidden="true"><# print( '<?php echo esc_js( get_bloginfo( 'name' ) ); ?>' ) #></span>
 		</div>
 
 		<strong aria-hidden="true"><?php _e( 'As an app icon' ); ?></strong>
 		<div class="app-icon-preview">
-			<img id="preview-app-icon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>" />
+			<img id="preview-app-icon" src="{{ data.url }}" alt="<?php esc_attr_e( 'Preview as an app icon' ); ?>">
 		</div>
 	</script>
 

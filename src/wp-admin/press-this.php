@@ -71,7 +71,7 @@ function wp_load_press_this() {
 			}
 		}
 		wp_die(
-			__( 'The Press This plugin is required.' ) . '<br />' . $action,
+			__( 'The Press This plugin is required.' ) . '<br>' . $action,
 			__( 'Installation Required' ),
 			200
 		);

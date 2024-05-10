@@ -217,7 +217,7 @@ if ( $action ) {
 			}
 
 			if ( headers_sent() ) {
-				echo "<meta http-equiv='refresh' content='" . esc_attr( "0;url=plugins.php?deactivate=true&plugin_status=$status&paged=$page&s=$s" ) . "' />";
+				echo "<meta http-equiv='refresh' content='" . esc_attr( "0;url=plugins.php?deactivate=true&plugin_status=$status&paged=$page&s=$s" ) . "'>";
 			} else {
 				wp_redirect( self_admin_url( "plugins.php?deactivate=true&plugin_status=$status&paged=$page&s=$s" ) );
 			}
@@ -398,12 +398,12 @@ if ( $action ) {
 				?>
 				</p>
 				<form method="post" action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>" style="display:inline;">
-					<input type="hidden" name="verify-delete" value="1" />
-					<input type="hidden" name="action" value="delete-selected" />
+					<input type="hidden" name="verify-delete" value="1">
+					<input type="hidden" name="action" value="delete-selected">
 					<?php
 
 					foreach ( (array) $plugins as $plugin ) {
-						echo '<input type="hidden" name="checked[]" value="' . esc_attr( $plugin ) . '" />';
+						echo '<input type="hidden" name="checked[]" value="' . esc_attr( $plugin ) . '">';
 					}
 
 					?>
@@ -795,8 +795,8 @@ do_action( 'pre_current_active_plugins', $plugins['all'] );
 
 <form method="post" id="bulk-action-form">
 
-<input type="hidden" name="plugin_status" value="<?php echo esc_attr( $status ); ?>" />
-<input type="hidden" name="paged" value="<?php echo esc_attr( $page ); ?>" />
+<input type="hidden" name="plugin_status" value="<?php echo esc_attr( $status ); ?>">
+<input type="hidden" name="paged" value="<?php echo esc_attr( $page ); ?>">
 
 <?php $wp_list_table->display(); ?>
 </form>

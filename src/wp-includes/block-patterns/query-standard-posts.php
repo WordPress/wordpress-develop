@@ -16,7 +16,7 @@ return array(
 					<!-- wp:post-featured-image  {"isLink":true,"align":"wide"} /-->
 					<!-- wp:post-excerpt /-->
 					<!-- wp:separator -->
-					<hr class="wp-block-separator"/>
+					<hr class="wp-block-separator">
 					<!-- /wp:separator -->
 					<!-- wp:post-date /-->
 					<!-- /wp:post-template -->

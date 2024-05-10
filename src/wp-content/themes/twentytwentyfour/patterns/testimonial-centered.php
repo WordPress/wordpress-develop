@@ -27,7 +27,7 @@
 		<div class="wp-block-group">
 			<!-- wp:image {"align":"center","width":"60px","aspectRatio":"1","scale":"cover","sizeSlug":"thumbnail","linkDestination":"none","style":{"border":{"radius":"100px"}}} -->
 			<figure class="wp-block-image aligncenter size-thumbnail is-resized has-custom-border">
-				<img alt="" style="border-radius:100px;aspect-ratio:1;object-fit:cover;width:60px" />
+				<img alt="" style="border-radius:100px;aspect-ratio:1;object-fit:cover;width:60px">
 			</figure>
 			<!-- /wp:image -->
 

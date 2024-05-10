@@ -261,9 +261,9 @@ switch ( $action ) {
 	</p>
 
 		<?php wp_nonce_field( $nonce_action ); ?>
-	<input type="hidden" name="action" value="<?php echo esc_attr( $formaction ); ?>" />
-	<input type="hidden" name="c" value="<?php echo esc_attr( $comment->comment_ID ); ?>" />
-	<input type="hidden" name="noredir" value="1" />
+	<input type="hidden" name="action" value="<?php echo esc_attr( $formaction ); ?>">
+	<input type="hidden" name="c" value="<?php echo esc_attr( $comment->comment_ID ); ?>">
+	<input type="hidden" name="noredir" value="1">
 </form>
 
 </div>

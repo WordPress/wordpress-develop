@@ -195,7 +195,7 @@ function wp_install_language_form( $languages ) {
 		);
 	}
 	echo "</select>\n";
-	echo '<p class="step"><span class="spinner"></span><input id="language-continue" type="submit" class="button button-primary button-large" value="Continue" /></p>';
+	echo '<p class="step"><span class="spinner"></span><input id="language-continue" type="submit" class="button button-primary button-large" value="Continue"></p>';
 }
 
 /**
