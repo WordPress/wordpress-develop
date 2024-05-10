@@ -27,13 +27,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->interactivity = new WP_Interactivity_API();
 	}
 
-	/**
-	 * Tear down.
-	 */
-	public function tear_down() {
-		remove_filter( 'pre_option_blog_charset', array( $this, 'charset_iso_8859_1' ) );
-	}
-
 	public function charset_iso_8859_1() {
 		return 'iso-8859-1';
 	}
