@@ -1411,6 +1411,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 	} else {
 		$transient_timeout = '_transient_timeout_' . $transient;
 		$transient_option  = '_transient_' . $transient;
+		wp_prime_option_caches( array( $transient_option, $transient_timeout ) );
 
 		if ( false === get_option( $transient_option ) ) {
 			$autoload = 'on';
