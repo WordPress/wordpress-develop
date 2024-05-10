@@ -80,20 +80,19 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5() {
-		remove_theme_support( 'html5' );
-		$this->assertFalse( current_theme_supports( 'html5' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
+		$this->assertTrue( current_theme_supports( 'html5' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
 
 		/*
 		 * If the second parameter is not specified, it should throw a _doing_it_wrong() notice
 		 * and fall back to `array( 'comment-list', 'comment-form', 'search-form' )` for back-compat.
 		 */
-		$this->assertNotFalse( add_theme_support( 'html5' ) );
+		$this->assertFalse( add_theme_support( 'html5' ) );
 		$this->assertTrue( current_theme_supports( 'html5' ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-list' ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'search-form' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'something-else' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'something-else' ) );
 	}
 
 	/**
@@ -102,13 +101,12 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5_subset() {
-		remove_theme_support( 'html5' );
-		$this->assertFalse( current_theme_supports( 'html5' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
+		$this->assertTrue( current_theme_supports( 'html5' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
 
-		// The second parameter should be an array.
+		// The second parameter no longer matters.
 		$this->assertFalse( add_theme_support( 'html5', 'comment-form' ) );
-		$this->assertNotFalse( add_theme_support( 'html5', array( 'comment-form' ) ) );
+		$this->assertFalse( add_theme_support( 'html5', array( 'comment-form' ) ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
 
 		// This will return true, which might help a plugin author decide what markup to serve,
@@ -116,17 +114,17 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertTrue( current_theme_supports( 'html5' ) );
 
 		// It appends, rather than replaces.
-		$this->assertFalse( current_theme_supports( 'html5', 'comment-list' ) );
-		$this->assertNotFalse( add_theme_support( 'html5', array( 'comment-list' ) ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-list' ) );
+		$this->assertFalse( add_theme_support( 'html5', array( 'comment-list' ) ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-list' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'search-form' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'search-form' ) );
 
 		// Removal is all or nothing.
-		$this->assertTrue( remove_theme_support( 'html5' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'comment-list' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'search-form' ) );
+		$this->assertFalse( remove_theme_support( 'html5' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-list' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'search-form' ) );
 	}
 
 	/**
@@ -135,10 +133,9 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5_invalid() {
-		remove_theme_support( 'html5' );
 		$this->assertFalse( add_theme_support( 'html5', 'comment-form' ) );
-		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
-		$this->assertFalse( current_theme_supports( 'html5' ) );
+		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
+		$this->assertTrue( current_theme_supports( 'html5' ) );
 	}
 
 	/**

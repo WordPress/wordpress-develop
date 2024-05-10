@@ -2447,10 +2447,6 @@ function img_caption_shortcode( $attr, $content = '' ) {
 
 	$class = trim( 'wp-caption ' . $atts['align'] . ' ' . $atts['class'] );
 
-	$html5 = current_theme_supports( 'html5', 'caption' );
-	// HTML5 captions never added the extra 10px to the image width.
-	$width = $html5 ? $atts['width'] : ( 10 + $atts['width'] );
-
 	/**
 	 * Filters the width of an image's caption.
 	 *
@@ -2466,7 +2462,7 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	 * @param array  $atts     Attributes of the caption shortcode.
 	 * @param string $content  The image element, possibly wrapped in a hyperlink.
 	 */
-	$caption_width = apply_filters( 'img_caption_shortcode_width', $width, $atts, $content );
+	$caption_width = apply_filters( 'img_caption_shortcode_width', $attrs['width'], $atts, $content );
 
 	$style = '';
 
@@ -2474,34 +2470,19 @@ function img_caption_shortcode( $attr, $content = '' ) {
 		$style = 'style="width: ' . (int) $caption_width . 'px" ';
 	}
 
-	if ( $html5 ) {
-		$html = sprintf(
-			'<figure %s%s%sclass="%s">%s%s</figure>',
-			$id,
-			$describedby,
-			$style,
-			esc_attr( $class ),
-			do_shortcode( $content ),
-			sprintf(
-				'<figcaption %sclass="wp-caption-text">%s</figcaption>',
-				$caption_id,
-				$atts['caption']
-			)
-		);
-	} else {
-		$html = sprintf(
-			'<div %s%sclass="%s">%s%s</div>',
-			$id,
-			$style,
-			esc_attr( $class ),
-			str_replace( '<img ', '<img ' . $describedby, do_shortcode( $content ) ),
-			sprintf(
-				'<p %sclass="wp-caption-text">%s</p>',
-				$caption_id,
-				$atts['caption']
-			)
-		);
-	}
+	$html = sprintf(
+		'<figure %s%s%sclass="%s">%s%s</figure>',
+		$id,
+		$describedby,
+		$style,
+		esc_attr( $class ),
+		do_shortcode( $content ),
+		sprintf(
+			'<figcaption %sclass="wp-caption-text">%s</figcaption>',
+			$caption_id,
+			$atts['caption']
+		)
+	);
 
 	return $html;
 }
@@ -2594,15 +2575,14 @@ function gallery_shortcode( $attr ) {
 		return $output;
 	}
 
-	$html5 = current_theme_supports( 'html5', 'gallery' );
 	$atts  = shortcode_atts(
 		array(
 			'order'      => 'ASC',
 			'orderby'    => 'menu_order ID',
 			'id'         => $post ? $post->ID : 0,
-			'itemtag'    => $html5 ? 'figure' : 'dl',
-			'icontag'    => $html5 ? 'div' : 'dt',
-			'captiontag' => $html5 ? 'figcaption' : 'dd',
+			'itemtag'    => 'figure',
+			'icontag'    => 'div',
+			'captiontag' => 'figcaption',
 			'columns'    => 3,
 			'size'       => 'thumbnail',
 			'include'    => '',
@@ -2721,11 +2701,9 @@ function gallery_shortcode( $attr ) {
 	 *                    Defaults to false if the theme supports HTML5 galleries.
 	 *                    Otherwise, defaults to true.
 	 */
-	if ( apply_filters( 'use_default_gallery_style', ! $html5 ) ) {
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
+	if ( apply_filters( 'use_default_gallery_style', false ) ) {
 		$gallery_style = "
-		<style{$type_attr}>
+		<style>
 			#{$selector} {
 				margin: auto;
 			}
@@ -2794,15 +2772,6 @@ function gallery_shortcode( $attr ) {
 		}
 
 		$output .= "</{$itemtag}>";
-
-		if ( ! $html5 && $columns > 0 && 0 === ++$i % $columns ) {
-			$output .= '<br style="clear: both" />';
-		}
-	}
-
-	if ( ! $html5 && $columns > 0 && 0 !== $i % $columns ) {
-		$output .= "
-			<br style='clear: both' />";
 	}
 
 	$output .= "

@@ -57,7 +57,6 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		$args = array(
 			'priority'        => 200,
 			'capability'      => 'edit_posts',
-			'theme_supports'  => 'html5',
 			'title'           => 'Hello World',
 			'description'     => 'Lorem Ipsum',
 			'type'            => 'horizontal',
@@ -120,7 +119,6 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		$args = array(
 			'priority'        => 200,
 			'capability'      => 'edit_posts',
-			'theme_supports'  => 'html5',
 			'title'           => 'Hello World',
 			'description'     => 'Lorem Ipsum',
 			'type'            => 'horizontal',

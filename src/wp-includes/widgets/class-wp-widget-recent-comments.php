@@ -40,6 +40,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 * Outputs the default styles for the Recent Comments widget.
 	 *
 	 * @since 2.8.0
+	 * @since 6.6.0 Only supports HTML5.
 	 */
 	public function recent_comments_style() {
 		/**
@@ -55,12 +56,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			return;
 		}
 
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
-		printf(
-			'<style%s>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>',
-			$type_attr
-		);
+		echo '<style>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>';
 	}
 
 	/**
@@ -69,6 +65,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 * @since 2.8.0
 	 * @since 5.4.0 Creates a unique HTML ID for the `<ul>` element
 	 *              if more than one instance is displayed on the page.
+	 * @since 6.6.0 Only supports HTML5.
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
@@ -125,17 +122,10 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 		$recent_comments_id = ( $first_instance ) ? 'recentcomments' : "recentcomments-{$this->number}";
 		$first_instance     = false;
 
-		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
-
-		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
-		$format = apply_filters( 'navigation_widgets_format', $format );
-
-		if ( 'html5' === $format ) {
-			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
-			$title      = trim( strip_tags( $title ) );
-			$aria_label = $title ? $title : $default_title;
-			$output    .= '<nav aria-label="' . esc_attr( $aria_label ) . '">';
-		}
+		// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+		$title      = trim( strip_tags( $title ) );
+		$aria_label = $title ? $title : $default_title;
+		$output    .= '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 
 		$output .= '<ul id="' . esc_attr( $recent_comments_id ) . '">';
 		if ( is_array( $comments ) && $comments ) {
@@ -154,12 +144,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 				$output .= '</li>';
 			}
 		}
-		$output .= '</ul>';
-
-		if ( 'html5' === $format ) {
-			$output .= '</nav>';
-		}
-
+		$output .= '</ul></nav>';
 		$output .= $args['after_widget'];
 
 		echo $output;

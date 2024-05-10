@@ -288,7 +288,7 @@ function get_search_form( $args = array() ) {
 	// Ensure that the filtered arguments contain all required default values.
 	$args = array_merge( $defaults, $args );
 
-	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
+	$format = 'html5';
 
 	/**
 	 * Filters the HTML format of the search form.
@@ -321,29 +321,16 @@ function get_search_form( $args = array() ) {
 			$aria_label = '';
 		}
 
-		if ( 'html5' === $format ) {
-			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
-				<label>
-					<span class="screen-reader-text">' .
-					/* translators: Hidden accessibility text. */
-					_x( 'Search for:', 'label' ) .
-					'</span>
-					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
-				</label>
-				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
-			</form>';
-		} else {
-			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
-				<div>
-					<label class="screen-reader-text" for="s">' .
-					/* translators: Hidden accessibility text. */
-					_x( 'Search for:', 'label' ) .
-					'</label>
-					<input type="text" value="' . get_search_query() . '" name="s" id="s" />
-					<input type="submit" id="searchsubmit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
-				</div>
-			</form>';
-		}
+		$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
+			<label>
+				<span class="screen-reader-text">' .
+				/* translators: Hidden accessibility text. */
+				_x( 'Search for:', 'label' ) .
+				'</span>
+				<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
+			</label>
+			<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
+		</form>';
 	}
 
 	/**

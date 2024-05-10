@@ -39,6 +39,7 @@ class WP_Widget_RSS extends WP_Widget {
 	 * Outputs the content for the current RSS widget instance.
 	 *
 	 * @since 2.8.0
+	 * @since 6.6.0 Only supports HTML5.
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
@@ -118,24 +119,14 @@ class WP_Widget_RSS extends WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
-		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
-
-		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
-		$format = apply_filters( 'navigation_widgets_format', $format );
-
-		if ( 'html5' === $format ) {
-			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
-			$title      = trim( strip_tags( $title ) );
-			$aria_label = $title ? $title : __( 'RSS Feed' );
-			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
-		}
+		// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+		$title      = trim( strip_tags( $title ) );
+		$aria_label = $title ? $title : __( 'RSS Feed' );
+		echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 
 		wp_widget_rss_output( $rss, $instance );
 
-		if ( 'html5' === $format ) {
-			echo '</nav>';
-		}
-
+		echo '</nav>';
 		echo $args['after_widget'];
 
 		if ( ! is_wp_error( $rss ) ) {

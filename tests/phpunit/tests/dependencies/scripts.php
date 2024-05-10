@@ -281,7 +281,6 @@ JS;
 	 * @param string $strategy Strategy.
 	 */
 	public function test_delayed_dependent_with_blocking_dependency_not_enqueued( $strategy ) {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'main-script-a4', '/main-script-a4.js', array(), null, compact( 'strategy' ) );
 		// This dependent is registered but not enqueued, so it should not factor into the eligible loading strategy.
 		wp_register_script( 'dependent-script-a4', '/dependent-script-a4.js', array( 'main-script-a4' ), null );
@@ -973,7 +972,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_defer_having_no_dependents_nor_dependencies() {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'main-script-d1', 'http://example.com/main-script-d1.js', array(), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = str_replace( "'", '"', "<script src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer data-wp-strategy='defer'></script>\n" );
@@ -990,7 +988,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_defer_dependent_and_varied_dependencies() {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'dependency-script-d2-1', 'http://example.com/dependency-script-d2-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependency-script-d2-2', 'http://example.com/dependency-script-d2-2.js', array(), null );
 		wp_enqueue_script( 'dependency-script-d2-3', 'http://example.com/dependency-script-d2-3.js', array( 'dependency-script-d2-2' ), null, array( 'strategy' => 'defer' ) );
@@ -1010,7 +1007,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_all_defer_dependencies() {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'main-script-d3', 'http://example.com/main-script-d3.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d3-1', 'http://example.com/dependent-script-d3-1.js', array( 'main-script-d3' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d3-2', 'http://example.com/dependent-script-d3-2.js', array( 'dependent-script-d3-1' ), null, array( 'strategy' => 'defer' ) );
@@ -3059,13 +3055,6 @@ HTML
 			$actual_dom->getElementsByTagName( 'body' )->item( 0 ),
 			$message
 		);
-	}
-
-	/**
-	 * Adds html5 script theme support.
-	 */
-	protected function add_html5_script_theme_support() {
-		add_theme_support( 'html5', array( 'script' ) );
 	}
 
 	/**

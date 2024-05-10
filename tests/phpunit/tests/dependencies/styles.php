@@ -78,8 +78,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 42804
 	 */
 	public function test_wp_enqueue_style_with_html5_support_does_not_contain_type_attribute() {
-		add_theme_support( 'html5', array( 'style' ) );
-
 		$GLOBALS['wp_styles']                  = new WP_Styles();
 		$GLOBALS['wp_styles']->default_version = get_bloginfo( 'version' );
 

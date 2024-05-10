@@ -2229,7 +2229,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		'avatar_size'       => 32,
 		'reverse_top_level' => null,
 		'reverse_children'  => '',
-		'format'            => current_theme_supports( 'html5', 'comment-list' ) ? 'html5' : 'xhtml',
+		'format'            => 'html5',
 		'short_ping'        => false,
 		'echo'              => true,
 	);
@@ -2490,7 +2490,7 @@ function comment_form( $args = array(), $post = null ) {
 
 	$args = wp_parse_args( $args );
 	if ( ! isset( $args['format'] ) ) {
-		$args['format'] = current_theme_supports( 'html5', 'comment-form' ) ? 'html5' : 'xhtml';
+		$args['format'] = 'html5';
 	}
 
 	$req   = get_option( 'require_name_email' );
