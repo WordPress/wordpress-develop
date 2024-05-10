@@ -960,7 +960,7 @@ function _wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false,
 		$quote_style = ENT_QUOTES;
 	}
 
-	$charset = _canonical_charset( $charset || get_option( 'blog_charset' ) );
+	$charset = _canonical_charset( $charset ?: get_option( 'blog_charset' ) );
 
 	$_quote_style = $quote_style;
 
