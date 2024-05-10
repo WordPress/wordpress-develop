@@ -1053,7 +1053,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param string $time    Optional. Time formatted in 'yyyy/mm'. Default null.
 	 * @return array|WP_Error Data from wp_handle_sideload().
 	 */
-	protected function upload_from_data( $data, $headers, $time ) {
+	protected function upload_from_data( $data, $headers, $time = null ) {
 		if ( empty( $data ) ) {
 			return new WP_Error(
 				'rest_upload_no_data',
