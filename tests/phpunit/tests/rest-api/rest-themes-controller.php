@@ -841,7 +841,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 49037
 	 */
 	public function test_theme_supports_html5() {
-		$html5 = array(
+		$html5    = array(
 			'search-form',
 			'comment-form',
 			'comment-list',

@@ -2231,7 +2231,7 @@ HTML
 				),
 				'delayed'        => true,
 				'expected_data'  => "/*after foo 1*/\n/*after foo 2*/",
-				'expected_tag'   => "<script id='foo-js-after>\n/*after foo 1*/\n/*after foo 2*/\n</script>\n",
+				'expected_tag'   => "<script id='foo-js-after'>\n/*after foo 1*/\n/*after foo 2*/\n</script>\n",
 			),
 		);
 	}
