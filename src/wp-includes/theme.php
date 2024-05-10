@@ -2969,10 +2969,9 @@ function _custom_logo_header_styles() {
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
 
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 		?>
 		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css"<?php echo $type_attr; ?>>
+		<style id="custom-logo-css">
 			<?php echo $classes; ?> {
 				position: absolute;
 				clip: rect(1px, 1px, 1px, 1px);
@@ -3119,7 +3118,7 @@ function _remove_theme_support( $feature ) {
  * Example usage:
  *
  *     current_theme_supports( 'custom-logo' );
- *     current_theme_supports( 'html5', 'comment-form' );
+ *     current_theme_supports( 'post-formats', 'page' );
  *
  * @since 2.9.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter

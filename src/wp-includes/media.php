@@ -2462,7 +2462,7 @@ function img_caption_shortcode( $attr, $content = '' ) {
 	 * @param array  $atts     Attributes of the caption shortcode.
 	 * @param string $content  The image element, possibly wrapped in a hyperlink.
 	 */
-	$caption_width = apply_filters( 'img_caption_shortcode_width', $attrs['width'], $atts, $content );
+	$caption_width = apply_filters( 'img_caption_shortcode_width', $atts['width'], $atts, $content );
 
 	$style = '';
 

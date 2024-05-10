@@ -5920,9 +5920,8 @@ function print_emoji_styles() {
 
 	$printed = true;
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 	?>
-	<style<?php echo $type_attr; ?>>
+	<style>
 	img.wp-smiley,
 	img.emoji {
 		display: inline !important;

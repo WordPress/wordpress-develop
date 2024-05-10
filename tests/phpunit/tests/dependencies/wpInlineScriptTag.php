@@ -129,5 +129,4 @@ JS;
 			wp_get_inline_script_tag( "/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]> */" )
 		);
 	}
-
 }

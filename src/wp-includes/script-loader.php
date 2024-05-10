@@ -2350,7 +2350,6 @@ function _print_styles() {
 	}
 
 	$concat    = trim( $wp_styles->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 
 	if ( $concat ) {
 		$dir = $wp_styles->text_direction;
@@ -2364,10 +2363,10 @@ function _print_styles() {
 		}
 
 		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "'{$type_attr} media='all' />\n";
+		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
-			echo "<style{$type_attr}>\n";
+			echo "<style>\n";
 			echo $wp_styles->print_code;
 			echo "\n</style>\n";
 		}
@@ -2795,13 +2794,6 @@ function wp_sanitize_script_attributes( $attributes ) {
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
-	}
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
