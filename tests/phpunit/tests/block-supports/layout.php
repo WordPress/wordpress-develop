@@ -385,4 +385,81 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Checks that `wp_add_parent_layout_to_parsed_block` adds the parent layout attribute to the block object.
+	 *
+	 * @ticket 61111
+	 *
+	 * @covers ::wp_add_parent_layout_to_parsed_block
+	 *
+	 * @dataProvider data_wp_add_parent_layout_to_parsed_block
+	 *
+	 * @param array    $block        The block object.
+	 * @param WP_Block $parent_block The parent block object.
+	 * @param array    $expected     The expected block object.
+	 */
+	public function test_wp_add_parent_layout_to_parsed_block( $block, $parent_block, $expected ) {
+		$actual = wp_add_parent_layout_to_parsed_block( $block, array(), $parent_block );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_wp_add_parent_layout_to_parsed_block.
+	 *
+	 * @return array
+	 */
+	public function data_wp_add_parent_layout_to_parsed_block() {
+		return array(
+			'block with no parent layout' => array(
+				'block'        => array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+				),
+				'parent_block' => array(),
+				'expected'     => array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+				),
+			),
+			'block with parent layout'    => array(
+				'block'        => array(
+					'blockName' => 'core/group',
+					'attrs'     => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+				),
+				'parent_block' => new WP_Block(
+					array(
+						'attrs' => array(
+							'layout' => array(
+								'type' => 'grid',
+							),
+						),
+					)
+				),
+				'expected'     => array(
+					'blockName'    => 'core/group',
+					'attrs'        => array(
+						'layout' => array(
+							'type' => 'default',
+						),
+					),
+					'parentLayout' => array(
+						'type' => 'grid',
+					),
+				),
+			),
+		);
+	}
 }
