@@ -1048,9 +1048,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @since 4.7.0
 	 * @since 6.6.0 Added the `$time` parameter.
 	 *
-	 * @param string $data    Supplied file data.
-	 * @param array  $headers HTTP headers from the request.
-	 * @param string $time    Optional. Time formatted in 'yyyy/mm'. Default null.
+	 * @param string      $data    Supplied file data.
+	 * @param array       $headers HTTP headers from the request.
+	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
 	 * @return array|WP_Error Data from wp_handle_sideload().
 	 */
 	protected function upload_from_data( $data, $headers, $time = null ) {
@@ -1261,9 +1261,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @since 4.7.0
 	 * @since 6.6.0 Added the `$time` parameter.
 	 *
-	 * @param array  $files   Data from the `$_FILES` superglobal.
-	 * @param array  $headers HTTP headers from the request.
-	 * @param string $time    Optional. Time formatted in 'yyyy/mm'. Default null.
+	 * @param array       $files   Data from the `$_FILES` superglobal.
+	 * @param array       $headers HTTP headers from the request.
+	 * @param string|null $time    Optional. Time formatted in 'yyyy/mm'. Default null.
 	 * @return array|WP_Error Data from wp_handle_upload().
 	 */
 	protected function upload_from_file( $files, $headers, $time = null ) {
