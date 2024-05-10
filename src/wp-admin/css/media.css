@@ -112,14 +112,8 @@
 	margin-right: 10px;
 }
 
-.media-item-wrapper {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-}
-
 .media-item .attachment-tools {
 	display: flex;
-	justify-content: flex-end;
 	align-items: center;
 }
 
@@ -170,6 +164,12 @@
 
 #media-items:empty {
 	border: 0 none;
+}
+
+#media-items {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
 }
 
 .media-item .filename {
@@ -1391,6 +1391,7 @@ audio, video {
 }
 
 @media only screen and (max-width: 480px) {
+
 	.edit-attachment-frame .media-frame-title {
 		right: 110px;
 	}
