@@ -7491,16 +7491,9 @@ function _canonical_charset( $charset ) {
 	 * @todo Should this entire check be removed since it's not required for the stated purpose?
 	 * @todo Should WordPress transform other potential charset equivalents, such as "latin1"?
 	 */
-	$charset_length = strlen( $charset );
 	if (
-		(
-			10 === $charset_length &&
-			0 === strcasecmp( 'iso-8859-1', $charset )
-		) ||
-		(
-			9 === $charset_length &&
-			0 === strcasecmp( 'iso8859-1', $charset )
-		)
+		( 0 === strcasecmp( 'iso-8859-1', $charset ) ) ||
+		( 0 === strcasecmp( 'iso8859-1', $charset ) )
 	) {
 		return 'ISO-8859-1';
 	}

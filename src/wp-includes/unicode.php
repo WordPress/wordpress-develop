@@ -44,31 +44,8 @@ function is_utf8_charset( $blog_charset = null ) {
 		return false;
 	}
 
-	// Only valid slugs are 4 "utf8" and 5 "utf-8" characters long.
-	$length = strlen( $charset_to_examine );
-	if ( $length < 4 || $length > 5 ) {
-		return false;
-	}
-
-	$utf = (
-		( 'u' === $charset_to_examine[0] || 'U' === $charset_to_examine[0] ) &&
-		( 't' === $charset_to_examine[1] || 'T' === $charset_to_examine[1] ) &&
-		( 'f' === $charset_to_examine[2] || 'F' === $charset_to_examine[2] )
+	return (
+		0 === strcasecmp( 'UTF-8', $charset_to_examine ) ||
+		0 === strcasecmp( 'UTF8', $charset_to_examine )
 	);
-
-	if ( ! $utf ) {
-		return false;
-	}
-
-	// UTF8.
-	if ( 4 === $length && '8' === $charset_to_examine[3] ) {
-		return true;
-	}
-
-	// UTF-8.
-	if ( 5 === $length && '-' === $charset_to_examine[3] && '8' === $charset_to_examine[4] ) {
-		return true;
-	}
-
-	return false;
 }
