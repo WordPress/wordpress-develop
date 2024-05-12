@@ -2475,7 +2475,9 @@ function get_site_transient( $transient ) {
 		$transient_option = '_site_transient_' . $transient;
 		if ( ! in_array( $transient, $no_timeout, true ) ) {
 			$transient_timeout = '_site_transient_timeout_' . $transient;
-			$timeout           = get_site_option( $transient_timeout );
+			wp_prime_network_option_caches( null, array( $transient_option, $transient_timeout ) );
+
+			$timeout = get_site_option( $transient_timeout );
 			if ( false !== $timeout && $timeout < time() ) {
 				delete_site_option( $transient_option );
 				delete_site_option( $transient_timeout );
