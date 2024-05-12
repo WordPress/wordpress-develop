@@ -1839,10 +1839,18 @@ class WP_Site_Health {
 			$result['description'] = __( 'Could not determine available disk space for updates.' );
 			$result['status']      = 'recommended';
 		} elseif ( $available_space < 20 * MB_IN_BYTES ) {
-			$result['description'] = __( 'Available disk space is critically low, less than 20 MB available. Proceed with caution, updates may fail.' );
+			$result['description'] = sprintf(
+				/* translators: %s: Available disk space in MB or GB. */
+				__( 'Available disk space is critically low, less than %s available. Proceed with caution, updates may fail.' ),
+				size_format( 20 * MB_IN_BYTES )
+			);
 			$result['status']      = 'critical';
 		} elseif ( $available_space < 100 * MB_IN_BYTES ) {
-			$result['description'] = __( 'Available disk space is low, less than 100 MB available.' );
+			$result['description'] = sprintf(
+				/* translators: %s: Available disk space in MB or GB. */
+				__( 'Available disk space is low, less than %s available.' ),
+				size_format( 100 * MB_IN_BYTES )
+			);
 			$result['status']      = 'recommended';
 		}
 
@@ -2390,7 +2398,7 @@ class WP_Site_Health {
 			'label'       => '',
 			'actions'     => sprintf(
 				'<p><a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#Caching' ),
+				__( 'https://developer.wordpress.org/advanced-administration/performance/optimization/#caching' ),
 				__( 'Learn more about page cache' ),
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
@@ -3325,12 +3333,12 @@ class WP_Site_Health {
 	 * @since 6.1.0
 	 *
 	 * @return WP_Error|array {
-	 *    Page cache detail or else a WP_Error if unable to determine.
+	 *     Page cache detail or else a WP_Error if unable to determine.
 	 *
-	 *    @type string   $status                 Page cache status. Good, Recommended or Critical.
-	 *    @type bool     $advanced_cache_present Whether page cache plugin is available or not.
-	 *    @type string[] $headers                Client caching response headers detected.
-	 *    @type float    $response_time          Response time of site.
+	 *     @type string   $status                 Page cache status. Good, Recommended or Critical.
+	 *     @type bool     $advanced_cache_present Whether page cache plugin is available or not.
+	 *     @type string[] $headers                Client caching response headers detected.
+	 *     @type float    $response_time          Response time of site.
 	 * }
 	 */
 	private function get_page_cache_detail() {
