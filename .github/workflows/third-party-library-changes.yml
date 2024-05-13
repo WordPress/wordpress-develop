@@ -40,19 +40,19 @@ jobs:
               owner,
               repo,
               issue_number: number,
-              body: '## Third Party Files
+              body: `## Third Party Files
                 This pull request modifies a third party library file. Changes to files in the following directories should be made to their respective upstream projects instead:
 
-                - `src/wp-includes/ID3`: [ID3](https://example.com)
-                - `src/wp-includes/IXR`: [IXR](https://example.com)
-                - `src/wp-includes/PHPMailer`: [PHPMailer](https://example.com)
-                - `src/wp-includes/Requests`: [Requests](https://example.com)
-                - `src/wp-includes/SimplePie`: [SimplePie](https://example.com)
-                - `src/wp-includes/sodium_compat`: [Sodium Compat](https://example.com)
-                - `src/wp-includes/Text`: [Text](https://example.com)
+                - \`src/wp-includes/ID3\`: [ID3](https://example.com)
+                - \`src/wp-includes/IXR\`: [IXR](https://example.com)
+                - \`src/wp-includes/PHPMailer\`: [PHPMailer](https://example.com)
+                - \`src/wp-includes/Requests\`: [Requests](https://example.com)
+                - \`src/wp-includes/SimplePie\`: [SimplePie](https://example.com)
+                - \`src/wp-includes/sodium_compat\`: [Sodium Compat](https://example.com)
+                - \`src/wp-includes/Text\`: [Text](https://example.com)
 
                 These changes need to be proposed and merged into the upstream projects before being included in WordPress.
-              ',
+              `,
             } );
 
       - name: Fail the workflow run
