@@ -259,8 +259,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame( array( 'context', 'id' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id' ), $keys );
 	}
 
 	/**
@@ -2074,6 +2073,98 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertSame( 201, $response->get_status() );
 		$this->assertSame( 'Chocolate-dipped, no filling', get_post_meta( $response->get_data()['id'], 'best_cannoli', true ) );
+	}
+
+	/**
+	 * @ticket 61189
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_year_month_based_folders() {
+		update_option( 'uploads_use_yearmonth_folders', 1 );
+
+		wp_set_current_user( self::$editor_id );
+
+		$published_post = self::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_date'     => '2017-02-14 00:00:00',
+				'post_date_gmt' => '2017-02-14 00:00:00',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'title', 'My title is very cool' );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
+		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
+		$request->set_param( 'post', $published_post );
+
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		update_option( 'uploads_use_yearmonth_folders', 0 );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$attachment = get_post( $data['id'] );
+
+		$this->assertSame( $attachment->post_parent, $data['post'] );
+		$this->assertSame( $attachment->post_parent, $published_post );
+		$this->assertSame( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
+		$this->assertStringContainsString( '2017/02', $data['source_url'] );
+	}
+
+
+	/**
+	 * @ticket 61189
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_year_month_based_folders_page_post_type() {
+		update_option( 'uploads_use_yearmonth_folders', 1 );
+
+		wp_set_current_user( self::$editor_id );
+
+		$published_post = self::factory()->post->create(
+			array(
+				'post_type'     => 'page',
+				'post_status'   => 'publish',
+				'post_date'     => '2017-02-14 00:00:00',
+				'post_date_gmt' => '2017-02-14 00:00:00',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'title', 'My title is very cool' );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
+		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
+		$request->set_param( 'post', $published_post );
+
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		update_option( 'uploads_use_yearmonth_folders', 0 );
+
+		$time   = current_time( 'mysql' );
+		$y      = substr( $time, 0, 4 );
+		$m      = substr( $time, 5, 2 );
+		$subdir = "/$y/$m";
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$attachment = get_post( $data['id'] );
+
+		$this->assertSame( $attachment->post_parent, $data['post'] );
+		$this->assertSame( $attachment->post_parent, $published_post );
+		$this->assertSame( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
+		$this->assertStringNotContainsString( '2017/02', $data['source_url'] );
+		$this->assertStringContainsString( $subdir, $data['source_url'] );
 	}
 
 	public function filter_rest_insert_attachment( $attachment ) {

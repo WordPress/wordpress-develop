@@ -454,7 +454,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Test the tests. The administrator role has all primitive capabilities, therefore the
-	 * primitive capabilitity tests can be tested by checking that the list of tested
+	 * primitive capability tests can be tested by checking that the list of tested
 	 * capabilities matches those of the administrator role.
 	 *
 	 * @group capTestTests
