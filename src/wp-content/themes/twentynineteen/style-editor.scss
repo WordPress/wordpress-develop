@@ -734,6 +734,10 @@ ul.wp-block-archives,
 			padding-left: $size__spacing-unit;
 		}
 	}
+
+	[data-align="center"] & {
+		text-align: center;
+	}
 }
 
 .wp-block-categories {

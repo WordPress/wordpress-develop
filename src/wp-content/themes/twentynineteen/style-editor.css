@@ -1357,6 +1357,12 @@ ul.wp-block-archives li ul,
   padding-left: 1rem;
 }
 
+[data-align="center"] ul.wp-block-archives, [data-align="center"]
+.wp-block-categories, [data-align="center"]
+.wp-block-latest-posts {
+  text-align: center;
+}
+
 .wp-block-categories ul {
   padding-top: 0.75rem;
 }
