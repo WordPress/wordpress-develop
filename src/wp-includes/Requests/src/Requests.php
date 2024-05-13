@@ -26,7 +26,7 @@ use WpOrg\Requests\Transport\Fsockopen;
 use WpOrg\Requests\Utility\InputValidator;
 
 /**
- * Requests for PHP
+ * Responses for PHP
  *
  * Inspired by Requests for Python.
  *
