@@ -115,12 +115,12 @@ class Tests_Formatting_EscXml extends WP_UnitTestCase {
 			// string with chars that should be escaped as well as a CDATA Section that should be not be.
 			array(
 				'This is &hellip; a <![CDATA[test of the <emergency>]]> broadcast <system>',
-				'This is … a <![CDATA[test of the <emergency>]]> broadcast &lt;system /&gt;',
+				'This is … a <![CDATA[test of the <emergency>]]> broadcast &lt;system&gt;',
 			),
 			// Same as above, but with the CDATA Section at the start of the string.
 			array(
 				'<![CDATA[test of the <emergency>]]> This is &hellip; a broadcast <system>',
-				'<![CDATA[test of the <emergency>]]> This is … a broadcast &lt;system /&gt;',
+				'<![CDATA[test of the <emergency>]]> This is … a broadcast &lt;system&gt;',
 			),
 			// Same as above, but with the CDATA Section at the end of the string.
 			array(

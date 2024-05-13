@@ -2684,7 +2684,6 @@ function force_balance_tags( $text ) {
 			} elseif ( $is_single_tag ) {
 				// Else if it's a known single-entity tag but it doesn't close itself, do so.
 				$pre_attribute_ws = ' ';
-				$attributes      .= '/';
 			} else {
 				/*
 				 * It's not a single-entity tag.
