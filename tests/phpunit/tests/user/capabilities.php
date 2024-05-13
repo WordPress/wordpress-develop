@@ -1720,16 +1720,17 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( user_can_for_blog( $user->ID, $blog_id, 'edit_posts' ) );
 		$this->assertFalse( user_can_for_blog( $user->ID, $blog_id, 'foo_the_bar' ) );
 
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$author = self::$users['author'];
 
 		// Verify another user doesn't have a capability
-		$this->assertFalse( user_can_for_blog( $author_id, $blog_id, 'edit_posts' ) );
+		$this->assertFalse( is_user_member_of_blog( $author->ID, $blog_id ) );
+		$this->assertFalse( user_can_for_blog( $author->ID, $blog_id, 'edit_posts' ) );
 
 		// Add the author to the site
-		add_user_to_blog( $blog_id, $author_id, 'author' );
+		add_user_to_blog( $blog_id, $author->ID, 'author' );
 
 		// Verify they now have the capability
-		$this->assertTrue( user_can_for_blog( $author_id, $blog_id, 'edit_posts' ) );
+		$this->assertTrue( user_can_for_blog( $author->ID, $blog_id, 'edit_posts' ) );
 
 		$suppress = $wpdb->suppress_errors();
 		$this->assertFalse( user_can_for_blog( $user->ID, -1, 'edit_posts' ) );
