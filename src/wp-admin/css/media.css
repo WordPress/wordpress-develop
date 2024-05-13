@@ -166,12 +166,6 @@
 	border: 0 none;
 }
 
-#media-items {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 10px;
-}
-
 .media-item .filename {
 	padding: 14px 0;
 	overflow: hidden;
@@ -1429,6 +1423,14 @@ audio, video {
 	.edit-attachment-frame .attachment-info {
 		height: auto;
 		width: 100%;
+	}
+
+	.media-item .edit-attachment.copy-to-clipboard-container {
+		flex-direction: column;
+	}
+	.copy-to-clipboard-container .success {
+		position: relative;
+		top: 10px;
 	}
 }
 
