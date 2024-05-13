@@ -132,8 +132,6 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 			'Additional database queries were made.'
 		);
 	}
-
-
 	/**
 	 * Tests that wp_prime_network_option_caches() handles a mix of primed and unprimed options.
 	 *
