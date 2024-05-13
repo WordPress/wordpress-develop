@@ -1024,7 +1024,7 @@ function user_can_for_blog( $user, $blog_id, $capability, ...$args ) {
 
 	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
 
-	$can = user_can( $user, $capability, ...$args );
+	$can = $user->has_cap( $capability, ...$args );
 
 	if ( $switched ) {
 		restore_current_blog();
