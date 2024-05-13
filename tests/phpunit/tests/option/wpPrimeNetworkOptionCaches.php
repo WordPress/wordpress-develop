@@ -15,12 +15,6 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 	 */
 	public function test_wp_prime_network_option_caches() {
 		// Create some options to prime.
-		$options_to_prime = array(
-			'option1',
-			'option2',
-			'option3',
-		);
-
 		$network_id = get_current_network_id();
 		if ( is_multisite() ) {
 			$cache_group = 'site-options';
@@ -28,18 +22,32 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 			$cache_group = 'options';
 		}
 
+		// Create some options to prime.
+		$options_to_prime = array(
+			'option1',
+			'option2',
+			'option3',
+		);
+
+		$cache_keys = array();
+		foreach ( $options_to_prime as $option ) {
+			if ( is_multisite() ) {
+				$cache_key = "$network_id:$option";
+			} else {
+				$cache_key = $option;
+			}
+			$cache_keys[ $option ] = $cache_key;
+		}
+
 		/*
 		 * Set values for the options,
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_prime as $option ) {
+		foreach ( $cache_keys as $option => $cache_key ) {
 			update_network_option( $network_id, $option, "value_$option" );
-			if ( is_multisite() ) {
-				wp_cache_delete( "$network_id:$option", $cache_group );
-			} else {
-				wp_cache_delete( $option, $cache_group );
-			}
+			wp_cache_delete( $cache_key, $cache_group );
+			$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), "$option was not deleted from the cache." );
 		}
 
 		// Call the wp_prime_option_caches function to prime the options.
@@ -49,12 +57,8 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		$initial_query_count = get_num_queries();
 
 		// Check that options are only in the 'options' or 'site-options' cache group.
-		foreach ( $options_to_prime as $option ) {
-			if ( is_multisite() ) {
-				$this->assertSame( "value_$option", wp_cache_get( "$network_id:$option", $cache_group ), "$option cache is not primed" );
-			} else {
-				$this->assertSame( "value_$option", wp_cache_get( $option, $cache_group ), "$option cache is not primed" );
-			}
+		foreach ( $cache_keys as $option => $cache_key ) {
+			$this->assertSame( "value_$option", wp_cache_get( $cache_key, $cache_group ), "$option cache is not primed" );
 			$this->assertSame(
 				"value_$option",
 				get_network_option( $network_id, $option ),
@@ -77,12 +81,6 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 	 */
 	public function test_wp_prime_network_option_caches_run_twice() {
 		// Create some options to prime.
-		$options_to_prime = array(
-			'option1',
-			'option2',
-			'option3',
-		);
-
 		$network_id = get_current_network_id();
 		if ( is_multisite() ) {
 			$cache_group = 'site-options';
@@ -90,18 +88,32 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 			$cache_group = 'options';
 		}
 
+		// Create some options to prime.
+		$options_to_prime = array(
+			'option1',
+			'option2',
+			'option3',
+		);
+
+		$cache_keys = array();
+		foreach ( $options_to_prime as $option ) {
+			if ( is_multisite() ) {
+				$cache_key = "$network_id:$option";
+			} else {
+				$cache_key = $option;
+			}
+			$cache_keys[ $option ] = $cache_key;
+		}
+
 		/*
 		 * Set values for the options,
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_prime as $option ) {
+		foreach ( $cache_keys as $option => $cache_key ) {
 			update_network_option( $network_id, $option, "value_$option" );
-			if ( is_multisite() ) {
-				wp_cache_delete( "$network_id:$option", $cache_group );
-			} else {
-				wp_cache_delete( $option, $cache_group );
-			}
+			wp_cache_delete( $cache_key, $cache_group );
+			$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), "$option was not deleted from the cache." );
 		}
 
 		// Call the wp_prime_option_caches function to prime the options.
@@ -141,18 +153,26 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		} else {
 			$cache_group = 'options';
 		}
+
+		$cache_keys = array();
+		foreach ( $options_to_prime as $option ) {
+			if ( is_multisite() ) {
+				$cache_key = "$network_id:$option";
+			} else {
+				$cache_key = $option;
+			}
+			$cache_keys[ $option ] = $cache_key;
+		}
+
 		/*
 		 * Set values for the options,
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_prime as $option ) {
+		foreach ( $cache_keys as $option => $cache_key ) {
 			update_network_option( $network_id, $option, "value_$option" );
-			if ( is_multisite() ) {
-				wp_cache_delete( "$network_id:$option", $cache_group );
-			} else {
-				wp_cache_delete( $option, $cache_group );
-			}
+			wp_cache_delete( $cache_key, $cache_group );
+			$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), "$option was not deleted from the cache." );
 		}
 
 		// Add non-existent option to the options to prime.
@@ -167,12 +187,8 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		$initial_query_count = get_num_queries();
 
 		// Check that options are only in the 'options' or 'site-options' cache group.
-		foreach ( $options_to_prime as $option ) {
-			if ( is_multisite() ) {
-				$this->assertSame( "value_$option", wp_cache_get( "$network_id:$option", $cache_group ), "$option cache is not primed" );
-			} else {
-				$this->assertSame( "value_$option", wp_cache_get( $option, $cache_group ), "$option cache is not primed" );
-			}
+		foreach ( $cache_keys as $option => $cache_key ) {
+			$this->assertSame( "value_$option", wp_cache_get( $cache_key, $cache_group ), "$option cache is not primed" );
 			$this->assertSame(
 				"value_$option",
 				get_network_option( $network_id, $option ),
@@ -214,7 +230,8 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		wp_prime_network_option_caches( $different_network_id, $options_to_prime );
 
 		$notoptions_key = "$different_network_id:notoptions";
-		$this->assertSame( $options_to_prime, wp_cache_get( $notoptions_key, 'site-options' ) );
+		$expected       = array_fill_keys( $options_to_prime, true );
+		$this->assertSame( $expected, wp_cache_get( $notoptions_key, 'site-options' ) );
 	}
 
 	/**
@@ -246,18 +263,25 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 			'option3',
 		);
 
+		$cache_keys = array();
+		foreach ( $options_to_prime as $option ) {
+			if ( is_multisite() ) {
+				$cache_key = "$network_id:$option";
+			} else {
+				$cache_key = $option;
+			}
+			$cache_keys[ $option ] = $cache_key;
+		}
+
 		/*
 		 * Set values for the options,
 		 * clear the cache for the options,
 		 * check options are not in cache initially.
 		 */
-		foreach ( $options_to_prime as $option ) {
+		foreach ( $cache_keys as $option => $cache_key ) {
 			update_network_option( $network_id, $option, "value_$option" );
-			if ( is_multisite() ) {
-				wp_cache_delete( "$network_id:$option", $cache_group );
-			} else {
-				wp_cache_delete( $option, $cache_group );
-			}
+			wp_cache_delete( $cache_key, $cache_group );
+			$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), "$option was not deleted from the cache." );
 		}
 
 		// Call the wp_prime_option_caches function to prime the options.
@@ -266,16 +290,12 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
 
-		foreach ( $options_to_prime as $option ) {
+		foreach ( $cache_keys as $option => $cache_key ) {
+			$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), "$option cache should be false" );
 			$this->assertFalse(
 				get_network_option( $different_network_id, $option ),
 				"$option has not been loaded"
 			);
-			if ( is_multisite() ) {
-				$this->assertFalse( wp_cache_get( "$network_id:$option", $cache_group ), "$option cache should be false" );
-			} else {
-				$this->assertFalse( wp_cache_get( $option, $cache_group ), "$option cache should be false" );
-			}
 		}
 
 		// Ensure no additional database queries were made.
