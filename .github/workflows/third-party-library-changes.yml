@@ -11,6 +11,10 @@ on:
       - 'src/wp-includes/sodium_compat/**'
       - 'src/wp-includes/Text/**'
 
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   third-party-changed-files:
     runs-on: ubuntu-latest
