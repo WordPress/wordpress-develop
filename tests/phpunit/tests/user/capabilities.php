@@ -1680,12 +1680,11 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function test_user_can_for_blog() {
 		global $wpdb;
 
-		$user    = self::$users['editor'];
-		$old_uid = get_current_user_id();
-		wp_set_current_user( $user->ID );
+		$user = self::$users['editor'];
 
 		$this->assertTrue( user_can_for_blog( $user->ID, get_current_blog_id(), 'edit_posts' ) );
 		$this->assertFalse( user_can_for_blog( $user->ID, get_current_blog_id(), 'foo_the_bar' ) );
+
 		if ( ! is_multisite() ) {
 			$this->assertTrue( user_can_for_blog( $user->ID, 12345, 'edit_posts' ) );
 			return;
@@ -1698,8 +1697,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$suppress = $wpdb->suppress_errors();
 		$this->assertFalse( user_can_for_blog( $user->ID, -1, 'edit_posts' ) );
 		$wpdb->suppress_errors( $suppress );
-
-		wp_set_current_user( $old_uid );
 	}
 
 	/**
