@@ -513,9 +513,9 @@ function wp_registration_url() {
  *     @type bool   $value_remember    Whether the "Remember Me" checkbox should be checked by default.
  *                                     Default false (unchecked).
  *     @type bool   $required_username Whether the username field has the 'required' attribute.
- *                                     Default false (unchecked).
+ *                                     Default false.
  *     @type bool   $required_password Whether the password field has the 'required' attribute.
- *                                     Default false (unchecked).
+ *                                     Default false.
  *
  *
  * }
