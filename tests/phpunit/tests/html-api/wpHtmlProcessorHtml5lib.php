@@ -12,6 +12,8 @@
  *
  * See the README file at DIR_TESTDATA / html5lib-tests for details on the third-party suite.
  *
+ * A change to test that the workflow triggers.
+ *
  * @package WordPress
  * @subpackage HTML-API
  *
