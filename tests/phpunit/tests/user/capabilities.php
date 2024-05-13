@@ -1689,7 +1689,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can_for_blog( $another_blog_id, 'edit_posts' ) );
 
 		// Add the current user to the site
-		add_user_to_blog( $blog_id, $user->ID, 'author' );
+		add_user_to_blog( $another_blog_id, $user->ID, 'author' );
 
 		// Verify they now have the capability
 		$this->assertTrue( current_user_can_for_blog( $another_blog_id, 'edit_posts' ) );
