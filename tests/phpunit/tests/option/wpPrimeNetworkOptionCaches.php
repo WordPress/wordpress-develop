@@ -48,7 +48,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
 
-		// Check that options are only in the 'options' cache group.
+		// Check that options are only in the 'options' or 'site-options' cache group.
 		foreach ( $options_to_prime as $option ) {
 			if ( is_multisite() ) {
 				$this->assertSame( "value_$option", wp_cache_get( "$network_id:$option", $cache_group ), "$option cache is not primed" );
@@ -166,7 +166,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
 
-		// Check that options are only in the 'options' cache group.
+		// Check that options are only in the 'options' or 'site-options' cache group.
 		foreach ( $options_to_prime as $option ) {
 			if ( is_multisite() ) {
 				$this->assertSame( "value_$option", wp_cache_get( "$network_id:$option", $cache_group ), "$option cache is not primed" );
@@ -266,7 +266,6 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
 
-		// Check that options are only in the 'options' cache group.
 		foreach ( $options_to_prime as $option ) {
 			$this->assertFalse(
 				get_network_option( $different_network_id, $option ),

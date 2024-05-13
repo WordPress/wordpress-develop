@@ -302,15 +302,25 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 		return;
 	}
 
-	$core_options_in = "'" . implode( "', '", $options_to_prime ) . "'";
-	$options         = $wpdb->get_results( $wpdb->prepare( "SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN ($core_options_in) AND site_id = %d", $network_id ) );
+	$query_args   = $options_to_prime;
+	$query_args[] = $network_id;
+	$results      = $wpdb->get_results(
+		$wpdb->prepare(
+			sprintf(
+				"SELECT meta_key, meta_value FROM $wpdb->sitemeta WHERE meta_key IN (%s) AND site_id = %s",
+				implode( ',', array_fill( 0, count( $options_to_prime ), '%s' ) ),
+				'%d'
+			),
+			$query_args
+		)
+	);
 
 	$data          = array();
 	$options_found = array();
-	foreach ( $options as $option ) {
-		$key                = $option->meta_key;
+	foreach ( $results as $result ) {
+		$key                = $result->meta_key;
 		$cache_key          = $cache_keys[ $key ];
-		$data[ $cache_key ] = maybe_unserialize( $option->meta_value );
+		$data[ $cache_key ] = maybe_unserialize( $result->meta_value );
 		$options_found[]    = $key;
 	}
 	wp_cache_set_multiple( $data, $cache_group );
@@ -2555,6 +2565,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 	} else {
 		$transient_timeout = '_site_transient_timeout_' . $transient;
 		$option            = '_site_transient_' . $transient;
+		wp_prime_network_option_caches( null, array( $option, $transient_timeout ) );
 
 		if ( false === get_site_option( $option ) ) {
 			if ( $expiration ) {
