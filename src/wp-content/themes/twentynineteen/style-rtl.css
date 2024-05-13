@@ -5581,7 +5581,8 @@ body.page .main-navigation {
 }
 
 .entry .entry-content .wp-block-archives.aligncenter,
-.entry .entry-content .wp-block-categories.aligncenter {
+.entry .entry-content .wp-block-categories.aligncenter,
+.entry .entry-content .wp-block-latest-posts.aligncenter {
   text-align: center;
 }
 
