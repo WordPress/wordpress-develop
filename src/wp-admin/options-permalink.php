@@ -358,8 +358,8 @@ printf(
 		</fieldset><!-- .structure-selection -->
 	</td>
 </tr>
-<?php 
-if(!in_array( $permalink_structure, $default_structure_values, true )){
+<?php
+if ( ! in_array( $permalink_structure, $default_structure_values, true ) ) {
 	$disabled = '';
 	$readonly = '';
 } else {
