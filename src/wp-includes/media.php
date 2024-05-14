@@ -1039,19 +1039,21 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
  * @param string|array $attr {
  *     Optional. Attributes for the image markup.
  *
- *     @type string       $src      Image attachment URL.
- *     @type string       $class    CSS class name or space-separated list of classes.
- *                                  Default `attachment-$size_class size-$size_class`,
- *                                  where `$size_class` is the image size being requested.
- *     @type string       $alt      Image description for the alt attribute.
- *     @type string       $srcset   The 'srcset' attribute value.
- *     @type string       $sizes    The 'sizes' attribute value.
- *     @type string|false $loading  The 'loading' attribute value. Passing a value of false
- *                                  will result in the attribute being omitted for the image.
- *                                  Defaults to 'lazy', depending on wp_lazy_loading_enabled().
- *     @type string       $decoding The 'decoding' attribute value. Possible values are
- *                                  'async' (default), 'sync', or 'auto'. Passing false or an empty
- *                                  string will result in the attribute being omitted.
+ *     @type string       $src           Image attachment URL.
+ *     @type string       $class         CSS class name or space-separated list of classes.
+ *                                       Default `attachment-$size_class size-$size_class`,
+ *                                       where `$size_class` is the image size being requested.
+ *     @type string       $alt           Image description for the alt attribute.
+ *     @type string       $srcset        The 'srcset' attribute value.
+ *     @type string       $sizes         The 'sizes' attribute value.
+ *     @type string|false $loading       The 'loading' attribute value. Passing a value of false
+ *                                       will result in the attribute being omitted for the image.
+ *                                       Default determined by {@see wp_get_loading_optimization_attributes()}.
+ *     @type string       $decoding      The 'decoding' attribute value. Possible values are
+ *                                       'async' (default), 'sync', or 'auto'. Passing false or an empty
+ *                                       string will result in the attribute being omitted.
+ *     @type string       $fetchpriority The 'fetchpriority' attribute value, whether `high`, `low`, or `auto`.
+ *                                       Default determined by {@see wp_get_loading_optimization_attributes()}.
  * }
  * @return string HTML img element or empty string on failure.
  */
@@ -2195,14 +2197,6 @@ function wp_img_tag_add_srcset_and_sizes_attr( $image, $context, $attachment_id 
  * @return string Converted `iframe` tag with `loading` attribute added.
  */
 function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
-	/*
-	 * Iframes with fallback content (see `wp_filter_oembed_result()`) should not be lazy-loaded because they are
-	 * visually hidden initially.
-	 */
-	if ( str_contains( $iframe, ' data-secret="' ) ) {
-		return $iframe;
-	}
-
 	/*
 	 * Get loading attribute value to use. This must occur before the conditional check below so that even iframes that
 	 * are ineligible for being lazy-loaded are considered.
