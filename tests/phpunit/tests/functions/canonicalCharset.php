@@ -41,6 +41,13 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 			array( 'Utf-8', 'UTF-8' ),
 			array( 'UTF8', 'UTF-8' ),
 
+			// Almost UTF-8.
+			array( 'UTF-8*', 'UTF-8*' ),
+			array( 'UTF.8', 'UTF.8' ),
+			array( 'UTF88', 'UTF88' ),
+			array( 'UTF-7', 'UTF-7' ),
+			array( 'X-UTF-8', 'X-UTF-8' ),
+
 			// ISO-8859-1 family.
 			array( 'iso-8859-1', 'ISO-8859-1' ),
 			array( 'ISO-8859-1', 'ISO-8859-1' ),
