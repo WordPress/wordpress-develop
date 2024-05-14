@@ -374,7 +374,7 @@ if ( ! in_array( $permalink_structure, $default_structure_values, true ) ) {
 			<legend class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Custom permalink structure' );	
+				_e( 'Custom permalink structure' );
 				?>
 			</legend>
 			<div class="row">

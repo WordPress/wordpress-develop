@@ -722,7 +722,7 @@ $permalinkStructure.on( 'focus', function( event ) {
 } );
 
 // Check if the custom permalink checkbox has selected
-$permalinkCustomSelectionCheckbox.on( 'change', function( event ) {
+$permalinkCustomSelectionCheckbox.on( 'change', function() {
 	if(this.checked){
 		$permalinkStructureInputs.prop( 'checked', false );
 		$permalinkStructure.attr('readonly', false);
