@@ -9,6 +9,22 @@
 class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 
 	/**
+	 * @var int|WP_Error
+	 */
+	private static $different_network_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		if ( is_multisite() ) {
+			self::$different_network_id = $factory->network->create(
+				array(
+					'domain' => 'wordpress.org',
+					'path'   => '/',
+				)
+			);
+		}
+	}
+
+	/**
 	 * Tests that wp_prime_network_option_caches() primes multiple options.
 	 *
 	 * @ticket 61053
@@ -132,6 +148,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 			'Additional database queries were made.'
 		);
 	}
+
 	/**
 	 * Tests that wp_prime_network_option_caches() handles a mix of primed and unprimed options.
 	 *
@@ -194,7 +211,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 			);
 		}
 
-		$this->assertFalse( get_network_option( $network_id, 'option404notfound' ), "$option should return false as option does not exist" );
+		$this->assertFalse( get_network_option( $network_id, 'option404notfound' ), 'option404notfound should return false as option does not exist' );
 
 		// Ensure no additional database queries were made.
 		$this->assertSame(
@@ -212,22 +229,16 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 	 * @ticket 61053
 	 */
 	public function test_wp_prime_network_option_caches_no_exists_cache() {
-		$different_network_id = self::factory()->network->create(
-			array(
-				'domain' => 'wordpress.org',
-				'path'   => '/',
-			)
-		);
-		$options_to_prime     = array(
+		$options_to_prime = array(
 			'option1',
 			'option2',
 			'option3',
 		);
 
 		// Call the wp_prime_option_caches function to prime the options.
-		wp_prime_network_option_caches( $different_network_id, $options_to_prime );
+		wp_prime_network_option_caches( self::$different_network_id, $options_to_prime );
 
-		$notoptions_key = "$different_network_id:notoptions";
+		$notoptions_key = self::$different_network_id . ':notoptions';
 		$expected       = array_fill_keys( $options_to_prime, true );
 		$this->assertSame( $expected, wp_cache_get( $notoptions_key, 'site-options' ) );
 	}
@@ -240,13 +251,6 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 	 * @ticket 61053
 	 */
 	public function test_wp_prime_network_option_caches_multiple_networks() {
-		$different_network_id = self::factory()->network->create(
-			array(
-				'domain' => 'wordpress.org',
-				'path'   => '/',
-			)
-		);
-
 		$network_id = get_current_network_id();
 		if ( is_multisite() ) {
 			$cache_group = 'site-options';
@@ -283,7 +287,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		}
 
 		// Call the wp_prime_option_caches function to prime the options.
-		wp_prime_network_option_caches( $different_network_id, $options_to_prime );
+		wp_prime_network_option_caches( self::$different_network_id, $options_to_prime );
 
 		// Store the initial database query count.
 		$initial_query_count = get_num_queries();
@@ -291,7 +295,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 		foreach ( $cache_keys as $option => $cache_key ) {
 			$this->assertFalse( wp_cache_get( $cache_key, $cache_group ), "$option cache should be false" );
 			$this->assertFalse(
-				get_network_option( $different_network_id, $option ),
+				get_network_option( self::$different_network_id, $option ),
 				"$option has not been loaded"
 			);
 		}
