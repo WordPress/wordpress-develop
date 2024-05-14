@@ -1580,4 +1580,3 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	}
 	return $template_hierarchy;
 }
-
