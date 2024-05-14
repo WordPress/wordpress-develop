@@ -5,9 +5,15 @@ name: PHP Compatibility
 
 on:
   workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
 
 jobs:
-  # Runs PHP compatibility testing.
+  # Runs PHP compatibility tests.
   #
   # Violations are reported inline with annotations.
   #
@@ -37,7 +43,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@a4e22b60bbb9c1021113f2860347b0759f66fe5d # v2.30.0
         with:
-          php-version: '7.4'
+          php-version: ${{ inputs.php-version }}
           coverage: none
           tools: cs2pr
 
