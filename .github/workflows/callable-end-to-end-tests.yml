@@ -15,7 +15,7 @@ on:
         type: 'boolean'
         default: false
       install-gutenberg:
-        description: 'Whether to install Gutenberg.'
+        description: 'Whether to install the Gutenberg plugin.'
         required: false
         type: 'boolean'
         default: true
@@ -40,6 +40,7 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Install Gutenberg.
   # - Run the E2E tests.
+  # - Uploads screenshots and HTML snapshots as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
     name: Run E2E tests

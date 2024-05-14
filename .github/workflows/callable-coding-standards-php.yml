@@ -7,13 +7,13 @@ on:
   workflow_call:
     inputs:
       php-version:
-        description: 'PHP version to run PHPCS with.'
+        description: 'The PHP version to use.'
         required: false
         type: 'string'
         default: 'latest'
 
 jobs:
-  # Runs PHP coding standards checks.
+  # Runs the PHP coding standards checks.
   #
   # Violations are reported inline with annotations.
   #
@@ -23,9 +23,9 @@ jobs:
   # - Configures caching for PHPCS scans.
   # - Installs Composer dependencies.
   # - Make Composer packages available globally.
-  # - Runs PHPCS on the full codebase with warnings suppressed.
+  # - Runs PHPCS on the full codebase (warnings excluded).
   # - Generate a report for displaying issues as pull request annotations.
-  # - Runs PHPCS on the `tests` directory without warnings suppressed.
+  # - Runs PHPCS on the `tests` directory without (warnings included).
   # - Generate a report for displaying `test` directory issues as pull request annotations.
   # - Ensures version-controlled files are not modified or deleted.
   phpcs:
