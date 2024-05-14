@@ -355,12 +355,20 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $word Determine if this word is a lookup key in the map.
+	 * @param string  $word             Determine if this word is a lookup key in the map.
+	 * @param ?string $case_sensitivity 'case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return bool Whether there's an entry for the given word in the map.
 	 */
-	public function contains( $word ) {
+	public function contains( $word, $case_sensitivity = 'case-sensitive' ) {
+		$ignore_case = 'case-insensitive' === $case_sensitivity;
+
 		if ( $this->key_length >= strlen( $word ) ) {
-			$word_at = strpos( $this->small_words, str_pad( $word, $this->key_length + 1, "\x00" ), STR_PAD_RIGHT );
+			if ( 0 === strlen( $this->small_words ) ) {
+				return false;
+			}
+
+			$term    = str_pad( $word, $this->key_length + 1, "\x00", STR_PAD_RIGHT );
+			$word_at = $ignore_case ? stripos( $this->small_words, $term ) : strpos( $this->small_words, $term );
 			if ( false === $word_at ) {
 				return false;
 			}
@@ -369,7 +377,7 @@ class WP_Token_Map {
 		}
 
 		$group_key = substr( $word, 0, $this->key_length );
-		$group_at  = strpos( $this->groups, $group_key );
+		$group_at  = $ignore_case ? stripos( $this->groups, $group_key ) : strpos( $this->groups, $group_key );
 		if ( false === $group_at ) {
 			return false;
 		}
@@ -386,7 +394,7 @@ class WP_Token_Map {
 			$mapping_length = unpack( 'C', $group[ $at++ ] )[1];
 			$mapping_at     = $at;
 
-			if ( $token_length === $length && 0 === substr_compare( $group, $slug, $token_at, $token_length ) ) {
+			if ( $token_length === $length && 0 === substr_compare( $group, $slug, $token_at, $token_length, $ignore_case ) ) {
 				return true;
 			}
 
@@ -432,22 +440,26 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string $text        String in which to search for a lookup key.
-	 * @param ?int   $offset      How many bytes into the string where the lookup key ought to start.
-	 * @param ?int   &$skip_bytes Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param string  $text              String in which to search for a lookup key.
+	 * @param ?int    $offset            How many bytes into the string where the lookup key ought to start.
+	 * @param ?int    &$skip_bytes       Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param ?string $case_sensitivity 'case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return string|false Mapped value of lookup key if found, otherwise `false`.
 	 */
-	public function read_token( $text, $offset = 0, &$skip_bytes = null ) {
+	public function read_token( $text, $offset = 0, &$skip_bytes = null, $case_sensitivity = 'case-sensitive' ) {
+		$ignore_case = 'case-insensitive' === $case_sensitivity;
 		$text_length = strlen( $text );
 
 		// Search for a long word first, if the text is long enough, and if that fails, a short one.
 		if ( $text_length > $this->key_length ) {
 			$group_key = substr( $text, $offset, $this->key_length );
 
-			$group_at = strpos( $this->groups, $group_key );
+			$group_at = $ignore_case ? stripos( $this->groups, $group_key ) : strpos( $this->groups, $group_key );
 			if ( false === $group_at ) {
 				// Perhaps a short word then.
-				return $this->read_small_token( $text, $offset, $skip_bytes );
+				return strlen( $this->small_words ) > 0
+					? $this->read_small_token( $text, $offset, $skip_bytes, $case_sensitivity )
+					: false;
 			}
 
 			$group        = $this->large_words[ $group_at / ( $this->key_length + 1 ) ];
@@ -460,7 +472,7 @@ class WP_Token_Map {
 				$mapping_length = unpack( 'C', $group[ $at++ ] )[1];
 				$mapping_at     = $at;
 
-				if ( 0 === substr_compare( $text, $token, $offset + $this->key_length, $token_length ) ) {
+				if ( 0 === substr_compare( $text, $token, $offset + $this->key_length, $token_length, $ignore_case ) ) {
 					$skip_bytes = $this->key_length + $token_length;
 					return substr( $group, $mapping_at, $mapping_length );
 				}
@@ -470,7 +482,9 @@ class WP_Token_Map {
 		}
 
 		// Perhaps a short word then.
-		return $this->read_small_token( $text, $offset, $skip_bytes );
+		return strlen( $this->small_words ) > 0
+			? $this->read_small_token( $text, $offset, $skip_bytes, $case_sensitivity )
+			: false;
 	}
 
 	/**
@@ -478,18 +492,27 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0.
 	 *
-	 * @param string $text        String in which to search for a lookup key.
-	 * @param ?int   $offset      How many bytes into the string where the lookup key ought to start.
-	 * @param ?int   &$skip_bytes Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param string  $text             String in which to search for a lookup key.
+	 * @param ?int    $offset           How many bytes into the string where the lookup key ought to start.
+	 * @param ?int    &$skip_bytes      Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param ?string $case_sensitivity 'case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return string|false Mapped value of lookup key if found, otherwise `false`.
 	 */
-	private function read_small_token( $text, $offset, &$skip_bytes ) {
-		$small_length  = strlen( $this->small_words );
-		$starting_char = $text[ $offset ];
+	private function read_small_token( $text, $offset, &$skip_bytes, $case_sensitivity = 'case-sensitive' ) {
+		$ignore_case  = 'case-insensitive' === $case_sensitivity;
+		$small_length = strlen( $this->small_words );
+		$search_text  = substr( $text, $offset, $this->key_length );
+		if ( $ignore_case ) {
+			$search_text = strtoupper( $search_text );
+		}
+		$starting_char = $search_text[0];
 
 		$at = 0;
 		while ( $at < $small_length ) {
-			if ( $starting_char !== $this->small_words[ $at ] ) {
+			if (
+				$starting_char !== $this->small_words[ $at ] &&
+				( ! $ignore_case || strtoupper( $this->small_words[ $at ] ) !== $starting_char )
+			) {
 				$at += $this->key_length + 1;
 				continue;
 			}
@@ -500,7 +523,10 @@ class WP_Token_Map {
 					return $this->small_mappings[ $at / ( $this->key_length + 1 ) ];
 				}
 
-				if ( $text[ $offset + $adjust ] !== $this->small_words[ $at + $adjust ] ) {
+				if (
+					$search_text[ $adjust ] !== $this->small_words[ $at + $adjust ] &&
+					( ! $ignore_case || strtoupper( $this->small_words[ $at + $adjust ] !== $search_text[ $adjust ] ) )
+				) {
 					$at += $this->key_length + 1;
 					continue 2;
 				}
