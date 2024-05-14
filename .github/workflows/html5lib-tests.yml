@@ -52,7 +52,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   run-html-api-html5lib-tests:
-    name: PHP ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}
+    name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,7 +61,6 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
-        multisite: [ false, true ]
 
     steps:
       - name: Configure environment variables
@@ -135,7 +134,7 @@ jobs:
         run: npm run env:install
 
       - name: Run HTML API html5lib PHPUnit tests
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }} --group html-api-html5lib-tests
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c phpunit.xml.dist --group html-api-html5lib-tests
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
