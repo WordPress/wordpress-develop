@@ -726,11 +726,13 @@ $permalinkCustomSelectionCheckbox.on( 'change', function() {
 	if(this.checked){
 		$permalinkStructureInputs.prop( 'checked', false );
 		$permalinkStructure.attr('readonly', false);
+		$permalinkStructure.attr('tabindex', 0);
 		for (let i = 0; i < $availableStructureTags.length; i++) {
 			$availableStructureTags[i].disabled = false;
 		}
 	} else {
 		$permalinkStructure.attr('readonly', true);
+		$permalinkStructure.attr('tabindex', -1);
 		for (let i = 0; i < $availableStructureTags.length; i++) {
 			$availableStructureTags[i].disabled = true;
 		}

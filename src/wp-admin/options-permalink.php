@@ -362,9 +362,11 @@ printf(
 if ( ! in_array( $permalink_structure, $default_structure_values, true ) ) {
 	$disabled = '';
 	$readonly = '';
+	$tabIndex = 'tabindex="0"';
 } else {
 	$disabled = 'disabled';
 	$readonly = 'readonly';
+	$tabIndex = 'tabindex="-1"';
 }
 ?>
 <tr>
@@ -394,7 +396,7 @@ if ( ! in_array( $permalink_structure, $default_structure_values, true ) ) {
 						<span class="code">
 							<code id="permalink-custom"><?php echo esc_url( $url_base ); ?></code>
 							<input name="permalink_structure" id="permalink_structure"
-								type="text" <?php echo $readonly; ?> value="<?php echo esc_attr( $permalink_structure ); ?>"
+								type="text" <?php echo $readonly; ?> <?php echo $tabIndex; ?> value="<?php echo esc_attr( $permalink_structure ); ?>"
 								aria-describedby="permalink-custom" class="regular-text code"
 							/>
 						</span>
