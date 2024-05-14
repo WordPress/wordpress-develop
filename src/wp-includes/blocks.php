@@ -1112,6 +1112,95 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
 }
 
 /**
+ * Inject ignoredHookedBlocks metadata attributes into a template, template part or navigation.
+ *
+ * Given an object that represents a `wp_template`, `wp_template_part` or `wp_navigation` post object
+ * prepared for inserting or updating the database, locate all blocks that have
+ * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
+ * blocks to reflect the latter.
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param stdClass        $changes    An object representing a template or template part
+ *                                    prepared for inserting or updating the database.
+ * @param WP_REST_Request $deprecated Deprecated. Not used.
+ * @return stdClass|WP_Error The updated object representing a template or template part.
+ */
+function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '6.5.3' );
+	}
+
+	/**
+	 * Bail early if there are no hooked blocks.
+	 */
+	$hooked_blocks = get_hooked_blocks();
+	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
+		return $changes;
+	}
+
+	/**
+	 * Skip meta generation when consumers intentionally omit the content update.
+	 */
+	if ( ! isset( $changes->post_content ) ) {
+		return $changes;
+	}
+
+	$blocks = parse_blocks( $changes->post_content );
+
+	if ( 'wp_navigation' === $changes->post_type ) {
+		/*
+		* In this scenario the user has likely tried to create a navigation via the REST API.
+		* In which case we won't have a post ID to work with and store meta against.
+		*/
+		if ( empty( $changes->ID ) ) {
+			return $changes;
+		}
+
+		/*
+		* Block Hooks logic requires a `WP_Post` object (rather than the `stdClass` with the updates that
+		* we're getting from the `rest_pre_insert_wp_navigation` filter).
+		*
+		* This will also return a serialized mocked navigation block with the `ignoredHookedBlocks` metadata.
+		*/
+		$navigation_markup = block_core_navigation_set_ignored_hooked_blocks_metadata( $blocks, get_post( $changes->ID ) );
+
+		$root_navigation_block = parse_blocks( $navigation_markup )[0];
+		$ignored_hooked_blocks = isset( $root_navigation_block['attrs']['metadata']['ignoredHookedBlocks'] )
+			? $root_navigation_block['attrs']['metadata']['ignoredHookedBlocks']
+			: array();
+
+		if ( ! empty( $ignored_hooked_blocks ) ) {
+			$existing_ignored_hooked_blocks = get_post_meta( $changes->ID, '_wp_ignored_hooked_blocks', true );
+			if ( ! empty( $existing_ignored_hooked_blocks ) ) {
+				$existing_ignored_hooked_blocks = json_decode( $existing_ignored_hooked_blocks, true );
+				$ignored_hooked_blocks          = array_unique( array_merge( $ignored_hooked_blocks, $existing_ignored_hooked_blocks ) );
+			}
+			update_post_meta( $changes->ID, '_wp_ignored_hooked_blocks', json_encode( $ignored_hooked_blocks ) );
+		}
+
+		$changes->post_content = block_core_navigation_remove_serialized_parent_block( $navigation_markup );
+
+		return $changes;
+
+	} else {
+		$template = _build_block_template_object_from_prepared_database_object( $changes );
+
+		if ( is_wp_error( $template ) ) {
+			return $template;
+		}
+
+		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
+
+		$changes->post_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
+
+		return $changes;
+	}
+}
+
+/**
  * Given an array of attributes, returns a string in the serialized attributes
  * format prepared for post content.
  *

@@ -823,6 +823,59 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
 }
 
 /**
+ * Receives an object once it has been prepared for inserting or updating the database and builds a unified template object.
+ *
+ * @since 6.6.0
+ * @access private
+ *
+ * @param stdClass        $changes    An object representing a template or template part
+ *                                    prepared for inserting or updating the database.
+ * @param WP_REST_Request $deprecated Deprecated. Not used.
+ * @return WP_Block_Template|WP_Error Template or error object.
+ */
+function _build_block_template_object_from_prepared_database_object( $changes ) {
+	$meta  = isset( $changes->meta_input ) ? $changes->meta_input : array();
+	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
+
+	if ( empty( $changes->ID ) ) {
+		// There's no post object for this template in the database for this template yet.
+		$post = $changes;
+	} else {
+		// Find the existing post object.
+		$post = get_post( $changes->ID );
+
+		// If the post is a revision, use the parent post's post_name and post_type.
+		$post_id = wp_is_post_revision( $post );
+		if ( $post_id ) {
+			$parent_post     = get_post( $post_id );
+			$post->post_name = $parent_post->post_name;
+			$post->post_type = $parent_post->post_type;
+		}
+
+		// Apply the changes to the existing post object.
+		$post = (object) array_merge( (array) $post, (array) $changes );
+
+		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
+		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
+	}
+
+	// Required for the WP_Block_Template. Update the post object with the current time.
+	$post->post_modified = current_time( 'mysql' );
+
+	// If the post_author is empty, set it to the current user.
+	if ( empty( $post->post_author ) ) {
+		$post->post_author = get_current_user_id();
+	}
+
+	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
+		$area_terms                     = get_the_terms( $changes->ID, 'wp_template_part_area' );
+		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
+	}
+
+	return _build_block_template_object_from_post_object( new WP_Post( $post ), $terms, $meta );
+}
+
+/**
  * Builds a unified template object based a post Object.
  *
  * @since 5.9.0
@@ -1529,81 +1582,3 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
 	return $template_hierarchy;
 }
 
-/**
- * Inject ignoredHookedBlocks metadata attributes into a template or template part.
- *
- * Given an object that represents a `wp_template` or `wp_template_part` post object
- * prepared for inserting or updating the database, locate all blocks that have
- * hooked blocks, and inject a `metadata.ignoredHookedBlocks` attribute into the anchor
- * blocks to reflect the latter.
- *
- * @since 6.5.0
- * @access private
- *
- * @param stdClass        $changes    An object representing a template or template part
- *                                    prepared for inserting or updating the database.
- * @param WP_REST_Request $deprecated Deprecated. Not used.
- * @return stdClass|WP_Error The updated object representing a template or template part.
- */
-function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
-	if ( null !== $deprecated ) {
-		_deprecated_argument( __FUNCTION__, '6.5.3' );
-	}
-
-	$hooked_blocks = get_hooked_blocks();
-	if ( empty( $hooked_blocks ) && ! has_filter( 'hooked_block_types' ) ) {
-		return $changes;
-	}
-
-	$meta  = isset( $changes->meta_input ) ? $changes->meta_input : array();
-	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
-
-	if ( empty( $changes->ID ) ) {
-		// There's no post object for this template in the database for this template yet.
-		$post = $changes;
-	} else {
-		// Find the existing post object.
-		$post = get_post( $changes->ID );
-
-		// If the post is a revision, use the parent post's post_name and post_type.
-		$post_id = wp_is_post_revision( $post );
-		if ( $post_id ) {
-			$parent_post     = get_post( $post_id );
-			$post->post_name = $parent_post->post_name;
-			$post->post_type = $parent_post->post_type;
-		}
-
-		// Apply the changes to the existing post object.
-		$post = (object) array_merge( (array) $post, (array) $changes );
-
-		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
-		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
-	}
-
-	// Required for the WP_Block_Template. Update the post object with the current time.
-	$post->post_modified = current_time( 'mysql' );
-
-	// If the post_author is empty, set it to the current user.
-	if ( empty( $post->post_author ) ) {
-		$post->post_author = get_current_user_id();
-	}
-
-	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
-		$area_terms                     = get_the_terms( $changes->ID, 'wp_template_part_area' );
-		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
-	}
-
-	$template = _build_block_template_object_from_post_object( new WP_Post( $post ), $terms, $meta );
-
-	if ( is_wp_error( $template ) ) {
-		return $template;
-	}
-
-	$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-	$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'set_ignored_hooked_blocks_metadata' );
-
-	$blocks                = parse_blocks( $changes->post_content );
-	$changes->post_content = traverse_and_serialize_blocks( $blocks, $before_block_visitor, $after_block_visitor );
-
-	return $changes;
-}
