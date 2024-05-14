@@ -186,11 +186,10 @@
 
 .media-item .original {
 	position: relative;
-	min-height: 34px;
+	margin: 7px 6px;
 }
 
 .media-item .progress {
-	float: right;
 	height: 22px;
 	margin: 7px 6px;
 	width: 200px;
