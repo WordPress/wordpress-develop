@@ -355,10 +355,31 @@ printf(
 				</div>
 			</div><!-- .row -->
 			<?php endforeach; ?>
-
+		</fieldset><!-- .structure-selection -->
+	</td>
+</tr>
+<?php 
+if(!in_array( $permalink_structure, $default_structure_values, true )){
+	$disabled = '';
+	$readonly = '';
+} else {
+	$disabled = 'disabled';
+	$readonly = 'readonly';
+}
+?>
+<tr>
+	<th scope="row"><?php _e( 'Custom permalink structure' ); ?></th>
+	<td>		
+		<fieldset class="structure-selection">
+			<legend class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Custom permalink structure' );	
+				?>
+			</legend>
 			<div class="row">
-				<input id="custom_selection"
-					name="selection" type="radio" value="custom"
+				<input id="custom_selection_checkbox"
+					name="selection_custom" type="checkbox" value="custom"
 					<?php checked( ! in_array( $permalink_structure, $default_structure_values, true ) ); ?>
 				/>
 				<div>
@@ -373,7 +394,7 @@ printf(
 						<span class="code">
 							<code id="permalink-custom"><?php echo esc_url( $url_base ); ?></code>
 							<input name="permalink_structure" id="permalink_structure"
-								type="text" value="<?php echo esc_attr( $permalink_structure ); ?>"
+								type="text" <?php echo $readonly; ?> value="<?php echo esc_attr( $permalink_structure ); ?>"
 								aria-describedby="permalink-custom" class="regular-text code"
 							/>
 						</span>
@@ -387,7 +408,7 @@ printf(
 							<ul role="list">
 							<?php foreach ( $available_tags as $tag => $explanation ) : ?>
 								<li>
-									<button type="button"
+									<button <?php echo $disabled; ?> type="button"
 										class="button button-secondary"
 										aria-label="<?php echo esc_attr( sprintf( $explanation, $tag ) ); ?>"
 										data-added="<?php echo esc_attr( sprintf( $tag_added, $tag ) ); ?>"
