@@ -828,21 +828,20 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
  * @since 6.6.0
  * @access private
  *
- * @param stdClass        $changes    An object representing a template or template part
+ * @param stdClass        $obj        An object representing a template or template part
  *                                    prepared for inserting or updating the database.
- * @param WP_REST_Request $deprecated Deprecated. Not used.
  * @return WP_Block_Template|WP_Error Template or error object.
  */
-function _build_block_template_object_from_prepared_database_object( $changes ) {
-	$meta  = isset( $changes->meta_input ) ? $changes->meta_input : array();
-	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
+function _build_block_template_object_from_prepared_database_object( $obj ) {
+	$meta  = isset( $obj->meta_input ) ? $obj->meta_input : array();
+	$terms = isset( $obj->tax_input ) ? $obj->tax_input : array();
 
-	if ( empty( $changes->ID ) ) {
+	if ( empty( $obj->ID ) ) {
 		// There's no post object for this template in the database for this template yet.
-		$post = $changes;
+		$post = $obj;
 	} else {
 		// Find the existing post object.
-		$post = get_post( $changes->ID );
+		$post = get_post( $obj->ID );
 
 		// If the post is a revision, use the parent post's post_name and post_type.
 		$post_id = wp_is_post_revision( $post );
@@ -853,9 +852,9 @@ function _build_block_template_object_from_prepared_database_object( $changes ) 
 		}
 
 		// Apply the changes to the existing post object.
-		$post = (object) array_merge( (array) $post, (array) $changes );
+		$post = (object) array_merge( (array) $post, (array) $obj );
 
-		$type_terms        = get_the_terms( $changes->ID, 'wp_theme' );
+		$type_terms        = get_the_terms( $obj->ID, 'wp_theme' );
 		$terms['wp_theme'] = ! is_wp_error( $type_terms ) && ! empty( $type_terms ) ? $type_terms[0]->name : null;
 	}
 
@@ -868,7 +867,7 @@ function _build_block_template_object_from_prepared_database_object( $changes ) 
 	}
 
 	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
-		$area_terms                     = get_the_terms( $changes->ID, 'wp_template_part_area' );
+		$area_terms                     = get_the_terms( $obj->ID, 'wp_template_part_area' );
 		$terms['wp_template_part_area'] = ! is_wp_error( $area_terms ) && ! empty( $area_terms ) ? $area_terms[0]->name : null;
 	}
 
