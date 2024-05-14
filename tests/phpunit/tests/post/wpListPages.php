@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers ::wp_list_pages
  */
 class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
@@ -386,7 +388,6 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
-
 
 	public function test_wp_list_pages_include() {
 		$args = array(

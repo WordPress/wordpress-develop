@@ -3,8 +3,11 @@
 /**
  * @group post
  * @group query
+ *
+ * @covers ::get_posts
  */
 class Tests_Post_GetPosts extends WP_UnitTestCase {
+
 	public function test_offset_should_be_null_by_default() {
 		$p1 = self::factory()->post->create(
 			array(

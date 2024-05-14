@@ -23,12 +23,18 @@ class Tests_Post_wpGetPostParentId extends WP_UnitTestCase {
 		self::$post_id        = $factory->post->create( array( 'post_parent' => self::$parent_post_id ) );
 	}
 
+	/**
+	 * @covers ::wp_get_post_parent_id
+	 */
 	public function test_wp_get_post_parent_id_with_post_object() {
 		$post = get_post( self::$post_id );
 		$this->assertInstanceOf( 'WP_Post', $post );
 		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( $post ) );
 	}
 
+	/**
+	 * @covers ::wp_get_post_parent_id
+	 */
 	public function test_wp_get_post_parent_id_with_post_id() {
 		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( self::$post_id ) );
 	}
@@ -42,16 +48,25 @@ class Tests_Post_wpGetPostParentId extends WP_UnitTestCase {
 		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id() );
 	}
 
+	/**
+	 * @covers ::wp_get_post_parent_id
+	 */
 	public function test_wp_get_post_parent_id_with_non_existing_id_default_to_global_post_id() {
 		$GLOBALS['post'] = get_post( self::$post_id );
 		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( 0 ) );
 	}
 
+	/**
+	 * @covers ::wp_get_post_parent_id
+	 */
 	public function test_wp_get_post_parent_id_with_boolean_default_to_global_post_id() {
 		$GLOBALS['post'] = get_post( self::$post_id );
 		$this->assertSame( self::$parent_post_id, wp_get_post_parent_id( false ) );
 	}
 
+	/**
+	 * @covers ::wp_get_post_parent_id
+	 */
 	public function test_wp_get_post_parent_id_with_string_default_to_false() {
 		$GLOBALS['post'] = get_post( self::$post_id );
 		$this->assertFalse( wp_get_post_parent_id( 'string' ) );

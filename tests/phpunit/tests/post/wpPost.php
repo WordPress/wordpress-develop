@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers WP_Post::get_instance
  */
 class Tests_Post_wpPost extends WP_UnitTestCase {
 	protected static $post_id;

@@ -14,6 +14,8 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 * @ticket 33867
 	 *
 	 * @dataProvider get_defined_pluggable_functions
+	 *
+	 * @coversNothing
 	 */
 	public function test_pluggable_function_signatures_match( $function_name ) {
 
@@ -54,6 +56,8 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 	 *
 	 * @ticket 33654
 	 * @ticket 33867
+	 *
+	 * @coversNothing
 	 */
 	public function test_all_pluggable_functions_exist() {
 

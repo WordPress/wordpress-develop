@@ -3,6 +3,7 @@
 /**
  * @group post
  * @group formatting
+ * @covers ::get_the_excerpt
  */
 class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
