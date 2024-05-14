@@ -388,21 +388,21 @@ class WP_List_Table {
 		$input_id = $input_id . '-search-input';
 
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
-			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
+			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '">';
 		}
 		if ( ! empty( $_REQUEST['order'] ) ) {
-			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
+			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '">';
 		}
 		if ( ! empty( $_REQUEST['post_mime_type'] ) ) {
-			echo '<input type="hidden" name="post_mime_type" value="' . esc_attr( $_REQUEST['post_mime_type'] ) . '" />';
+			echo '<input type="hidden" name="post_mime_type" value="' . esc_attr( $_REQUEST['post_mime_type'] ) . '">';
 		}
 		if ( ! empty( $_REQUEST['detached'] ) ) {
-			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '" />';
+			echo '<input type="hidden" name="detached" value="' . esc_attr( $_REQUEST['detached'] ) . '">';
 		}
 		?>
 <p class="search-box">
 	<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
-	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>" />
+	<input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="s" value="<?php _admin_search_query(); ?>">
 		<?php submit_button( $text, '', '', false, array( 'id' => 'search-submit' ) ); ?>
 </p>
 		<?php
@@ -793,7 +793,7 @@ class WP_List_Table {
 	 */
 	protected function view_switcher( $current_mode ) {
 		?>
-		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>" />
+		<input type="hidden" name="mode" value="<?php echo esc_attr( $current_mode ); ?>">
 		<div class="view-switch">
 		<?php
 		foreach ( $this->modes as $mode => $title ) {
@@ -1105,7 +1105,7 @@ class WP_List_Table {
 			$html_current_page = sprintf(
 				'<label for="current-page-selector" class="screen-reader-text">%s</label>' .
 				"<input class='current-page' id='current-page-selector' type='text'
-					name='paged' value='%s' size='%d' aria-describedby='table-paging' />" .
+					name='paged' value='%s' size='%d' aria-describedby='table-paging'>" .
 				"<span class='tablenav-paging-text'>",
 				/* translators: Hidden accessibility text. */
 				__( 'Current Page' ),
@@ -1414,7 +1414,7 @@ class WP_List_Table {
 
 		if ( ! empty( $columns['cb'] ) ) {
 			static $cb_counter = 1;
-			$columns['cb']     = '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />
+			$columns['cb']     = '<input id="cb-select-all-' . $cb_counter . '" type="checkbox">
 			<label for="cb-select-all-' . $cb_counter . '">' .
 				'<span class="screen-reader-text">' .
 					/* translators: Hidden accessibility text. */
@@ -1682,7 +1682,7 @@ class WP_List_Table {
 		$this->pagination( $which );
 		?>
 
-		<br class="clear" />
+		<br class="clear">
 	</div>
 		<?php
 	}

@@ -234,14 +234,14 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		// Should filter invalid image caption.
 		$result = $widget->update(
 			array(
-				'caption' => '"><i onload="alert(\'hello\')" />',
+				'caption' => '"><i onload="alert(\'hello\')">',
 			),
 			$instance
 		);
 		$this->assertSame(
 			$result,
 			array(
-				'caption' => '"&gt;<i />',
+				'caption' => '"&gt;<i>',
 			)
 		);
 
@@ -255,7 +255,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		// Should filter invalid alt text.
 		$result = $widget->update(
 			array(
-				'alt' => '"><i onload="alert(\'hello\')" />',
+				'alt' => '"><i onload="alert(\'hello\')">',
 			),
 			$instance
 		);
@@ -309,7 +309,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		// Should filter invalid image classes.
 		$result = $widget->update(
 			array(
-				'image_classes' => '"><i onload="alert(\'hello\')" />',
+				'image_classes' => '"><i onload="alert(\'hello\')">',
 			),
 			$instance
 		);
@@ -330,7 +330,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		// Should filter invalid link classes.
 		$result = $widget->update(
 			array(
-				'link_classes' => '"><i onload="alert(\'hello\')" />',
+				'link_classes' => '"><i onload="alert(\'hello\')">',
 			),
 			$instance
 		);
@@ -351,7 +351,7 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 		// Should filter invalid rel text.
 		$result = $widget->update(
 			array(
-				'link_rel' => '"><i onload="alert(\'hello\')" />',
+				'link_rel' => '"><i onload="alert(\'hello\')">',
 			),
 			$instance
 		);

@@ -80,23 +80,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	public static function data_has_self_closing_flag() {
 		return array(
 			// These should not have a self-closer, and will leave an element un-closed if it's assumed they are self-closing.
-			'Self-closing flag on non-void HTML element' => array( '<div />', true ),
+			'Self-closing flag on non-void HTML element' => array( '<div>', true ),
 			'No self-closing flag on non-void HTML element' => array( '<div>', false ),
 			// These should not have a self-closer, but are benign when used because the elements are void.
-			'Self-closing flag on void HTML element'     => array( '<img />', true ),
+			'Self-closing flag on void HTML element'     => array( '<img>', true ),
 			'No self-closing flag on void HTML element'  => array( '<img>', false ),
-			'Self-closing flag on void HTML element without spacing' => array( '<img/>', true ),
+			'Self-closing flag on void HTML element without spacing' => array( '<img>', true ),
 			// These should not have a self-closer, but as part of a tag closer they are entirely ignored.
-			'Self-closing flag on tag closer'            => array( '</textarea />', true ),
+			'Self-closing flag on tag closer'            => array( '</textarea>', true ),
 			'No self-closing flag on tag closer'         => array( '</textarea>', false ),
 			// These can and should have self-closers, and will leave an element un-closed if it's assumed they aren't self-closing.
-			'Self-closing flag on a foreign element'     => array( '<circle />', true ),
+			'Self-closing flag on a foreign element'     => array( '<circle>', true ),
 			'No self-closing flag on a foreign element'  => array( '<circle>', false ),
 			// These involve syntax peculiarities.
-			'Self-closing flag after extra spaces'       => array( '<div      />', true ),
-			'Self-closing flag after attribute'          => array( '<div id=test/>', true ),
-			'Self-closing flag after quoted attribute'   => array( '<div id="test"/>', true ),
-			'Self-closing flag after boolean attribute'  => array( '<div enabled/>', true ),
+			'Self-closing flag after extra spaces'       => array( '<div     >', true ),
+			'Self-closing flag after attribute'          => array( '<div id=test>', true ),
+			'Self-closing flag after quoted attribute'   => array( '<div id="test">', true ),
+			'Self-closing flag after boolean attribute'  => array( '<div enabled>', true ),
 			'Boolean attribute that looks like a self-closer' => array( '<div / >', false ),
 		);
 	}
@@ -387,7 +387,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::__toString
 	 */
 	public function test_to_string_returns_updated_html() {
-		$processor = new WP_HTML_Tag_Processor( '<hr id="remove" /><div enabled class="test">Test</div><span id="span-id"></span>' );
+		$processor = new WP_HTML_Tag_Processor( '<hr id="remove"><div enabled class="test">Test</div><span id="span-id"></span>' );
 		$processor->next_tag();
 		$processor->remove_attribute( 'id' );
 
@@ -408,7 +408,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::get_updated_html
 	 */
 	public function test_get_updated_html_applies_the_updates_so_far_and_keeps_the_processor_on_the_current_tag() {
-		$processor = new WP_HTML_Tag_Processor( '<hr id="remove" /><div enabled class="test">Test</div><span id="span-id"></span>' );
+		$processor = new WP_HTML_Tag_Processor( '<hr id="remove"><div enabled class="test">Test</div><span id="span-id"></span>' );
 		$processor->next_tag();
 		$processor->remove_attribute( 'id' );
 
@@ -417,7 +417,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->add_class( 'new_class_1' );
 
 		$this->assertSame(
-			'<hr  /><div id="div-id-1" enabled class="test new_class_1">Test</div><span id="span-id"></span>',
+			'<hr ><div id="div-id-1" enabled class="test new_class_1">Test</div><span id="span-id"></span>',
 			$processor->get_updated_html(),
 			'Calling get_updated_html after updating the attributes of the second tag returned different HTML than expected'
 		);
@@ -426,7 +426,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->add_class( 'new_class_2' );
 
 		$this->assertSame(
-			'<hr  /><div id="div-id-2" enabled class="test new_class_1 new_class_2">Test</div><span id="span-id"></span>',
+			'<hr ><div id="div-id-2" enabled class="test new_class_1 new_class_2">Test</div><span id="span-id"></span>',
 			$processor->get_updated_html(),
 			'Calling get_updated_html after updating the attributes of the second tag for the second time returned different HTML than expected'
 		);
@@ -435,7 +435,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_attribute( 'id' );
 
 		$this->assertSame(
-			'<hr  /><div id="div-id-2" enabled class="test new_class_1 new_class_2">Test</div><span ></span>',
+			'<hr ><div id="div-id-2" enabled class="test new_class_1 new_class_2">Test</div><span ></span>',
 			$processor->get_updated_html(),
 			'Calling get_updated_html after removing the id attribute of the third tag returned different HTML than expected'
 		);
@@ -517,12 +517,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::is_tag_closer
 	 */
 	public function test_next_tag_should_stop_on_closers_only_when_requested() {
-		$processor = new WP_HTML_Tag_Processor( '<div><img /></div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div><img></div>' );
 
 		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'div' ) ), 'Did not find desired tag opener' );
 		$this->assertFalse( $processor->next_tag( array( 'tag_name' => 'div' ) ), 'Visited an unwanted tag, a tag closer' );
 
-		$processor = new WP_HTML_Tag_Processor( '<div><img /></div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div><img></div>' );
 		$processor->next_tag(
 			array(
 				'tag_name'    => 'div',
@@ -1063,8 +1063,8 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removing an attribute that's listed many times, e.g. `<div id="a" id="b" />` should remove
-	 * all its instances and output just `<div />`.
+	 * Removing an attribute that's listed many times, e.g. `<div id="a" id="b">` should remove
+	 * all its instances and output just `<div>`.
 	 *
 	 * @since 6.3.2 Removes all duplicated attributes as expected.
 	 *
@@ -1570,7 +1570,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$input = <<<HTML
 <div selected class="merge-message" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class="BtnGroup MixedCaseHTML position-relative" />
+		<div checked class="BtnGroup MixedCaseHTML position-relative">
 		<div checked class="BtnGroup MixedCaseHTML position-relative">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
@@ -1593,7 +1593,7 @@ HTML;
 		$expected_output = <<<HTML
 <div data-details="{ &quot;key&quot;: &quot;value&quot; }" selected class="merge-message is-processed" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case" />
+		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case">
 		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
@@ -2362,7 +2362,7 @@ HTML;
 			'DOCTYPE declaration'    => array( '<!DOCTYPE html>Just some HTML' ),
 			'No tags'                => array( 'this is nothing more than a text node' ),
 			'Text with comments'     => array( 'One <!-- sneaky --> comment.' ),
-			'Empty tag closer'       => array( '</>' ),
+			'Empty tag closer'       => array( '<>' ),
 			'CDATA as HTML comment'  => array( '<![CDATA[this closes at the first &gt;]>' ),
 			'Processing instruction' => array( '<?xml version="1.0"?>' ),
 			'Combination XML-like'   => array( '<!DOCTYPE xml><?xml version=""?><!-- this is not a real document. --><![CDATA[it only serves as a test]]>' ),
@@ -2499,9 +2499,9 @@ HTML;
 				'input'    => 'The applicative operator <* works well in Haskell; is what?<span>test</span>',
 				'expected' => 'The applicative operator <* works well in Haskell; is what?<span class="firstTag" foo="bar">test</span>',
 			),
-			'</> in content'           => array(
-				'input'    => '</><span>test</span>',
-				'expected' => '</><span class="firstTag" foo="bar">test</span>',
+			'<> in content'           => array(
+				'input'    => '<><span>test</span>',
+				'expected' => '<><span class="firstTag" foo="bar">test</span>',
 			),
 			'custom asdf attribute'    => array(
 				'input'    => '<hr asdf="test"><span>test</span>',
@@ -2568,8 +2568,8 @@ HTML;
 				'expected' => '<p class="firstTag" foo="bar" title="Demonstrating how to use single quote (\') and double quote (&quot;)"><span class="secondTag">test</span>',
 			),
 			'Unquoted attribute values'                    => array(
-				'input'    => '<hr a=1 a=2 a=3 a=5 /><span>test</span>',
-				'expected' => '<hr class="firstTag" foo="bar" a=1 a=2 a=3 a=5 /><span class="secondTag">test</span>',
+				'input'    => '<hr a=1 a=2 a=3 a=5><span>test</span>',
+				'expected' => '<hr class="firstTag" foo="bar" a=1 a=2 a=3 a=5><span class="secondTag">test</span>',
 			),
 			'Double-quotes escaped in double-quote attribute value' => array(
 				'input'    => '<hr title="This is a &quot;double-quote&quot;"><span>test</span>',
@@ -2671,18 +2671,18 @@ HTML;
 				'input'    => <<<HTML
 					<hr id=">"code
 					<hr id="value>"code
-					<hr id="/>"code
-					<hr id="value/>"code
-					/>
+					<hr id=">"code
+					<hr id="value>"code
+					>
 					<span>test</span>
 HTML
 				,
 				'expected' => <<<HTML
 					<hr class="firstTag" foo="bar" id=">"code
 					<hr id="value>"code
-					<hr id="/>"code
-					<hr id="value/>"code
-					/>
+					<hr id=">"code
+					<hr id="value>"code
+					>
 					<span class="secondTag">test</span>
 HTML
 			,

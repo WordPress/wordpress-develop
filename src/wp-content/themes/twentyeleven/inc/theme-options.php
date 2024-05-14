@@ -277,10 +277,10 @@ function twentyeleven_settings_field_color_scheme() {
 		?>
 	<div class="layout image-radio-option color-scheme">
 	<label class="description">
-		<input type="radio" name="twentyeleven_theme_options[color_scheme]" value="<?php echo esc_attr( $scheme['value'] ); ?>" <?php checked( $options['color_scheme'], $scheme['value'] ); ?> />
-		<input type="hidden" id="default-color-<?php echo esc_attr( $scheme['value'] ); ?>" value="<?php echo esc_attr( $scheme['default_link_color'] ); ?>" />
+		<input type="radio" name="twentyeleven_theme_options[color_scheme]" value="<?php echo esc_attr( $scheme['value'] ); ?>" <?php checked( $options['color_scheme'], $scheme['value'] ); ?>>
+		<input type="hidden" id="default-color-<?php echo esc_attr( $scheme['value'] ); ?>" value="<?php echo esc_attr( $scheme['default_link_color'] ); ?>">
 		<span>
-			<img src="<?php echo esc_url( $scheme['thumbnail'] ); ?>" width="136" height="122" alt="" />
+			<img src="<?php echo esc_url( $scheme['thumbnail'] ); ?>" width="136" height="122" alt="">
 			<?php echo esc_html( $scheme['label'] ); ?>
 		</span>
 	</label>
@@ -297,11 +297,11 @@ function twentyeleven_settings_field_color_scheme() {
 function twentyeleven_settings_field_link_color() {
 	$options = twentyeleven_get_theme_options();
 	?>
-	<input type="text" name="twentyeleven_theme_options[link_color]" id="link-color" value="<?php echo esc_attr( $options['link_color'] ); ?>" />
+	<input type="text" name="twentyeleven_theme_options[link_color]" id="link-color" value="<?php echo esc_attr( $options['link_color'] ); ?>">
 	<a href="#" class="pickcolor hide-if-no-js" id="link-color-example"></a>
-	<input type="button" class="pickcolor button hide-if-no-js" value="<?php esc_attr_e( 'Select a Color', 'twentyeleven' ); ?>" />
+	<input type="button" class="pickcolor button hide-if-no-js" value="<?php esc_attr_e( 'Select a Color', 'twentyeleven' ); ?>">
 	<div id="colorPickerDiv" style="z-index: 100; background:#eee; border:1px solid #ccc; position:absolute; display:none;"></div>
-	<br />
+	<br>
 	<span>
 	<?php
 	/* translators: %s: Link color. */
@@ -322,9 +322,9 @@ function twentyeleven_settings_field_layout() {
 		?>
 		<div class="layout image-radio-option theme-layout">
 		<label class="description">
-			<input type="radio" name="twentyeleven_theme_options[theme_layout]" value="<?php echo esc_attr( $layout['value'] ); ?>" <?php checked( $options['theme_layout'], $layout['value'] ); ?> />
+			<input type="radio" name="twentyeleven_theme_options[theme_layout]" value="<?php echo esc_attr( $layout['value'] ); ?>" <?php checked( $options['theme_layout'], $layout['value'] ); ?>>
 			<span>
-				<img src="<?php echo esc_url( $layout['thumbnail'] ); ?>" width="136" height="122" alt="" />
+				<img src="<?php echo esc_url( $layout['thumbnail'] ); ?>" width="136" height="122" alt="">
 				<?php echo esc_html( $layout['label'] ); ?>
 			</span>
 		</label>

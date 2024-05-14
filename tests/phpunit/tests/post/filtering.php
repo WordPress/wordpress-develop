@@ -59,11 +59,11 @@ EOF;
 	public function test_post_content_disallowed_attr() {
 
 		$content = <<<EOF
-<img src='foo' width='500' href='shlorp' />
+<img src='foo' width='500' href='shlorp'>
 EOF;
 
 		$expected = <<<EOF
-<img src='foo' width='500' />
+<img src='foo' width='500'>
 EOF;
 
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
@@ -79,11 +79,11 @@ EOF;
 	 */
 	public function test_post_content_xhtml_empty_elem() {
 		$content = <<<EOF
-<img src='foo' width='500' height='300'/>
+<img src='foo' width='500' height='300'>
 EOF;
 
 		$expected = <<<EOF
-<img src='foo' width='500' height='300' />
+<img src='foo' width='500' height='300'>
 EOF;
 
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );

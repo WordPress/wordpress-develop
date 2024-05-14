@@ -53,10 +53,10 @@ function post_submit_meta_box( $post, $args = array() ) {
 					$private_style = 'style="display:none"';
 				}
 				?>
-				<input <?php echo $private_style; ?> type="submit" name="save" id="save-post" value="<?php esc_attr_e( 'Save Draft' ); ?>" class="button" />
+				<input <?php echo $private_style; ?> type="submit" name="save" id="save-post" value="<?php esc_attr_e( 'Save Draft' ); ?>" class="button">
 				<span class="spinner"></span>
 			<?php } elseif ( 'pending' === $post->post_status && $can_publish ) { ?>
-				<input type="submit" name="save" id="save-post" value="<?php esc_attr_e( 'Save as Pending' ); ?>" class="button" />
+				<input type="submit" name="save" id="save-post" value="<?php esc_attr_e( 'Save as Pending' ); ?>" class="button">
 				<span class="spinner"></span>
 			<?php } ?>
 		</div>
@@ -81,7 +81,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				);
 				?>
 				<a class="preview button" href="<?php echo $preview_link; ?>" target="wp-preview-<?php echo $post_id; ?>" id="post-preview"><?php echo $preview_button; ?></a>
-				<input type="hidden" name="wp-preview" id="wp-preview" value="" />
+				<input type="hidden" name="wp-preview" id="wp-preview" value="">
 			</div>
 			<?php
 		endif;
@@ -140,7 +140,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				</span></a>
 
 				<div id="post-status-select" class="hide-if-js">
-					<input type="hidden" name="hidden_post_status" id="hidden_post_status" value="<?php echo esc_attr( ( 'auto-draft' === $post->post_status ) ? 'draft' : $post->post_status ); ?>" />
+					<input type="hidden" name="hidden_post_status" id="hidden_post_status" value="<?php echo esc_attr( ( 'auto-draft' === $post->post_status ) ? 'draft' : $post->post_status ); ?>">
 					<label for="post_status" class="screen-reader-text">
 						<?php
 						/* translators: Hidden accessibility text. */
@@ -202,22 +202,22 @@ function post_submit_meta_box( $post, $args = array() ) {
 				</span></a>
 
 				<div id="post-visibility-select" class="hide-if-js">
-					<input type="hidden" name="hidden_post_password" id="hidden-post-password" value="<?php echo esc_attr( $post->post_password ); ?>" />
+					<input type="hidden" name="hidden_post_password" id="hidden-post-password" value="<?php echo esc_attr( $post->post_password ); ?>">
 					<?php if ( 'post' === $post_type ) : ?>
-						<input type="checkbox" style="display:none" name="hidden_post_sticky" id="hidden-post-sticky" value="sticky" <?php checked( is_sticky( $post_id ) ); ?> />
+						<input type="checkbox" style="display:none" name="hidden_post_sticky" id="hidden-post-sticky" value="sticky" <?php checked( is_sticky( $post_id ) ); ?>>
 					<?php endif; ?>
 
-					<input type="hidden" name="hidden_post_visibility" id="hidden-post-visibility" value="<?php echo esc_attr( $visibility ); ?>" />
-					<input type="radio" name="visibility" id="visibility-radio-public" value="public" <?php checked( $visibility, 'public' ); ?> /> <label for="visibility-radio-public" class="selectit"><?php _e( 'Public' ); ?></label><br />
+					<input type="hidden" name="hidden_post_visibility" id="hidden-post-visibility" value="<?php echo esc_attr( $visibility ); ?>">
+					<input type="radio" name="visibility" id="visibility-radio-public" value="public" <?php checked( $visibility, 'public' ); ?>> <label for="visibility-radio-public" class="selectit"><?php _e( 'Public' ); ?></label><br>
 
 					<?php if ( 'post' === $post_type && current_user_can( 'edit_others_posts' ) ) : ?>
-						<span id="sticky-span"><input id="sticky" name="sticky" type="checkbox" value="sticky" <?php checked( is_sticky( $post_id ) ); ?> /> <label for="sticky" class="selectit"><?php _e( 'Stick this post to the front page' ); ?></label><br /></span>
+						<span id="sticky-span"><input id="sticky" name="sticky" type="checkbox" value="sticky" <?php checked( is_sticky( $post_id ) ); ?>> <label for="sticky" class="selectit"><?php _e( 'Stick this post to the front page' ); ?></label><br></span>
 					<?php endif; ?>
 
-					<input type="radio" name="visibility" id="visibility-radio-password" value="password" <?php checked( $visibility, 'password' ); ?> /> <label for="visibility-radio-password" class="selectit"><?php _e( 'Password protected' ); ?></label><br />
-					<span id="password-span"><label for="post_password"><?php _e( 'Password:' ); ?></label> <input type="text" name="post_password" id="post_password" value="<?php echo esc_attr( $post->post_password ); ?>"  maxlength="255" /><br /></span>
+					<input type="radio" name="visibility" id="visibility-radio-password" value="password" <?php checked( $visibility, 'password' ); ?>> <label for="visibility-radio-password" class="selectit"><?php _e( 'Password protected' ); ?></label><br>
+					<span id="password-span"><label for="post_password"><?php _e( 'Password:' ); ?></label> <input type="text" name="post_password" id="post_password" value="<?php echo esc_attr( $post->post_password ); ?>"  maxlength="255"><br></span>
 
-					<input type="radio" name="visibility" id="visibility-radio-private" value="private" <?php checked( $visibility, 'private' ); ?> /> <label for="visibility-radio-private" class="selectit"><?php _e( 'Private' ); ?></label><br />
+					<input type="radio" name="visibility" id="visibility-radio-private" value="private" <?php checked( $visibility, 'private' ); ?>> <label for="visibility-radio-private" class="selectit"><?php _e( 'Private' ); ?></label><br>
 
 					<p>
 						<a href="#visibility" class="save-post-visibility hide-if-no-js button"><?php _e( 'OK' ); ?></a>
@@ -380,24 +380,24 @@ function post_submit_meta_box( $post, $args = array() ) {
 			if ( $can_publish ) :
 				if ( ! empty( $post->post_date_gmt ) && time() < strtotime( $post->post_date_gmt . ' +0000' ) ) :
 					?>
-					<input name="original_publish" type="hidden" id="original_publish" value="<?php echo esc_attr_x( 'Schedule', 'post action/button label' ); ?>" />
+					<input name="original_publish" type="hidden" id="original_publish" value="<?php echo esc_attr_x( 'Schedule', 'post action/button label' ); ?>">
 					<?php submit_button( _x( 'Schedule', 'post action/button label' ), 'primary large', 'publish', false ); ?>
 					<?php
 				else :
 					?>
-					<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Publish' ); ?>" />
+					<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Publish' ); ?>">
 					<?php submit_button( __( 'Publish' ), 'primary large', 'publish', false ); ?>
 					<?php
 				endif;
 			else :
 				?>
-				<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Submit for Review' ); ?>" />
+				<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Submit for Review' ); ?>">
 				<?php submit_button( __( 'Submit for Review' ), 'primary large', 'publish', false ); ?>
 				<?php
 			endif;
 		} else {
 			?>
-			<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Update' ); ?>" />
+			<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Update' ); ?>">
 			<?php submit_button( __( 'Update' ), 'primary large', 'save', false, array( 'id' => 'publish' ) ); ?>
 			<?php
 		}
@@ -489,8 +489,8 @@ function attachment_submit_meta_box( $post ) {
 
 	<div id="publishing-action">
 		<span class="spinner"></span>
-		<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Update' ); ?>" />
-		<input name="save" type="submit" class="button button-primary button-large" id="publish" value="<?php esc_attr_e( 'Update' ); ?>" />
+		<input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Update' ); ?>">
+		<input name="save" type="submit" class="button button-primary button-large" id="publish" value="<?php esc_attr_e( 'Update' ); ?>">
 	</div>
 	<div class="clear"></div>
 </div><!-- #major-publishing-actions -->
@@ -537,9 +537,9 @@ function post_format_meta_box( $post, $box ) {
 				_e( 'Post Formats' );
 				?>
 			</legend>
-			<input type="radio" name="post_format" class="post-format" id="post-format-0" value="0" <?php checked( $post_format, '0' ); ?> /> <label for="post-format-0" class="post-format-icon post-format-standard"><?php echo get_post_format_string( 'standard' ); ?></label>
+			<input type="radio" name="post_format" class="post-format" id="post-format-0" value="0" <?php checked( $post_format, '0' ); ?>> <label for="post-format-0" class="post-format-icon post-format-standard"><?php echo get_post_format_string( 'standard' ); ?></label>
 			<?php foreach ( $post_formats[0] as $format ) : ?>
-			<br /><input type="radio" name="post_format" class="post-format" id="post-format-<?php echo esc_attr( $format ); ?>" value="<?php echo esc_attr( $format ); ?>" <?php checked( $post_format, $format ); ?> /> <label for="post-format-<?php echo esc_attr( $format ); ?>" class="post-format-icon post-format-<?php echo esc_attr( $format ); ?>"><?php echo esc_html( get_post_format_string( $format ) ); ?></label>
+			<br><input type="radio" name="post_format" class="post-format" id="post-format-<?php echo esc_attr( $format ); ?>" value="<?php echo esc_attr( $format ); ?>" <?php checked( $post_format, $format ); ?>> <label for="post-format-<?php echo esc_attr( $format ); ?>" class="post-format-icon post-format-<?php echo esc_attr( $format ); ?>"><?php echo esc_html( get_post_format_string( $format ) ); ?></label>
 			<?php endforeach; ?>
 		</fieldset>
 	</div>
@@ -595,8 +595,8 @@ function post_tags_meta_box( $post, $box ) {
 	<?php if ( $user_can_assign_terms ) : ?>
 	<div class="ajaxtag hide-if-no-js">
 		<label class="screen-reader-text" for="new-tag-<?php echo $tax_name; ?>"><?php echo $taxonomy->labels->add_new_item; ?></label>
-		<input data-wp-taxonomy="<?php echo $tax_name; ?>" type="text" id="new-tag-<?php echo $tax_name; ?>" name="newtag[<?php echo $tax_name; ?>]" class="newtag form-input-tip" size="16" autocomplete="off" aria-describedby="new-tag-<?php echo $tax_name; ?>-desc" value="" />
-		<input type="button" class="button tagadd" value="<?php esc_attr_e( 'Add' ); ?>" />
+		<input data-wp-taxonomy="<?php echo $tax_name; ?>" type="text" id="new-tag-<?php echo $tax_name; ?>" name="newtag[<?php echo $tax_name; ?>]" class="newtag form-input-tip" size="16" autocomplete="off" aria-describedby="new-tag-<?php echo $tax_name; ?>-desc" value="">
+		<input type="button" class="button tagadd" value="<?php esc_attr_e( 'Add' ); ?>">
 	</div>
 	<p class="howto" id="new-tag-<?php echo $tax_name; ?>-desc"><?php echo $taxonomy->labels->separate_items_with_commas; ?></p>
 	<?php elseif ( empty( $terms_to_edit ) ) : ?>
@@ -659,7 +659,7 @@ function post_categories_meta_box( $post, $box ) {
 			<?php
 			$name = ( 'category' === $tax_name ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
 			// Allows for an empty term set to be sent. 0 is an invalid term ID and will be ignored by empty() checks.
-			echo "<input type='hidden' name='{$name}[]' value='0' />";
+			echo "<input type='hidden' name='{$name}[]' value='0'>";
 			?>
 			<ul id="<?php echo $tax_name; ?>checklist" data-wp-lists="list:<?php echo $tax_name; ?>" class="categorychecklist form-no-clear">
 				<?php
@@ -683,7 +683,7 @@ function post_categories_meta_box( $post, $box ) {
 				</a>
 				<p id="<?php echo $tax_name; ?>-add" class="category-add wp-hidden-child">
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>"><?php echo $taxonomy->labels->add_new_item; ?></label>
-					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true" />
+					<input type="text" name="new<?php echo $tax_name; ?>" id="new<?php echo $tax_name; ?>" class="form-required form-input-tip" value="<?php echo esc_attr( $taxonomy->labels->new_item_name ); ?>" aria-required="true">
 					<label class="screen-reader-text" for="new<?php echo $tax_name; ?>_parent">
 						<?php echo $taxonomy->labels->parent_item_colon; ?>
 					</label>
@@ -725,7 +725,7 @@ function post_categories_meta_box( $post, $box ) {
 
 					wp_dropdown_categories( $parent_dropdown_args );
 					?>
-					<input type="button" id="<?php echo $tax_name; ?>-add-submit" data-wp-lists="add:<?php echo $tax_name; ?>checklist:<?php echo $tax_name; ?>-add" class="button category-add-submit" value="<?php echo esc_attr( $taxonomy->labels->add_new_item ); ?>" />
+					<input type="button" id="<?php echo $tax_name; ?>-add-submit" data-wp-lists="add:<?php echo $tax_name; ?>checklist:<?php echo $tax_name; ?>-add" class="button category-add-submit" value="<?php echo esc_attr( $taxonomy->labels->add_new_item ); ?>">
 					<?php wp_nonce_field( 'add-' . $tax_name, '_ajax_nonce-add-' . $tax_name, false ); ?>
 					<span id="<?php echo $tax_name; ?>-ajax-response"></span>
 				</p>
@@ -771,7 +771,7 @@ function post_excerpt_meta_box( $post ) {
  */
 function post_trackback_meta_box( $post ) {
 	$form_trackback = '<input type="text" name="trackback_url" id="trackback_url" class="code" value="' .
-		esc_attr( str_replace( "\n", ' ', $post->to_ping ) ) . '" aria-describedby="trackback-url-desc" />';
+		esc_attr( str_replace( "\n", ' ', $post->to_ping ) ) . '" aria-describedby="trackback-url-desc">';
 
 	if ( '' !== $post->pinged ) {
 		$pings          = '<p>' . __( 'Already pinged:' ) . '</p><ul>';
@@ -846,10 +846,10 @@ function post_custom_meta_box( $post ) {
  */
 function post_comment_status_meta_box( $post ) {
 	?>
-<input name="advanced_view" type="hidden" value="1" />
+<input name="advanced_view" type="hidden" value="1">
 <p class="meta-options">
-	<label for="comment_status" class="selectit"><input name="comment_status" type="checkbox" id="comment_status" value="open" <?php checked( $post->comment_status, 'open' ); ?> /> <?php _e( 'Allow comments' ); ?></label><br />
-	<label for="ping_status" class="selectit"><input name="ping_status" type="checkbox" id="ping_status" value="open" <?php checked( $post->ping_status, 'open' ); ?> />
+	<label for="comment_status" class="selectit"><input name="comment_status" type="checkbox" id="comment_status" value="open" <?php checked( $post->comment_status, 'open' ); ?>> <?php _e( 'Allow comments' ); ?></label><br>
+	<label for="ping_status" class="selectit"><input name="ping_status" type="checkbox" id="ping_status" value="open" <?php checked( $post->ping_status, 'open' ); ?>>
 		<?php
 		printf(
 			/* translators: %s: Documentation URL. */
@@ -942,7 +942,7 @@ function post_slug_meta_box( $post ) {
 	/* translators: Hidden accessibility text. */
 	_e( 'Slug' );
 	?>
-</label><input name="post_name" type="text" class="large-text" id="post_name" value="<?php echo esc_attr( $editable_slug ); ?>" />
+</label><input name="post_name" type="text" class="large-text" id="post_name" value="<?php echo esc_attr( $editable_slug ); ?>">
 	<?php
 }
 
@@ -1068,7 +1068,7 @@ function page_attributes_meta_box( $post ) {
 <?php endif; ?>
 	<?php if ( post_type_supports( $post->post_type, 'page-attributes' ) ) : ?>
 <p class="post-attributes-label-wrapper menu-order-label-wrapper"><label class="post-attributes-label" for="menu_order"><?php _e( 'Order' ); ?></label></p>
-<input name="menu_order" type="text" size="4" id="menu_order" value="<?php echo esc_attr( $post->menu_order ); ?>" />
+<input name="menu_order" type="text" size="4" id="menu_order" value="<?php echo esc_attr( $post->menu_order ); ?>">
 		<?php
 		/**
 		 * Fires before the help hint text in the 'Page Attributes' meta box.
@@ -1119,7 +1119,7 @@ function link_submit_meta_box( $link ) {
 
 <div id="misc-publishing-actions">
 <div class="misc-pub-section misc-pub-private">
-	<label for="link_private" class="selectit"><input id="link_private" name="link_visible" type="checkbox" value="N" <?php checked( $link->link_visible, 'N' ); ?> /> <?php _e( 'Keep this link private' ); ?></label>
+	<label for="link_private" class="selectit"><input id="link_private" name="link_visible" type="checkbox" value="N" <?php checked( $link->link_visible, 'N' ); ?>> <?php _e( 'Keep this link private' ); ?></label>
 </div>
 </div>
 
@@ -1146,9 +1146,9 @@ function link_submit_meta_box( $link ) {
 
 <div id="publishing-action">
 	<?php if ( ! empty( $link->link_id ) ) { ?>
-	<input name="save" type="submit" class="button button-primary button-large" id="publish" value="<?php esc_attr_e( 'Update Link' ); ?>" />
+	<input name="save" type="submit" class="button button-primary button-large" id="publish" value="<?php esc_attr_e( 'Update Link' ); ?>">
 <?php } else { ?>
-	<input name="save" type="submit" class="button button-primary button-large" id="publish" value="<?php esc_attr_e( 'Add Link' ); ?>" />
+	<input name="save" type="submit" class="button button-primary button-large" id="publish" value="<?php esc_attr_e( 'Add Link' ); ?>">
 <?php } ?>
 </div>
 <div class="clear"></div>
@@ -1208,8 +1208,8 @@ function link_categories_meta_box( $link ) {
 				_e( '+ Add New Category' );
 				?>
 			</label>
-			<input type="text" name="newcat" id="newcat" class="form-required form-input-tip" value="<?php esc_attr_e( 'New category name' ); ?>" aria-required="true" />
-			<input type="button" id="link-category-add-submit" data-wp-lists="add:categorychecklist:link-category-add" class="button" value="<?php esc_attr_e( 'Add' ); ?>" />
+			<input type="text" name="newcat" id="newcat" class="form-required form-input-tip" value="<?php esc_attr_e( 'New category name' ); ?>" aria-required="true">
+			<input type="button" id="link-category-add-submit" data-wp-lists="add:categorychecklist:link-category-add" class="button" value="<?php esc_attr_e( 'Add' ); ?>">
 			<?php wp_nonce_field( 'add-link-category', '_ajax_nonce', false ); ?>
 			<span id="category-ajax-response"></span>
 		</p>
@@ -1235,13 +1235,13 @@ function link_target_meta_box( $link ) {
 	?>
 </span></legend>
 <p><label for="link_target_blank" class="selectit">
-<input id="link_target_blank" type="radio" name="link_target" value="_blank" <?php echo ( isset( $link->link_target ) && ( '_blank' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
+<input id="link_target_blank" type="radio" name="link_target" value="_blank" <?php echo ( isset( $link->link_target ) && ( '_blank' === $link->link_target ) ? 'checked="checked"' : '' ); ?>>
 	<?php _e( '<code>_blank</code> &mdash; new window or tab.' ); ?></label></p>
 <p><label for="link_target_top" class="selectit">
-<input id="link_target_top" type="radio" name="link_target" value="_top" <?php echo ( isset( $link->link_target ) && ( '_top' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
+<input id="link_target_top" type="radio" name="link_target" value="_top" <?php echo ( isset( $link->link_target ) && ( '_top' === $link->link_target ) ? 'checked="checked"' : '' ); ?>>
 	<?php _e( '<code>_top</code> &mdash; current window or tab, with no frames.' ); ?></label></p>
 <p><label for="link_target_none" class="selectit">
-<input id="link_target_none" type="radio" name="link_target" value="" <?php echo ( isset( $link->link_target ) && ( '' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
+<input id="link_target_none" type="radio" name="link_target" value="" <?php echo ( isset( $link->link_target ) && ( '' === $link->link_target ) ? 'checked="checked"' : '' ); ?>>
 	<?php _e( '<code>_none</code> &mdash; same window or tab.' ); ?></label></p>
 </fieldset>
 <p><?php _e( 'Choose the target frame for your link.' ); ?></p>
@@ -1319,7 +1319,7 @@ function link_xfn_meta_box( $link ) {
 <table class="links-table">
 	<tr>
 		<th scope="row"><label for="link_rel"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'rel:' ); ?></label></th>
-		<td><input type="text" name="link_rel" id="link_rel" value="<?php echo ( isset( $link->link_rel ) ? esc_attr( $link->link_rel ) : '' ); ?>" /></td>
+		<td><input type="text" name="link_rel" id="link_rel" value="<?php echo ( isset( $link->link_rel ) ? esc_attr( $link->link_rel ) : '' ); ?>"></td>
 	</tr>
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></th>
@@ -1331,7 +1331,7 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="me">
-			<input type="checkbox" name="identity" value="me" id="me" <?php xfn_check( 'identity', 'me' ); ?> />
+			<input type="checkbox" name="identity" value="me" id="me" <?php xfn_check( 'identity', 'me' ); ?>>
 			<?php _e( 'another web address of mine' ); ?></label>
 		</fieldset></td>
 	</tr>
@@ -1345,16 +1345,16 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="contact">
-			<input class="valinp" type="radio" name="friendship" value="contact" id="contact" <?php xfn_check( 'friendship', 'contact' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'contact' ); ?>
+			<input class="valinp" type="radio" name="friendship" value="contact" id="contact" <?php xfn_check( 'friendship', 'contact' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'contact' ); ?>
 			</label>
 			<label for="acquaintance">
-			<input class="valinp" type="radio" name="friendship" value="acquaintance" id="acquaintance" <?php xfn_check( 'friendship', 'acquaintance' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'acquaintance' ); ?>
+			<input class="valinp" type="radio" name="friendship" value="acquaintance" id="acquaintance" <?php xfn_check( 'friendship', 'acquaintance' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'acquaintance' ); ?>
 			</label>
 			<label for="friend">
-			<input class="valinp" type="radio" name="friendship" value="friend" id="friend" <?php xfn_check( 'friendship', 'friend' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friend' ); ?>
+			<input class="valinp" type="radio" name="friendship" value="friend" id="friend" <?php xfn_check( 'friendship', 'friend' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friend' ); ?>
 			</label>
 			<label for="friendship">
-			<input name="friendship" type="radio" class="valinp" value="" id="friendship" <?php xfn_check( 'friendship' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
+			<input name="friendship" type="radio" class="valinp" value="" id="friendship" <?php xfn_check( 'friendship' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
@@ -1368,7 +1368,7 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="met">
-			<input class="valinp" type="checkbox" name="physical" value="met" id="met" <?php xfn_check( 'physical', 'met' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'met' ); ?>
+			<input class="valinp" type="checkbox" name="physical" value="met" id="met" <?php xfn_check( 'physical', 'met' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'met' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
@@ -1382,10 +1382,10 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="co-worker">
-			<input class="valinp" type="checkbox" name="professional" value="co-worker" id="co-worker" <?php xfn_check( 'professional', 'co-worker' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-worker' ); ?>
+			<input class="valinp" type="checkbox" name="professional" value="co-worker" id="co-worker" <?php xfn_check( 'professional', 'co-worker' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-worker' ); ?>
 			</label>
 			<label for="colleague">
-			<input class="valinp" type="checkbox" name="professional" value="colleague" id="colleague" <?php xfn_check( 'professional', 'colleague' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'colleague' ); ?>
+			<input class="valinp" type="checkbox" name="professional" value="colleague" id="colleague" <?php xfn_check( 'professional', 'colleague' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'colleague' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
@@ -1399,13 +1399,13 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="co-resident">
-			<input class="valinp" type="radio" name="geographical" value="co-resident" id="co-resident" <?php xfn_check( 'geographical', 'co-resident' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-resident' ); ?>
+			<input class="valinp" type="radio" name="geographical" value="co-resident" id="co-resident" <?php xfn_check( 'geographical', 'co-resident' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-resident' ); ?>
 			</label>
 			<label for="neighbor">
-			<input class="valinp" type="radio" name="geographical" value="neighbor" id="neighbor" <?php xfn_check( 'geographical', 'neighbor' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'neighbor' ); ?>
+			<input class="valinp" type="radio" name="geographical" value="neighbor" id="neighbor" <?php xfn_check( 'geographical', 'neighbor' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'neighbor' ); ?>
 			</label>
 			<label for="geographical">
-			<input class="valinp" type="radio" name="geographical" value="" id="geographical" <?php xfn_check( 'geographical' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
+			<input class="valinp" type="radio" name="geographical" value="" id="geographical" <?php xfn_check( 'geographical' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
@@ -1419,22 +1419,22 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="child">
-			<input class="valinp" type="radio" name="family" value="child" id="child" <?php xfn_check( 'family', 'child' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'child' ); ?>
+			<input class="valinp" type="radio" name="family" value="child" id="child" <?php xfn_check( 'family', 'child' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'child' ); ?>
 			</label>
 			<label for="kin">
-			<input class="valinp" type="radio" name="family" value="kin" id="kin" <?php xfn_check( 'family', 'kin' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'kin' ); ?>
+			<input class="valinp" type="radio" name="family" value="kin" id="kin" <?php xfn_check( 'family', 'kin' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'kin' ); ?>
 			</label>
 			<label for="parent">
-			<input class="valinp" type="radio" name="family" value="parent" id="parent" <?php xfn_check( 'family', 'parent' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'parent' ); ?>
+			<input class="valinp" type="radio" name="family" value="parent" id="parent" <?php xfn_check( 'family', 'parent' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'parent' ); ?>
 			</label>
 			<label for="sibling">
-			<input class="valinp" type="radio" name="family" value="sibling" id="sibling" <?php xfn_check( 'family', 'sibling' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'sibling' ); ?>
+			<input class="valinp" type="radio" name="family" value="sibling" id="sibling" <?php xfn_check( 'family', 'sibling' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'sibling' ); ?>
 			</label>
 			<label for="spouse">
-			<input class="valinp" type="radio" name="family" value="spouse" id="spouse" <?php xfn_check( 'family', 'spouse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'spouse' ); ?>
+			<input class="valinp" type="radio" name="family" value="spouse" id="spouse" <?php xfn_check( 'family', 'spouse' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'spouse' ); ?>
 			</label>
 			<label for="family">
-			<input class="valinp" type="radio" name="family" value="" id="family" <?php xfn_check( 'family' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
+			<input class="valinp" type="radio" name="family" value="" id="family" <?php xfn_check( 'family' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
@@ -1448,16 +1448,16 @@ function link_xfn_meta_box( $link ) {
 				?>
 			</span></legend>
 			<label for="muse">
-			<input class="valinp" type="checkbox" name="romantic" value="muse" id="muse" <?php xfn_check( 'romantic', 'muse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'muse' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="muse" id="muse" <?php xfn_check( 'romantic', 'muse' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'muse' ); ?>
 			</label>
 			<label for="crush">
-			<input class="valinp" type="checkbox" name="romantic" value="crush" id="crush" <?php xfn_check( 'romantic', 'crush' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'crush' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="crush" id="crush" <?php xfn_check( 'romantic', 'crush' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'crush' ); ?>
 			</label>
 			<label for="date">
-			<input class="valinp" type="checkbox" name="romantic" value="date" id="date" <?php xfn_check( 'romantic', 'date' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'date' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="date" id="date" <?php xfn_check( 'romantic', 'date' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'date' ); ?>
 			</label>
 			<label for="romantic">
-			<input class="valinp" type="checkbox" name="romantic" value="sweetheart" id="romantic" <?php xfn_check( 'romantic', 'sweetheart' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'sweetheart' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="sweetheart" id="romantic" <?php xfn_check( 'romantic', 'sweetheart' ); ?>>&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'sweetheart' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
@@ -1479,11 +1479,11 @@ function link_advanced_meta_box( $link ) {
 <table class="links-table" cellpadding="0">
 	<tr>
 		<th scope="row"><label for="link_image"><?php _e( 'Image Address' ); ?></label></th>
-		<td><input type="text" name="link_image" class="code" id="link_image" maxlength="255" value="<?php echo ( isset( $link->link_image ) ? esc_attr( $link->link_image ) : '' ); ?>" /></td>
+		<td><input type="text" name="link_image" class="code" id="link_image" maxlength="255" value="<?php echo ( isset( $link->link_image ) ? esc_attr( $link->link_image ) : '' ); ?>"></td>
 	</tr>
 	<tr>
 		<th scope="row"><label for="rss_uri"><?php _e( 'RSS Address' ); ?></label></th>
-		<td><input name="link_rss" class="code" type="text" id="rss_uri" maxlength="255" value="<?php echo ( isset( $link->link_rss ) ? esc_attr( $link->link_rss ) : '' ); ?>" /></td>
+		<td><input name="link_rss" class="code" type="text" id="rss_uri" maxlength="255" value="<?php echo ( isset( $link->link_rss ) ? esc_attr( $link->link_rss ) : '' ); ?>"></td>
 	</tr>
 	<tr>
 		<th scope="row"><label for="link_notes"><?php _e( 'Notes' ); ?></label></th>
@@ -1540,8 +1540,8 @@ function attachment_id3_data_meta_box( $post ) {
 		}
 		?>
 	<p>
-		<label for="title"><?php echo $label; ?></label><br />
-		<input type="text" name="id3_<?php echo esc_attr( $key ); ?>" id="id3_<?php echo esc_attr( $key ); ?>" class="large-text" value="<?php echo esc_attr( $value ); ?>" />
+		<label for="title"><?php echo $label; ?></label><br>
+		<input type="text" name="id3_<?php echo esc_attr( $key ); ?>" id="id3_<?php echo esc_attr( $key ); ?>" class="large-text" value="<?php echo esc_attr( $value ); ?>">
 	</p>
 		<?php
 	endforeach;

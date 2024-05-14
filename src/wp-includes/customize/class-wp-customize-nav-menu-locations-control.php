@@ -69,7 +69,7 @@ class WP_Customize_Nav_Menu_Locations_Control extends WP_Customize_Control {
 					<# elementId = _.uniqueId( 'customize-nav-menu-control-location-' ); #>
 					<li class="customize-control customize-control-checkbox assigned-menu-location">
 						<span class="customize-inside-control-row">
-							<input id="{{ elementId }}" type="checkbox" data-menu-id="{{ data.menu_id }}" data-location-id="<?php echo esc_attr( $location ); ?>" class="menu-location" />
+							<input id="{{ elementId }}" type="checkbox" data-menu-id="{{ data.menu_id }}" data-location-id="<?php echo esc_attr( $location ); ?>" class="menu-location">
 							<label for="{{ elementId }}">
 								<?php echo $description; ?>
 								<span class="theme-location-set">

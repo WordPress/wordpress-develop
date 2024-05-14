@@ -24,7 +24,7 @@
 	<!-- /wp:group -->
 
 	<!-- wp:separator {"backgroundColor":"contrast","className":"is-style-wide"} -->
-	<hr class="wp-block-separator has-text-color has-contrast-color has-alpha-channel-opacity has-contrast-background-color has-background is-style-wide"/>
+	<hr class="wp-block-separator has-text-color has-contrast-color has-alpha-channel-opacity has-contrast-background-color has-background is-style-wide">
 	<!-- /wp:separator -->
 
 	<!-- wp:group {"style":{"spacing":{"blockGap":"16px"}},"layout":{"type":"constrained"}} -->
@@ -38,7 +38,7 @@
 	<!-- /wp:group -->
 
 	<!-- wp:separator {"backgroundColor":"contrast","className":"is-style-wide"} -->
-	<hr class="wp-block-separator has-text-color has-contrast-color has-alpha-channel-opacity has-contrast-background-color has-background is-style-wide"/>
+	<hr class="wp-block-separator has-text-color has-contrast-color has-alpha-channel-opacity has-contrast-background-color has-background is-style-wide">
 	<!-- /wp:separator -->
 
 	<!-- wp:group {"style":{"spacing":{"blockGap":"26px"}},"layout":{"type":"constrained"}} -->
@@ -63,7 +63,7 @@
 	<!-- /wp:group -->
 
 	<!-- wp:separator {"backgroundColor":"contrast","className":"is-style-wide"} -->
-	<hr class="wp-block-separator has-text-color has-contrast-color has-alpha-channel-opacity has-contrast-background-color has-background is-style-wide"/>
+	<hr class="wp-block-separator has-text-color has-contrast-color has-alpha-channel-opacity has-contrast-background-color has-background is-style-wide">
 	<!-- /wp:separator -->
 
 	<!-- wp:group {"style":{"spacing":{"blockGap":"16px"}},"layout":{"type":"flex","orientation":"vertical","justifyContent":"stretch"}} -->

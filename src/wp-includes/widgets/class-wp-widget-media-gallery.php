@@ -208,7 +208,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 											?>
 											"
 										<# } #>
-									/>
+									>
 									<# if ( index === 5 && data.ids.length > 6 ) { #>
 									<div class="gallery-icon-placeholder">
 										<p class="gallery-icon-placeholder-text" aria-label="

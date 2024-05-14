@@ -19,7 +19,7 @@ return array(
 					<!-- /wp:columns -->
 
 					<!-- wp:separator {"className":"is-style-wide"} -->
-					<hr class="wp-block-separator is-style-wide"/>
+					<hr class="wp-block-separator is-style-wide">
 					<!-- /wp:separator -->
 					<!-- /wp:post-template --></div>
 					<!-- /wp:query -->',

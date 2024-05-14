@@ -95,7 +95,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 		src="IMAGE_URL"
 		alt="Image gallery image"
 		class="wp-image-IMAGE_ID"
-		/>
+		>
 		</figure>
 		<!-- /wp:image -->
 		</figure>
@@ -253,7 +253,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			src="$image_url"
 			alt="Image gallery image"
 			class="wp-image-$image_id"
-		/>
+		>
 	</figure>
 	<!-- /wp:image -->
 </figure>
@@ -383,7 +383,7 @@ BLOB;
 
 		$blob = <<< BLOB
 <!-- wp:gallery -->
-<figure><img src="$image_url" data-id="$image_id" /></figure>
+<figure><img src="$image_url" data-id="$image_id"></figure>
 <!-- /wp:gallery -->
 BLOB;
 
@@ -448,7 +448,7 @@ BLOB;
 			src="$image_url"
 			alt="Image gallery image"
 			class="wp-image-$image_id"
-		/>
+		>
 	</figure>
 	<!-- /wp:image -->
 </figure>
@@ -571,7 +571,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 
 		}
 
@@ -676,7 +676,7 @@ BLOB;
 			src="$url"
 			alt="Image gallery image"
 			class="wp-image-$attachment_id"
-		/>
+		>
 	</figure>
 	<!-- /wp:image -->
 </figure>
@@ -840,7 +840,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 
 		}
 
@@ -903,7 +903,7 @@ BLOB;
 			$ids[]      = $attachment_id;
 			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 			$ids_srcs[] = $url;
-			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
+			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '"></figure>';
 
 		}
 
@@ -963,7 +963,7 @@ BLOB;
 <!-- wp:gallery -->
 <ul class="wp-block-gallery columns-2 is-cropped"><li class="blocks-gallery-item">
 <figure>
-<img src="$image_url" alt="title"/>
+<img src="$image_url" alt="title">
 </figure>
 </li>
 </ul>

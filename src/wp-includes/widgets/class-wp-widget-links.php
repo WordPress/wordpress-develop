@@ -163,25 +163,25 @@ class WP_Widget_Links extends WP_Widget {
 		</p>
 
 		<p>
-			<input class="checkbox" type="checkbox"<?php checked( $instance['images'], true ); ?> id="<?php echo $this->get_field_id( 'images' ); ?>" name="<?php echo $this->get_field_name( 'images' ); ?>" />
+			<input class="checkbox" type="checkbox"<?php checked( $instance['images'], true ); ?> id="<?php echo $this->get_field_id( 'images' ); ?>" name="<?php echo $this->get_field_name( 'images' ); ?>">
 			<label for="<?php echo $this->get_field_id( 'images' ); ?>"><?php _e( 'Show Link Image' ); ?></label>
-			<br />
+			<br>
 
-			<input class="checkbox" type="checkbox"<?php checked( $instance['name'], true ); ?> id="<?php echo $this->get_field_id( 'name' ); ?>" name="<?php echo $this->get_field_name( 'name' ); ?>" />
+			<input class="checkbox" type="checkbox"<?php checked( $instance['name'], true ); ?> id="<?php echo $this->get_field_id( 'name' ); ?>" name="<?php echo $this->get_field_name( 'name' ); ?>">
 			<label for="<?php echo $this->get_field_id( 'name' ); ?>"><?php _e( 'Show Link Name' ); ?></label>
-			<br />
+			<br>
 
-			<input class="checkbox" type="checkbox"<?php checked( $instance['description'], true ); ?> id="<?php echo $this->get_field_id( 'description' ); ?>" name="<?php echo $this->get_field_name( 'description' ); ?>" />
+			<input class="checkbox" type="checkbox"<?php checked( $instance['description'], true ); ?> id="<?php echo $this->get_field_id( 'description' ); ?>" name="<?php echo $this->get_field_name( 'description' ); ?>">
 			<label for="<?php echo $this->get_field_id( 'description' ); ?>"><?php _e( 'Show Link Description' ); ?></label>
-			<br />
+			<br>
 
-			<input class="checkbox" type="checkbox"<?php checked( $instance['rating'], true ); ?> id="<?php echo $this->get_field_id( 'rating' ); ?>" name="<?php echo $this->get_field_name( 'rating' ); ?>" />
+			<input class="checkbox" type="checkbox"<?php checked( $instance['rating'], true ); ?> id="<?php echo $this->get_field_id( 'rating' ); ?>" name="<?php echo $this->get_field_name( 'rating' ); ?>">
 			<label for="<?php echo $this->get_field_id( 'rating' ); ?>"><?php _e( 'Show Link Rating' ); ?></label>
 		</p>
 
 		<p>
 			<label for="<?php echo $this->get_field_id( 'limit' ); ?>"><?php _e( 'Number of links to show:' ); ?></label>
-			<input id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo ( -1 !== $limit ) ? (int) $limit : ''; ?>" size="3" />
+			<input id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo ( -1 !== $limit ) ? (int) $limit : ''; ?>" size="3">
 		</p>
 		<?php
 	}

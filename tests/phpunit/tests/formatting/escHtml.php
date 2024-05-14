@@ -29,7 +29,7 @@ class Tests_Formatting_EscHtml extends WP_UnitTestCase {
 	}
 
 	public function test_escapes_greater_and_less_than() {
-		$source = 'this > that < that <randomhtml />';
+		$source = 'this > that < that <randomhtml>';
 		$res    = 'this &gt; that &lt; that &lt;randomhtml /&gt;';
 		$this->assertSame( $res, esc_html( $source ) );
 	}

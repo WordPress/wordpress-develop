@@ -61,7 +61,7 @@ do_action( 'rss_tag_pre', 'rdf' );
 		while ( have_posts() ) :
 			the_post();
 			?>
-			<rdf:li rdf:resource="<?php the_permalink_rss(); ?>"/>
+			<rdf:li rdf:resource="<?php the_permalink_rss(); ?>">
 		<?php endwhile; ?>
 		</rdf:Seq>
 	</items>

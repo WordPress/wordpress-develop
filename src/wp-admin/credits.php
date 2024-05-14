@@ -53,7 +53,7 @@ $credits = wp_credits();
 					__( 'https://wordpress.org/about/' )
 				);
 				?>
-				<br />
+				<br>
 				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
@@ -61,7 +61,7 @@ $credits = wp_credits();
 
 			<p>
 				<?php _e( 'Want to see your name in lights on this page?' ); ?>
-				<br />
+				<br>
 				<a href="<?php echo esc_url( __( 'https://make.wordpress.org/contribute/' ) ); ?>"><?php _e( 'Get involved in WordPress.' ); ?></a>
 			</p>
 
@@ -77,7 +77,7 @@ if ( ! $credits ) {
 }
 ?>
 
-	<hr class="is-large" />
+	<hr class="is-large">
 
 	<div class="about__section">
 		<div class="column is-edge-to-edge">
@@ -87,7 +87,7 @@ if ( ! $credits ) {
 		</div>
 	</div>
 
-	<hr />
+	<hr>
 
 	<div class="about__section">
 		<div class="column">
@@ -96,7 +96,7 @@ if ( ! $credits ) {
 		</div>
 	</div>
 
-	<hr />
+	<hr>
 
 	<?php if ( isset( $credits['groups']['translators'] ) || isset( $credits['groups']['validators'] ) ) : ?>
 	<div class="about__section">
@@ -107,7 +107,7 @@ if ( ! $credits ) {
 		</div>
 	</div>
 
-	<hr />
+	<hr>
 	<?php endif; ?>
 
 	<div class="about__section">

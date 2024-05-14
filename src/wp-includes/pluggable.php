@@ -2976,7 +2976,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 		}
 
 		$avatar = sprintf(
-			"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s/>",
+			"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s>",
 			esc_attr( $args['alt'] ),
 			esc_url( $url ),
 			esc_url( $url2x ) . ' 2x',

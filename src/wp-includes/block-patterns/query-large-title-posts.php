@@ -13,7 +13,7 @@ return array(
 					<div class="wp-block-group alignfull has-text-color has-background" style="background-color:#000000;color:#ffffff;padding-top:100px;padding-right:100px;padding-bottom:100px;padding-left:100px"><!-- wp:query {"query":{"perPage":3,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":false}} -->
 					<div class="wp-block-query"><!-- wp:post-template -->
 					<!-- wp:separator {"customColor":"#ffffff","align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide has-text-color has-background is-style-wide" style="background-color:#ffffff;color:#ffffff"/>
+					<hr class="wp-block-separator alignwide has-text-color has-background is-style-wide" style="background-color:#ffffff;color:#ffffff">
 					<!-- /wp:separator -->
 
 					<!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->

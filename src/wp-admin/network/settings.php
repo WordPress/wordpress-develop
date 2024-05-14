@@ -158,14 +158,14 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="site_name"><?php _e( 'Network Title' ); ?></label></th>
 				<td>
-					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ); ?>" />
+					<input name="site_name" type="text" id="site_name" class="regular-text" value="<?php echo esc_attr( get_network()->site_name ); ?>">
 				</td>
 			</tr>
 
 			<tr>
 				<th scope="row"><label for="admin_email"><?php _e( 'Network Admin Email' ); ?></label></th>
 				<td>
-					<input name="new_admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc" class="regular-text" value="<?php echo esc_attr( get_site_option( 'admin_email' ) ); ?>" />
+					<input name="new_admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc" class="regular-text" value="<?php echo esc_attr( get_site_option( 'admin_email' ) ); ?>">
 					<p class="description" id="admin-email-desc">
 						<?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 					</p>
@@ -215,10 +215,10 @@ if ( isset( $_GET['updated'] ) ) {
 						_e( 'New registrations settings' );
 						?>
 					</legend>
-					<label><input name="registration" type="radio" id="registration1" value="none"<?php checked( $reg, 'none' ); ?> /> <?php _e( 'Registration is disabled' ); ?></label><br />
-					<label><input name="registration" type="radio" id="registration2" value="user"<?php checked( $reg, 'user' ); ?> /> <?php _e( 'User accounts may be registered' ); ?></label><br />
-					<label><input name="registration" type="radio" id="registration3" value="blog"<?php checked( $reg, 'blog' ); ?> /> <?php _e( 'Logged in users may register new sites' ); ?></label><br />
-					<label><input name="registration" type="radio" id="registration4" value="all"<?php checked( $reg, 'all' ); ?> /> <?php _e( 'Both sites and user accounts can be registered' ); ?></label>
+					<label><input name="registration" type="radio" id="registration1" value="none"<?php checked( $reg, 'none' ); ?>> <?php _e( 'Registration is disabled' ); ?></label><br>
+					<label><input name="registration" type="radio" id="registration2" value="user"<?php checked( $reg, 'user' ); ?>> <?php _e( 'User accounts may be registered' ); ?></label><br>
+					<label><input name="registration" type="radio" id="registration3" value="blog"<?php checked( $reg, 'blog' ); ?>> <?php _e( 'Logged in users may register new sites' ); ?></label><br>
+					<label><input name="registration" type="radio" id="registration4" value="all"<?php checked( $reg, 'all' ); ?>> <?php _e( 'Both sites and user accounts can be registered' ); ?></label>
 					<?php
 					if ( is_subdomain_install() ) {
 						echo '<p class="description">';
@@ -243,14 +243,14 @@ if ( isset( $_GET['updated'] ) ) {
 				}
 				?>
 				<td>
-					<label><input name="registrationnotification" type="checkbox" id="registrationnotification" value="yes"<?php checked( get_site_option( 'registrationnotification' ), 'yes' ); ?> /> <?php _e( 'Send the network admin an email notification every time someone registers a site or user account' ); ?></label>
+					<label><input name="registrationnotification" type="checkbox" id="registrationnotification" value="yes"<?php checked( get_site_option( 'registrationnotification' ), 'yes' ); ?>> <?php _e( 'Send the network admin an email notification every time someone registers a site or user account' ); ?></label>
 				</td>
 			</tr>
 
 			<tr id="addnewusers">
 				<th scope="row"><?php _e( 'Add New Users' ); ?></th>
 				<td>
-					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
+					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?>> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
 				</td>
 			</tr>
 
@@ -266,7 +266,7 @@ if ( isset( $_GET['updated'] ) ) {
 						$illegal_names = implode( ' ', $illegal_names );
 					}
 					?>
-					<input name="illegal_names" type="text" id="illegal_names" aria-describedby="illegal-names-desc" class="large-text" value="<?php echo esc_attr( $illegal_names ); ?>" size="45" />
+					<input name="illegal_names" type="text" id="illegal_names" aria-describedby="illegal-names-desc" class="large-text" value="<?php echo esc_attr( $illegal_names ); ?>" size="45">
 					<p class="description" id="illegal-names-desc">
 						<?php _e( 'Users are not allowed to register these sites. Separate names by spaces.' ); ?>
 					</p>
@@ -375,7 +375,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="first_comment_author"><?php _e( 'First Comment Author' ); ?></label></th>
 				<td>
-					<input type="text" size="40" name="first_comment_author" id="first_comment_author" aria-describedby="first-comment-author-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_author' ) ); ?>" />
+					<input type="text" size="40" name="first_comment_author" id="first_comment_author" aria-describedby="first-comment-author-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_author' ) ); ?>">
 					<p class="description" id="first-comment-author-desc">
 						<?php _e( 'The author of the first comment on a new site.' ); ?>
 					</p>
@@ -384,7 +384,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="first_comment_email"><?php _e( 'First Comment Email' ); ?></label></th>
 				<td>
-					<input type="text" size="40" name="first_comment_email" id="first_comment_email" aria-describedby="first-comment-email-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_email' ) ); ?>" />
+					<input type="text" size="40" name="first_comment_email" id="first_comment_email" aria-describedby="first-comment-email-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_email' ) ); ?>">
 					<p class="description" id="first-comment-email-desc">
 						<?php _e( 'The email address of the first comment author on a new site.' ); ?>
 					</p>
@@ -393,7 +393,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="first_comment_url"><?php _e( 'First Comment URL' ); ?></label></th>
 				<td>
-					<input type="text" size="40" name="first_comment_url" id="first_comment_url" aria-describedby="first-comment-url-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_url' ) ); ?>" />
+					<input type="text" size="40" name="first_comment_url" id="first_comment_url" aria-describedby="first-comment-url-desc" value="<?php echo esc_attr( get_site_option( 'first_comment_url' ) ); ?>">
 					<p class="description" id="first-comment-url-desc">
 						<?php _e( 'The URL for the first comment on a new site.' ); ?>
 					</p>
@@ -405,15 +405,15 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><?php _e( 'Site upload space' ); ?></th>
 				<td>
-					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/>
+					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>>
 						<?php
 						printf(
 							/* translators: %s: Number of megabytes to limit uploads to. */
 							__( 'Limit total size of files uploaded to %s MB' ),
-							'</label><label><input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="' . esc_attr( get_site_option( 'blog_upload_space', 100 ) ) . '" />'
+							'</label><label><input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="' . esc_attr( get_site_option( 'blog_upload_space', 100 ) ) . '">'
 						);
 						?>
-					</label><br />
+					</label><br>
 					<p class="screen-reader-text" id="blog-upload-space-desc">
 						<?php
 						/* translators: Hidden accessibility text. */
@@ -426,7 +426,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="upload_filetypes"><?php _e( 'Upload file types' ); ?></label></th>
 				<td>
-					<input name="upload_filetypes" type="text" id="upload_filetypes" aria-describedby="upload-filetypes-desc" class="large-text" value="<?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?>" size="45" />
+					<input name="upload_filetypes" type="text" id="upload_filetypes" aria-describedby="upload-filetypes-desc" class="large-text" value="<?php echo esc_attr( get_site_option( 'upload_filetypes', 'jpg jpeg png gif' ) ); ?>" size="45">
 					<p class="description" id="upload-filetypes-desc">
 						<?php _e( 'Allowed file types. Separate types by spaces.' ); ?>
 					</p>
@@ -440,7 +440,7 @@ if ( isset( $_GET['updated'] ) ) {
 						printf(
 							/* translators: %s: File size in kilobytes. */
 							__( '%s KB' ),
-							'<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '" />'
+							'<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '">'
 						);
 						?>
 					<p class="screen-reader-text" id="fileupload-maxk-desc">
@@ -520,7 +520,7 @@ if ( isset( $_GET['updated'] ) ) {
 						'</legend>';
 
 						foreach ( (array) $menu_items as $key => $val ) {
-							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
+							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . '> ' . esc_html( $val ) . '</label><br>';
 						}
 
 						echo '</fieldset>';

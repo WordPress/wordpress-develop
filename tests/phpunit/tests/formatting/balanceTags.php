@@ -166,7 +166,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @dataProvider data_single_tags
 	 */
 	public function test_selfcloses_unclosed_known_single_tags( $tag ) {
-		$this->assertSame( "<$tag />", balanceTags( "<$tag>", true ) );
+		$this->assertSame( "<$tag>", balanceTags( "<$tag>", true ) );
 	}
 
 	/**
@@ -177,7 +177,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @dataProvider data_single_tags
 	 */
 	public function test_selfcloses_known_single_tags_having_closing_tag( $tag ) {
-		$this->assertSame( "<$tag />", balanceTags( "<$tag></$tag>", true ) );
+		$this->assertSame( "<$tag>", balanceTags( "<$tag></$tag>", true ) );
 	}
 
 	// This is a complete(?) listing of valid single/self-closing tags.
@@ -210,11 +210,11 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	public function test_closes_unknown_single_tags_with_closing_tag() {
 
 		$inputs   = array(
-			'<strong/>',
-			'<em />',
-			'<p class="main1"/>',
-			'<p class="main2" />',
-			'<STRONG/>',
+			'<strong>',
+			'<em>',
+			'<p class="main1">',
+			'<p class="main2">',
+			'<STRONG>',
 		);
 		$expected = array(
 			'<strong></strong>',
@@ -236,8 +236,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			'<input type="text" name="example">',
 		);
 		$expected = array(
-			'<img src="/images/example.png"/>',
-			'<input type="text" name="example"/>',
+			'<img src="/images/example.png">',
+			'<input type="text" name="example">',
 		);
 
 		foreach ( $inputs as $key => $input ) {
@@ -247,10 +247,10 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	public function test_allows_validly_closed_single_tags() {
 		$inputs = array(
-			'<br />',
-			'<hr />',
-			'<img src="/images/example.png" />',
-			'<input type="text" name="example" />',
+			'<br>',
+			'<hr>',
+			'<img src="/images/example.png">',
+			'<input type="text" name="example">',
 		);
 
 		foreach ( $inputs as $key => $input ) {
@@ -311,7 +311,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 * @ticket 20401
 	 */
 	public function test_allows_immediately_nested_object_tags() {
-		$object = '<object id="obj1"><param name="param1"/><object id="obj2"><param name="param2"/></object></object>';
+		$object = '<object id="obj1"><param name="param1"><object id="obj2"><param name="param2"></object></object>';
 		$this->assertSame( $object, balanceTags( $object, true ) );
 	}
 
@@ -394,7 +394,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		return array(
 			// Valid custom element tags.
 			array(
-				'<my-custom-element data-attribute="value"/>',
+				'<my-custom-element data-attribute="value">',
 				'<my-custom-element data-attribute="value"></my-custom-element>',
 			),
 			array(
@@ -414,11 +414,11 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 				'Test',
 			),
 			array(
-				'<my-custom-element/>',
+				'<my-custom-element>',
 				'<my-custom-element></my-custom-element>',
 			),
 			array(
-				'<my-custom-element />',
+				'<my-custom-element>',
 				'<my-custom-element></my-custom-element>',
 			),
 			// Invalid (or at least temporarily unsupported) custom element tags.

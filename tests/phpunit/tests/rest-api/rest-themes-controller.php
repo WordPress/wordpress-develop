@@ -412,7 +412,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'editor-gradient-presets', $theme_supports );
 		$this->assertArrayHasKey( 'editor-styles', $theme_supports );
 		$this->assertArrayHasKey( 'formats', $theme_supports );
-		$this->assertArrayHasKey( 'html5', $theme_supports );
 		$this->assertArrayHasKey( 'post-thumbnails', $theme_supports );
 		$this->assertArrayHasKey( 'responsive-embeds', $theme_supports );
 		$this->assertArrayHasKey( 'title-tag', $theme_supports );
@@ -841,21 +840,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 49037
 	 */
-	public function test_theme_does_not_support_html5() {
-		remove_theme_support( 'html5' );
-		$response = self::perform_active_theme_request();
-		$result   = $response->get_data();
-		$this->assertArrayHasKey( 'theme_supports', $result[0] );
-		$this->assertArrayHasKey( 'html5', $result[0]['theme_supports'] );
-		$this->assertFalse( $result[0]['theme_supports']['html5'] );
-	}
-
-	/**
-	 * @ticket 49037
-	 */
 	public function test_theme_supports_html5() {
-		remove_theme_support( 'html5' );
-		$html5 = array(
+		$html5    = array(
 			'search-form',
 			'comment-form',
 			'comment-list',
@@ -864,7 +850,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'script',
 			'style',
 		);
-		add_theme_support( 'html5', $html5 );
 		$response = self::perform_active_theme_request();
 		$result   = $response->get_data();
 		$this->assertArrayHasKey( 'theme_supports', $result[0] );

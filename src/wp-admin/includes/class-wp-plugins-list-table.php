@@ -446,15 +446,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$input_id = $input_id . '-search-input';
 
 		if ( ! empty( $_REQUEST['orderby'] ) ) {
-			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
+			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '">';
 		}
 		if ( ! empty( $_REQUEST['order'] ) ) {
-			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
+			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '">';
 		}
 		?>
 		<p class="search-box">
 			<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>" />
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>">
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
@@ -469,7 +469,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		global $status;
 
 		$columns = array(
-			'cb'          => ! in_array( $status, array( 'mustuse', 'dropins' ), true ) ? '<input type="checkbox" />' : '',
+			'cb'          => ! in_array( $status, array( 'mustuse', 'dropins' ), true ) ? '<input type="checkbox">' : '',
 			'name'        => __( 'Plugin' ),
 			'description' => __( 'Description' ),
 		);
@@ -767,7 +767,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$plugin_name = $plugin_file;
 
 			if ( $plugin_file !== $plugin_data['Name'] ) {
-				$plugin_name .= '<br />' . $plugin_data['Name'];
+				$plugin_name .= '<br>' . $plugin_data['Name'];
 			}
 
 			if ( true === ( $dropins[ $plugin_file ][1] ) ) { // Doesn't require a constant.
@@ -1096,7 +1096,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$checkbox = sprintf(
 				'<label class="label-covers-full-cell" for="%1$s">' .
 				'<span class="screen-reader-text">%2$s</span></label>' .
-				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" ' . $disabled . '/>',
+				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" ' . $disabled . '>',
 				$checkbox_id,
 				/* translators: Hidden accessibility text. %s: Plugin name. */
 				sprintf( __( 'Select %s' ), $plugin_data['Name'] ),

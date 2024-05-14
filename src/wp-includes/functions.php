@@ -1891,7 +1891,7 @@ function wp_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
  */
 function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $display = true ) {
 	$name        = esc_attr( $name );
-	$nonce_field = '<input type="hidden" id="' . $name . '" name="' . $name . '" value="' . wp_create_nonce( $action ) . '" />';
+	$nonce_field = '<input type="hidden" id="' . $name . '" name="' . $name . '" value="' . wp_create_nonce( $action ) . '">';
 
 	if ( $referer ) {
 		$nonce_field .= wp_referer_field( false );
@@ -1917,7 +1917,7 @@ function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $dis
  */
 function wp_referer_field( $display = true ) {
 	$request_url   = remove_query_arg( '_wp_http_referer' );
-	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_url( $request_url ) . '" />';
+	$referer_field = '<input type="hidden" name="_wp_http_referer" value="' . esc_url( $request_url ) . '">';
 
 	if ( $display ) {
 		echo $referer_field;
@@ -1947,7 +1947,7 @@ function wp_original_referer_field( $display = true, $jump_back_to = 'current' )
 		$ref = ( 'previous' === $jump_back_to ) ? wp_get_referer() : wp_unslash( $_SERVER['REQUEST_URI'] );
 	}
 
-	$orig_referer_field = '<input type="hidden" name="_wp_original_http_referer" value="' . esc_attr( $ref ) . '" />';
+	$orig_referer_field = '<input type="hidden" name="_wp_original_http_referer" value="' . esc_attr( $ref ) . '">';
 
 	if ( $display ) {
 		echo $orig_referer_field;
@@ -3857,7 +3857,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 <!DOCTYPE html>
 <html <?php echo $dir_attr; ?>>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
+	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>">
 	<meta name="viewport" content="width=device-width">
 		<?php
 		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
@@ -7462,7 +7462,7 @@ function get_tag_regex( $tag ) {
 	if ( empty( $tag ) ) {
 		return '';
 	}
-	return sprintf( '<%1$s[^<]*(?:>[\s\S]*<\/%1$s>|\s*\/>)', tag_escape( $tag ) );
+	return sprintf( '<%1$s[^<]*(?:>[\s\S]*<\/%1$s>|\s*\>)', tag_escape( $tag ) );
 }
 
 /**

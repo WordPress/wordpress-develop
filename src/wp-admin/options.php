@@ -389,8 +389,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 	<form name="form" action="options.php" method="post" id="all-options">
 		<?php wp_nonce_field( 'options-options' ); ?>
-		<input type="hidden" name="action" value="update" />
-		<input type="hidden" name="option_page" value="options" />
+		<input type="hidden" name="action" value="update">
+		<input type="hidden" name="option_page" value="options">
 		<table class="form-table" role="presentation">
 <?php
 $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_name" );
@@ -427,13 +427,13 @@ foreach ( (array) $options as $option ) :
 	<?php if ( str_contains( $value, "\n" ) ) : ?>
 		<textarea class="<?php echo $class; ?>" name="<?php echo $name; ?>" id="<?php echo $name; ?>" cols="30" rows="5"><?php echo esc_textarea( $value ); ?></textarea>
 	<?php else : ?>
-		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?> />
+		<input class="regular-text <?php echo $class; ?>" type="text" name="<?php echo $name; ?>" id="<?php echo $name; ?>" value="<?php echo esc_attr( $value ); ?>"<?php disabled( $disabled, true ); ?>>
 	<?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </table>
 
-<input type="hidden" name="page_options" value="<?php echo esc_attr( implode( ',', $options_to_update ) ); ?>" />
+<input type="hidden" name="page_options" value="<?php echo esc_attr( implode( ',', $options_to_update ) ); ?>">
 
 <?php submit_button( __( 'Save Changes' ), 'primary', 'Update' ); ?>
 

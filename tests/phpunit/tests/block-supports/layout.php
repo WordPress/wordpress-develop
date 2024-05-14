@@ -71,8 +71,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 			'blockName' => 'core/image',
 			'attrs'     => array(),
 		);
-		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"/></figure>';
-		$expected      = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"/></figure>';
+		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"></figure>';
+		$expected      = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"></figure>';
 
 		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
@@ -87,8 +87,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 			'blockName' => 'core/image',
 			'attrs'     => array(),
 		);
-		$block_content = '<figure class="wp-block-image alignright size-full"><img src="/my-image.jpg"/></figure>';
-		$expected      = '<div class="wp-block-image"><figure class="alignright size-full"><img src="/my-image.jpg"/></figure></div>';
+		$block_content = '<figure class="wp-block-image alignright size-full"><img src="/my-image.jpg"></figure>';
+		$expected      = '<div class="wp-block-image"><figure class="alignright size-full"><img src="/my-image.jpg"></figure></div>';
 
 		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}
@@ -125,28 +125,28 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 	 * }
 	 */
 	public function data_block_image_html_restored_outer_container() {
-		$expected = '<div class="wp-block-image is-style-round my-custom-classname"><figure class="alignright size-full"><img src="/my-image.jpg"/></figure></div>';
+		$expected = '<div class="wp-block-image is-style-round my-custom-classname"><figure class="alignright size-full"><img src="/my-image.jpg"></figure></div>';
 
 		return array(
 			array(
-				'<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>',
+				'<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"></figure>',
 				$expected,
 			),
 			array(
-				'<figure class="is-style-round my-custom-classname wp-block-image alignright size-full"><img src="/my-image.jpg"/></figure>',
+				'<figure class="is-style-round my-custom-classname wp-block-image alignright size-full"><img src="/my-image.jpg"></figure>',
 				$expected,
 			),
 			array(
-				'<figure class="wp-block-image is-style-round my-custom-classname alignright size-full"><img src="/my-image.jpg"/></figure>',
+				'<figure class="wp-block-image is-style-round my-custom-classname alignright size-full"><img src="/my-image.jpg"></figure>',
 				$expected,
 			),
 			array(
-				'<figure class="is-style-round wp-block-image alignright my-custom-classname size-full"><img src="/my-image.jpg"/></figure>',
+				'<figure class="is-style-round wp-block-image alignright my-custom-classname size-full"><img src="/my-image.jpg"></figure>',
 				$expected,
 			),
 			array(
-				'<figure style="color: red" class=\'is-style-round wp-block-image alignright my-custom-classname size-full\' data-random-tag=">"><img src="/my-image.jpg"/></figure>',
-				'<div class="wp-block-image is-style-round my-custom-classname"><figure style="color: red" class=\'alignright size-full\' data-random-tag=">"><img src="/my-image.jpg"/></figure></div>',
+				'<figure style="color: red" class=\'is-style-round wp-block-image alignright my-custom-classname size-full\' data-random-tag=">"><img src="/my-image.jpg"></figure>',
+				'<div class="wp-block-image is-style-round my-custom-classname"><figure style="color: red" class=\'alignright size-full\' data-random-tag=">"><img src="/my-image.jpg"></figure></div>',
 			),
 		);
 	}
@@ -162,8 +162,8 @@ class Test_Block_Supports_Layout extends WP_UnitTestCase {
 				'className' => 'is-style-round my-custom-classname',
 			),
 		);
-		$block_content = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
-		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"/></figure>';
+		$block_content = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"></figure>';
+		$expected      = '<figure class="wp-block-image alignright size-full is-style-round my-custom-classname"><img src="/my-image.jpg"></figure>';
 
 		$this->assertSame( $expected, wp_restore_image_outer_container( $block_content, $block ) );
 	}

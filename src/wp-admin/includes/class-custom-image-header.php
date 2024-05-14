@@ -321,7 +321,7 @@ class Custom_Image_Header {
 
 		if ( 1 < count( $headers ) ) {
 			echo '<div class="random-header">';
-			echo '<label><input name="default-header" type="radio" value="random-' . $type . '-image"' . checked( is_random_header_image( $type ), true, false ) . ' />';
+			echo '<label><input name="default-header" type="radio" value="random-' . $type . '-image"' . checked( is_random_header_image( $type ), true, false ) . '>';
 			_e( '<strong>Random:</strong> Show a different image on each page.' );
 			echo '</label>';
 			echo '</div>';
@@ -335,12 +335,12 @@ class Custom_Image_Header {
 			$header_alt_text  = empty( $header['alt_text'] ) ? '' : $header['alt_text'];
 
 			echo '<div class="default-header">';
-			echo '<label><input name="default-header" type="radio" value="' . esc_attr( $header_key ) . '" ' . checked( $header_url, get_theme_mod( 'header_image' ), false ) . ' />';
+			echo '<label><input name="default-header" type="radio" value="' . esc_attr( $header_key ) . '" ' . checked( $header_url, get_theme_mod( 'header_image' ), false ) . '>';
 			$width = '';
 			if ( ! empty( $header['attachment_id'] ) ) {
 				$width = ' width="230"';
 			}
-			echo '<img src="' . esc_url( set_url_scheme( $header_thumbnail ) ) . '" alt="' . esc_attr( $header_alt_text ) . '"' . $width . ' /></label>';
+			echo '<img src="' . esc_url( set_url_scheme( $header_thumbnail ) ) . '" alt="' . esc_attr( $header_alt_text ) . '"' . $width . '></label>';
 			echo '</div>';
 		}
 
@@ -592,14 +592,14 @@ class Custom_Image_Header {
 <tr>
 <th scope="row"><?php _e( 'Select Image' ); ?></th>
 <td>
-	<p><?php _e( 'You can select an image to be shown at the top of your site by uploading from your computer or choosing from your media library. After selecting an image you will be able to crop it.' ); ?><br />
+	<p><?php _e( 'You can select an image to be shown at the top of your site by uploading from your computer or choosing from your media library. After selecting an image you will be able to crop it.' ); ?><br>
 			<?php
 			if ( ! current_theme_supports( 'custom-header', 'flex-height' )
 				&& ! current_theme_supports( 'custom-header', 'flex-width' )
 			) {
 				printf(
 					/* translators: 1: Image width in pixels, 2: Image height in pixels. */
-					__( 'Images of exactly <strong>%1$d &times; %2$d pixels</strong> will be used as-is.' ) . '<br />',
+					__( 'Images of exactly <strong>%1$d &times; %2$d pixels</strong> will be used as-is.' ) . '<br>',
 					get_theme_support( 'custom-header', 'width' ),
 					get_theme_support( 'custom-header', 'height' )
 				);
@@ -660,9 +660,9 @@ class Custom_Image_Header {
 	</p>
 	<form enctype="multipart/form-data" id="upload-form" class="wp-upload-form" method="post" action="<?php echo esc_url( add_query_arg( 'step', 2 ) ); ?>">
 	<p>
-		<label for="upload"><?php _e( 'Choose an image from your computer:' ); ?></label><br />
-		<input type="file" id="upload" name="import" />
-		<input type="hidden" name="action" value="save" />
+		<label for="upload"><?php _e( 'Choose an image from your computer:' ); ?></label><br>
+		<input type="file" id="upload" name="import">
+		<input type="hidden" name="action" value="save">
 			<?php wp_nonce_field( 'custom-header-upload', '_wpnonce-custom-header-upload' ); ?>
 			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
 	</p>
@@ -677,7 +677,7 @@ class Custom_Image_Header {
 			);
 			?>
 	<p>
-		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br />
+		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br>
 		<button id="choose-from-library-link" class="button"
 			data-update-link="<?php echo esc_url( $modal_update_href ); ?>"
 			data-choose="<?php esc_attr_e( 'Choose a Custom Header' ); ?>"
@@ -764,7 +764,7 @@ class Custom_Image_Header {
 <th scope="row"><?php _e( 'Header Text' ); ?></th>
 <td>
 	<p>
-	<label><input type="checkbox" name="display-header-text" id="display-header-text"<?php checked( display_header_text() ); ?> /> <?php _e( 'Show header text with your image.' ); ?></label>
+	<label><input type="checkbox" name="display-header-text" id="display-header-text"<?php checked( display_header_text() ); ?>> <?php _e( 'Show header text with your image.' ); ?></label>
 	</p>
 </td>
 </tr>
@@ -789,7 +789,7 @@ class Custom_Image_Header {
 				$header_textcolor = '#' . $header_textcolor;
 			}
 
-			echo '<input type="text" name="text-color" id="text-color" value="' . esc_attr( $header_textcolor ) . '"' . $default_color_attr . ' />';
+			echo '<input type="text" name="text-color" id="text-color" value="' . esc_attr( $header_textcolor ) . '"' . $default_color_attr . '>';
 			if ( $default_color ) {
 				/* translators: %s: Default text color. */
 				echo ' <span class="description hide-if-js">' . sprintf( _x( 'Default: %s', 'color' ), esc_html( $default_color ) ) . '</span>';
@@ -934,17 +934,17 @@ endif;
 	<p class="hide-if-js"><strong><?php _e( 'You need JavaScript to choose a part of the image.' ); ?></strong></p>
 
 	<div id="crop_image" style="position: relative">
-		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo esc_attr( $width ); ?>" height="<?php echo esc_attr( $height ); ?>" alt="" />
+		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo esc_attr( $width ); ?>" height="<?php echo esc_attr( $height ); ?>" alt="">
 	</div>
 
-	<input type="hidden" name="x1" id="x1" value="0" />
-	<input type="hidden" name="y1" id="y1" value="0" />
-	<input type="hidden" name="width" id="width" value="<?php echo esc_attr( $width ); ?>" />
-	<input type="hidden" name="height" id="height" value="<?php echo esc_attr( $height ); ?>" />
-	<input type="hidden" name="attachment_id" id="attachment_id" value="<?php echo esc_attr( $attachment_id ); ?>" />
-	<input type="hidden" name="oitar" id="oitar" value="<?php echo esc_attr( $oitar ); ?>" />
+	<input type="hidden" name="x1" id="x1" value="0">
+	<input type="hidden" name="y1" id="y1" value="0">
+	<input type="hidden" name="width" id="width" value="<?php echo esc_attr( $width ); ?>">
+	<input type="hidden" name="height" id="height" value="<?php echo esc_attr( $height ); ?>">
+	<input type="hidden" name="attachment_id" id="attachment_id" value="<?php echo esc_attr( $attachment_id ); ?>">
+	<input type="hidden" name="oitar" id="oitar" value="<?php echo esc_attr( $oitar ); ?>">
 		<?php if ( empty( $_POST ) && isset( $_GET['file'] ) ) { ?>
-	<input type="hidden" name="create-new-attachment" value="true" />
+	<input type="hidden" name="create-new-attachment" value="true">
 	<?php } ?>
 		<?php wp_nonce_field( 'custom-header-crop-image' ); ?>
 

@@ -521,8 +521,8 @@ class Tests_Comment extends WP_UnitTestCase {
 			$comment_post = self::factory()->post->get_object_by_id( self::$post_id );
 		}
 
-		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID' />\n";
-		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='" . $_GET['replytocom'] . "' />\n";
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . self::$post_id . "' id='comment_post_ID'>\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='" . $_GET['replytocom'] . "'>\n";
 		$actual    = get_comment_id_fields( $comment_post );
 
 		$this->assertSame( $expected, $actual );
@@ -661,8 +661,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment_post_id = $comment_post instanceof WP_Post ? $comment_post->ID : $comment_post;
 
-		$expected  = "<input type='hidden' name='comment_post_ID' value='" . $comment_post_id . "' id='comment_post_ID' />\n";
-		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0' />\n";
+		$expected  = "<input type='hidden' name='comment_post_ID' value='" . $comment_post_id . "' id='comment_post_ID'>\n";
+		$expected .= "<input type='hidden' name='comment_parent' id='comment_parent' value='0'>\n";
 		$actual    = get_comment_id_fields( $comment_post );
 
 		$this->assertSame( $expected, $actual );

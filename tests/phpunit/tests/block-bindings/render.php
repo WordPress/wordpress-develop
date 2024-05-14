@@ -180,7 +180,7 @@ HTML;
 
 		$block_content = <<<HTML
 <!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"}}}} -->
-<figure class="wp-block-image"><img alt=""/></figure>
+<figure class="wp-block-image"><img alt=""></figure>
 <!-- /wp:image -->
 HTML;
 		$parsed_blocks = parse_blocks( $block_content );
@@ -193,7 +193,7 @@ HTML;
 			"The 'url' attribute should be updated with the value returned by the source."
 		);
 		$this->assertSame(
-			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/></figure>',
+			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""></figure>',
 			trim( $result ),
 			'The block content should be updated with the value returned by the source.'
 		);

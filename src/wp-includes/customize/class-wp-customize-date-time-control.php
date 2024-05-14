@@ -154,7 +154,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 						esc_html_e( 'Day' );
 						?>
 					</label>
-					<input id="{{ idPrefix }}date-time-day" type="number" size="2" autocomplete="off" class="date-input day" data-component="day" min="1" max="31" />
+					<input id="{{ idPrefix }}date-time-day" type="number" size="2" autocomplete="off" class="date-input day" data-component="day" min="1" max="31">
 					<?php $day_field = trim( ob_get_clean() ); ?>
 
 					<?php ob_start(); ?>

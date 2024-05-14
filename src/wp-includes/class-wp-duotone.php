@@ -709,14 +709,14 @@ class WP_Duotone {
 							.299 .587 .114 0 0
 							.299 .587 .114 0 0
 						"
-					/>
+					>
 					<feComponentTransfer color-interpolation-filters="sRGB" >
-						<feFuncR type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ?>" />
-						<feFuncG type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ?>" />
-						<feFuncB type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ?>" />
-						<feFuncA type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ?>" />
+						<feFuncR type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['r'] ) ); ?>">
+						<feFuncG type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['g'] ) ); ?>">
+						<feFuncB type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['b'] ) ); ?>">
+						<feFuncA type="table" tableValues="<?php echo esc_attr( implode( ' ', $duotone_values['a'] ) ); ?>">
 					</feComponentTransfer>
-					<feComposite in2="SourceGraphic" operator="in" />
+					<feComposite in2="SourceGraphic" operator="in">
 				</filter>
 			</defs>
 		</svg>

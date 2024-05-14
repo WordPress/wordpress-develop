@@ -117,7 +117,7 @@ if ( ! empty( $messages ) ) {
 ?>
 <form method="post" action="site-settings.php?action=update-site">
 	<?php wp_nonce_field( 'edit-site' ); ?>
-	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>">
 	<table class="form-table" role="presentation">
 		<?php
 		$blog_prefix = $wpdb->get_blog_prefix( $id );
@@ -163,7 +163,7 @@ if ( ! empty( $messages ) ) {
 					<?php if ( $is_main_site && in_array( $option->option_name, array( 'siteurl', 'home' ), true ) ) { ?>
 					<td><code><?php echo esc_html( $option->option_value ); ?></code></td>
 					<?php } else { ?>
-					<td><input class="<?php echo $class; ?>" name="option[<?php echo esc_attr( $option->option_name ); ?>]" type="text" id="<?php echo esc_attr( $option->option_name ); ?>" value="<?php echo esc_attr( $option->option_value ); ?>" size="40" <?php disabled( $disabled ); ?> /></td>
+					<td><input class="<?php echo $class; ?>" name="option[<?php echo esc_attr( $option->option_name ); ?>]" type="text" id="<?php echo esc_attr( $option->option_name ); ?>" value="<?php echo esc_attr( $option->option_value ); ?>" size="40" <?php disabled( $disabled ); ?>></td>
 					<?php } ?>
 				</tr>
 				<?php

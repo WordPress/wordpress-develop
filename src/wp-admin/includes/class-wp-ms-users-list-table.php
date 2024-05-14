@@ -189,7 +189,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$users_columns = array(
-			'cb'         => '<input type="checkbox" />',
+			'cb'         => '<input type="checkbox">',
 			'username'   => __( 'Username' ),
 			'name'       => __( 'Name' ),
 			'email'      => __( 'Email' ),
@@ -235,7 +235,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			return;
 		}
 		?>
-		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
+		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>">
 		<label for="blog_<?php echo $user->ID; ?>">
 			<span class="screen-reader-text">
 			<?php
@@ -449,7 +449,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 				echo "<span class='$action'>{$link}{$separator}</span>";
 			}
 
-			echo '</small></span><br />';
+			echo '</small></span><br>';
 		}
 	}
 

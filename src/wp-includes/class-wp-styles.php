@@ -117,14 +117,6 @@ class WP_Styles extends WP_Dependencies {
 	 * @since 2.6.0
 	 */
 	public function __construct() {
-		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-		&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'style' )
-		) {
-			$this->type_attr = " type='text/css'";
-		}
-
 		/**
 		 * Fires when the WP_Styles instance is initialized.
 		 *
@@ -227,7 +219,7 @@ class WP_Styles extends WP_Dependencies {
 		$title = isset( $obj->extra['title'] ) ? sprintf( " title='%s'", esc_attr( $obj->extra['title'] ) ) : '';
 
 		$tag = sprintf(
-			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s' />\n",
+			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s'>\n",
 			$rel,
 			$handle,
 			$title,
@@ -259,7 +251,7 @@ class WP_Styles extends WP_Dependencies {
 			}
 
 			$rtl_tag = sprintf(
-				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s' />\n",
+				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s'>\n",
 				$rel,
 				$handle,
 				$title,

@@ -49,11 +49,11 @@ $die .= '<p>' . sprintf(
 ) . '</p>';
 
 $die .= '<ul>';
-$die .= '<li>' . __( 'To build WordPress while developing, run:' ) . '<br /><br />';
+$die .= '<li>' . __( 'To build WordPress while developing, run:' ) . '<br><br>';
 $die .= '<code style="color: green;">npm run dev</code></li>';
-$die .= '<li>' . __( 'To build files automatically when changing the source files, run:' ) . '<br /><br />';
+$die .= '<li>' . __( 'To build files automatically when changing the source files, run:' ) . '<br><br>';
 $die .= '<code style="color: green;">npm run watch</code></li>';
-$die .= '<li>' . __( 'To create a production build of WordPress, run:' ) . '<br /><br />';
+$die .= '<li>' . __( 'To create a production build of WordPress, run:' ) . '<br><br>';
 $die .= '<code style="color: green;">npm run build</code></li>';
 $die .= '</ul>';
 

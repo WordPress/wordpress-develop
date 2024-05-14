@@ -105,9 +105,9 @@ function setup_config_display_header( $body_classes = array() ) {
 <!DOCTYPE html>
 <html<?php echo $dir_attr; ?>>
 <head>
-	<meta name="viewport" content="width=device-width" />
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="robots" content="noindex,nofollow" />
+	<meta name="viewport" content="width=device-width">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="robots" content="noindex,nofollow">
 	<title><?php _e( 'WordPress &rsaquo; Setup Configuration File' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
@@ -227,19 +227,19 @@ switch ( $step ) {
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="dbname"><?php _e( 'Database Name' ); ?></label></th>
-			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>/>
+			<td><input name="dbname" id="dbname" type="text" aria-describedby="dbname-desc" size="25" placeholder="wordpress"<?php echo $autofocus; ?>>
 			<p id="dbname-desc"><?php _e( 'The name of the database you want to use with WordPress.' ); ?></p></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="uname"><?php _e( 'Username' ); ?></label></th>
-			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>" />
+			<td><input name="uname" id="uname" type="text" aria-describedby="uname-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'username', 'example username' ), ENT_QUOTES ); ?>">
 			<p id="uname-desc"><?php _e( 'Your database username.' ); ?></p></td>
 		</tr>
 		<tr>
 			<th scope="row"><label for="pwd"><?php _e( 'Password' ); ?></label></th>
 			<td>
 				<div class="wp-pwd">
-					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false" />
+					<input name="pwd" id="pwd" type="password" class="regular-text" data-reveal="1" aria-describedby="pwd-desc" size="25" placeholder="<?php echo htmlspecialchars( _x( 'password', 'example password' ), ENT_QUOTES ); ?>" autocomplete="off" spellcheck="false">
 					<button type="button" class="button pwd-toggle hide-if-no-js" data-toggle="0" data-start-masked="1" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility"></span>
 						<span class="text"><?php _e( 'Show' ); ?></span>
@@ -250,7 +250,7 @@ switch ( $step ) {
 		</tr>
 		<tr>
 			<th scope="row"><label for="dbhost"><?php _e( 'Database Host' ); ?></label></th>
-			<td><input name="dbhost" id="dbhost" type="text" aria-describedby="dbhost-desc" size="25" value="localhost" />
+			<td><input name="dbhost" id="dbhost" type="text" aria-describedby="dbhost-desc" size="25" value="localhost">
 			<p id="dbhost-desc">
 			<?php
 				/* translators: %s: localhost */
@@ -260,16 +260,16 @@ switch ( $step ) {
 		</tr>
 		<tr>
 			<th scope="row"><label for="prefix"><?php _e( 'Table Prefix' ); ?></label></th>
-			<td><input name="prefix" id="prefix" type="text" aria-describedby="prefix-desc" value="wp_" size="25" />
+			<td><input name="prefix" id="prefix" type="text" aria-describedby="prefix-desc" value="wp_" size="25">
 			<p id="prefix-desc"><?php _e( 'If you want to run multiple WordPress installations in a single database, change this.' ); ?></p></td>
 		</tr>
 	</table>
 		<?php
 		if ( isset( $_GET['noapi'] ) ) {
 			?>
-<input name="noapi" type="hidden" value="1" /><?php } ?>
-	<input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>" />
-	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large" /></p>
+<input name="noapi" type="hidden" value="1"><?php } ?>
+	<input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>">
+	<p class="step"><input name="submit" type="submit" value="<?php echo htmlspecialchars( __( 'Submit' ), ENT_QUOTES ); ?>" class="button button-large"></p>
 </form>
 		<?php
 		wp_print_scripts( 'password-toggle' );

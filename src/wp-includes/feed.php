@@ -410,7 +410,7 @@ function get_the_category_rss( $type = null ) {
 		if ( 'rdf' === $type ) {
 			$the_list .= "\t\t<dc:subject><![CDATA[$cat_name]]></dc:subject>\n";
 		} elseif ( 'atom' === $type ) {
-			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s" />', esc_attr( get_bloginfo_rss( 'url' ) ), esc_attr( $cat_name ) );
+			$the_list .= sprintf( '<category scheme="%1$s" term="%2$s">', esc_attr( get_bloginfo_rss( 'url' ) ), esc_attr( $cat_name ) );
 		} else {
 			$the_list .= "\t\t<category><![CDATA[" . html_entity_decode( $cat_name, ENT_COMPAT, get_option( 'blog_charset' ) ) . "]]></category>\n";
 		}
@@ -493,7 +493,7 @@ function rss_enclosure() {
 				 *
 				 * @param string $html_link_tag The HTML link tag with a URI and other attributes.
 				 */
-				echo apply_filters( 'rss_enclosure', '<enclosure url="' . esc_url( trim( $enclosure[0] ) ) . '" length="' . absint( trim( $enclosure[1] ) ) . '" type="' . esc_attr( $type ) . '" />' . "\n" );
+				echo apply_filters( 'rss_enclosure', '<enclosure url="' . esc_url( trim( $enclosure[0] ) ) . '" length="' . absint( trim( $enclosure[1] ) ) . '" type="' . esc_attr( $type ) . '">' . "\n" );
 			}
 		}
 	}
@@ -545,7 +545,7 @@ function atom_enclosure() {
 				}
 
 				$html_link_tag = sprintf(
-					"<link href=\"%s\" rel=\"enclosure\" length=\"%d\" type=\"%s\" />\n",
+					"<link href=\"%s\" rel=\"enclosure\" length=\"%d\" type=\"%s\">\n",
 					esc_url( $url ),
 					esc_attr( $length ),
 					esc_attr( $type )

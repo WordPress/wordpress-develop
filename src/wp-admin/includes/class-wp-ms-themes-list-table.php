@@ -328,7 +328,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
-			'cb'          => '<input type="checkbox" />',
+			'cb'          => '<input type="checkbox">',
 			'name'        => __( 'Theme' ),
 			'description' => __( 'Description' ),
 		);
@@ -515,7 +515,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
-		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
+		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>">
 		<label for="<?php echo $checkbox_id; ?>" >
 			<span class="screen-reader-text">
 			<?php

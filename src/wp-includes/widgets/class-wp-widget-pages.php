@@ -92,28 +92,17 @@ class WP_Widget_Pages extends WP_Widget {
 				echo $args['before_title'] . $title . $args['after_title'];
 			}
 
-			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
-
-			/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
-			$format = apply_filters( 'navigation_widgets_format', $format );
-
-			if ( 'html5' === $format ) {
-				// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
-				$title      = trim( strip_tags( $title ) );
-				$aria_label = $title ? $title : $default_title;
-				echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
-			}
+			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+			$title      = trim( strip_tags( $title ) );
+			$aria_label = $title ? $title : $default_title;
 			?>
-
+			<nav aria-label="<?php echo esc_attr( $aria_label ); ?>">
 			<ul>
 				<?php echo $output; ?>
 			</ul>
+			</nav>
 
 			<?php
-			if ( 'html5' === $format ) {
-				echo '</nav>';
-			}
-
 			echo $args['after_widget'];
 		}
 	}
@@ -162,7 +151,7 @@ class WP_Widget_Pages extends WP_Widget {
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:' ); ?></label>
-			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>">
 		</p>
 
 		<p>
@@ -176,8 +165,8 @@ class WP_Widget_Pages extends WP_Widget {
 
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>"><?php _e( 'Exclude:' ); ?></label>
-			<input type="text" value="<?php echo esc_attr( $instance['exclude'] ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'exclude' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>" class="widefat" />
-			<br />
+			<input type="text" value="<?php echo esc_attr( $instance['exclude'] ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'exclude' ) ); ?>" id="<?php echo esc_attr( $this->get_field_id( 'exclude' ) ); ?>" class="widefat">
+			<br>
 			<small><?php _e( 'Page IDs, separated by commas.' ); ?></small>
 		</p>
 		<?php

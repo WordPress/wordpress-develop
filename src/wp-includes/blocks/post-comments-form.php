@@ -39,7 +39,7 @@ function render_block_core_post_comments_form( $attributes, $content, $block ) {
 
 	remove_filter( 'comment_form_defaults', 'post_comments_form_block_form_defaults' );
 
-	// We use the outermost wrapping `<div />` returned by `comment_form()`
+	// We use the outermost wrapping `<div>` returned by `comment_form()`
 	// which is identified by its default classname `comment-respond` to inject
 	// our wrapper attributes. This way, it is guaranteed that all styling applied
 	// to the block is carried along when the comment form is moved to the location
@@ -74,7 +74,7 @@ add_action( 'init', 'register_block_core_post_comments_form' );
  */
 function post_comments_form_block_form_defaults( $fields ) {
 	if ( wp_is_block_theme() ) {
-		$fields['submit_button'] = '<input name="%1$s" type="submit" id="%2$s" class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '" value="%4$s" />';
+		$fields['submit_button'] = '<input name="%1$s" type="submit" id="%2$s" class="wp-block-button__link ' . wp_theme_get_element_class_name( 'button' ) . '" value="%4$s">';
 		$fields['submit_field']  = '<p class="form-submit wp-block-button">%1$s %2$s</p>';
 	}
 

@@ -132,8 +132,8 @@ if ( $r < $rt ) {
 	echo "Redirect $r of $rt";
 	exit;
 }
-echo "Redirect $r of $rt is FINAL.<br/>";
-echo "GET['rt'] = Total times to redirect. Defaults to 5.<br />";
-echo "GET['r'] = Current redirection. Defaults to 0.<br />";
+echo "Redirect $r of $rt is FINAL.<br>";
+echo "GET['rt'] = Total times to redirect. Defaults to 5.<br>";
+echo "GET['r'] = Current redirection. Defaults to 0.<br>";
 echo "<a href='$url?source=true'>View Source</a>";
 

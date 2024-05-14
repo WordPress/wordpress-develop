@@ -179,7 +179,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( '&#8220;12345&#8221;', wptexturize( '"12345"' ) );
 		$this->assertSame( '&#8216;12345&#8217;', wptexturize( '\'12345\'' ) );
 		$this->assertSame( '&#8220;a 9&#8242; plus a &#8216;9&#8217;, maybe a 9&#8242; &#8216;9&#8217;&#8221;', wptexturize( '"a 9\' plus a \'9\', maybe a 9\' \'9\'"' ) );
-		$this->assertSame( '<p>&#8217;99<br />&#8216;123&#8217;<br />&#8217;tis<br />&#8216;s&#8217;</p>', wptexturize( '<p>\'99<br />\'123\'<br />\'tis<br />\'s\'</p>' ) );
+		$this->assertSame( '<p>&#8217;99<br>&#8216;123&#8217;<br>&#8217;tis<br>&#8216;s&#8217;</p>', wptexturize( '<p>\'99<br>\'123\'<br>\'tis<br>\'s\'</p>' ) );
 	}
 
 	/**
@@ -1317,24 +1317,24 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 				'[gallery &#8230;',
 			),
 			array(
-				'[gallery <br ... /> ...]', // This tag is still valid. Shortcode 'attributes' are not considered
-				'[gallery <br ... /> ...]', // in the initial parsing of shortcodes, and HTML is allowed.
+				'[gallery <br ...> ...]', // This tag is still valid. Shortcode 'attributes' are not considered
+				'[gallery <br ...> ...]', // in the initial parsing of shortcodes, and HTML is allowed.
 			),
 			array(
-				'<br [gallery ...] ... />',
-				'<br [gallery ...] ... />',
+				'<br [gallery ...] ...>',
+				'<br [gallery ...] ...>',
 			),
 			array(
 				'<br [gallery ...] ... /',
 				'<br [gallery ...] ... /',
 			),
 			array(
-				'<br ... />',
-				'<br ... />',
+				'<br ...>',
+				'<br ...>',
 			),
 			array(
-				'<br ... />...<br ... />',
-				'<br ... />&#8230;<br ... />',
+				'<br ...>...<br ...>',
+				'<br ...>&#8230;<br ...>',
 			),
 			array(
 				'[gallery ...]...[gallery ...]',
@@ -1357,12 +1357,12 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 				'[/gallery ...]]',
 			),
 			array(
-				'[[gallery <br ... /> ...]]', // This gets parsed as an escaped shortcode with embedded HTML. Brains may explode.
-				'[[gallery <br ... /> ...]]',
+				'[[gallery <br ...> ...]]', // This gets parsed as an escaped shortcode with embedded HTML. Brains may explode.
+				'[[gallery <br ...> ...]]',
 			),
 			array(
-				'<br [[gallery ...]] ... />',
-				'<br [[gallery ...]] ... />',
+				'<br [[gallery ...]] ...>',
+				'<br [[gallery ...]] ...>',
 			),
 			array(
 				'<br [[gallery ...]] ... /',
@@ -1421,24 +1421,24 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 				'a<!-- <!-- c --> &#8211;>b<!-- close -->',
 			),
 			array(
-				'<!-- <br /> [gallery] ... -->',
-				'<!-- <br /> [gallery] ... -->',
+				'<!-- <br> [gallery] ... -->',
+				'<!-- <br> [gallery] ... -->',
 			),
 			array(
 				'...<!-- ... -->...',
 				'&#8230;<!-- ... -->&#8230;',
 			),
 			array(
-				'[gallery ...]...<!-- ... -->...<br ... />',
-				'[gallery ...]&#8230;<!-- ... -->&#8230;<br ... />',
+				'[gallery ...]...<!-- ... -->...<br ...>',
+				'[gallery ...]&#8230;<!-- ... -->&#8230;<br ...>',
 			),
 			array(
 				'<ul><li>Hello.</li><!--<li>Goodbye.</li>--></ul>',
 				'<ul><li>Hello.</li><!--<li>Goodbye.</li>--></ul>',
 			),
 			array(
-				'word <img src="http://example.com/wp-content/uploads/2014/06/image-300x216.gif" /> word', // Ensure we are not corrupting image URLs.
-				'word <img src="http://example.com/wp-content/uploads/2014/06/image-300x216.gif" /> word',
+				'word <img src="http://example.com/wp-content/uploads/2014/06/image-300x216.gif"> word', // Ensure we are not corrupting image URLs.
+				'word <img src="http://example.com/wp-content/uploads/2014/06/image-300x216.gif"> word',
 			),
 			array(
 				'[ do texturize "[quote]" here ]',

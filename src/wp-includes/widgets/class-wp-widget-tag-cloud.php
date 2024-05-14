@@ -34,6 +34,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 	 * Outputs the content for the current Tag Cloud widget instance.
 	 *
 	 * @since 2.8.0
+	 * @since 6.6.0 Only supports HTML5.
 	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
@@ -93,28 +94,14 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
-		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
-
-		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
-		$format = apply_filters( 'navigation_widgets_format', $format );
-
-		if ( 'html5' === $format ) {
-			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
-			$title      = trim( strip_tags( $title ) );
-			$aria_label = $title ? $title : $default_title;
-			echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
-		}
-
+		// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+		$title      = trim( strip_tags( $title ) );
+		$aria_label = $title ? $title : $default_title;
+		echo '<nav aria-label="' . esc_attr( $aria_label ) . '">';
 		echo '<div class="tagcloud">';
-
 		echo $tag_cloud;
-
 		echo "</div>\n";
-
-		if ( 'html5' === $format ) {
-			echo '</nav>';
-		}
-
+		echo '</nav>';
 		echo $args['after_widget'];
 	}
 
@@ -149,7 +136,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
-			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
+			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>">
 		</p>
 		<?php
 		$taxonomies       = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
@@ -160,7 +147,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			// No tag cloud supporting taxonomies found, display error message.
 			case 0:
 				?>
-				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="" />
+				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="">
 				<p>
 					<?php _e( 'The tag cloud will not be displayed since there are no taxonomies that support the tag cloud widget.' ); ?>
 				</p>
@@ -172,7 +159,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 				$keys     = array_keys( $taxonomies );
 				$taxonomy = reset( $keys );
 				?>
-				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="<?php echo esc_attr( $taxonomy ); ?>" />
+				<input type="hidden" id="<?php echo $this->get_field_id( 'taxonomy' ); ?>" name="<?php echo $this->get_field_name( 'taxonomy' ); ?>" value="<?php echo esc_attr( $taxonomy ); ?>">
 				<?php
 				break;
 
@@ -195,7 +182,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 		if ( count( $taxonomies ) > 0 ) {
 			?>
 			<p>
-				<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" <?php checked( $count, true ); ?> />
+				<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" <?php checked( $count, true ); ?>>
 				<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show tag counts' ); ?></label>
 			</p>
 			<?php

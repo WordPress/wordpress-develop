@@ -344,7 +344,7 @@ if ( isset( $_REQUEST['approved'] )
 				_n( '%s comment marked as spam.', '%s comments marked as spam.', $spammed ),
 				$spammed
 			) . sprintf(
-				' <a href="%1$s">%2$s</a><br />',
+				' <a href="%1$s">%2$s</a><br>',
 				esc_url( wp_nonce_url( "edit-comments.php?doaction=undo&action=unspam&ids=$ids", 'bulk-comments' ) ),
 				__( 'Undo' )
 			);
@@ -366,7 +366,7 @@ if ( isset( $_REQUEST['approved'] )
 				_n( '%s comment moved to the Trash.', '%s comments moved to the Trash.', $trashed ),
 				$trashed
 			) . sprintf(
-				' <a href="%1$s">%2$s</a><br />',
+				' <a href="%1$s">%2$s</a><br>',
 				esc_url( wp_nonce_url( "edit-comments.php?doaction=undo&action=untrash&ids=$ids", 'bulk-comments' ) ),
 				__( 'Undo' )
 			);
@@ -418,7 +418,7 @@ if ( isset( $_REQUEST['approved'] )
 		}
 
 		wp_admin_notice(
-			implode( "<br />\n", $messages ),
+			implode( "<br>\n", $messages ),
 			array(
 				'id'                 => 'moderated',
 				'additional_classes' => array( 'updated' ),
@@ -436,17 +436,17 @@ if ( isset( $_REQUEST['approved'] )
 <?php $wp_list_table->search_box( __( 'Search Comments' ), 'comment' ); ?>
 
 <?php if ( $post_id ) : ?>
-<input type="hidden" name="p" value="<?php echo esc_attr( (int) $post_id ); ?>" />
+<input type="hidden" name="p" value="<?php echo esc_attr( (int) $post_id ); ?>">
 <?php endif; ?>
-<input type="hidden" name="comment_status" value="<?php echo esc_attr( $comment_status ); ?>" />
-<input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', 1 ) ); ?>" />
+<input type="hidden" name="comment_status" value="<?php echo esc_attr( $comment_status ); ?>">
+<input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', 1 ) ); ?>">
 
-<input type="hidden" name="_total" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'total_items' ) ); ?>" />
-<input type="hidden" name="_per_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'per_page' ) ); ?>" />
-<input type="hidden" name="_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'page' ) ); ?>" />
+<input type="hidden" name="_total" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'total_items' ) ); ?>">
+<input type="hidden" name="_per_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'per_page' ) ); ?>">
+<input type="hidden" name="_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'page' ) ); ?>">
 
 <?php if ( isset( $_REQUEST['paged'] ) ) { ?>
-	<input type="hidden" name="paged" value="<?php echo esc_attr( absint( $_REQUEST['paged'] ) ); ?>" />
+	<input type="hidden" name="paged" value="<?php echo esc_attr( absint( $_REQUEST['paged'] ) ); ?>">
 <?php } ?>
 
 <?php $wp_list_table->display(); ?>

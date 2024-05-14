@@ -136,27 +136,27 @@ class Tests_Kses extends WP_UnitTestCase {
 		return array(
 			// Set 0: Valid post object params in post context.
 			array(
-				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16>',
 				'post',
-				'<video src="movie.mov" autoplay controls height="9" loop muted poster="still.gif" playsinline preload width="16" />',
+				'<video src="movie.mov" autoplay controls height="9" loop muted poster="still.gif" playsinline preload width="16">',
 			),
 			// Set 1: Valid post object params in data context.
 			array(
-				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16 />',
+				'<video src="movie.mov" autoplay controls height=9 loop muted poster="still.gif" playsinline preload width=16>',
 				'data',
 				'',
 			),
 			// Set 2: Disallowed urls in post context.
 			array(
-				'<video src="bad://w.org/movie.mov" poster="bad://w.org/movie.jpg" />',
+				'<video src="bad://w.org/movie.mov" poster="bad://w.org/movie.jpg">',
 				'post',
-				'<video src="//w.org/movie.mov" poster="//w.org/movie.jpg" />',
+				'<video src="//w.org/movie.mov" poster="//w.org/movie.jpg">',
 			),
 			// Set 3: Disallowed attributes in post context.
 			array(
-				'<video onload="alert(1);" src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4" />',
+				'<video onload="alert(1);" src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4">',
 				'post',
-				'<video src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4" />',
+				'<video src="https://videos.files.wordpress.com/DZEMDKxc/video-0f9c363010.mp4">',
 			),
 		);
 	}
@@ -771,8 +771,8 @@ EOF;
 				false,
 			),
 			array(
-				'<img title="hello" src="#" id="my_id" />',
-				array( '<img ', 'title="hello" ', 'src="#" ', 'id="my_id"', ' />' ),
+				'<img title="hello" src="#" id="my_id">',
+				array( '<img ', 'title="hello" ', 'src="#" ', 'id="my_id"', '>' ),
 			),
 		);
 	}
@@ -1686,7 +1686,7 @@ EOF;
 			'height="1000"',
 			'alt=""',
 			'class="wp-image-1000"',
-			'/>',
+			'>',
 		);
 
 		$html = implode( ' ', $html );
@@ -1704,7 +1704,7 @@ EOF;
 			'<main',
 			'class="wp-group-block"',
 			'style="padding:10px"',
-			'/>',
+			'>',
 		);
 
 		$html = implode( ' ', $test );
@@ -1732,92 +1732,92 @@ EOF;
 	public function data_wp_kses_object_tag_allowed() {
 		return array(
 			'valid value for type'                    => array(
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'invalid value for type'                  => array(
-				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
+				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe">',
 				'',
 			),
 			'multiple type attributes, last invalid'  => array(
-				'<object type="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'multiple type attributes, first uppercase, last invalid' => array(
-				'<object TYPE="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object TYPE="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
+				'<object TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'multiple type attributes, last upper case and invalid' => array(
-				'<object type="application/pdf" TYPE="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" TYPE="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'multiple type attributes, first invalid' => array(
-				'<object type="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
-				'<object TYPE="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object TYPE="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
-				'<object type="application/exe" TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/exe" TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'multiple object tags, last invalid'      => array(
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf"><object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe">',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'multiple object tags, first invalid'     => array(
-				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" /><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe"><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'type attribute with partially incorrect value' => array(
-				'<object type="application/pdfa" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdfa" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'type attribute with empty value'         => array(
-				'<object type="" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'type attribute with no value'            => array(
-				'<object type data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'no type attribute'                       => array(
-				'<object data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object data="https://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'different protocol in url'               => array(
-				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf">',
+				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 			),
 			'query string on url'                     => array(
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf?lol=.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf?lol=.pdf">',
 				'',
 			),
 			'fragment on url'                         => array(
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf#lol.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf#lol.pdf">',
 				'',
 			),
 			'wrong extension'                         => array(
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.php" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.php">',
 				'',
 			),
 			'protocol-relative url'                   => array(
-				'<object type="application/pdf" data="//' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="//' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'unsupported protocol'                    => array(
-				'<object type="application/pdf" data="ftp://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="ftp://' . WP_TESTS_DOMAIN . '/foo.pdf">',
 				'',
 			),
 			'relative url'                            => array(
-				'<object type="application/pdf" data="/cat/foo.pdf" />',
+				'<object type="application/pdf" data="/cat/foo.pdf">',
 				'',
 			),
 			'url with port number-like path'          => array(
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf">',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf">',
 			),
 		);
 	}
@@ -1843,19 +1843,19 @@ EOF;
 	public function data_wp_kses_object_data_url_with_port_number_allowed() {
 		return array(
 			'url with port number'                   => array(
-				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
-				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf">',
+				'<object type="application/pdf" data="https://example.org:8888/cat/foo.pdf">',
 			),
 			'url with port number and http protocol' => array(
-				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
-				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf">',
+				'<object type="application/pdf" data="http://example.org:8888/cat/foo.pdf">',
 			),
 			'url with wrong port number'             => array(
-				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf">',
 				'',
 			),
 			'url without port number'                => array(
-				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
+				'<object type="application/pdf" data="http://example.org/cat/foo.pdf">',
 				'',
 			),
 		);
@@ -1888,9 +1888,9 @@ EOF;
 	 */
 	public function test_wp_kses_object_added_in_html_filter() {
 		$html = <<<HTML
-<object type="application/pdf" data="https://wordpress.org/foo.pdf" />
+<object type="application/pdf" data="https://wordpress.org/foo.pdf">
 <object type="application/x-shockwave-flash" data="https://wordpress.org/foo.swf">
-	<param name="foo" value="bar" />
+	<param name="foo" value="bar">
 </object>
 HTML;
 

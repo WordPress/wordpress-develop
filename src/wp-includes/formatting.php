@@ -433,7 +433,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
  *
  * A group of regex replaces used to identify text formatted with newlines and
  * replace double line breaks with HTML paragraph tags. The remaining line breaks
- * after conversion become `<br />` tags, unless `$br` is set to '0' or 'false'.
+ * after conversion become `<br>` tags, unless `$br` is set to '0' or 'false'.
  *
  * @since 0.71
  *
@@ -487,7 +487,7 @@ function wpautop( $text, $br = true ) {
 	$allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
 
 	// Add a double line break above block-level opening tags.
-	$text = preg_replace( '!(<' . $allblocks . '[\s/>])!', "\n\n$1", $text );
+	$text = preg_replace( '!(<' . $allblocks . '[\s>])!', "\n\n$1", $text );
 
 	// Add a double line break below block-level closing tags.
 	$text = preg_replace( '!(</' . $allblocks . '>)!', "$1\n\n", $text );
@@ -575,20 +575,20 @@ function wpautop( $text, $br = true ) {
 		$text = preg_replace_callback( '/<(script|style|svg|math).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
 
 		// Normalize <br>
-		$text = str_replace( array( '<br>', '<br/>' ), '<br />', $text );
+		$text = str_replace( array( '<br>', '<br>' ), '<br>', $text );
 
-		// Replace any new line characters that aren't preceded by a <br /> with a <br />.
-		$text = preg_replace( '|(?<!<br />)\s*\n|', "<br />\n", $text );
+		// Replace any new line characters that aren't preceded by a <br> with a <br>.
+		$text = preg_replace( '|(?<!<br>)\s*\n|', "<br>\n", $text );
 
 		// Replace newline placeholders with newlines.
-		$text = str_replace( '<WPPreserveNewline />', "\n", $text );
+		$text = str_replace( '<WPPreserveNewline>', "\n", $text );
 	}
 
-	// If a <br /> tag is after an opening or closing block tag, remove it.
-	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*<br />!', '$1', $text );
+	// If a <br> tag is after an opening or closing block tag, remove it.
+	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*<br>!', '$1', $text );
 
-	// If a <br /> tag is before a subset of opening or closing block tags, remove it.
-	$text = preg_replace( '!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $text );
+	// If a <br> tag is before a subset of opening or closing block tags, remove it.
+	$text = preg_replace( '!<br>(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $text );
 	$text = preg_replace( "|\n</p>$|", '</p>', $text );
 
 	// Replace placeholder <pre> tags with their original content.
@@ -806,7 +806,7 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
  * @return string
  */
 function _autop_newline_preservation_helper( $matches ) {
-	return str_replace( "\n", '<WPPreserveNewline />', $matches[0] );
+	return str_replace( "\n", '<WPPreserveNewline>', $matches[0] );
 }
 
 /**
@@ -2684,7 +2684,6 @@ function force_balance_tags( $text ) {
 			} elseif ( $is_single_tag ) {
 				// Else if it's a known single-entity tag but it doesn't close itself, do so.
 				$pre_attribute_ws = ' ';
-				$attributes      .= '/';
 			} else {
 				/*
 				 * It's not a single-entity tag.
@@ -2699,7 +2698,7 @@ function force_balance_tags( $text ) {
 
 			// Attributes.
 			if ( $has_self_closer && $is_single_tag ) {
-				// We need some space - avoid <br/> and prefer <br />.
+				// We need some space - avoid <br> and prefer <br>.
 				$pre_attribute_ws = ' ';
 			}
 
@@ -3482,7 +3481,7 @@ function translate_smiley( $matches ) {
 	 */
 	$src_url = apply_filters( 'smilies_src', includes_url( "images/smilies/$img" ), $img, site_url() );
 
-	return sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', esc_url( $src_url ), esc_attr( $smiley ) );
+	return sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;">', esc_url( $src_url ), esc_attr( $smiley ) );
 }
 
 /**
@@ -6071,7 +6070,7 @@ function wp_staticize_emoji( $text ) {
 				$file = str_replace( ';&#x', '-', $emojum );
 				$file = str_replace( array( '&#x', ';' ), '', $file );
 
-				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;" />', $cdn_url . $file . $ext, $emoji_char );
+				$entity = sprintf( '<img src="%s" alt="%s" class="wp-smiley" style="height: 1em; max-height: 1em;">', $cdn_url . $file . $ext, $emoji_char );
 
 				$content = str_replace( $emojum, $entity, $content );
 			}

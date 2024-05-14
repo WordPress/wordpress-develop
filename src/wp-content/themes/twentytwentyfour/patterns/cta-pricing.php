@@ -54,7 +54,7 @@
 					<!-- /wp:paragraph -->
 
 					<!-- wp:separator {"backgroundColor":"contrast-3"} -->
-					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide" />
+					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:paragraph {"align":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|contrast-2"}}}},"textColor":"contrast-2"} -->
@@ -64,7 +64,7 @@
 					<!-- /wp:paragraph -->
 
 					<!-- wp:separator {"backgroundColor":"contrast-3"} -->
-					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide" />
+					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:paragraph {"align":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|contrast-2"}}}},"textColor":"contrast-2"} -->
@@ -116,7 +116,7 @@
 					<!-- /wp:paragraph -->
 
 					<!-- wp:separator {"backgroundColor":"contrast-3"} -->
-					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide" />
+					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:paragraph {"align":"center"} -->
@@ -124,7 +124,7 @@
 					<!-- /wp:paragraph -->
 
 					<!-- wp:separator {"backgroundColor":"contrast-3"} -->
-					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide" />
+					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:paragraph {"align":"center"} -->
@@ -174,7 +174,7 @@
 					<!-- /wp:paragraph -->
 
 					<!-- wp:separator {"backgroundColor":"contrast-3"} -->
-					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide" />
+					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:paragraph {"align":"center"} -->
@@ -182,7 +182,7 @@
 					<!-- /wp:paragraph -->
 
 					<!-- wp:separator {"backgroundColor":"contrast-3"} -->
-					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide" />
+					<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:paragraph {"align":"center"} -->

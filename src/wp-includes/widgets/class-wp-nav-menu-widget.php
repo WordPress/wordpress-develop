@@ -59,36 +59,29 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
-		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
-
 		/**
 		 * Filters the HTML format of widgets with navigation links.
 		 *
 		 * @since 5.5.0
 		 *
+		 * @deprecated 6.6.0 Only supports HTML5.
+		 *
 		 * @param string $format The type of markup to use in widgets with navigation links.
 		 *                       Accepts 'html5', 'xhtml'.
 		 */
-		$format = apply_filters( 'navigation_widgets_format', $format );
+		apply_filters( 'navigation_widgets_format', 'html5' );
 
-		if ( 'html5' === $format ) {
-			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
-			$title      = trim( strip_tags( $title ) );
-			$aria_label = $title ? $title : $default_title;
+		// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+		$title      = trim( strip_tags( $title ) );
+		$aria_label = $title ? $title : $default_title;
 
-			$nav_menu_args = array(
-				'fallback_cb'          => '',
-				'menu'                 => $nav_menu,
-				'container'            => 'nav',
-				'container_aria_label' => $aria_label,
-				'items_wrap'           => '<ul id="%1$s" class="%2$s">%3$s</ul>',
-			);
-		} else {
-			$nav_menu_args = array(
-				'fallback_cb' => '',
-				'menu'        => $nav_menu,
-			);
-		}
+		$nav_menu_args = array(
+			'fallback_cb'          => '',
+			'menu'                 => $nav_menu,
+			'container'            => 'nav',
+			'container_aria_label' => $aria_label,
+			'items_wrap'           => '<ul id="%1$s" class="%2$s">%3$s</ul>',
+		);
 
 		/**
 		 * Filters the arguments for the Navigation Menu widget.
@@ -182,7 +175,7 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
-				<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
+				<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>">
 			</p>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'nav_menu' ); ?>"><?php _e( 'Select Menu:' ); ?></label>

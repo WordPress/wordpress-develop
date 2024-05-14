@@ -707,12 +707,12 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 	 * @covers ::next_balanced_tag_closer_tag
 	 */
 	public function test_next_balanced_tag_closer_tag_void_tag() {
-		$content = '<img src="image.jpg" />';
+		$content = '<img src="image.jpg">';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
 		$this->assertFalse( $p->next_balanced_tag_closer_tag() );
 
-		$content = '<img src="image.jpg" /><div>Text</div>';
+		$content = '<img src="image.jpg"><div>Text</div>';
 		$p       = new WP_Interactivity_API_Directives_Processor( $content );
 		$p->next_tag();
 		$this->assertFalse( $p->next_balanced_tag_closer_tag() );

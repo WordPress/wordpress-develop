@@ -20,7 +20,7 @@ return array(
 
 					<!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"top":"2rem","bottom":"2rem"}}}} -->
 					<div class="wp-block-column is-vertically-aligned-center" style="padding-top:2rem;padding-bottom:2rem"><!-- wp:separator {"color":"primary","className":"is-style-wide"} -->
-					<hr class="wp-block-separator has-text-color has-background has-primary-background-color has-primary-color is-style-wide"/>
+					<hr class="wp-block-separator has-text-color has-background has-primary-background-color has-primary-color is-style-wide">
 					<!-- /wp:separator --></div>
 					<!-- /wp:column --></div>
 					<!-- /wp:columns -->',

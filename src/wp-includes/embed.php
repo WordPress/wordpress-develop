@@ -336,10 +336,10 @@ function wp_oembed_add_discovery_links() {
 	$output = '';
 
 	if ( is_singular() ) {
-		$output .= '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+		$output .= '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '">' . "\n";
 
 		if ( class_exists( 'SimpleXMLElement' ) ) {
-			$output .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+			$output .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '">' . "\n";
 		}
 	}
 
@@ -1183,7 +1183,7 @@ function print_embed_sharing_dialog() {
 					</li>
 				</ul>
 				<div id="<?php echo $share_tab_wordpress_id; ?>" class="wp-embed-share-tab" role="tabpanel" aria-hidden="false">
-					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'URL' ); ?>" aria-describedby="<?php echo $description_wordpress_id; ?>" tabindex="0" readonly/>
+					<input type="text" value="<?php the_permalink(); ?>" class="wp-embed-share-input" aria-label="<?php esc_attr_e( 'URL' ); ?>" aria-describedby="<?php echo $description_wordpress_id; ?>" tabindex="0" readonly>
 
 					<p class="wp-embed-share-description" id="<?php echo $description_wordpress_id; ?>">
 						<?php _e( 'Copy and paste this URL into your WordPress site to embed' ); ?>
@@ -1213,7 +1213,7 @@ function print_embed_sharing_dialog() {
  */
 function the_embed_site_title() {
 	$site_title = sprintf(
-		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon" /><span>%s</span></a>',
+		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon"><span>%s</span></a>',
 		esc_url( home_url() ),
 		esc_url( get_site_icon_url( 32, includes_url( 'images/w-logo-blue.png' ) ) ),
 		esc_url( get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) ) ),

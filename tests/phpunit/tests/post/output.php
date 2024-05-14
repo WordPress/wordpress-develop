@@ -49,8 +49,8 @@ EOF;
 		$post_id = self::factory()->post->create( compact( 'post_content' ) );
 
 		$expected = <<<EOF
-<p><i>This is the excerpt.</i><br />
-<span id="more-{$post_id}"></span><br />
+<p><i>This is the excerpt.</i><br>
+<span id="more-{$post_id}"></span><br>
 This is the <b>body</b>.</p>
 EOF;
 
@@ -113,7 +113,7 @@ EOF;
 
 <p>An <p class='graf'>inline graf</p>
 , this does not make much sense.</p>
-<p>A graf with a single EOL first:<br />
+<p>A graf with a single EOL first:<br>
 <p class='graf'>blah</p>
 </p>
 

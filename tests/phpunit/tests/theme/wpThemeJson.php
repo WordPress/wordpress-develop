@@ -2680,7 +2680,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'palette' => array(
 							'custom' => array(
 								array(
-									'name'  => 'Red/><b>ok</ok>',
+									'name'  => 'Red><b>ok</ok>',
 									'slug'  => 'red',
 									'color' => '#ff0000',
 								),
@@ -2706,7 +2706,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'fontFamilies' => array(
 							'custom' => array(
 								array(
-									'name'       => 'Helvetica Arial/><b>test</b>',
+									'name'       => 'Helvetica Arial><b>test</b>',
 									'slug'       => 'helvetica-arial',
 									'fontFamily' => 'Helvetica Neue, Helvetica, Arial, sans-serif',
 								),
@@ -2734,7 +2734,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 								'palette' => array(
 									'custom' => array(
 										array(
-											'name'  => 'Red/><b>ok</ok>',
+											'name'  => 'Red><b>ok</ok>',
 											'slug'  => 'red',
 											'color' => '#ff0000',
 										),

@@ -177,7 +177,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 					),
 					'images'  => array(
 						'name'  => 'Images are not allowed',
-						'value' => '<img src="https://example.com/logo.jpg" alt="Alt text" />',
+						'value' => '<img src="https://example.com/logo.jpg" alt="Alt text">',
 					),
 				),
 			),

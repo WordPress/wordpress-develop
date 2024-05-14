@@ -20,7 +20,7 @@
 		<div class="wp-block-query alignwide">
 			<!-- wp:post-template -->
 			<!-- wp:separator {"backgroundColor":"contrast-3","className":"alignwide is-style-wide"} -->
-			<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background alignwide is-style-wide" />
+			<hr class="wp-block-separator has-text-color has-contrast-3-color has-alpha-channel-opacity has-contrast-3-background-color has-background alignwide is-style-wide">
 			<!-- /wp:separator -->
 
 			<!-- wp:columns {"verticalAlignment":"center","align":"wide","style":{"spacing":{"margin":{"top":"var:preset|spacing|20","bottom":"var:preset|spacing|20"}}}} -->

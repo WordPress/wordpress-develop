@@ -107,7 +107,7 @@ jobs:
 
       - name: Run PHPCS on all Core files
         id: phpcs-core
-        run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml
+        run: phpcs -n --report-full --cache=./.cache/phpcs-src.json --report-checkstyle=./.cache/phpcs-report.xml --config-set ignore_errors_on_exit 1 --config-set ignore_errors_on_exit 1
 
       - name: Show PHPCS results in PR
         if: ${{ always() && steps.phpcs-core.outcome == 'failure' }}

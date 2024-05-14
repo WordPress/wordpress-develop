@@ -55,7 +55,7 @@ class WP_Sitemaps_Stylesheet {
 		$text = sprintf(
 			/* translators: %s: Number of URLs. */
 			esc_xml( __( 'Number of URLs in this XML Sitemap: %s.' ) ),
-			'<xsl:value-of select="count( sitemap:urlset/sitemap:url )" />'
+			'<xsl:value-of select="count( sitemap:urlset/sitemap:url )">'
 		);
 
 		$lang       = get_language_attributes( 'html' );
@@ -73,15 +73,15 @@ class WP_Sitemaps_Stylesheet {
 		exclude-result-prefixes="sitemap"
 		>
 
-	<xsl:output method="html" encoding="UTF-8" indent="yes" />
+	<xsl:output method="html" encoding="UTF-8" indent="yes">
 
 	<!--
 	  Set variables for whether lastmod, changefreq or priority occur for any url in the sitemap.
 	  We do this up front because it can be expensive in a large sitemap.
 	  -->
-	<xsl:variable name="has-lastmod"    select="count( /sitemap:urlset/sitemap:url/sitemap:lastmod )"    />
-	<xsl:variable name="has-changefreq" select="count( /sitemap:urlset/sitemap:url/sitemap:changefreq )" />
-	<xsl:variable name="has-priority"   select="count( /sitemap:urlset/sitemap:url/sitemap:priority )"   />
+	<xsl:variable name="has-lastmod"    select="count( /sitemap:urlset/sitemap:url/sitemap:lastmod )"   >
+	<xsl:variable name="has-changefreq" select="count( /sitemap:urlset/sitemap:url/sitemap:changefreq )">
+	<xsl:variable name="has-priority"   select="count( /sitemap:urlset/sitemap:url/sitemap:priority )"  >
 
 	<xsl:template match="/">
 		<html {$lang}>
@@ -118,15 +118,15 @@ class WP_Sitemaps_Stylesheet {
 							<tbody>
 								<xsl:for-each select="sitemap:urlset/sitemap:url">
 									<tr>
-										<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+										<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"></a></td>
 										<xsl:if test="\$has-lastmod">
-											<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+											<td class="lastmod"><xsl:value-of select="sitemap:lastmod"></td>
 										</xsl:if>
 										<xsl:if test="\$has-changefreq">
-											<td class="changefreq"><xsl:value-of select="sitemap:changefreq" /></td>
+											<td class="changefreq"><xsl:value-of select="sitemap:changefreq"></td>
 										</xsl:if>
 										<xsl:if test="\$has-priority">
-											<td class="priority"><xsl:value-of select="sitemap:priority" /></td>
+											<td class="priority"><xsl:value-of select="sitemap:priority"></td>
 										</xsl:if>
 									</tr>
 								</xsl:for-each>
@@ -169,7 +169,7 @@ XSL;
 		$text = sprintf(
 			/* translators: %s: Number of URLs. */
 			esc_xml( __( 'Number of URLs in this XML Sitemap: %s.' ) ),
-			'<xsl:value-of select="count( sitemap:sitemapindex/sitemap:sitemap )" />'
+			'<xsl:value-of select="count( sitemap:sitemapindex/sitemap:sitemap )">'
 		);
 
 		$lang    = get_language_attributes( 'html' );
@@ -185,13 +185,13 @@ XSL;
 		exclude-result-prefixes="sitemap"
 		>
 
-	<xsl:output method="html" encoding="UTF-8" indent="yes" />
+	<xsl:output method="html" encoding="UTF-8" indent="yes">
 
 	<!--
 	  Set variables for whether lastmod occurs for any sitemap in the index.
 	  We do this up front because it can be expensive in a large sitemap.
 	  -->
-	<xsl:variable name="has-lastmod" select="count( /sitemap:sitemapindex/sitemap:sitemap/sitemap:lastmod )" />
+	<xsl:variable name="has-lastmod" select="count( /sitemap:sitemapindex/sitemap:sitemap/sitemap:lastmod )">
 
 	<xsl:template match="/">
 		<html {$lang}>
@@ -222,9 +222,9 @@ XSL;
 							<tbody>
 								<xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap">
 									<tr>
-										<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+										<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"></a></td>
 										<xsl:if test="\$has-lastmod">
-											<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+											<td class="lastmod"><xsl:value-of select="sitemap:lastmod"></td>
 										</xsl:if>
 									</tr>
 								</xsl:for-each>

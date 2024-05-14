@@ -174,12 +174,12 @@ if ( $action ) {
 					<p><?php _e( 'Are you sure you want to delete these themes?' ); ?></p>
 				<?php endif; ?>
 				<form method="post" action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>" style="display:inline;">
-					<input type="hidden" name="verify-delete" value="1" />
-					<input type="hidden" name="action" value="delete-selected" />
+					<input type="hidden" name="verify-delete" value="1">
+					<input type="hidden" name="action" value="delete-selected">
 					<?php
 
 					foreach ( (array) $themes as $theme ) {
-						echo '<input type="hidden" name="checked[]" value="' . esc_attr( $theme ) . '" />';
+						echo '<input type="hidden" name="checked[]" value="' . esc_attr( $theme ) . '">';
 					}
 
 					wp_nonce_field( 'bulk-themes' );
@@ -472,8 +472,8 @@ if ( 'broken' === $status ) {
 ?>
 
 <form id="bulk-action-form" method="post">
-<input type="hidden" name="theme_status" value="<?php echo esc_attr( $status ); ?>" />
-<input type="hidden" name="paged" value="<?php echo esc_attr( $page ); ?>" />
+<input type="hidden" name="theme_status" value="<?php echo esc_attr( $status ); ?>">
+<input type="hidden" name="paged" value="<?php echo esc_attr( $page ); ?>">
 
 <?php $wp_list_table->display(); ?>
 </form>

@@ -18,7 +18,7 @@
 			<div class="wp-block-group" style="min-height:100%">
 				<!-- wp:image {"aspectRatio":"9/16","scale":"cover","sizeSlug":"large","linkDestination":"none","className":"is-style-rounded"} -->
 				<figure class="wp-block-image size-large is-style-rounded">
-					<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/angular-roof.webp" alt="<?php esc_attr_e( 'An empty staircase under an angular roof in Darling Harbour, Sydney, Australia', 'twentytwentyfour' ); ?>" style="aspect-ratio:9/16;object-fit:cover" />
+					<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/angular-roof.webp" alt="<?php esc_attr_e( 'An empty staircase under an angular roof in Darling Harbour, Sydney, Australia', 'twentytwentyfour' ); ?>" style="aspect-ratio:9/16;object-fit:cover">
 				</figure>
 				<!-- /wp:image -->
 
@@ -51,7 +51,7 @@
 
 					<!-- wp:image {"aspectRatio":"9/16","scale":"cover","sizeSlug":"large","linkDestination":"none","className":"is-style-rounded"} -->
 					<figure class="wp-block-image size-large is-style-rounded">
-						<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/art-gallery.webp" alt="<?php esc_attr_e( 'Art Gallery of Ontario, Toronto, Canada', 'twentytwentyfour' ); ?>" style="aspect-ratio:9/16;object-fit:cover" />
+						<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/art-gallery.webp" alt="<?php esc_attr_e( 'Art Gallery of Ontario, Toronto, Canada', 'twentytwentyfour' ); ?>" style="aspect-ratio:9/16;object-fit:cover">
 					</figure>
 					<!-- /wp:image -->
 				</div>

@@ -14,7 +14,7 @@
 <!-- wp:group {"layout":{"type":"constrained"}} -->
 <div class="wp-block-group">
 	<!-- wp:separator {"opacity":"css","align":"wide","className":"is-style-wide"} -->
-	<hr class="wp-block-separator alignwide has-css-opacity is-style-wide"/>
+	<hr class="wp-block-separator alignwide has-css-opacity is-style-wide">
 	<!-- /wp:separator -->
 
 	<!-- wp:columns -->

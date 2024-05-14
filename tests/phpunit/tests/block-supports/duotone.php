@@ -30,8 +30,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'var:preset|duotone|blue-orange' ) ) ),
 		);
 		$wp_block      = new WP_Block( $block );
-		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
-		$expected      = '<figure class="wp-block-image size-full wp-duotone-blue-orange"><img src="/my-image.jpg" /></figure>';
+		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"></figure>';
+		$expected      = '<figure class="wp-block-image size-full wp-duotone-blue-orange"><img src="/my-image.jpg"></figure>';
 		$this->assertSame( $expected, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
 	}
 
@@ -48,8 +48,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => 'unset' ) ) ),
 		);
 		$wp_block      = new WP_Block( $block );
-		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
-		$expected      = '/<figure class="wp-block-image size-full wp-duotone-unset-\d+"><img src="\\/my-image.jpg" \\/><\\/figure>/';
+		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"></figure>';
+		$expected      = '/<figure class="wp-block-image size-full wp-duotone-unset-\d+"><img src="\\/my-image.jpg" \\><\\/figure>/';
 		$this->assertMatchesRegularExpression( $expected, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
 	}
 
@@ -64,8 +64,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => array( '#FFFFFF', '#000000' ) ) ) ),
 		);
 		$wp_block      = new WP_Block( $block );
-		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
-		$expected      = '/<figure class="wp-block-image size-full wp-duotone-ffffff-000000-\d+"><img src="\\/my-image.jpg" \\/><\\/figure>/';
+		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg"></figure>';
+		$expected      = '/<figure class="wp-block-image size-full wp-duotone-ffffff-000000-\d+"><img src="\\/my-image.jpg" \\><\\/figure>/';
 		$this->assertMatchesRegularExpression( $expected, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
 	}
 

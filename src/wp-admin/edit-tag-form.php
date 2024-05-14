@@ -109,9 +109,9 @@ if ( $message ) {
 do_action( "{$taxonomy}_term_edit_form_tag" );
 ?>
 >
-<input type="hidden" name="action" value="editedtag" />
-<input type="hidden" name="tag_ID" value="<?php echo esc_attr( $tag_ID ); ?>" />
-<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>" />
+<input type="hidden" name="action" value="editedtag">
+<input type="hidden" name="tag_ID" value="<?php echo esc_attr( $tag_ID ); ?>">
+<input type="hidden" name="taxonomy" value="<?php echo esc_attr( $taxonomy ); ?>">
 <?php
 wp_original_referer_field( true, 'previous' );
 wp_nonce_field( 'update-tag_' . $tag_ID );
@@ -143,7 +143,7 @@ if ( isset( $tag->name ) ) {
 	<table class="form-table" role="presentation">
 		<tr class="form-field form-required term-name-wrap">
 			<th scope="row"><label for="name"><?php _ex( 'Name', 'term name' ); ?></label></th>
-			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description" />
+			<td><input name="name" id="name" type="text" value="<?php echo $tag_name_value; ?>" size="40" aria-required="true" aria-describedby="name-description">
 			<p class="description" id="name-description"><?php echo $tax->labels->name_field_description; ?></p></td>
 		</tr>
 		<tr class="form-field term-slug-wrap">
@@ -164,7 +164,7 @@ if ( isset( $tag->name ) ) {
 			 */
 			$slug = isset( $tag->slug ) ? apply_filters( 'editable_slug', $tag->slug, $tag ) : '';
 			?>
-			<td><input name="slug" id="slug" type="text" value="<?php echo esc_attr( $slug ); ?>" size="40" aria-describedby="slug-description" />
+			<td><input name="slug" id="slug" type="text" value="<?php echo esc_attr( $slug ); ?>" size="40" aria-describedby="slug-description">
 			<p class="description" id="slug-description"><?php echo $tax->labels->slug_field_description; ?></p></td>
 		</tr>
 <?php if ( is_taxonomy_hierarchical( $taxonomy ) ) : ?>

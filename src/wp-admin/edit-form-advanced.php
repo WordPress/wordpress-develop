@@ -235,14 +235,14 @@ if ( 'auto-draft' === $post->post_status ) {
 		$post->post_title = '';
 	}
 	$autosave    = false;
-	$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1' />";
+	$form_extra .= "<input type='hidden' id='auto_draft' name='auto_draft' value='1'>";
 } else {
 	$autosave = wp_get_post_autosave( $post->ID );
 }
 
 $form_action  = 'editpost';
 $nonce_action = 'update-post_' . $post->ID;
-$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
+$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "'>";
 
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
@@ -492,15 +492,15 @@ $referer = wp_get_referer();
 ?>
 >
 <?php wp_nonce_field( $nonce_action ); ?>
-<input type="hidden" id="user-id" name="user_ID" value="<?php echo (int) $user_ID; ?>" />
-<input type="hidden" id="hiddenaction" name="action" value="<?php echo esc_attr( $form_action ); ?>" />
-<input type="hidden" id="originalaction" name="originalaction" value="<?php echo esc_attr( $form_action ); ?>" />
-<input type="hidden" id="post_author" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>" />
-<input type="hidden" id="post_type" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
-<input type="hidden" id="original_post_status" name="original_post_status" value="<?php echo esc_attr( $post->post_status ); ?>" />
-<input type="hidden" id="referredby" name="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>" />
+<input type="hidden" id="user-id" name="user_ID" value="<?php echo (int) $user_ID; ?>">
+<input type="hidden" id="hiddenaction" name="action" value="<?php echo esc_attr( $form_action ); ?>">
+<input type="hidden" id="originalaction" name="originalaction" value="<?php echo esc_attr( $form_action ); ?>">
+<input type="hidden" id="post_author" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>">
+<input type="hidden" id="post_type" name="post_type" value="<?php echo esc_attr( $post_type ); ?>">
+<input type="hidden" id="original_post_status" name="original_post_status" value="<?php echo esc_attr( $post->post_status ); ?>">
+<input type="hidden" id="referredby" name="referredby" value="<?php echo $referer ? esc_url( $referer ) : ''; ?>">
 <?php if ( ! empty( $active_post_lock ) ) { ?>
-<input type="hidden" id="active_post_lock" value="<?php echo esc_attr( implode( ':', $active_post_lock ) ); ?>" />
+<input type="hidden" id="active_post_lock" value="<?php echo esc_attr( implode( ':', $active_post_lock ) ); ?>">
 	<?php
 }
 if ( 'draft' !== get_post_status( $post ) ) {
@@ -545,7 +545,7 @@ do_action( 'edit_form_top', $post );
 	$title_placeholder = apply_filters( 'enter_title_here', __( 'Add title' ), $post );
 	?>
 	<label class="screen-reader-text" id="title-prompt-text" for="title"><?php echo $title_placeholder; ?></label>
-	<input type="text" name="post_title" size="30" value="<?php echo esc_attr( $post->post_title ); ?>" id="title" spellcheck="true" autocomplete="off" />
+	<input type="text" name="post_title" size="30" value="<?php echo esc_attr( $post->post_title ); ?>" id="title" spellcheck="true" autocomplete="off">
 </div>
 	<?php
 	/**
@@ -567,7 +567,7 @@ do_action( 'edit_form_top', $post );
 			$shortlink = wp_get_shortlink( $post->ID, 'post' );
 
 			if ( ! empty( $shortlink ) && $shortlink !== $permalink && home_url( '?page_id=' . $post->ID ) !== $permalink ) {
-				$sample_permalink_html .= '<input id="shortlink" type="hidden" value="' . esc_attr( $shortlink ) . '" />' .
+				$sample_permalink_html .= '<input id="shortlink" type="hidden" value="' . esc_attr( $shortlink ) . '">' .
 					'<button type="button" class="button button-small" onclick="prompt(&#39;URL:&#39;, jQuery(\'#shortlink\').val());">' .
 					__( 'Get Shortlink' ) .
 					'</button>';
@@ -668,7 +668,7 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 	}
 	?>
 	</td>
-	<td id="content-resize-handle" class="hide-if-no-js"><br /></td>
+	<td id="content-resize-handle" class="hide-if-no-js"><br></td>
 </tr></tbody></table>
 
 </div>
@@ -759,7 +759,7 @@ do_action( 'dbx_post_sidebar', $post );
 
 ?>
 </div><!-- /post-body -->
-<br class="clear" />
+<br class="clear">
 </div><!-- /poststuff -->
 </form>
 </div>

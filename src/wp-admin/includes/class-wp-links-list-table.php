@@ -131,7 +131,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
-			'cb'         => '<input type="checkbox" />',
+			'cb'         => '<input type="checkbox">',
 			'name'       => _x( 'Name', 'link name' ),
 			'url'        => __( 'URL' ),
 			'categories' => __( 'Categories' ),
@@ -177,7 +177,7 @@ class WP_Links_List_Table extends WP_List_Table {
 		$link = $item;
 
 		?>
-		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>" />
+		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>">
 		<label for="cb-select-<?php echo $link->link_id; ?>">
 			<span class="screen-reader-text">
 			<?php
@@ -254,7 +254,7 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @param object $link The current link object.
 	 */
 	public function column_rel( $link ) {
-		echo empty( $link->link_rel ) ? '<br />' : $link->link_rel;
+		echo empty( $link->link_rel ) ? '<br>' : $link->link_rel;
 	}
 
 	/**

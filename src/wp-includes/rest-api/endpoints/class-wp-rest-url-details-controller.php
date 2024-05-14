@@ -541,7 +541,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 		 *
 		 * The content attribute's value (i.e. the description to get) can have HTML in it and be well-formed as
 		 * it's a string to the browser. Imagine what happens when attempting to match for the name=description
-		 * first. Hmm, if a > or /> symbol is in the content attribute's value, then it terminates the match
+		 * first. Hmm, if a > or> symbol is in the content attribute's value, then it terminates the match
 		 * as the element's closing symbol. But wait, it's in the content attribute and is not the end of the
 		 * element. This is a limitation of using regex. It can't determine "wait a minute this is inside of quotation".
 		 * If this happens, what gets matched is not the entire element or all of the content.
@@ -581,7 +581,7 @@ class WP_REST_URL_Details_Controller extends WP_REST_Controller {
 				'[^>]*' .
 
 				/*
-				* \/?> searches for the closing > symbol, which can be in either /> or > format.
+				* \/?> searches for the closing > symbol, which can be in either> or > format.
 				* # ends the pattern.
 				*/
 				'\/?>#' .

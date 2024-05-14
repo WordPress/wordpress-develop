@@ -153,7 +153,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
 		$this->assertStringNotContainsString( '<p>', $output );
-		$this->assertStringNotContainsString( '<br />', $output );
+		$this->assertStringNotContainsString( '<br>', $output );
 		$this->assertEmpty( $this->widget_text_content_args );
 		$this->assertNotEmpty( $this->widget_text_args );
 		$this->assertStringContainsString( '[filter:widget_text]', $output );
@@ -170,7 +170,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
 		$this->assertStringContainsString( '<p>', $output );
-		$this->assertStringContainsString( '<br />', $output );
+		$this->assertStringContainsString( '<br>', $output );
 		$this->assertNotEmpty( $this->widget_text_args );
 		$this->assertSame( $instance['text'], $this->widget_text_args[0] );
 		$this->assertSame( $instance, $this->widget_text_args[1] );
@@ -197,7 +197,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
 		$this->assertStringContainsString( '<p>', $output );
-		$this->assertStringContainsString( '<br />', $output );
+		$this->assertStringContainsString( '<br>', $output );
 		$this->assertCount( 3, $this->widget_text_args );
 		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
 		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
@@ -221,7 +221,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
 		$this->assertStringContainsString( '<p>', $output );
-		$this->assertStringContainsString( '<br />', $output );
+		$this->assertStringContainsString( '<br>', $output );
 		$this->assertCount( 3, $this->widget_text_args );
 		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
 		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
@@ -245,7 +245,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
 		$this->assertStringContainsString( '<p>', $output );
-		$this->assertStringContainsString( '<br />', $output );
+		$this->assertStringContainsString( '<br>', $output );
 		$this->assertCount( 3, $this->widget_text_args );
 		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
 		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
@@ -266,7 +266,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$widget->widget( $args, $instance );
 		$output = ob_get_clean();
 		$this->assertStringNotContainsString( '<p>', $output );
-		$this->assertStringNotContainsString( '<br />', $output );
+		$this->assertStringNotContainsString( '<br>', $output );
 		$this->assertCount( 3, $this->widget_text_args );
 		$this->assertSame( $expected_instance['text'], $this->widget_text_args[0] );
 		$this->assertSame( $expected_instance, $this->widget_text_args[1] );
@@ -571,14 +571,14 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$legacy_text_examples = array(
 			'<span class="hello"></span>',
 			'<blockquote>Quote <footer>Citation</footer></blockquote>',
-			'<img src=\"http://example.com/img.jpg\" border=\"0\" title=\"Example\" /></a>',
+			'<img src=\"http://example.com/img.jpg\" border=\"0\" title=\"Example\"></a>',
 			'<span></span>',
 			"<ul>\n<li><a href=\"#\" class=\"location\"></a>List Item 1</li>\n<li><a href=\"#\" class=\"location\"></a>List Item 2</li>\n</ul>",
 			'<a href="#" class="map"></a>',
 			"<script>\n\\Line one\n\n\\Line two</script>",
 			"<style>body {\ncolor:red;\n}</style>",
 			'<span class="fa fa-cc-discover fa-2x" aria-hidden="true"></span>',
-			"<p>\nStay updated with our latest news and specials. We never sell your information and you can unsubscribe at any time.\n</p>\n\n<div class=\"custom-form-class\">\n\t<form action=\"#\" method=\"post\" name=\"mc-embedded-subscribe-form\">\n\n\t\t<label class=\"screen-reader-text\" for=\"mce-EMAIL-b\">Email </label>\n\t\t<input id=\"mce-EMAIL-b\" class=\"required email\" name=\"EMAIL\" required=\"\" type=\"email\" value=\"\" placeholder=\"Email Address*\" />\n\n\t\t<input class=\"button\" name=\"subscribe\" type=\"submit\" value=\"Go!\" />\n\n\t</form>\n</div>",
+			"<p>\nStay updated with our latest news and specials. We never sell your information and you can unsubscribe at any time.\n</p>\n\n<div class=\"custom-form-class\">\n\t<form action=\"#\" method=\"post\" name=\"mc-embedded-subscribe-form\">\n\n\t\t<label class=\"screen-reader-text\" for=\"mce-EMAIL-b\">Email </label>\n\t\t<input id=\"mce-EMAIL-b\" class=\"required email\" name=\"EMAIL\" required=\"\" type=\"email\" value=\"\" placeholder=\"Email Address*\">\n\n\t\t<input class=\"button\" name=\"subscribe\" type=\"submit\" value=\"Go!\">\n\n\t</form>\n</div>",
 			'<span class="sectiondown"><a href="#front-page-3"><i class="fa fa-chevron-circle-down"></i></a></span>',
 		);
 		foreach ( $legacy_text_examples as $legacy_text_example ) {

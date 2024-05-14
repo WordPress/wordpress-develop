@@ -1003,7 +1003,7 @@ final class WP_Screen {
 
 		if ( 'post' === $this->base ) {
 			$expand                 = '<fieldset class="editor-expand hidden"><legend>' . __( 'Additional settings' ) . '</legend><label for="editor-expand-toggle">';
-			$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . ' />';
+			$expand                .= '<input type="checkbox" id="editor-expand-toggle"' . checked( get_user_setting( 'editor_expand', 'on' ), 'on', false ) . '>';
 			$expand                .= __( 'Enable full-height editor and distraction-free functionality.' ) . '</label></fieldset>';
 			$this->_screen_settings = $expand;
 		}
@@ -1134,7 +1134,7 @@ final class WP_Screen {
 				}
 			}
 			echo '<label for="wp_welcome_panel-hide">';
-			echo '<input type="checkbox" id="wp_welcome_panel-hide"' . checked( (bool) $welcome_checked, true, false ) . ' />';
+			echo '<input type="checkbox" id="wp_welcome_panel-hide"' . checked( (bool) $welcome_checked, true, false ) . '>';
 			echo _x( 'Welcome', 'Welcome panel' ) . "</label>\n";
 		}
 		?>
@@ -1183,7 +1183,7 @@ final class WP_Screen {
 
 			$id = "$column-hide";
 			echo '<label>';
-			echo '<input class="hide-column-tog" name="' . $id . '" type="checkbox" id="' . $id . '" value="' . $column . '"' . checked( ! in_array( $column, $hidden, true ), true, false ) . ' />';
+			echo '<input class="hide-column-tog" name="' . $id . '" type="checkbox" id="' . $id . '" value="' . $column . '"' . checked( ! in_array( $column, $hidden, true ), true, false ) . '>';
 			echo "$title</label>\n";
 		}
 		?>
@@ -1209,7 +1209,7 @@ final class WP_Screen {
 		<legend class="screen-layout"><?php _e( 'Layout' ); ?></legend>
 		<?php for ( $i = 1; $i <= $num; ++$i ) : ?>
 			<label class="columns-prefs-<?php echo $i; ?>">
-			<input type='radio' name='screen_columns' value='<?php echo esc_attr( $i ); ?>' <?php checked( $screen_layout_columns, $i ); ?> />
+			<input type='radio' name='screen_columns' value='<?php echo esc_attr( $i ); ?>' <?php checked( $screen_layout_columns, $i ); ?>>
 			<?php
 				printf(
 					/* translators: %s: Number of columns on the page. */
@@ -1280,9 +1280,9 @@ final class WP_Screen {
 				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
 				<input type="number" step="1" min="1" max="999" class="screen-per-page" name="wp_screen_options[value]"
 					id="<?php echo esc_attr( $option ); ?>"
-					value="<?php echo esc_attr( $per_page ); ?>" />
+					value="<?php echo esc_attr( $per_page ); ?>">
 			<?php endif; ?>
-				<input type="hidden" name="wp_screen_options[option]" value="<?php echo esc_attr( $option ); ?>" />
+				<input type="hidden" name="wp_screen_options[option]" value="<?php echo esc_attr( $option ); ?>">
 		</fieldset>
 		<?php
 	}
@@ -1330,11 +1330,11 @@ final class WP_Screen {
 		<fieldset class="metabox-prefs view-mode">
 			<legend><?php _e( 'View mode' ); ?></legend>
 			<label for="list-view-mode">
-				<input id="list-view-mode" type="radio" name="mode" value="list" <?php checked( 'list', $mode ); ?> />
+				<input id="list-view-mode" type="radio" name="mode" value="list" <?php checked( 'list', $mode ); ?>>
 				<?php _e( 'Compact view' ); ?>
 			</label>
 			<label for="excerpt-view-mode">
-				<input id="excerpt-view-mode" type="radio" name="mode" value="excerpt" <?php checked( 'excerpt', $mode ); ?> />
+				<input id="excerpt-view-mode" type="radio" name="mode" value="excerpt" <?php checked( 'excerpt', $mode ); ?>>
 				<?php _e( 'Extended view' ); ?>
 			</label>
 		</fieldset>

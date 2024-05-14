@@ -196,7 +196,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 			}
 
 			$expected = sprintf(
-				'<link rel="alternate" type="application/rss+xml" title="%s" href="%s" />' . "\n",
+				'<link rel="alternate" type="application/rss+xml" title="%s" href="%s">' . "\n",
 				esc_attr( $title ),
 				esc_url( $feed_link )
 			);
@@ -440,7 +440,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="application/rss+xml"';
 		$expected .= ' title="Test Blog &raquo; Post with no comments Comments Feed"';
-		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_no_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_no_comment_id . '">' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -455,7 +455,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="application/rss+xml"';
 		$expected .= ' title="Test Blog &raquo; Post with no comments Comments Feed"';
-		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_no_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_no_comment_id . '">' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -470,7 +470,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="application/rss+xml"';
 		$expected .= ' title="Test Blog &raquo; Post with a comment Comments Feed"';
-		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=rss2&#038;p=' . self::$post_with_comment_id . '">' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 
@@ -507,7 +507,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$expected  = '<link rel="alternate" type="testing/foo"';
 		$expected .= ' title="Test Blog &raquo; Post with a comment Comments Feed"';
-		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=foo&#038;p=' . self::$post_with_comment_id . '" />' . "\n";
+		$expected .= ' href="http://' . WP_TESTS_DOMAIN . '/?feed=foo&#038;p=' . self::$post_with_comment_id . '">' . "\n";
 		$this->assertSame( $expected, get_echo( 'feed_links_extra' ) );
 	}
 

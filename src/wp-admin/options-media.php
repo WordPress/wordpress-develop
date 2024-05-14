@@ -65,12 +65,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 </span></legend>
 <label for="thumbnail_size_w"><?php _e( 'Width' ); ?></label>
-<input name="thumbnail_size_w" type="number" step="1" min="0" id="thumbnail_size_w" value="<?php form_option( 'thumbnail_size_w' ); ?>" class="small-text" />
-<br />
+<input name="thumbnail_size_w" type="number" step="1" min="0" id="thumbnail_size_w" value="<?php form_option( 'thumbnail_size_w' ); ?>" class="small-text">
+<br>
 <label for="thumbnail_size_h"><?php _e( 'Height' ); ?></label>
-<input name="thumbnail_size_h" type="number" step="1" min="0" id="thumbnail_size_h" value="<?php form_option( 'thumbnail_size_h' ); ?>" class="small-text" />
+<input name="thumbnail_size_h" type="number" step="1" min="0" id="thumbnail_size_h" value="<?php form_option( 'thumbnail_size_h' ); ?>" class="small-text">
 </fieldset>
-<input name="thumbnail_crop" type="checkbox" id="thumbnail_crop" value="1" <?php checked( '1', get_option( 'thumbnail_crop' ) ); ?>/>
+<input name="thumbnail_crop" type="checkbox" id="thumbnail_crop" value="1" <?php checked( '1', get_option( 'thumbnail_crop' ) ); ?>>
 <label for="thumbnail_crop"><?php _e( 'Crop thumbnail to exact dimensions (normally thumbnails are proportional)' ); ?></label>
 </td>
 </tr>
@@ -84,10 +84,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 </span></legend>
 <label for="medium_size_w"><?php _e( 'Max Width' ); ?></label>
-<input name="medium_size_w" type="number" step="1" min="0" id="medium_size_w" value="<?php form_option( 'medium_size_w' ); ?>" class="small-text" />
-<br />
+<input name="medium_size_w" type="number" step="1" min="0" id="medium_size_w" value="<?php form_option( 'medium_size_w' ); ?>" class="small-text">
+<br>
 <label for="medium_size_h"><?php _e( 'Max Height' ); ?></label>
-<input name="medium_size_h" type="number" step="1" min="0" id="medium_size_h" value="<?php form_option( 'medium_size_h' ); ?>" class="small-text" />
+<input name="medium_size_h" type="number" step="1" min="0" id="medium_size_h" value="<?php form_option( 'medium_size_h' ); ?>" class="small-text">
 </fieldset></td>
 </tr>
 
@@ -100,10 +100,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	?>
 </span></legend>
 <label for="large_size_w"><?php _e( 'Max Width' ); ?></label>
-<input name="large_size_w" type="number" step="1" min="0" id="large_size_w" value="<?php form_option( 'large_size_w' ); ?>" class="small-text" />
-<br />
+<input name="large_size_w" type="number" step="1" min="0" id="large_size_w" value="<?php form_option( 'large_size_w' ); ?>" class="small-text">
+<br>
 <label for="large_size_h"><?php _e( 'Max Height' ); ?></label>
-<input name="large_size_h" type="number" step="1" min="0" id="large_size_h" value="<?php form_option( 'large_size_h' ); ?>" class="small-text" />
+<input name="large_size_h" type="number" step="1" min="0" id="large_size_h" value="<?php form_option( 'large_size_h' ); ?>" class="small-text">
 </fieldset></td>
 </tr>
 
@@ -136,7 +136,7 @@ if ( isset( $GLOBALS['wp_settings']['media']['embeds'] ) ) :
 		?>
 <tr>
 <th scope="row"><label for="upload_path"><?php _e( 'Store uploads in this folder' ); ?></label></th>
-<td><input name="upload_path" type="text" id="upload_path" value="<?php echo esc_attr( get_option( 'upload_path' ) ); ?>" class="regular-text code" />
+<td><input name="upload_path" type="text" id="upload_path" value="<?php echo esc_attr( get_option( 'upload_path' ) ); ?>" class="regular-text code">
 <p class="description">
 		<?php
 		/* translators: %s: wp-content/uploads */
@@ -148,7 +148,7 @@ if ( isset( $GLOBALS['wp_settings']['media']['embeds'] ) ) :
 
 <tr>
 <th scope="row"><label for="upload_url_path"><?php _e( 'Full URL path to files' ); ?></label></th>
-<td><input name="upload_url_path" type="text" id="upload_url_path" value="<?php echo esc_attr( get_option( 'upload_url_path' ) ); ?>" class="regular-text code" />
+<td><input name="upload_url_path" type="text" id="upload_url_path" value="<?php echo esc_attr( get_option( 'upload_url_path' ) ); ?>" class="regular-text code">
 <p class="description"><?php _e( 'Configuring this is optional. By default, it should be blank.' ); ?></p>
 </td>
 </tr>
@@ -159,7 +159,7 @@ if ( isset( $GLOBALS['wp_settings']['media']['embeds'] ) ) :
 <td class="td-full">
 <?php endif; ?>
 <label for="uploads_use_yearmonth_folders">
-<input name="uploads_use_yearmonth_folders" type="checkbox" id="uploads_use_yearmonth_folders" value="1"<?php checked( '1', get_option( 'uploads_use_yearmonth_folders' ) ); ?> />
+<input name="uploads_use_yearmonth_folders" type="checkbox" id="uploads_use_yearmonth_folders" value="1"<?php checked( '1', get_option( 'uploads_use_yearmonth_folders' ) ); ?>>
 	<?php _e( 'Organize my uploads into month- and year-based folders' ); ?>
 </label>
 </td>

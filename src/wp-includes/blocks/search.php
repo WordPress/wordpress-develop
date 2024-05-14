@@ -63,7 +63,7 @@ function render_block_core_search( $attributes ) {
 		}
 	}
 
-	$input         = new WP_HTML_Tag_Processor( sprintf( '<input type="search" name="s" required %s/>', $inline_styles['input'] ) );
+	$input         = new WP_HTML_Tag_Processor( sprintf( '<input type="search" name="s" required %s>', $inline_styles['input'] ) );
 	$input_classes = array( 'wp-block-search__input' );
 	if ( ! $is_button_inside && ! empty( $border_color_classes ) ) {
 		$input_classes[] = $border_color_classes;
@@ -106,7 +106,7 @@ function render_block_core_search( $attributes ) {
 	if ( count( $query_params ) > 0 ) {
 		foreach ( $query_params as $param => $value ) {
 			$query_params_markup .= sprintf(
-				'<input type="hidden" name="%s" value="%s" />',
+				'<input type="hidden" name="%s" value="%s">',
 				esc_attr( $param ),
 				esc_attr( $value )
 			);

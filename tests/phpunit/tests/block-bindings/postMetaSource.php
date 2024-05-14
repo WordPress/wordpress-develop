@@ -91,9 +91,9 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 			)
 		);
 
-		$content = $this->get_modified_post_content( '<!-- wp:image {"metadata":{"bindings":{"url":{"source":"core/post-meta","args":{"key":"tests_url_custom_field"}}}}} --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image -->' );
+		$content = $this->get_modified_post_content( '<!-- wp:image {"metadata":{"bindings":{"url":{"source":"core/post-meta","args":{"key":"tests_url_custom_field"}}}}} --><figure class="wp-block-image"><img alt=""></figure><!-- /wp:image -->' );
 		$this->assertSame(
-			'<figure class="wp-block-image"><img decoding="async" src="https://example.com/foo.png" alt=""/></figure>',
+			'<figure class="wp-block-image"><img decoding="async" src="https://example.com/foo.png" alt=""></figure>',
 			$content,
 			'The image src should point to the value of the custom field . '
 		);

@@ -633,8 +633,8 @@ class WP_Object_Cache {
 	 */
 	public function stats() {
 		echo '<p>';
-		echo "<strong>Cache Hits:</strong> {$this->cache_hits}<br />";
-		echo "<strong>Cache Misses:</strong> {$this->cache_misses}<br />";
+		echo "<strong>Cache Hits:</strong> {$this->cache_hits}<br>";
+		echo "<strong>Cache Misses:</strong> {$this->cache_misses}<br>";
 		echo '</p>';
 		echo '<ul>';
 		foreach ( $this->cache as $group => $cache ) {

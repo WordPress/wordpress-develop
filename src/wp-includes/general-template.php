@@ -288,7 +288,7 @@ function get_search_form( $args = array() ) {
 	// Ensure that the filtered arguments contain all required default values.
 	$args = array_merge( $defaults, $args );
 
-	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
+	$format = 'html5';
 
 	/**
 	 * Filters the HTML format of the search form.
@@ -321,29 +321,16 @@ function get_search_form( $args = array() ) {
 			$aria_label = '';
 		}
 
-		if ( 'html5' === $format ) {
-			$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
-				<label>
-					<span class="screen-reader-text">' .
-					/* translators: Hidden accessibility text. */
-					_x( 'Search for:', 'label' ) .
-					'</span>
-					<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s" />
-				</label>
-				<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
-			</form>';
-		} else {
-			$form = '<form role="search" ' . $aria_label . 'method="get" id="searchform" class="searchform" action="' . esc_url( home_url( '/' ) ) . '">
-				<div>
-					<label class="screen-reader-text" for="s">' .
-					/* translators: Hidden accessibility text. */
-					_x( 'Search for:', 'label' ) .
-					'</label>
-					<input type="text" value="' . get_search_query() . '" name="s" id="s" />
-					<input type="submit" id="searchsubmit" value="' . esc_attr_x( 'Search', 'submit button' ) . '" />
-				</div>
-			</form>';
-		}
+		$form = '<form role="search" ' . $aria_label . 'method="get" class="search-form" action="' . esc_url( home_url( '/' ) ) . '">
+			<label>
+				<span class="screen-reader-text">' .
+				/* translators: Hidden accessibility text. */
+				_x( 'Search for:', 'label' ) .
+				'</span>
+				<input type="search" class="search-field" placeholder="' . esc_attr_x( 'Search &hellip;', 'placeholder' ) . '" value="' . get_search_query() . '" name="s">
+			</label>
+			<input type="submit" class="search-submit" value="' . esc_attr_x( 'Search', 'submit button' ) . '">
+		</form>';
 	}
 
 	/**
@@ -594,7 +581,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-username">
 				<label for="%1$s">%2$s</label>
-				<input type="text" name="log" id="%1$s" autocomplete="username" class="input" value="%3$s" size="20" />
+				<input type="text" name="log" id="%1$s" autocomplete="username" class="input" value="%3$s" size="20">
 			</p>',
 			esc_attr( $args['id_username'] ),
 			esc_html( $args['label_username'] ),
@@ -603,7 +590,7 @@ function wp_login_form( $args = array() ) {
 		sprintf(
 			'<p class="login-password">
 				<label for="%1$s">%2$s</label>
-				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20" />
+				<input type="password" name="pwd" id="%1$s" autocomplete="current-password" spellcheck="false" class="input" value="" size="20">
 			</p>',
 			esc_attr( $args['id_password'] ),
 			esc_html( $args['label_password'] )
@@ -611,7 +598,7 @@ function wp_login_form( $args = array() ) {
 		$login_form_middle .
 		( $args['remember'] ?
 			sprintf(
-				'<p class="login-remember"><label><input name="rememberme" type="checkbox" id="%1$s" value="forever"%2$s /> %3$s</label></p>',
+				'<p class="login-remember"><label><input name="rememberme" type="checkbox" id="%1$s" value="forever"%2$s> %3$s</label></p>',
 				esc_attr( $args['id_remember'] ),
 				( $args['value_remember'] ? ' checked="checked"' : '' ),
 				esc_html( $args['label_remember'] )
@@ -619,8 +606,8 @@ function wp_login_form( $args = array() ) {
 		) .
 		sprintf(
 			'<p class="login-submit">
-				<input type="submit" name="wp-submit" id="%1$s" class="button button-primary" value="%2$s" />
-				<input type="hidden" name="redirect_to" value="%3$s" />
+				<input type="submit" name="wp-submit" id="%1$s" class="button button-primary" value="%2$s">
+				<input type="hidden" name="redirect_to" value="%3$s">
 			</p>',
 			esc_attr( $args['id_submit'] ),
 			esc_attr( $args['label_log_in'] ),
@@ -1116,7 +1103,7 @@ function get_custom_logo( $blog_id = 0 ) {
 	} elseif ( is_customize_preview() ) {
 		// If no logo is set but we're in the Customizer, leave a placeholder (needed for the live preview).
 		$html = sprintf(
-			'<a href="%1$s" class="custom-logo-link" style="display:none;"><img class="custom-logo" alt="" /></a>',
+			'<a href="%1$s" class="custom-logo-link" style="display:none;"><img class="custom-logo" alt=""></a>',
 			esc_url( home_url( '/' ) )
 		);
 	}
@@ -1911,7 +1898,7 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
 	$aria_current = $selected ? ' aria-current="page"' : '';
 
 	if ( 'link' === $format ) {
-		$link_html = "\t<link rel='archives' title='" . esc_attr( $text ) . "' href='$url' />\n";
+		$link_html = "\t<link rel='archives' title='" . esc_attr( $text ) . "' href='$url'>\n";
 	} elseif ( 'option' === $format ) {
 		$selected_attr = $selected ? " selected='selected'" : '';
 		$link_html     = "\t<option value='$url'$selected_attr>$before $text $after</option>\n";
@@ -3114,7 +3101,7 @@ function feed_links( $args = array() ) {
 	 */
 	if ( apply_filters( 'feed_links_show_posts_feed', true ) ) {
 		printf(
-			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			'<link rel="alternate" type="%s" title="%s" href="%s">' . "\n",
 			feed_content_type(),
 			esc_attr( sprintf( $args['feedtitle'], get_bloginfo( 'name' ), $args['separator'] ) ),
 			esc_url( get_feed_link() )
@@ -3130,7 +3117,7 @@ function feed_links( $args = array() ) {
 	 */
 	if ( apply_filters( 'feed_links_show_comments_feed', true ) ) {
 		printf(
-			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			'<link rel="alternate" type="%s" title="%s" href="%s">' . "\n",
 			feed_content_type(),
 			esc_attr( sprintf( $args['comstitle'], get_bloginfo( 'name' ), $args['separator'] ) ),
 			esc_url( get_feed_link( 'comments_' . get_default_feed() ) )
@@ -3352,7 +3339,7 @@ function feed_links_extra( $args = array() ) {
 
 	if ( isset( $title ) && isset( $href ) ) {
 		printf(
-			'<link rel="alternate" type="%s" title="%s" href="%s" />' . "\n",
+			'<link rel="alternate" type="%s" title="%s" href="%s">' . "\n",
 			feed_content_type(),
 			esc_attr( $title ),
 			esc_url( $href )
@@ -3368,7 +3355,7 @@ function feed_links_extra( $args = array() ) {
  */
 function rsd_link() {
 	printf(
-		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s" />' . "\n",
+		'<link rel="EditURI" type="application/rsd+xml" title="RSD" href="%s">' . "\n",
 		esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) )
 	);
 }
@@ -3387,7 +3374,7 @@ function rsd_link() {
  */
 function wp_strict_cross_origin_referrer() {
 	?>
-	<meta name='referrer' content='strict-origin-when-cross-origin' />
+	<meta name='referrer' content='strict-origin-when-cross-origin'>
 	<?php
 }
 
@@ -3409,19 +3396,19 @@ function wp_site_icon() {
 		$icon_32 = '/favicon.ico'; // Serve default favicon URL in customizer so element can be updated for preview.
 	}
 	if ( $icon_32 ) {
-		$meta_tags[] = sprintf( '<link rel="icon" href="%s" sizes="32x32" />', esc_url( $icon_32 ) );
+		$meta_tags[] = sprintf( '<link rel="icon" href="%s" sizes="32x32">', esc_url( $icon_32 ) );
 	}
 	$icon_192 = get_site_icon_url( 192 );
 	if ( $icon_192 ) {
-		$meta_tags[] = sprintf( '<link rel="icon" href="%s" sizes="192x192" />', esc_url( $icon_192 ) );
+		$meta_tags[] = sprintf( '<link rel="icon" href="%s" sizes="192x192">', esc_url( $icon_192 ) );
 	}
 	$icon_180 = get_site_icon_url( 180 );
 	if ( $icon_180 ) {
-		$meta_tags[] = sprintf( '<link rel="apple-touch-icon" href="%s" />', esc_url( $icon_180 ) );
+		$meta_tags[] = sprintf( '<link rel="apple-touch-icon" href="%s">', esc_url( $icon_180 ) );
 	}
 	$icon_270 = get_site_icon_url( 270 );
 	if ( $icon_270 ) {
-		$meta_tags[] = sprintf( '<meta name="msapplication-TileImage" content="%s" />', esc_url( $icon_270 ) );
+		$meta_tags[] = sprintf( '<meta name="msapplication-TileImage" content="%s">', esc_url( $icon_270 ) );
 	}
 
 	/**
@@ -3553,7 +3540,7 @@ function wp_resource_hints() {
 
 			$html = trim( $html );
 
-			echo "<link $html />\n";
+			echo "<link $html>\n";
 		}
 	}
 }
@@ -3670,7 +3657,7 @@ function wp_preload_resources() {
 		}
 		$html = trim( $html );
 
-		printf( "<link rel='preload' %s />\n", $html );
+		printf( "<link rel='preload' %s>\n", $html );
 	}
 }
 
@@ -4876,7 +4863,7 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	}
 
 	$stylesheet_link = sprintf(
-		"<link rel='stylesheet' href='%s' type='text/css' />\n",
+		"<link rel='stylesheet' href='%s' type='text/css'>\n",
 		esc_url( wp_admin_css_uri( $file ) )
 	);
 
@@ -4895,7 +4882,7 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
 		$rtl_stylesheet_link = sprintf(
-			"<link rel='stylesheet' href='%s' type='text/css' />\n",
+			"<link rel='stylesheet' href='%s' type='text/css'>\n",
 			esc_url( wp_admin_css_uri( "$file-rtl" ) )
 		);
 
@@ -5008,7 +4995,7 @@ function get_the_generator( $type = '' ) {
 			$gen = '<meta name="generator" content="WordPress ' . esc_attr( get_bloginfo( 'version' ) ) . '">';
 			break;
 		case 'xhtml':
-			$gen = '<meta name="generator" content="WordPress ' . esc_attr( get_bloginfo( 'version' ) ) . '" />';
+			$gen = '<meta name="generator" content="WordPress ' . esc_attr( get_bloginfo( 'version' ) ) . '">';
 			break;
 		case 'atom':
 			$gen = '<generator uri="https://wordpress.org/" version="' . esc_attr( get_bloginfo_rss( 'version' ) ) . '">WordPress</generator>';
@@ -5017,7 +5004,7 @@ function get_the_generator( $type = '' ) {
 			$gen = '<generator>' . sanitize_url( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '</generator>';
 			break;
 		case 'rdf':
-			$gen = '<admin:generatorAgent rdf:resource="' . sanitize_url( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '" />';
+			$gen = '<admin:generatorAgent rdf:resource="' . sanitize_url( 'https://wordpress.org/?v=' . get_bloginfo_rss( 'version' ) ) . '">';
 			break;
 		case 'comment':
 			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo( 'version' ) ) . '" -->';

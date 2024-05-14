@@ -74,7 +74,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <tr>
 <th scope="row"><label for="blogname"><?php _e( 'Site Title' ); ?></label></th>
-<td><input name="blogname" type="text" id="blogname" value="<?php form_option( 'blogname' ); ?>" class="regular-text" /></td>
+<td><input name="blogname" type="text" id="blogname" value="<?php form_option( 'blogname' ); ?>" class="regular-text"></td>
 </tr>
 
 <?php
@@ -93,7 +93,7 @@ $tagline_description = sprintf(
 ?>
 <tr>
 <th scope="row"><label for="blogdescription"><?php _e( 'Tagline' ); ?></label></th>
-<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text" />
+<td><input name="blogdescription" type="text" id="blogdescription" aria-describedby="tagline-description" value="<?php form_option( 'blogdescription' ); ?>" class="regular-text">
 <p class="description" id="tagline-description"><?php echo $tagline_description; ?></p></td>
 </tr>
 
@@ -167,7 +167,7 @@ $tagline_description = sprintf(
 		<img id="app-icon-preview" class="app-icon-preview" src="<?php site_icon_url(); ?>" alt="<?php echo esc_attr( $app_icon_alt_value ); ?>">
 	</div>
 
-	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>" />
+	<input type="hidden" name="site_icon" id="site_icon_hidden_field" value="<?php form_option( 'site_icon' ); ?>">
 	<div class="action-buttons">
 		<button type="button"
 			id="choose-from-library-button"
@@ -223,12 +223,12 @@ if ( ! is_multisite() ) {
 
 <tr>
 <th scope="row"><label for="siteurl"><?php _e( 'WordPress Address (URL)' ); ?></label></th>
-<td><input name="siteurl" type="url" id="siteurl" value="<?php form_option( 'siteurl' ); ?>"<?php disabled( defined( 'WP_SITEURL' ) ); ?> class="regular-text code<?php echo $wp_site_url_class; ?>" /></td>
+<td><input name="siteurl" type="url" id="siteurl" value="<?php form_option( 'siteurl' ); ?>"<?php disabled( defined( 'WP_SITEURL' ) ); ?> class="regular-text code<?php echo $wp_site_url_class; ?>"></td>
 </tr>
 
 <tr>
 <th scope="row"><label for="home"><?php _e( 'Site Address (URL)' ); ?></label></th>
-<td><input name="home" type="url" id="home" aria-describedby="home-description" value="<?php form_option( 'home' ); ?>"<?php disabled( defined( 'WP_HOME' ) ); ?> class="regular-text code<?php echo $wp_home_class; ?>" />
+<td><input name="home" type="url" id="home" aria-describedby="home-description" value="<?php form_option( 'home' ); ?>"<?php disabled( defined( 'WP_HOME' ) ); ?> class="regular-text code<?php echo $wp_home_class; ?>">
 	<?php if ( ! defined( 'WP_HOME' ) ) : ?>
 <p class="description" id="home-description">
 		<?php
@@ -247,7 +247,7 @@ if ( ! is_multisite() ) {
 
 <tr>
 <th scope="row"><label for="new_admin_email"><?php _e( 'Administration Email Address' ); ?></label></th>
-<td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr" />
+<td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr">
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
 $new_admin_email = get_option( 'new_admin_email' );
@@ -283,7 +283,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 	_e( 'Membership' );
 	?>
 </span></legend><label for="users_can_register">
-<input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?> />
+<input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?>>
 	<?php _e( 'Anyone can register' ); ?></label>
 </fieldset></td>
 </tr>
@@ -417,7 +417,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 		_e( 'This timezone is currently in standard time.' );
 	}
 	?>
-	<br />
+	<br>
 	<?php
 	if ( in_array( $tzstring, timezone_identifiers_list( DateTimeZone::ALL_WITH_BC ), true ) ) {
 		$transitions = timezone_transitions_get( timezone_open( $tzstring ), time() );
@@ -473,12 +473,12 @@ foreach ( $date_formats as $format ) {
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+	echo '> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br>\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
-	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
+	echo '> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
 			/* translators: Hidden accessibility text. */
 			__( 'enter a custom date format in the following field' ) .
 		'</span></span></label>' .
@@ -486,8 +486,8 @@ foreach ( $date_formats as $format ) {
 			/* translators: Hidden accessibility text. */
 			__( 'Custom date format:' ) .
 		'</label>' .
-		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text" />' .
-		'<br />' .
+		'<input type="text" name="date_format_custom" id="date_format_custom" value="' . esc_attr( get_option( 'date_format' ) ) . '" class="small-text">' .
+		'<br>' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'date_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
 ?>
@@ -521,12 +521,12 @@ foreach ( $time_formats as $format ) {
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+	echo '> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br>\n";
 }
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
 	checked( $custom );
-	echo '/> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
+	echo '> <span class="date-time-text date-time-custom-text">' . __( 'Custom:' ) . '<span class="screen-reader-text"> ' .
 			/* translators: Hidden accessibility text. */
 			__( 'enter a custom time format in the following field' ) .
 		'</span></span></label>' .
@@ -534,8 +534,8 @@ foreach ( $time_formats as $format ) {
 			/* translators: Hidden accessibility text. */
 			__( 'Custom time format:' ) .
 		'</label>' .
-		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text" />' .
-		'<br />' .
+		'<input type="text" name="time_format_custom" id="time_format_custom" value="' . esc_attr( get_option( 'time_format' ) ) . '" class="small-text">' .
+		'<br>' .
 		'<p><strong>' . __( 'Preview:' ) . '</strong> <span class="example">' . date_i18n( get_option( 'time_format' ) ) . '</span>' .
 		"<span class='spinner'></span>\n" . '</p>';
 

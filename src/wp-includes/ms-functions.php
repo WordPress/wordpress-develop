@@ -2092,7 +2092,7 @@ function upload_is_file_too_big( $upload ) {
 
 	if ( strlen( $upload['bits'] ) > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
 		/* translators: %s: Maximum allowed file size in kilobytes. */
-		return sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ) . '<br />', get_site_option( 'fileupload_maxk', 1500 ) );
+		return sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ) . '<br>', get_site_option( 'fileupload_maxk', 1500 ) );
 	}
 
 	return $upload;
@@ -2105,7 +2105,7 @@ function upload_is_file_too_big( $upload ) {
  */
 function signup_nonce_fields() {
 	$id = mt_rand();
-	echo "<input type='hidden' name='signup_form_id' value='{$id}' />";
+	echo "<input type='hidden' name='signup_form_id' value='{$id}'>";
 	wp_nonce_field( 'signup_form_' . $id, '_signup_form', false );
 }
 

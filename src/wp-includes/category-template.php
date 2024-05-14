@@ -515,7 +515,7 @@ function wp_dropdown_categories( $args = '' ) {
  *                                               Default empty string (default feed).
  *     @type bool         $hide_title_if_empty   Whether to hide the `$title_li` element if there are no terms in
  *                                               the list. Default false (title will always be shown).
- *     @type string       $separator             Separator between links. Default '<br />'.
+ *     @type string       $separator             Separator between links. Default '<br>'.
  *     @type bool|int     $show_count            Whether to include post counts. Accepts 0, 1, or their bool equivalents.
  *                                               Default 0.
  *     @type string       $show_option_all       Text to display for showing all categories. Default empty string.
@@ -551,7 +551,7 @@ function wp_list_categories( $args = '' ) {
 		'hierarchical'        => true,
 		'order'               => 'ASC',
 		'orderby'             => 'name',
-		'separator'           => '<br />',
+		'separator'           => '<br>',
 		'show_count'          => 0,
 		'show_option_all'     => '',
 		'show_option_none'    => __( 'No categories' ),

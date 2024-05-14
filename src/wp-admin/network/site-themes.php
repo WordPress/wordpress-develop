@@ -238,13 +238,13 @@ if ( isset( $_GET['enabled'] ) ) {
 
 <form method="get">
 <?php $wp_list_table->search_box( __( 'Search Installed Themes' ), 'theme' ); ?>
-<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>">
 </form>
 
 <?php $wp_list_table->views(); ?>
 
 <form method="post" action="site-themes.php?action=update-site">
-	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>">
 
 <?php $wp_list_table->display(); ?>
 

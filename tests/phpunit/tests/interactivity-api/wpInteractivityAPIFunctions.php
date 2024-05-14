@@ -325,7 +325,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 			'test/custom-directive-block',
 			array(
 				'render_callback' => function () {
-					return '<input data-wp-interactive="nameSpace" ' . wp_interactivity_data_wp_context( array( 'text' => 'test' ) ) . ' data-wp-bind--value="context.text" />';
+					return '<input data-wp-interactive="nameSpace" ' . wp_interactivity_data_wp_context( array( 'text' => 'test' ) ) . ' data-wp-bind--value="context.text">';
 				},
 				'supports'        => array(
 					'interactivity' => true,
@@ -463,7 +463,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 			'test/custom-directive-block',
 			array(
 				'render_callback' => function () {
-					return '<div data-wp-interactive="nameSpace" data-wp-context=\'{"text": "outer"}\'><input id="first-input" data-wp-context=\'{"text": "inner"}\' data-wp-bind--value="context.text" /><input id="second-input" data-wp-bind--value="context.text" /></div>';
+					return '<div data-wp-interactive="nameSpace" data-wp-context=\'{"text": "outer"}\'><input id="first-input" data-wp-context=\'{"text": "inner"}\' data-wp-bind--value="context.text"><input id="second-input" data-wp-bind--value="context.text"></div>';
 				},
 				'supports'        => array(
 					'interactivity' => true,
@@ -510,7 +510,7 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 			'test/custom-directive-block',
 			array(
 				'render_callback' => function () {
-					return '<div data-wp-interactive="parent"><img data-wp-interactive="void" /><input data-wp-bind--value="state.text" /></div>';
+					return '<div data-wp-interactive="parent"><img data-wp-interactive="void"><input data-wp-bind--value="state.text"></div>';
 				},
 				'supports'        => array(
 					'interactivity' => true,

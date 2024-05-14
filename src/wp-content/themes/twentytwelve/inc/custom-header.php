@@ -161,7 +161,7 @@ function twentytwelve_admin_header_image() {
 		$header_image = get_header_image();
 		if ( ! empty( $header_image ) ) :
 			?>
-			<img src="<?php echo esc_url( $header_image ); ?>" class="header-image" width="<?php echo esc_attr( get_custom_header()->width ); ?>" height="<?php echo esc_attr( get_custom_header()->height ); ?>" alt="" />
+			<img src="<?php echo esc_url( $header_image ); ?>" class="header-image" width="<?php echo esc_attr( get_custom_header()->width ); ?>" height="<?php echo esc_attr( get_custom_header()->height ); ?>" alt="">
 		<?php endif; ?>
 	</div>
 	<?php
@@ -187,6 +187,6 @@ function twentytwelve_header_image() {
 		return;
 	}
 	?>
-	<img src="<?php header_image(); ?>" class="<?php echo esc_attr( $attrs['class'] ); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+	<img src="<?php header_image(); ?>" class="<?php echo esc_attr( $attrs['class'] ); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>">
 	<?php
 }

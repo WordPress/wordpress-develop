@@ -46,7 +46,7 @@ class WP_Customize_Nav_Menu_Name_Control extends WP_Customize_Control {
 				<# if ( data.description ) { #>
 					aria-describedby="{{ data.section }}-description"
 				<# } #>
-				/>
+				>
 		</label>
 		<# if ( data.description ) { #>
 			<p id="{{ data.section }}-description">{{ data.description }}</p>

@@ -10,14 +10,14 @@ class Tests_Formatting_wpStripAllTags extends WP_UnitTestCase {
 
 	public function test_wp_strip_all_tags() {
 
-		$text = 'lorem<br />ipsum';
+		$text = 'lorem<br>ipsum';
 		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text ) );
 
-		$text = "lorem<br />\nipsum";
+		$text = "lorem<br>\nipsum";
 		$this->assertSame( "lorem\nipsum", wp_strip_all_tags( $text ) );
 
 		// Test removing breaks is working.
-		$text = 'lorem<br />ipsum';
+		$text = 'lorem<br>ipsum';
 		$this->assertSame( 'loremipsum', wp_strip_all_tags( $text, true ) );
 
 		// Test script / style tag's contents is removed.

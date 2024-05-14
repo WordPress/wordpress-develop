@@ -433,7 +433,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_image' ) ) :
 			<h1 class="displaying-header-text"><a id="name" style="<?php echo esc_attr( $style ); ?>" onclick="return false;" href="<?php echo esc_url( home_url( '/' ) ); ?>" tabindex="-1"><?php bloginfo( 'name' ); ?></a></h1>
 		<div id="desc" class="displaying-header-text" style="<?php echo esc_attr( $style ); ?>"><?php bloginfo( 'description' ); ?></div>
 		<?php if ( $image ) : ?>
-			<img src="<?php echo esc_url( $image ); ?>" alt="" />
+			<img src="<?php echo esc_url( $image ); ?>" alt="">
 		<?php endif; ?>
 		</div>
 		<?php
@@ -468,7 +468,7 @@ if ( ! function_exists( 'twentyeleven_header_image' ) ) :
 		}
 
 		?>
-		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>">
 		<?php
 	}
 endif; // twentyeleven_header_image()
@@ -798,7 +798,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 
 					<?php if ( '0' === $comment->comment_approved ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
-					<br />
+					<br>
 					<?php endif; ?>
 
 				</footer>

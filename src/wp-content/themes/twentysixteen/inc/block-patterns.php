@@ -91,7 +91,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:spacer -->
 
             <!-- wp:separator {"color":"dark-gray","className":"is-style-wide"} -->
-            <hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide"/>
+            <hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide">
             <!-- /wp:separator -->
 
             <!-- wp:heading {"style":{"typography":{"lineHeight":"1.5","fontSize":40}}} -->
@@ -107,7 +107,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:spacer -->
 
             <!-- wp:separator {"color":"dark-gray","className":"is-style-wide"} -->
-            <hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide"/>
+            <hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide">
             <!-- /wp:separator -->
 
             <!-- wp:spacer -->
@@ -126,7 +126,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:spacer -->
 
             <!-- wp:separator {"color":"dark-gray","className":"is-style-wide"} -->
-            <hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide"/>
+            <hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide">
             <!-- /wp:separator -->
 
             <!-- wp:heading {"level":1,"style":{"typography":{"fontSize":35,"lineHeight":"1.5"}}} -->

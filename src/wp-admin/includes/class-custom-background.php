@@ -310,8 +310,8 @@ class Custom_Background {
 			?>
 	<div id="custom-background-image" style="<?php echo $background_styles; ?>"><?php // Must be double quote, see above. ?>
 			<?php if ( $background_image_thumb ) { ?>
-		<img class="custom-background-image" src="<?php echo $background_image_thumb; ?>" style="visibility:hidden;" alt="" /><br />
-		<img class="custom-background-image" src="<?php echo $background_image_thumb; ?>" style="visibility:hidden;" alt="" />
+		<img class="custom-background-image" src="<?php echo $background_image_thumb; ?>" style="visibility:hidden;" alt=""><br>
+		<img class="custom-background-image" src="<?php echo $background_image_thumb; ?>" style="visibility:hidden;" alt="">
 		<?php } ?>
 	</div>
 	<?php } ?>
@@ -324,7 +324,7 @@ class Custom_Background {
 <td>
 <form method="post">
 			<?php wp_nonce_field( 'custom-background-remove', '_wpnonce-custom-background-remove' ); ?>
-			<?php submit_button( __( 'Remove Background Image' ), '', 'remove-background', false ); ?><br />
+			<?php submit_button( __( 'Remove Background Image' ), '', 'remove-background', false ); ?><br>
 			<?php _e( 'This will remove the background image. You will not be able to restore any customizations.' ); ?>
 </form>
 </td>
@@ -338,7 +338,7 @@ class Custom_Background {
 <td>
 <form method="post">
 			<?php wp_nonce_field( 'custom-background-reset', '_wpnonce-custom-background-reset' ); ?>
-			<?php submit_button( __( 'Restore Original Image' ), '', 'reset-background', false ); ?><br />
+			<?php submit_button( __( 'Restore Original Image' ), '', 'reset-background', false ); ?><br>
 			<?php _e( 'This will restore the original background image. You will not be able to restore any customizations.' ); ?>
 </form>
 </td>
@@ -350,14 +350,14 @@ class Custom_Background {
 <th scope="row"><?php _e( 'Select Image' ); ?></th>
 <td><form enctype="multipart/form-data" id="upload-form" class="wp-upload-form" method="post">
 	<p>
-		<label for="upload"><?php _e( 'Choose an image from your computer:' ); ?></label><br />
-		<input type="file" id="upload" name="import" />
-		<input type="hidden" name="action" value="save" />
+		<label for="upload"><?php _e( 'Choose an image from your computer:' ); ?></label><br>
+		<input type="file" id="upload" name="import">
+		<input type="hidden" name="action" value="save">
 			<?php wp_nonce_field( 'custom-background-upload', '_wpnonce-custom-background-upload' ); ?>
 			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
 	</p>
 	<p>
-		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br />
+		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br>
 		<button id="choose-from-library-link" class="button"
 			data-choose="<?php esc_attr_e( 'Choose a Background Image' ); ?>"
 			data-update="<?php esc_attr_e( 'Set as background' ); ?>"><?php _e( 'Choose Image' ); ?></button>

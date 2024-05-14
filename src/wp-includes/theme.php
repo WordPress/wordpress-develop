@@ -733,13 +733,7 @@ function locale_stylesheet() {
 		return;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
-	printf(
-		'<link rel="stylesheet" href="%s"%s media="screen" />',
-		$stylesheet,
-		$type_attr
-	);
+	printf( '<link rel="stylesheet" href="%s" media="screen">', $stylesheet );
 }
 
 /**
@@ -1346,7 +1340,7 @@ function get_header_image_tag( $attr = array() ) {
 		$html .= ' ' . $name . '="' . $value . '"';
 	}
 
-	$html .= ' />';
+	$html .= '>';
 
 	/**
 	 * Filters the markup of header images.
@@ -1884,11 +1878,9 @@ function _custom_background_cb() {
 		$color = false;
 	}
 
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			printf( '<style%s id="custom-background-css"></style>', $type_attr );
+			echo '<style id="custom-background-css"></style>';
 		}
 		return;
 	}
@@ -1942,7 +1934,7 @@ function _custom_background_cb() {
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
 	?>
-<style<?php echo $type_attr; ?> id="custom-background-css">
+<style id="custom-background-css">
 body.custom-background { <?php echo trim( $style ); ?> }
 </style>
 	<?php
@@ -1956,9 +1948,8 @@ body.custom-background { <?php echo trim( $style ); ?> }
 function wp_custom_css_cb() {
 	$styles = wp_get_custom_css();
 	if ( $styles || is_customize_preview() ) :
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 		?>
-		<style<?php echo $type_attr; ?> id="wp-custom-css">
+		<style id="wp-custom-css">
 			<?php
 			// Note that esc_html() cannot be used because `div &gt; span` is not interpreted properly.
 			echo strip_tags( $styles );
@@ -2642,6 +2633,7 @@ function get_theme_starter_content() {
  * @since 6.3.0 The `border` feature allows themes without theme.json to add border styles to blocks.
  * @since 6.5.0 The `appearance-tools` feature enables a few design tools for blocks,
  *              see `WP_Theme_JSON::APPEARANCE_TOOLS_OPT_INS` for a complete list.
+ * @since 6.6.0 The `html5` feature is no longer configurable. HTML5 support is now implicit in all themes.
  *
  * @global array $_wp_theme_features
  *
@@ -2671,7 +2663,6 @@ function get_theme_starter_content() {
  *                          - 'editor-font-sizes'
  *                          - 'editor-styles'
  *                          - 'featured-content'
- *                          - 'html5'
  *                          - 'link-color'
  *                          - 'menus'
  *                          - 'post-formats'
@@ -2726,27 +2717,12 @@ function add_theme_support( $feature, ...$args ) {
 			break;
 
 		case 'html5':
-			// You can't just pass 'html5', you need to pass an array of types.
-			if ( empty( $args[0] ) || ! is_array( $args[0] ) ) {
-				_doing_it_wrong(
-					"add_theme_support( 'html5' )",
-					__( 'You need to pass an array of types.' ),
-					'3.6.1'
-				);
-
-				if ( ! empty( $args[0] ) && ! is_array( $args[0] ) ) {
-					return false;
-				}
-
-				// Build an array of types for back-compat.
-				$args = array( 0 => array( 'comment-list', 'comment-form', 'search-form' ) );
-			}
-
-			// Calling 'html5' again merges, rather than overwrites.
-			if ( isset( $_wp_theme_features['html5'] ) ) {
-				$args[0] = array_merge( $_wp_theme_features['html5'][0], $args[0] );
-			}
-			break;
+			_doing_it_wrong(
+				"add_theme_support( 'html5' )",
+				__( 'All themes implicitly support html5. There is no need to manually add support.' ),
+				'6.6.0'
+			);
+			return false;
 
 		case 'custom-logo':
 			if ( true === $args ) {
@@ -2993,10 +2969,9 @@ function _custom_logo_header_styles() {
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
 
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
 		?>
 		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css"<?php echo $type_attr; ?>>
+		<style id="custom-logo-css">
 			<?php echo $classes; ?> {
 				position: absolute;
 				clip: rect(1px, 1px, 1px, 1px);
@@ -3057,6 +3032,7 @@ function get_theme_support( $feature, ...$args ) {
  * be used for child themes to override support from the parent theme.
  *
  * @since 3.0.0
+ * @since 6.6.0 html5 is no longer configurable.
  *
  * @see add_theme_support()
  *
@@ -3066,7 +3042,7 @@ function get_theme_support( $feature, ...$args ) {
  */
 function remove_theme_support( $feature ) {
 	// Do not remove internal registrations that are not used directly by themes.
-	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
+	if ( in_array( $feature, array( 'editor-style', 'html5', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}
 
@@ -3142,11 +3118,12 @@ function _remove_theme_support( $feature ) {
  * Example usage:
  *
  *     current_theme_supports( 'custom-logo' );
- *     current_theme_supports( 'html5', 'comment-form' );
+ *     current_theme_supports( 'post-formats', 'page' );
  *
  * @since 2.9.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 6.6.0 All themes implicitly support HTML5, matching how browsers parse WordPress' output.
  *
  * @global array $_wp_theme_features
  *
@@ -3157,6 +3134,20 @@ function _remove_theme_support( $feature ) {
  */
 function current_theme_supports( $feature, ...$args ) {
 	global $_wp_theme_features;
+
+	/*
+	 * Browsers interpret HTML as HTML5 in all but extremely rare situations.
+	 *
+	 * @see #59883.
+	 */
+	if ( 'html5' === $feature ) {
+		_doing_it_wrong(
+			"current_theme_supports( 'html5' )",
+			__( 'All themes implicitly support html5. There is no need to check for support.' ),
+			'6.6.0'
+		);
+		return true;
+	}
 
 	if ( 'custom-header-uploads' === $feature ) {
 		return current_theme_supports( 'custom-header', 'uploads' );
@@ -3185,7 +3176,6 @@ function current_theme_supports( $feature, ...$args ) {
 			$content_type = $args[0];
 			return in_array( $content_type, $_wp_theme_features[ $feature ][0], true );
 
-		case 'html5':
 		case 'post-formats':
 			/*
 			 * Specific post formats can be registered by passing an array of types
@@ -4231,7 +4221,7 @@ function create_initial_theme_features() {
 		'html5',
 		array(
 			'type'         => 'array',
-			'description'  => __( 'Allows use of HTML5 markup for search forms, comment forms, comment lists, gallery, and caption.' ),
+			'description'  => __( 'Deprecated (will always be true): Allows use of HTML5 markup for search forms, comment forms, comment lists, gallery, and caption.' ),
 			'show_in_rest' => array(
 				'schema' => array(
 					'items' => array(
@@ -4353,12 +4343,6 @@ function _add_default_theme_supports() {
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'responsive-embeds' );
 	add_theme_support( 'editor-styles' );
-	/*
-	 * Makes block themes support HTML5 by default for the comment block and search form
-	 * (which use default template functions) and `[caption]` and `[gallery]` shortcodes.
-	 * Other blocks contain their own HTML5 markup.
-	 */
-	add_theme_support( 'html5', array( 'comment-form', 'comment-list', 'search-form', 'gallery', 'caption', 'style', 'script' ) );
 	add_theme_support( 'automatic-feed-links' );
 
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );

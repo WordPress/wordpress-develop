@@ -22,7 +22,7 @@ if ( class_exists( 'WP_Customize_Control' ) ) {
 			 * @since Twenty Twenty 1.0
 			 */
 			public function render_content() {
-				echo '<hr/>';
+				echo '<hr>';
 			}
 		}
 	}

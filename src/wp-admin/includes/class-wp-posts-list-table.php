@@ -658,7 +658,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$posts_columns = array();
 
-		$posts_columns['cb'] = '<input type="checkbox" />';
+		$posts_columns['cb'] = '<input type="checkbox">';
 
 		/* translators: Posts screen column name. */
 		$posts_columns['title'] = _x( 'Title', 'column name' );
@@ -1034,7 +1034,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
 			?>
-			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
+			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>">
 			<label for="cb-select-<?php the_ID(); ?>">
 				<span class="screen-reader-text">
 				<?php
@@ -1230,7 +1230,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$status = apply_filters( 'post_date_column_status', $status, $post, 'date', $mode );
 
 		if ( $status ) {
-			echo $status . '<br />';
+			echo $status . '<br>';
 		}
 
 		/**
@@ -1688,14 +1688,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 						<label>
 							<span class="title"><?php _e( 'Title' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="post_title" class="ptitle" value="" /></span>
+							<span class="input-text-wrap"><input type="text" name="post_title" class="ptitle" value=""></span>
 						</label>
 
 						<?php if ( is_post_type_viewable( $screen->post_type ) ) : ?>
 
 							<label>
 								<span class="title"><?php _e( 'Slug' ); ?></span>
-								<span class="input-text-wrap"><input type="text" name="post_name" value="" autocomplete="off" spellcheck="false" /></span>
+								<span class="input-text-wrap"><input type="text" name="post_name" value="" autocomplete="off" spellcheck="false"></span>
 							</label>
 
 						<?php endif; // is_post_type_viewable() ?>
@@ -1709,7 +1709,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<legend><span class="title"><?php _e( 'Date' ); ?></span></legend>
 						<?php touch_time( 1, 1, 0, 1 ); ?>
 					</fieldset>
-					<br class="clear" />
+					<br class="clear">
 				<?php endif; // $bulk ?>
 
 				<?php
@@ -1770,7 +1770,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<div class="inline-edit-group wp-clearfix">
 						<label class="alignleft">
 							<span class="title"><?php _e( 'Password' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input" value="" /></span>
+							<span class="input-text-wrap"><input type="text" name="post_password" class="inline-edit-password-input" value=""></span>
 						</label>
 
 						<span class="alignleft inline-edit-or">
@@ -1780,7 +1780,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							?>
 						</span>
 						<label class="alignleft inline-edit-private">
-							<input type="checkbox" name="keep_private" value="private" />
+							<input type="checkbox" name="keep_private" value="private">
 							<span class="checkbox-title"><?php _e( 'Private' ); ?></span>
 						</label>
 					</div>
@@ -1798,7 +1798,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<?php foreach ( $hierarchical_taxonomies as $taxonomy ) : ?>
 
 						<span class="title inline-edit-categories-label"><?php echo esc_html( $taxonomy->labels->name ); ?></span>
-						<input type="hidden" name="<?php echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0" />
+						<input type="hidden" name="<?php echo ( 'category' === $taxonomy->name ) ? 'post_category[]' : 'tax_input[' . esc_attr( $taxonomy->name ) . '][]'; ?>" value="0">
 						<ul class="cat-checklist <?php echo esc_attr( $taxonomy->name ); ?>-checklist">
 							<?php wp_terms_checklist( 0, array( 'taxonomy' => $taxonomy->name ) ); ?>
 						</ul>
@@ -1862,7 +1862,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 						<label>
 							<span class="title"><?php _e( 'Order' ); ?></span>
-							<span class="input-text-wrap"><input type="text" name="menu_order" class="inline-edit-menu-order-input" value="<?php echo $post->menu_order; ?>" /></span>
+							<span class="input-text-wrap"><input type="text" name="menu_order" class="inline-edit-menu-order-input" value="<?php echo $post->menu_order; ?>"></span>
 						</label>
 
 					<?php endif; // ! $bulk ?>
@@ -1948,7 +1948,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
 
 							<label class="alignleft">
-								<input type="checkbox" name="comment_status" value="open" />
+								<input type="checkbox" name="comment_status" value="open">
 								<span class="checkbox-title"><?php _e( 'Allow Comments' ); ?></span>
 							</label>
 
@@ -1957,7 +1957,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<?php if ( post_type_supports( $screen->post_type, 'trackbacks' ) ) : ?>
 
 							<label class="alignleft">
-								<input type="checkbox" name="ping_status" value="open" />
+								<input type="checkbox" name="ping_status" value="open">
 								<span class="checkbox-title"><?php _e( 'Allow Pings' ); ?></span>
 							</label>
 
@@ -2007,7 +2007,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							<?php else : // $bulk ?>
 
 								<label class="alignleft">
-									<input type="checkbox" name="sticky" value="sticky" />
+									<input type="checkbox" name="sticky" value="sticky">
 									<span class="checkbox-title"><?php _e( 'Make this post sticky' ); ?></span>
 								</label>
 
@@ -2087,10 +2087,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<span class="spinner"></span>
 				<?php endif; ?>
 
-				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
-				<input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
+				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>">
+				<input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>">
 				<?php if ( ! $bulk && ! post_type_supports( $screen->post_type, 'author' ) ) : ?>
-					<input type="hidden" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>" />
+					<input type="hidden" name="post_author" value="<?php echo esc_attr( $post->post_author ); ?>">
 				<?php endif; ?>
 
 				<?php

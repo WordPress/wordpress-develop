@@ -30,7 +30,7 @@ return array(
 					<!-- /wp:spacer -->
 
 					<!-- wp:separator {"align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide is-style-wide"/>
+					<hr class="wp-block-separator alignwide is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:spacer {"height":16} -->

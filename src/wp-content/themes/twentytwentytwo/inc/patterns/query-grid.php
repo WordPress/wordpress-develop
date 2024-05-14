@@ -18,7 +18,7 @@ return array(
 					<!-- /wp:post-template -->
 
 					<!-- wp:separator {"align":"wide","className":"is-style-wide"} -->
-					<hr class="wp-block-separator alignwide is-style-wide"/>
+					<hr class="wp-block-separator alignwide is-style-wide">
 					<!-- /wp:separator -->
 
 					<!-- wp:query-pagination {"paginationArrow":"arrow","align":"wide","layout":{"type":"flex","justifyContent":"space-between"}} -->

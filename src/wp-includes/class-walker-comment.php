@@ -340,7 +340,7 @@ class Walker_Comment extends Walker {
 		</div>
 		<?php if ( '0' === $comment->comment_approved ) : ?>
 		<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
-		<br />
+		<br>
 		<?php endif; ?>
 
 		<div class="comment-meta commentmetadata">

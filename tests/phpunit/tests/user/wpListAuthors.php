@@ -270,9 +270,9 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 		$url2 = get_author_feed_link( self::$user_ids[2] );
 
 		$expected['feed_image'] =
-			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a> <a href="' . $url1 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>' .
-			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a> <a href="' . $url2 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>' .
-			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a> <a href="' . $url0 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;" /></a></li>';
+			'<li><a href="' . self::$user_urls[1] . '" title="Posts by bob">bob</a> <a href="' . $url1 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;"></a></li>' .
+			'<li><a href="' . self::$user_urls[2] . '" title="Posts by paul">paul</a> <a href="' . $url2 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;"></a></li>' .
+			'<li><a href="' . self::$user_urls[0] . '" title="Posts by zack">zack</a> <a href="' . $url0 . '"><img src="http://' . WP_TESTS_DOMAIN . '/path/to/a/graphic.png" style="border: none;"></a></li>';
 
 		$this->assertSame(
 			$expected['feed_image'],

@@ -410,7 +410,7 @@ END
 			)
 		);
 
-		$expected_content = "<p>Paragraph One</p>\n<p>P2L1<br />\nP2L2</p>\n<p><a href=\"https://example.com/\" rel=\"nofollow ugc\">https://example.com/</a></p>\n";
+		$expected_content = "<p>Paragraph One</p>\n<p>P2L1<br>\nP2L2</p>\n<p><a href=\"https://example.com/\" rel=\"nofollow ugc\">https://example.com/</a></p>\n";
 
 		$this->assertSame(
 			'<ol class="wp-block-comment-template"><li id="comment-' . self::$comment_ids[0] . '" class="comment even thread-even depth-1"><div class="wp-block-comment-content">' . $expected_content . '</div></li></ol>',

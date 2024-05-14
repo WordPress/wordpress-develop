@@ -682,7 +682,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 
 		if ( true === $show_site_icons && has_site_icon() ) {
 			$blavatar = sprintf(
-				'<img class="blavatar" src="%s" srcset="%s 2x" alt="" width="16" height="16"%s />',
+				'<img class="blavatar" src="%s" srcset="%s 2x" alt="" width="16" height="16"%s>',
 				esc_url( get_site_icon_url( 16 ) ),
 				esc_url( get_site_icon_url( 32 ) ),
 				( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
@@ -778,7 +778,7 @@ function wp_admin_bar_shortlink_menu( $wp_admin_bar ) {
 		return;
 	}
 
-	$html = '<input class="shortlink-input" type="text" readonly="readonly" value="' . esc_attr( $short ) . '" aria-label="' . __( 'Shortlink' ) . '" />';
+	$html = '<input class="shortlink-input" type="text" readonly="readonly" value="' . esc_attr( $short ) . '" aria-label="' . __( 'Shortlink' ) . '">';
 
 	$wp_admin_bar->add_node(
 		array(
@@ -1186,12 +1186,12 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 	}
 
 	$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
-	$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />';
+	$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150">';
 	$form .= '<label for="adminbar-search" class="screen-reader-text">' .
 			/* translators: Hidden accessibility text. */
 			__( 'Search' ) .
 		'</label>';
-	$form .= '<input type="submit" class="adminbar-button" value="' . __( 'Search' ) . '" />';
+	$form .= '<input type="submit" class="adminbar-button" value="' . __( 'Search' ) . '">';
 	$form .= '</form>';
 
 	$wp_admin_bar->add_node(
