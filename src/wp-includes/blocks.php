@@ -1186,7 +1186,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		return $changes;
 
 	} else {
-		$template = _build_block_template_object_from_prepared_database_object( $changes );
+		$template = _build_block_template_object_from_database_object( $changes );
 
 		if ( is_wp_error( $template ) ) {
 			return $template;

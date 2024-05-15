@@ -832,7 +832,7 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
  *                                    prepared for inserting or updating the database.
  * @return WP_Block_Template|WP_Error Template or error object.
  */
-function _build_block_template_object_from_prepared_database_object( $obj ) {
+function _build_block_template_object_from_database_object( $obj ) {
 	$meta  = isset( $obj->meta_input ) ? $obj->meta_input : array();
 	$terms = isset( $obj->tax_input ) ? $obj->tax_input : array();
 
