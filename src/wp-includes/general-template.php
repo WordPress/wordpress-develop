@@ -1029,7 +1029,7 @@ function has_custom_logo( $blog_id = 0 ) {
 		restore_current_blog();
 	}
 
-	return (bool) wp_attachment_is_image( $custom_logo_id );
+	return wp_attachment_is_image( $custom_logo_id );
 }
 
 /**
