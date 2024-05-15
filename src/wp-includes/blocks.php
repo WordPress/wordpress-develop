@@ -1120,7 +1120,7 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * blocks to reflect the latter.
  *
  * @since 6.5.0
- * @since 6.6.0 The function now also supports `wp_navigation` post objects.
+ * @since 6.6.0 The function now also supports `wp_navigation` post_type.
  * @access private
  *
  * @param stdClass        $changes    An object representing a template or template part
