@@ -1638,11 +1638,11 @@ function wp_ajax_add_meta() {
 
 			/* this is to avoid adding the meta twice */
 			$_tmp_post = $_POST;
-			unset( $_POST[ 'metakeyselect' ] );
-			unset( $_POST[ 'metakeyinput' ] );
+			unset( $_POST['metakeyselect'] );
+			unset( $_POST['metakeyinput'] );
 
 			$pid = edit_post( $post_data );
-			
+
 			$_POST = $_tmp_post;
 
 			if ( $pid ) {
