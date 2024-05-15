@@ -59,7 +59,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 			),
 		);
 
-		wp_render_elements_support_styles( null, $block );
+		wp_render_elements_support_styles( $block );
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertMatchesRegularExpression(
