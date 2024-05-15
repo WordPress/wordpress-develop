@@ -1150,7 +1150,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 
 	$blocks = parse_blocks( $changes->post_content );
 
-	if ( 'wp_navigation' === $changes->post_type ) {
+	if ( isset( $changes->post_type ) && 'wp_navigation' === $changes->post_type ) {
 		/*
 		* In this scenario the user has likely tried to create a navigation via the REST API.
 		* In which case we won't have a post ID to work with and store meta against.
