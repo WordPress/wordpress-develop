@@ -2344,10 +2344,10 @@ function wp_get_upload_dir() {
  * @since 2.0.0
  * @uses _wp_upload_dir()
  *
- * @param string $time Optional. Time formatted in 'yyyy/mm'. Default null.
- * @param bool   $create_dir Optional. Whether to check and create the uploads directory.
- *                           Default true for backward compatibility.
- * @param bool   $refresh_cache Optional. Whether to refresh the cache. Default false.
+ * @param string|null $time          Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param bool        $create_dir    Optional. Whether to check and create the uploads directory.
+ *                                   Default true for backward compatibility.
+ * @param bool        $refresh_cache Optional. Whether to refresh the cache. Default false.
  * @return array {
  *     Array of information about the upload directory.
  *
@@ -2419,7 +2419,7 @@ function wp_upload_dir( $time = null, $create_dir = true, $refresh_cache = false
  * @since 4.5.0
  * @access private
  *
- * @param string $time Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array See wp_upload_dir()
  */
 function _wp_upload_dir( $time = null ) {
@@ -2871,7 +2871,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @param string      $name       Filename.
  * @param null|string $deprecated Never used. Set to null.
  * @param string      $bits       File content
- * @param string      $time       Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time       Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array {
  *     Information about the newly-uploaded file.
  *
@@ -7474,17 +7474,27 @@ function get_tag_regex( $tag ) {
  *
  * @see https://core.trac.wordpress.org/ticket/23688
  *
- * @param string $charset A charset name.
+ * @param string $charset A charset name, e.g. "UTF-8", "Windows-1252", "SJIS".
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
-	if ( 'utf-8' === strtolower( $charset ) || 'utf8' === strtolower( $charset ) ) {
-
+	if ( is_utf8_charset( $charset ) ) {
 		return 'UTF-8';
 	}
 
-	if ( 'iso-8859-1' === strtolower( $charset ) || 'iso8859-1' === strtolower( $charset ) ) {
-
+	/*
+	 * Normalize the ISO-8859-1 family of languages.
+	 *
+	 * This is not required for htmlspecialchars(), as it properly recognizes all of
+	 * the input character sets that here are transformed into "ISO-8859-1".
+	 *
+	 * @todo Should this entire check be removed since it's not required for the stated purpose?
+	 * @todo Should WordPress transform other potential charset equivalents, such as "latin1"?
+	 */
+	if (
+		( 0 === strcasecmp( 'iso-8859-1', $charset ) ) ||
+		( 0 === strcasecmp( 'iso8859-1', $charset ) )
+	) {
 		return 'ISO-8859-1';
 	}
 
