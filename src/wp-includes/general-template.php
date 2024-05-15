@@ -1024,12 +1024,13 @@ function has_custom_logo( $blog_id = 0 ) {
 	}
 
 	$custom_logo_id = get_theme_mod( 'custom_logo' );
+	$is_image       = wp_attachment_is_image( $custom_logo_id );
 
 	if ( $switched_blog ) {
 		restore_current_blog();
 	}
 
-	return wp_attachment_is_image( $custom_logo_id );
+	return $is_image;
 }
 
 /**
