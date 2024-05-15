@@ -243,7 +243,7 @@ class WP_HTML_Decoder {
 				return '�';
 			}
 
-			if ( $digit_count - $zero_count > $max_digits ) {
+			if ( $digit_count > $max_digits ) {
 				$skip_bytes = $end_of_span - $at;
 				return '�';
 			}
