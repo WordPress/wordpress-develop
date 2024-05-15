@@ -757,4 +757,9 @@ add_action( 'init', '_wp_register_default_font_collections' );
 add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
+// Note: When can we remove this conditional?
+if ( ! has_filter( 'rest_pre_insert_wp_navigation', 'block_core_navigation_update_ignore_hooked_blocks_meta' ) && ! has_filter( 'rest_pre_insert_wp_navigation', 'gutenberg_block_core_navigation_update_ignore_hooked_blocks_meta' ) ) {
+	add_filter( 'rest_pre_insert_wp_navigation', 'inject_ignored_hooked_blocks_metadata_attributes' );
+}
+
 unset( $filter, $action );
