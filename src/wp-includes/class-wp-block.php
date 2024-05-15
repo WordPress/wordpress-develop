@@ -136,7 +136,8 @@ class WP_Block {
 
 		$this->registry = $registry;
 
-		$this->block_type = $registry->get_registered( $this->name );
+		$block_name       = $this->get_canonical_block_name( $this->name );
+		$this->block_type = $registry->get_registered( $block_name );
 
 		$this->available_context = $available_context;
 
@@ -169,6 +170,19 @@ class WP_Block {
 		if ( ! empty( $block['innerContent'] ) ) {
 			$this->inner_content = $block['innerContent'];
 		}
+	}
+
+	public function is_variant( $name ) {
+		return substr_count( $this->name, '/' ) === 2;
+	}
+
+	public function get_canonical_block_name( $name ) {
+		if ( $this->is_variant( $name ) ) {
+			$parts = explode( '/', $name );
+			return $parts[0] . '/' . $parts[1];
+		}
+
+		return $name;
 	}
 
 	/**
