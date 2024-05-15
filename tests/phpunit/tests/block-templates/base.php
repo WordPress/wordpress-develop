@@ -11,6 +11,8 @@ abstract class WP_Block_Templates_UnitTestCase extends WP_UnitTestCase {
 	protected static $template_part_post;
 	protected static $uncustomized_template_db_object;
 	protected static $customized_template_db_object;
+	protected static $uncustomized_template_part_db_object;
+	protected static $customized_template_part_db_object;
 
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -78,7 +80,6 @@ abstract class WP_Block_Templates_UnitTestCase extends WP_UnitTestCase {
 
 		// Setup uncustomized template db object.
 		self::$uncustomized_template_db_object = (object) array(
-			'post_type'    => 'wp_template',
 			'post_status'  => 'publish',
 			'tax_input'    => array(
 				'wp_theme' => self::TEST_THEME,
@@ -99,6 +100,31 @@ abstract class WP_Block_Templates_UnitTestCase extends WP_UnitTestCase {
 			'post_title'   => 'My Customized Template',
 			'post_status'  => 'publish',
 			'post_content' => '<!-- wp:heading {"level":1,"metadata":{"ignoredHookedBlocks":["tests/ignored"]}} --><h1>Template</h1><!-- /wp:heading -->',
+		);
+
+		// Setup uncustomized template part db object.
+		self::$uncustomized_template_part_db_object = (object) array(
+			'post_status'  => 'publish',
+			'tax_input'    => array(
+				'wp_theme'              => self::TEST_THEME,
+				'wp_template_part_area' => WP_TEMPLATE_PART_AREA_HEADER,
+			),
+			'meta_input'   => array(
+				'origin' => 'theme',
+			),
+			'post_content' => '<!-- wp:heading {"level":2,"metadata":{"ignoredHookedBlocks":["tests/ignored"]}} --><h2>Template Part</h2><!-- /wp:heading -->',
+			'post_type'    => 'wp_template_part',
+			'post_name'    => 'my_template_part',
+			'post_title'   => 'My Template Part',
+			'post_excerpt' => 'Description of my template part',
+		);
+
+		// Setup customised template part db object.
+		self::$customized_template_part_db_object = (object) array(
+			'post_name'    => 'my_template_part',
+			'post_title'   => 'My Customized Template Part',
+			'post_status'  => 'publish',
+			'post_content' => '<!-- wp:heading {"level":2,"metadata":{"ignoredHookedBlocks":["tests/ignored"]}} --><h2>Template Customized Part</h2><!-- /wp:heading -->',
 		);
 	}
 

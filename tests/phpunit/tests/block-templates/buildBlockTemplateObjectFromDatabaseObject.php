@@ -61,4 +61,39 @@ class Tests_Block_Templates_BuildBlockTemplateFromDatabaseObject extends WP_Bloc
 		$this->assertSame( 'Description of my template', $template->description );
 		$this->assertSame( 'wp_template', $template->type );
 	}
+
+	/**
+	 * @ticket 60759
+	 */
+	public function test_should_build_template_part_from_uncustomized_object() {
+		$template = _build_block_template_object_from_database_object( self::$uncustomized_template_part_db_object );
+
+		$this->assertNotWPError( $template );
+		$this->assertSame( get_stylesheet() . '//my_template_part', $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template_part', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'My Template Part', $template->title );
+		$this->assertSame( 'Description of my template part', $template->description );
+		$this->assertSame( 'wp_template_part', $template->type );
+	}
+
+	/**
+	 * @ticket 60759
+	 */
+	public function test_should_build_template_part_from_customized_object() {
+		self::$customized_template_part_db_object->ID = self::$template_part_post->ID;
+		$template                                     = _build_block_template_object_from_database_object( self::$customized_template_part_db_object );
+
+		$this->assertNotWPError( $template );
+		$this->assertSame( get_stylesheet() . '//my_template_part', $template->id );
+		$this->assertSame( get_stylesheet(), $template->theme );
+		$this->assertSame( 'my_template_part', $template->slug );
+		$this->assertSame( 'publish', $template->status );
+		$this->assertSame( 'custom', $template->source );
+		$this->assertSame( 'My Customized Template Part', $template->title );
+		$this->assertSame( 'Description of my template part', $template->description );
+		$this->assertSame( 'wp_template_part', $template->type );
+	}
 }
