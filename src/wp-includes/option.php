@@ -248,6 +248,11 @@ function get_option( $option, $default_value = false ) {
 }
 
 /**
+ * Primes specific network options into the cache with a single database query.
+ *
+ * Only network options that do not already exist in cache will be loaded.
+ *
+ * If site is not multisite, then call wp_prime_option_caches.
  *
  * @since 6.6.0
  *
