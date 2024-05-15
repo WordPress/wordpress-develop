@@ -37,6 +37,11 @@ on:
         type: 'string'
         default: '5.7'
 
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
 jobs:
   # Runs upgrade tests on a build of WordPress.
   #
