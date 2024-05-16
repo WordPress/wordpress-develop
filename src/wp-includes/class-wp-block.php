@@ -173,7 +173,7 @@ class WP_Block {
 	}
 
 	public function is_variant( $name ) {
-		return substr_count( $this->name, '/' ) === 2;
+		return substr_count( $name, '/' ) === 2;
 	}
 
 	public function get_canonical_block_name( $name ) {
