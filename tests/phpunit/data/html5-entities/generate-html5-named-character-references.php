@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../../../src/wp-includes/class-wp-token-map.php';
  * @var array.
  */
 $entities = json_decode(
-	file_get_contents( __DIR__ . '/../../data/html5-entities.json' ),
+	file_get_contents( __DIR__ . '/entities.json' ),
 	JSON_OBJECT_AS_ARRAY
 );
 
@@ -80,3 +80,9 @@ file_put_contents(
 	__DIR__ . '/../../../../src/wp-includes/html-api/html5-named-character-references.php',
 	$module_contents
 );
+
+if ( posix_isatty( STDOUT ) ) {
+	echo "\e[1;32mOK\e[0;90m: \e[mSuccessfully generated optimized lookup class.\n";
+} else {
+	echo "OK: Successfully generated optimized lookup class.\n";
+}
