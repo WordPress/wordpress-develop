@@ -1097,7 +1097,7 @@ function get_custom_logo( $blog_id = 0 ) {
 		 */
 		$image = wp_get_attachment_image( $custom_logo_id, 'full', false, $custom_logo_attr );
 
-		// Check we have a proper HTML img element.
+		// Check that we have a proper HTML img element.
 		if ( $image ) {
 
 			if ( $unlink_homepage_logo && is_front_page() && ! is_paged() ) {
