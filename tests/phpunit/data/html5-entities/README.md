@@ -21,4 +21,4 @@ Run the `generate-html5-named-character-references.php` file to update the auto-
 OK: Successfully generated optimized lookup class.
 ```
 
-- [1]: ../../../../src/wp-includes/html-api/html5-named-character-references.php
+[1]: ../../../../src/wp-includes/html-api/html5-named-character-references.php
