@@ -10,6 +10,17 @@
  */
 class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
+	 * Number of unique HTML5 named character references, including
+	 * variations of a given name that don't require the trailing semicolon.
+	 *
+	 * The set of names is fixed by the specification,
+	 * and can be found at the following link.
+	 *
+	 * @link https://html.spec.whatwg.org/entities.json
+	 */
+	const KNOWN_COUNT_OF_ALL_HTML5_NAMED_CHARACTER_REFERENCES = 2231;
+
+	/**
 	 * Small test array matching names to Emoji.
 	 *
 	 * @var array.
@@ -358,9 +369,15 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public static function data_html5_test_dataset() {
+	public function data_html5_test_dataset() {
 		$html5 = self::get_test_input_array( 'HTML5' );
 		$cases = array();
+
+		$this->assertSame(
+			self::KNOWN_COUNT_OF_ALL_HTML5_NAMED_CHARACTER_REFERENCES,
+			count( $html5 ),
+			'Found the wrong number of HTML5 named character references: confirm the entities.json file."'
+		);
 
 		foreach ( $html5 as $token => $replacement ) {
 			$cases[ $token ] = array( $token, $replacement );
