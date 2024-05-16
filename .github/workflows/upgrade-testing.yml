@@ -92,7 +92,7 @@ jobs:
   upgrade-tests-wp-6x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
-    if: ${{ 'donotrun github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ 'donotrun' == 'run' github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     permissions:
       contents: read
     strategy:
