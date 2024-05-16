@@ -29,6 +29,8 @@ jobs:
     name: Create WordPress Package
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    outputs:
+      built-package: ${{ steps.upload-build.outputs.artifact-url }}
 
     steps:
       - name: Checkout repository
@@ -56,7 +58,7 @@ jobs:
 
       - name: Upload WordPress build as artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        id: build-artifact
+        id: upload-build
         with:
           name: wordpress-${{ github.sha }}
           path: build
@@ -85,7 +87,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ needs.create-package-zip.outputs.artifact-url && needs.create-package-zip.outputs.artifact-url || inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ needs.create-package-zip.outputs.built-package && needs.create-package-zip.outputs.built-package || inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
 
   slack-notifications:
