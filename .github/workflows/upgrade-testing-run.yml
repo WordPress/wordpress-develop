@@ -69,8 +69,7 @@ jobs:
           tools: wp-cli
 
       - name: Start the database server
-        run: |
-          sudo systemctl start ${{ inputs.db-type }}
+        run: sudo systemctl start ${{ inputs.db-type }}
 
       - name: Download WordPress ${{ inputs.wp }}
         run: wp core download --version=${{ inputs.wp }}
@@ -84,6 +83,5 @@ jobs:
       - name: Update to the latest minor version
         run: wp core update --minor
 
-      - name: Upgrade to WordPress ${{ inputs.new-version }}
-        run: |
-          wp core update${{ 'latest' != inputs.new-version && format( ' --version={0}', inputs.new-version ) || '' }}
+      - name: Upgrade to ${{ contains( 'https', inputs.new-version ) && ( github.event_name = 'pull_request' && 'test pull request' || github.event_name = 'push' && github.sha ) || inputs.new-version }}
+        run: wp core update ${{ contains( 'https', inputs.new-version ) && inputs.new-version || 'latest' != inputs.new-version && format( '--version={0}', inputs.new-version ) || '' }}
