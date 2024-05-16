@@ -83,5 +83,5 @@ jobs:
       - name: Update to the latest minor version
         run: wp core update --minor
 
-      - name: Upgrade to ${{ contains( 'https', inputs.new-version ) && ( github.event_name = 'push' && github.sha ) || inputs.new-version }}
+      - name: Upgrade to ${{ contains( 'https', inputs.new-version ) || inputs.new-version }}
         run: wp core update ${{ contains( 'https', inputs.new-version ) && inputs.new-version || 'latest' != inputs.new-version && format( '--version={0}', inputs.new-version ) || '' }}
