@@ -4,15 +4,7 @@ on:
   push:
     branches:
       - trunk
-    # Always test the workflow after it's updated.
-    paths:
-      - '.github/workflows/upgrade-testing.yml'
-      - '.github/workflows/upgrade-testing-run.yml'
   pull_request:
-    # Always test the workflow when changes are suggested.
-    paths:
-      - '.github/workflows/upgrade-testing.yml'
-      - '.github/workflows/upgrade-testing-run.yml'
   workflow_dispatch:
     inputs:
       new-version:
@@ -32,11 +24,52 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Spawns upgrade testing from WordPress 6.x versions with MySQL.
-  upgrade-tests-wp-6x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/upgrade-testing-run.yml@trunk
+  # Create a zip file for testing commits and pull requests.
+  create-package-zip:
+    name: Create WordPress Package
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Zip WordPress build
+        run: zip -r wordpress-${{ github.sha }}.zip build
+
+      - name: Upload WordPress build as artifact
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: wordpress-${{ github.sha }}
+          path: wordpress-${{ github.sha }}.zip
+          if-no-files-found: error
+
+  # Spawns upgrade testing for commits and pull requests.
+  upgrade-tests-recent-versions-only:
+    name: ${{ matrix.wp }} to ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) && github.sha || inputs.new-version && inputs.new-version || 'latest' }}
+    uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    needs: [ create-package-zip ]
     permissions:
       contents: read
     strategy:
@@ -46,7 +79,7 @@ jobs:
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0' ]
-        wp: [ '6.0', '6.1', '6.2', '6.3', '6.4', '6.5' ]
+        wp: [ '6.5' ]
         multisite: [ false, true ]
     with:
       os: ${{ matrix.os }}
@@ -54,107 +87,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
-      multisite: ${{ matrix.multisite }}
-
-  # Spawns upgrade testing from WordPress 5.x versions on PHP 7.x with MySQL.
-  upgrade-tests-wp-5x-php-7x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/upgrade-testing-run.yml@trunk
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ 'ubuntu-latest' ]
-        php: [ '7.2', '7.3', '7.4' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
-        wp: [ '5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
-        multisite: [ false, true ]
-    with:
-      os: ${{ matrix.os }}
-      php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
-      wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
-      multisite: ${{ matrix.multisite }}
-
-  # Spawns upgrade testing from WordPress 5.x versions on PHP 8.x with MySQL.
-  #
-  # WordPress 5.0-5.2 are excluded from PHP 8+ testing because of the following fatal errors:
-  # - Use of __autoload().
-  # - array/string offset with curly braces.
-  upgrade-tests-wp-5x-php-8x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/upgrade-testing-run.yml@trunk
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ 'ubuntu-latest' ]
-        php: [ '8.0', '8.1', '8.2', '8.3' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
-        wp: [ '5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9' ]
-        multisite: [ false, true ]
-    with:
-      os: ${{ matrix.os }}
-      php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
-      wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
-      multisite: ${{ matrix.multisite }}
-
-  # Spawns upgrade testing from WordPress 4.x versions on PHP 7.x with MySQL.
-  upgrade-tests-wp-4x-php-7x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/upgrade-testing-run.yml@trunk
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ 'ubuntu-latest' ]
-        php: [ '7.2', '7.3', '7.4' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
-        wp: [ '4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9' ]
-        multisite: [ false, true ]
-    with:
-      os: ${{ matrix.os }}
-      php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
-      wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
-      multisite: ${{ matrix.multisite }}
-
-  # Spawns upgrade testing from WordPress 4.x versions on PHP 8.x with MySQL.
-  #
-  # WordPress 4.6-4.9 are excluded from PHP 8+ testing because of the following fatal errors:
-  # - Use of __autoload().
-  # - array/string offset with curly braces.
-  upgrade-tests-wp-4x-php-8x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
-    uses: WordPress/wordpress-develop/.github/workflows/upgrade-testing-run.yml@trunk
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ 'ubuntu-latest' ]
-        php: [ '8.0', '8.1', '8.2', '8.3' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0' ]
-        wp: [ '4.1', '4.2', '4.3', '4.4', '4.5' ]
-        multisite: [ false, true ]
-    with:
-      os: ${{ matrix.os }}
-      php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
-      wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) && github.sha || inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
 
   slack-notifications:
@@ -163,7 +96,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
+    needs: [ upgrade-tests-recent-versions-only ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
