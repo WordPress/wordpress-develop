@@ -41,7 +41,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	/**
 	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
 	 */
-	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_returns_correct_markup() {
+	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_returns_correct_markup_and_sets_metadata() {
 		$anchor_block = array(
 			'blockName' => self::ANCHOR_BLOCK_TYPE,
 		);
@@ -52,22 +52,10 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 			$actual,
 			"Markup for hooked block wasn't generated correctly."
 		);
-	}
-
-	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
-	 */
-	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_no_duplicate_hooked_block() {
-		$anchor_block = array(
-			'blockName' => self::ANCHOR_BLOCK_TYPE,
-		);
-
-		$actual  = insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
-		$actual .= insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', self::HOOKED_BLOCKS, array() );
 		$this->assertSame(
-			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /-->',
-			$actual,
-			"Markup for hooked block wasn't generated correctly."
+			array( 'tests/hooked-block' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"Block wasn't added to ignoredHookedBlocks metadata."
 		);
 	}
 
@@ -89,6 +77,11 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 			'',
 			$actual,
 			"No markup should've been generated for ignored hooked block."
+		);
+		$this->assertSame(
+			array( 'tests/hooked-block' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"ignoredHookedBlocks metadata shouldn't have been modified."
 		);
 	}
 
@@ -126,24 +119,6 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter );
 
 		$this->assertSame( '', $actual, "No markup should've been generated for hooked block suppressed by filter." );
-	}
-
-	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
-	 */
-	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_sets_metadata() {
-		$anchor_block = array(
-			'blockName' => 'tests/anchor-block',
-		);
-
-		$hooked_blocks = array(
-			'tests/anchor-block' => array(
-				'after' => array( 'tests/hooked-block' ),
-			),
-		);
-
-		insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
-		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
 	}
 
 	/**
