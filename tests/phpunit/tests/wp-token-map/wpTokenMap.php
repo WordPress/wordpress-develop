@@ -80,7 +80,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	private static function data_input_arrays() {
+	public static function data_input_arrays() {
 		$dataset_names = array(
 			'ANIMALS',
 			'HTML5',
