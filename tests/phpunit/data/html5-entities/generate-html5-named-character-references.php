@@ -47,7 +47,7 @@ $module_contents = <<<EOF
  *
  * Example:
  *
- *     php tests/phpunit/tests/html-api/generate-html5-named-character-references.php
+ *     php tests/phpunit/data/html5-entities/generate-html5-named-character-references.php
  *
  * @package WordPress
  * @since 6.6.0
