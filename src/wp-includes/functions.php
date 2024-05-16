@@ -2871,7 +2871,7 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * @param string      $name       Filename.
  * @param null|string $deprecated Never used. Set to null.
  * @param string      $bits       File content
- * @param string|null      $time  Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param string|null $time       Optional. Time formatted in 'yyyy/mm'. Default null.
  * @param string[]    $upload_dir Optional. Array of the uploads directory data as returned by
  *                                {@see wp_upload_dir()} or {@see wp_font_dir()}. If not set
  *                                the function will use {@see wp_upload_dir()}.
