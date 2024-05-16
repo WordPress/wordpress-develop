@@ -49,7 +49,7 @@ jobs:
   # - Updates to the latest minor version.
   # - Updates to the version of WordPress being tested.
   upgrade-tests:
-    name: ${{ inputs.wp }} to ${{ contains( 'https', inputs.new-version ) && github.sha || inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
+    name: ${{ inputs.wp }} to ${{ contains( inputs.new-version, 'artifacts' ) && github.sha || inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
@@ -83,5 +83,5 @@ jobs:
       - name: Update to the latest minor version
         run: wp core update --minor
 
-      - name: Upgrade to ${{ contains( 'https', inputs.new-version ) && ( github.event_name == 'pull_request' && 'test pull request' || github.event_name == 'push' && github.sha ) || inputs.new-version }}
-        run: wp core update ${{ contains( 'https', inputs.new-version ) && inputs.new-version || 'latest' != inputs.new-version && format( '--version={0}', inputs.new-version ) || '' }}
+      - name: Upgrade to ${{ contains( inputs.new-version, 'artifacts' ) && ( github.event_name == 'pull_request' && 'test pull request' || github.event_name == 'push' && github.sha ) || inputs.new-version }}
+        run: wp core update ${{ contains( inputs.new-version, 'artifacts' ) && inputs.new-version || 'latest' != inputs.new-version && format( '--version={0}', inputs.new-version ) || '' }}
