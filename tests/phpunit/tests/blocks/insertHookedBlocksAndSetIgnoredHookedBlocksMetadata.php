@@ -150,6 +150,11 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 		remove_filter( 'hooked_block_' . self::HOOKED_BLOCK_TYPE, $filter );
 
 		$this->assertSame( '', $actual, "No markup should've been generated for hooked block suppressed by filter." );
+		$this->assertSame(
+			array(),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"No block should've been added to ignoredHookedBlocks metadata."
+		);
 	}
 
 	/**
@@ -180,12 +185,18 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 		$template = self::create_block_template_object();
 
 		add_filter( 'hooked_block_types', $filter, 10, 4 );
-		insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', array(), $template );
+		$actual = insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', array(), $template );
 		remove_filter( 'hooked_block_types', $filter, 10 );
 
 		$this->assertSame(
+			'<!-- wp:tests/hooked-block-added-by-filter /-->',
+			$actual,
+			"Markup for hooked block added by filter wasn't generated correctly."
+		);
+		$this->assertSame(
 			array( 'tests/hooked-block-added-by-filter' ),
-			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"Block added by filter wasn't added to ignoredHookedBlocks metadata."
 		);
 	}
 
