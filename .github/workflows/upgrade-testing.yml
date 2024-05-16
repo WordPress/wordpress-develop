@@ -29,8 +29,6 @@ jobs:
     name: Create WordPress Package
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    outputs:
-      built-package: ${{ steps.upload-build.outputs.artifact-url }}
 
     steps:
       - name: Checkout repository
@@ -58,7 +56,6 @@ jobs:
 
       - name: Upload WordPress build as artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        id: upload-build
         with:
           name: wordpress-${{ github.sha }}
           path: build

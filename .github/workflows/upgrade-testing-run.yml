@@ -14,7 +14,7 @@ on:
         required: true
         type: 'string'
       new-version:
-        description: 'The version of WordPress to update to.'
+        description: 'The version of WordPress to update to. Can be a WordPress version (6.5 or 6.5.1) or commit SHA.'
         type: 'string'
         default: 'latest'
       php:
@@ -68,6 +68,12 @@ jobs:
           coverage: none
           tools: wp-cli
 
+      - name: Download upgrade package
+        uses: actions/download-artifact@v65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        if: ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) }}
+        with:
+          name: wordpress-${{ inputs.new-version }}
+
       - name: Start the database server
         run: sudo systemctl start ${{ inputs.db-type }}
 
@@ -83,5 +89,5 @@ jobs:
       - name: Update to the latest minor version
         run: wp core update --minor
 
-      - name: Upgrade to ${{ contains( inputs.new-version, 'artifacts' ) && ( github.event_name == 'pull_request' && 'test pull request' || github.event_name == 'push' && github.sha ) || inputs.new-version }}
-        run: wp core update ${{ contains( inputs.new-version, 'artifacts' ) && inputs.new-version || 'latest' != inputs.new-version && format( '--version={0}', inputs.new-version ) || '' }}
+      - name: Upgrade to ${{ github.event_name == 'pull_request' && 'test pull request' || github.event_name == 'push' && github.sha || inputs.new-version }}
+        run: wp core update ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) && format( 'wordpress-{0}.zip', inputs.new-version ) || 'latest' != inputs.new-version && format( '--version={0}', inputs.new-version ) || '' }}
