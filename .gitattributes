@@ -1,0 +1,8 @@
+src/js/enqueues/vendor/** linguist-vendored
+src/wp-includes/ID3/** linguist-vendored
+src/wp-includes/IXR/** linguist-vendored
+src/wp-includes/PHPMailer/** linguist-vendored
+src/wp-includes/Requests/** linguist-vendored
+src/wp-includes/SimplePie/** linguist-vendored
+src/wp-includes/sodium_compat/** linguist-vendored
+src/wp-includes/Text/** linguist-vendored
