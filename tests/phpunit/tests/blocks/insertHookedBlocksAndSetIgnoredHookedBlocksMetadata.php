@@ -23,7 +23,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	);
 
 	/**
-	 * @ticket 60506
+	 * @ticket 59574
 	 */
 	private static function create_block_template_object() {
 		$template              = new WP_Block_Template();
