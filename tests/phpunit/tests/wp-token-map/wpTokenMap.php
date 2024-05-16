@@ -60,7 +60,10 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 
 			case 'HTML5':
 				if ( ! isset( $html5_character_references ) ) {
-					$dataset = wp_json_file_decode( __DIR__ . '/../../data/html5-entities/entities.json', true );
+					$dataset = wp_json_file_decode(
+						__DIR__ . '/../../data/html5-entities/entities.json',
+						array( 'associative' => true )
+					);
 
 					$html5_character_references = array();
 					foreach ( $dataset as $name => $value ) {
