@@ -58,6 +58,17 @@
  *          array( "😯", "🙂", "🙁", "😕" )
  *      );
  *
+ * ## Large vs. small words.
+ *
+ * This class uses a short prefix called the "key" to optimize lookup of its tokens.
+ * This means that some tokens may be shorter than or equal in length to that key.
+ * Those words that are longer than the key are called "large" while those shorter
+ * than or equal to the key length are called "small."
+ *
+ * This separation of large and small words is incidental to the way this class
+ * optimizes lookup, and should be considered an internal implementation detail
+ * of the class. It may still be important to be aware of it, however.
+ *
  * ## Determining Key Length.
  *
  * The choice of the size of the key length should be based on the data being stored in
