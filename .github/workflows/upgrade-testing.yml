@@ -92,7 +92,7 @@ jobs:
   upgrade-tests-wp-6x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
-    if: ${{ false && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ! always() && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     permissions:
       contents: read
     strategy:
@@ -117,7 +117,7 @@ jobs:
   upgrade-tests-wp-5x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
-    if: ${{ false && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ! always() && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
@@ -144,7 +144,7 @@ jobs:
   upgrade-tests-wp-5x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
-    if: ${{ false && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ! always() && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
@@ -167,7 +167,7 @@ jobs:
   upgrade-tests-wp-4x-php-7x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
-    if: ${{ false && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ! always() && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
@@ -194,7 +194,7 @@ jobs:
   upgrade-tests-wp-4x-php-8x-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
-    if: ${{ false && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ ! always() && github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
@@ -219,7 +219,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
+    needs: [ upgrade-tests-recent-versions-only, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-wp-4x-php-7x-mysql, upgrade-tests-wp-4x-php-8x-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
