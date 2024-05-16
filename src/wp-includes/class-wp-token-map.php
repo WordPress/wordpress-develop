@@ -36,8 +36,20 @@
  *      '😕' === $smilies->read_token( 'Not sure :?.', 9, $bytes_skipped );
  *      2    === $bytes_skipped;
  *
- *      echo $smilies->precomputed_php_source_table( '    ' );
- *      // Output.
+ * ## Precomputing the Token Map.
+ *
+ * Creating the class involves some work sorting and organizing the tokens and their
+ * replacement values. In order to skip this, it's possible for the class to export
+ * its state and be used as actual PHP source code.
+ *
+ * Example:
+ *
+ *      // Export with four spaces as the indent, only for the sake of this docblock.
+ *      // The default indent is a tab character.
+ *      $indent = '    ';
+ *      echo $smilies->precomputed_php_source_table( $indent );
+ *
+ *      // Output, to be pasted into a PHP source file:
  *      WP_Token_Map::from_precomputed_table(
  *          2,
  *          "",
@@ -253,7 +265,7 @@ class WP_Token_Map {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Token Map tokens and substitutions must all be shorter than 256 bytes.' ),
-					'6. .0'
+					'6.6.0'
 				);
 				return null;
 			}

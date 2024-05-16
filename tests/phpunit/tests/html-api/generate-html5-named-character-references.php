@@ -66,6 +66,10 @@ global \$html5_named_character_references;
  * for an ambiguous ampersand govern whether the following text is
  * to be interpreted as a character reference or not.
  *
+ * The list of entities is sourced directly from the WHATWG server
+ * and cached in the test directory to avoid needing to download it
+ * every time this file is updated.
+ *
  * @link https://html.spec.whatwg.org/entities.json.
  */
 \$html5_named_character_references = {$html5_map->precomputed_php_source_table()};

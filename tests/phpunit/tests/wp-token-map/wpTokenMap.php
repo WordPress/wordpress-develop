@@ -10,12 +10,30 @@
  */
 class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
+	 * Small test array matching names to Emoji.
+	 *
+	 * @var array.
+	 */
+	const ANIMAL_EMOJI = array(
+		'cat'     => '🐈',
+		'dog'     => '🐶',
+		'fish'    => '🐟',
+		'mammoth' => '🦣',
+		'seal'    => '🦭',
+	);
+
+	/**
 	 * Returns an associative array whose keys are tokens to replace and
 	 * whose values are the replacement strings for those tokens.
 	 *
 	 * This function is here to help avoid bloating this specific test file.
 	 * For example, the HTML5 dataset is very large and best served as a
 	 * separate file.
+	 *
+	 * The HTML5 named character reference list is pulled directly from the
+	 * WHATWG spec and stored in the tests directory so it doesn't need to
+	 * be downloaded on every test run. By specification, it cannot change
+	 * and will not be updated.
 	 *
 	 * @ticket 60698.
 	 *
@@ -31,7 +49,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 
 			case 'HTML5':
 				if ( ! isset( $html5_character_references ) ) {
-					$dataset = json_decode( file_get_contents( __DIR__ . '/../../data/html5-entities.json' ), JSON_OBJECT_AS_ARRAY ); // phpcs:ignore.
+					$dataset = wp_json_file_decode( __DIR__ . '/../../data/html5-entities.json', JSON_OBJECT_AS_ARRAY );
 
 					$html5_character_references = array();
 					foreach ( $dataset as $name => $value ) {
@@ -48,7 +66,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 *
 	 * @return array[].
 	 */
-	public static function data_input_arrays() {
+	private static function data_input_arrays() {
 		$dataset_names = array(
 			'ANIMALS',
 			'HTML5',
@@ -357,7 +375,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 *
 	 * @return WP_Token_Map
 	 */
-	public static function get_html5_token_map() {
+	private static function get_html5_token_map() {
 		static $html5_token_map = null;
 
 		if ( ! isset( $html5_token_map ) ) {
@@ -366,12 +384,4 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 
 		return $html5_token_map;
 	}
-
-	const ANIMAL_EMOJI = array(
-		'cat'     => '🐈',
-		'dog'     => '🐶',
-		'fish'    => '🐟',
-		'mammoth' => '🦣',
-		'seal'    => '🦭',
-	);
 }
