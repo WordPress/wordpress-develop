@@ -63,7 +63,7 @@ jobs:
 
   # Spawns upgrade testing for commits and pull requests.
   upgrade-tests-recent-versions-only:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) && github.sha || inputs.new-version && inputs.new-version || 'latest' }}
     uses: desrosj/wordpress-develop/.github/workflows/upgrade-testing-run.yml@feature/upgrade-test-workflow-for-push-and-pull
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     needs: [ create-package-zip ]
@@ -84,7 +84,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ needs.create-package-zip.outputs.built-package && needs.create-package-zip.outputs.built-package || inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) && github.sha || inputs.new-version && inputs.new-version || 'latest' }}
       multisite: ${{ matrix.multisite }}
 
   slack-notifications:

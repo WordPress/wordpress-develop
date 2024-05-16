@@ -49,7 +49,7 @@ jobs:
   # - Updates to the latest minor version.
   # - Updates to the version of WordPress being tested.
   upgrade-tests:
-    name: ${{ inputs.wp }} to ${{ contains( inputs.new-version, 'artifacts' ) && github.sha || inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
+    name: ${{ inputs.wp }} to ${{ contains( fromJSON('["pull_request", "push"]'), github.event_name ) && github.sha || inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
