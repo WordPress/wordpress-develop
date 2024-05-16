@@ -371,7 +371,6 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 */
 	public function data_html5_test_dataset() {
 		$html5 = self::get_test_input_array( 'HTML5' );
-		$cases = array();
 
 		$this->assertSame(
 			self::KNOWN_COUNT_OF_ALL_HTML5_NAMED_CHARACTER_REFERENCES,
@@ -380,10 +379,8 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 		);
 
 		foreach ( $html5 as $token => $replacement ) {
-			$cases[ $token ] = array( $token, $replacement );
+			yield $token => array( $token, $replacement );
 		}
-
-		return $cases;
 	}
 
 	/**

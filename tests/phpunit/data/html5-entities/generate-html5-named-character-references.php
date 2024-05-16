@@ -36,12 +36,25 @@ foreach ( $entities as $reference => $metadata ) {
 	$character_references[ $reference_without_ampersand_prefix ] = $metadata['characters'];
 }
 
-$html5_map       = WP_Token_Map::from_array( $character_references );
+$html5_map = WP_Token_Map::from_array( $character_references );
+
+/**
+ * Contains the new contents for the auto-generated module.
+ *
+ * Note that in this template, the `$` is escaped with `\$` so that it
+ * comes through as a `$` in the output. Without escaping, PHP will look
+ * for a variable of the given name to interpolate into the template.
+ *
+ * @var string
+ */
 $module_contents = <<<EOF
 <?php
 
 /**
  * Auto-generated class for looking up HTML named character references.
+ *
+ * ⚠️ !!! THIS ENTIRE FILE IS AUTOMATICALLY GENERATED !!! ⚠️
+ * Do not modify this file directly.
  *
  * To regenerate, run the generation script directly.
  *

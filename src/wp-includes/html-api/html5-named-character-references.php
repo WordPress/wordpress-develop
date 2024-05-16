@@ -3,6 +3,9 @@
 /**
  * Auto-generated class for looking up HTML named character references.
  *
+ * ⚠️ !!! THIS ENTIRE FILE IS AUTOMATICALLY GENERATED !!! ⚠️
+ * Do not modify this file directly.
+ *
  * To regenerate, run the generation script directly.
  *
  * Example:
