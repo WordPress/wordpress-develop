@@ -14,7 +14,7 @@ is cached here in the test directory so that it doesn't need to be constantly re
 ## Updating the optimized lookup class.
 
 The [`html5-named-character-references.php`][1] file contains an optimized lookup map for the entities in `entities.json`.
-Run the `generate-html5-named-character-references.php` file to update the auto-generated Core module.
+Run the [`generate-html5-named-character-references.php`][2] file to update the auto-generated Core module.
 
 ```bash
 ~$ php tests/phpunit/data/html5-entities/generate-html5-named-character-references.php
@@ -22,3 +22,4 @@ OK: Successfully generated optimized lookup class.
 ```
 
 [1]: ../../../../src/wp-includes/html-api/html5-named-character-references.php
+[2]: ./generate-html5-named-character-references.php
