@@ -1367,6 +1367,60 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 	);
 }
 
+function replace_pattern_blocks( $blocks, &$inner_content = null ) {
+	// Keep track of seen references to avoid infinite loops.
+	static $seen_refs = array();
+	$i                = 0;
+	while ( $i < count( $blocks ) ) {
+		if ( 'core/pattern' === $blocks[ $i ]['blockName'] ) {
+			$slug = $blocks[ $i ]['attrs']['slug'];
+
+			if ( isset( $seen_refs[ $slug ] ) ) {
+				// Skip recursive patterns.
+				array_splice( $blocks, $i, 1 );
+				continue;
+			}
+
+			$registry = WP_Block_Patterns_Registry::get_instance();
+			$pattern  = $registry->get_registered( $slug );
+
+			// Skip unknown patterns.
+			if ( ! $pattern ) {
+				++$i;
+				continue;
+			}
+
+			$blocks_to_insert   = parse_blocks( $pattern['content'] );
+			$seen_refs[ $slug ] = true;
+			$blocks_to_insert   = replace_pattern_blocks( $blocks_to_insert );
+			unset( $seen_refs[ $slug ] );
+			array_splice( $blocks, $i, 1, $blocks_to_insert );
+
+			// If we have inner content, we need to insert nulls in the
+			// inner content array, otherwise serialize_blocks will skip
+			// blocks.
+			if ( $inner_content ) {
+				$null_indices  = array_keys( $inner_content, null, true );
+				$content_index = $null_indices[ $i ];
+				$nulls         = array_fill( 0, count( $blocks_to_insert ), null );
+				array_splice( $inner_content, $content_index, 1, $nulls );
+			}
+
+			// Skip inserted blocks.
+			$i += count( $blocks_to_insert );
+		} else {
+			if ( ! empty( $blocks[ $i ]['innerBlocks'] ) ) {
+				$blocks[ $i ]['innerBlocks'] = replace_pattern_blocks(
+					$blocks[ $i ]['innerBlocks'],
+					$blocks[ $i ]['innerContent']
+				);
+			}
+			++$i;
+		}
+	}
+	return $blocks;
+}
+
 /**
  * Given an array of parsed block trees, applies callbacks before and after serializing them and
  * returns their concatenated output.
@@ -1405,6 +1459,8 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
 function traverse_and_serialize_blocks( $blocks, $pre_callback = null, $post_callback = null ) {
 	$result       = '';
 	$parent_block = null; // At the top level, there is no parent block to pass to the callbacks; yet the callbacks expect a reference.
+
+	$blocks = replace_pattern_blocks( $blocks );
 
 	foreach ( $blocks as $index => $block ) {
 		if ( is_callable( $pre_callback ) ) {
