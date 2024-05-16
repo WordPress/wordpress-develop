@@ -88,6 +88,37 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	/**
 	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
 	 */
+	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_if_other_block_is_ignored() {
+		$anchor_block = array(
+			'blockName' => 'tests/anchor-block',
+			'attrs'     => array(
+				'metadata' => array(
+					'ignoredHookedBlocks' => array( 'tests/other-ignored-block' ),
+				),
+			),
+		);
+
+		$hooked_blocks = array(
+			'tests/anchor-block' => array(
+				'after' => array( 'tests/hooked-block' ),
+			),
+		);
+
+		$actual = insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, array() );
+		$this->assertSame(
+			'<!-- wp:' . self::HOOKED_BLOCK_TYPE . ' /-->',
+			$actual,
+			"Markup for newly hooked block should've been generated."
+		);
+		$this->assertSame(
+			array( 'tests/other-ignored-block', 'tests/hooked-block' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks']
+		);
+	}
+
+	/**
+	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_filter_can_suppress_hooked_block() {
 		$anchor_block = array(
 			'blockName'    => self::ANCHOR_BLOCK_TYPE,
