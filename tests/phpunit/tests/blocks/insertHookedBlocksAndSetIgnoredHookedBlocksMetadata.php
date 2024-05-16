@@ -228,9 +228,18 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 		};
 
 		add_filter( 'hooked_block', $filter, 10, 4 );
-		insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
+		$actual = insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata( $anchor_block, 'after', $hooked_blocks, null );
 		remove_filter( 'hooked_block', $filter );
 
-		$this->assertSame( array( 'tests/hooked-block' ), $anchor_block['attrs']['metadata']['ignoredHookedBlocks'] );
+		$this->assertSame(
+			'<!-- wp:tests/hooked-block /-->',
+			$actual,
+			"Markup for hooked block wasn't generated correctly."
+		);
+		$this->assertSame(
+			array( 'tests/hooked-block' ),
+			$anchor_block['attrs']['metadata']['ignoredHookedBlocks'],
+			"ignoredHookedBlocks metadata wasn't set correctly."
+		);
 	}
 }
