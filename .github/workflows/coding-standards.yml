@@ -48,7 +48,7 @@ jobs:
   # Runs the PHP coding standards checks.
   phpcs:
     name: PHP coding standards
-    uses: desrosj/wordpress-develop/.github/workflows/callable-coding-standards-php.yml@try/make-workflows-callable
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@try/make-workflows-callable
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -56,7 +56,7 @@ jobs:
   # Runs the JavaScript coding standards checks.
   jshint:
     name: JavaScript coding standards
-    uses: desrosj/wordpress-develop/.github/workflows/callable-coding-standards-javascript.yml@try/make-workflows-callable
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@try/make-workflows-callable
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
