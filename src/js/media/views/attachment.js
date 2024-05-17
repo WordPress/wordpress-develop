@@ -116,7 +116,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 
 		options.can = {};
 		if ( options.nonces ) {
-			options.can.remove = !! options.nonces['delete'];
+			options.can.remove = !! options.nonces.delete;
 			options.can.save = !! options.nonces.update;
 		}
 
@@ -286,13 +286,14 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		this[ this.selected() ? 'select' : 'deselect' ]();
 	},
 	/**
-	 * @return {unresolved|boolean}
+	 * @return {undefined|boolean}
 	 */
 	selected: function() {
 		var selection = this.options.selection;
 		if ( selection ) {
 			return !! selection.get( this.model.cid );
 		}
+		return undefined;
 	},
 	/**
 	 * @param {Backbone.Model} model
@@ -461,12 +462,13 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			model = this.model,
 			changed;
 
+		// eslint-disable-next-line array-callback-return
 		changed = _.chain( $settings ).map( function( el ) {
 			var $input = $('input, textarea, select, [value]', el ),
 				setting, value;
 
 			if ( ! $input.length ) {
-				return;
+				return undefined;
 			}
 
 			setting = $(el).data('setting');
@@ -501,8 +503,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	 * Add the model if it isn't in the selection, if it is in the selection,
 	 * remove it.
 	 *
-	 * @param {[type]} event [description]
-	 * @return {[type]} [description]
+	 * @param {Event} event Event object.
+	 * @return {void}
 	 */
 	checkClickHandler: function ( event ) {
 		var selection = this.options.selection;

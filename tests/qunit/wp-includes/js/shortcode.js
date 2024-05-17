@@ -1,4 +1,3 @@
-/* global wp, jQuery */
 jQuery( function() {
 	QUnit.module( 'shortcode' );
 
@@ -206,7 +205,7 @@ jQuery( function() {
 
 		assert.deepEqual( wp.shortcode.attrs('foo "bar" \'baz\''), expected, 'attr parsed numeric attributes');
 	});
-	
+
 	QUnit.test( 'attrs() should return mixed attributes created with single, double, and no quotes', function( assert ) {
 		var expected = {
 			'named': { a: 'foo', b: 'bar', c: 'baz' }, 'numeric' : ['foo', 'bar', 'baz']

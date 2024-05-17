@@ -3,6 +3,7 @@
  */
 
 /* global postboxes */
+/* eslint jsdoc/valid-types: "off" */
 
 /**
  * Binds to the document ready event.

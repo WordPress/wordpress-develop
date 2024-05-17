@@ -1,5 +1,3 @@
-/* global JSON, wp */
-
 wp.customize.settingConstructor.abbreviation = wp.customize.Setting.extend({
 	validate: function( value ) {
 		return value.toUpperCase();
@@ -180,7 +178,7 @@ jQuery( 'body' ).on( 'load', function() {
 			var notificationContainerElement;
 
 			assert.equal( 0, _.size( control.notifications._value ) );
-			assert.equal( 0, _.size( control.settings['default'].notifications._value ) );
+			assert.equal( 0, _.size( control.settings.default.notifications._value ) );
 
 			notificationContainerElement = control.getNotificationsContainerElement();
 			assert.equal( 1, notificationContainerElement.length );
@@ -190,7 +188,7 @@ jQuery( 'body' ).on( 'load', function() {
 
 			settingNotification = new wp.customize.Notification( 'setting_invalidity', { message: 'Invalid setting' } );
 			controlOnlyNotification = new wp.customize.Notification( 'control_invalidity', { message: 'Invalid control' } );
-			control.settings['default'].notifications.add( settingNotification.code, settingNotification );
+			control.settings.default.notifications.add( settingNotification.code, settingNotification );
 			control.notifications.add( controlOnlyNotification.code, controlOnlyNotification );
 
 			// Note that renderNotifications is being called manually here since rendering normally happens asynchronously.
@@ -199,14 +197,14 @@ jQuery( 'body' ).on( 'load', function() {
 			assert.equal( 2, notificationContainerElement.find( '> ul > li' ).length );
 			assert.notEqual( 'none', notificationContainerElement.css( 'display' ) );
 			assert.equal( 2, _.size( control.notifications._value ) );
-			assert.equal( 1, _.size( control.settings['default'].notifications._value ) );
+			assert.equal( 1, _.size( control.settings.default.notifications._value ) );
 
 			control.notifications.remove( controlOnlyNotification.code );
 			control.notifications.render();
 			assert.equal( 1, notificationContainerElement.find( '> ul > li' ).length );
 			assert.notEqual( 'none', notificationContainerElement.css( 'display' ) );
 
-			control.settings['default'].notifications.remove( settingNotification.code );
+			control.settings.default.notifications.remove( settingNotification.code );
 			control.notifications.render();
 			assert.equal( 0, notificationContainerElement.find( '> ul > li' ).length );
 			notificationContainerElement.stop().hide(); // Clean up.

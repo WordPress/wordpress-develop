@@ -1,5 +1,3 @@
-/* global wp */
-
 jQuery( function( $ ) {
 	var trueMockEvent, falseMockEvent, mockElementLists, $firstMockElement, $secondMockElement, $thirdMockElement,
 		BubbleTester, BubbleTesterTwoValues, bubbleTesterParent, firstBubbleTester, secondBubbleTester;

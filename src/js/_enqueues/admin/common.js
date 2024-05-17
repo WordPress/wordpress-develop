@@ -2,7 +2,7 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
+/* global setUserSetting, ajaxurl, pagenow */
 /* global columns, screenMeta */
 
 /**
@@ -10,9 +10,8 @@
  *
  *  @param {jQuery} $        jQuery object.
  *  @param {Object} window   The window object.
- *  @param {mixed} undefined Unused.
  */
-( function( $, window, undefined ) {
+( function( $, window ) {
 	var $document = $( document ),
 		$window = $( window ),
 		$body = $( document.body ),
@@ -58,10 +57,10 @@ function deprecatedProperty( propName, version, replacement ) {
  * @since 5.6.0 Added the `version` parameter.
  *
  * @param {string} name       The name of the object, i.e. commonL10n.
- * @param {object} l10nObject The object to deprecate the properties on.
+ * @param {Object} l10nObject The object to deprecate the properties on.
  * @param {string} version    The version of WordPress that deprecated the property.
  *
- * @return {object} The object with all its properties deprecated.
+ * @return {Object} The object with all its properties deprecated.
  */
 function deprecateL10nObject( name, l10nObject, version ) {
 	var deprecatedObject = {};
@@ -470,8 +469,6 @@ window.columns = {
 	 * Gets the checked column toggles from the screen options.
 	 *
 	 * @since 3.0.0
-	 *
-	 * @return {string} String containing the checked column names.
 	 */
 	useCheckboxesForHidden : function() {
 		this.hidden = function(){
@@ -539,6 +536,7 @@ window.showNotice = {
 	 * @return {boolean} Returns true if the message is confirmed.
 	 */
 	warn : function() {
+		// eslint-disable-next-line @wordpress/i18n-no-collapsible-whitespace
 		if ( confirm( __( 'You are about to permanently delete these items from your site.\nThis action cannot be undone.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 			return true;
 		}
@@ -551,7 +549,7 @@ window.showNotice = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param text The text to display in the message.
+	 * @param {string} text The text to display in the message.
 	 */
 	note : function(text) {
 		alert(text);
@@ -1420,7 +1418,7 @@ $( function() {
 	 * @param {Event} e The event object.
 	 *
 	 * @return {void}
- 	 */
+	 */
 	$('#contextual-help-link, #show-settings-link').on( 'focus.scroll-into-view', function(e){
 		if ( e.target.scrollIntoViewIfNeeded )
 			e.target.scrollIntoViewIfNeeded(false);
@@ -1748,7 +1746,7 @@ $( function() {
 						setTimeout( function() {
 							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
 							var focusIsInSidebar = $.contains( sidebar, focusedElement );
-							
+
 							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
 								$( toggleButton ).trigger( 'click.wp-responsive' );
 							}

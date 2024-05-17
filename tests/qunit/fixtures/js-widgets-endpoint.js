@@ -1,5 +1,4 @@
-/* jshint -W109 */
-/* jshint unused:false */
+// eslint-disable-next-line no-unused-vars
 var jsWidgetsEndpointSchema =
 {
     "namespace": "js-widgets\/v1",

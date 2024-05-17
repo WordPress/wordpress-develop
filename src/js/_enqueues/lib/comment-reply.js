@@ -272,8 +272,8 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} Element DOM element with the attribute.
-	 * @param {string}      Attribute the attribute to get.
+	 * @param {HTMLElement} element   DOM element with the attribute.
+	 * @param {string}      attribute The attribute to get.
 	 *
 	 * @return {string}
 	 */
@@ -293,7 +293,7 @@ window.addComment = ( function( window ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param {HTMLElement} The requested element.
+	 * @param {string} elementId Element ID.
 	 */
 	function getElementById( elementId ) {
 		return document.getElementById( elementId );

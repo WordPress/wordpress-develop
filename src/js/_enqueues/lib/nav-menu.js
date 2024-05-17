@@ -4,12 +4,10 @@
  *
  * @version 2.0.0
  *
- * @package WordPress
- * @subpackage Administration
  * @output wp-admin/js/nav-menu.js
  */
 
-/* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu */
+/* global menus, postboxes, columns, isRtl, ajaxurl, wpNavMenu, _ */
 
 (function($) {
 
@@ -32,8 +30,8 @@
 		menuList : undefined,	// Set in init.
 		targetList : undefined, // Set in init.
 		menusChanged : false,
-		isRTL: !! ( 'undefined' != typeof isRtl && isRtl ),
-		negateIfRTL: ( 'undefined' != typeof isRtl && isRtl ) ? -1 : 1,
+		isRTL: !! ( 'undefined' !== typeof isRtl && isRtl ),
+		negateIfRTL: ( 'undefined' !== typeof isRtl && isRtl ) ? -1 : 1,
 		lastSearch: '',
 
 		// Functions that run on init.
@@ -178,7 +176,7 @@
 				 *
 				 * @ignore
 				 *
-				 * @param jQuery metabox The metabox jQuery object.
+				 * @param {Function} processMethod The function to add menu items.
 				 */
 				addSelectedToMenu : function(processMethod) {
 					if ( 0 === $('#menu-to-edit').length ) {
@@ -203,7 +201,7 @@
 						$(checkboxes).each(function(){
 							var t = $(this),
 								listItemDBIDMatch = re.exec( t.attr('name') ),
-								listItemDBID = 'undefined' == typeof listItemDBIDMatch[1] ? 0 : parseInt(listItemDBIDMatch[1], 10);
+								listItemDBID = 'undefined' === typeof listItemDBIDMatch[1] ? 0 : parseInt(listItemDBIDMatch[1], 10);
 
 							if ( this.className && -1 != this.className.indexOf('add-to-top') )
 								processMethod = api.addMenuItemToTop;
@@ -239,7 +237,7 @@
 						'menu-item-xfn'
 					];
 
-					if( !id && itemType == 'menu-item' ) {
+					if( !id && itemType === 'menu-item' ) {
 						id = this.find('.menu-item-data-db-id').val();
 					}
 
@@ -249,14 +247,14 @@
 						var field;
 						i = fields.length;
 						while ( i-- ) {
-							if( itemType == 'menu-item' )
+							if( itemType === 'menu-item' )
 								field = fields[i] + '[' + id + ']';
-							else if( itemType == 'add-menu-item' )
+							else if( itemType === 'add-menu-item' )
 								field = 'menu-item[' + id + '][' + fields[i] + ']';
 
 							if (
 								this.name &&
-								field == this.name
+								field === this.name
 							) {
 								itemData[fields[i]] = this.value;
 							}
@@ -268,7 +266,7 @@
 				setItemData : function( itemData, itemType, id ) { // Can take a type, such as 'menu-item', or an id.
 					itemType = itemType || 'menu-item';
 
-					if( !id && itemType == 'menu-item' ) {
+					if( !id && itemType === 'menu-item' ) {
 						id = $('.menu-item-data-db-id', this).val();
 					}
 
@@ -277,12 +275,12 @@
 					this.find('input').each(function() {
 						var t = $(this), field;
 						$.each( itemData, function( attr, val ) {
-							if( itemType == 'menu-item' )
+							if( itemType === 'menu-item' )
 								field = attr + '[' + id + ']';
-							else if( itemType == 'add-menu-item' )
+							else if( itemType === 'add-menu-item' )
 								field = 'menu-item[' + id + '][' + attr + ']';
 
-							if ( field == t.attr('name') ) {
+							if ( field === t.attr('name') ) {
 								t.val( val );
 							}
 						});
@@ -342,9 +340,9 @@
 			case 'down':
 				// Does this item have sub items?
 				if ( thisItemChildren ) {
-					items = thisItem.add( thisItemChildren ),
-						nextItem = menuItems.eq( items.length + thisItemPosition ),
-						nextItemChildren = 0 !== nextItem.childMenuItems().length;
+					items = thisItem.add( thisItemChildren );
+					nextItem = menuItems.eq( items.length + thisItemPosition );
+					nextItemChildren = 0 !== nextItem.childMenuItems().length;
 
 					if ( nextItemChildren ) {
 						newDepth = parseInt( nextItem.menuItemDepth(), 10 ) + 1;
@@ -486,31 +484,31 @@
 			}
 
 			if ( ! isPrimaryMenuItem ) {
-				thisLink = menuItem.find( '.menus-move-left' ),
+				thisLink = menuItem.find( '.menus-move-left' );
 				thisLinkText = menus.outFrom.replace( '%s', prevItemNameLeft );
 				thisLink.attr( 'aria-label', menus.moveOutFrom.replace( '%s', prevItemNameLeft ) ).text( thisLinkText ).css( 'display', 'inline' );
 			}
 
 			if ( 0 !== position ) {
 				if ( menuItem.find( '.menu-item-data-parent-id' ).val() !== menuItem.prev().find( '.menu-item-data-db-id' ).val() ) {
-					thisLink = menuItem.find( '.menus-move-right' ),
+					thisLink = menuItem.find( '.menus-move-right' );
 					thisLinkText = menus.under.replace( '%s', prevItemNameRight );
 					thisLink.attr( 'aria-label', menus.moveUnder.replace( '%s', prevItemNameRight ) ).text( thisLinkText ).css( 'display', 'inline' );
 				}
 			}
 
 			if ( isPrimaryMenuItem ) {
-				primaryItems = $( '.menu-item-depth-0' ),
-				itemPosition = primaryItems.index( menuItem ) + 1,
-				totalMenuItems = primaryItems.length,
+				primaryItems = $( '.menu-item-depth-0' );
+				itemPosition = primaryItems.index( menuItem ) + 1;
+				totalMenuItems = primaryItems.length;
 
 				// String together help text for primary menu items.
 				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$d', itemPosition ).replace( '%3$d', totalMenuItems );
 			} else {
-				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
-				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
-				parentItemName = parentItem.find( '.menu-item-title' ).text(),
-				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' ),
+				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first();
+				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val();
+				parentItemName = parentItem.find( '.menu-item-title' ).text();
+				subItems = $( '.menu-item .menu-item-data-parent-id[value="' + parentItemId + '"]' );
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
@@ -736,8 +734,13 @@
 				change: function(e, ui) {
 					// Make sure the placeholder is inside the menu.
 					// Otherwise fix it, or we're in trouble.
-					if( ! ui.placeholder.parent().hasClass('menu') )
-						(prev.length) ? prev.after( ui.placeholder ) : api.menuList.prepend( ui.placeholder );
+					if( ! ui.placeholder.parent().hasClass('menu') ) {
+						if ( prev.length) {
+							prev.after(ui.placeholder)
+						} else {
+							api.menuList.prepend( ui.placeholder );
+						}
+					}
 
 					updateSharedVars(ui);
 				},
@@ -876,7 +879,7 @@
 		 * Handle toggling bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachBulkSelectButtonListeners : function() {
 			var that = this;
 
@@ -895,7 +898,7 @@
 		 * Enable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		enableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -912,7 +915,7 @@
 		 * Disable bulk selection checkboxes for menu items.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		disableBulkSelection : function() {
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
 
@@ -936,7 +939,7 @@
 		 * Listen for state changes on bulk action checkboxes.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuCheckBoxListeners : function() {
 			var that = this;
 
@@ -949,7 +952,7 @@
 		 * Create delete button to remove menu items from collection.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachMenuItemDeleteButton : function() {
 			var that = this;
 
@@ -990,7 +993,7 @@
 		 * List menu items awaiting deletion.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		attachPendingMenuItemsListForDeletion : function() {
 			$( '#post-body-content' ).on( 'change', '.menu-item-checkbox', function() {
 				var menuItemName, menuItemType, menuItemID, listedMenuItem;
@@ -1027,7 +1030,7 @@
 		 * Set status of bulk delete checkbox.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setBulkDeleteCheckboxStatus : function() {
 			var that = this;
 			var checkbox = $( '#menu-to-edit .menu-item-checkbox' );
@@ -1051,7 +1054,7 @@
 		 * Set status of menu items removal button.
 		 *
 		 * @since 5.8.0
-		 */ 
+		 */
 		setRemoveSelectedButtonStatus : function() {
 			var button = $( '.menu-items-delete' );
 
@@ -1427,6 +1430,7 @@
 
 		eventOnClickMenuDelete : function() {
 			// Delete warning AYS.
+			// eslint-disable-next-line @wordpress/i18n-no-collapsible-whitespace
 			if ( window.confirm( wp.i18n.__( 'You are about to permanently delete this menu.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 				window.onbeforeunload = null;
 				return true;
@@ -1445,9 +1449,9 @@
 		/**
 		 * Process the quick search response into a search result
 		 *
-		 * @param string resp The server response to the query.
-		 * @param object req The request arguments.
-		 * @param jQuery panel The tabs panel we're searching in.
+		 * @param {string} resp The server response to the query.
+		 * @param {Object} req The request arguments.
+		 * @param {jQuery} panel The tabs panel we're searching in.
 		 */
 		processQuickSearchQueryResponse : function(resp, req, panel) {
 			var matched, newID,

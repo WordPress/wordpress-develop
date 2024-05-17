@@ -14,8 +14,7 @@ window.autosave = function() {
  * @since 3.9.0
  *
  * @param {jQuery} $ jQuery object.
- * @param {window} The window object.
- *
+ * @param {window} window The window object.
  */
 ( function( $, window ) {
 	/**
@@ -95,11 +94,15 @@ window.autosave = function() {
 			});
 			data.catslist = cats.join(',');
 
-			if ( post_name = $( '#post_name' ).val() ) {
+			post_name = $( '#post_name' ).val()
+
+			if ( post_name ) {
 				data.post_name = post_name;
 			}
 
-			if ( parent_id = $( '#parent_id' ).val() ) {
+			parent_id = $( '#parent_id' ).val()
+
+			if ( parent_id ) {
 				data.parent_id = parent_id;
 			}
 
@@ -190,7 +193,7 @@ window.autosave = function() {
 		 * The object with all functions for local storage autosave.
 		 */
 		function autosaveLocal() {
-			var blog_id, post_id, hasStorage, intervalTimer,
+			var blog_id, post_id, hasStorage,
 				lastCompareString,
 				isSuspended = false;
 
@@ -409,7 +412,7 @@ window.autosave = function() {
 				}
 
 				// Save every 15 seconds.
-				intervalTimer = window.setInterval( save, 15000 );
+				window.setInterval( save, 15000 );
 
 				$( 'form#post' ).on( 'submit.autosave-local', function() {
 					var editor = getEditor(),

@@ -2,7 +2,7 @@
  * @output wp-admin/js/set-post-thumbnail.js
  */
 
-/* global ajaxurl, post_id, alert */
+/* global ajaxurl, post_id */
 /* exported WPSetAsThumbnail */
 
 window.WPSetAsThumbnail = function( id, nonce ) {

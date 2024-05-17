@@ -2,7 +2,7 @@
  * @output wp-admin/js/theme.js
  */
 
-/* global _wpThemeSettings, confirm, tb_position */
+/* global _wpThemeSettings, tb_position */
 window.wp = window.wp || {};
 
 ( function($) {
@@ -181,8 +181,6 @@ themes.Collection = Backbone.Collection.extend({
 
 	/**
 	 * Performs a search within the collection.
-	 *
-	 * @uses RegExp
 	 */
 	search: function( term ) {
 		var match, results, haystack, name, description, author;
@@ -251,7 +249,7 @@ themes.Collection = Backbone.Collection.extend({
 	query: function( request ) {
 		/**
 		 * @static
-		 * @type Array
+		 * @type {Array} queries
 		 */
 		var queries = this.queries,
 			self = this,
@@ -1912,8 +1910,6 @@ themes.view.Installer = themes.view.Appearance.extend({
 
 	/**
 	 * Clears all the checked filters.
-	 *
-	 * @uses filtersChecked()
 	 */
 	clearFilters: function( event ) {
 		var items = $( '.filter-group' ).find( ':checkbox' ),

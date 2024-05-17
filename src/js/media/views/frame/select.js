@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 var MediaFrame = wp.media.view.MediaFrame,
 	l10n = wp.media.view.l10n,
 	Select;

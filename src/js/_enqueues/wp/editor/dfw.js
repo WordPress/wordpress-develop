@@ -2,7 +2,7 @@
  * @output wp-admin/js/editor-expand.js
  */
 
-( function( window, $, undefined ) {
+( function( window, $ ) {
 	'use strict';
 
 	var $window = $( window ),
@@ -167,7 +167,7 @@
 		 * @since 4.0.0
 		 *
 		 * @param {event} event The TinyMCE editor init event.
-		 * @param {object} editor The editor to bind the vents on.
+		 * @param {Object} editor The editor to bind the vents on.
 		 *
 		 * @return {void}
 		 */
@@ -180,7 +180,9 @@
 				 * @return {void}
 				 */
 				hideFloatPanels = _.debounce( function() {
-					! $( '.mce-floatpanel:hover' ).length && window.tinymce.ui.FloatPanel.hideAll();
+					if ( ! $( '.mce-floatpanel:hover' ).length ) {
+						window.tinymce.ui.FloatPanel.hideAll();
+					}
 					$( '.mce-tooltip' ).hide();
 				}, 1000, true );
 
@@ -785,7 +787,7 @@
 		 *
 		 * @since 4.0.0
 		 *
-		 * @param {function} callback The function to run in the timeout.
+		 * @param {Function} callback The function to run in the timeout.
 		 *
 		 * @return {void}
 		 */
@@ -857,7 +859,9 @@
 			mceBind();
 
 			// Adjust when entering or exiting fullscreen mode.
-			fullscreen && fullscreen.pubsub.subscribe( 'hidden', fullscreenHide );
+			if ( fullscreen ) {
+				fullscreen.pubsub.subscribe( 'hidden', fullscreenHide );
+			}
 
 			if ( mceEditor ) {
 				mceEditor.settings.wp_autoresize_on = true;
@@ -909,11 +913,15 @@
 			mceUnbind();
 
 			// Adjust when entering or exiting fullscreen mode.
-			fullscreen && fullscreen.pubsub.unsubscribe( 'hidden', fullscreenHide );
+			if ( fullscreen ) {
+				fullscreen.pubsub.unsubscribe( 'hidden', fullscreenHide );
+			}
 
 			// Reset all CSS.
 			$.each( [ $visualTop, $textTop, $tools, $menuBar, $bottom, $statusBar, $contentWrap, $visualEditor, $textEditor, $sideSortables ], function( i, element ) {
-				element && element.attr( 'style', '' );
+				if ( element ) {
+					element.attr( 'style', '' );
+				}
 			});
 
 			fixedTop = fixedBottom = fixedSideTop = fixedSideBottom = false;
@@ -990,8 +998,6 @@
 				.add( $slug.find( 'button' ) )
 				.add( $slug.find( 'input' ) ),
 			$menuWrap = $( '#adminmenuwrap' ),
-			$editorWindow = $(),
-			$editorIframe = $(),
 			_isActive = window.getUserSetting( 'editor_expand', 'on' ) === 'on',
 			_isOn = _isActive ? window.getUserSetting( 'post_dfw' ) === 'on' : false,
 			traveledX = 0,
@@ -1160,7 +1166,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param event The event that triggers this function.
+		 * @param {Event} event The event that triggers this function.
 		 *
 		 * @return {void}
 		 */
@@ -1299,7 +1305,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param event The event that triggers this function.
+		 * @param {Event} event The event that triggers this function.
 		 *
 		 * @return {void}
 		 */
@@ -1461,7 +1467,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {event} event The TinyMCE editor setup event.
-		 * @param {object} editor The editor to add the button to.
+		 * @param {Object} editor The editor to add the button to.
 		 *
 		 * @return {void}
 		 */
@@ -1510,7 +1516,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {event} event The TinyMCE editor init event.
-		 * @param {object} editor The editor to bind events on.
+		 * @param {Object} editor The editor to bind events on.
 		 *
 		 * @return {void}
 		 */
@@ -1526,9 +1532,6 @@
 			}
 
 			if ( editor.id === 'content' ) {
-				$editorWindow = $( editor.getWin() );
-				$editorIframe = $( editor.getContentAreaContainer() ).find( 'iframe' );
-
 				mceBind = function() {
 					editor.on( 'keydown', fadeOut );
 					editor.on( 'blur', maybeFadeIn );
@@ -1567,7 +1570,7 @@
 		 * @since 4.1.0
 		 *
 		 * @param {event} event The quicktags init event.
-		 * @param {object} editor The editor to bind events on.
+		 * @param {Object} editor The editor to bind events on.
 		 *
 		 * @return {void}
 		 */

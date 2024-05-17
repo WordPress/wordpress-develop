@@ -35,7 +35,7 @@ window.wp = window.wp || {};
 			if ( ! Array.isArray( disallowedList ) )
 				disallowedList = [ disallowedList.toString() ];
 
-			if (password1 != password2 && password2 && password2.length > 0)
+			if (password1 !== password2 && password2 && password2.length > 0)
 				return 5;
 
 			if ( 'undefined' === typeof window.zxcvbn ) {

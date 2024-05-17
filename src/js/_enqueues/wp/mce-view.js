@@ -294,9 +294,9 @@
 		content: null,
 
 		/**
-		 * Whether or not to display a loader.
+		 * Whether to display a loader.
 		 *
-		 * @type {Boolean}
+		 * @type {boolean}
 		 */
 		loader: true,
 
@@ -321,7 +321,7 @@
 		 * @param {boolean} force   Rerender all view nodes tied to this view instance. Optional.
 		 */
 		render: function( content, force ) {
-			if ( content != null ) {
+			if ( content !== null ) {
 				this.content = content;
 			}
 
@@ -333,9 +333,11 @@
 			}
 
 			// We're about to rerender all views of this instance, so unbind rendered views.
-			force && this.unbind();
+			if ( force ) {
+				this.unbind();
+			}
 
-			// Replace any left over markers.
+			// Replace any leftover markers.
 			this.replaceMarkers();
 
 			if ( content ) {
@@ -396,7 +398,7 @@
 					.filter( function() {
 						var data;
 
-						if ( rendered == null ) {
+						if ( rendered === null ) {
 							return true;
 						}
 
@@ -494,7 +496,9 @@
 						editor.dom.add( node, 'span', { 'class': 'wpview-end' } );
 					} );
 
-					callback && callback.call( this, editor, node );
+					if ( callback ) {
+						callback.call( this, editor, node );
+					}
 				}, rendered );
 			}
 		},
@@ -548,7 +552,6 @@
 					node.innerHTML = '';
 
 					iframe = dom.add( node, 'iframe', {
-						/* jshint scripturl: true */
 						src: tinymce.Env.ie ? 'javascript:""' : '',
 						frameBorder: '0',
 						allowTransparency: 'true',
@@ -669,7 +672,9 @@
 					}
 				}
 
-				callback && callback.call( self, editor, node );
+				if ( callback ) {
+					callback.call( self, editor, node );
+				}
 			}, rendered );
 		},
 
@@ -719,6 +724,8 @@
 					}
 				};
 			}
+
+			return undefined;
 		},
 
 		/**
@@ -795,7 +802,9 @@
 			var type = this.type,
 				frame = media[ type ].edit( text );
 
-			this.pausePlayers && this.pausePlayers();
+			if ( this.pausePlayers ) {
+				this.pausePlayers();
+			}
 
 			_.each( this.state, function( state ) {
 				frame.state( state ).on( 'update', function( selection ) {

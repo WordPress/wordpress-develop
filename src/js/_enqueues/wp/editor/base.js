@@ -262,6 +262,8 @@ window.wp = window.wp || {};
 					return element;
 				}
 			}
+
+			return undefined;
 		}
 
 		/**
@@ -313,6 +315,7 @@ window.wp = window.wp || {};
 				shortcodeMatch, // Define local scope for the variable to be used in the loop below.
 				shortcodesDetails = [];
 
+			// eslint-disable-next-line no-cond-assign
 			while ( shortcodeMatch = shortcodeDetailsRegexp.exec( content ) ) {
 				/**
 				 * Check if the shortcode should be shown as plain text.
@@ -346,6 +349,7 @@ window.wp = window.wp || {};
 				'(^|[\\n\\r][\\n\\r]|<p>)(https?:\\/\\/[^\s"]+?)(<\\/p>\s*|[\\n\\r][\\n\\r]|$)', 'gi'
 			);
 
+			// eslint-disable-next-line no-cond-assign
 			while ( shortcodeMatch = urlRegexp.exec( content ) ) {
 				shortcodeInfo = {
 					shortcodeName: 'url',
@@ -670,7 +674,7 @@ window.wp = window.wp || {};
 
 			if ( ! selection || selection.rangeCount < 1 ) {
 				// no selection, no need to continue.
-				return;
+				return null;
 			}
 
 			/**
@@ -1393,13 +1397,13 @@ window.wp = window.wp || {};
 	 * @since 4.8.0
 	 *
 	 * @param {string} id The HTML id of the editor textarea.
-	 * @return The editor content.
+	 * @return {string} The editor content.
 	 */
 	wp.editor.getContent = function( id ) {
 		var editor;
 
 		if ( ! $ || ! id ) {
-			return;
+			return '';
 		}
 
 		if ( window.tinymce ) {

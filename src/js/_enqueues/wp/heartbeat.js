@@ -35,7 +35,7 @@
 	 * @since 3.6.0
 	 *
 	 * @return {Object} An instance of the Heartbeat class.
-	 * @constructor
+	 * @class
 	 */
 	var Heartbeat = function() {
 		var $document = $(document),
@@ -836,6 +836,8 @@
 			if ( handle ) {
 				return settings.queue.hasOwnProperty( handle );
 			}
+
+			return false;
 		}
 
 		/**

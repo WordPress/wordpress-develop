@@ -146,7 +146,7 @@ var tinyMCEPopup = {
    *
    * @method execCommand
    * @param {String} cmd Command to execute.
-   * @param {Boolean} ui Optional boolean value if the UI for the command should be presented or not.
+   * @param {boolean} ui Optional boolean value if the UI for the command should be presented or not.
    * @param {Object} val Optional value to pass with the comman like an URL.
    * @param {Object} a Optional arguments object.
    */

@@ -6,7 +6,7 @@
 
 window.wp = window.wp || {};
 
-wp.svgPainter = ( function( $, window, document, undefined ) {
+wp.svgPainter = ( function( $, window, document ) {
 	'use strict';
 	var selector, base64, painter,
 		colorscheme = {},
@@ -141,7 +141,7 @@ wp.svgPainter = ( function( $, window, document, undefined ) {
 			selector.each( function() {
 				var $this = $(this), bgImage = $this.css( 'background-image' );
 
-				if ( bgImage && bgImage.indexOf( 'data:image/svg+xml;base64' ) != -1 ) {
+				if ( bgImage && bgImage.indexOf( 'data:image/svg+xml;base64' ) !== -1 ) {
 					elements.push( $this );
 				}
 			});

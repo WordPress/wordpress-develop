@@ -4,6 +4,8 @@
 
 /* global getUserSetting, tinymce, QTags */
 
+/* eslint jsdoc/valid-types: "off" */
+
 // WordPress, TinyMCE, and Media
 // -----------------------------
 (function($, _){
@@ -229,7 +231,7 @@
 				classes.push( 'size-' + props.size );
 			}
 
-			img['class'] = _.compact( classes ).join(' ');
+			img.class = _.compact( classes ).join(' ');
 
 			// Generate `img` tag options.
 			options = {
@@ -495,7 +497,7 @@
 
 				// Bail if we didn't match the shortcode or all of the content.
 				if ( ! shortcode || shortcode.content !== content ) {
-					return;
+					return undefined;
 				}
 
 				// Ignore the rest of the match object.

@@ -373,7 +373,7 @@ wp.mediaWidgets = ( function( $ ) {
 				 *
 				 * @ignore
 				 *
-				 * @fires wp.media.controller.State#insert()
+				 * @fires wp.media.controller.State#insert
 				 * @return {void}
 				 */
 				click: function onClick() {
@@ -1014,7 +1014,7 @@ wp.mediaWidgets = ( function( $ ) {
 		defaults: function() {
 			var defaults = {};
 			_.each( this.schema, function( fieldSchema, field ) {
-				defaults[ field ] = fieldSchema['default'];
+				defaults[ field ] = fieldSchema.default;
 			});
 			return defaults;
 		},

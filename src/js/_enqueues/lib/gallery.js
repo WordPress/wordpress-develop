@@ -2,13 +2,13 @@
  * @output wp-admin/js/gallery.js
  */
 
-/* global unescape, getUserSetting, setUserSetting, wpgallery, tinymce */
+/* global getUserSetting, setUserSetting, wpgallery, tinymce */
 
 jQuery( function($) {
-	var gallerySortable, gallerySortableInit, sortIt, clearAll, w, desc = false;
+	var gallerySortableInit, sortIt, clearAll, w, desc = false;
 
 	gallerySortableInit = function() {
-		gallerySortable = $('#media-items').sortable( {
+		$('#media-items').sortable( {
 			items: 'div.media-item',
 			placeholder: 'sorthelper',
 			axis: 'y',

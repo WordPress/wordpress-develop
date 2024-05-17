@@ -23,7 +23,7 @@ test.describe( 'Manage applications passwords', () => {
 		await applicationPasswords.create();
 
 		const [ app ] = await applicationPasswords.get();
-		expect( app['name']).toBe( TEST_APPLICATION_NAME );
+		expect( app.name ).toBe( TEST_APPLICATION_NAME );
 
 		const successMessage = page.getByRole( 'alert' );
 

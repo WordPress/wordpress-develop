@@ -9,10 +9,10 @@
 
 /**
  * @param {jQuery}  $                                        jQuery object.
- * @param {object}  wp                                       WP object.
- * @param {object}  settings                                 WP Updates settings.
+ * @param {Object}  wp                                       WP object.
+ * @param {Object}  settings                                 WP Updates settings.
  * @param {string}  settings.ajax_nonce                      Ajax nonce.
- * @param {object=} settings.plugins                         Base names of plugins in their different states.
+ * @param {Object=} settings.plugins                         Base names of plugins in their different states.
  * @param {Array}   settings.plugins.all                     Base names of all plugins.
  * @param {Array}   settings.plugins.active                  Base names of active plugins.
  * @param {Array}   settings.plugins.inactive                Base names of inactive plugins.
@@ -20,13 +20,13 @@
  * @param {Array}   settings.plugins.recently_activated      Base names of recently activated plugins.
  * @param {Array}   settings.plugins['auto-update-enabled']  Base names of plugins set to auto-update.
  * @param {Array}   settings.plugins['auto-update-disabled'] Base names of plugins set to not auto-update.
- * @param {object=} settings.themes                          Slugs of themes in their different states.
+ * @param {Object=} settings.themes                          Slugs of themes in their different states.
  * @param {Array}   settings.themes.all                      Slugs of all themes.
  * @param {Array}   settings.themes.upgrade                  Slugs of themes with updates available.
  * @param {Arrat}   settings.themes.disabled                 Slugs of disabled themes.
  * @param {Array}   settings.themes['auto-update-enabled']   Slugs of themes set to auto-update.
  * @param {Array}   settings.themes['auto-update-disabled']  Slugs of themes set to not auto-update.
- * @param {object=} settings.totals                          Combined information for available update counts.
+ * @param {Object=} settings.totals                          Combined information for available update counts.
  * @param {number}  settings.totals.count                    Holds the amount of available updates.
  */
 (function( $, wp, settings ) {
@@ -54,7 +54,7 @@
 	 * @since 4.2.0
 	 * @deprecated 5.5.0
 	 *
-	 * @type {object}
+	 * @type {Object}
 	 */
 	wp.updates.l10n = {
 		searchResults: '',
@@ -157,9 +157,10 @@
 	 * @since 4.6.0 Added `available` property to indicate whether credentials have been provided.
 	 *
 	 * @type {Object}
+	 * @property {Object} filesystemCredentials                    Holds filesystem credentials.
 	 * @property {Object} filesystemCredentials.ftp                Holds FTP credentials.
 	 * @property {string} filesystemCredentials.ftp.host           FTP host. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.username       FTP user name. Default empty string.
+	 * @property {string} filesystemCredentials.ftp.username       FTP username. Default empty string.
 	 * @property {string} filesystemCredentials.ftp.password       FTP password. Default empty string.
 	 * @property {string} filesystemCredentials.ftp.connectionType Type of FTP connection. 'ssh', 'ftp', or 'ftps'.
 	 *                                                             Default empty string.
@@ -200,7 +201,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @type {function}
+	 * @type {Function}
 	 */
 	wp.updates.adminNotice = wp.template( 'wp-updates-admin-notice' );
 
@@ -239,7 +240,6 @@
 	 * @param {number=} data.successes     Optional. The amount of successful operations.
 	 * @param {number=} data.errors        Optional. The amount of failed operations.
 	 * @param {Array=}  data.errorMessages Optional. Error messages of failed operations.
-	 *
 	 */
 	wp.updates.addAdminNotice = function( data ) {
 		var $notice = $( data.selector ),
@@ -618,7 +618,7 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
-		var $pluginRow, $card, $message, errorMessage, buttonText, ariaLabel,
+		var $card, $message, errorMessage, buttonText, ariaLabel,
 			$adminBarUpdates = $( '#wp-admin-bar-updates' );
 
 		if ( ! wp.updates.isValidResponse( response, 'update' ) ) {
@@ -636,7 +636,7 @@
 		);
 
 		if ( 'plugins' === pagenow || 'plugins-network' === pagenow ) {
-			$pluginRow = $( 'tr[data-plugin="' + response.plugin + '"]' ).removeClass( 'is-enqueued' );
+			$( 'tr[data-plugin="' + response.plugin + '"]' ).removeClass( 'is-enqueued' );
 
 			if ( response.plugin ) {
 				$message = $( 'tr[data-plugin="' + response.plugin + '"]' ).find( '.update-message' );
@@ -1707,7 +1707,11 @@
 		} else {
 			$notice = $( '.theme-info .notice' ).add( $theme.find( '.notice' ) );
 
-			$( 'body.modal-open' ).length ? $( '.load-customize:visible' ).trigger( 'focus' ) : $theme.find( '.load-customize' ).trigger( 'focus');
+			if ( $( 'body.modal-open' ).length ) {
+				$( '.load-customize:visible' ).trigger( 'focus' );
+			} else {
+				$theme.find( '.load-customize' ).trigger( 'focus');
+			}
 		}
 
 		wp.updates.addAdminNotice( {
@@ -2344,7 +2348,7 @@
 	 * If the response deems to be invalid, an admin notice is being displayed.
 	 *
 	 * @param {(Object|string)} response              Response from the server.
-	 * @param {function=}       response.always       Optional. Callback for when the Deferred is resolved or rejected.
+	 * @param {Function=}       response.always       Optional. Callback for when the Deferred is resolved or rejected.
 	 * @param {string=}         response.statusText   Optional. Status message corresponding to the status code.
 	 * @param {string=}         response.responseText Optional. Request response as text.
 	 * @param {string}          action                Type of action the response is referring to. Can be 'delete',
@@ -3328,7 +3332,7 @@
 
 				// Called from `wp-admin/includes/class-wp-upgrader-skins.php`.
 				case 'decrementUpdateCount':
-					/** @property {string} message.upgradeType */
+					/** @member {string} message.upgradeType */
 					wp.updates.decrementCount( message.upgradeType );
 					break;
 

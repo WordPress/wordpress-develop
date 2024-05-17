@@ -53,7 +53,7 @@ class PerformanceReporter {
 	 *
 	 * @param {import('@playwright/test/reporter').FullResult} result
 	 */
-	onEnd( result ) {
+	onEnd( result ) { // eslint-disable-line no-unused-vars
 		const summary = [];
 
 		for ( const [ title, { file, results } ] of Object.entries(

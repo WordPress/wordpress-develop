@@ -44,11 +44,11 @@
 	/**
 	 * Test whether attribute exists in a HTML string
 	 *
-	 * @param html The HTML string
-	 * @param attr string|object When string, test for the first instance of attr.
-	 *                           When object, break up the HTML string into individual tags and test for attr in the specified tag.
-	 *                           Format: { tagName: 'attr1 attr2', ... }
-	 * @return bool
+	 * @param {string}        html The HTML string
+	 * @param {string|Object} attr When string, test for the first instance of attr.
+	 *                             When object, break up the HTML string into individual tags and test for attr in the specified tag.
+	 *                             Format: { tagName: 'attr1 attr2', ... }
+	 * @return {bool}
 	 */
 	function hasAttr( html, attr ) {
 		var tagName, tags, tag, array, regex, i;
@@ -58,7 +58,8 @@
 		}
 
 		for ( tagName in attr ) {
-			if ( tags = html.match( new RegExp( '<' + tagName + ' [^>]+>', 'g' ) ) ) {
+			tags = html.match( new RegExp( '<' + tagName + ' [^>]+>', 'g' ) );
+			if ( tags ) {
 				for ( tag in tags ) {
 					array = attr[tagName].split(' ');
 

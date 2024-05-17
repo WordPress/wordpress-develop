@@ -21,10 +21,9 @@ on:
       - '**.js'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
-      # This file configures ESLint. Changes could affect the outcome.
+      # These files configure ESLint. Changes could affect the outcome.
       - '.eslintignore'
-      # This file configures JSHint. Changes could affect the outcome.
-      - '.jshintrc'
+      - '.eslintrc'
       # Any change to the QUnit directory should run tests.
       - 'tests/qunit/**'
       # Changes to workflow files should always verify all workflows are successful.

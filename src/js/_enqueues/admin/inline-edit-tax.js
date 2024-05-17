@@ -5,6 +5,7 @@
  */
 
 /* global ajaxurl, inlineEditTax */
+/* eslint jsdoc/valid-types: "off" */
 
 window.wp = window.wp || {};
 
@@ -101,7 +102,11 @@ window.inlineEditTax = {
 	toggle : function(el) {
 		var t = this;
 
-		$(t.what+t.getId(el)).css('display') === 'none' ? t.revert() : t.edit(el);
+		if ( $(t.what+t.getId(el)).css('display') === 'none' ) {
+			t.revert();
+		} else {
+			t.edit(el);
+		}
 	},
 
 	/**
@@ -127,7 +132,8 @@ window.inlineEditTax = {
 			id = t.getId(id);
 		}
 
-		editRow = $('#inline-edit').clone(true), rowData = $('#inline_'+id);
+		editRow = $('#inline-edit').clone(true);
+		rowData = $('#inline_'+id);
 		$( 'td', editRow ).attr( 'colspan', $( 'th:visible, td:visible', '.wp-list-table.widefat:first thead' ).length );
 
 		$(t.what+id).hide().after(editRow).after('<tr class="hidden"></tr>');

@@ -1,8 +1,3 @@
-/* globals wp */
-/* jshint qunit: true */
-/* eslint-env qunit */
-/* eslint-disable no-magic-numbers */
-
 ( function() {
 	'use strict';
 
@@ -66,7 +61,7 @@
 
 		videoWidgetModelInstance = new VideoWidgetModel();
 		_.each( videoWidgetModelInstance.attributes, function( value, key ) {
-			assert.equal( value, VideoWidgetModel.prototype.schema[ key ][ 'default' ], 'Should properly set default for ' + key );
+			assert.equal( value, VideoWidgetModel.prototype.schema[ key ].default, 'Should properly set default for ' + key );
 		});
 	});
 

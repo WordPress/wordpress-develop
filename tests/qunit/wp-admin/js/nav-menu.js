@@ -9,11 +9,13 @@
 	setTimeout( function( assert ) {
 		// QUnit may load this file without running it, in which case `assert`
 		// will never be set to `assertPassed` below.
-		assert && assert.equal(
-			eventsFired,
-			eventsExpected,
-			eventsExpected + ' wpNavMenu events should fire.'
-		);
+		if ( assert ) {
+			assert.equal(
+				eventsFired,
+				eventsExpected,
+				eventsExpected + ' wpNavMenu events should fire.'
+			);
+		}
 	}, 3000 );
 
 	QUnit.test( 'Testing wpNavMenu event triggers.', function( assertPassed ) {

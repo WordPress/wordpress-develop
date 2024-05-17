@@ -22,7 +22,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	 * Default settings for code editor.
 	 *
 	 * @since 4.9.0
-	 * @type {object}
+	 * @type {Object}
 	 */
 	wp.codeEditor.defaultSettings = {
 		codemirror: {},
@@ -80,7 +80,7 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 			}
 
 			/*
-			 * Note that rules must be sent in the "deprecated" lint.options property 
+			 * Note that rules must be sent in the "deprecated" lint.options property
 			 * to prevent linter from complaining about unrecognized options.
 			 * See <https://github.com/codemirror/CodeMirror/pull/4944>.
 			 */
@@ -256,8 +256,8 @@ if ( 'undefined' === typeof window.wp.codeEditor ) {
 	}
 
 	/**
-	 * @typedef {object} wp.codeEditor~CodeEditorInstance
-	 * @property {object} settings - The code editor settings.
+	 * @typedef {Object} wp.codeEditor~CodeEditorInstance
+	 * @property {Object} settings - The code editor settings.
 	 * @property {CodeMirror} codemirror - The CodeMirror instance.
 	 */
 

@@ -4,7 +4,7 @@
  * @output wp-admin/js/site-health.js
  */
 
-/* global ajaxurl, ClipboardJS, SiteHealth, wp */
+/* global ajaxurl, ClipboardJS, SiteHealth */
 
 jQuery( function( $ ) {
 
@@ -145,16 +145,19 @@ jQuery( function( $ ) {
 
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
+				/* translators: %s: number of critical issues. */
 				_n( '%s critical issue', '%s critical issues', count ),
 				'<span class="issue-count">' + count + '</span>'
 			);
 		} else if ( 'recommended' === issue.status ) {
 			heading = sprintf(
+				/* translators: %s: number of recommended improvements. */
 				_n( '%s recommended improvement', '%s recommended improvements', count ),
 				'<span class="issue-count">' + count + '</span>'
 			);
 		} else if ( 'good' === issue.status ) {
 			heading = sprintf(
+				/* translators: %s: number of items. */
 				_n( '%s item with no issues detected', '%s items with no issues detected', count ),
 				'<span class="issue-count">' + count + '</span>'
 			);
@@ -476,7 +479,7 @@ jQuery( function( $ ) {
 				wp.a11y.speak( __( 'Running additional tests... please wait.' ) );
 				break;
 			default:
-				return;
+				break;
 		}
 	}
 } );

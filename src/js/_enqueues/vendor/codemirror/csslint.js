@@ -3023,9 +3023,9 @@ Parser.prototype = function() {
              * Not part of CSS grammar, but this pattern occurs frequently
              * in the official CSS grammar. Split out here to eliminate
              * duplicate code.
-             * @param {Boolean} checkStart Indicates if the rule should check
+             * @param {boolean} checkStart Indicates if the rule should check
              *      for the left brace at the beginning.
-             * @param {Boolean} readMargins Indicates if the rule should check
+             * @param {boolean} readMargins Indicates if the rule should check
              *      for margin patterns.
              * @return {void}
              * @method _readDeclarations
@@ -3211,7 +3211,7 @@ Parser.prototype = function() {
              * Parses a complete CSS rule, including selectors and
              * properties.
              * @param {String} input The text to parser.
-             * @return {Boolean} True if the parse completed successfully, false if not.
+             * @return {boolean} True if the parse completed successfully, false if not.
              * @method parseRule
              */
             parseRule: function(input) {
@@ -3920,7 +3920,7 @@ PropertyValueIterator.prototype.count = function() {
 
 /**
  * Indicates if the iterator is positioned at the first item.
- * @return {Boolean} True if positioned at first item, false if not.
+ * @return {boolean} True if positioned at first item, false if not.
  * @method isFirst
  */
 PropertyValueIterator.prototype.isFirst = function() {
@@ -3929,7 +3929,7 @@ PropertyValueIterator.prototype.isFirst = function() {
 
 /**
  * Indicates if there are more parts of the property value.
- * @return {Boolean} True if there are more parts, false if not.
+ * @return {boolean} True if there are more parts, false if not.
  * @method hasNext
  */
 PropertyValueIterator.prototype.hasNext = function() {
@@ -6580,7 +6580,7 @@ StringReader.prototype = {
 
     /**
      * Determines if you're at the end of the input.
-     * @return {Boolean} True if there's no more input, false otherwise.
+     * @return {boolean} True if there's no more input, false otherwise.
      * @method eof
      */
     eof: function() {
@@ -7024,7 +7024,7 @@ TokenStreamBase.prototype = {
      *      it's assumed that the token can be any of these.
      * @param {variant} channel (Optional) The channel to read from. If not
      *      provided, reads from the default (unnamed) channel.
-     * @return {Boolean} True if the token type matches, false if not.
+     * @return {boolean} True if the token type matches, false if not.
      * @method match
      */
     match: function(tokenTypes, channel) {
@@ -7741,7 +7741,7 @@ var CSSLint = (function() {
     /**
      * Indicates if the given format is supported.
      * @param {String} formatId The ID of the format to check.
-     * @return {Boolean} True if the format exists, false if not.
+     * @return {boolean} True if the format exists, false if not.
      * @method hasFormat
      */
     api.hasFormat = function(formatId) {

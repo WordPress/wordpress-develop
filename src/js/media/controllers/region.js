@@ -94,8 +94,8 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 		 * Region view creation takes place in an event callback on the frame.
 		 *
 		 * @event wp.media.controller.Region#create
-		 * @type {object}
-		 * @property {object} view
+		 * @type {Object}
+		 * @property {Object} view
 		 */
 		this.trigger( 'create', set );
 		view = set.view;
@@ -106,7 +106,7 @@ _.extend( Region.prototype,/** @lends wp.media.controller.Region.prototype */{
 		 * Region view creation takes place in an event callback on the frame.
 		 *
 		 * @event wp.media.controller.Region#render
-		 * @type {object}
+		 * @type {Object}
 		 */
 		this.trigger( 'render', view );
 		if ( view ) {

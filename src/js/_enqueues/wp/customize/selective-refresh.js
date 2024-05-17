@@ -2,7 +2,7 @@
  * @output wp-includes/js/customize-selective-refresh.js
  */
 
-/* global jQuery, JSON, _customizePartialRefreshExports, console */
+/* global _customizePartialRefreshExports */
 
 /** @namespace wp.customize.selectiveRefresh */
 wp.customize.selectiveRefresh = ( function( $, api ) {
@@ -45,7 +45,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * Default params.
 		 *
 		 * @since 4.9.0
-		 * @var {object}
+		 * @member {Object}
 		 */
 		defaults: {
 			selector: null,
@@ -428,12 +428,10 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 				return false;
 			}
 
-			/* jshint ignore:start */
 			self.originalDocumentWrite = document.write;
 			document.write = function() {
 				throw new Error( self.data.l10n.badDocumentWrite );
 			};
-			/* jshint ignore:end */
 			try {
 				content = placement.addedContent;
 				if ( wp.emoji && wp.emoji.parse && ! $.contains( document.head, placement.container[0] ) ) {
@@ -472,10 +470,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 				}
 				partial.fallback( error, [ placement ] );
 			}
-			/* jshint ignore:start */
 			document.write = self.originalDocumentWrite;
 			self.originalDocumentWrite = null;
-			/* jshint ignore:end */
 
 			partial.createEditShortcutForPlacement( placement );
 			placement.container.removeClass( 'customize-partial-refreshing' );
@@ -574,7 +570,7 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		 * This provides information about the placement which is included in the request
 		 * in order to render the partial properly.
 		 *
-		 * @param {object}
+		 * @param {Object}
 		 */
 		context: null,
 
@@ -857,8 +853,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 	 * @since 4.5.0
 	 *
 	 * @param {jQuery|HTMLElement} [rootElement]
-	 * @param {object}             [options]
-	 * @param {boolean=true}       [options.triggerRendered]
+	 * @param {Object}             [options]
+	 * @param {boolean}       [options.triggerRendered=true]
 	 */
 	self.addPartials = function( rootElement, options ) {
 		var containerElements;
@@ -1027,8 +1023,8 @@ wp.customize.selectiveRefresh = ( function( $, api ) {
 		/**
 		 * Handle setting validities in partial refresh response.
 		 *
-		 * @param {object} data Response data.
-		 * @param {object} data.setting_validities Setting validities.
+		 * @param {Object} data Response data.
+		 * @param {Object} data.setting_validities Setting validities.
 		 */
 		api.selectiveRefresh.bind( 'render-partials-response', function handleSettingValiditiesResponse( data ) {
 			if ( data.setting_validities ) {

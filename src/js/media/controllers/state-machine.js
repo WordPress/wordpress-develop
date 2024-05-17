@@ -100,6 +100,8 @@ _.extend( StateMachine.prototype, Backbone.Events,/** @lends wp.media.controller
 		if ( this._lastState ) {
 			return this.state( this._lastState );
 		}
+
+		return undefined;
 	}
 });
 

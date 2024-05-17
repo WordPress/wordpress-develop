@@ -95,7 +95,7 @@
 	 * @memberOf wp.customize
 	 * @alias wp.customize.Preview
 	 *
-	 * @constructor
+	 * @class
 	 * @augments wp.customize.Messenger
 	 * @augments wp.customize.Class
 	 * @mixes wp.customize.Events
@@ -231,7 +231,6 @@
 	 * Inject the changeset UUID into links in the document.
 	 *
 	 * @since 4.7.0
-	 * @access protected
 	 * @access private
 	 *
 	 * @return {void}

@@ -1,4 +1,4 @@
-/* global passwordStrength, wp, jQuery */
+/* global passwordStrength */
 jQuery( function() {
 	QUnit.module( 'password-strength-meter' );
 

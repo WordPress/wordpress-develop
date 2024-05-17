@@ -1,5 +1,3 @@
-/* global wp, sinon */
-
 jQuery( function() {
 	QUnit.module('Custom Header: ChoiceList', {
 		beforeEach: function() {

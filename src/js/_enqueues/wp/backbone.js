@@ -250,7 +250,9 @@ window.wp = window.wp || {};
 
 			views = views || [];
 
-			if ( existing = this.get( selector ) ) {
+			existing = this.get( selector )
+
+			if ( existing ) {
 				views = _.isArray( views ) ? views : [ views ];
 				this._views[ selector ] = views.length ? _.difference( existing, views ) : [];
 			}
@@ -284,7 +286,7 @@ window.wp = window.wp || {};
 		 * @since 3.5.0
 		 *
 		 * @return {wp.Backbone.Subviews} The current Subviews instance.
-		*/
+		 */
 		render: function() {
 			var options = {
 					ready: this._isReady()
@@ -314,7 +316,7 @@ window.wp = window.wp || {};
 		 *                                 the master views' parent.
 		 *
 		 * @return {wp.Backbone.Subviews} The current Subviews instance.
-		*/
+		 */
 		remove: function( options ) {
 			if ( ! options || ! options.silent ) {
 				if ( this.parent && this.parent.views )

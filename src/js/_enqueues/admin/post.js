@@ -4,9 +4,9 @@
  * @output wp-admin/js/post.js
  */
 
- /* global ajaxurl, wpAjax, postboxes, pagenow, tinymce, alert, deleteUserSetting, ClipboardJS */
- /* global theList:true, theExtraList:true, getUserSetting, setUserSetting, commentReply, commentsBox */
- /* global WPSetThumbnailHTML, wptitlehint */
+ /* global ajaxurl, wpAjax, postboxes, pagenow, tinymce, deleteUserSetting, ClipboardJS */
+ /* global getUserSetting, setUserSetting, commentReply, commentsBox */
+ /* global WPSetThumbnailHTML, wptitlehint, _ */
 
 // Backward compatibility: prevent fatal errors.
 window.makeSlugeditClickable = window.editPermalink = function(){};
@@ -67,7 +67,7 @@ window.wp = window.wp || {};
 					if ( 'object' == typeof r && r.responses[0] ) {
 						$('#the-comment-list').append( r.responses[0].data );
 
-						theList = theExtraList = null;
+						window.theList = window.theExtraList = null;
 						$( 'a[className*=\':\']' ).off();
 
 						// If the offset is over the total number of comments we cannot fetch any more, so hide the button.
@@ -561,11 +561,15 @@ jQuery( function($) {
 
 	// Multiple taxonomies.
 	if ( $('#tagsdiv-post_tag').length ) {
-		window.tagBox && window.tagBox.init();
+		if ( window.tagBox ) {
+			window.tagBox.init();
+		}
 	} else {
 		$('.meta-box-sortables').children('div.postbox').each(function(){
 			if ( this.id.indexOf('tagsdiv-') === 0 ) {
-				window.tagBox && window.tagBox.init();
+				if ( window.tagBox ) {
+					window.tagBox.init();
+				}
 				return false;
 			}
 		});
@@ -580,7 +584,7 @@ jQuery( function($) {
 		taxonomy = taxonomyParts.join('-');
 		settingName = taxonomy + '_tab';
 
-		if ( taxonomy == 'category' ) {
+		if ( taxonomy === 'category' ) {
 			settingName = 'cats';
 		}
 
@@ -591,7 +595,7 @@ jQuery( function($) {
 			$(this).parent().addClass('tabs').siblings('li').removeClass('tabs');
 			$('#' + taxonomy + '-tabs').siblings('.tabs-panel').hide();
 			$(t).show();
-			if ( '#' + taxonomy + '-all' == t ) {
+			if ( '#' + taxonomy + '-all' === t ) {
 				deleteUserSetting( settingName );
 			} else {
 				setUserSetting( settingName, 'pop' );
@@ -728,7 +732,7 @@ jQuery( function($) {
 		 */
 		updateVisibility = function() {
 			// Show sticky for public posts.
-			if ( $postVisibilitySelect.find('input:radio:checked').val() != 'public' ) {
+			if ( $postVisibilitySelect.find('input:radio:checked').val() !== 'public' ) {
 				$('#sticky').prop('checked', false);
 				$('#sticky-span').hide();
 			} else {
@@ -736,7 +740,7 @@ jQuery( function($) {
 			}
 
 			// Show password input field for password protected post.
-			if ( $postVisibilitySelect.find('input:radio:checked').val() != 'password' ) {
+			if ( $postVisibilitySelect.find('input:radio:checked').val() !== 'password' ) {
 				$('#password-span').hide();
 			} else {
 				$('#password-span').show();
@@ -801,7 +805,7 @@ jQuery( function($) {
 			}
 
 			// If the date is the same, set it to trigger update events.
-			if ( originalDate.toUTCString() == attemptedDate.toUTCString() ) {
+			if ( originalDate.toUTCString() === attemptedDate.toUTCString() ) {
 				// Re-set to the current value.
 				$('#timestamp').html(stamp);
 			} else {
@@ -819,7 +823,7 @@ jQuery( function($) {
 			}
 
 			// Add "privately published" to post status when applies.
-			if ( $postVisibilitySelect.find('input:radio:checked').val() == 'private' ) {
+			if ( $postVisibilitySelect.find('input:radio:checked').val() === 'private' ) {
 				$('#publish').val( __( 'Update' ) );
 				if ( 0 === optPublish.length ) {
 					postStatus.append('<option value="publish">' + __( 'Privately Published' ) + '</option>');
@@ -829,7 +833,7 @@ jQuery( function($) {
 				$('option[value="publish"]', postStatus).prop('selected', true);
 				$('#misc-publishing-actions .edit-post-status').hide();
 			} else {
-				if ( $('#original_post_status').val() == 'future' || $('#original_post_status').val() == 'draft' ) {
+				if ( $('#original_post_status').val() === 'future' || $('#original_post_status').val() === 'draft' ) {
 					if ( optPublish.length ) {
 						optPublish.remove();
 						postStatus.val($('#hidden_post_status').val());
@@ -849,13 +853,13 @@ jQuery( function($) {
 
 			// Show or hide the "Save Draft" button.
 			if (
-				$('option:selected', postStatus).val() == 'private' ||
-				$('option:selected', postStatus).val() == 'publish'
+				$('option:selected', postStatus).val() === 'private' ||
+				$('option:selected', postStatus).val() === 'publish'
 			) {
 				$('#save-post').hide();
 			} else {
 				$('#save-post').show();
-				if ( $('option:selected', postStatus).val() == 'pending' ) {
+				if ( $('option:selected', postStatus).val() === 'pending' ) {
 					$('#save-post').show().val( __( 'Save as Pending' ) );
 				} else {
 					$('#save-post').show().val( __( 'Save Draft' ) );
@@ -1034,7 +1038,7 @@ jQuery( function($) {
 		buttons.children( '.save' ).on( 'click', function() {
 			var new_slug = $el.children( 'input' ).val();
 
-			if ( new_slug == $('#editable-post-name-full').text() ) {
+			if ( new_slug === $('#editable-post-name-full').text() ) {
 				buttons.children('.cancel').trigger( 'click' );
 				return;
 			}
@@ -1234,7 +1238,7 @@ jQuery( function($) {
 			if ( format && $( this ).prop( 'checked' ) && ( editor = tinymce.get( 'content' ) ) ) {
 				body = editor.getBody();
 				body.className = body.className.replace( /\bpost-format-[^ ]+/, '' );
-				editor.dom.addClass( body, format == 'post-format-0' ? 'post-format-standard' : format );
+				editor.dom.addClass( body, format === 'post-format-0' ? 'post-format-standard' : format );
 				$( document ).trigger( 'editor-classchange' );
 			}
 		});
@@ -1270,7 +1274,9 @@ jQuery( function($) {
 				return;
 			}
 
-			wp.autosave && wp.autosave.server.triggerSave();
+			if ( wp.autosave ) {
+				wp.autosave.server.triggerSave();
+			}
 			event.preventDefault();
 		}
 	});

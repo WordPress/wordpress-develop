@@ -84,10 +84,9 @@ jQuery( function($) {
 				var th = $(this),
 					val = th.find('input').val(),
 					id = th.find('input')[0].id,
-					name = th.text().trim(),
-					o;
+					name = th.text().trim();
 				$('#' + id).on( 'change', syncChecks );
-				o = $( '<option value="' +  parseInt( val, 10 ) + '"></option>' ).text( name );
+				$( '<option value="' +  parseInt( val, 10 ) + '"></option>' ).text( name );
 			} );
 		} );
 	};

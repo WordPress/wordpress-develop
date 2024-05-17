@@ -1,3 +1,5 @@
+/* eslint jsdoc/valid-types: "off" */
+
 var $ = Backbone.$,
 	Attachment;
 
@@ -79,7 +81,7 @@ Attachment = Backbone.Model.extend(/** @lends wp.media.model.Attachment.prototyp
 			options.data = _.extend( options.data || {}, {
 				action:   'delete-post',
 				id:       this.id,
-				_wpnonce: this.get('nonces')['delete']
+				_wpnonce: this.get('nonces').delete
 			});
 
 			return wp.media.ajax( options ).done( function() {

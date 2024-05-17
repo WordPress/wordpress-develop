@@ -1,5 +1,3 @@
-/* global wp */
-
 jQuery( function( $ ) {
 	var FooSuperClass, BarSubClass, foo, bar, ConstructorTestClass, newConstructor, constructorTest, $mockElement, mockString,
 	firstInitialValue, firstValueInstance, valuesInstance, wasCallbackFired, mockValueCallback;

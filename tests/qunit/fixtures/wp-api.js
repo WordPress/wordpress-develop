@@ -1,6 +1,7 @@
-/* global mockedApiResponse, Backbone, jsWidgetsEndpointSchema */
+/* global mockedApiResponse, jsWidgetsEndpointSchema */
+
 /**
- * @var mockedApiResponse defined in wp-api-generated.js
+ * @member mockedApiResponse defined in wp-api-generated.js
  */
 
 var pathToData = {
@@ -32,7 +33,7 @@ var pathToData = {
 /**
  * Mock the ajax callbacks for our tests.
  *
- * @param  {object} param The parameters sent to the ajax request.
+ * @param  {Object} param The parameters sent to the ajax request.
  *
  * @return {Object}       A jQuery deferred object that resolves with the mapped data.
  */

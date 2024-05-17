@@ -68,7 +68,7 @@ function camelCaseDashes( str ) {
  * | 777 | 999 | No  |
  *
  * @param {Array<Object>} rows Table rows.
- * @returns {string} Markdown table content.
+ * @return {string} Markdown table content.
  */
 function formatAsMarkdownTable( rows ) {
 	let result = '';
@@ -82,6 +82,7 @@ function formatAsMarkdownTable( rows ) {
 		result += `| ${ header } `;
 	}
 	result += '|\n';
+	// eslint-disable-next-line no-unused-vars
 	for ( const header of headers ) {
 		result += '| ------ ';
 	}
@@ -130,7 +131,7 @@ function formatValue( metric, value ) {
  * into (https://github.com/wordpress/wordpress-develop/commit/36fe58a8c64dcc83fc21bddd5fcf054aef4efb27)[36fe58a].
  *
  * @param {string} sha Commit SHA.
- * @return string Link
+ * @return {string} Link
  */
 function linkToSha( sha ) {
 	const repoName =
@@ -167,7 +168,7 @@ function medianAbsoluteDeviation( array = [] ) {
 /**
  *
  * @param {Array<Record<string, number[]>>} results
- * @returns {Record<string, number[]>}
+ * @return {Record<string, number[]>}
  */
 function accumulateValues( results ) {
 	return results.reduce( ( acc, result ) => {

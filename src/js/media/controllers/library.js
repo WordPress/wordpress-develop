@@ -15,7 +15,7 @@ var l10n = wp.media.view.l10n,
  * @augments Backbone.Model
  * @mixes media.selectionSync
  *
- * @param {object}                          [attributes]                         The attributes hash passed to the state.
+ * @param {Object}                          [attributes]                         The attributes hash passed to the state.
  * @param {string}                          [attributes.id=library]              Unique identifier.
  * @param {string}                          [attributes.title=Media library]     Title for the state. Displays in the media menu and the frame's title region.
  * @param {wp.media.model.Attachments}      [attributes.library]                 The attachments collection to browse.

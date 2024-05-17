@@ -2,7 +2,6 @@
  * @output wp-admin/js/tags-box.js
  */
 
-/* jshint curly: false, eqeqeq: false */
 /* global ajaxurl, tagBox, array_unique_noempty */
 
 ( function( $ ) {

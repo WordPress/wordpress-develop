@@ -1,4 +1,3 @@
-/* global wp, sinon, JSON */
 var communityEventsData, dateI18n, pagenow;
 
 jQuery( document ).ready( function () {

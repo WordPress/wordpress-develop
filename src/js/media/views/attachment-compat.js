@@ -47,7 +47,7 @@ AttachmentCompat = View.extend(/** @lends wp.media.view.AttachmentCompat.prototy
 	render: function() {
 		var compat = this.model.get('compat');
 		if ( ! compat || ! compat.item ) {
-			return;
+			return undefined;
 		}
 
 		this.views.detach();

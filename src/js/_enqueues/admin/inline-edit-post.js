@@ -20,7 +20,6 @@ window.wp = window.wp || {};
  *
  * @property {string} type The type of inline editor.
  * @property {string} what The prefix before the post ID.
- *
  */
 ( function( $, wp ) {
 
@@ -166,7 +165,11 @@ window.wp = window.wp || {};
 	 */
 	toggle : function(el){
 		var t = this;
-		$( t.what + t.getId( el ) ).css( 'display' ) === 'none' ? t.revert() : t.edit( el );
+		if ( $( t.what + t.getId( el ) ).css( 'display' ) === 'none' ) {
+			t.revert();
+		} else {
+			t.edit( el );
+		}
 	},
 
 	/**
@@ -219,13 +222,17 @@ window.wp = window.wp || {};
 		// Populate the list of items to bulk edit.
 		$( '#bulk-titles' ).html( '<ul id="bulk-titles-list" role="list">' + te + '</ul>' );
 
-		// Gather up some statistics on which of these checked posts are in which categories.
+		// Gather some statistics on which of these checked posts are in which categories.
 		checkedPosts.each( function() {
 			var id      = $( this ).val();
 			var checked = $( '#category_' + id ).text().split( ',' );
 
+			// eslint-disable-next-line array-callback-return
 			checked.map( function( cid ) {
-				categories[ cid ] || ( categories[ cid ] = 0 );
+				if ( ! categories[ cid ] ) {
+					categories[ cid ] = 0;
+				}
+
 				// Just record that this category is checked.
 				categories[ cid ]++;
 			} );
@@ -242,7 +249,7 @@ window.wp = window.wp || {};
 				if ( ! $( this ).parent().find( 'input[name="indeterminate_post_category[]"]' ).length ) {
 					// Get the term label text.
 					var label = $( this ).parent().text();
-					// Set indeterminate states for the backend. Add accessible text for indeterminate inputs. 
+					// Set indeterminate states for the backend. Add accessible text for indeterminate inputs.
 					$( this ).after( '<input type="hidden" name="indeterminate_post_category[]" value="' + $( this ).val() + '">' ).attr( 'aria-label', label.trim() + ': ' + wp.i18n.__( 'Some selected posts have this category' ) );
 				}
 			}

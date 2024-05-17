@@ -2,7 +2,7 @@
  * @output wp-admin/js/theme-plugin-editor.js
  */
 
-/* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1] }] */
+/* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1, 9, 1000] }] */
 
 if ( ! window.wp ) {
 	window.wp = {};
@@ -448,8 +448,6 @@ wp.themePluginEditor = (function( $ ) {
 		} );
 	};
 
-	/* jshint ignore:start */
-	/* jscs:disable */
 	/* eslint-disable */
 
 	/**
@@ -475,7 +473,7 @@ wp.themePluginEditor = (function( $ ) {
 		 */
 
 		/**
-		 *   @constructor
+		 *   @class
 		 *
 		 *   @desc
 		 *       Treeitem object for representing the state and user interactions for a
@@ -758,7 +756,7 @@ wp.themePluginEditor = (function( $ ) {
 		 */
 
 		/*
-		 *   @constructor
+		 *   @class
 		 *
 		 *   @desc
 		 *       Tree item object for representing the state and user interactions for a
@@ -994,8 +992,6 @@ wp.themePluginEditor = (function( $ ) {
 		return TreeLinks;
 	})();
 
-	/* jshint ignore:end */
-	/* jscs:enable */
 	/* eslint-enable */
 
 	return component;
@@ -1007,7 +1003,7 @@ wp.themePluginEditor = (function( $ ) {
  * @since 4.9.0
  * @deprecated 5.5.0
  *
- * @type {object}
+ * @type {Object}
  */
 wp.themePluginEditor.l10n = wp.themePluginEditor.l10n || {
 	saveAlert: '',
