@@ -33,7 +33,7 @@ jobs:
   # Runs the performance test suite.
   performance:
     name: Run performance tests
-    uses: desrosj/wordpress-develop/.github/workflows/callable-performance.yml@try/make-workflows-callable
+    uses: WordPress/wordpress-develop/.github/workflows/callable-performance.yml@trunk
     permissions:
       contents: read
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
