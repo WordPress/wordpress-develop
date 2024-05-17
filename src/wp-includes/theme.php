@@ -3443,11 +3443,15 @@ function _delete_attachment_theme_mod( $id ) {
 	$header_image     = get_header_image();
 	$background_image = get_background_image();
 	$custom_logo_id   = get_theme_mod( 'custom_logo' );
+	$site_logo_id     = get_option( 'site_logo' );
 
 	if ( $custom_logo_id && $custom_logo_id == $id ) {
-		delete_option( 'site_logo' );
 		remove_theme_mod( 'custom_logo' );
 		remove_theme_mod( 'header_text' );
+	}
+
+	if ( $site_logo_id && $site_logo_id == $id ) {
+		delete_option( 'site_logo' );
 	}
 
 	if ( $header_image && $header_image == $attachment_image ) {
