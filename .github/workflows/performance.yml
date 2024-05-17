@@ -33,7 +33,7 @@ jobs:
   # Runs the performance test suite.
   performance:
     name: Performance tests ${{ matrix.memcached && '(with memcached)' || '' }}
-    uses: desrosj/wordpress-develop/.github/workflows/reusable-performance.yml@try/make-workflows-reusable
+    uses: desrosj/wordpress-develop/.github/workflows/reusable-performance.yml@try/make-workflows-callable
     permissions:
       contents: read
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
