@@ -51,11 +51,14 @@
  *
  *      // Output, to be pasted into a PHP source file:
  *      WP_Token_Map::from_precomputed_table(
- *          2,
- *          "",
- *          array(),
- *          "8O\x00:)\x00:(\x00:?\x00",
- *          array( "😯", "🙂", "🙁", "😕" )
+ *          array(
+ *              "storage_version" => "1",
+ *              "key_length" => 2,
+ *              "groups" => "",
+ *              "long_words" => array(),
+ *              "small_words" => "8O\x00:)\x00:(\x00:?\x00",
+ *              "small_mappings" => array( "😯", "🙂", "🙁", "😕" )
+ *          )
  *      );
  *
  * ## Large vs. small words.
@@ -101,20 +104,27 @@
  *     echo $map->precomputed_php_source_table();
  *     // Output
  *     WP_Token_Map::from_precomputed_table(
- *         2,
- *         "si\x00so\x00",
  *         array(
+ *             "storage_version" => "1",
+ *             "key_length" => 2,
+ *             "groups" => "si\x00so\x00",
+ *             "long_words" => array(
  *                 // simple_smile:[🙂].
  *                 "\x0bmple_smile:\x04🙂",
  *                 // soba:[🍜] sob:[😭].
  *                 "\x03ba:\x04🍜\x02b:\x04😭",
- *         ),
- *         "",
- *         array()
+ *             ),
+ *             "short_words" => "",
+ *             "short_mappings" => array()
+ *         }
  *     );
  *
  * This precomputed value can be stored directly in source code and will skip the
  * startup cost of generating the lookup strings. See `$html5_named_character_entities`.
+ *
+ * Note that any updates to the precomputed format should update the storage version
+ * constant. It would also be best to provide an update function to take older known
+ * versions and upgrade them in place when loading into `from_precomputed_table()`.
  *
  * ## Future Direction.
  *
@@ -134,6 +144,16 @@
  * @since 6.6.0
  */
 class WP_Token_Map {
+	/**
+	 * Denotes the version of the code which produces pre-computed source tables.
+	 *
+	 * This version will be used not only to verify pre-computed data, but also
+	 * to upgrade pre-computed data from older versions. Choosing a name that
+	 * corresponds to the WordPress release will help people identify where an
+	 * old copy of data came from.
+	 */
+	const STORAGE_VERSION = '6.6.0-trunk';
+
 	/**
 	 * Maximum length for each key and each transformed value in the table (in bytes).
 	 *
@@ -348,22 +368,55 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param int    $key_length     Group key length.
-	 * @param string $groups         Group lookup index.
-	 * @param array  $large_words    Large word groups and packed strings.
-	 * @param string $small_words    Small words packed string.
-	 * @param array  $small_mappings Small word mappings.
+	 * @param array $state {
+	 *     Stores pre-computed state for directly loading into a Token Map.
+	 *
+	 *     @type string $storage_version Which version of the code produced this state.
+	 *     @type int    $key_length      Group key length.
+	 *     @type string $groups          Group lookup index.
+	 *     @type array  $large_words     Large word groups and packed strings.
+	 *     @type string $small_words     Small words packed string.
+	 *     @type array  $small_mappings  Small word mappings.
+	 * }
 	 *
 	 * @return WP_Token_Map Map with precomputed data loaded.
 	 */
-	public static function from_precomputed_table( $key_length, $groups, $large_words, $small_words, $small_mappings ) {
+	public static function from_precomputed_table( $state ) {
+		$has_necessary_state = isset(
+			$state['storage_version'],
+			$state['key_length'],
+			$state['groups'],
+			$state['large_words'],
+			$state['small_words'],
+			$state['small_mappings']
+		);
+
+		if ( ! $has_necessary_state ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Missing required inputs to pre-computed WP_Token_Map.' ),
+				'6.6.0'
+			);
+			return null;
+		}
+
+		if ( self::STORAGE_VERSION !== $state['storage_version'] ) {
+			_doing_it_wrong(
+				__METHOD__,
+				/* translators: 1: version string, 2: version string. */
+				sprintf( __( "Loaded version '$1%s' incompatible with expected version '$2%s'." ), $state['storage_version'], self::STORAGE_VERSION ),
+				'6.6.0'
+			);
+			return null;
+		}
+
 		$map = new WP_Token_Map();
 
-		$map->key_length     = $key_length;
-		$map->groups         = $groups;
-		$map->large_words    = $large_words;
-		$map->small_words    = $small_words;
-		$map->small_mappings = $small_mappings;
+		$map->key_length     = $state['key_length'];
+		$map->groups         = $state['groups'];
+		$map->large_words    = $state['large_words'];
+		$map->small_words    = $state['small_words'];
+		$map->small_mappings = $state['small_mappings'];
 
 		return $map;
 	}
@@ -636,15 +689,20 @@ class WP_Token_Map {
 	 */
 	public function precomputed_php_source_table( $indent = "\t" ) {
 		$i1 = $indent;
-		$i2 = $indent . $indent;
+		$i2 = $i1 . $indent;
+		$i3 = $i2 . $indent;
+
+		$class_version = self::STORAGE_VERSION;
 
 		$output  = self::class . "::from_precomputed_table(\n";
-		$output .= "{$i1}{$this->key_length},\n";
+		$output .= "{$i1}array(\n";
+		$output .= "{$i2}\"storage_version\" => \"{$class_version}\",\n";
+		$output .= "{$i2}\"key_length\" => {$this->key_length},\n";
 
 		$group_line = str_replace( "\x00", "\\x00", $this->groups );
-		$output    .= "{$i1}\"{$group_line}\",\n";
+		$output    .= "{$i2}\"groups\" => \"{$group_line}\",\n";
 
-		$output .= "{$i1}array(\n";
+		$output .= "{$i2}\"large_words\" => array(\n";
 
 		$prefixes = explode( "\x00", $this->groups );
 		foreach ( $prefixes as $index => $prefix ) {
@@ -653,8 +711,8 @@ class WP_Token_Map {
 			}
 			$group        = $this->large_words[ $index ];
 			$group_length = strlen( $group );
-			$comment_line = "{$i2}//";
-			$data_line    = "{$i2}\"";
+			$comment_line = "{$i3}//";
+			$data_line    = "{$i3}\"";
 			$at           = 0;
 			while ( $at < $group_length ) {
 				$token_length   = unpack( 'C', $group[ $at++ ] )[1];
@@ -695,7 +753,7 @@ class WP_Token_Map {
 			$output .= $data_line;
 		}
 
-		$output .= "{$i1}),\n";
+		$output .= "{$i2}),\n";
 
 		$small_words  = array();
 		$small_length = strlen( $this->small_words );
@@ -706,12 +764,13 @@ class WP_Token_Map {
 		}
 
 		$small_text = str_replace( "\x00", '\x00', implode( '', $small_words ) );
-		$output    .= "{$i1}\"{$small_text}\",\n";
+		$output    .= "{$i2}\"small_words\" => \"{$small_text}\",\n";
 
-		$output .= "{$i1}array(\n";
+		$output .= "{$i2}\"small_mappings\" => array(\n";
 		foreach ( $this->small_mappings as $mapping ) {
-			$output .= "{$i2}\"{$mapping}\",\n";
+			$output .= "{$i3}\"{$mapping}\",\n";
 		}
+		$output .= "{$i2})\n";
 		$output .= "{$i1})\n";
 		$output .= ')';
 
