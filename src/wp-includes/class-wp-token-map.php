@@ -738,12 +738,12 @@ class WP_Token_Map {
 			return 0;
 		}
 
-		$la = strlen( $a );
-		$lb = strlen( $b );
+		$length_a = strlen( $a );
+		$length_b = strlen( $b );
 
 		// Longer strings are less-than for comparison's sake.
-		if ( $la !== $lb ) {
-			return $lb - $la;
+		if ( $length_a !== $length_b ) {
+			return $length_b - $length_a;
 		}
 
 		return strcmp( $a, $b );
