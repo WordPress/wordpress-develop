@@ -81,10 +81,13 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 		wp_register_style( 'global-styles', false, array(), true, true );
 
-		$style_for_block = get_site_transient( 'wp_styles_for_blocks' );
-		$this->assertFalse( $style_for_block );
+		$style_for_block_before = get_site_transient( 'wp_styles_for_blocks' );
+		$this->assertFalse( $style_for_block_before );
 
 		wp_add_global_styles_for_blocks();
+
+		$style_for_block_before = get_site_transient( 'wp_styles_for_blocks' );
+		$this->asserNotEmpty( $style_for_block_before );
 
 		$this->assertContains(
 			'.wp-block-my-third-party-block{background-color: hotpink;}',
