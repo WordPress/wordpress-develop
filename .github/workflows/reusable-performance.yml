@@ -1,5 +1,5 @@
 ##
-# A callable workflow that runs the performance test suite.
+# A reusable workflow that runs the performance test suite.
 ##
 name: Performance Tests
 

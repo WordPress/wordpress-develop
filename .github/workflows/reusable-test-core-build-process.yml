@@ -1,5 +1,5 @@
 ##
-# A callable workflow that tests the WordPress Core build process.
+# A reusable workflow that tests the WordPress Core build process.
 ##
 name: Test the WordPress Build Process
 

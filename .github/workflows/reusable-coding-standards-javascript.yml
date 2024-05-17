@@ -1,23 +1,28 @@
 ##
-# A callable workflow that runs JavaScript tests.
+# A reusable workflow that checks the JavaScript coding standards.
 ##
-name: JavaScript tests
+name: JavaScript coding standards
 
 on:
   workflow_call:
 
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
 jobs:
-  # Runs the QUnit test suite.
+  # Runs the JavaScript coding standards checks.
+  #
+  # JSHint violations are not currently reported inline with annotations.
   #
   # Performs the following steps:
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
-  # - Run the WordPress QUnit tests.
+  # - Run the WordPress JSHint checks.
   # - Ensures version-controlled files are not modified or deleted.
-  test-js:
-    name: Run QUnit tests
+  jshint:
+    name: Run coding standards checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,8 +49,8 @@ jobs:
       - name: Install npm Dependencies
         run: npm ci
 
-      - name: Run QUnit tests
-        run: npm run grunt qunit:compiled
+      - name: Run JSHint
+        run: npm run grunt jshint
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
