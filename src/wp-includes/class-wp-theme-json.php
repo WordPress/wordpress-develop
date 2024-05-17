@@ -39,14 +39,6 @@ class WP_Theme_JSON {
 	protected static $blocks_metadata = array();
 
 	/**
-	 * Holds the cache of computed style properties for the theme.json.
-	 *
-	 * @since 6.6.0
-	 * @var array|null
-	 */
-	private static $cached_compute_style_properties = null;
-
-	/**
 	 * The CSS selector for the top-level styles.
 	 *
 	 * @since 5.8.0
@@ -2061,24 +2053,6 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$can_use_cached = ! wp_is_development_mode( 'theme' );
-		if ( $can_use_cached ) {
-			$func_args_hash = md5( wp_json_encode( func_get_args() ) ); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.Changed
-			/*
-			 * The global settings can include dynamic data related to typography.
-			 * We need to evaluate it so that the cache is invalidated when it changes.
-			 * Computing global settings hash is costly, so we cache it in a non-persistent cache.
-			 */
-			$cache_key = "{$func_args_hash}_" . self::wp_get_global_settings_hash();
-			if ( ! isset( self::$cached_compute_style_properties ) ) {
-				self::get_compute_style_properties_cache();
-			}
-
-			if ( isset( self::$cached_compute_style_properties[ $cache_key ] ) ) {
-				return self::$cached_compute_style_properties[ $cache_key ];
-			}
-		}
-
 		$root_variable_duplicates = array();
 
 		foreach ( $properties as $css_property => $value_path ) {
@@ -2154,74 +2128,7 @@ class WP_Theme_JSON {
 			}
 		}
 
-		if ( $can_use_cached ) {
-			self::set_compute_style_properties_cache( $cache_key, $declarations );
-		}
-
 		return $declarations;
-	}
-
-	/**
-	 * Sets the cache for the compute style properties.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @param string $cache_key The cache key.
-	 * @param array  $declarations The declarations to cache.
-	 *
-	 * @return array The cached declarations.
-	 */
-	private static function set_compute_style_properties_cache( $cache_key, $declarations ) {
-		self::$cached_compute_style_properties[ $cache_key ] = $declarations;
-		set_site_transient( 'wp_compute_style_properties', self::$cached_compute_style_properties, HOUR_IN_SECONDS );
-		self::$cached_compute_style_properties;
-	}
-
-	/**
-	 * Gets the cache for the compute style properties.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @return array The cached declarations.
-	 */
-	private static function get_compute_style_properties_cache() {
-		self::$cached_compute_style_properties = get_site_transient( 'wp_compute_style_properties' );
-
-		if ( ! is_array( self::$cached_compute_style_properties ) ) {
-			self::$cached_compute_style_properties = array();
-		}
-
-		return self::$cached_compute_style_properties;
-	}
-
-	/**
-	 * Clears the cache for the compute style properties.
-	 *
-	 * @since 6.6.0
-	 */
-	public static function clear_compute_style_properties_cache() {
-		self::$cached_compute_style_properties = null;
-		delete_site_transient( 'wp_compute_style_properties' );
-	}
-
-	/**
-	 * Gets the hash of the global settings.
-	 *
-	 * @since 6.6.0
-	 *
-	 * @return string The hash of the global settings.
-	 */
-	private static function wp_get_global_settings_hash() {
-		$cache_group = 'theme_json';
-		$cache_key   = 'wp_get_global_settings_hash';
-		$cache       = wp_cache_get( $cache_key, $cache_group );
-		if ( $cache ) {
-			return $cache;
-		}
-
-		$hash = md5( wp_json_encode( wp_get_global_settings() ) );
-		wp_cache_set( $cache_key, $hash, $cache_group );
-		return $hash;
 	}
 
 	/**
