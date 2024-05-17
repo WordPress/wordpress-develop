@@ -138,11 +138,20 @@ final class WP_Block_Type_Registry {
 	 * @return WP_Block_Type|null The registered block type, or null if it is not registered.
 	 */
 	public function get_registered( $name ) {
-		if ( ! $this->is_registered( $name ) ) {
+		// If this is the name of a variation block, get the canonical blocks name since thats the one in the registry.
+		$canonical_block_name = get_canonical_block_name( $name );
+
+		if ( ! $this->is_registered( $canonical_block_name ) ) {
 			return null;
 		}
 
-		return $this->registered_block_types[ $name ];
+		$block_type = $this->registered_block_types[ $canonical_block_name ];
+
+		if ( block_is_variation( $name ) ) {
+			$block_type->name = $name;
+		}
+
+		return $block_type;
 	}
 
 	/**
