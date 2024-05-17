@@ -477,7 +477,7 @@ function wp_clean_theme_json_cache() {
 	wp_cache_delete( 'wp_get_theme_data_template_parts', 'theme_json' );
 	wp_cache_delete( 'wp_get_global_settings_hash', 'theme_json' );
 	WP_Theme_JSON_Resolver::clean_cached_data();
-	_delete_styles_for_blocks_cache();
+	delete_site_transient( 'wp_styles_for_blocks' );
 }
 
 /**
@@ -661,12 +661,3 @@ function _wp_get_global_settings_hash() {
 	return $hash;
 }
 
-/**
- * Deletes the global settings hash.
- *
- * @since 6.6.0
- * @access private
- */
-function _delete_styles_for_blocks_cache() {
-	delete_site_transient( 'wp_styles_for_blocks' );
-}
