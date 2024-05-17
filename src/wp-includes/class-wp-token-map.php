@@ -403,8 +403,7 @@ class WP_Token_Map {
 		if ( self::STORAGE_VERSION !== $state['storage_version'] ) {
 			_doing_it_wrong(
 				__METHOD__,
-				/* translators: 1: version string, 2: version string. */
-				sprintf( __( 'Loaded version \'%1$s\' incompatible with expected version \'%2$s\'.' ), $state['storage_version'], self::STORAGE_VERSION ),
+				__( 'Unsupported storage version for pre-computed code.' ),
 				'6.6.0'
 			);
 			return null;
