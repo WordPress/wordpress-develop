@@ -660,4 +660,3 @@ function _wp_get_global_settings_hash() {
 	wp_cache_set( $cache_key, $hash, $cache_group );
 	return $hash;
 }
-
