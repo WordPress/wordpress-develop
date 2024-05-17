@@ -1369,6 +1369,16 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 		}
 	}
 
+	if ( false !== $processor->next_token() ) {
+		/*
+		 * There should be no further HTML syntax after the fake tag created
+		 * at the top of this function. Had there been more it would have
+		 * implied an error when creating the attribute string as input,
+		 * meaning that something escaped out of the tag or attribute value.
+		 */
+		return $attributes;
+	}
+
 	return $attributes;
 }
 
