@@ -74,6 +74,26 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 59595
+	 */
+	public function test_check_cache_is_set() {
+		$this->set_up_third_party_block();
+
+		wp_register_style( 'global-styles', false, array(), true, true );
+
+		$style_for_block = get_site_transient( 'wp_styles_for_blocks' );
+		$this->assertFalse( $style_for_block );
+
+		wp_add_global_styles_for_blocks();
+
+		$this->assertContains(
+			'.wp-block-my-third-party-block{background-color: hotpink;}',
+			$this->get_global_styles(),
+			'Third party block inline style should be registered after running wp_add_global_styles_for_blocks()'
+		);
+	}
+
+	/**
 	 * @ticket 56915
 	 */
 	public function test_third_party_blocks_inline_styles_get_registered_to_global_styles_when_per_block() {
