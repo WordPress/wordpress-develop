@@ -95,7 +95,7 @@ class WP_Block_Supports {
 	 */
 	public function apply_block_supports() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
-			self::$block_to_render['blockName']
+			get_canonical_block_name( self::$block_to_render['blockName'] )
 		);
 
 		// If no render_callback, assume styles have been previously handled.
