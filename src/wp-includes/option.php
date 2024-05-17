@@ -670,6 +670,7 @@ function wp_prime_site_option_caches( array $options = array() ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
+ * @param int $network_id ID of the network. Can be null to default to the current network ID.
  * @param string[] $options An array of option names to be loaded.
  */
 function wp_prime_network_option_caches( $network_id = null, array $options = array() ) {
