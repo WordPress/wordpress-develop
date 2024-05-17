@@ -404,7 +404,7 @@ class WP_Token_Map {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: 1: version string, 2: version string. */
-				sprintf( __( "Loaded version '$1%s' incompatible with expected version '$2%s'." ), $state['storage_version'], self::STORAGE_VERSION ),
+				sprintf( __( "Loaded version '%1$s' incompatible with expected version '%2$s'." ), $state['storage_version'], self::STORAGE_VERSION ),
 				'6.6.0'
 			);
 			return null;
