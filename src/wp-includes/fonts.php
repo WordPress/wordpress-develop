@@ -168,13 +168,13 @@ function wp_font_dir( $create_dir = true ) {
 	}
 
 	if ( $create_dir ) {
-		$created = wp_mkdir_p( $font_dir['basedir'] );
+		$created = wp_mkdir_p( $font_dir['path'] );
 
 		if ( false === $created ) {
 			$font_dir['error'] = sprintf(
 				/* translators: %s: Directory path. */
 				__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
-				esc_html( $font_dir['basedir'] )
+				esc_html( $font_dir['path'] )
 			);
 		}
 	}
