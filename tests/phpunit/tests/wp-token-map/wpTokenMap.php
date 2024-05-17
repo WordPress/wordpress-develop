@@ -46,7 +46,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 * be downloaded on every test run. By specification, it cannot change
 	 * and will not be updated.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @param string $dataset_name Which dataset to return.
 	 * @return array The dataset as an associative array.
@@ -98,7 +98,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
 	 * Ensure the basic creation of a Token Map from an associative array.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @dataProvider data_input_arrays
 	 *
@@ -137,7 +137,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 * represented by a single byte, then the encoding scheme in the Token Map
 	 * will fail and lead to corruption.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @expectedIncorrectUsage WP_Token_Map::from_array
 	 */
@@ -171,7 +171,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
 	 * Ensure isomorphic creation and export of a Token Map and associative arrays.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @dataProvider data_input_arrays
 	 *
@@ -189,7 +189,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
 	 * Ensure the basic creation of a Token Map from a precomputed source table.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @dataProvider data_input_arrays
 	 *
@@ -227,7 +227,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 * Ensures that when two or more keys share a prefix that the longest
 	 * is matched first, to prevent tokens masking each other.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 */
 	public function test_finds_longest_match_first() {
 		$map = WP_Token_Map::from_array(
@@ -266,7 +266,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
 	 * Ensures that tokens shorter than the group key length are found.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @dataProvider data_short_substring_matches_of_each_other
 	 *
@@ -310,7 +310,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
 	 * Ensures that Token Map searches at appropriate starting offset.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @dataProvider data_html5_test_dataset
 	 *
@@ -345,7 +345,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
 	 * Ensures that all given tokens exist inside a constructed Token Map.
 	 *
-	 * @ticket 60698.
+	 * @ticket 60698
 	 *
 	 * @dataProvider data_html5_test_dataset
 	 *
