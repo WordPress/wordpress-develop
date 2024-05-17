@@ -128,7 +128,7 @@ class WP_Block {
 	 */
 	public function __construct( $block, $available_context = array(), $registry = null ) {
 		$this->parsed_block = $block;
-		$this->name         = $block['blockName'];
+		$this->name         = get_canonical_block_name( $block['blockName'] );
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
@@ -136,8 +136,7 @@ class WP_Block {
 
 		$this->registry = $registry;
 
-		$block_name       = $this->get_canonical_block_name( $this->name );
-		$this->block_type = $registry->get_registered( $block_name );
+		$this->block_type = $registry->get_registered( $this->name );
 
 		$this->available_context = $available_context;
 
@@ -170,19 +169,6 @@ class WP_Block {
 		if ( ! empty( $block['innerContent'] ) ) {
 			$this->inner_content = $block['innerContent'];
 		}
-	}
-
-	public function is_variant( $name ) {
-		return substr_count( $name, '/' ) === 2;
-	}
-
-	public function get_canonical_block_name( $name ) {
-		if ( $this->is_variant( $name ) ) {
-			$parts = explode( '/', $name );
-			return $parts[0] . '/' . $parts[1];
-		}
-
-		return $name;
 	}
 
 	/**
