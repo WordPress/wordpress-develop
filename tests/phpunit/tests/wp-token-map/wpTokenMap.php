@@ -6,7 +6,7 @@
  *
  * @since 6.6.0
  *
- * @coversDefaultClass WP_Token_map
+ * @coversDefaultClass WP_Token_Map
  */
 class Tests_WpTokenMap extends WP_UnitTestCase {
 	/**
