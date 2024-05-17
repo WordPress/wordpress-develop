@@ -86,13 +86,9 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 			'HTML5',
 		);
 
-		$datasets = array();
-
 		foreach ( $dataset_names as $dataset_name ) {
-			$datasets[ $dataset_name ] = array( self::get_test_input_array( $dataset_name ) );
+			yield $dataset_name => array( self::get_test_input_array( $dataset_name ) );
 		}
-
-		return $datasets;
 	}
 
 	/**
