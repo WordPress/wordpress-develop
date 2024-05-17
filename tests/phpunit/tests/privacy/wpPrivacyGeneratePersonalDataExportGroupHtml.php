@@ -43,8 +43,10 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	/**
 	 * Test when a multiple data items are passed.
 	 *
+	 * Updated to remove </h2> from test to avoid Count introducing failure (ticket 46895).
+	 *
 	 * @ticket 44044
-	 * @ticket 46895 Updated to remove </h2> from test to avoid Count introducing failure.
+	 * @ticket 46895
 	 */
 	public function test_group_html_generation_multiple_data_items() {
 		$data = array(

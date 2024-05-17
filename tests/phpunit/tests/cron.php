@@ -598,7 +598,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -643,7 +643,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -689,7 +689,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_get_scheduled_event() returns false when expected.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
