@@ -107,11 +107,6 @@ class WP_Block_Supports {
 			? self::$block_to_render['attrs']
 			: array();
 
-		// We may want to pass additional options to the apply functions which are not available in the block attributes.
-		$options = array(
-			'alias' => block_is_variation( self::$block_to_render['blockName'] ) ? self::$block_to_render['blockName'] : null,
-		);
-
 		$output = array();
 		foreach ( $this->block_supports as $block_support_config ) {
 			if ( ! isset( $block_support_config['apply'] ) ) {
@@ -122,7 +117,6 @@ class WP_Block_Supports {
 				$block_support_config['apply'],
 				$block_type,
 				$block_attributes,
-				$options
 			);
 
 			if ( ! empty( $new_attributes ) ) {
