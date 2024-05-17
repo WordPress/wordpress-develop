@@ -86,8 +86,8 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 		wp_add_global_styles_for_blocks();
 
-		$style_for_block_before = get_site_transient( 'wp_styles_for_blocks' );
-		$this->asserNotEmpty( $style_for_block_before );
+		$style_for_block_after = get_site_transient( 'wp_styles_for_blocks' );
+		$this->assertNotEmpty( $style_for_block_after );
 
 		$this->assertContains(
 			'.wp-block-my-third-party-block{background-color: hotpink;}',
