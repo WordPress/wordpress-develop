@@ -251,7 +251,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 	 * @ticket 61053
 	 */
 	public function test_wp_prime_network_option_caches_multiple_networks() {
-		$network_id = get_current_network_id();
+		$network_id  = get_current_network_id();
 		$cache_group = 'site-options';
 
 		// Create some options to prime.
@@ -263,7 +263,7 @@ class Tests_Option_WpPrimeNetworkOptionCaches extends WP_UnitTestCase {
 
 		$cache_keys = array();
 		foreach ( $options_to_prime as $option ) {
-			$cache_key = "$network_id:$option";
+			$cache_key             = "$network_id:$option";
 			$cache_keys[ $option ] = $cache_key;
 		}
 
