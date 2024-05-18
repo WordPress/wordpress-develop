@@ -643,11 +643,11 @@ function wp_load_alloptions( $force_cache = false ) {
 }
 
 /**
- * Primes specific network options into the cache with a single database query.
+ * Primes specific network options for the current network into the cache with a single database query.
  *
  * Only network options that do not already exist in cache will be loaded.
  *
- * If site is not multisite, then call wp_prime_option_caches.
+ * If site is not multisite, then call wp_prime_option_caches().
  *
  * @since 6.6.0
  *
@@ -664,14 +664,14 @@ function wp_prime_site_option_caches( array $options = array() ) {
  *
  * Only network options that do not already exist in cache will be loaded.
  *
- * If site is not multisite, then call wp_prime_option_caches.
+ * If site is not multisite, then call wp_prime_option_caches().
  *
  * @since 6.6.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $network_id ID of the network. Can be null to default to the current network ID.
- * @param string[] $options An array of option names to be loaded.
+ * @param int      $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string[] $options    An array of option names to be loaded.
  */
 function wp_prime_network_option_caches( $network_id = null, array $options = array() ) {
 	global $wpdb;
@@ -769,7 +769,7 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
  *
  * @since 3.0.0
  * @since 6.3.0 Also prime caches for network options when persistent object cache is enabled.
- * @since 6.6.0 Uses wp_prime_network_option_caches.
+ * @since 6.6.0 Uses wp_prime_network_option_caches().
  *
  * @param int $network_id Optional. Network ID of network for which to prime network options cache. Defaults to current network.
  */
