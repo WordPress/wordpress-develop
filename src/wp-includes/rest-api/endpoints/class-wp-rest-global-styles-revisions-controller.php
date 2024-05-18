@@ -18,7 +18,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	/**
 	 * Parent controller.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 * @var WP_REST_Controller
 	 */
 	private $parent_controller;
@@ -34,7 +34,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	/**
 	 * Parent post type.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 * @var string
 	 */
 	protected $parent_post_type;
@@ -43,7 +43,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Constructor.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Extends class from WP_REST_Revisions_Controller.
+	 * @since 6.6.0 Extends class from WP_REST_Revisions_Controller.
 	 *
 	 * @param string $parent_post_type Post type of the parent.
 	 */
@@ -66,7 +66,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Registers the controller's routes.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Added route to fetch individual global styles revisions.
+	 * @since 6.6.0 Added route to fetch individual global styles revisions.
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -333,7 +333,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Retrieves the revision's schema, conforming to JSON Schema.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Merged parent and parent controller schema data.
+	 * @since 6.6.0 Merged parent and parent controller schema data.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -346,13 +346,15 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		$parent_schema        = $this->parent_controller->get_item_schema();
 		$schema['properties'] = array_merge( $schema['properties'], $parent_schema['properties'] );
 
-		unset( $schema['properties']['guid'] );
-		unset( $schema['properties']['slug'] );
-		unset( $schema['properties']['meta'] );
-		unset( $schema['properties']['content'] );
-		unset( $schema['properties']['title'] );
+		unset(
+			$schema['properties']['guid'],
+			$schema['properties']['slug'],
+			$schema['properties']['meta'],
+			$schema['properties']['content'],
+			$schema['properties']['title']
+		);
 
-		$this->schema = $schema;
+			$this->schema = $schema;
 
 		return $this->add_additional_fields_schema( $this->schema );
 	}
@@ -361,17 +363,19 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Retrieves the query params for collections.
 	 * Removes params that are not supported by global styles revisions.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
-		unset( $query_params['exclude'] );
-		unset( $query_params['include'] );
-		unset( $query_params['search'] );
-		unset( $query_params['order'] );
-		unset( $query_params['orderby'] );
+		unset(
+			$query_params['exclude'],
+			$query_params['include'],
+			$query_params['search'],
+			$query_params['order'],
+			$query_params['orderby']
+		);
 		return $query_params;
 	}
 }

@@ -503,6 +503,8 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 			),
+			// Disable autosave endpoints for global styles.
+			'autosave_rest_controller_class'  => 'stdClass',
 		)
 	);
 
