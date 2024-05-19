@@ -6,6 +6,34 @@
  * @group kses
  */
 class Tests_Kses extends WP_UnitTestCase {
+	/**
+	 * @dataProvider data_html_in_html_comment
+	 * @ticket 61246
+	 *
+	 * @param string $content Test string for kses.
+	 */
+	public function test_html_in_html_comment( $content ) {
+		$this->assertSame( $content, wp_kses_post( $content ) );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_html_in_html_comment() {
+		return array(
+			'single-line' => array( '<!-- <p class="hello">world</p> -->' ),
+			'multi-line'  => array( str_replace( '\n', "\n", '<!--\n<p class="hello">world</p>\n-->' ) ),
+			'multi-line2' => array( str_replace( '\n', "\n", '<!--\n<p class="hello">world</p>-->' ) ),
+		);
+	}
+
+	/**
+	 * @ticket 4409
+	 */
+	public function test_single_less_than() {
+		$this->assertSame( 'This is a &lt; less than sign.', wp_kses_post( 'This is a < less than sign.' ) );
+		$this->assertSame( 'This is a &lt; br', wp_kses_post( 'This is a < br' ) );
+	}
 
 	/**
 	 * @dataProvider data_wp_filter_post_kses_address
@@ -394,7 +422,7 @@ EOF;
 					$this->assertSame( "@import'http://ha.ckers.org/xss.css';", $result );
 					break;
 				case 'Remote Stylesheet 3':
-					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
+					$this->assertSame( '&lt;META HTTP-EQUIV="Link" Content="; REL=stylesheet"&gt;', $result );
 					break;
 				case 'Remote Stylesheet 4':
 					$this->assertSame( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
@@ -403,22 +431,22 @@ EOF;
 					$this->assertSame( '&lt;![CDATA[]]&gt;', $result );
 					break;
 				case 'XML data island w/comment':
-					$this->assertSame( "<I><B>&lt;IMG SRC=&quot;javas<!-- -->cript:alert('XSS')\"&gt;</B></I>", $result );
+					$this->assertSame( "<I><B>&lt;IMG SRC=\"javas<!-- -->cript:alert('XSS')\"&gt;</B></I>", $result );
 					break;
 				case 'XML HTML+TIME':
-					$this->assertSame( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
+					$this->assertSame( '&lt;t:set attributeName="innerHTML" to="XSSalert(\'XSS\')"&gt;', $result );
 					break;
 				case 'Commented-out Block':
-					$this->assertSame( "<!--[if gte IE 4]&gt;-->\nalert('XSS');", $result );
+					$this->assertSame( "<!--[if gte IE 4]&gt;\nalert('XSS');\n&lt;![endif]-->", $result );
 					break;
 				case 'Cookie Manipulation':
-					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
+					$this->assertSame( '&lt;META HTTP-EQUIV="Set-Cookie" Content="USERID=alert(\'XSS\')"&gt;', $result );
 					break;
 				case 'SSI':
-					$this->assertSame( '&lt;!--#exec cmd=&quot;/bin/echo &#039;<!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js&gt;\'"-->', $result );
+					$this->assertSame( '&lt;!--#exec cmd="/bin/echo \'&lt;SCRIPT SRC\'"--&gt;<!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js&gt;-->\'"--&gt;', $result );
 					break;
 				case 'PHP':
-					$this->assertSame( '&lt;? echo(&#039;alert("XSS")\'); ?&gt;', $result );
+					$this->assertSame( '&lt;? echo(\'alert("XSS")\'); ?&gt;', $result );
 					break;
 				case 'UTF-7 Encoding':
 					$this->assertSame( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
@@ -436,7 +464,7 @@ EOF;
 					$this->assertSame( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
 					break;
 				case 'Half-Open HTML/JavaScript':
-					$this->assertSame( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
+					$this->assertSame( '&lt;IMG SRC="javascript:alert(\'XSS\')"', $result );
 					break;
 				case 'Double open angle brackets':
 					$this->assertSame( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
@@ -460,7 +488,7 @@ EOF;
 					$this->assertSame( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 1':
-					$this->assertSame( 'document.write("&lt;SCRI&quot;);PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertSame( 'document.write("&lt;SCRI");PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 2':
 					$this->assertSame( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
