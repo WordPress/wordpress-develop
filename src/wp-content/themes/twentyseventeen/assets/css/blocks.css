@@ -21,7 +21,7 @@ Description: Used to style blocks.
 /* Captions */
 
 [class^="wp-block-"]:not(.wp-block-gallery) figcaption {
-	font-style: italic;
+	font-style: normal;
 	margin-bottom: 1.5em;
 	text-align: left;
 }
@@ -30,6 +30,11 @@ Description: Used to style blocks.
 	text-align: right;
 }
 
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption cite,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption em,
+[class^="wp-block-"]:not(.wp-block-gallery) figcaption i {
+	font-style: italic;
+}
 /*--------------------------------------------------------------
 2.0 Blocks - Common Blocks
 --------------------------------------------------------------*/
