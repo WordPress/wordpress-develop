@@ -33,8 +33,8 @@
  *      true  === $smilies->contains( ':)' );
  *      false === $smilies->contains( 'simile' );
  *
- *      '😕' === $smilies->read_token( 'Not sure :?.', 9, $bytes_skipped );
- *      2    === $bytes_skipped;
+ *      '😕' === $smilies->read_token( 'Not sure :?.', 9, $length_of_smily_syntax );
+ *      2    === $length_of_smily_syntax;
  *
  * ## Precomputing the Token Map.
  *
@@ -52,7 +52,7 @@
  *      // Output, to be pasted into a PHP source file:
  *      WP_Token_Map::from_precomputed_table(
  *          array(
- *              "storage_version" => "1",
+ *              "storage_version" => "6.6.0",
  *              "key_length" => 2,
  *              "groups" => "",
  *              "long_words" => array(),
@@ -105,7 +105,7 @@
  *     // Output
  *     WP_Token_Map::from_precomputed_table(
  *         array(
- *             "storage_version" => "1",
+ *             "storage_version" => "6.6.0",
  *             "key_length" => 2,
  *             "groups" => "si\x00so\x00",
  *             "long_words" => array(
@@ -672,14 +672,18 @@ class WP_Token_Map {
 	 *
 	 * Example:
 	 *
-	 *     echo $smilies->precomputed_php_source_table( '    ' );
+	 *     echo $smilies->precomputed_php_source_table();
 	 *
 	 *     // Output.
 	 *     WP_Token_Map::from_precomputed_table(
-	 *         2,
-	 *         array(),
-	 *         "8O\x00:)\x00:(\x00:?\x00",
-	 *         array( "😯", "🙂", "🙁", "😕" )
+	 *         array(
+	 *             "storage_version" => "6.6.0",
+	 *             "key_length" => 2,
+	 *             "groups" => "",
+	 *             "long_words" => array(),
+	 *             "small_words" => "8O\x00:)\x00:(\x00:?\x00",
+	 *             "small_mappings" => array( "😯", "🙂", "🙁", "😕" )
+	 *         )
 	 *     );
 	 *
 	 * @since 6.6.0
