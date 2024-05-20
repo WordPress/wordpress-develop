@@ -18,7 +18,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	/**
 	 * Parent controller.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 * @var WP_REST_Controller
 	 */
 	private $parent_controller;
@@ -34,7 +34,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	/**
 	 * Parent post type.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 * @var string
 	 */
 	protected $parent_post_type;
@@ -43,7 +43,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Constructor.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Extends class from WP_REST_Revisions_Controller.
+	 * @since 6.6.0 Extends class from WP_REST_Revisions_Controller.
 	 *
 	 * @param string $parent_post_type Post type of the parent.
 	 */
@@ -66,7 +66,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Registers the controller's routes.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Added route to fetch individual global styles revisions.
+	 * @since 6.6.0 Added route to fetch individual global styles revisions.
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -333,7 +333,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Retrieves the revision's schema, conforming to JSON Schema.
 	 *
 	 * @since 6.3.0
-	 * @since 6.5.0 Merged parent and parent controller schema data.
+	 * @since 6.6.0 Merged parent and parent controller schema data.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -361,7 +361,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 * Retrieves the query params for collections.
 	 * Removes params that are not supported by global styles revisions.
 	 *
-	 * @since 6.5.0
+	 * @since 6.6.0
 	 *
 	 * @return array Collection parameters.
 	 */
