@@ -673,7 +673,7 @@ function wp_prime_site_option_caches( array $options = array() ) {
  * @param int      $network_id ID of the network. Can be null to default to the current network ID.
  * @param string[] $options    An array of option names to be loaded.
  */
-function wp_prime_network_option_caches( $network_id = null, array $options = array() ) {
+function wp_prime_network_option_caches( $network_id, array $options ) {
 	global $wpdb;
 
 	if ( wp_installing() ) {
@@ -685,7 +685,14 @@ function wp_prime_network_option_caches( $network_id = null, array $options = ar
 		return;
 	}
 
-	if ( empty( $network_id ) ) {
+	if ( $network_id && ! is_numeric( $network_id ) ) {
+		return;
+	}
+
+	$network_id = (int) $network_id;
+
+	// Fallback to the current network if a network ID is not specified.
+	if ( ! $network_id ) {
 		$network_id = get_current_network_id();
 	}
 
