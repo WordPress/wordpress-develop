@@ -40,6 +40,12 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         directory: [ 'src', 'build' ]
+        include:
+          # Only prepare artifacts for Playground once.
+          - os: ubuntu-latest
+            directory: 'build'
+            playground-details: true
+
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}

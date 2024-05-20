@@ -21,6 +21,11 @@ on:
         required: false
         type: 'boolean'
         default: true
+      prepare-playground:
+        description: 'Whether to prepare the artifacts needed for Playground testing.'
+        required: false
+        type: 'boolean'
+        default: false
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -92,14 +97,14 @@ jobs:
 
       - name: Upload ZIP as a GitHub Actions artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        if: ${{ inputs.directory == 'build' && 'ubuntu-latest' == inputs.os }}
+        if: ${{ inputs.prepare-playground }}
         with:
           name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
           path: wordpress.zip
           if-no-files-found: error
 
       - name: Save PR number
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' && inputs.directory == 'src' && inputs.os == 'ubuntu-latest' }}
+        if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
         run: |
           mkdir -p ./pr-number
           echo ${{ github.event.number }} > ./pr-number/NR
@@ -108,7 +113,7 @@ jobs:
       # leave a comment detailing how to test the PR within WordPress Playground.
       - name: Upload PR number as artifact
         uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' && inputs.directory == 'src' && inputs.os == 'ubuntu-latest' }}
+        if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
         with:
           name: pr-number
           path: pr-number/
