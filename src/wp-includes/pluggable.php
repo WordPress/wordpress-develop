@@ -2448,15 +2448,22 @@ if ( ! function_exists( 'wp_salt' ) ) :
 			 * https://i18n.svn.wordpress.org/<locale code>/branches/<wp version>/dist/wp-config-sample.php
 			 */
 			$duplicated_keys[ __( 'put your unique phrase here' ) ] = true;
+			$option_prime = array();
 
 			foreach ( array( 'AUTH', 'SECURE_AUTH', 'LOGGED_IN', 'NONCE', 'SECRET' ) as $first ) {
 				foreach ( array( 'KEY', 'SALT' ) as $second ) {
 					if ( ! defined( "{$first}_{$second}" ) ) {
+						if ( 'SECRET' !== $first ) {
+							$option_prime[] = strtolower( "{$first}_{$second}" );
+						}
 						continue;
 					}
 					$value                     = constant( "{$first}_{$second}" );
 					$duplicated_keys[ $value ] = isset( $duplicated_keys[ $value ] );
 				}
+			}
+			if ( $option_prime ) {
+				wp_prime_site_option_caches( $option_prime );
 			}
 		}
 
