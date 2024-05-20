@@ -1122,18 +1122,15 @@ function _wp_delete_all_temp_backups() {
 	ob_end_clean();
 
 	if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
-		wp_trigger_error( __FUNCTION__, __( 'Could not access filesystem.' ), E_USER_ERROR );
-		return;
+		return new WP_Error( 'fs_unavailable', __( 'Could not access filesystem.' ) );
 	}
 
 	if ( ! $wp_filesystem->wp_content_dir() ) {
-		wp_trigger_error(
-			__FUNCTION__,
+		return new WP_Error(
+			'fs_no_content_dir',
 			/* translators: %s: Directory name. */
-			sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' ),
-			E_USER_ERROR
+			sprintf( __( 'Unable to locate WordPress content directory (%s).' ), 'wp-content' )
 		);
-		return;
 	}
 
 	$temp_backup_dir = $wp_filesystem->wp_content_dir() . 'upgrade-temp-backup/';

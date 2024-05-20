@@ -397,7 +397,6 @@ final class WP_Interactivity_API {
 				return null;
 			}
 		}
-		
 
 		// Returns the opposite if it contains a negation operator (!).
 		return $should_negate_value ? ! $current : $current;
