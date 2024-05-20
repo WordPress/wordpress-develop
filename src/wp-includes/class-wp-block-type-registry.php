@@ -139,15 +139,17 @@ final class WP_Block_Type_Registry {
 	 */
 	public function get_registered( $name ) {
 		// If this is the name of a variation block, get the canonical blocks name since thats the one in the registry.
-		$canonical_block_name = get_canonical_block_name( $name );
+		$block_is_variation = block_is_variation( $name );
+		$block_name         = $block_is_variation ? get_canonical_block_name( $name ) : $name;
 
-		if ( ! $this->is_registered( $canonical_block_name ) ) {
+		if ( ! $this->is_registered( $block_name ) ) {
 			return null;
 		}
 
-		$block_type = $this->registered_block_types[ $canonical_block_name ];
+		$block_type = $this->registered_block_types[ $block_name ];
 
-		if ( block_is_variation( $name ) ) {
+		if ( $block_is_variation ) {
+			// If this is a variation block, we set the name to the variation name.
 			$block_type->name = $name;
 		}
 
