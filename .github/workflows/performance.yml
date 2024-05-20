@@ -37,6 +37,7 @@ env:
   LOCAL_SCRIPT_DEBUG: false
   LOCAL_SAVEQUERIES: false
   LOCAL_WP_DEVELOPMENT_MODE: "''"
+  LOCAL_PHP: "8.2-fpm"
 
   # This workflow takes two sets of measurements — one for the current commit,
   # and another against a consistent version that is used as a baseline measurement.
