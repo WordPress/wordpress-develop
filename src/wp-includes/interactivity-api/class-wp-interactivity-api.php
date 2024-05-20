@@ -389,12 +389,15 @@ final class WP_Interactivity_API {
 		$path_segments = explode( '.', $path );
 		$current       = $store;
 		foreach ( $path_segments as $path_segment ) {
-			if ( isset( $current[ $path_segment ] ) ) {
+			if ( is_array( $current ) && isset( $current[ $path_segment ] ) ) {
 				$current = $current[ $path_segment ];
+			} elseif ( is_object( $current ) && isset( $current->$path_segment ) ) {
+				$current = $current->$path_segment;
 			} else {
 				return null;
 			}
 		}
+		
 
 		// Returns the opposite if it contains a negation operator (!).
 		return $should_negate_value ? ! $current : $current;
