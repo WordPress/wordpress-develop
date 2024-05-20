@@ -116,7 +116,7 @@ class WP_Block_Supports {
 			$new_attributes = call_user_func(
 				$block_support_config['apply'],
 				$block_type,
-				$block_attributes,
+				$block_attributes
 			);
 
 			if ( ! empty( $new_attributes ) ) {
