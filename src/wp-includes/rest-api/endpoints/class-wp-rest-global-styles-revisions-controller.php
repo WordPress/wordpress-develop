@@ -346,11 +346,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		$parent_schema        = $this->parent_controller->get_item_schema();
 		$schema['properties'] = array_merge( $schema['properties'], $parent_schema['properties'] );
 
-		unset( $schema['properties']['guid'] );
-		unset( $schema['properties']['slug'] );
-		unset( $schema['properties']['meta'] );
-		unset( $schema['properties']['content'] );
-		unset( $schema['properties']['title'] );
+		unset( $schema['properties']['guid'], $schema['properties']['slug'], $schema['properties']['meta'], $schema['properties']['content'], $schema['properties']['title'] );
 
 		$this->schema = $schema;
 
@@ -367,11 +363,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
-		unset( $query_params['exclude'] );
-		unset( $query_params['include'] );
-		unset( $query_params['search'] );
-		unset( $query_params['order'] );
-		unset( $query_params['orderby'] );
+		unset( $query_params['exclude'], $query_params['include'], $query_params['search'], $query_params['order'], $query_params['orderby'] );
 		return $query_params;
 	}
 }
