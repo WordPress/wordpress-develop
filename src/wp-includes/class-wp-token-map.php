@@ -485,15 +485,15 @@ class WP_Token_Map {
 	 * return the corresponding transformation from the map, else `false`.
 	 *
 	 * This function returns the translated string, but accepts an optional
-	 * parameter `$skip_bytes` which communicates how many bytes long the
-	 * lookup key was, if it found one. This can be used to advance a cursor
-	 * in calling code if a lookup key was found.
+	 * parameter `$matched_token_byte_length`, which communicates how many
+	 * bytes long the lookup key was, if it found one. This can be used to
+	 * advance a cursor in calling code if a lookup key was found.
 	 *
 	 * Example:
 	 *
-	 *     false === $smilies->read_token( 'Not sure :?.', 0, $bytes_skipped );
-	 *     '😕'  === $smilies->read_token( 'Not sure :?.', 9, $bytes_skipped );
-	 *     2     === $bytes_skipped;
+	 *     false === $smilies->read_token( 'Not sure :?.', 0, $token_byte_length );
+	 *     '😕'  === $smilies->read_token( 'Not sure :?.', 9, $token_byte_length );
+	 *     2     === $token_byte_length;
 	 *
 	 * Example:
 	 *
@@ -503,26 +503,26 @@ class WP_Token_Map {
 	 *             break;
 	 *         }
 	 *
-	 *         $smily = $smilies->read_token( $input, $next_at, $bytes_skipped );
+	 *         $smily = $smilies->read_token( $input, $next_at, $token_byte_length );
 	 *         if ( false === $next_at ) {
 	 *             ++$at;
 	 *             continue;
 	 *         }
 	 *
 	 *         $prefix  = substr( $input, $at, $next_at - $at );
-	 *         $at     += $bytes_skipped;
+	 *         $at     += $token_byte_length;
 	 *         $output .= "{$prefix}{$smily}";
 	 *     }
 	 *
 	 * @since 6.6.0
 	 *
-	 * @param string  $text              String in which to search for a lookup key.
-	 * @param ?int    $offset            How many bytes into the string where the lookup key ought to start.
-	 * @param ?int    &$skip_bytes       Holds byte-length of found lookup key if matched, otherwise not set.
-	 * @param ?string $case_sensitivity 'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param string  $text                       String in which to search for a lookup key.
+	 * @param ?int    $offset                     How many bytes into the string where the lookup key ought to start.
+	 * @param ?int    &$matched_token_byte_length Holds byte-length of found token matched, otherwise not set.
+	 * @param ?string $case_sensitivity           'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return string|false Mapped value of lookup key if found, otherwise `false`.
 	 */
-	public function read_token( $text, $offset = 0, &$skip_bytes = null, $case_sensitivity = 'case-sensitive' ) {
+	public function read_token( $text, $offset = 0, &$matched_token_byte_length = null, $case_sensitivity = 'case-sensitive' ) {
 		$ignore_case = 'ascii-case-insensitive' === $case_sensitivity;
 		$text_length = strlen( $text );
 
@@ -534,7 +534,7 @@ class WP_Token_Map {
 			if ( false === $group_at ) {
 				// Perhaps a short word then.
 				return strlen( $this->small_words ) > 0
-					? $this->read_small_token( $text, $offset, $skip_bytes, $case_sensitivity )
+					? $this->read_small_token( $text, $offset, $matched_token_byte_length, $case_sensitivity )
 					: false;
 			}
 
@@ -549,7 +549,7 @@ class WP_Token_Map {
 				$mapping_at     = $at;
 
 				if ( 0 === substr_compare( $text, $token, $offset + $this->key_length, $token_length, $ignore_case ) ) {
-					$skip_bytes = $this->key_length + $token_length;
+					$matched_token_byte_length = $this->key_length + $token_length;
 					return substr( $group, $mapping_at, $mapping_length );
 				}
 
@@ -559,7 +559,7 @@ class WP_Token_Map {
 
 		// Perhaps a short word then.
 		return strlen( $this->small_words ) > 0
-			? $this->read_small_token( $text, $offset, $skip_bytes, $case_sensitivity )
+			? $this->read_small_token( $text, $offset, $matched_token_byte_length, $case_sensitivity )
 			: false;
 	}
 
@@ -568,13 +568,13 @@ class WP_Token_Map {
 	 *
 	 * @since 6.6.0.
 	 *
-	 * @param string  $text             String in which to search for a lookup key.
-	 * @param ?int    $offset           How many bytes into the string where the lookup key ought to start.
-	 * @param ?int    &$skip_bytes      Holds byte-length of found lookup key if matched, otherwise not set.
-	 * @param ?string $case_sensitivity 'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param string  $text                       String in which to search for a lookup key.
+	 * @param ?int    $offset                     How many bytes into the string where the lookup key ought to start.
+	 * @param ?int    &$matched_token_byte_length Holds byte-length of found lookup key if matched, otherwise not set.
+	 * @param ?string $case_sensitivity           'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return string|false Mapped value of lookup key if found, otherwise `false`.
 	 */
-	private function read_small_token( $text, $offset, &$skip_bytes, $case_sensitivity = 'case-sensitive' ) {
+	private function read_small_token( $text, $offset, &$matched_token_byte_length, $case_sensitivity = 'case-sensitive' ) {
 		$ignore_case  = 'ascii-case-insensitive' === $case_sensitivity;
 		$small_length = strlen( $this->small_words );
 		$search_text  = substr( $text, $offset, $this->key_length );
@@ -595,7 +595,7 @@ class WP_Token_Map {
 
 			for ( $adjust = 1; $adjust < $this->key_length; $adjust++ ) {
 				if ( "\x00" === $this->small_words[ $at + $adjust ] ) {
-					$skip_bytes = $adjust;
+					$matched_token_byte_length = $adjust;
 					return $this->small_mappings[ $at / ( $this->key_length + 1 ) ];
 				}
 
@@ -608,7 +608,7 @@ class WP_Token_Map {
 				}
 			}
 
-			$skip_bytes = $adjust;
+			$matched_token_byte_length = $adjust;
 			return $this->small_mappings[ $at / ( $this->key_length + 1 ) ];
 		}
 
