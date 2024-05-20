@@ -790,7 +790,7 @@ class WP_Token_Map {
 	 *
 	 * @param string $a First string to compare.
 	 * @param string $b Second string to compare.
-	 * @return int -1 if `$a` is less than `$b`; 1 if `$a` is greater than `$b`, and 0 if they are equal.
+	 * @return int -1 or lower if `$a` is less than `$b`; 1 or greater if `$a` is greater than `$b`, and 0 if they are equal.
 	 */
 	private static function longest_first_then_alphabetical( $a, $b ) {
 		if ( $a === $b ) {
