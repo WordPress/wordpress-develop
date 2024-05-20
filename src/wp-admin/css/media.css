@@ -190,8 +190,9 @@
 }
 
 .media-item .progress {
+	display: inline-block;
 	height: 22px;
-	margin: 7px 6px;
+	margin: 0px 6px 7px;
 	width: 200px;
 	line-height: 2em;
 	padding: 0;
