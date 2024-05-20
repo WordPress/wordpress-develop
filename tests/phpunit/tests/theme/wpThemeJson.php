@@ -1417,8 +1417,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
-	/*
-	 *  Tests that settings passed to WP_Theme_JSON override merged theme data.
+	/**
+	 * Tests that settings passed to WP_Theme_JSON override merged theme data.
 	 *
 	 * @ticket 61118
 	 */
@@ -3957,7 +3957,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
-	/*
+	/**
 	 * @ticket 58462
 	 */
 	public function test_sanitize_for_unregistered_style_variations() {
