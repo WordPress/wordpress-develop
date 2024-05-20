@@ -1219,7 +1219,7 @@ function get_post_mime_type( $post = null ) {
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
-	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
+	if ( $post instanceof WP_Post && isset( $post->filter ) && 'sample' === $post->filter ) {
 		// Skip normalization
 	} else {
 		$post = get_post( $post );
