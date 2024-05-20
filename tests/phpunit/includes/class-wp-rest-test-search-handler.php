@@ -21,14 +21,14 @@ class WP_REST_Test_Search_Handler extends WP_REST_Search_Handler {
 			'test_first_type',
 			array(
 				'labels' => array(
-					'name' => 'Test first types',
+					'name'          => 'Test first types',
 					'singular_name' => 'Test first type',
-				)
+				),
 			)
 		);
 
 		$this->items = array();
-		for ( $i = 1; $i <= $amount; $i ++ ) {
+		for ( $i = 1; $i <= $amount; $i++ ) {
 			$subtype        = $i > $amount / 2 ? 'test_second_type' : 'test_first_type';
 			$subtype_object = $i > $amount / 2 ? false : $test_first_type_object;
 
