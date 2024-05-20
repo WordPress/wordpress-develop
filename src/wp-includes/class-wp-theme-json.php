@@ -1050,11 +1050,27 @@ class WP_Theme_JSON {
 	 *
 	 * @param array $tree   Input to process.
 	 * @param array $schema Schema to adhere to.
+	 * @param bool  $can_cache Whether the result can be cached.
 	 * @return array The modified $tree.
 	 */
-	protected static function remove_keys_not_in_schema( $tree, $schema ) {
+	protected static function remove_keys_not_in_schema( $tree, $schema, $can_cache = true ) {
 		if ( ! is_array( $tree ) ) {
 			return $tree;
+		}
+
+		if ( $can_cache ) {
+			$cache_key = md5(
+				wp_json_encode(
+					array(
+						'tree'   => $tree,
+						'schema' => $schema,
+					)
+				)
+			);
+			$cache     = wp_cache_get( $cache_key, 'remove_keys_not_in_schema' );
+			if ( $cache ) {
+				return $cache;
+			}
 		}
 
 		foreach ( $tree as $key => $value ) {
@@ -1071,7 +1087,7 @@ class WP_Theme_JSON {
 					// If indexed, process each item in the array.
 					foreach ( $value as $item_key => $item_value ) {
 						if ( isset( $schema[ $key ][0] ) && is_array( $schema[ $key ][0] ) ) {
-							$tree[ $key ][ $item_key ] = self::remove_keys_not_in_schema( $item_value, $schema[ $key ][0] );
+							$tree[ $key ][ $item_key ] = self::remove_keys_not_in_schema( $item_value, $schema[ $key ][0], false );
 						} else {
 							// If the schema does not define a further structure, keep the value as is.
 							$tree[ $key ][ $item_key ] = $item_value;
@@ -1079,13 +1095,16 @@ class WP_Theme_JSON {
 					}
 				} else {
 					// If associative, process as a single object.
-					$tree[ $key ] = self::remove_keys_not_in_schema( $value, $schema[ $key ] );
+					$tree[ $key ] = self::remove_keys_not_in_schema( $value, $schema[ $key ], false );
 
 					if ( empty( $tree[ $key ] ) ) {
 						unset( $tree[ $key ] );
 					}
 				}
 			}
+		}
+		if ( $can_cache ) {
+			wp_cache_set( $cache_key, $tree, 'remove_keys_not_in_schema', HOUR_IN_SECONDS );
 		}
 		return $tree;
 	}
