@@ -49,6 +49,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      playground-details: ${{ matrix.playground-details }}
 
   # Tests the WordPress Core build process on MacOS.
   #
