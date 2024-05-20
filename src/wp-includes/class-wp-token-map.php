@@ -432,11 +432,11 @@ class WP_Token_Map {
 	 * @since 6.6.0
 	 *
 	 * @param string  $word             Determine if this word is a lookup key in the map.
-	 * @param ?string $case_sensitivity 'case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param ?string $case_sensitivity 'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return bool Whether there's an entry for the given word in the map.
 	 */
 	public function contains( $word, $case_sensitivity = 'case-sensitive' ) {
-		$ignore_case = 'case-insensitive' === $case_sensitivity;
+		$ignore_case = 'ascii-case-insensitive' === $case_sensitivity;
 
 		if ( $this->key_length >= strlen( $word ) ) {
 			if ( 0 === strlen( $this->small_words ) ) {
@@ -519,11 +519,11 @@ class WP_Token_Map {
 	 * @param string  $text              String in which to search for a lookup key.
 	 * @param ?int    $offset            How many bytes into the string where the lookup key ought to start.
 	 * @param ?int    &$skip_bytes       Holds byte-length of found lookup key if matched, otherwise not set.
-	 * @param ?string $case_sensitivity 'case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param ?string $case_sensitivity 'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return string|false Mapped value of lookup key if found, otherwise `false`.
 	 */
 	public function read_token( $text, $offset = 0, &$skip_bytes = null, $case_sensitivity = 'case-sensitive' ) {
-		$ignore_case = 'case-insensitive' === $case_sensitivity;
+		$ignore_case = 'ascii-case-insensitive' === $case_sensitivity;
 		$text_length = strlen( $text );
 
 		// Search for a long word first, if the text is long enough, and if that fails, a short one.
@@ -571,11 +571,11 @@ class WP_Token_Map {
 	 * @param string  $text             String in which to search for a lookup key.
 	 * @param ?int    $offset           How many bytes into the string where the lookup key ought to start.
 	 * @param ?int    &$skip_bytes      Holds byte-length of found lookup key if matched, otherwise not set.
-	 * @param ?string $case_sensitivity 'case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
+	 * @param ?string $case_sensitivity 'ascii-case-insensitive' to ignore ASCII case or default of 'case-sensitive'.
 	 * @return string|false Mapped value of lookup key if found, otherwise `false`.
 	 */
 	private function read_small_token( $text, $offset, &$skip_bytes, $case_sensitivity = 'case-sensitive' ) {
-		$ignore_case  = 'case-insensitive' === $case_sensitivity;
+		$ignore_case  = 'ascii-case-insensitive' === $case_sensitivity;
 		$small_length = strlen( $this->small_words );
 		$search_text  = substr( $text, $offset, $this->key_length );
 		if ( $ignore_case ) {
