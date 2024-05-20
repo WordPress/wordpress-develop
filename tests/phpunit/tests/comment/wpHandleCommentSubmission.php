@@ -854,7 +854,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		$second_comment  = wp_handle_comment_submission( $data );
 
 		$this->assertNotWPError( $second_comment );
-		$this->assertEquals( self::$post->ID, $second_comment->comment_post_ID );
+		$this->assertSame( (string) self::$post->ID, $second_comment->comment_post_ID );
 	}
 
 	/**

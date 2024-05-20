@@ -434,7 +434,7 @@ https://w.org</a>',
 	 * @ticket 38965
 	 */
 	public function test_wp_prepare_attachment_for_js_without_image_sizes() {
-		// Create the attachement post.
+		// Create the attachment post.
 		$id = wp_insert_attachment(
 			array(
 				'post_title'     => 'Attachment Title',
@@ -3257,14 +3257,15 @@ EOF;
 
 	/**
 	 * @ticket 52768
+	 * @ticket 58773
 	 */
-	public function test_wp_iframe_tag_add_loading_attr_skip_wp_embed() {
+	public function test_wp_iframe_tag_add_loading_attr_include_wp_embed() {
 		$iframe   = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		$fallback = '<blockquote>Fallback content.</blockquote>';
 		$iframe   = wp_filter_oembed_result( $fallback . $iframe, (object) array( 'type' => 'rich' ), 'https://www.example.com' );
 		$iframe   = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertStringNotContainsString( ' loading=', $iframe );
+		$this->assertStringContainsString( ' loading="lazy"', $iframe );
 	}
 
 	/**

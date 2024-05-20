@@ -187,7 +187,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 		 * Check the meta values to verify they are NOT revisioned - they are not revisioned by default.
 		 */
 
-		// Custom post meta should NOT be restored, orignal value should not be restored, value still 'update1'.
+		// Custom post meta should NOT be restored, original value should not be restored, value still 'update1'.
 		$this->assertSame( 'update1', get_post_meta( $post_id, 'meta_revision_test', true ) );
 
 		update_post_meta( $post_id, 'meta_revision_test', 'update2' );
