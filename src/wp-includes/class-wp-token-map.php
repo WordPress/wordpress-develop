@@ -295,7 +295,11 @@ class WP_Token_Map {
 			) {
 				_doing_it_wrong(
 					__METHOD__,
-					__( 'Token Map tokens and substitutions must all be shorter than 256 bytes.' ),
+					sprintf(
+						/* translators: 1: maximum byte length (a count) */
+						__( 'Token Map tokens and substitutions must all be shorter than %1$d bytes.' ),
+						self::MAX_LENGTH
+					),
 					'6.6.0'
 				);
 				return null;

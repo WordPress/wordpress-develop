@@ -5,6 +5,7 @@
  * @package WordPress
  *
  * @since 6.6.0
+ * @group html-api-token-map
  *
  * @coversDefaultClass WP_Token_Map
  */
@@ -45,8 +46,6 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 	 * WHATWG spec and stored in the tests directory so it doesn't need to
 	 * be downloaded on every test run. By specification, it cannot change
 	 * and will not be updated.
-	 *
-	 * @ticket 60698
 	 *
 	 * @param string $dataset_name Which dataset to return.
 	 * @return array The dataset as an associative array.
@@ -114,7 +113,7 @@ class Tests_WpTokenMap extends WP_UnitTestCase {
 			$this->assertSame(
 				$replacement,
 				$response,
-				'Returned the wrong replacement value'
+				"Returned the wrong replacement value for '{$token}'."
 			);
 
 			$token_length = strlen( $token );
