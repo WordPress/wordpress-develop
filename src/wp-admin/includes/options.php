@@ -16,11 +16,30 @@ function options_discussion_add_js() {
 	?>
 	<script>
 	(function($){
-		var parent = $( '#show_avatars' ),
-			children = $( '.avatar-settings' );
-		parent.on( 'change', function(){
-			children.toggleClass( 'hide-if-js', ! this.checked );
-		});
+		function toggleVisibility(parentCheckboxId, childInputElement){
+			var parentCheckbox = $(parentCheckboxId ),
+				childrenInputs = $(childInputElement );
+				ariaLiveRegion = $('#aria-live-region');
+
+			// Set visibility based on checkbox default state.
+			childrenInputs.toggleClass( 'hide-if-js', ! parentCheckbox.prop( 'checked' ) );
+			parentCheckbox.attr( 'aria-expanded', parentCheckbox.prop( 'checked' ) );
+			// Hide the children if the parent is unchecked.
+			parentCheckbox.on( 'change', function(){
+				childrenInputs.toggleClass( 'hide-if-js', ! this.checked );
+				$(this).attr( 'aria-expanded', this.checked);
+
+				// Announce the change to screen readers.
+				var message = this.checked ? 'Dependent fields are now available below.' : 'Dependent fields are now hidden.';
+				ariaLiveRegion.text( message );
+			});
+		}
+
+		// Call function for each expandable section of discussion settings.
+		toggleVisibility('#close_comments_for_old_posts', '.close-comments-setting' );
+		toggleVisibility('#thread_comments', '.thread-comments-setting' );
+		toggleVisibility('#page_comments', '.pagination-setting' );
+		toggleVisibility( '#show_avatars', '.avatar-settings' );
 	})(jQuery);
 	</script>
 	<?php
