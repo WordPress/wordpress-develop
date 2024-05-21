@@ -39,6 +39,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
 
+    <!-- ARIA live region for screen readers -->
+    <div id="aria-live-region" aria-live="polite" class="screen-reader-text"></div>
+
+
 <form method="post" action="options.php">
 <?php settings_fields( 'discussion' ); ?>
 
@@ -93,7 +97,7 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 </label>
 <br />
 
-<label for="close_comments_days_old">
+<label for="close_comments_days_old" class="close-comments-setting" >
 <?php _e('Number of days to keep old comments: ')?>
 <input name="close_comments_days_old" type="number" step="1" min="0" id="close_comments_days_old" value="<?php echo esc_attr( get_option( 'close_comments_days_old' ) ); ?>" class="small-text" />
 </label>
@@ -111,7 +115,7 @@ if ( ! get_option( 'users_can_register' ) && is_multisite() ) {
 </label>
 <br />
 
-<label for="thread_comments_depth">
+<label for="thread_comments_depth" class="thread-comments-setting">
 <?php
 /**
  * Filters the maximum depth of threaded/nested comments.
@@ -155,13 +159,13 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 </label>
 <br />
 
-<label for="comments_per_page">
+<label for="comments_per_page" class="pagination-setting">
 <?php _e('Top level comments per page: ')?>
 <input name="comments_per_page" type="number" step="1" min="0" id="comments_per_page" value="<?php echo esc_attr( get_option( 'comments_per_page' ) ); ?>" class="small-text" />
 </label>
 <br />
 
-<label for="default_comments_page"><?php _e('Comments page to display by default: '); ?>
+<label for="default_comments_page" class="pagination-setting"><?php _e('Comments page to display by default: '); ?>
 <select name="default_comments_page" id="default_comments_page">
 	<option value="newest" <?php selected( 'newest', get_option( 'default_comments_page' ) ); ?>><?php _e('last page'); ?></option>
 	<option value="oldest" <?php selected( 'oldest', get_option( 'default_comments_page' ) ); ?>><?php _e('first page'); ?></option>
@@ -169,11 +173,11 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 </label>
 <br />
 
-<label for="comment_order">
+<label for="comment_order" class="pagination-setting">
 <?php _e('Comments to display at the top of each page: ')?>
 <select name="comment_order" id="comment_order">
 	<option value="asc" <?php selected( 'asc', get_option( 'comment_order' ) ); ?>><?php _e('older'); ?></option>
-	<option value="desc" <?php selected( 'desc', get_option( 'comment_order' ) ); ?>><?php _e('newer'); ?></option>		
+	<option value="desc" <?php selected( 'desc', get_option( 'comment_order' ) ); ?>><?php _e('newer'); ?></option>
 </select>
 </label>
 <br />
@@ -192,6 +196,7 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 <input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
 <?php _e( 'Anyone posts a comment' ); ?> </label>
 <br />
+
 <label for="moderation_notify">
 <input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
 <?php _e( 'A comment is held for moderation' ); ?> </label>
@@ -209,6 +214,7 @@ printf( __( 'Number of levels for threaded (nested) comments: %s' ), $thread_com
 <input name="comment_moderation" type="checkbox" id="comment_moderation" value="1" <?php checked( '1', get_option( 'comment_moderation' ) ); ?> />
 <?php _e( 'Comment must be manually approved' ); ?> </label>
 <br />
+
 <label for="comment_previously_approved"><input type="checkbox" name="comment_previously_approved" id="comment_previously_approved" value="1" <?php checked( '1', get_option( 'comment_previously_approved' ) ); ?> /> <?php _e( 'Comment author must have a previously approved comment' ); ?></label>
 </fieldset></td>
 </tr>
