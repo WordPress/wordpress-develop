@@ -655,7 +655,7 @@ function wp_load_alloptions( $force_cache = false ) {
  *
  * @param string[] $options An array of option names to be loaded.
  */
-function wp_prime_site_option_caches( array $options = array() ) {
+function wp_prime_site_option_caches( array $options ) {
 	wp_prime_network_option_caches( null, $options );
 }
 
