@@ -2390,11 +2390,11 @@ function get_canonical_block_name( $block_name ) {
 	return $block_name;
 }
 
-function infer_block_variation( $block_type, $attributes ) {
+function infer_block_variation( $block_type, $block_attributes ) {
 	$variations = $block_type->get_variations();
 	foreach ( $variations as $variation ) {
 		foreach ( $variation['attributes'] as $attribute => $value ) {
-			if ( ! isset( $attributes[ $attribute ] ) || $attributes[ $attribute ] !== $value ) {
+			if ( ! isset( $block_attributes[ $attribute ] ) || $block_attributes[ $attribute ] !== $value ) {
 				continue 2;
 			}
 		}
