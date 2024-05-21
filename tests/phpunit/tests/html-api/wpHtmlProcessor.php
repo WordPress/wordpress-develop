@@ -334,4 +334,40 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			'XMP'       => array( 'XMP' ),
 		);
 	}
+
+	/**
+	 * Ensures that the HTML Processor properly reports the depth of a given element.
+	 *
+	 * @ticket 61255
+	 *
+	 * @dataProvider data_html_with_target_element_and_depth_in_body
+	 *
+	 * @param string $html_with_target_element HTML containing element with `target` class.
+	 * @param int    $depth_at_element         Depth into document at target node.
+	 */
+	public function test_reports_proper_element_depth_in_body( $html_with_target_element, $depth_at_element ) {
+		$processor = WP_HTML_Processor::create_fragment( $html_with_target_element );
+
+		$this->assertTrue(
+			$processor->next_tag( array( 'class_name' => 'target' ) ),
+			'Failed to find target element: check test data provider.'
+		);
+
+		$this->assertSame(
+			$depth_at_element,
+			$processor->get_current_depth(),
+			'HTML Processor reported the wrong depth at the matched element.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_with_target_element_and_depth_in_body() {
+		return array(
+			'Basic layout and formatting stack' => array( '<div><span><p><b><em class=target>', 7 ),
+		);
+	}
 }
