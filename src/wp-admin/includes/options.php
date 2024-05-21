@@ -16,30 +16,30 @@ function options_discussion_add_js() {
 	?>
 	<script>
 	(function($){
-		function toggleVisibility(parentCheckboxId, childInputElement){
+		function toggleEditableState(parentCheckboxId, childInputElement){
 			var parentCheckbox = $(parentCheckboxId ),
 				childrenInputs = $(childInputElement );
 				ariaLiveRegion = $('#aria-live-region');
 
-			// Set visibility based on checkbox default state.
-			childrenInputs.toggleClass( 'hide-if-js', ! parentCheckbox.prop( 'checked' ) );
+			// Set editable/disabled state based on checkbox default state.
+			childrenInputs.toggleClass( 'disabled', ! parentCheckbox.prop( 'checked' ) );
 			parentCheckbox.attr( 'aria-expanded', parentCheckbox.prop( 'checked' ) );
-			// Hide the children if the parent is unchecked.
+			// Disable the children if the parent is unchecked.
 			parentCheckbox.on( 'change', function(){
-				childrenInputs.toggleClass( 'hide-if-js', ! this.checked );
+				childrenInputs.toggleClass( 'disabled', ! this.checked );
 				$(this).attr( 'aria-expanded', this.checked);
 
 				// Announce the change to screen readers.
-				var message = this.checked ? 'Checked Checkbox, Dependent fields are now available below.' : 'Unchecked Checkbox, Dependent fields are now hidden.';
+				var message = this.checked ? 'Checked Checkbox, Dependent fields are now editable.' : 'Unchecked Checkbox, Dependent fields are now disabled.';
 				ariaLiveRegion.text( message );
 			});
 		}
 
 		// Call function for each expandable section of discussion settings.
-		toggleVisibility('#close_comments_for_old_posts', '.close-comments-setting' );
-		toggleVisibility('#thread_comments', '.thread-comments-setting' );
-		toggleVisibility('#page_comments', '.pagination-setting' );
-		toggleVisibility( '#show_avatars', '.avatar-settings' );
+		toggleEditableState('#close_comments_for_old_posts', '.close-comments-setting' );
+		toggleEditableState('#thread_comments', '.thread-comments-setting' );
+		toggleEditableState('#page_comments', '.pagination-setting' );
+		toggleEditableState( '#show_avatars', '.avatar-settings' );
 	})(jQuery);
 	</script>
 	<?php
