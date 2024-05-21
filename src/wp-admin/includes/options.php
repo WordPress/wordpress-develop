@@ -30,7 +30,7 @@ function options_discussion_add_js() {
 				$(this).attr( 'aria-expanded', this.checked);
 
 				// Announce the change to screen readers.
-				var message = this.checked ? 'Dependent fields are now available below.' : 'Dependent fields are now hidden.';
+				var message = this.checked ? 'Checked Checkbox, Dependent fields are now available below.' : 'Unchecked Checkbox, Dependent fields are now hidden.';
 				ariaLiveRegion.text( message );
 			});
 		}
