@@ -41,6 +41,26 @@ const getBaseConfig = ( env ) => {
 		watch: env.watch,
 		plugins: [
 			new DefinePlugin( {
+				/*
+				 * These variables are part of https://github.com/WordPress/gutenberg/pull/61486
+				 * They're expected to be released in an upcoming version of Gutenberg.
+				 *
+				 * Defining this before the packages are released is harmless.
+				 *
+				 * @todo Remove the non-globalThis defines here when packages have been upgraded to the globalThis versions.
+				 */
+
+				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
+				'globalThis.IS_GUTENBERG_PLUGIN': JSON.stringify(
+					Boolean( process.env.npm_package_config_IS_GUTENBERG_PLUGIN )
+				),
+				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
+				'globalThis.IS_WORDPRESS_CORE': JSON.stringify(
+					Boolean( process.env.npm_package_config_IS_WORDPRESS_CORE )
+				),
+				// Inject the `SCRIPT_DEBUG` global, used for dev versions of JavaScript.
+				'globalThis.SCRIPT_DEBUG': JSON.stringify( mode === 'development' ),
+
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
 				'process.env.IS_GUTENBERG_PLUGIN': false,
 				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
