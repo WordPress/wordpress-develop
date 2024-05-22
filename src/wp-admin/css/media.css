@@ -1419,18 +1419,21 @@ audio, video {
 		height: auto;
 		width: 100%;
 	}
-
-	.media-item .edit-attachment.copy-to-clipboard-container {
-		flex-direction: column;
-	}
-	.copy-to-clipboard-container .success {
-		position: relative;
-		top: 10px;
-	}
 }
 
 @media only screen and (max-width: 640px), screen and (max-height: 400px) {
 	.upload-php .mode-grid .media-sidebar{
 		max-width: 100%;
+	}
+}
+
+@media only screen and (max-width: 375px) {
+	.media-item .edit-attachment.copy-to-clipboard-container {
+		flex-direction: column;
+	}
+
+	.copy-to-clipboard-container .success {
+		position: relative;
+		top: 15px;
 	}
 }
