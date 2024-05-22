@@ -1341,7 +1341,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  * @return string|null Transformed `dataset` name, if valid, else `null`.
  */
 function wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
-	if ( 1 !== preg_match( '~^data-(?P<custom_name>[^=/> \t\f\r\n]+)$~', $raw_attribute_name, $matches ) ) {
+	if ( 1 !== preg_match( '~^data-(?P<custom_name>[^=/> \t\f\r\n]*)$~', $raw_attribute_name, $matches ) ) {
 		return null;
 	}
 
