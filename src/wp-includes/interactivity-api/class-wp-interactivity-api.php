@@ -411,13 +411,14 @@ final class WP_Interactivity_API {
 	 * store namespace, state and context.
 	 *
 	 * @since 6.5.0
+	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
 	 *
 	 * @param string|true $directive_value   The directive attribute value string or `true` when it's a boolean attribute.
 	 * @param string      $default_namespace The default namespace to use if none is explicitly defined in the directive
 	 *                                       value.
 	 * @param array|false $context           The current context for evaluating the directive or false if there is no
 	 *                                       context.
-	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist.
+	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
 	 */
 	private function evaluate( $directive_value, string $default_namespace, $context = false ) {
 		list( $ns, $path ) = $this->extract_directive_value( $directive_value, $default_namespace );
