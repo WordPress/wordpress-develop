@@ -1,5 +1,5 @@
 ##
-# A callable workflow that tests the WordPress Core build process.
+# A reusable workflow that tests the WordPress Core build process.
 ##
 name: Test the WordPress Build Process
 
@@ -16,6 +16,11 @@ on:
         required: false
         type: 'string'
         default: 'src'
+      test-emoji:
+        description: 'Whether to run the grunt precommit:emoji script.'
+        required: false
+        type: 'boolean'
+        default: true
 
 env:
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -49,7 +54,6 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version-file: '.nvmrc'
-          check-latest: true
           cache: npm
 
       - name: Log debug information
@@ -63,6 +67,7 @@ jobs:
         run: npm ci
 
       - name: Run Emoji precommit task
+        if: ${{ inputs.test-emoji }}
         run: npm run grunt precommit:emoji
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
