@@ -101,18 +101,22 @@ final class WP_Interactivity_API {
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
-	 * If state for that store namespace already exists, it merges the new
-	 * provided state with the existing one.
+	 * When no namespace is specified, it returns the state defined for the
+	 * current value in the internal namespace stack.
 	 *
 	 * @since 6.5.0
+	 * @since 6.6.0 The `$store_namespace` param is optional.
 	 *
-	 * @param string $store_namespace The unique store namespace identifier.
+	 * @param string $store_namespace Optional. The unique store namespace identifier.
 	 * @param array  $state           Optional. The array that will be merged with the existing state for the specified
 	 *                                store namespace.
 	 * @return array The current state for the specified store namespace. This will be the updated state if a $state
 	 *               argument was provided.
 	 */
-	public function state( string $store_namespace, array $state = array() ): array {
+	public function state( string $store_namespace = '', array $state = array() ): array {
+		if ( ! $store_namespace ) {
+			$store_namespace = end( $this->namespace_stack );
+		}
 		if ( ! isset( $this->state_data[ $store_namespace ] ) ) {
 			$this->state_data[ $store_namespace ] = array();
 		}

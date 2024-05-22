@@ -426,6 +426,30 @@ JSON;
 	}
 
 	/**
+	 * Test that calling state without a namespace arg returns the state data
+	 * for the current namespace in the internal namespace stack.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::state
+	 */
+	public function test_state_without_namespace() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$this->interactivity->state( 'myPlugin', array( 'a' => 1 ) );
+		$this->interactivity->state( 'otherPlugin', array( 'b' => 2 ) );
+
+		$this->assertEquals(
+			array( 'a' => 1 ),
+			$this->interactivity->state()
+		);
+	}
+
+	/**
 	 * Tests extracting directive values from different string formats.
 	 *
 	 * @ticket 60356
