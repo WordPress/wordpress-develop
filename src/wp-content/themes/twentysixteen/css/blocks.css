@@ -171,15 +171,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .wp-block-pullquote blockquote {
 	color: #686868;
-	border-left: 4px solid #1a1a1a;
+	border: 0;
 	margin: 0;
-	padding: 0 0 0 24px;
-}
-
-.rtl .wp-block-pullquote blockquote {
-	border-left: none;
-	border-right: 4px solid #1a1a1a;
-	padding: 0 24px 0 0;
+	padding: 0;
 }
 
 .wp-block-pullquote.has-text-color blockquote,
