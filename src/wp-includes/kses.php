@@ -1256,23 +1256,26 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	$allowed_attr = $allowed_html[ $element_low ];
 
 	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
+		$attribute_is_data_attribute = null !== wp_kses_transform_custom_data_attribute_name( $name );
+
 		/*
-		 * Allow `data-*` attributes.
+		 * Allow Custom Data Attributes (`data-*`).
 		 *
 		 * When specifying `$allowed_html`, the attribute name should be set as
 		 * `data-*` (not to be mixed with the HTML 4.0 `data` attribute, see
 		 * https://www.w3.org/TR/html40/struct/objects.html#adef-data).
 		 *
+		 * Custom data attributes appear on an HTML element in the `dataset`
+		 * property and are available from JavaScript with a transformed name.
+		 *
 		 * @see https://html.spec.whatwg.org/#custom-data-attribute
 		 */
-		if ( str_starts_with( $name_low, 'data-' ) && ! empty( $allowed_attr['data-*'] )
-			&& preg_match( '~^data-[^=/> \\t\\f\\r\\n]+$~', $name_low, $match )
-		) {
+		if ( $attribute_is_data_attribute && ! empty( $allowed_attr['data-*'] ) ) {
 			/*
 			 * Add the whole attribute name to the allowed attributes and set any restrictions
 			 * for the `data-*` attribute values for the current element.
 			 */
-			$allowed_attr[ $match[0] ] = $allowed_attr['data-*'];
+			$allowed_attr[ $name_low ] = $allowed_attr['data-*'];
 		} else {
 			$name  = '';
 			$value = '';
@@ -1308,6 +1311,54 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	}
 
 	return true;
+}
+
+/**
+ * If an attribute name represents a custom data attribute, return the
+ * transformed name as it would appear in JavaScript, else return null.
+ *
+ * This function can be used to determine if an attribute name represents
+ * a custom data attribute, and it can be used as well to return what the
+ * name of the attribute would be in an element's `dataset` property when
+ * accessed from JavaScript.
+ *
+ * Example:
+ *
+ *     'postId' === wp_kses_transform_custom_data_attribute_name( 'data-post-id' );
+ *     null     === wp_kses_transform_custom_data_attribute_name( 'post-id' );
+ *
+ * @since 6.6.0
+ *
+ * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
+ *
+ * @param string $raw_attribute_name Raw attribute name as found in the source HTML.
+ * @return string|null Transformed `dataset` name, if valid, else `null`.
+ */
+function wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
+	if ( 1 !== preg_match( '~^data-(?P<custom_name>[^=/> \t\f\r\n]+)$~', $raw_attribute_name, $matches ) ) {
+		return null;
+	}
+
+	$custom_name = $matches['custom_name'];
+
+	/*
+	 * > For each name in list, for each U+002D HYPHEN-MINUS character (-)
+	 * > in the name that is followed by an ASCII lower alpha, remove the
+	 * > U+002D HYPHEN-MINUS character (-) and replace the character that
+	 * > followed it by the same character converted to ASCII uppercase.
+	 *
+	 * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
+	 */
+	$custom_name = preg_replace_callback(
+		'/-[a-z]/',
+		static function ( $dash_matches ) {
+			// Transforms "-a" -> "A".
+			return strtoupper( $dash_matches[0][1] );
+		},
+		$custom_name
+	);
+
+	return $custom_name;
 }
 
 /**

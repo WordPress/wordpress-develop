@@ -1369,6 +1369,66 @@ EOF;
 	}
 
 	/**
+	 * Ensures proper recognition of a data attribute and how to transform its
+	 * name into what JavaScript code would read from an element's `dataset`.
+	 *
+	 * @ticket 61052
+	 *
+	 * @dataProvider data_possible_custom_data_attributes_and_transformed_names
+	 *
+	 * @param string      $attribute_name      Raw attribute name.
+	 * @param string|null $dataset_name_if_any Transformed attribute name, or `null`
+	 *                                         if not a custom data attribute.
+	 */
+	public function test_wp_kses_transform_custom_data_attribute_name_recognizes_data_attributes( $attribute_name, $dataset_name_if_any ) {
+		$transformed_name = wp_kses_transform_custom_data_attribute_name( $attribute_name ),
+
+		if ( isset( $dataset_name_if_any ) ) {
+			$this->assertNotNull(
+				$transformed_name,
+				"Failed to recognize '{$attribute_name}' as a custom data attribute."
+			);
+
+			$this->assertSame(
+				$dataset_name_if_any,
+				$transformed_name,
+				'Improperly transformed custom data attribute name.'
+			);
+		} else {
+			$this->assertNull(
+				$transformed_name,
+				"Should not have identified '{$attribute_name}' as a custom data attribute."
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_possible_custom_data_attributes_and_transformed_names() {
+		return array(
+			// Non-custom-data attributes.
+			'Normal attribute'             => array( 'post-id', null ),
+			'Single word'                  => array( 'id', null ),
+
+			// Normative custom data attributes.
+			'Normal custom data attribute' => array( 'data-post-id', 'postId' ),
+			'Leading dash'                 => array( 'data--before', 'Before' ),
+			'Trailing dash'                => array( 'data-after-', 'after-' ),
+			'Double-dashes'                => array( 'data-wp-bind--enabled', 'wpBind-Enabled' ),
+			'Triple-dashes'                => array( 'data---one---two---', '-One--Two---' ),
+
+			// Unexpected but recognized custom data attributes.
+			'Only comprising a prefix'     => array( 'data-', '' ),
+			'With upper case ASCII'        => array( 'data-Post-ID', 'postId' ),
+			'With Unicode whitespace'      => array( "data-\u{2003}", "\u{2003}" ),
+			'With Emoji'                   => array( 'data-🐄-pasture', '🐄Pasture' ),
+		);
+	}
+
+	/**
 	 * Ensure wildcard attributes block unprefixed wildcard uses.
 	 *
 	 * @ticket 33121
