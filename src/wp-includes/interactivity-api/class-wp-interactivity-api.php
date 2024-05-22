@@ -101,6 +101,9 @@ final class WP_Interactivity_API {
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
+	 * If state for that store namespace already exists, it merges the new
+	 * provided state with the existing one.
+	 *
 	 * When no namespace is specified, it returns the state defined for the
 	 * current value in the internal namespace stack.
 	 *
