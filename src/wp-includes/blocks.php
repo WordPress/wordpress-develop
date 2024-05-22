@@ -2689,7 +2689,7 @@ function get_active_block_variation( $block_type, $block_attributes ) {
 		} else if ( isset( $variation['attributes'] ) ) {
 			$attributes = array_keys( $variation['attributes'] );
 		} else {
-			return null; // FIXME: Compare innerBlocks.
+			return null; // TODO: Compare innerBlocks.
 		}
 
 		foreach ( $attributes as $attribute ) {
