@@ -2664,7 +2664,7 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 	return $arg;
 }
 
-function infer_block_variation( $block_type, $block_attributes ) {
+function get_active_block_variation( $block_type, $block_attributes ) {
 	$variations = $block_type->get_variations();
 	foreach ( $variations as $variation ) {
 		$attributes = $variation['attributes'];
