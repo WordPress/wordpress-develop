@@ -2663,3 +2663,15 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 	}
 	return $arg;
 }
+
+function infer_block_variation( $block_type, $attributes ) {
+	$variations = $block_type->get_variations();
+	foreach ( $variations as $variation ) {
+		foreach ( $variation['attributes'] as $attribute => $value ) {
+			if ( ! isset( $attributes[ $attribute ] ) || $attributes[ $attribute ] !== $value ) {
+				continue 2;
+			}
+		}
+		return $variation['name'];
+	}
+}
