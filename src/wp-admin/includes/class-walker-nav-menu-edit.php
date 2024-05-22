@@ -184,7 +184,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 							esc_url( $edit_url ),
 							__( 'Edit menu item' ),
 							/* translators: Hidden accessibility text. */
-							__( 'Edit menu item' )
+							__( 'Edit' )
 						);
 						?>
 					</span>

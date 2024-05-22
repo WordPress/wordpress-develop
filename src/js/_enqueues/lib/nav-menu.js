@@ -506,7 +506,7 @@
 				totalMenuItems = primaryItems.length,
 
 				// String together help text for primary menu items.
-				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType );
+				title = menus.menuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems );
 			} else {
 				parentItem = menuItem.prevAll( '.menu-item-depth-' + parseInt( depth - 1, 10 ) ).first(),
 				parentItemId = parentItem.find( '.menu-item-data-db-id' ).val(),
@@ -515,11 +515,14 @@
 				itemPosition = $( subItems.parents('.menu-item').get().reverse() ).index( menuItem ) + 1;
 
 				// String together help text for sub menu items.
-				title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', depth );
+				if( depth < 2 ) {
+					title = menus.subMenuFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName );
+				} else {
+					title = menus.subMenuMoreDepthFocus.replace( '%1$s', itemName ).replace( '%2$s', menuItemType ).replace( '%3$d', itemPosition ).replace( '%4$d', totalMenuItems ).replace( '%5$s', parentItemName )..replace( '%6$d', depth );
+				}
 			}
 
 			$this.attr( 'aria-label', title );
-			$this.find('.screen-reader-text').text( title );
 
 			// Mark this item's accessibility as refreshed.
 			$this.data( 'needs_accessibility_refresh', false );
