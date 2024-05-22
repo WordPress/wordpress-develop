@@ -60,7 +60,9 @@ function wp_apply_generated_classname_support( $block_type, $block_attributes ) 
 
 		$variation = get_active_block_variation( $block_type, $block_attributes );
 		if ( $variation ) {
-			$attributes['class'] .= ' ' . wp_get_block_default_classname( $block_type->name . '/' . $variation['name'] );
+			$attributes['class'] .= ' ' . wp_get_block_default_classname(
+				$block_type->name . '/' . $variation['name']
+			);
 		}
 	}
 
