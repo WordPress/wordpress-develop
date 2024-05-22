@@ -253,9 +253,9 @@
 			"fontSizes": [
 				{
 					"fluid": false,
-					"name": "Small",
+					"name": "foot",
 					"size": "0.9rem",
-					"slug": "small"
+					"slug": "foot"
 				},
 				{
 					"fluid": false,
