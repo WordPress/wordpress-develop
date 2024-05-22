@@ -2689,7 +2689,8 @@ function get_active_block_variation( $block_type, $block_attributes ) {
 		} else if ( isset( $variation['attributes'] ) ) {
 			$attributes = array_keys( $variation['attributes'] );
 		} else {
-			return null; // TODO: Compare innerBlocks.
+			// We have no way to determine if this is the active variation.
+			continue;
 		}
 
 		foreach ( $attributes as $attribute ) {
