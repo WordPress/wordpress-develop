@@ -1261,7 +1261,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 		// Reject custom data attributes that don't fit a basic form.
 		$is_allowable_custom_attribute = (
 			isset( $dataset_name ) &&
-			1 === preg_match( '/^[a-z0-9_-]+$/', $dataset_name )
+			1 === preg_match( '/^[a-z0-9_-]+$/i', $dataset_name )
 		);
 
 		/*
