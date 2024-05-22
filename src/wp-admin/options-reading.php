@@ -74,12 +74,12 @@ if ( ! is_utf8_charset() ) {
 <table class="form-table" role="presentation">
 	<?php
 	if ( 'posts' !== get_option( 'show_on_front' ) ) :
-		update_option( 'show_on_front', 'posts', 'on' );
+		update_option( 'show_on_front', 'posts', true );
 	endif;
 
 else :
 	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
-		update_option( 'show_on_front', 'posts', 'on' );
+		update_option( 'show_on_front', 'posts', true );
 	}
 	?>
 <table class="form-table" role="presentation">

@@ -63,7 +63,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
 		&& ! empty( $new_admin_details['newemail'] )
 	) {
-		update_option( 'admin_email', $new_admin_details['newemail'], 'off' );
+		update_option( 'admin_email', $new_admin_details['newemail'], false );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
 		$redirect = 'options-general.php?updated=true';
@@ -339,7 +339,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 				}
 				$value = wp_unslash( $value );
 			}
-			update_option( $option, $value, 'on' );
+			update_option( $option, $value, true );
 		}
 
 		/*

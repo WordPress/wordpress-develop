@@ -1053,7 +1053,7 @@ class WP_Upgrader {
 		}
 
 		// Update the lock, as by this point we've definitely got a lock, just need to fire the actions.
-		update_option( $lock_option, time(), 'off' );
+		update_option( $lock_option, time(), false );
 
 		return true;
 	}

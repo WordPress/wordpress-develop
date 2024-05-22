@@ -711,7 +711,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			$current   = get_option( 'active_plugins', array() );
 			$current[] = $plugin;
 			sort( $current );
-			update_option( 'active_plugins', $current, 'off' );
+			update_option( 'active_plugins', $current, false );
 		}
 
 		if ( ! $silent ) {

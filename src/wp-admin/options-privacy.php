@@ -52,7 +52,7 @@ if ( ! empty( $action ) ) {
 
 	if ( 'set-privacy-page' === $action ) {
 		$privacy_policy_page_id = isset( $_POST['page_for_privacy_policy'] ) ? (int) $_POST['page_for_privacy_policy'] : 0;
-		update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
+		update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id, true );
 
 		$privacy_page_updated_message = __( 'Privacy Policy page updated successfully.' );
 
@@ -103,7 +103,7 @@ if ( ! empty( $action ) ) {
 				'error'
 			);
 		} else {
-			update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id );
+			update_option( 'wp_page_for_privacy_policy', $privacy_policy_page_id, true );
 
 			wp_redirect( admin_url( 'post.php?post=' . $privacy_policy_page_id . '&action=edit' ) );
 			exit;

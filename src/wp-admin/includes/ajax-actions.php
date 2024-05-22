@@ -192,7 +192,7 @@ function wp_ajax_wp_compression_test() {
 		if ( is_multisite() ) {
 			update_site_option( 'can_compress_scripts', 0 );
 		} else {
-			update_option( 'can_compress_scripts', 0, 'on' );
+			update_option( 'can_compress_scripts', 0, true );
 		}
 		wp_die( 0 );
 	}
@@ -231,7 +231,7 @@ function wp_ajax_wp_compression_test() {
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 0 );
 			} else {
-				update_option( 'can_compress_scripts', 0, 'on' );
+				update_option( 'can_compress_scripts', 0, true );
 			}
 		} elseif ( 'yes' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
@@ -239,7 +239,7 @@ function wp_ajax_wp_compression_test() {
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 1 );
 			} else {
-				update_option( 'can_compress_scripts', 1, 'on' );
+				update_option( 'can_compress_scripts', 1, true );
 			}
 		}
 	}
@@ -2483,7 +2483,7 @@ function wp_ajax_delete_inactive_widgets() {
 		$id_base      = implode( '-', $pieces );
 		$widget       = get_option( 'widget_' . $id_base );
 		unset( $widget[ $multi_number ] );
-		update_option( 'widget_' . $id_base, $widget, 'off' );
+		update_option( 'widget_' . $id_base, $widget, false );
 		unset( $sidebars_widgets['wp_inactive_widgets'][ $key ] );
 	}
 
