@@ -2667,7 +2667,11 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 function infer_block_variation( $block_type, $block_attributes ) {
 	$variations = $block_type->get_variations();
 	foreach ( $variations as $variation ) {
-		foreach ( $variation['attributes'] as $attribute => $value ) {
+		$attributes = $variation['attributes'];
+		if ( isset( $variation['isActive'] ) && is_array( $variation['isActive'] ) ) {
+			$attributes = array_intersect_key( $attributes, array_flip( $variation['isActive'] ) );
+		}
+		foreach ( $attributes as $attribute => $value ) {
 			if ( ! isset( $block_attributes[ $attribute ] ) || $block_attributes[ $attribute ] !== $value ) {
 				continue 2;
 			}
