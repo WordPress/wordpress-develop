@@ -2683,10 +2683,17 @@ function get_active_block_variation( $block_type, $block_attributes ) {
 	foreach ( $variations as $variation ) {
 		$attributes = $variation['attributes'];
 		if ( isset( $variation['isActive'] ) && is_array( $variation['isActive'] ) ) {
-			$attributes = array_intersect_key( $attributes, array_flip( $variation['isActive'] ) );
+			$attributes = $variation['isActive'];
+		} else {
+			$attributes = array_keys( $variation['attributes'] );
 		}
-		foreach ( $attributes as $attribute => $value ) {
-			if ( ! isset( $block_attributes[ $attribute ] ) || $block_attributes[ $attribute ] !== $value ) {
+
+		foreach ( $attributes as $attribute ) {
+			if (
+				! isset( $block_attributes[ $attribute ] ) ||
+				! isset( $variation['attributes'][ $attribute ] ) ||
+				$block_attributes[ $attribute ] !== $variation['attributes'][ $attribute ]
+			) {
 				continue 2;
 			}
 		}
