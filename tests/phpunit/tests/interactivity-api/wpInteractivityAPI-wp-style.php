@@ -365,6 +365,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_style_doesnt_change_style_attribute_with_empty_value() {
 		$html    = '<div style="padding:10px" data-wp-style--color="">Text</div>';
@@ -379,6 +380,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_style_doesnt_change_style_attribute_without_value() {
 		$html    = '<div style="padding: 10px;" data-wp-style--color>Text</div>';
