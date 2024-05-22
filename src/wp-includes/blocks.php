@@ -2681,7 +2681,11 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 function get_active_block_variation( $block_type, $block_attributes ) {
 	foreach ( $block_type->get_variations() as $variation ) {
 		$attributes = $variation['attributes'];
-		if ( isset( $variation['isActive'] ) && is_array( $variation['isActive'] ) ) {
+		if (
+			isset( $variation['isActive'] ) &&
+			is_array( $variation['isActive'] ) &&
+			! empty( $variation['isActive'] )
+		) {
 			$attributes = $variation['isActive'];
 		} else {
 			$attributes = array_keys( $variation['attributes'] );
