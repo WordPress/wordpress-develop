@@ -856,7 +856,18 @@ JSON;
 		);
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
 		$evaluate->setAccessible( true );
-		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value, $default_namespace, $context ) );
+
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( $default_namespace ) );
+
+		$context_stack = $interactivity->getProperty( 'context_stack' );
+		$context_stack->setAccessible( true );
+		$context_stack->setValue( $this->interactivity, array( $default_namespace => $context ) );
+
+		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
 	}
 
 	/**
