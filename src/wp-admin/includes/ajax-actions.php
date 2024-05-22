@@ -4588,6 +4588,39 @@ function wp_ajax_activate_plugin() {
 		wp_send_json_error( $status );
 	}
 
+	/**
+	 * Filters the configuration data for the plugin.
+	 *
+	 * The dynamic portion of the hook name refers to the plugin slug.
+	 *
+	 * How WordPress uses this data may change in the future.
+	 *
+	 * Currently, the user will be redirected to the configuration URL
+	 * after activating the plugin.
+	 *
+	 * @since 6.5.4
+	 *
+	 * @param array {
+	 *      An array of configuration data for the plugin.
+	 *
+	 *      @type string $url The URL to configure the plugin.
+	 *                        Must be an absolute URL beginning with the administration URL.
+	 *                        Default empty string for no configuration URL.
+	 * }
+	 */
+	$configuration_data = apply_filters( 'plugin_configuration_data_' . $status['slug'], array( 'url' => '' ) );
+	if ( is_array( $configuration_data ) ) {
+		$status['configurationData'] = array();
+
+		if ( isset( $configuration_data['url'] ) ) {
+			$configuration_url = trim( $configuration_data['url'] );
+
+			if ( str_starts_with( $configuration_url, admin_url() ) ) {
+				$status['configurationData']['url'] = $configuration_url;
+			}
+		}
+	}
+
 	wp_send_json_success( $status );
 }
 

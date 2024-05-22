@@ -1105,10 +1105,11 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object} response            Response from the server.
-	 * @param {string} response.slug       Slug of the activated plugin.
-	 * @param {string} response.pluginName Name of the activated plugin.
-	 * @param {string} response.plugin     The plugin file, relative to the plugins directory.
+	 * @param {Object} response                   Response from the server.
+	 * @param {string} response.slug              Slug of the activated plugin.
+	 * @param {string} response.pluginName        Name of the activated plugin.
+	 * @param {string} response.plugin            The plugin file, relative to the plugins directory.
+	 * @param {Array}  response.configurationData An array of plugin configuration data.
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
@@ -1184,8 +1185,16 @@
 						)
 					}
 				);
+
+				if ( 'undefined' !== typeof response.configurationData.url ) {
+					window.parent.location.href = response.configurationData.url;
+				}
 			} else {
 				$message.removeClass( 'activated-message' ).text( _x( 'Active', 'plugin' ) );
+
+				if ( 'undefined' !== typeof response.configurationData.url ) {
+					window.location.href = response.configurationData.url;
+				}
 			}
 		}, 1000 );
 	};
@@ -2447,7 +2456,7 @@
 	};
 
 	$( function() {
-		var $pluginFilter        = $( '#plugin-filter, #plugin-information-footer' ),
+		var $pluginFilter        = $( '.plugin-title .row-actions, #plugin-filter, #plugin-information-footer' ),
 			$bulkActionForm      = $( '#bulk-action-form' ),
 			$filesystemForm      = $( '#request-filesystem-credentials-form' ),
 			$filesystemModal     = $( '#request-filesystem-credentials-dialog' ),
