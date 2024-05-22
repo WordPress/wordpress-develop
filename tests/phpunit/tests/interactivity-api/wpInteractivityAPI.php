@@ -814,7 +814,7 @@ JSON;
 	 * @param string $directive_value The directive attribute value to evaluate.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value ) {
+	private function evaluate( $directive_value, $default_namespace = 'myPlugin' ) {
 		$generate_state = function ( $name ) {
 			return array(
 				'key'    => $name,
@@ -829,7 +829,7 @@ JSON;
 		);
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
 		$evaluate->setAccessible( true );
-		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value, 'myPlugin', $context ) );
+		return $evaluate->invokeArgs( $this->interactivity, array( $directive_value, $default_namespace, $context ) );
 	}
 
 	/**
@@ -921,6 +921,25 @@ JSON;
 
 		$result = $this->evaluate( 'otherPlugin::context.nested.key' );
 		$this->assertEquals( 'otherPlugin-context-nested', $result );
+	}
+
+	/**
+	 * Tests the `evaluate` method for non valid namespace values.
+	 *
+	 * @ticket 61044
+	 *
+	 * @covers ::evaluate
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
+	 */
+	public function test_evaluate_unvalid_namespaces() {
+		$result = $this->evaluate( 'path', 'null' );
+		$this->assertNull( $result );
+
+		$result = $this->evaluate( 'path', '' );
+		$this->assertNull( $result );
+
+		$result = $this->evaluate( 'path', '{}' );
+		$this->assertNull( $result );
 	}
 
 	/**

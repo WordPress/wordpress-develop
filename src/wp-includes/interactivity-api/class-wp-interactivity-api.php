@@ -421,7 +421,15 @@ final class WP_Interactivity_API {
 	 */
 	private function evaluate( $directive_value, string $default_namespace, $context = false ) {
 		list( $ns, $path ) = $this->extract_directive_value( $directive_value, $default_namespace );
-		if ( empty( $path ) ) {
+		if ( 'null' === $default_namespace ) {
+			$message = 'The namespace defined cannot be null.';
+			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
+			return null;
+		}
+		if ( empty( $ns ) || empty( $path ) ) {
+			/* translators: %s: The directive value referenced. */
+			$message = sprintf( 'Namespace or reference path cannot be empty. Directive value referenced: %s ', $directive_value );
+			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
 
