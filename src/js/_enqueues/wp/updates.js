@@ -2456,7 +2456,7 @@
 	};
 
 	$( function() {
-		var $pluginFilter        = $( '.plugin-title .row-actions, #plugin-filter, #plugin-information-footer' ),
+		var $pluginFilter        = $( '#plugin-filter, #plugin-information-footer' ),
 			$bulkActionForm      = $( '#bulk-action-form' ),
 			$filesystemForm      = $( '#request-filesystem-credentials-form' ),
 			$filesystemModal     = $( '#request-filesystem-credentials-dialog' ),
