@@ -1423,6 +1423,7 @@ EOF;
 			// Unexpected but recognized custom data attributes.
 			'Only comprising a prefix'     => array( 'data-', '' ),
 			'With upper case ASCII'        => array( 'data-Post-ID', 'postId' ),
+			'With medial upper casing'     => array( 'data-uPPer-cAsE', 'upperCase' ),
 			'With Unicode whitespace'      => array( "data-\u{2003}", "\u{2003}" ),
 			'With Emoji'                   => array( 'data-🐄-pasture', '🐄Pasture' ),
 			'Brackets and colon'           => array( 'data-[wish:granted]', '[wish:granted]' ),

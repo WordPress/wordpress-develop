@@ -1361,7 +1361,7 @@ function wp_kses_transform_custom_data_attribute_name( $raw_attribute_name ) {
 			// Transforms "-a" -> "A".
 			return strtoupper( $dash_matches[0][1] );
 		},
-		$custom_name
+		strtolower( $custom_name )
 	);
 
 	return $custom_name;
