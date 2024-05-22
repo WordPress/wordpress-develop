@@ -2664,6 +2664,20 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
 	return $arg;
 }
 
+/**
+ * Returns the active block variation for a given block based on its attributes.
+ *
+ * Variations are determined by their `isActive` property, which is an array of
+ * block attribute keys that are compared to the given block's attributes using
+ * a strict equality check.
+ *
+ * If no `isActive` property is defined, all `attributes` specified by a variation
+ * are compared to the given block's to determine if the variation is active.
+ *
+ * @param WP_Block_Type $block_type       Block Type.
+ * @param array         $block_attributes Block attributes.
+ * @return array|null The active block variation, or null if no active variation is found.
+ */
 function get_active_block_variation( $block_type, $block_attributes ) {
 	$variations = $block_type->get_variations();
 	foreach ( $variations as $variation ) {
