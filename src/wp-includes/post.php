@@ -365,6 +365,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter templates list' ),
 				'items_list_navigation' => __( 'Templates list navigation' ),
 				'items_list'            => __( 'Templates list' ),
+				'item_updated'          => __( 'Template updated.' ),
 			),
 			'description'                     => __( 'Templates to include in your theme.' ),
 			'public'                          => false,
@@ -429,6 +430,7 @@ function create_initial_post_types() {
 				'filter_items_list'     => __( 'Filter template parts list' ),
 				'items_list_navigation' => __( 'Template parts list navigation' ),
 				'items_list'            => __( 'Template parts list' ),
+				'item_updated'          => __( 'Template part updated.' ),
 			),
 			'description'                     => __( 'Template parts to include in your templates.' ),
 			'public'                          => false,
@@ -1217,7 +1219,10 @@ function get_post_mime_type( $post = null ) {
  * @return string|false Post status on success, false on failure.
  */
 function get_post_status( $post = null ) {
-	$post = get_post( $post );
+	// Normalize the post object if necessary, skip normalization if called from get_sample_permalink().
+	if ( ! $post instanceof WP_Post || ! isset( $post->filter ) || 'sample' !== $post->filter ) {
+		$post = get_post( $post );
+	}
 
 	if ( ! is_object( $post ) ) {
 		return false;
