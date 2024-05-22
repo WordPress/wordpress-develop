@@ -109,7 +109,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 					'attribute2' => 'var1-attr2',
 					'attribute3' => 'var1-attr3',
 				),
-				'isActive' => array(
+				'isActive'   => array(
 					'attribute1',
 					'attribute3',
 				),
@@ -121,7 +121,7 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 					'attribute2' => 'var2-attr2',
 					'attribute3' => 'var2-attr3',
 				),
-				'isActive' => array(),
+				'isActive'   => array(),
 			),
 			array(
 				'name'       => 'variation_without_is_active',
@@ -133,4 +133,4 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 			),
 		);
 	}
-};
+}
