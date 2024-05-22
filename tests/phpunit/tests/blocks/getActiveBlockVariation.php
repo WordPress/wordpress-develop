@@ -22,17 +22,20 @@ class Tests_Blocks_GetActiveBlockVariation extends WP_UnitTestCase {
 	 * Set up before class.
 	 */
 	public static function wpSetUpBeforeClass() {
-		self::$block_type = new WP_Block_Type( 'tests/block-type', array(
-			'attributes' => array(
-				'attribute1' => array(
-					'type' => 'string',
+		self::$block_type = new WP_Block_Type(
+			'tests/block-type',
+			array(
+				'attributes' => array(
+					'attribute1' => array(
+						'type' => 'string',
+					),
+					'attribute2' => array(
+						'type' => 'string',
+					),
 				),
-				'attribute2' => array(
-					'type' => 'string',
-				),
-			),
-			'variations' => self::mock_variation_callback(),
-		) );
+				'variations' => self::mock_variation_callback(),
+			)
+		);
 	}
 
 	public function test_get_active_block_variation_no_match() {
