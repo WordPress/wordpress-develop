@@ -103,3 +103,21 @@ function wp_interactivity_data_wp_context( array $context, string $store_namespa
 		( empty( $context ) ? '{}' : wp_json_encode( $context, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ) .
 		'\'';
 }
+
+/**
+ * Gets the current Interactivity API context for a given namespace.
+ *
+ * The function should be used only during directive processing. If the
+ * `$store_namespace` parameter is omitted, it uses the current namespace value
+ * on the internal namespace stack.
+ *
+ * It returns an empty array when the specified namespace is not defined.
+ *
+ * @since 6.6.0
+ *
+ * @param string $store_namespace Optional. The unique store namespace identifier.
+ * @return array The context for the specified store namespace.
+ */
+function wp_interactivity_get_context( string $store_namespace = '' ): array {
+	return wp_interactivity()->get_context( $store_namespace );
+}

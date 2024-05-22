@@ -240,6 +240,28 @@ final class WP_Interactivity_API {
 	}
 
 	/**
+	 * Returns the latest value on the context stack with the passed namespace.
+	 *
+	 * When the namespace is omitted, it uses the current namespace on the
+	 * namespace stack.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $store_namespace Optional. The unique store namespace identifier.
+	 */
+	public function get_context( string $store_namespace = '' ): array {
+		if ( ! $store_namespace ) {
+			$store_namespace = end( $this->namespace_stack );
+		}
+
+		$context = end( $this->context_stack );
+
+		return ( $store_namespace && $context && isset( $context[ $store_namespace ] ) )
+			? $context[ $store_namespace ]
+			: array();
+	}
+
+	/**
 	 * Registers the `@wordpress/interactivity` script modules.
 	 *
 	 * @since 6.5.0

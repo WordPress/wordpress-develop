@@ -450,6 +450,141 @@ JSON;
 	}
 
 	/**
+	 * Test that `get_context` returns the latest context value for the given
+	 * namespace.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::get_context
+	 */
+	public function test_get_context_with_namespace() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$ctx_stack = array(
+			array(
+				'myPlugin' => array( 'a' => 0 ),
+			),
+			array(
+				'myPlugin'    => array( 'a' => 1 ),
+				'otherPlugin' => array( 'b' => 2 ),
+			),
+		);
+
+		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
+		$ctx_stack_prop->setAccessible( true );
+		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
+
+		$this->assertEquals(
+			array( 'a' => 1 ),
+			$this->interactivity->get_context( 'myPlugin' )
+		);
+		$this->assertEquals(
+			array( 'b' => 2 ),
+			$this->interactivity->get_context( 'otherPlugin' )
+		);
+	}
+
+	/**
+	 * Test that `get_context` uses the current namespace in the internal
+	 * namespace stack when the parameter is omitted.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::get_context
+	 */
+	public function test_get_context_without_namespace() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$ctx_stack = array(
+			array(
+				'myPlugin' => array( 'a' => 0 ),
+			),
+			array(
+				'myPlugin'    => array( 'a' => 1 ),
+				'otherPlugin' => array( 'b' => 2 ),
+			),
+		);
+
+		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
+		$ctx_stack_prop->setAccessible( true );
+		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
+
+		$this->assertEquals(
+			array( 'a' => 1 ),
+			$this->interactivity->get_context()
+		);
+	}
+
+	/**
+	 * Test that `get_context` returns an empty array when the context stack is
+	 * empty.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::get_context
+	 */
+	public function test_get_context_with_empty_context_stack() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$ctx_stack = array();
+
+		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
+		$ctx_stack_prop->setAccessible( true );
+		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
+
+		$this->assertEquals(
+			array(),
+			$this->interactivity->get_context( 'myPlugin' )
+		);
+	}
+
+	/**
+	 * Test that `get_context` returns an empty array if the given namespace is
+	 * not defined.
+	 *
+	 * @ticket 61037
+	 *
+	 * @covers ::get_context
+	 */
+	public function test_get_context_with_undefined_namespace() {
+		$interactivity = new ReflectionClass( $this->interactivity );
+
+		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
+		$namespace_stack->setAccessible( true );
+		$namespace_stack->setValue( $this->interactivity, array( 'myPlugin' ) );
+
+		$ctx_stack = array(
+			array(
+				'myPlugin' => array( 'a' => 0 ),
+			),
+			array(
+				'myPlugin' => array( 'a' => 1 ),
+			),
+		);
+
+		$ctx_stack_prop = $interactivity->getProperty( 'context_stack' );
+		$ctx_stack_prop->setAccessible( true );
+		$ctx_stack_prop->setValue( $this->interactivity, $ctx_stack );
+
+		$this->assertEquals(
+			array(),
+			$this->interactivity->get_context( 'otherPlugin' )
+		);
+	}
+
+	/**
 	 * Tests extracting directive values from different string formats.
 	 *
 	 * @ticket 60356
