@@ -110,7 +110,6 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 	 * @ticket 60356
 	 *
 	 * @covers ::get_content_between_balanced_template_tags
-	 *
 	 */
 	public function test_get_content_between_balanced_template_tags_with_unbalanced_tags() {
 		$content = '<template>Missing closing template';
@@ -356,7 +355,6 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 	 * @ticket 60356
 	 *
 	 * @covers ::set_content_between_balanced_tags
-	 *
 	 */
 	public function test_set_content_between_balanced_tags_with_unbalanced_tags() {
 		$new_content = 'New text';
