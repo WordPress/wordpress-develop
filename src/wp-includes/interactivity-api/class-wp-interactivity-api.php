@@ -320,10 +320,10 @@ final class WP_Interactivity_API {
 	 * Processes the interactivity directives contained within the HTML content
 	 * and updates the markup accordingly.
 	 *
-	 * It uses the instance's context and namespace stacks, which is shared between
-	 * all calls, and it returns null if the HTML contains unbalanced tags.
+	 * It uses the WP_Interactivity_API instance's context and namespace stacks,
+	 * which are shared between all calls.
 	 *
-	 * TODO: Revisit this method's name.
+	 * This method returns null if the HTML contains unbalanced tags.
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 The function displays a warning message when the HTML contains unbalanced tags or a directive appears in a MATH or SVG tag.
