@@ -74,6 +74,30 @@ final class WP_Interactivity_API {
 	private $has_processed_router_region = false;
 
 	/**
+	 * Stack of namespaces defined by `data-wp-interactive` directives, in
+	 * the order they are processed.
+	 *
+	 * This list is populated only during directive processing, and it should
+	 * remain empty afterwards.
+	 *
+	 * @since 6.6.0
+	 * @var array
+	 */
+	private $namespace_stack = array();
+
+	/**
+	 * Stack of contexts defined by `data-wp-context` directives, in
+	 * the order they are processed.
+	 *
+	 * This list is populated only during directive processing, and it should
+	 * remain empty afterwards.
+	 *
+	 * @since 6.6.0
+	 * @var array
+	 */
+	private $context_stack = array();
+
+	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
@@ -258,9 +282,8 @@ final class WP_Interactivity_API {
 			return $html;
 		}
 
-		$context_stack   = array();
-		$namespace_stack = array();
-		$result          = $this->process_directives_args( $html, $context_stack, $namespace_stack );
+		$result = $this->process_directives_args( $html );
+
 		return null === $result ? $html : $result;
 	}
 
@@ -268,24 +291,32 @@ final class WP_Interactivity_API {
 	 * Processes the interactivity directives contained within the HTML content
 	 * and updates the markup accordingly.
 	 *
-	 * It needs the context and namespace stacks to be passed by reference, and
-	 * it returns null if the HTML contains unbalanced tags.
+	 * It uses the instance's context and namespace stacks, which is shared between
+	 * all calls, and it returns null if the HTML contains unbalanced tags.
+	 *
+	 * TODO: Revisit this method's name.
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 The function displays a warning message when the HTML contains unbalanced tags or a directive appears in a MATH or SVG tag.
+	 * @since 6.6.0 Removed `namespace_stack` and `context_stack` arguments.
 	 *
-	 * @param string $html            The HTML content to process.
-	 * @param array  $context_stack   The reference to the array used to keep track of contexts during processing.
-	 * @param array  $namespace_stack The reference to the array used to manage namespaces during processing.
+	 * @param string $html The HTML content to process.
 	 * @return string|null The processed HTML content. It returns null when the HTML contains unbalanced tags.
 	 */
-	private function process_directives_args( string $html, array &$context_stack, array &$namespace_stack ) {
+	private function process_directives_args( string $html ) {
 		$p          = new WP_Interactivity_API_Directives_Processor( $html );
 		$tag_stack  = array();
 		$unbalanced = false;
 
 		$directive_processor_prefixes          = array_keys( self::$directive_processors );
 		$directive_processor_prefixes_reversed = array_reverse( $directive_processor_prefixes );
+
+		/*
+		 * Save the current size for each stack to restore them in case
+		 * the processing finds unbalanced tags.
+		 */
+		$namespace_stack_size = count( $this->namespace_stack );
+		$context_stack_size   = count( $this->context_stack );
 
 		while ( $p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 			$tag_name = $p->get_tag();
@@ -388,6 +419,13 @@ final class WP_Interactivity_API {
 				}
 			}
 		}
+
+		if ( $unbalanced ) {
+			// Restet the namespace and context stacks to their previous values.
+			array_splice( $this->namespace_stack, $namespace_stack_size );
+			array_splice( $this->context_stack, $context_stack_size );
+		}
+
 		/*
 		 * It returns null if the HTML is unbalanced because unbalanced HTML is
 		 * not safe to process. In that case, the Interactivity API runtime will
@@ -411,15 +449,15 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
+	 * @since 6.6.0 Removed `default_namespace` and `context` arguments.
 	 *
-	 * @param string|true $directive_value   The directive attribute value string or `true` when it's a boolean attribute.
-	 * @param string      $default_namespace The default namespace to use if none is explicitly defined in the directive
-	 *                                       value.
-	 * @param array|false $context           The current context for evaluating the directive or false if there is no
-	 *                                       context.
+	 * @param string|true $directive_value The directive attribute value string or `true` when it's a boolean attribute.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
 	 */
-	private function evaluate( $directive_value, string $default_namespace, $context = false ) {
+	private function evaluate( $directive_value ) {
+		$default_namespace = end( $this->namespace_stack );
+		$context           = end( $this->context_stack );
+
 		list( $ns, $path ) = $this->extract_directive_value( $directive_value, $default_namespace );
 		if ( ! $ns || ! $path ) {
 			/* translators: %s: The directive value referenced. */
@@ -451,7 +489,7 @@ final class WP_Interactivity_API {
 		}
 
 		if ( $current instanceof Closure ) {
-			$current = $current( $store );
+			$current = $current();
 		}
 
 		// Returns the opposite if it contains a negation operator (!).
