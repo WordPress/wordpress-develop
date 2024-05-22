@@ -512,7 +512,7 @@ final class WP_Interactivity_API {
 		}
 
 		if ( $current instanceof Closure ) {
-			$current = $current( $store );
+			$current = $current();
 		}
 
 		// Returns the opposite if it contains a negation operator (!).

@@ -997,12 +997,14 @@ JSON;
 
 					public function offsetUnset( $offset ): void {}
 				},
-				'derived'   => function ( $store ) {
+				'derived'   => function () {
+					$state   = $this->interactivity->state();
+					$context = $this->interactivity->get_context();
 					return 'Derived state: ' .
-						$store['state']['key'] .
+						$state['key'] .
 						"\n" .
 						'Derived context: ' .
-						$store['context']['key'];
+						$context['key'];
 				},
 			);
 		};
