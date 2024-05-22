@@ -1256,7 +1256,13 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 	$allowed_attr = $allowed_html[ $element_low ];
 
 	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
-		$attribute_is_data_attribute = null !== wp_kses_transform_custom_data_attribute_name( $name );
+		$dataset_name = wp_kses_transform_custom_data_attribute_name( $name );
+
+		// Reject custom data attributes that don't fit a basic form.
+		$is_allowable_custom_attribute = (
+			isset( $dataset_name ) &&
+			1 === preg_match( '/^[a-z0-9_-]+$/', $dataset_name )
+		);
 
 		/*
 		 * Allow Custom Data Attributes (`data-*`).
@@ -1270,7 +1276,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 		 *
 		 * @see https://html.spec.whatwg.org/#custom-data-attribute
 		 */
-		if ( $attribute_is_data_attribute && ! empty( $allowed_attr['data-*'] ) ) {
+		if ( $is_allowable_custom_attribute && ! empty( $allowed_attr['data-*'] ) ) {
 			/*
 			 * Add the whole attribute name to the allowed attributes and set any restrictions
 			 * for the `data-*` attribute values for the current element.
