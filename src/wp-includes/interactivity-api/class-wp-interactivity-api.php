@@ -635,18 +635,16 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		// When exiting tags, it removes the last context from the stack.
 		if ( 'exit' === $mode ) {
-			array_pop( $context_stack );
+			array_pop( $this->context_stack );
 			return;
 		}
 
 		$attribute_value = $p->get_attribute( 'data-wp-context' );
-		$namespace_value = end( $namespace_stack );
+		$namespace_value = end( $this->namespace_stack );
 
 		// Separates the namespace from the context JSON object.
 		list( $namespace_value, $decoded_json ) = is_string( $attribute_value ) && ! empty( $attribute_value )
@@ -658,8 +656,8 @@ final class WP_Interactivity_API {
 		 * previous context with the new one.
 		 */
 		if ( is_string( $namespace_value ) ) {
-			$context_stack[] = array_replace_recursive(
-				end( $context_stack ) !== false ? end( $context_stack ) : array(),
+			$this->context_stack[] = array_replace_recursive(
+				end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
 				array( $namespace_value => is_array( $decoded_json ) ? $decoded_json : array() )
 			);
 		} else {
@@ -668,7 +666,7 @@ final class WP_Interactivity_API {
 			 * It needs to do so because the function pops out the current context
 			 * from the stack whenever it finds a `data-wp-context`'s closing tag.
 			 */
-			$context_stack[] = end( $context_stack );
+			$this->context_stack[] = end( $this->context_stack );
 		}
 	}
 
