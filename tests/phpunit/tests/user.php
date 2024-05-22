@@ -2201,10 +2201,10 @@ class Tests_User extends WP_UnitTestCase {
 
 		add_filter( 'insert_user_meta', array( $this, 'save_use_ssl_meta_data_type' ), 10, 3 );
 
-		$_POST                 = array();
-		$_POST['nickname']     = 'nickname_test_1';
-		$_POST['email']        = 'email_test_1@example.com';
-		$_POST['use_ssl']      = 0; // Set Use SSL to false.
+		$_POST             = array();
+		$_POST['nickname'] = 'nickname_test_1';
+		$_POST['email']    = 'email_test_1@example.com';
+		$_POST['use_ssl']  = 0; // Set Use SSL to false.
 
 		$user_id = edit_user( $user_id );
 
