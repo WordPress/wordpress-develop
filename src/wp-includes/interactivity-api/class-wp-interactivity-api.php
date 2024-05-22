@@ -680,10 +680,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
 			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
 
@@ -694,7 +692,7 @@ final class WP_Interactivity_API {
 				}
 
 				$attribute_value = $p->get_attribute( $attribute_name );
-				$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+				$result          = $this->evaluate( $attribute_value );
 
 				if (
 					null !== $result &&
@@ -734,10 +732,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
 
@@ -748,7 +744,7 @@ final class WP_Interactivity_API {
 				}
 
 				$attribute_value = $p->get_attribute( $attribute_name );
-				$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+				$result          = $this->evaluate( $attribute_value );
 
 				if ( $result ) {
 					$p->add_class( $class_name );
@@ -769,10 +765,8 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
 			$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
 
@@ -783,7 +777,7 @@ final class WP_Interactivity_API {
 				}
 
 				$directive_attribute_value = $p->get_attribute( $attribute_name );
-				$style_property_value      = $this->evaluate( $directive_attribute_value, end( $namespace_stack ), end( $context_stack ) );
+				$style_property_value      = $this->evaluate( $directive_attribute_value );
 				$style_attribute_value     = $p->get_attribute( 'style' );
 				$style_attribute_value     = ( $style_attribute_value && ! is_bool( $style_attribute_value ) ) ? $style_attribute_value : '';
 
@@ -862,13 +856,11 @@ final class WP_Interactivity_API {
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 */
-	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
 			$attribute_value = $p->get_attribute( 'data-wp-text' );
-			$result          = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+			$result          = $this->evaluate( $attribute_value );
 
 			/*
 			 * Follows the same logic as Preact in the client and only changes the
@@ -1000,17 +992,15 @@ HTML;
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
 	 * @param array                                     $tag_stack       The reference to the tag stack.
 	 */
-	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack, array &$tag_stack ) {
+	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
 			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
 			$extracted_suffix = $this->extract_prefix_and_suffix( $attribute_name );
 			$item_name        = isset( $extracted_suffix[1] ) ? $this->kebab_to_camel_case( $extracted_suffix[1] ) : 'item';
 			$attribute_value  = $p->get_attribute( $attribute_name );
-			$result           = $this->evaluate( $attribute_value, end( $namespace_stack ), end( $context_stack ) );
+			$result           = $this->evaluate( $attribute_value );
 
 			// Gets the content between the template tags and leaves the cursor in the closer tag.
 			$inner_content = $p->get_content_between_balanced_template_tags();
@@ -1044,7 +1034,7 @@ HTML;
 			}
 
 			// Extracts the namespace from the directive attribute value.
-			$namespace_value         = end( $namespace_stack );
+			$namespace_value         = end( $this->namespace_stack );
 			list( $namespace_value ) = is_string( $attribute_value ) && ! empty( $attribute_value )
 				? $this->extract_directive_value( $attribute_value, $namespace_value )
 				: array( $namespace_value, null );
@@ -1053,17 +1043,17 @@ HTML;
 			$processed_content = '';
 			foreach ( $result as $item ) {
 				// Creates a new context that includes the current item of the array.
-				$context_stack[] = array_replace_recursive(
-					end( $context_stack ) !== false ? end( $context_stack ) : array(),
+				$this->context_stack[] = array_replace_recursive(
+					end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
 					array( $namespace_value => array( $item_name => $item ) )
 				);
 
 				// Processes the inner content with the new context.
-				$processed_item = $this->process_directives_args( $inner_content, $context_stack, $namespace_stack );
+				$processed_item = $this->process_directives_args( $inner_content );
 
 				if ( null === $processed_item ) {
 					// If the HTML is unbalanced, stop processing it.
-					array_pop( $context_stack );
+					array_pop( $this->context_stack );
 					return;
 				}
 
@@ -1076,7 +1066,7 @@ HTML;
 				$processed_content .= $i->get_updated_html();
 
 				// Removes the current context from the stack.
-				array_pop( $context_stack );
+				array_pop( $this->context_stack );
 			}
 
 			// Appends the processed content after the tag closer of the template.
