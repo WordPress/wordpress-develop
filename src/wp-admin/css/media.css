@@ -1428,12 +1428,15 @@ audio, video {
 }
 
 @media only screen and (max-width: 375px) {
+	.media-item .attachment-tools {
+		align-items: baseline;
+	}
 	.media-item .edit-attachment.copy-to-clipboard-container {
 		flex-direction: column;
 	}
 
 	.copy-to-clipboard-container .success {
-		position: relative;
-		top: 15px;
+		line-height: normal;
+		margin-top: 10px;
 	}
 }
