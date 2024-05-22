@@ -999,7 +999,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		return false;
 	}
 
-	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1064,7 +1064,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 		return false;
 	}
 
-	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1120,7 +1120,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 		return false;
 	}
 
-	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
@@ -1413,12 +1413,12 @@ function _load_textdomain_just_in_time( $domain ) {
 		return false;
 	}
 
-	if ( ! doing_action( 'init' ) && ! did_action( 'init' ) ) {
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
 				/* translators: 1: The text domain. 2: 'init'. */
-				__( 'Attempted to load translations for the %1$s domain too early. Translations should be loaded after the %2$s action has fired, to ensure that the current user has been already set up.' ),
+				__( 'Translation loading for the %1$s domain was triggered too early. This is usually an indicator for some code running too early.' ),
 				'<code>' . $domain . '</code>',
 				'<code>init</code>'
 			),
