@@ -2187,22 +2187,12 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if the use_ssl is not written unneccesarily.
+	 * Test if the use_ssl doesn't write to DB unneccesarily.
 	 *
 	 * @ticket 60299
 	 */
 	public function test_unnecessary_assignment_of_use_ssl_in_meta() {
-		// Create a new user with some default data
-		$userdata = array(
-			'role'       => 'subscriber',
-			'email'      => 'test1@example.com',
-			'user_login' => 'test_user',
-			'nickname'   => 'nickname1',
-			'user_pass'  => 'test_password',
-		);
-
-		// Insert the user into the database
-		$user_id = wp_insert_user( $userdata );
+		$user_id = self::$contrib_id;
 		// Add in DB to be able to use in another method.
 		add_option( 'test_user_id_meta_ssl_type', $user_id );
 
@@ -2212,18 +2202,9 @@ class Tests_User extends WP_UnitTestCase {
 		add_filter( 'insert_user_meta', array( $this, 'save_use_ssl_meta_data_type' ), 10, 3 );
 
 		$_POST                 = array();
-		$_GET                  = array();
-		$_REQUEST              = array();
-		$_POST['role']         = 'subscriber';
-		$_POST['email']        = 'test1@example.com';
-		$_POST['user_login']   = 'test_user';
-		$_POST['first_name']   = 'first_name1';
-		$_POST['last_name']    = 'last_name1';
-		$_POST['nickname']     = 'nickname1';
-		$_POST['display_name'] = 'display_name1';
+		$_POST['nickname']     = 'nickname_test_1';
+		$_POST['email']        = 'email_test_1@example.com';
 		$_POST['use_ssl']      = 0; // Set Use SSL to false.
-		$_POST['pass1']        = 'password';
-		$_POST['pass2']        = 'password';
 
 		$user_id = edit_user( $user_id );
 
