@@ -184,15 +184,10 @@
 	display: none;
 }
 
-.media-item .original {
-	position: relative;
-	margin: 7px 6px;
-}
-
 .media-item .progress {
 	display: inline-block;
 	height: 22px;
-	margin: 0px 6px 7px;
+	margin: 0 6px 7px;
 	width: 200px;
 	line-height: 2em;
 	padding: 0;
