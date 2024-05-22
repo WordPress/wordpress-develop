@@ -412,10 +412,7 @@ final class WP_Interactivity_API {
 						? self::$directive_processors[ $directive_prefix ]
 						: array( $this, self::$directive_processors[ $directive_prefix ] );
 
-					call_user_func_array(
-						$func,
-						array( $p, $mode, &$context_stack, &$namespace_stack, &$tag_stack )
-					);
+					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
 				}
 			}
 		}
@@ -593,15 +590,13 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
-	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
-	 * @param array                                     $context_stack   The reference to the context stack.
-	 * @param array                                     $namespace_stack The reference to the store namespace stack.
+	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
+	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
 	 */
-	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$context_stack, array &$namespace_stack ) {
+	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		// When exiting tags, it removes the last namespace from the stack.
 		if ( 'exit' === $mode ) {
-			array_pop( $namespace_stack );
+			array_pop( $this->namespace_stack );
 			return;
 		}
 
@@ -625,9 +620,9 @@ final class WP_Interactivity_API {
 				$new_namespace = $attribute_value;
 			}
 		}
-		$namespace_stack[] = ( $new_namespace && 1 === preg_match( '/^([\w\-_\/]+)/', $new_namespace ) )
+		$this->namespace_stack[] = ( $new_namespace && 1 === preg_match( '/^([\w\-_\/]+)/', $new_namespace ) )
 			? $new_namespace
-			: end( $namespace_stack );
+			: end( $this->namespace_stack );
 	}
 
 	/**
