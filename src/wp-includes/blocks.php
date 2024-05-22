@@ -2676,6 +2676,6 @@ function get_active_block_variation( $block_type, $block_attributes ) {
 				continue 2;
 			}
 		}
-		return $variation['name'];
+		return $variation;
 	}
 }
