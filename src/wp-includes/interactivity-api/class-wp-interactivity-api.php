@@ -93,7 +93,7 @@ final class WP_Interactivity_API {
 	 * remain empty afterwards.
 	 *
 	 * @since 6.6.0
-	 * @var array
+	 * @var array<array<mixed>>
 	 */
 	private $context_stack = array();
 
