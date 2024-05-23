@@ -505,6 +505,11 @@ Description: Used to style blocks in the editor.
 	padding: 0;
 }
 
+.editor-styles-wrapper .wp-block-pullquote:where([style*="border-width"]) blockquote {
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
 .wp-block-pullquote blockquote > .editor-rich-text p {
 	font-size: 19px;
 	font-size: 1.1875rem;

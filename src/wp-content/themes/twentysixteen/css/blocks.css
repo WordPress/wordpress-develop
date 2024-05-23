@@ -181,6 +181,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	margin-right: 0;
 }
 
+.wp-block-pullquote:where([style*="border-width"]) blockquote {
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
 .wp-block-pullquote.has-text-color blockquote,
 .wp-block-pullquote.has-background blockquote,
 .has-background .wp-block-pullquote blockquote,
