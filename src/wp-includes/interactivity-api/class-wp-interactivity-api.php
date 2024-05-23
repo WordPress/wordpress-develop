@@ -447,7 +447,7 @@ final class WP_Interactivity_API {
 		}
 
 		if ( $unbalanced ) {
-			// Restet the namespace and context stacks to their previous values.
+			// Reset the namespace and context stacks to their previous values.
 			array_splice( $this->namespace_stack, $namespace_stack_size );
 			array_splice( $this->context_stack, $context_stack_size );
 		}
