@@ -14,10 +14,6 @@ const {
 	WORDPRESS_NAMESPACE,
 } = require( './shared' );
 
-const SUBMODULES = [
-	{ name: 'interactivity-debug', path: 'interactivity/build-module/debug' },
-];
-
 module.exports = function (
 	env = { environment: 'production', watch: false, buildTarget: false }
 ) {
@@ -33,30 +29,22 @@ module.exports = function (
 	const baseConfig = getBaseConfig( env );
 	const config = {
 		...baseConfig,
-		entry: {
-			...MODULES.map( ( packageName ) =>
-				packageName.replace( WORDPRESS_NAMESPACE, '' )
-			).reduce( ( memo, packageName ) => {
-				memo[ packageName ] = {
-					import: normalizeJoin(
-						baseDir,
-						`node_modules/@wordpress/${ packageName }`
-					),
-				};
+		entry: MODULES.map( ( packageName ) =>
+			packageName.replace( WORDPRESS_NAMESPACE, '' )
+		).reduce( ( memo, packageName ) => {
+			const path =
+				'development' === mode && 'interactivity' === packageName
+					? 'interactivity/build-module/debug'
+					: packageName;
+			memo[ packageName ] = {
+				import: normalizeJoin(
+					baseDir,
+					`node_modules/@wordpress/${ path }`
+				),
+			};
 
-				return memo;
-			}, {} ),
-			...SUBMODULES.reduce( ( memo, { name, path } ) => {
-				memo[ name ] = {
-					import: normalizeJoin(
-						baseDir,
-						`node_modules/@wordpress/${ path }`
-					),
-				};
-
-				return memo;
-			}, {} ),
-		},
+			return memo;
+		}, {} ),
 		experiments: {
 			outputModule: true,
 		},
