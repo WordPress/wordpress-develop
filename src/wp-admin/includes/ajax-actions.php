@@ -4612,7 +4612,7 @@ function wp_ajax_activate_plugin() {
 	if ( is_array( $configuration_data ) ) {
 		$status['configurationData'] = array();
 
-		if ( isset( $configuration_data['url'] ) ) {
+		if ( isset( $configuration_data['url'] ) && is_string( $configuration_data['url'] ) ) {
 			$configuration_url = sanitize_url( $configuration_data['url'] );
 
 			if ( $configuration_url ) {
