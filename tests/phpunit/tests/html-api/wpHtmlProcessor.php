@@ -381,7 +381,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @dataProvider data_html_with_target_element_and_depth_of_next_node_in_body
 	 *
 	 * @param string $html_with_target_element HTML containing element with `target` class.
-	 * @param int    $depth_after_element      Depth into document at target node.
+	 * @param int    $depth_after_element      Depth into document immediately after target node.
 	 */
 	public function test_reports_proper_non_element_depth_in_body( $html_with_target_element, $depth_after_element ) {
 		$processor = WP_HTML_Processor::create_fragment( $html_with_target_element );
