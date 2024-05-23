@@ -183,6 +183,145 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test the behavior of expects_closer with regular tags.
+	 *
+	 * @ticket 61257
+	 */
+	public function test_expects_closer_regular_tags() {
+		$processor = WP_HTML_Processor::create_fragment( '<div><p><b><em>' );
+
+		$tags = 0;
+		while ( $processor->next_token() ) {
+			$this->assertTrue(
+				$processor->expects_closer(),
+				"Incorrectly expected a closer on tag {$processor->get_tag()}."
+			);
+			++$tags;
+		}
+
+		$this->assertSame(
+			4,
+			$tags,
+			'Did not find all the expected tags.'
+		);
+	}
+
+	/**
+	 * Test the behavior of with non-tags.
+	 *
+	 * @dataProvider data_non_tags
+	 *
+	 * @param string $html HTML for test.
+	 *
+	 * @ticket 61257
+	 */
+	public function test_expects_closer_non_tags( $html ) {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		$found_token = $processor->next_token();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "HTML {$html} is not supported." );
+		}
+
+		$this->assertTrue( $found_token, "Did not find token in {$html}." );
+
+		$this->assertFalse(
+			$processor->expects_closer(),
+			"Incorrectly expected a closer on void tag {$processor->get_token_type()}."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_non_tags() {
+		return array(
+			// We don't pause on doctype?
+			// 'Doctype'                          => array( '<!DOCTYPE html>' ),
+			'Normative comment'                => array( '<!-- comment -->' ),
+			'CDATA Section (comment)'          => array( '<![CDATA[ comment ]]>' ),
+			'Processing instruction (comment)' => array( '<?ok comment ?>' ),
+		);
+	}
+
+	/**
+	 * Test the behavior of expects_closer with special tags.
+	 *
+	 * @dataProvider data_special_tags
+	 *
+	 * @ticket 61257
+	 */
+	public function test_expects_closer_special_tags( $tag_name ) {
+		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}></{$tag_name}>" );
+
+		$found_tag = $processor->next_token();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
+		}
+
+		$this->assertTrue(
+			$found_tag,
+			"Could not find first {$tag_name}."
+		);
+
+		$this->assertFalse(
+			$processor->expects_closer(),
+			"Incorrectly expected a closer on special tag {$tag_name}."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_special_tags() {
+		return array(
+			'IFRAME'   => array( 'IFRAME' ),
+			'NOEMBED'  => array( 'NOEMBED' ),
+			'NOFRAMES' => array( 'NOFRAMES' ),
+			'SCRIPT'   => array( 'SCRIPT' ),
+			'STYLE'    => array( 'STYLE' ),
+			'TEXTAREA' => array( 'TEXTAREA' ),
+			'TITLE'    => array( 'TITLE' ),
+			'XMP'      => array( 'XMP' ),
+		);
+	}
+
+	/**
+	 * Test the behavior of expects_closer with void tags.
+	 *
+	 * @ticket 61257
+	 *
+	 * @dataProvider data_void_tags
+	 *
+	 * @param string $tag_name Name of void tag under test.
+	 */
+	public function test_expects_closer_void_tags( $tag_name ) {
+		$processor = WP_HTML_Processor::create_fragment( "<{$tag_name}>" );
+
+		$found_tag = $processor->next_token();
+
+		if ( WP_HTML_Processor::ERROR_UNSUPPORTED === $processor->get_last_error() ) {
+			$this->markTestSkipped( "Tag {$tag_name} is not supported." );
+		}
+
+		$this->assertTrue(
+			$found_tag,
+			"Could not find first {$tag_name}."
+		);
+
+		$this->assertFalse(
+			$processor->expects_closer(),
+			"Incorrectly expected a closer on void tag {$tag_name}."
+		);
+	}
+
+	/**
 	 * Ensure non-nesting tags do not nest when processing tokens.
 	 *
 	 * @ticket 60382
