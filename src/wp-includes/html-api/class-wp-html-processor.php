@@ -1268,7 +1268,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.6.0
 	 *
-	 * @return int
+	 * @return int The depth of the currently-matched element.
 	 */
 	public function get_current_depth() {
 		return $this->state->stack_of_open_elements->count();
