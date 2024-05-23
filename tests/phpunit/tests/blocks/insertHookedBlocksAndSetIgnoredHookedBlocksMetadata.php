@@ -9,6 +9,7 @@
  *
  * @group blocks
  * @group block-hooks
+ * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
  */
 class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends WP_UnitTestCase {
 	const ANCHOR_BLOCK_TYPE       = 'tests/anchor-block';
@@ -39,7 +40,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	}
 
 	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 * @ticket 59574
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_returns_correct_markup_and_sets_metadata() {
 		$anchor_block = array(
@@ -60,7 +61,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	}
 
 	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 * @ticket 59574
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_if_block_is_ignored() {
 		$anchor_block = array(
@@ -86,7 +87,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	}
 
 	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 * @ticket 59574
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_if_other_block_is_ignored() {
 		$anchor_block = array(
@@ -117,7 +118,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	}
 
 	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 * @ticket 59574
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_filter_can_suppress_hooked_block() {
 		$anchor_block = array(
@@ -158,7 +159,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	}
 
 	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 * @ticket 59574
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_added_by_context_aware_filter() {
 		$anchor_block = array(
@@ -201,7 +202,7 @@ class Tests_Blocks_InsertHookedBlocksAndSetIgnoredHookedBlocksMetadata extends W
 	}
 
 	/**
-	 * @covers ::insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata
+	 * @ticket 59574
 	 */
 	public function test_insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata_for_block_suppressed_by_filter() {
 		$anchor_block = array(
